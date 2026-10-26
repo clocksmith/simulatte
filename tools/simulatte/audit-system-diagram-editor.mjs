@@ -58,11 +58,13 @@ for (const viewport of viewports.filter(v => requestedWidth === null || v.width 
       const panel = e.closest('.palette-panel,.properties-panel');
       if (panel?.inert) return [panel.classList.contains('palette-panel') ? '#palette-toggle' : '#properties-toggle'];
       const controls = !panel && !e.closest('.drawer-toggle') ? [...document.querySelectorAll('.drawer-toggle[aria-expanded="true"]')].map(b => '#' + b.id) : [];
-      const menu = e.closest('#document-menu,#edit-menu,#document-panel');
-      if (menu && !menu.open && e.tagName !== 'SUMMARY') controls.push('#' + menu.id + ' > summary');
+      if (e.closest('#diagram') && document.getElementById('workspace-menu').open) controls.push('#workspace-menu > summary');
       return controls;
     })()`);
     for (const control of controls) await tapAt(await point(control));
+    const disclosures = await evaluate(`(() => {const e=document.querySelector(${JSON.stringify(selector)}), result=[];
+      for(let p=e?.parentElement;p;p=p.parentElement) if(p.tagName==='DETAILS' && !p.open && e!==p.querySelector(':scope > summary')) result.unshift('#'+p.id+' > summary');return result;})()`);
+    for (const control of disclosures) await tapAt(await point(control));
     if (controls.length) await evaluate(`Promise.all([...document.querySelectorAll('.palette-panel,.properties-panel')].flatMap(p => p.getAnimations()).map(a => a.finished.catch(() => {})))`);
   }
 
@@ -157,10 +159,10 @@ for (const viewport of viewports.filter(v => requestedWidth === null || v.width 
 
   function nodeSelector(id) { return `.sd-node[data-node-id="${id}"]`; }
   async function selectNode(id) {
-    let p = await point(nodeSelector(id) + ' .sd-node-body', { ratioY: .2, scroll: false });
+    let p = await point(nodeSelector(id) + ' .sd-node-body', { ratioY: .5, scroll: false });
     if (p.x < 0 || p.x > viewport.width || p.y < 0 || p.y > viewport.height) {
       await button('Fit');
-      p = await point(nodeSelector(id) + ' .sd-node-body', { ratioY: .2, scroll: false });
+      p = await point(nodeSelector(id) + ' .sd-node-body', { ratioY: .5, scroll: false });
     }
     await tapAt(p);
   }
@@ -174,7 +176,8 @@ for (const viewport of viewports.filter(v => requestedWidth === null || v.width 
         return ['from','to'].map((side,i)=>{
           const end=edge[side], dot=document.querySelector('[data-port-id="'+CSS.escape(end.portId)+'"][data-node-id="'+CSS.escape(end.nodeId)+'"]').parentElement.querySelector('.sd-port-dot');
           const matrix=dot.getScreenCTM(), radius=Number(dot.getAttribute('r'));
-          const expected=new DOMPoint(i ? -radius : radius,0).matrixTransform(matrix);
+          const normal={left:[-1,0],right:[1,0],top:[0,-1],bottom:[0,1]}[dot.parentElement.dataset.side];
+          const expected=new DOMPoint(normal[0]*radius,normal[1]*radius).matrixTransform(matrix);
           const actual=path.getPointAtLength(i ? path.getTotalLength() : 0).matrixTransform(path.getScreenCTM());
           return {edge:edge.id,side,error:Math.hypot(expected.x-actual.x,expected.y-actual.y)};
         });
@@ -199,7 +202,9 @@ for (const viewport of viewports.filter(v => requestedWidth === null || v.width 
     const surface = await evaluate(`(() => {const r=document.getElementById('diagram').getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height};})()`);
     assert.deepEqual(surface, {x:0,y:0,...viewport}, 'drawing owns the whole viewport');
     row.checks.fullViewport = true;
-    assert.ok(await evaluate(`document.querySelector('.workspace-toolbar').getBoundingClientRect().bottom < ${viewport.width < 700 ? 160 : 145}`), 'floating HUD stays compact');
+    const visibleActions = await evaluate(`[...document.querySelectorAll('button,summary')].filter(e=>!e.closest('#diagram')&&e.getBoundingClientRect().width>0&&getComputedStyle(e).visibility==='visible').map(e=>e.textContent.trim())`);
+    assert.deepEqual(visibleActions.sort(), ['Components','Menu','Properties'].sort(), 'only three editor controls remain on the closed canvas');
+    row.checks.minimalCanvasControls = true;
     const beforeDrawer = await evaluate('SimulatteSystemDiagramEditor.viewport()');
     await click('#palette-toggle');
     assert.equal(await evaluate('document.getElementById("palette-drawer").inert'), false);
@@ -223,6 +228,17 @@ for (const viewport of viewports.filter(v => requestedWidth === null || v.width 
     const initialDoc = await doc();
     assert.ok(initialDoc.nodes.length >= 3, 'preset loads components');
     row.checks.presetLoaded = true;
+    const routing = await evaluate(`(() => {
+      const boxes=[...document.querySelectorAll('.sd-node-body,.sd-note-body,.sd-group.is-collapsed .sd-group-body')].map(e=>e.getBoundingClientRect());
+      const edges=[...document.querySelectorAll('.sd-edge')];let intersections=0;
+      for(const edge of edges){const path=edge.querySelector('.sd-edge-line'),matrix=path.getScreenCTM(),points=JSON.parse(edge.dataset.routePoints).map(p=>new DOMPoint(p.x,p.y).matrixTransform(matrix));
+        for(let i=1;i<points.length;i++){const a=points[i-1],b=points[i];
+          for(const r of boxes) if(Math.abs(a.y-b.y)<.01 ? a.y>r.top+.1&&a.y<r.bottom-.1&&Math.max(a.x,b.x)>r.left+.1&&Math.min(a.x,b.x)<r.right-.1 : a.x>r.left+.1&&a.x<r.right-.1&&Math.max(a.y,b.y)>r.top+.1&&Math.min(a.y,b.y)<r.bottom-.1) intersections++;
+        }
+      }return {edges:edges.length,blocked:edges.filter(e=>e.dataset.routeBlocked==='true').length,intersections};
+    })()`);
+    assert.ok(routing.edges>0);assert.equal(routing.blocked,0);assert.equal(routing.intersections,0,'preset edges avoid visible component bodies');
+    row.checks.obstacleAwareRouting = routing;
     await shot('01-preset');
 
     // 2. EDIT: add component from palette, move coordinates, edit parameters

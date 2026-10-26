@@ -1,31 +1,51 @@
 {
   "source": {
-    "head": "9bc86ad36aaa25f0207417fb92bf73882d3f343f",
-    "capturedAt": "2026-10-25T20:29:07.629Z",
+    "head": "1b963e11d41afae354e0d477d36ceab5419c2da6",
+    "capturedAt": "2026-10-26T11:22:15.558Z",
     "modifiedSources": {
       "public/index.html": {
-        "sha256": "07e962a1281f3360b3fc9d42aed4262e0ac055a0b799aed6c4a55969e8d9553a",
-        "modifiedAt": "2026-10-25T20:25:55.793Z"
+        "sha256": "f78597a53fed09768a612081c073f5c9e2a8d8b89df2c768c94658bdaa9f3dbd",
+        "modifiedAt": "2026-10-25T20:29:34.501Z"
       },
       "public/simulatte/distributed-repair/index.html": {
-        "sha256": "1e26514d3203c1696ce62117d9ceee0ba236cdb2852598c7e2555fcb87b5b89b",
-        "modifiedAt": "2026-10-25T20:25:55.793Z"
+        "sha256": "7f38203db8179d82e75d6bc44a8b5c25cbb7e6c54f74091f40f52ecec57b56cd",
+        "modifiedAt": "2026-10-25T20:29:34.502Z"
       },
       "public/simulatte/distributed-repair/repair.html": {
-        "sha256": "4f145208700c975dadd803ca927d976ed968e94a5008e61480a7cff79fedbc3a",
-        "modifiedAt": "2026-10-25T20:25:55.794Z"
+        "sha256": "7d517639ab86a91ac991178a2c5a4adadf9a560239488a99ed7c223057043faa",
+        "modifiedAt": "2026-10-25T20:29:34.502Z"
       },
       "public/simulatte/field-experiments/index.html": {
-        "sha256": "c20bbd5503a56d2c38669ac8678f2bf4bb95a33c6aad14868a9a7b952f206ced",
-        "modifiedAt": "2026-10-25T20:25:55.793Z"
+        "sha256": "ff016043cf8ce68df490debc32692b8714cc6b5dbdc91fe236370e3d256413dd",
+        "modifiedAt": "2026-10-25T20:29:34.501Z"
+      },
+      "public/simulatte/system-diagram/edge-routing.js": {
+        "sha256": "75ed6aa11cbb994836584183834c397561daefc1c8e3e989efe27b7c693abba6",
+        "modifiedAt": "2026-10-26T11:19:47.182Z"
+      },
+      "public/simulatte/system-diagram/editor-canvas-render.js": {
+        "sha256": "db5c451c9366c13495328faa22cdeca505d51e74f892f0cd085a33f3fee2ec51",
+        "modifiedAt": "2026-10-26T11:18:40.740Z"
+      },
+      "public/simulatte/system-diagram/editor-canvas.js": {
+        "sha256": "9a04159fe277c922f3252a6f6272a15f50781e1908b2b091965444401f0a2fea",
+        "modifiedAt": "2026-10-26T11:20:11.334Z"
+      },
+      "public/simulatte/system-diagram/editor-shell.js": {
+        "sha256": "ab317448b3d76908ff4f36ff8399bb2410ccf277e4152143da21741d71cfd270",
+        "modifiedAt": "2026-10-26T11:16:04.115Z"
       },
       "public/simulatte/system-diagram/index.html": {
-        "sha256": "1f93d356bea10277108f19e014782ebcdb18f23fcb76d0667461c12f7340238a",
-        "modifiedAt": "2026-10-25T20:28:03.687Z"
+        "sha256": "448cf940d0dd9bf11844731ae5c9cf5241a5301c6210d5ea6dece1b80bf43741",
+        "modifiedAt": "2026-10-26T11:16:04.079Z"
+      },
+      "public/simulatte/system-diagram/style.css": {
+        "sha256": "295a242c001a48f8e80b84d5280aab0ca0a868a2d5e0f51c474f1c2e06b8ff20",
+        "modifiedAt": "2026-10-26T11:21:52.007Z"
       },
       "public/version.json": {
-        "sha256": "59b6358cad2579b212d559d1ad7b3391b2c7e868c5479b2ea6aa778b6276b886",
-        "modifiedAt": "2026-10-25T20:25:55.794Z"
+        "sha256": "e813ffb7f0821751a79bb5743d8041fbd619d81fb652f2c274a12451747966e9",
+        "modifiedAt": "2026-10-25T20:29:34.503Z"
       }
     },
     "boundary": "Local served public output with this working-tree delta; not a deployed release or physical GPU/acoustic validation."
@@ -40,8 +60,14 @@
       "checks": {
         "titleAndReady": true,
         "fullViewport": true,
+        "minimalCanvasControls": true,
         "drawerDismissalAndStableCamera": true,
         "presetLoaded": true,
+        "obstacleAwareRouting": {
+          "edges": 7,
+          "blocked": 0,
+          "intersections": 0
+        },
         "nodeEditAndCoordinates": true,
         "exactConnectionEndpoints": true,
         "portBoundaryAttachments": true,
@@ -74,7 +100,7 @@
         "1440-09-reloaded.png",
         "1440-10-exported.png"
       ],
-      "build": "9bc86ad36aaa25f0207417fb92bf73882d3f343f-5e85ee4e72db",
+      "build": "1b963e11d41afae354e0d477d36ceab5419c2da6-18f130d00639",
       "lastAction": {
         "button": "Import JSON"
       },
@@ -88,8 +114,14 @@
       "checks": {
         "titleAndReady": true,
         "fullViewport": true,
+        "minimalCanvasControls": true,
         "drawerDismissalAndStableCamera": true,
         "presetLoaded": true,
+        "obstacleAwareRouting": {
+          "edges": 7,
+          "blocked": 0,
+          "intersections": 0
+        },
         "nodeEditAndCoordinates": true,
         "exactConnectionEndpoints": true,
         "portBoundaryAttachments": true,
@@ -122,7 +154,7 @@
         "390-09-reloaded.png",
         "390-10-exported.png"
       ],
-      "build": "9bc86ad36aaa25f0207417fb92bf73882d3f343f-5e85ee4e72db",
+      "build": "1b963e11d41afae354e0d477d36ceab5419c2da6-18f130d00639",
       "lastAction": {
         "button": "Import JSON"
       },

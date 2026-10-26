@@ -9,9 +9,14 @@ convergence. It is preserved in Git history, not shipped as a competing engine.
 
 The editor fills the viewport. Components and Properties edge tabs open drawers
 without moving the diagram; Escape or a canvas-background click dismisses them.
-File and Edit menus keep the same actions reachable on narrow screens. Fit frames
+One closed Menu contains document actions, edits, presets, zoom and JSON tools on
+desktop and narrow screens. Fit frames
 the whole architecture below the floating controls, and bounded navigation keeps
-visible content in reach even when components are far apart.
+visible content in reach even when components are far apart. Typed ports choose
+facing sides from the connected components' geometry. Rounded orthogonal paths
+minimize Manhattan distance plus a bend penalty while avoiding visible component
+and note bodies. Moving and folding recompute the presentation without changing
+endpoint identities. Overlapping nodes that enclose a port mark the route as blocked.
 
 Save records the document, camera and detached subsystem draft in this browser's
 storage. Reload restores that record automatically. Storage errors remain visible

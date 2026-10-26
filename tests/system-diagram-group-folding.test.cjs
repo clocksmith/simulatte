@@ -169,6 +169,17 @@ function tap(fixture, target, point, values = {}) {
   fixture.canvas.svg.dispatch(event('pointerup', target, { clientX: point.x, clientY: point.y, ...values }));
 }
 
+test('a browser-adjusted touch target cannot steal a visible node body for a nearby port', () => {
+  const m=model();apply(m,{type:'setPositions',positions:{source:{x:260,y:0},api:{x:260,y:220}}});
+  const f=canvas(m),p=f.canvas.portPosition('api','in');assert.equal(p.side,'top');
+  f.canvas.setView({x:0,y:0,zoom:1});f.doc.flush();
+  const body=f.canvas.nodeElement('api').querySelector('.sd-node-body'),port=f.canvas.nodeElement('api').querySelector('.sd-port-hit');
+  f.doc.hit=body;const v=f.canvas.getView(),point={clientX:(p.x-v.x)*v.zoom,clientY:(p.y+14-v.y)*v.zoom,pointerType:'touch'};
+  f.canvas.svg.dispatch(event('pointerdown',port,point));f.canvas.svg.dispatch(event('pointerup',port,point));
+  assert.equal(JSON.parse(f.host.dataset.inputReceipt).hit.type,'node');assert.deepEqual(f.model.selection.nodes,['api']);
+  assert.equal(f.host.classList.contains('is-connecting'),false);f.canvas.dispose();
+});
+
 test('SVG folding removes hidden draw and overlay targets, preserves crossing path IDs and restores editable nodes', () => {
   const m = model(), r = renderer(m), internal = r.items.edges.get('internal').path;
   const from = r.portPosition('api', 'in'); fold(m); r.render();

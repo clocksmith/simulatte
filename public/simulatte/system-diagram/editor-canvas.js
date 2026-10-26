@@ -187,8 +187,9 @@
       // A visible wire or reconnect handle must not be stolen by expanded nearby port targets.
       if (native?.type === 'groupToggle') return native;
       if (atPoint.type === 'reconnect' || atPoint.type === 'groupToggle' || !connecting && atPoint.type === 'edge') return atPoint;
-      const physical = native?.type === 'port' ? native : atPoint;
+      const physical = !connecting && atPoint.type === 'node' ? atPoint : native?.type === 'port' ? native : atPoint;
       if (physical.type === 'reconnect') return physical;
+      if (!connecting && physical.type === 'node') return physical;
       const world = screenToWorld(client), touch = win.matchMedia?.('(pointer: coarse)').matches;
       let nearest = null, distance = touch ? 22 : 12;
       for (const p of visiblePorts()) {
@@ -231,8 +232,8 @@
           item = { el: g, hit: el(doc, 'circle', { class: 'sd-reconnect-hit' }), dot: el(doc, 'circle', { class: 'sd-reconnect-dot', r: 6 }) };
           g.append(item.hit, item.dot); layers.interaction.append(g); reconnectHandles.set(key, item);
         }
-        const offset = touch ? 36 / view.zoom : 16, x = p.x + (side === 'from' ? offset : -offset);
-        item.el.setAttribute('transform', `translate(${x} ${p.y})`); item.hit.setAttribute('r', touch ? 22 / view.zoom : 10);
+        const offset = touch ? 36 / view.zoom : 16, x = p.x + p.nx * offset, y = p.y + p.ny * offset;
+        item.el.setAttribute('transform', `translate(${x} ${y})`); item.hit.setAttribute('r', touch ? 22 / view.zoom : 10);
       }
       for (const [key, item] of reconnectHandles) if (!used.has(key)) { item.el.remove(); reconnectHandles.delete(key); }
     }

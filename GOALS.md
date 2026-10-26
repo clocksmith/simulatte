@@ -42,8 +42,10 @@ Keep the three established featured experiences understandable through interacti
 
 System Diagram Simulator at `/system-diagram` is primarily a system architecture
 creator whose connections execute a synthetic distributed workload. Give the
-canvas the full viewport, with floating controls and edge-tab drawers for the
-component palette and contextual property inspector. Keep pan and zoom bounded,
+canvas the full viewport, with a single closed action menu and edge-tab drawers for
+the component palette and contextual property inspector. Choose connection sides
+from component geometry and route rounded orthogonal links around node bodies,
+minimizing distance and unnecessary bends. Keep pan and zoom bounded,
 provide Fit to View, attach typed connections at port boundaries, and restore
 explicitly saved documents and their camera after browser reload. Support moving,
 selecting, deleting, duplicating, connecting and

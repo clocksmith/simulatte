@@ -1,8 +1,8 @@
 (function (root, factory) {
   const node = typeof module === 'object' && module.exports;
-  const api = factory(node ? require('./diagram.js') : root.SimulatteSystemDiagramDocument, node ? require('./glyphs.js') : root.SimulatteSystemDiagramGlyphs);
+  const api = factory(node ? require('./diagram.js') : root.SimulatteSystemDiagramDocument, node ? require('./glyphs.js') : root.SimulatteSystemDiagramGlyphs, node ? require('./edge-routing.js') : root.SimulatteSystemDiagramRouting);
   if (node) module.exports = api; else root.SimulatteSystemDiagramCanvasRender = api;
-})(globalThis, function (D, Glyphs) {
+})(globalThis, function (D, Glyphs, Routing) {
   'use strict';
   // Keyed, incremental SVG rendering and world geometry for SimulatteSystemDiagramCanvas.
   const SVG_NS = 'http://www.w3.org/2000/svg';
@@ -85,7 +85,7 @@
     const E = config.editor, W = E.nodeWidth, H = E.nodeHeight;
     const items = { nodes: new Map(), edges: new Map(), groups: new Map(), notes: new Map() };
     const classCache = new Map();
-    let classKey = '', presentationDoc = null, projection = null;
+    let classKey = '', presentationDoc = null, projection = null, geometryDoc = null, geometry = null;
     function presentation() {
       if (presentationDoc !== model.diagram) { presentationDoc = model.diagram; projection = groupPresentation(presentationDoc); }
       return projection;
@@ -100,46 +100,58 @@
       return classCache.get(classId);
     }
     const findNode = id => model.diagram.nodes.find(n => n.id === id);
-    function portLayout(ports) {
-      const ins = ports.filter(p => p.direction === 'in'), outs = ports.filter(p => p.direction === 'out');
-      const place = (list, x) => list.map((p, i) => ({ port: p, x, y: (H * (i + 1)) / (list.length + 1), hit: Math.min(PORT_HIT_MAX, H / (list.length + 1) / 2 + 2) }));
-      return [...place(ins, 0), ...place(outs, W)];
+    function geometryForDocument() {
+      if (geometryDoc === model.diagram) return geometry;
+      const visible = presentation(), entities = new Map(), peers = new Map(), ports = new Map();
+      for (const n of visible.nodes) entities.set(n.id, {box: {x: n.x, y: n.y, w: W, h: H}, ports: classInfo(n.classId).ports.map(p => ({...p, nodeId: n.id, portId: p.id}))});
+      for (const entry of visible.groups.values()) if (entry.group.collapsed) entities.set(entry.group.id, {box: entry.box, ports: entry.ports.map(p => ({...p, id: `${p.nodeId}.${p.portId}`}))});
+      const owner = end => visible.hidden.get(end.nodeId)?.group.id || end.nodeId;
+      for (const edge of visible.edges) for (const [end, other] of [[edge.from, edge.to], [edge.to, edge.from]]) {
+        const box = entities.get(owner(other))?.box; if (!box) continue;
+        const key = `${end.nodeId}.${end.portId}`; if (!peers.has(key)) peers.set(key, []);
+        peers.get(key).push({x: box.x + box.w / 2, y: box.y + box.h / 2});
+      }
+      for (const entity of entities.values()) {
+        entity.layout = Routing.layoutPorts(entity.box, entity.ports, peers);
+        for (const slot of entity.layout) ports.set(`${slot.port.nodeId}.${slot.port.portId}`, slot);
+      }
+      for (const proxy of visible.proxies.values()) Object.assign(proxy, ports.get(`${proxy.nodeId}.${proxy.portId}`));
+      geometryDoc = model.diagram;
+      return geometry = {entities, ports, routes: new Map(), obstacles: [...entities.values()].map(e => e.box).concat(model.diagram.notes.map(noteBox))};
+    }
+    function portLayout(ports, nodeId) {
+      const entity = nodeId && geometryForDocument().entities.get(nodeId);
+      return entity ? entity.layout.map(s => ({...s, x: s.x - entity.box.x, y: s.y - entity.box.y}))
+        : Routing.layoutPorts({x: 0, y: 0, w: W, h: H}, ports);
     }
     function portPosition(nodeId, portId) {
-      const n = findNode(nodeId);
-      if (!n) return null;
-      const visible = presentation();
-      if (visible.hidden.has(nodeId)) { const p = visible.proxies.get(`${nodeId}.${portId}`); return p ? { x: p.x, y: p.y } : null; }
-      const slot = portLayout(classInfo(n.classId).ports).find(s => s.port.id === portId);
-      return slot ? { x: n.x + slot.x, y: n.y + slot.y } : null;
+      const p = geometryForDocument().ports.get(`${nodeId}.${portId}`);
+      return p ? {x: p.x, y: p.y, nx: p.nx, ny: p.ny, side: p.side} : null;
     }
     function nodeBox(id) { const n = findNode(id); return n && !presentation().hidden.has(id) ? { x: n.x, y: n.y, w: W, h: H } : null; }
     function groupBox(id) { return presentation().groups.get(id)?.box || null; }
     function visiblePorts() {
-      return [...presentation().nodes.flatMap(n => portLayout(classInfo(n.classId).ports).map(s => ({ nodeId: n.id, portId: s.port.id, direction: s.port.direction, x: n.x + s.x, y: n.y + s.y }))), ...presentation().proxies.values()];
+      return [...geometryForDocument().ports.values()].map(s => ({...s, nodeId: s.port.nodeId, portId: s.port.portId, direction: s.port.direction}));
     }
     function portElement(nodeId, portId) { return items.nodes.get(nodeId)?.portEls.get(portId) || items.groups.get(presentation().hidden.get(nodeId)?.group.id)?.portEls.get(`${nodeId}.${portId}`) || null; }
     function portElements() { return [...items.nodes.values(), ...items.groups.values()].flatMap(item => [...item.portEls.values()]); }
     function noteBox(note) { const w = note.w || NOTE_WIDTH; return { x: note.x, y: note.y, w, h: wrapLines(note.text, w).length * NOTE_LINE + 16 }; }
-    // Forward edges get a clean cubic bezier; backward/looping links route cleanly around rather than cutting through nodes.
+    // Connection previews use the same geometry as committed edges.
     function curve(a, b) {
-      a = {x: a.x + PORT_DOT, y: a.y}; b = {x: b.x - PORT_DOT, y: b.y};
-      if (b.x >= a.x + 32) {
-        const dx = Math.max(36, (b.x - a.x) * 0.45);
-        return `M${a.x} ${a.y}C${a.x + dx} ${a.y} ${b.x - dx} ${b.y} ${b.x} ${b.y}`;
-      }
-      const exitX = a.x + 40, enterX = b.x - 40, midX = (a.x + b.x) / 2;
-      const targetY = Math.abs(b.y - a.y) < 60 ? Math.max(a.y, b.y) + 56 : (a.y + b.y) / 2;
-      return `M${a.x} ${a.y}C${exitX} ${a.y} ${exitX} ${targetY} ${midX} ${targetY}C${enterX} ${targetY} ${enterX} ${b.y} ${b.x} ${b.y}`;
+      return Routing.path(Routing.route(a, b, geometryForDocument().obstacles).points);
     }
-    function curveLabelPos(a, b) {
-      if (b.x >= a.x + 32) return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 - 8 };
-      const targetY = Math.abs(b.y - a.y) < 60 ? Math.max(a.y, b.y) + 56 : (a.y + b.y) / 2;
-      return { x: (a.x + b.x) / 2, y: targetY - 8 };
-    }
-    function edgePath(edge) {
+    function edgeRoute(edge) {
+      const geometry = geometryForDocument(); if (geometry.routes.has(edge.id)) return geometry.routes.get(edge.id);
       const a = portPosition(edge.from.nodeId, edge.from.portId), b = portPosition(edge.to.nodeId, edge.to.portId);
-      return a && b ? curve(a, b) : '';
+      const route = a && b ? Routing.route(a, b, geometry.obstacles) : {points: [], blocked: true};
+      geometry.routes.set(edge.id, route); return route;
+    }
+    function placePort(element, slot) {
+      element.setAttribute('transform', `translate(${slot.x} ${slot.y})`); element.dataset.side = slot.side;
+      element.querySelector('.sd-port-hit').setAttribute('r', slot.hit || 10);
+      const text = element.querySelector('.sd-port-label');
+      text.setAttribute('x', slot.nx ? slot.nx * 10 : 0); text.setAttribute('y', slot.ny ? slot.ny * 14 : 4);
+      text.setAttribute('text-anchor', slot.nx ? (slot.nx > 0 ? 'start' : 'end') : 'middle');
     }
 
     function createNode(id) {
@@ -160,7 +172,7 @@
     }
     function buildPorts(item, ports) {
       item.ports.replaceChildren(); item.portEls.clear();
-      for (const slot of portLayout(ports)) {
+      for (const slot of portLayout(ports, item.id)) {
         const out = slot.port.direction === 'out';
         const portLabel = `${slot.port.label}, ${slot.port.direction}, ${(slot.port.accepts || slot.port.emits).join(', ')}`;
         const g = el(doc, 'g', { class: 'sd-port', 'data-port': slot.port.id, 'data-direction': slot.port.direction, role: 'group', 'aria-label': portLabel, transform: `translate(${slot.x} ${slot.y})` });
@@ -169,7 +181,7 @@
           el(doc, 'circle', { class: 'sd-port-dot', r: PORT_DOT }),
           el(doc, 'text', { class: 'sd-port-label', x: out ? 10 : -10, y: 4, 'text-anchor': out ? 'start' : 'end' }, slot.port.label),
         );
-        item.ports.append(g); item.portEls.set(slot.port.id, g);
+        placePort(g, slot); item.ports.append(g); item.portEls.set(slot.port.id, g);
       }
     }
     function syncNodes(d, usedPorts) {
@@ -189,7 +201,9 @@
           item.el.setAttribute('aria-description', info.description);
           item.title.textContent = `${n.label || info.label} · ${info.label}\n${info.description}`;
         }
-        if (item.kernel !== info.kernel) { item.kernel = info.kernel; buildPorts(item, info.ports); }
+        const portsSignature = JSON.stringify(info.ports);
+        if (item.kernel !== portsSignature) { item.kernel = portsSignature; buildPorts(item, info.ports); }
+        for (const slot of portLayout(info.ports, n.id)) placePort(item.portEls.get(slot.port.id), slot);
         const pos = `${n.x},${n.y}`;
         if (item.pos !== pos) { item.pos = pos; item.el.setAttribute('transform', `translate(${n.x} ${n.y})`); }
         for (const port of info.ports) item.portEls.get(port.id)?.classList.toggle('is-open', port.required && !usedPorts.has(`${n.id}.${port.id}`));
@@ -209,14 +223,17 @@
         const description = `${edge.label ? edge.label + ': ' : ''}${edge.from.nodeId}.${edge.from.portId} to ${edge.to.nodeId}.${edge.to.portId}`;
         item.el.setAttribute('aria-label', `Link ${edge.id}: ${description}`);
         item.title.textContent = description;
-        const path = edgePath(edge);
+        const route = edgeRoute(edge), path = Routing.path(route.points);
+        item.title.textContent = description + (route.blocked ? '. Route blocked by overlapping components; move them apart.' : '');
+        item.el.dataset.routeBlocked = String(route.blocked);
+        item.el.dataset.routePoints = JSON.stringify(route.points);
         if (item.d !== path) { item.d = path; item.hit.setAttribute('d', path); item.path.setAttribute('d', path); }
         const a = portPosition(edge.from.nodeId, edge.from.portId), b = portPosition(edge.to.nodeId, edge.to.portId);
         const labelSig = `${path}\u0000${edge.label || ''}`;
         if (item.labelSig !== labelSig) {
           item.labelSig = labelSig;
           if (a && b) {
-            const pos = curveLabelPos(a, b);
+            const pos = Routing.label(route.points);
             item.label.setAttribute('x', pos.x); item.label.setAttribute('y', pos.y);
           }
           fitText(item.label, edge.label || '', 180);
@@ -247,6 +264,7 @@
           item.toggle.append(el(doc, 'rect', { class: 'sd-group-toggle-bg', width: FOLD_BUTTON, height: FOLD_BUTTON, rx: 3 }), item.toggleText);
           g.append(item.body, item.hit, item.tab, item.summary, item.status, item.handle, item.toggle, item.ports); layers.groups.append(g); items.groups.set(group.id, item);
         }
+        geometryForDocument();
         const entry = presentation().groups.get(group.id), box = entry.box, collapsed = Boolean(group.collapsed);
         const sig = JSON.stringify([group, entry.members, entry.ports, entry.members.map(id => [findNode(id).label, findNode(id).classId])]);
         if (item.sig === sig) continue;
@@ -281,6 +299,7 @@
           const g = el(doc, 'g', { class: 'sd-port sd-proxy-port', 'data-node-id': proxy.nodeId, 'data-port': proxy.portId, 'data-direction': proxy.direction, transform: `translate(${proxy.x - box.x} ${proxy.y - box.y})` });
           g.append(el(doc, 'title', {}, description), el(doc, 'circle', { class: 'sd-port-hit', r: 10, tabindex: 0, role: 'button', 'aria-label': description, 'data-node-id': proxy.nodeId, 'data-port-id': proxy.portId }),
             el(doc, 'circle', { class: 'sd-port-dot', r: PORT_DOT }), el(doc, 'text', { class: 'sd-port-label', x: out ? 10 : -10, y: 4, 'text-anchor': out ? 'start' : 'end' }, label));
+          placePort(g, {...proxy, x: proxy.x - box.x, y: proxy.y - box.y});
           item.ports.append(g); item.portEls.set(`${proxy.nodeId}.${proxy.portId}`, g);
         }
       }
