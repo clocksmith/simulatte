@@ -131,9 +131,9 @@
         host.append(el('p', 'properties-note', 'Edit the internal graph on the canvas. Ports map directly to internal behavior. Existing instances stay pinned until upgraded.'));
         const ports = el('details', 'subsystem-ports'); ports.append(el('summary', '', 'External ports')); host.append(ports); renderPorts(ports);
         const actions = el('div', 'properties-actions'); host.append(actions);
-        button(actions, 'Publish new version', () => { const definition = session.publish(readPorts()); render(); canvas.fit(); message(`Published ${definition.label} v${definition.version}. Upgrade instances explicitly.`); }, 'primary');
+        button(actions, 'Publish new version', () => { const definition = session.publish(readPorts()); render(); canvas.fit({ readable: true }); message(`Published ${definition.label} v${definition.version}. Upgrade instances explicitly.`); }, 'primary');
         button(actions, 'Save draft', () => { if (onSaveDraft) onSaveDraft(); else message('Draft saved locally.'); });
-        button(actions, 'Cancel definition edits', () => { session.cancel(); render(); canvas.fit(); message('Returned without publishing definition edits.'); });
+        button(actions, 'Cancel definition edits', () => { session.cancel(); render(); canvas.fit({ readable: true }); message('Returned without publishing definition edits.'); });
       }
       const name = field(host, 'Subsystem name', 'New subsystem', { id: 'subsystem-name' });
       button(host, 'Save selection as subsystem', () => {
@@ -142,7 +142,7 @@
         const slug = name.value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40) || 'subsystem';
         const used = new Set((model.diagram.subsystems || []).map(d => d.id)); let id = slug, suffix = 2;
         while (used.has(id)) id = `${slug}-${suffix++}`;
-        apply({ type: 'saveSubsystem', nodeIds: selected, definitionId: id, label: name.value }); canvas.fit();
+        apply({ type: 'saveSubsystem', nodeIds: selected, definitionId: id, label: name.value }); canvas.fit({ readable: true });
       });
       const definitions = model.diagram.subsystems || [];
       const choose = field(host, 'Saved version', definitions.length ? `subsystem.${definitions[0].id}@${definitions[0].version}` : '', { id: 'subsystem-library', choices: definitions.map(d => ({ id: `subsystem.${d.id}@${d.version}`, label: `${d.label} v${d.version}` })) });

@@ -121,10 +121,7 @@
     canvas,
     library,
     config,
-    onStepChange: () => {
-      initialDocSig = documentSignature(model.diagram);
-      render();
-    },
+    onStepChange: () => render(),
     onMessage: message,
   });
 
@@ -253,7 +250,7 @@
       message(`Recovered parent diagram and subsystem draft: ${subsystemDraft.label || subsystemDraft.classId}`);
     } else {
       canvas.render();
-      canvas.setView(diagram.view);
+      canvas.setView(diagram.view, {restore: true});
       canvas.flush();
       render();
       interviewStepper?.onDocumentLoaded(diagram);
@@ -644,7 +641,9 @@
 
   // Subsystem modularity & nested editing
   const subsystemHost = el('section', 'subsystem-library wui-control-stack');
-  $('palette').before(subsystemHost);
+  const subsystemTools = el('details', 'lucyd-subsystem-tools');
+  subsystemTools.id = 'subsystem-tools'; subsystemTools.append(el('summary', '', 'Subsystem tools'), subsystemHost);
+  $('palette').after(subsystemTools);
   const subsystemEditor = globalThis.SimulatteSystemDiagramSubsystemEditor.create({
     model, library, config, host: subsystemHost, el, field, button, apply, canvas, message, onOpen: () => {},
     onSaveDraft: () => saveLocal(),
@@ -943,7 +942,7 @@
     },
     onMessage: message,
   });
-  button('document-actions', 'Private collection', () => privateCollection.open());
+  button('document-actions', 'Private collection (Databricks IC6)', () => privateCollection.open());
 
   globalThis.SimulatteSystemDiagramEditor = Object.freeze({
     document: () => clone(model.diagram),

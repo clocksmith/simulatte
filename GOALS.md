@@ -40,10 +40,14 @@ Keep the three established featured experiences understandable through interacti
 
 ## Authorized World system diagram editor
 
-System Diagram Simulator at `/system-diagram` is primarily a system architecture
-creator whose connections execute a synthetic distributed workload. Give the
-canvas the full viewport, with a single closed action menu and edge-tab drawers for
-the component palette and contextual property inspector. Choose connection sides
+Lucyd at `/system-diagram` is a system architecture creator whose connections
+execute a synthetic distributed workload. Start with an empty canvas and a compact
+task chooser. Keep a persistent component rail on the left and a contextual
+property drawer on the right; the canvas fills the remaining viewport. Show only
+the current interview question, with details and example architectures available
+on request. Previous and Next retain editable stage snapshots; selecting a task
+never fills in its solution. Attribute published interview exercises, firsthand
+candidate reports and synthetic practice scenarios distinctly. Choose connection sides
 from component geometry and route rounded orthogonal links around node bodies,
 minimizing distance and unnecessary bends. Keep pan and zoom bounded,
 provide Fit to View, attach typed connections at port boundaries, and restore

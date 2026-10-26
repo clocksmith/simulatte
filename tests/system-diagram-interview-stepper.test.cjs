@@ -96,3 +96,35 @@ test('every scenario step derives a valid, schema-compliant sub-diagram', () => 
     }
   }
 });
+
+test('real interview problems have explicit source classifications and safe links', () => {
+  const data = require('../public/data/system-diagram/interview-problems.json');
+  const valid = stepperApi.validateProblems(data);
+  assert.ok(valid.problems.some(p => p.sourceKind === 'company-published'));
+  assert.ok(valid.problems.some(p => p.sourceKind === 'candidate-reported'));
+  const duplicate = structuredClone(data); duplicate.problems.push(duplicate.problems[0]);
+  assert.throws(() => stepperApi.validateProblems(duplicate), /unique IDs/);
+  const unsafe = structuredClone(data); unsafe.sources.cockroach.url = 'javascript:alert(1)';
+  assert.throws(() => stepperApi.validateProblems(unsafe), /source provenance/);
+  const mislabeled = structuredClone(data); mislabeled.problems[0].sourceKind = 'candidate-reported';
+  assert.throws(() => stepperApi.validateProblems(mislabeled), /source provenance/);
+});
+
+test('interview stages preserve user architecture and keep independent stage edits', () => {
+  const model = require('../public/simulatte/system-diagram/editor-model.js').create({diagram: docApi.emptyDiagram(config), library, config});
+  const progress = stepperApi.createProgress(model, config);
+  progress.select('pagination');
+  const initial = model.apply({type: 'addNode', classId: library.classOrder[0], x: 120, y: 160});
+  assert.equal(initial.ok, true);
+  const first = structuredClone(model.diagram);
+  progress.move(1);
+  assert.deepEqual(model.diagram, first, 'Next must not fill in a preset architecture');
+  model.apply({type: 'addNode', classId: library.classOrder[1], x: 420, y: 160});
+  const second = structuredClone(model.diagram);
+  progress.move(0); assert.deepEqual(model.diagram, first);
+  progress.move(1); assert.deepEqual(model.diagram, second);
+  progress.select('chat'); assert.equal(model.diagram.nodes.length, 0);
+  progress.select('pagination'); assert.deepEqual(model.diagram, first);
+  progress.move(1); assert.deepEqual(model.diagram, second);
+  progress.clear(); progress.select('pagination'); assert.equal(model.diagram.nodes.length, 0, 'Lock/reset must erase interview snapshots');
+});

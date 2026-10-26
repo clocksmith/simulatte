@@ -4,9 +4,9 @@
   const STORAGE_KEY = 'simulatte.systemDiagram.privatePractice.v1';
   function create({document: doc, sourcePath, onLoad, requestLoad, getRecord, onClear, onMessage}) {
     const crypto = root.SimulattePrivateCrypto;
-    const dialog = doc.createElement('dialog'); dialog.className = 'wui-sheet private-collection'; dialog.setAttribute('aria-label', 'Private collection');
+    const dialog = doc.createElement('dialog'); dialog.className = 'wui-sheet private-collection'; dialog.setAttribute('aria-label', 'Private collection · Databricks Staff IC6 Interview Bank');
     const heading = doc.createElement('div'); heading.className = 'panel-heading';
-    const title = doc.createElement('h2'); title.textContent = 'Private collection';
+    const title = doc.createElement('h2'); title.textContent = 'Private collection · Databricks Staff IC6';
     const close = button('Close', () => dialog.close()); heading.append(title, close);
     const status = doc.createElement('p'); status.setAttribute('role', 'status');
     const content = doc.createElement('div'); dialog.append(heading, status, content); doc.body.append(dialog);
@@ -63,7 +63,7 @@
       const password = element('input'); password.id = 'private-password'; password.type = 'password'; password.autocomplete = 'current-password'; password.required = true; password.className = 'wui-field';
       label.htmlFor = password.id;
       const unlock = button('Unlock', () => form.requestSubmit()); unlock.id = 'private-unlock';
-      form.append(label, password, unlock); content.replaceChildren(element('p', 'Notes and practice diagrams are encrypted. Your password stays in this browser session.'), form);
+      form.append(label, password, unlock); content.replaceChildren(element('p', 'Databricks Staff IC6 practice diagrams and interview notes are encrypted. Your password stays in this browser session.'), form);
       root.SimulatteWorldUI.adoptTree(content);
       form.addEventListener('submit', async event => {
         event.preventDefault(); const token = ++epoch; unlock.disabled = true; status.textContent = 'Unlocking...';

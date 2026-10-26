@@ -1,10 +1,10 @@
-# CATSCAN: World System Diagram Simulator
+# CATSCAN: Lucyd
 
 Parent: [World](../CATSCAN.md)
 
 ## Target
 
-Edit architectures, nest versioned subsystems, execute deterministic synthetic workloads, inject faults and replay at `/system-diagram`.
+Start blank, edit architectures with a persistent component rail, practice sourced interview prompts, and execute deterministic synthetic workloads at `/system-diagram`.
 
 ## Authority
 
@@ -26,25 +26,25 @@ Edit architectures, nest versioned subsystems, execute deterministic synthetic w
 
 - Validated documents alone determine execution; layout never changes results.
 - Parameters resolve kernel, built-in class, user classes, then instance; unknown or invalid values refuse.
-- Primitive kernels require registered behaviour. Subsystems lower version-pinned internal graphs, never placeholder kernels.
+- Kernels require registered behaviour; subsystems lower version-pinned graphs.
 - Typed external ports and bounded nesting required; recursion, invalid bindings and overrides refuse.
-- Publishing preserves version pins. Explicit upgrades remain pending until acceptance; accepted runs never mutate.
+- Publishing preserves pins; upgrades require acceptance; accepted runs never mutate.
 - Portable dependencies persist; folding changes presentation only.
-- Separate requests, attempts and effects; keep rejected, timed-out and dead-lettered work visible.
+- Distinguish requests, attempts and effects; show rejections, timeouts and dead letters.
 - Diagram, seed and controls reproduce execution; previews equal coordinator state.
 - Synthetic assumptions cannot establish production capacity, provider behaviour or physical validity.
 - Deploy authenticated ciphertext only. Never publish keys/passwords. Encrypt saves, backups and exports; locking clears plaintext and editor history.
-- Starters certify neither interviews nor production designs.
+- Distinguish published interviews, candidate reports and authored practice; examples never replace user work implicitly.
 
 ## Acceptance
 
 - Evidence: [document tests](../../../tests/system-diagram-document.test.cjs), [session tests](../../../tests/system-diagram-session.test.cjs), [engine tests](../../../tests/system-diagram-engine.test.cjs), [kernel tests](../../../tests/system-diagram-kernels.test.cjs) and [browser journey](../../../tools/simulatte/audit-system-diagram-editor.mjs).
-- Desktop/mobile journeys cover authoring, persistence, nesting, upgrades and execution; human comprehension stays separate.
+- Desktop/mobile journeys cover authoring, persistence, nesting, upgrades and execution.
 - Nested chat tests verify topology-dependent outcomes and replay.
 
 ## Non-goals
 
-Real outages, live scraping, real model inference, consensus protocol proofs, deployment or a universal simulation engine.
+Real outages, scraping, inference, consensus proofs, deployment or universal simulation.
 
 ## Freedom
 

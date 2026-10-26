@@ -385,7 +385,8 @@
       if (!isRecord(view)) return { ok: false, kind: 'view', error: 'setView needs a view object' };
       const next = { x: view.x ?? doc.view.x, y: view.y ?? doc.view.y, zoom: view.zoom ?? doc.view.zoom };
       if (![next.x, next.y].every(v => Number.isFinite(v) && Math.abs(v) <= COORD)) return { ok: false, kind: 'view', error: `view x and y must be finite within ${COORD}` };
-      if (!Number.isFinite(next.zoom) || next.zoom < config.editor.minZoom || next.zoom > config.editor.maxZoom) return { ok: false, kind: 'view', error: `zoom must be in [${config.editor.minZoom}, ${config.editor.maxZoom}]` };
+      const minZoom = config.editor.fitMinZoom || config.editor.minZoom;
+      if (!Number.isFinite(next.zoom) || next.zoom < minZoom || next.zoom > config.editor.maxZoom) return { ok: false, kind: 'view', error: `zoom must be in [${minZoom}, ${config.editor.maxZoom}]` };
       if (next.x === doc.view.x && next.y === doc.view.y && next.zoom === doc.view.zoom) return { ok: true, kind: 'view', unchanged: true };
       doc = deepFreeze({ ...doc, view: next });
       const result = { ok: true, kind: 'view' };

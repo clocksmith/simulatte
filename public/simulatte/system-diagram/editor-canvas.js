@@ -117,8 +117,11 @@
       onView({ ...view });
       if (typeof renderer !== 'undefined') renderReconnectHandles();
     }
-    function setView(next, { commit = true } = {}) {
-      view = clampView({ ...view, ...next });
+    function setView(next, { commit = true, restore = false } = {}) {
+      const requested = { ...view, ...next };
+      // A saved fit can be wider than today's unobstructed area. Preserve its zoom
+      // while retaining pan bounds; normal gestures still use the readable floor.
+      view = restore ? V.constrain(requested, rect(), contentBounds(), canvasBounds(), {...E, minZoom: E.fitMinZoom || E.minZoom}, insets) : clampView(requested);
       paintView();
       if (commit) { viewDirty = true; schedule(); }
       return { ...view };
@@ -724,8 +727,8 @@
       },
       setMultiSelect(value) { explicitMultiSelect = Boolean(value); host.dataset.multiSelect = String(explicitMultiSelect); },
       setState(value, options = {}) { runView = value; runPending = Boolean(options.pending); paintState(); },
-      flush: flushNow, setInsets(value) { insets = {...value}; view = clampView(view); paintView(); },
-      fit, zoomBy, getView: () => ({ ...view }), setView: v => setView(v),
+      flush: flushNow, setInsets(value) { insets = {...value}; },
+      fit, zoomBy, getView: () => ({ ...view }), setView: (v, options) => setView(v, options),
       screenToWorld, worldToScreen, viewportCenter, groupAt, snap,
       startConnect: (nodeId, portId) => { const n = findNode(nodeId), port = n && classInfo(n.classId).ports.find(p => p.id === portId); if (port) startPending({ nodeId, portId, dir: port.direction }); },
       cancelConnect: cancelPending,

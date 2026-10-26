@@ -143,5 +143,7 @@
       "path": "/data/system-diagram/examples/nested-chat.json"
     }
   ],
-  "claimBoundary": "Synthetic discrete-event model of the drawn architecture. Service times, latencies, failure rates and token costs are user assumptions, not measurements of real systems, providers or hardware."
+  "claimBoundary": "Synthetic discrete-event model of the drawn architecture. Service times, latencies, failure rates and token costs are user assumptions, not measurements of real systems, providers or hardware.",
+  "interviewJourneysPath": "/data/system-diagram/interview-journeys.json",
+  "interviewProblemsPath": "/data/system-diagram/interview-problems.json"
 }

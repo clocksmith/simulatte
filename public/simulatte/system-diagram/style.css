@@ -14,15 +14,14 @@ main{margin:0;padding:0;max-width:none}
 .app-header:has(.workspace-menu[open]){z-index:50}
 .app-header h1{font-size:13px;font-weight:500;color:var(--wui-muted)}
 #revision{font-size:10px;margin-left:auto;white-space:nowrap}#revision[data-pending=true]{color:#906b26}
-.workspace-menu{position:relative;pointer-events:auto}
-.workspace-menu.wui-disclosure{padding:0!important;border:0!important}
+.workspace-menu{position:relative;pointer-events:auto;padding:0!important;border:0!important}
 .workspace-menu-content{position:absolute;top:calc(100% + 8px);left:0;width:min(360px,calc(100vw - 24px));max-height:calc(100dvh - 84px);overflow:auto;padding:14px;background:var(--wui-paper);border:1px solid var(--wui-line);border-radius:6px;box-shadow:0 8px 30px #0002}
 .workspace-menu:not([open])>.workspace-menu-content{display:none}
 .workspace-menu-content>section{margin-bottom:16px}
 .workspace-menu-content h2{font-size:11px;color:var(--wui-muted);margin-bottom:8px}
 .toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:6px;min-width:0}
 .inline-label{display:grid;gap:8px;color:var(--wui-muted);font-size:11px}
-.inline-label select{width:100%;min-width:0}
+.inline-label > *{width:100%;min-width:0}
 .drawer-toggle{position:fixed;top:50%;z-index:45;writing-mode:vertical-rl;max-height:150px}
 .palette-toggle{left:8px}.properties-toggle{right:8px}
 .palette-panel,.properties-panel{position:absolute;top:0;bottom:0;z-index:40;width:min(340px,calc(100vw - 48px));padding:18px 48px 18px 18px;background:var(--wui-paper);overflow:auto;overscroll-behavior:contain;transition:transform .2s ease;visibility:hidden;box-shadow:0 0 30px #0002}

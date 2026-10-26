@@ -1,0 +1,195 @@
+{
+  "schema": "simulatte.lucydProblems.v1",
+  "version": "1.0.0",
+  "followupAttribution": "Lucyd-authored practice followups, not interview transcripts. Prompts paraphrase the linked sources. Candidate accounts are not company verification.",
+  "sources": {
+    "cockroach": {
+      "title": "Cockroach Labs published engineering interview exercises",
+      "url": "https://github.com/cockroachlabs/open-sourced-interview-process/blob/master/EngineeringExercises.md",
+      "kind": "company-published"
+    },
+    "vora": {
+      "title": "Vatsal Vora: firsthand system design interview account",
+      "url": "https://www.vectorbuilds.dev/notes/raw-every-system-design-question-i-was-asked-in-real-interviews-at-10-companies",
+      "kind": "candidate-reported"
+    }
+  },
+  "problems": [
+    {
+      "id": "database-service",
+      "title": "Database as a service",
+      "company": "Cockroach Labs",
+      "sourceId": "cockroach",
+      "sourceKind": "company-published",
+      "problemStatement": "Design a hosted CockroachDB service. Explain how customers deploy it and how operators secure, monitor and recover it.",
+      "steps": [
+        {
+          "name": "Deployment",
+          "interviewerPrompt": "How will a customer provision and connect to a database?"
+        },
+        {
+          "name": "Operations",
+          "interviewerPrompt": "Which failures require an alert, an automatic recovery, or a human response?"
+        },
+        {
+          "name": "Isolation",
+          "interviewerPrompt": "How will tenants, access permissions and backups remain isolated?"
+        }
+      ]
+    },
+    {
+      "id": "project-review",
+      "title": "Your project architecture",
+      "company": "Cockroach Labs",
+      "sourceId": "cockroach",
+      "sourceKind": "company-published",
+      "problemStatement": "Diagram a project you know deeply. Explain its design choices and the limits you encountered.",
+      "steps": [
+        {
+          "name": "Request path",
+          "interviewerPrompt": "Trace one user action through the components you operated."
+        },
+        {
+          "name": "Failure",
+          "interviewerPrompt": "Which failure actually occurred, and what changed afterward?"
+        },
+        {
+          "name": "Tradeoffs",
+          "interviewerPrompt": "Which design choice would you change at ten times the original load?"
+        }
+      ]
+    },
+    {
+      "id": "pagination",
+      "title": "Paginated API",
+      "company": "N26",
+      "sourceId": "vora",
+      "sourceKind": "candidate-reported",
+      "problemStatement": "Design a website’s paginated results API and its database access.",
+      "steps": [
+        {
+          "name": "Contract",
+          "interviewerPrompt": "What does the client send and receive for the next page?"
+        },
+        {
+          "name": "Changing data",
+          "interviewerPrompt": "How will inserts and deletions affect page boundaries?"
+        },
+        {
+          "name": "Scale",
+          "interviewerPrompt": "How will the design avoid scanning and returning the entire dataset?"
+        }
+      ]
+    },
+    {
+      "id": "chat",
+      "title": "Realtime chat",
+      "company": "Grab",
+      "sourceId": "vora",
+      "sourceKind": "candidate-reported",
+      "problemStatement": "Design scalable realtime messaging between users.",
+      "steps": [
+        {
+          "name": "Delivery",
+          "interviewerPrompt": "Trace a message from its sender to its recipient."
+        },
+        {
+          "name": "Disconnection",
+          "interviewerPrompt": "What happens when the recipient disconnects and reconnects?"
+        },
+        {
+          "name": "Reliability",
+          "interviewerPrompt": "How will retries affect ordering and duplicate delivery?"
+        }
+      ]
+    },
+    {
+      "id": "replication",
+      "title": "Data center replication",
+      "company": "Agoda",
+      "sourceId": "vora",
+      "sourceKind": "candidate-reported",
+      "problemStatement": "Design replication between data centers without relying entirely on a database’s built-in replication.",
+      "steps": [
+        {
+          "name": "Writes",
+          "interviewerPrompt": "Where does a write become accepted, and who receives its updates?"
+        },
+        {
+          "name": "Partition",
+          "interviewerPrompt": "What happens when the link between data centers fails?"
+        },
+        {
+          "name": "Recovery",
+          "interviewerPrompt": "How will replicas catch up and resolve conflicting changes?"
+        }
+      ]
+    },
+    {
+      "id": "saved-search",
+      "title": "Saved search emails",
+      "company": "Talabat",
+      "sourceId": "vora",
+      "sourceKind": "candidate-reported",
+      "problemStatement": "Let book shoppers save search terms and receive a daily email about matching new listings.",
+      "steps": [
+        {
+          "name": "Matching",
+          "interviewerPrompt": "How will a new listing find the searches it matches?"
+        },
+        {
+          "name": "Digest",
+          "interviewerPrompt": "How will matches become one daily digest per subscriber?"
+        },
+        {
+          "name": "Retries",
+          "interviewerPrompt": "How will a failed delivery retry without sending the same digest twice?"
+        }
+      ]
+    },
+    {
+      "id": "load-balancer",
+      "title": "Round robin load balancer",
+      "company": "Coda Payments",
+      "sourceId": "vora",
+      "sourceKind": "candidate-reported",
+      "problemStatement": "Build a round robin load balancer with retries, health tracking and circuit breaking.",
+      "steps": [
+        {
+          "name": "Routing",
+          "interviewerPrompt": "How does a request choose a healthy destination?"
+        },
+        {
+          "name": "Failures",
+          "interviewerPrompt": "When should a retry choose a different server?"
+        },
+        {
+          "name": "Recovery",
+          "interviewerPrompt": "How does an unavailable server safely rejoin traffic?"
+        }
+      ]
+    },
+    {
+      "id": "subscriptions",
+      "title": "Subscription payments",
+      "company": "Canva",
+      "sourceId": "vora",
+      "sourceKind": "candidate-reported",
+      "problemStatement": "Design subscription payments with multiple payment options and safe handling of repeated requests.",
+      "steps": [
+        {
+          "name": "Lifecycle",
+          "interviewerPrompt": "How do signup, renewal and cancellation change subscription state?"
+        },
+        {
+          "name": "Idempotency",
+          "interviewerPrompt": "What happens when a client or payment provider sends the same event twice?"
+        },
+        {
+          "name": "Reconciliation",
+          "interviewerPrompt": "How will you recover when payment succeeds but local state was not updated?"
+        }
+      ]
+    }
+  ]
+}

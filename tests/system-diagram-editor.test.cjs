@@ -364,3 +364,17 @@ test('every glyph id used by the class library has a drawn glyph', () => {
   assert.deepEqual(missing, []);
   assert.ok(Glyphs.path('unknown-glyph').length > 0, 'unknown ids fall back to a generic glyph');
 });
+
+
+test('fitted camera below ordinary zoom remains valid and survives browser storage', () => {
+  const model = Editor.create({diagram: sample(), library, config});
+  const view = {x: -9239, y: -16365, zoom: 0.02640845070422535};
+  D.validate({...model.diagram, view}, library, config);
+  assert.equal(model.apply({type: 'setView', view}).ok, true);
+  const storage = new Map();
+  const files = Files.autosave(config, {getItem: k => storage.get(k), setItem: (k, v) => storage.set(k, v)});
+  assert.equal(files.save(model.diagram), true);
+  const restored = Editor.create({diagram: files.loadRecord().diagram, library, config});
+  assert.deepEqual(restored.diagram.view, view);
+  assert.equal(model.apply({type: 'setView', view: {zoom: config.editor.fitMinZoom / 2}}).ok, false);
+});

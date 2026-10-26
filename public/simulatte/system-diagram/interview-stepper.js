@@ -40,491 +40,184 @@
     return docs.validate(stepDoc, library, config);
   }
 
-  function create({ host, model, canvas, library, config, onStepChange, onMessage }) {
-    const docs = documentsApi || globalThis.SimulatteSystemDiagramDocument;
-    let journeysData = null;
-    let masterDocsCache = new Map();
-    let currentScenarioId = 'web-service';
-    let currentScenario = null;
-    let currentStepIndex = 0; // 0 is Blank Canvas, 1..N are evolutionary steps, -1 is Full View
-    let customPromptText = '';
-    let isDrawerOpen = false;
-
-    // Create Top Interview Task Bar
-    const taskBarEl = document.createElement('div');
-    taskBarEl.className = 'lucyd-task-bar';
-    taskBarEl.setAttribute('role', 'region');
-    taskBarEl.setAttribute('aria-label', 'Lucyd interview problem prompt');
-
-    taskBarEl.innerHTML = `
-      <div class="lucyd-task-header">
-        <div class="lucyd-task-meta">
-          <span class="lucyd-task-badge">INTERVIEW PROBLEM</span>
-          <select class="lucyd-task-select" aria-label="Select interview problem">
-            <option value="web-service" selected>Web Service & Async Jobs (Bitly / High-Traffic API)</option>
-            <option value="chat-application">Real-Time Streaming Chat (Slack / Discord)</option>
-            <option value="rag-assistant">Enterprise AI Knowledge Assistant (RAG)</option>
-            <option value="video-distribution">Global Video Streaming CDN (YouTube / Netflix)</option>
-            <option value="social-feed">Social Media News Feed (Twitter / Instagram)</option>
-            <option value="custom">Custom Problem (Enter 1-2 sentences)...</option>
-          </select>
-        </div>
-        <div class="lucyd-task-actions">
-          <button type="button" class="lucyd-task-btn is-edit-prompt" title="Enter or edit 1-2 sentence problem prompt">Edit Task</button>
-          <button type="button" class="lucyd-task-btn is-clear-canvas" title="Clear canvas to blank whiteboard">Clear Canvas</button>
-        </div>
-      </div>
-      <div class="lucyd-task-prompt-display">
-        <span class="lucyd-task-prompt-label">Problem Prompt:</span>
-        <span class="lucyd-task-prompt-text"></span>
-      </div>
-      <div class="lucyd-task-custom-editor" hidden>
-        <div class="lucyd-task-custom-row">
-          <input type="text" class="lucyd-task-custom-input" placeholder="Enter your 1-2 sentence system design task (e.g. Design a URL shortener like Bitly handling 100M writes/day)..." maxlength="300" />
-          <button type="button" class="lucyd-task-btn is-save-custom">Set Task</button>
-          <button type="button" class="lucyd-task-btn is-cancel-custom">Cancel</button>
-        </div>
-      </div>
-    `;
-
-    // Create Bottom Evolutionary Stepper
-    const stepperEl = document.createElement('section');
-    stepperEl.className = 'interview-stepper';
-    stepperEl.dataset.visible = 'true';
-    stepperEl.dataset.expanded = 'false';
-    stepperEl.setAttribute('aria-label', 'Lucyd system design interview evolution');
-
-    stepperEl.innerHTML = `
-      <div class="interview-stepper-header">
-        <div class="interview-stepper-meta">
-          <span class="interview-stepper-badge">LUCYD INTERVIEW MODE</span>
-          <span class="interview-stepper-title"></span>
-          <span class="interview-stepper-subtitle"></span>
-        </div>
-        <div class="interview-stepper-actions">
-          <button type="button" class="interview-stepper-notes-btn" aria-expanded="false" title="Toggle interview challenge and notes (shortcut: \\)">
-            <span class="interview-stepper-notes-label">Challenge & Notes</span>
-            <span class="interview-stepper-notes-icon">▼</span>
-          </button>
-        </div>
-      </div>
-      <div class="interview-stepper-controls">
-        <button type="button" class="interview-stepper-nav-btn is-prev" aria-label="Previous step" title="Previous step (shortcut: [)">‹ Prev</button>
-        <div class="interview-stepper-pills" role="tablist"></div>
-        <button type="button" class="interview-stepper-nav-btn is-next" aria-label="Next step" title="Next step (shortcut: ])">Next ›</button>
-        <button type="button" class="interview-stepper-nav-btn is-full" title="Show complete architecture">Full View</button>
-      </div>
-      <div class="interview-stepper-drawer" hidden>
-        <div class="interview-stepper-drawer-content"></div>
-      </div>
-    `;
-
-    host.appendChild(taskBarEl);
-    host.appendChild(stepperEl);
-
-    // Elements
-    const problemSelectEl = taskBarEl.querySelector('.lucyd-task-select');
-    const promptTextEl = taskBarEl.querySelector('.lucyd-task-prompt-text');
-    const editPromptBtn = taskBarEl.querySelector('.lucyd-task-btn.is-edit-prompt');
-    const clearCanvasBtn = taskBarEl.querySelector('.lucyd-task-btn.is-clear-canvas');
-    const customEditorEl = taskBarEl.querySelector('.lucyd-task-custom-editor');
-    const customInputEl = taskBarEl.querySelector('.lucyd-task-custom-input');
-    const saveCustomBtn = taskBarEl.querySelector('.lucyd-task-btn.is-save-custom');
-    const cancelCustomBtn = taskBarEl.querySelector('.lucyd-task-btn.is-cancel-custom');
-
-    const titleEl = stepperEl.querySelector('.interview-stepper-title');
-    const subtitleEl = stepperEl.querySelector('.interview-stepper-subtitle');
-    const notesBtn = stepperEl.querySelector('.interview-stepper-notes-btn');
-    const notesIcon = stepperEl.querySelector('.interview-stepper-notes-icon');
-    const prevBtn = stepperEl.querySelector('.interview-stepper-nav-btn.is-prev');
-    const nextBtn = stepperEl.querySelector('.interview-stepper-nav-btn.is-next');
-    const fullBtn = stepperEl.querySelector('.interview-stepper-nav-btn.is-full');
-    const pillsContainer = stepperEl.querySelector('.interview-stepper-pills');
-    const drawerEl = stepperEl.querySelector('.interview-stepper-drawer');
-    const drawerContentEl = stepperEl.querySelector('.interview-stepper-drawer-content');
-
-    function toggleDrawer(force) {
-      isDrawerOpen = typeof force === 'boolean' ? force : !isDrawerOpen;
-      stepperEl.dataset.expanded = String(isDrawerOpen);
-      drawerEl.hidden = !isDrawerOpen;
-      notesBtn.setAttribute('aria-expanded', String(isDrawerOpen));
-      notesIcon.textContent = isDrawerOpen ? '▲' : '▼';
+  function validateProblems(data) {
+    if (data?.schema !== 'simulatte.lucydProblems.v1' || !Array.isArray(data.problems) || !data.problems.length) throw Error('Interview problem registry is required');
+    const ids = new Set();
+    for (const problem of data.problems) {
+      const source = data.sources?.[problem.sourceId];
+      if (!problem.id || ids.has(problem.id) || !problem.title || !problem.problemStatement?.trim() || problem.problemStatement.length > 300) throw Error('Interview problems need unique IDs and concise statements');
+      if (!source || !/^https:\/\//.test(source.url) || !['company-published', 'candidate-reported'].includes(source.kind) || problem.sourceKind !== source.kind) throw Error('Interview problem needs matching source provenance');
+      if (!Array.isArray(problem.steps) || !problem.steps.length || problem.steps.some(step => !step.name || !step.interviewerPrompt)) throw Error('Interview followups are required');
+      ids.add(problem.id);
     }
-
-    notesBtn.addEventListener('click', () => toggleDrawer());
-
-    async function loadMasterDoc(scenarioId) {
-      if (masterDocsCache.has(scenarioId)) {
-        return masterDocsCache.get(scenarioId);
-      }
-      const example = config.examples.find(e => e.id === scenarioId);
-      if (!example) return null;
-      try {
-        const res = await fetch(example.path);
-        if (!res.ok) return null;
-        const doc = await res.json();
-        masterDocsCache.set(scenarioId, doc);
-        return doc;
-      } catch {
-        return null;
-      }
-    }
-
-    function renderTaskPrompt() {
-      if (currentScenarioId === 'custom') {
-        promptTextEl.textContent = customPromptText || 'Enter your custom 1-2 sentence system design task below.';
-        titleEl.textContent = 'Custom System Design Task';
-        subtitleEl.textContent = 'Whiteboard Mode';
-      } else if (currentScenario) {
-        promptTextEl.textContent = currentScenario.problemStatement || currentScenario.subtitle;
-        titleEl.textContent = currentScenario.title;
-        subtitleEl.textContent = `${currentScenario.subtitle} (${currentScenario.targetQps})`;
-      } else {
-        promptTextEl.textContent = 'Choose an interview problem or enter a custom task to begin.';
-        titleEl.textContent = 'Blank Whiteboard';
-        subtitleEl.textContent = 'System Design Interview';
-      }
-    }
-
-    function renderPills() {
-      pillsContainer.innerHTML = '';
-
-      if (currentScenarioId === 'custom' || !currentScenario) {
-        const pill0 = document.createElement('button');
-        pill0.type = 'button';
-        pill0.className = 'interview-stepper-pill is-active';
-        pill0.setAttribute('role', 'tab');
-        pill0.setAttribute('aria-selected', 'true');
-        pill0.innerHTML = `<span class="pill-number">0</span><span class="pill-name">Blank Whiteboard</span>`;
-        pillsContainer.appendChild(pill0);
-
-        prevBtn.disabled = true;
-        nextBtn.disabled = true;
-        fullBtn.classList.remove('is-active');
-        return;
-      }
-
-      // Pill 0: Blank Canvas
-      const pill0 = document.createElement('button');
-      pill0.type = 'button';
-      pill0.className = `interview-stepper-pill${currentStepIndex === 0 ? ' is-active' : ''}`;
-      pill0.setAttribute('role', 'tab');
-      pill0.setAttribute('aria-selected', String(currentStepIndex === 0));
-      pill0.innerHTML = `<span class="pill-number">0</span><span class="pill-name">Blank Canvas</span>`;
-      pill0.addEventListener('click', () => goToStep(0));
-      pillsContainer.appendChild(pill0);
-
-      // Pills 1..N
-      currentScenario.steps.forEach((step, idx) => {
-        const stepNum = idx + 1;
-        const pill = document.createElement('button');
-        pill.type = 'button';
-        pill.className = `interview-stepper-pill${currentStepIndex === stepNum ? ' is-active' : ''}`;
-        pill.setAttribute('role', 'tab');
-        pill.setAttribute('aria-selected', String(currentStepIndex === stepNum));
-        pill.innerHTML = `
-          <span class="pill-number">${step.stepNumber}</span>
-          <span class="pill-name">${step.name}</span>
-        `;
-        pill.addEventListener('click', () => goToStep(stepNum));
-        pillsContainer.appendChild(pill);
-      });
-
-      const isFull = currentStepIndex === -1;
-      fullBtn.classList.toggle('is-active', isFull);
-      prevBtn.disabled = currentStepIndex === 0;
-      nextBtn.disabled = isFull;
-    }
-
-    function renderDrawer() {
-      if (currentScenarioId === 'custom' || !currentScenario) {
-        drawerContentEl.innerHTML = `
-          <div class="interview-step-card is-prompt">
-            <div class="card-eyebrow">Custom Problem Statement</div>
-            <div class="card-quote">${customPromptText || 'Enter your custom 1-2 sentence system design task above to begin.'}</div>
-          </div>
-          <div class="interview-step-card is-solution">
-            <div class="card-eyebrow">Candidate Whiteboard Plan</div>
-            <p class="card-text">Use the Components drawer on the left to drag nodes (API server, database, cache, message queues) onto the canvas, link them with edges, and structure your architecture.</p>
-          </div>
-        `;
-        return;
-      }
-
-      if (currentStepIndex === 0) {
-        drawerContentEl.innerHTML = `
-          <div class="interview-step-card is-prompt">
-            <div class="card-eyebrow">Initial Whiteboard Stage · <span class="card-stage">Problem Introduction</span></div>
-            <blockquote class="card-quote">${currentScenario.problemStatement}</blockquote>
-          </div>
-          <div class="interview-step-columns">
-            <div class="interview-step-card is-solution">
-              <div class="card-eyebrow">Interview Recommendation</div>
-              <p class="card-text">Start on this blank whiteboard by clarifying functional requirements (read/write volume, latency SLA) and sketching the primary request path. Click <strong>Next ›</strong> to inspect the baseline MVP architecture.</p>
-            </div>
-            <div class="interview-step-card is-tradeoffs">
-              <div class="card-eyebrow">Scale & Constraints</div>
-              <ul class="card-list">
-                <li>Target scale: <strong>${currentScenario.targetQps}</strong></li>
-                <li>Establish single points of failure before introducing distributed complexity.</li>
-                <li>Clarify read/write ratio and data persistence requirements.</li>
-              </ul>
-            </div>
-          </div>
-        `;
-        return;
-      }
-
-      if (currentStepIndex === -1) {
-        drawerContentEl.innerHTML = `
-          <div class="interview-step-card is-prompt">
-            <div class="card-eyebrow">Complete Architecture Overview</div>
-            <div class="card-quote">This view represents the fully composed system including all stages, resilience mechanisms, and background pipelines.</div>
-          </div>
-        `;
-        return;
-      }
-
-      const step = currentScenario.steps[currentStepIndex - 1];
-      const tradeoffsHtml = (step.tradeoffs || []).map(t => `<li>${t}</li>`).join('');
-
-      drawerContentEl.innerHTML = `
-        <div class="interview-step-card is-prompt">
-          <div class="card-eyebrow">Interviewer Challenge · <span class="card-stage">${step.stage}</span></div>
-          <blockquote class="card-quote">${step.interviewerPrompt}</blockquote>
-        </div>
-        <div class="interview-step-columns">
-          <div class="interview-step-card is-solution">
-            <div class="card-eyebrow">Candidate Architectural Solution</div>
-            <p class="card-text">${step.solution}</p>
-          </div>
-          <div class="interview-step-card is-tradeoffs">
-            <div class="card-eyebrow">Key Trade-offs & Talking Points</div>
-            <ul class="card-list">${tradeoffsHtml}</ul>
-          </div>
-        </div>
-      `;
-    }
-
-    async function goToStep(stepNum) {
-      if (stepNum === 0) {
-        // Blank Canvas mode
-        currentStepIndex = 0;
-        const emptyDoc = docs.emptyDiagram(config);
-        model.replace(emptyDoc);
-        canvas.render();
-        canvas.fit({ readable: true });
-        canvas.flush();
-        renderPills();
-        renderDrawer();
-        onStepChange?.(emptyDoc, null);
-        onMessage?.(`Whiteboard ready: Blank canvas.`);
-        return;
-      }
-
-      if (!currentScenario) return;
-      const stepIdx = stepNum - 1;
-      if (stepIdx < 0 || stepIdx >= currentScenario.steps.length) return;
-
-      currentStepIndex = stepNum;
-      const step = currentScenario.steps[stepIdx];
-
-      try {
-        const master = await loadMasterDoc(currentScenarioId);
-        if (!master) throw Error('Master diagram could not be loaded');
-
-        const stepDoc = buildStepDocument(master, step, library, config);
-        const res = model.replace(stepDoc);
-        if (!res.ok) throw Error(res.error);
-
-        if (step.highlightNodes && step.highlightNodes.length) {
-          model.select({ nodes: step.highlightNodes });
-        } else {
-          model.select({ nodes: [] });
-        }
-
-        canvas.render();
-        canvas.fit({ readable: true });
-        canvas.flush();
-
-        renderPills();
-        renderDrawer();
-
-        onStepChange?.(stepDoc, step);
-        onMessage?.(`Interview Step ${step.stepNumber}/${currentScenario.steps.length}: ${step.name}`);
-      } catch (err) {
-        onMessage?.(`Error applying step: ${err.message}`, true);
-      }
-    }
-
-    async function showFull() {
-      if (!currentScenario) return;
-      currentStepIndex = -1;
-
-      try {
-        const master = await loadMasterDoc(currentScenarioId);
-        if (!master) throw Error('Master diagram could not be loaded');
-
-        const fullDoc = clone(master);
-        const res = model.replace(fullDoc);
-        if (!res.ok) throw Error(res.error);
-
-        model.select({ nodes: [] });
-        canvas.render();
-        canvas.fit({ readable: true });
-        canvas.flush();
-
-        renderPills();
-        renderDrawer();
-
-        onStepChange?.(fullDoc, null);
-        onMessage?.(`Showing complete system architecture.`);
-      } catch (err) {
-        onMessage?.(`Error restoring full diagram: ${err.message}`, true);
-      }
-    }
-
-    async function setScenario(scenarioId) {
-      currentScenarioId = scenarioId;
-      problemSelectEl.value = scenarioId;
-
-      if (scenarioId === 'custom') {
-        currentScenario = null;
-        customEditorEl.hidden = false;
-        customInputEl.focus();
-        renderTaskPrompt();
-        goToStep(0);
-        return;
-      }
-
-      customEditorEl.hidden = true;
-      if (journeysData?.scenarios?.[scenarioId]) {
-        currentScenario = journeysData.scenarios[scenarioId];
-        await loadMasterDoc(scenarioId);
-      } else {
-        currentScenario = null;
-      }
-
-      renderTaskPrompt();
-      // Changing problem always begins with a fresh blank canvas
-      goToStep(0);
-    }
-
-    // Event Handlers
-    problemSelectEl.addEventListener('change', () => {
-      setScenario(problemSelectEl.value);
-    });
-
-    editPromptBtn.addEventListener('click', () => {
-      customEditorEl.hidden = false;
-      customInputEl.value = currentScenarioId === 'custom' ? customPromptText : (currentScenario?.problemStatement || '');
-      customInputEl.focus();
-    });
-
-    clearCanvasBtn.addEventListener('click', () => {
-      goToStep(0);
-    });
-
-    saveCustomBtn.addEventListener('click', () => {
-      const val = customInputEl.value.trim();
-      if (val) {
-        customPromptText = val;
-        currentScenarioId = 'custom';
-        problemSelectEl.value = 'custom';
-        customEditorEl.hidden = true;
-        renderTaskPrompt();
-        goToStep(0);
-        onMessage?.('Custom interview problem set.');
-      }
-    });
-
-    cancelCustomBtn.addEventListener('click', () => {
-      customEditorEl.hidden = true;
-    });
-
-    customInputEl.addEventListener('keydown', e => {
-      if (e.key === 'Enter') {
-        saveCustomBtn.click();
-      } else if (e.key === 'Escape') {
-        cancelCustomBtn.click();
-      }
-    });
-
-    prevBtn.addEventListener('click', () => {
-      if (!currentScenario) return;
-      if (currentStepIndex === -1) {
-        goToStep(currentScenario.steps.length);
-      } else if (currentStepIndex > 0) {
-        goToStep(currentStepIndex - 1);
-      }
-    });
-
-    nextBtn.addEventListener('click', () => {
-      if (!currentScenario) return;
-      if (currentStepIndex === -1) {
-        goToStep(0);
-      } else if (currentStepIndex < currentScenario.steps.length) {
-        goToStep(currentStepIndex + 1);
-      } else {
-        showFull();
-      }
-    });
-
-    fullBtn.addEventListener('click', () => {
-      showFull();
-    });
-
-    // Load journeys JSON
-    fetch('/data/system-diagram/interview-journeys.json')
-      .then(r => r.ok ? r.json() : null)
-      .then(data => {
-        journeysData = data;
-        setScenario('web-service');
-      })
-      .catch(() => {});
-
-    // Keyboard navigation listener
-    document.addEventListener('keydown', e => {
-      if (e.target.closest('input, textarea, select')) return;
-
-      if (e.key === '[') {
-        e.preventDefault();
-        prevBtn.click();
-      } else if (e.key === ']') {
-        e.preventDefault();
-        nextBtn.click();
-      } else if (e.key === '\\') {
-        e.preventDefault();
-        toggleDrawer();
-      }
-    });
-
-    function onDocumentLoaded(doc) {
-      if (!journeysData || !journeysData.scenarios) return;
-      if (journeysData.scenarios[doc.id]) {
-        currentScenarioId = doc.id;
-        currentScenario = journeysData.scenarios[doc.id];
-        problemSelectEl.value = doc.id;
-        renderTaskPrompt();
-        renderPills();
-        renderDrawer();
-      }
-    }
-
-    return Object.freeze({
-      onDocumentLoaded,
-      setScenario,
-      goToStep,
-      showFull,
-      toggleDrawer,
-      getScenario: () => currentScenario,
-      getStepIndex: () => currentStepIndex,
-      isExpanded: () => isDrawerOpen,
-    });
+    return clone(data);
   }
 
-  return Object.freeze({
-    create,
-    buildStepDocument,
-  });
+  // Stage snapshots never go to storage; private locking clears this owner too.
+  function createProgress(model, config) {
+    const snapshots = new Map();
+    let problemId = null, index = 0;
+    function save() { if (problemId) snapshots.set(`${problemId}:${index}`, clone(model.diagram)); }
+    function restore(doc) { const result = model.replace(clone(doc)); if (!result.ok) throw Error(result.error); }
+    return {
+      select(id) { save(); problemId = id; index = 0; restore(snapshots.get(`${id}:0`) || documentsApi.emptyDiagram(config)); },
+      move(next) { save(); const prior = snapshots.get(`${problemId}:${next}`); index = next; if (prior) restore(prior); },
+      save,
+      clear() { snapshots.clear(); problemId = null; index = 0; },
+      get index() { return index; },
+    };
+  }
+
+  function create({ host, model, canvas, library, config, onStepChange, onMessage }) {
+    const doc = host.ownerDocument, events = new AbortController();
+    const progress = createProgress(model, config), problems = new Map();
+    let sourceData = null, current = null, reference = null, generation = 0;
+    const make = (tag, className, text) => { const el = doc.createElement(tag); if (className) el.className = className; if (text) el.textContent = text; return el; };
+    const listen = (el, type, fn) => el.addEventListener(type, fn, { signal: events.signal });
+    const button = (text, label, action) => {
+      const el = make('button', 'wui-btn', text); el.type = 'button'; el.setAttribute('aria-label', label);
+      listen(el, 'click', () => { Promise.resolve().then(action).catch(error => onMessage?.(error.message, true)); });
+      return el;
+    };
+    const bar = make('section', 'lucyd-task-bar'); bar.setAttribute('aria-label', 'Interview task');
+    const prompt = make('p', 'lucyd-task-prompt');
+    const choose = button('Choose problem', 'Choose interview problem or write a task', () => picker.showModal());
+    const details = button('Details', 'Problem details and source', () => { renderDetails(); info.showModal(); });
+    bar.append(prompt, choose, details); host.append(bar);
+    const stepper = make('nav', 'interview-stepper'); stepper.setAttribute('aria-label', 'Interview stages');
+    const prev = button('Previous', 'Previous interview stage', () => goToStep(progress.index - 1));
+    const stage = make('span', 'interview-stepper-title'); stage.setAttribute('aria-live', 'polite');
+    const next = button('Next', 'Next interview stage', () => goToStep(progress.index + 1));
+    const returnButton = button('Back to my diagram', 'Return from reference', () => leaveReference());
+    stepper.append(prev, stage, next, returnButton); host.append(stepper);
+
+    function dialog(title) {
+      const el = make('dialog', 'lucyd-dialog'); el.setAttribute('aria-label', title);
+      const heading = make('div', 'panel-heading'); heading.append(make('h2', '', title), button('Close', `Close ${title}`, () => el.close()));
+      el.append(heading); host.append(el); return el;
+    }
+    const picker = dialog('Choose a problem');
+    const select = make('select', 'wui-field'); select.setAttribute('aria-label', 'Interview problem'); select.dataset.layout = 'fill';
+    const preview = make('p', 'lucyd-picker-preview'), provenance = make('div', 'lucyd-source');
+    const start = button('Start problem', 'Start selected problem', () => { setScenario(select.value); picker.close(); });
+    picker.append(select, preview, provenance, start);
+    const form = make('form', 'lucyd-custom-task'), label = make('label', '', 'Or write a task');
+    const custom = make('textarea', 'wui-field'); custom.dataset.layout = 'fill'; custom.rows = 2; custom.maxLength = 300; custom.placeholder = 'Describe the problem in one or two sentences'; custom.setAttribute('aria-label', 'Custom task');
+    label.append(custom); const submit = make('button', 'wui-btn', 'Start custom task'); submit.type = 'submit'; form.append(label, submit); picker.append(form);
+    const info = dialog('Problem details');
+    const infoBody = make('div', 'lucyd-details'); info.append(infoBody);
+
+    function sourceElement(problem) {
+      const el = make('div', 'lucyd-source');
+      if (problem.sourceKind === 'practice') { el.textContent = 'Lucyd practice scenario'; return el; }
+      if (problem.sourceKind === 'custom') { el.textContent = 'Your task'; return el; }
+      const source = sourceData.sources[problem.sourceId];
+      const link = make('a', '', `${problem.sourceKind === 'company-published' ? 'Published exercise' : 'Candidate report'} · ${problem.company}`);
+      link.href = source.url; link.target = '_blank'; link.rel = 'noopener noreferrer'; el.append(link); return el;
+    }
+    function renderPicker() {
+      select.replaceChildren(new Option('Select a problem', ''));
+      for (const [kind, name] of [['company-published', 'Published interview exercises'], ['candidate-reported', 'Firsthand interview reports'], ['practice', 'Practice examples']]) {
+        const group = make('optgroup'); group.label = name;
+        for (const p of problems.values()) if (p.sourceKind === kind) group.append(new Option(`${p.title}${p.company ? ` · ${p.company}` : ''}`, p.id));
+        select.append(group);
+      }
+      start.disabled = true;
+    }
+    listen(select, 'change', () => {
+      const p = problems.get(select.value); start.disabled = !p;
+      preview.textContent = p?.problemStatement || ''; provenance.replaceChildren();
+      if (p) provenance.append(sourceElement(p));
+    });
+    const startCustom = event => {
+      event.preventDefault(); const text = custom.value.trim(); if (!text) return;
+      problems.set('custom', {id: 'custom', title: 'Custom task', sourceKind: 'custom', problemStatement: text, steps: [
+        {name: 'Requirements', interviewerPrompt: 'Which requirements and constraints matter first?'},
+        {name: 'Architecture', interviewerPrompt: 'Trace the main request through your design.'},
+        {name: 'Failures', interviewerPrompt: 'What happens when one component is unavailable?'},
+      ]});
+      setScenario('custom'); picker.close();
+    };
+    listen(form, 'submit', startCustom); listen(submit, 'click', startCustom);
+
+    function render() {
+      prompt.textContent = current ? (progress.index ? current.steps[progress.index - 1].interviewerPrompt : current.problemStatement) : 'What are you designing?';
+      choose.textContent = current ? 'Change' : 'Choose problem';
+      details.hidden = !current; stepper.hidden = !current;
+      prev.disabled = !current || progress.index === 0 || !!reference;
+      next.disabled = !current || progress.index >= current.steps.length || !!reference;
+      stage.textContent = reference ? 'Example architecture' : current ? `${progress.index + 1}/${current.steps.length + 1} · ${progress.index ? current.steps[progress.index - 1].name : 'Problem'}` : '';
+      returnButton.hidden = !reference;
+    }
+    function refresh() { canvas.render(); canvas.flush(); render(); onStepChange?.(model.diagram, current?.steps[progress.index - 1] || null); }
+    function leaveReference() {
+      if (!reference) return;
+      const result = model.replace(reference); if (!result.ok) throw Error(result.error);
+      reference = null; refresh(); canvas.fit({readable: true});
+    }
+    function setScenario(id) {
+      const p = problems.get(id); if (!p) throw Error(`Unknown problem: ${id}`);
+      generation++; leaveReference(); progress.select(id); current = p;
+      refresh(); canvas.fit({readable: true});
+    }
+    function goToStep(index) {
+      if (!current || !Number.isInteger(index) || index < 0 || index > current.steps.length) return;
+      generation++; leaveReference(); progress.move(index); refresh();
+    }
+    async function showFull() {
+      if (!current?.referenceExampleId) return;
+      const token = ++generation, example = config.examples.find(e => e.id === current.referenceExampleId);
+      const response = await fetch(example.path); if (!response.ok) throw Error('Example architecture is unavailable');
+      const diagram = documentsApi.validate(await response.json(), library, config);
+      if (token !== generation) return;
+      if (!reference) reference = clone(model.diagram);
+      const result = model.replace(diagram); if (!result.ok) throw Error(result.error);
+      info.close(); refresh(); canvas.fit({readable: true});
+    }
+    function renderDetails() {
+      infoBody.replaceChildren(); if (!current) return;
+      infoBody.append(make('p', '', current.problemStatement), sourceElement(current));
+      const step = current.steps[progress.index - 1];
+      if (step) {
+        infoBody.append(make('h3', '', step.name), make('p', '', step.interviewerPrompt));
+        if (step.solution || step.tradeoffs?.length) {
+          const hint = make('details'); hint.append(make('summary', '', 'Practice notes'));
+          if (step.solution) hint.append(make('p', '', step.solution));
+          if (step.tradeoffs?.length) { const list = make('ul'); for (const text of step.tradeoffs) list.append(make('li', '', text)); hint.append(list); }
+          infoBody.append(hint);
+        }
+      }
+      if (current.sourceKind !== 'practice' && current.sourceKind !== 'custom') infoBody.append(make('small', '', sourceData.followupAttribution));
+      if (current.referenceExampleId) infoBody.append(button('Open example', 'Open optional example architecture', showFull));
+    }
+    function reset() {
+      generation++; progress.clear(); current = null; reference = null; problems.delete('custom');
+      picker.close(); info.close(); custom.value = ''; preview.textContent = ''; provenance.replaceChildren(); infoBody.replaceChildren();
+      select.value = ''; render();
+    }
+    const keydown = event => {
+      if (event.target.closest('input,textarea,select,[contenteditable=true]') || doc.querySelector('dialog[open]')) return;
+      if (event.key === '[' || event.key === ']') { event.preventDefault(); goToStep(progress.index + (event.key === '[' ? -1 : 1)); }
+    };
+    listen(doc, 'keydown', keydown);
+    choose.disabled = true; render();
+    const ready = Promise.all([config.interviewProblemsPath, config.interviewJourneysPath].map(async path => {
+      if (!path) throw Error('Interview data path is required');
+      const response = await fetch(path); if (!response.ok) throw Error(`Interview data unavailable: ${path}`); return response.json();
+    })).then(([data, journeys]) => {
+      if (journeys?.schema !== 'simulatte.systemDiagramInterview.v1' || !journeys.scenarios) throw Error('Interview practice journeys are required');
+      sourceData = validateProblems(data);
+      for (const p of sourceData.problems) problems.set(p.id, p);
+      for (const [id, p] of Object.entries(journeys.scenarios || {})) problems.set(id, {...p, id, sourceKind: 'practice', referenceExampleId: id});
+      renderPicker(); choose.disabled = false; render();
+    }).catch(error => { onMessage?.(error.message, true); throw error; });
+    // The page reports a failed load while callers can also await readiness.
+    ready.catch(() => {});
+    return Object.freeze({ready, setScenario, goToStep, showFull, reset, onDocumentLoaded: reset,
+      toggleDrawer() { if (info.open) info.close(); else if (current) { renderDetails(); info.showModal(); } },
+      getScenario: () => current, getStepIndex: () => progress.index, isExpanded: () => info.open,
+      dispose() { generation++; progress.clear(); events.abort(); bar.remove(); stepper.remove(); picker.remove(); info.remove(); },
+    });
+  }
+  return Object.freeze({create, buildStepDocument, validateProblems, createProgress});
 });

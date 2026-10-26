@@ -190,342 +190,65 @@ textarea.sd-inline-edit { min-height: 96px; resize: vertical; }
 .private-collection p { overflow-wrap: anywhere; line-height: 1.6; }
 .private-notes h2, .private-notes h3, .private-notes h4 { margin-top: 24px; }
 
-/* Interactive System Design Interview Stepper */
-.interview-stepper {
-  position: absolute;
-  left: 50%;
-  bottom: 24px;
-  transform: translateX(-50%);
-  width: min(920px, calc(100% - 32px));
-  max-height: calc(100% - 48px);
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
-  background: var(--wui-paper);
-  border: 1px solid var(--wui-line);
-  border-radius: var(--wui-radius);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
-  z-index: 25;
-  font-family: var(--wui-font);
-  color: var(--wui-ink);
-  overflow: hidden;
-  backdrop-filter: blur(8px);
+/* Lucyd keeps components reachable while the current task stays compact. */
+.editor-layout { --lucyd-rail-width: 208px; --lucyd-header-height: 52px; }
+.app-header { inset: 0 0 auto; height: var(--lucyd-header-height); padding: 6px 12px; background: var(--wui-paper); border-bottom: 1px solid var(--wui-line); }
+.canvas-panel { top: var(--lucyd-header-height); left: var(--lucyd-rail-width); }
+.palette-panel {
+  position: fixed; top: var(--lucyd-header-height); bottom: 0; width: var(--lucyd-rail-width);
+  padding: 12px; transform: none; visibility: visible; box-shadow: none; z-index: 30;
 }
-.interview-stepper[data-visible='false'] {
-  display: none;
-}
-.interview-stepper-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 6px 14px;
-  background: var(--wui-hover);
-  border-bottom: 1px solid var(--wui-line);
-}
-.interview-stepper-meta {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-width: 0;
-  overflow: hidden;
-}
-.interview-stepper-badge {
-  font: 600 9.5px var(--wui-mono);
-  letter-spacing: 0.08em;
-  padding: 2px 6px;
-  border-radius: 4px;
-  background: var(--wui-active-bg);
-  color: var(--wui-active);
-  flex-shrink: 0;
-}
-.interview-stepper-title {
-  font: 600 13px var(--wui-font);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.interview-stepper-subtitle {
-  font: 400 11px var(--wui-font);
-  color: var(--wui-muted);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.interview-stepper-notes-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: var(--wui-paper);
-  border: 1px solid var(--wui-line);
-  border-radius: 4px;
-  padding: 3px 8px;
-  font: 500 11px var(--wui-font);
-  color: var(--wui-ink);
-  cursor: pointer;
-  flex-shrink: 0;
-}
-.interview-stepper-notes-btn:hover {
-  border-color: var(--wui-ink);
-}
-.interview-stepper-controls {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  overflow-x: auto;
-}
-.interview-stepper-nav-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 6px 12px;
-  background: var(--wui-paper);
-  border: 1px solid var(--wui-line);
-  border-radius: 4px;
-  font: 600 12px var(--wui-font);
-  color: var(--wui-ink);
-  cursor: pointer;
-  flex-shrink: 0;
-  white-space: nowrap;
-}
-.interview-stepper-nav-btn:hover:not(:disabled) {
-  border-color: var(--wui-active);
-  color: var(--wui-active);
-}
-.interview-stepper-nav-btn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-.interview-stepper-nav-btn.is-full.is-active {
-  background: var(--wui-active-bg);
-  border-color: var(--wui-active);
-  color: var(--wui-active);
-}
-.interview-stepper-pills {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex: 1;
-  min-width: 0;
-  overflow-x: auto;
-}
-.interview-stepper-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  background: var(--wui-hover);
-  border: 1px solid var(--wui-line);
-  border-radius: 20px;
-  font: 500 12px var(--wui-font);
-  color: var(--wui-ink);
-  cursor: pointer;
-  flex-shrink: 0;
-  white-space: nowrap;
-  transition: all 0.15s ease;
-}
-.interview-stepper-pill:hover {
-  border-color: var(--wui-ink);
-}
-.interview-stepper-pill.is-active {
-  background: var(--wui-active);
-  color: var(--wui-paper);
-  border-color: var(--wui-active);
-}
-.interview-stepper-pill .pill-number {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: rgba(0, 0, 0, 0.08);
-  font: 600 10.5px var(--wui-mono);
-}
-.interview-stepper-pill.is-active .pill-number {
-  background: rgba(255, 255, 255, 0.25);
-  color: #fff;
-}
-.interview-stepper-drawer {
-  border-top: 1px solid var(--wui-line);
-  max-height: 280px;
-  overflow-y: auto;
-  background: var(--wui-paper);
-  overscroll-behavior: contain;
-}
-.interview-stepper-drawer-content {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: 12px 14px;
-}
-.interview-step-card {
-  border: 1px solid var(--wui-line);
-  border-radius: 6px;
-  padding: 10px 12px;
-  background: var(--wui-paper);
-}
-.interview-step-card.is-prompt {
-  background: var(--wui-hover);
-  border-left: 3px solid var(--wui-active);
-}
-.interview-step-columns {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-@media (max-width: 680px) {
-  .interview-step-columns {
-    grid-template-columns: 1fr;
-  }
-}
-.card-eyebrow {
-  font: 600 10.5px var(--wui-mono);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--wui-muted);
-  margin-bottom: 4px;
-}
-.card-stage {
-  color: var(--wui-active);
-}
-.card-quote {
-  margin: 0;
-  font: 500 13px/1.45 var(--wui-font);
-  color: var(--wui-ink);
-}
-.card-text {
-  margin: 0;
-  font: 400 12.5px/1.45 var(--wui-font);
-  color: var(--wui-ink);
-}
-.card-list {
-  margin: 0;
-  padding-left: 18px;
-  font: 400 12px/1.45 var(--wui-font);
-  color: var(--wui-ink);
-}
-.card-list li {
-  margin-bottom: 3px;
-}
-
-/* Lucyd Interview Task Bar */
+.palette-panel .panel-heading { margin-bottom: 10px; }
+.lucyd-subsystem-tools { margin-top: 16px; font-size: 12px; }
+.palette-panel .panel-heading [data-close-drawer], #palette-toggle { display: none; }
+.palette-panel .palette-search > span, #capability-count, .palette-description { display: none; }
+.palette-panel .palette-item { min-height: 36px; padding: 5px; gap: 7px; }
+.palette-panel .palette-label { font-size: 12px; }
+.palette-panel .palette, .palette-panel .palette-category { display: grid; grid-template-columns: 1fr; max-height: none; overflow: visible; }
+.properties-panel { top: var(--lucyd-header-height); width: min(340px, calc(100vw - var(--lucyd-rail-width) - 24px)); }
 .lucyd-task-bar {
-  position: absolute;
-  top: 14px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: min(920px, calc(100% - 32px));
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
-  background: var(--wui-paper);
-  border: 1px solid var(--wui-line);
-  border-radius: var(--wui-radius);
-  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08);
-  z-index: 25;
-  font-family: var(--wui-font);
-  color: var(--wui-ink);
-  overflow: hidden;
-  backdrop-filter: blur(8px);
+  position: absolute; inset: 12px 12px auto; z-index: 20; display: grid; grid-template-columns: 1fr auto auto; gap: 8px; align-items: center;
+  max-width: 880px; margin-inline: auto; padding: 8px; background: var(--wui-paper);
+  color: var(--wui-ink); border: 1px solid var(--wui-line); border-radius: var(--wui-radius);
 }
-.lucyd-task-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 6px 12px;
-  background: var(--wui-hover);
-  border-bottom: 1px solid var(--wui-line);
+.lucyd-task-prompt { flex: 1; min-width: 0; font: 400 13px/1.45 var(--wui-font); }
+.interview-stepper {
+  position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); z-index: 20;
+  display: flex; align-items: center; gap: 10px; max-width: calc(100% - 24px); padding: 6px;
+  background: var(--wui-paper); color: var(--wui-ink); border: 1px solid var(--wui-line); border-radius: var(--wui-radius);
 }
-.lucyd-task-meta {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-width: 0;
-  flex: 1;
+.interview-stepper[hidden], .lucyd-task-bar [hidden], .interview-stepper [hidden] { display: none; }
+.interview-stepper-title { font: 400 12px var(--wui-font); white-space: nowrap; }
+.lucyd-dialog {
+  position: fixed; inset: 0; width: min(620px, calc(100vw - 24px)); max-height: calc(100dvh - 24px);
+  margin: auto; padding: 20px; overflow: auto; background: var(--wui-paper); color: var(--wui-ink);
+  border: 1px solid var(--wui-line); border-radius: var(--wui-radius);
 }
-.lucyd-task-badge {
-  font: 700 9.5px var(--wui-mono);
-  letter-spacing: 0.08em;
-  padding: 2px 6px;
-  border-radius: 4px;
-  background: var(--wui-active-bg);
-  color: var(--wui-active);
-  flex-shrink: 0;
-}
-.lucyd-task-select {
-  flex: 1;
-  max-width: 520px;
-  padding: 4px 8px;
-  font: 500 12px var(--wui-font);
-  background: var(--wui-paper);
-  color: var(--wui-ink);
-  border: 1px solid var(--wui-line);
-  border-radius: 4px;
-  outline: none;
-}
-.lucyd-task-select:hover, .lucyd-task-select:focus {
-  border-color: var(--wui-active);
-}
-.lucyd-task-actions {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-shrink: 0;
-}
-.lucyd-task-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 4px 10px;
-  background: var(--wui-paper);
-  border: 1px solid var(--wui-line);
-  border-radius: 4px;
-  font: 500 11.5px var(--wui-font);
-  color: var(--wui-ink);
-  cursor: pointer;
-  white-space: nowrap;
-}
-.lucyd-task-btn:hover {
-  border-color: var(--wui-active);
-  color: var(--wui-active);
-}
-.lucyd-task-prompt-display {
-  padding: 8px 14px;
-  font: 500 13px/1.45 var(--wui-font);
-  color: var(--wui-ink);
-  background: var(--wui-paper);
-}
-.lucyd-task-prompt-label {
-  font-weight: 700;
-  color: var(--wui-active);
-  margin-right: 6px;
-}
-.lucyd-task-prompt-text {
-  font-style: italic;
-}
-.lucyd-task-custom-editor {
-  padding: 8px 12px;
-  border-top: 1px dashed var(--wui-line);
-  background: var(--wui-hover);
-}
-.lucyd-task-custom-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.lucyd-task-custom-input {
-  flex: 1;
-  padding: 6px 10px;
-  font: 400 12.5px var(--wui-font);
-  background: var(--wui-paper);
-  color: var(--wui-ink);
-  border: 1px solid var(--wui-line);
-  border-radius: 4px;
-  outline: none;
-}
-.lucyd-task-custom-input:focus {
-  border-color: var(--wui-active);
+.lucyd-dialog::backdrop { background: var(--wui-ink); opacity: .25; }
+.lucyd-dialog p { font: 400 14px/1.6 var(--wui-font); margin-block: 14px; }
+.lucyd-source, .lucyd-details small { display: block; font: 400 12px/1.5 var(--wui-font); margin-block: 12px; }
+.lucyd-details h3 { margin-top: 20px; }
+.lucyd-details details { margin-block: 16px; }
+.lucyd-custom-task { display: grid; justify-items: start; gap: 10px; margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--wui-line); }
+.lucyd-custom-task label { justify-self: stretch; display: grid; gap: 8px; font: 400 13px var(--wui-font); }
+.notice-line { display: none; }
+.notice-line:has(#editor-status[data-error='true']) { display: block; top: 112px; bottom: auto; left: calc(var(--lucyd-rail-width) + 12px); background: var(--wui-paper); }
+@media (max-width: 700px) {
+  .editor-layout { --lucyd-rail-width: 56px; }
+  .palette-panel { padding: 48px 6px 8px; }
+  #palette-toggle { display: block; position: fixed; top: 60px; left: 8px; writing-mode: horizontal-tb; width: 40px; height: 32px; }
+  .palette-panel .panel-heading, .palette-panel .palette-search, .palette-panel:has(#palette-category) > label, .palette-category-title, .palette-copy, .lucyd-subsystem-tools { display: none; }
+  .palette-panel .palette-item { width: 42px; height: 40px; padding: 6px; }
+  .palette-panel .component-icon { flex: none; }
+  body[data-palette-expanded='true'] .palette-panel { width: 240px; padding: 12px 12px 12px 56px; }
+  body[data-palette-expanded='true'] .palette-panel .panel-heading,
+  body[data-palette-expanded='true'] .palette-panel .palette-search,
+  body[data-palette-expanded='true'] .palette-panel:has(#palette-category) > label,
+  body[data-palette-expanded='true'] .palette-panel .palette-copy { display: flex; }
+  body[data-palette-expanded='true'] .lucyd-subsystem-tools { display: block; }
+  body[data-palette-expanded='true'] .palette-panel .palette-item { width: 100%; }
+  .lucyd-task-bar { grid-template-columns: auto 1fr; gap: 6px; }
+  .lucyd-task-prompt { grid-column: 1/-1; font-size: 12px; }
+  .interview-stepper { gap: 4px; }
+  .interview-stepper-title { max-width: 110px; overflow: hidden; text-overflow: ellipsis; }
 }
