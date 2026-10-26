@@ -37,9 +37,9 @@
   customOption.textContent = 'Imported document';
   customOption.disabled = true;
   $('preset').append(customOption);
-  $('preset').value = config.defaultExampleId;
+  $('preset').value = 'blank';
 
-  const initial = await json(config.examples.find(e => e.id === config.defaultExampleId).path);
+  const initial = documents.emptyDiagram(config);
   const model = globalThis.SimulatteSystemDiagramEditorModel.create({ diagram: initial, library, config });
 
   const files = globalThis.SimulatteSystemDiagramFiles;
@@ -58,7 +58,7 @@
   let savedDraftSig = null;
   let pendingReplacement = null;
   const loadGuard = globalThis.SimulatteSystemDiagramEditorModel.createLoadGuard(model);
-  let loading = false, activePreset = config.defaultExampleId;
+  let loading = false, activePreset = 'blank';
   const buttons = {};
 
   function message(text, error = false) {
@@ -923,7 +923,7 @@
   const stored = fileStore?.readStatus();
   let recoveryError = stored && !['ready', 'missing'].includes(stored.state) ? `Saved diagram could not be read: ${stored.error} Stored data was retained.` : '';
   const storedRecord = stored?.record;
-  if (storedRecord) {
+  if (storedRecord && location.search.includes('recover=true')) {
     try { loadDocumentRecord(storedRecord.diagram, storedRecord.subsystemDraft); }
     catch (error) { recoveryError = `Saved diagram could not be restored: ${error.message}. The stored copy was retained.`; }
   } else canvas.fit({ readable: true });

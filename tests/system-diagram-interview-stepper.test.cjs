@@ -32,6 +32,7 @@ test('interview journeys definition exists and conforms to schema', () => {
     assert.ok(scenario.title, `scenario ${presetId} must have title`);
     assert.ok(scenario.subtitle, `scenario ${presetId} must have subtitle`);
     assert.ok(scenario.targetQps, `scenario ${presetId} must have targetQps`);
+    assert.ok(scenario.problemStatement && typeof scenario.problemStatement === 'string' && scenario.problemStatement.length > 20, `scenario ${presetId} must have problemStatement`);
     assert.ok(Array.isArray(scenario.steps) && scenario.steps.length >= 3, `scenario ${presetId} must have at least 3 steps`);
   }
 });

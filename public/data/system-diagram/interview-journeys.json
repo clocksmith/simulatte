@@ -6,6 +6,7 @@
       "title": "Scaling a Modern Web Application",
       "subtitle": "System Design Interview: From Simple Monolith to Distributed Async Architecture",
       "targetQps": "100 QPS to 50,000 QPS",
+      "problemStatement": "Design a scalable web platform where clients perform queries and updates with low latency, then introduce caching for hot reads and asynchronous workers for background tasks.",
       "steps": [
         {
           "stepNumber": 1,
@@ -65,6 +66,7 @@
       "title": "Real-Time Streaming Chat System",
       "subtitle": "System Design Interview: Persistent Conversations, Inference Pool, and Token Streaming",
       "targetQps": "1,000 active streams",
+      "problemStatement": "Design a real-time messaging platform (like Slack or Discord) supporting 1M concurrent connections, persistent conversation history, and live token streaming.",
       "steps": [
         {
           "stepNumber": 1,
@@ -115,6 +117,7 @@
       "title": "Retrieval-Augmented Generation (RAG) System",
       "subtitle": "System Design Interview: From Baseline Model to Vector Retrieval & Reranking Ingestion",
       "targetQps": "Sub-200ms retrieval",
+      "problemStatement": "Design an enterprise AI search assistant that embeds queries, searches vector document candidates, reranks results, and streams validated responses under 200ms.",
       "steps": [
         {
           "stepNumber": 1,
@@ -165,6 +168,7 @@
       "title": "Global Video Streaming & CDN Architecture",
       "subtitle": "System Design Interview: Regional CDN POPs, Global Distribution, and Peer-Assisted Delivery",
       "targetQps": "100,000 concurrent viewers",
+      "problemStatement": "Design a global video streaming platform (like YouTube or Netflix) with regional CDN edge caching, origin shielding, and peer-assisted playback offloading.",
       "steps": [
         {
           "stepNumber": 1,
@@ -215,6 +219,7 @@
       "title": "Scalable Social Media News Feed",
       "subtitle": "System Design Interview: Fan-out on Read vs Write, Timeline Caching & Graph Traversal",
       "targetQps": "50,000 timeline reads/sec",
+      "problemStatement": "Design a social media news feed (like Twitter or Instagram) with instantaneous timeline loading, fan-out on write queues, and high-concurrency follower graph traversals.",
       "steps": [
         {
           "stepNumber": 1,

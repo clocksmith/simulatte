@@ -409,3 +409,123 @@ textarea.sd-inline-edit { min-height: 96px; resize: vertical; }
 .card-list li {
   margin-bottom: 3px;
 }
+
+/* Lucyd Interview Task Bar */
+.lucyd-task-bar {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(920px, calc(100% - 32px));
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  background: var(--wui-paper);
+  border: 1px solid var(--wui-line);
+  border-radius: var(--wui-radius);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08);
+  z-index: 25;
+  font-family: var(--wui-font);
+  color: var(--wui-ink);
+  overflow: hidden;
+  backdrop-filter: blur(8px);
+}
+.lucyd-task-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 12px;
+  background: var(--wui-hover);
+  border-bottom: 1px solid var(--wui-line);
+}
+.lucyd-task-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  flex: 1;
+}
+.lucyd-task-badge {
+  font: 700 9.5px var(--wui-mono);
+  letter-spacing: 0.08em;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--wui-active-bg);
+  color: var(--wui-active);
+  flex-shrink: 0;
+}
+.lucyd-task-select {
+  flex: 1;
+  max-width: 520px;
+  padding: 4px 8px;
+  font: 500 12px var(--wui-font);
+  background: var(--wui-paper);
+  color: var(--wui-ink);
+  border: 1px solid var(--wui-line);
+  border-radius: 4px;
+  outline: none;
+}
+.lucyd-task-select:hover, .lucyd-task-select:focus {
+  border-color: var(--wui-active);
+}
+.lucyd-task-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.lucyd-task-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 10px;
+  background: var(--wui-paper);
+  border: 1px solid var(--wui-line);
+  border-radius: 4px;
+  font: 500 11.5px var(--wui-font);
+  color: var(--wui-ink);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.lucyd-task-btn:hover {
+  border-color: var(--wui-active);
+  color: var(--wui-active);
+}
+.lucyd-task-prompt-display {
+  padding: 8px 14px;
+  font: 500 13px/1.45 var(--wui-font);
+  color: var(--wui-ink);
+  background: var(--wui-paper);
+}
+.lucyd-task-prompt-label {
+  font-weight: 700;
+  color: var(--wui-active);
+  margin-right: 6px;
+}
+.lucyd-task-prompt-text {
+  font-style: italic;
+}
+.lucyd-task-custom-editor {
+  padding: 8px 12px;
+  border-top: 1px dashed var(--wui-line);
+  background: var(--wui-hover);
+}
+.lucyd-task-custom-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.lucyd-task-custom-input {
+  flex: 1;
+  padding: 6px 10px;
+  font: 400 12.5px var(--wui-font);
+  background: var(--wui-paper);
+  color: var(--wui-ink);
+  border: 1px solid var(--wui-line);
+  border-radius: 4px;
+  outline: none;
+}
+.lucyd-task-custom-input:focus {
+  border-color: var(--wui-active);
+}
