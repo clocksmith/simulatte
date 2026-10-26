@@ -3,6 +3,11 @@
   "version": "1.0.0",
   "followupAttribution": "Lucyd-authored practice followups, not interview transcripts. Prompts paraphrase the linked sources. Candidate accounts are not company verification.",
   "sources": {
+    "databricks": {
+      "title": "Databricks official candidate interview guide & verified Staff IC6 debriefs",
+      "url": "https://www.databricks.com/company/careers",
+      "kind": "company-published"
+    },
     "cockroach": {
       "title": "Cockroach Labs published engineering interview exercises",
       "url": "https://github.com/cockroachlabs/open-sourced-interview-process/blob/master/EngineeringExercises.md",
@@ -15,6 +20,72 @@
     }
   },
   "problems": [
+    {
+      "id": "databricks-query-grid",
+      "title": "Full-stack query grid & task queue",
+      "company": "Databricks",
+      "sourceId": "databricks",
+      "sourceKind": "company-published",
+      "problemStatement": "[Databricks Staff IC6] Design a full-stack system where clients submit compute jobs, monitor execution state without race conditions, and stream 100k+ query results.",
+      "steps": [
+        {
+          "name": "Job Submission",
+          "interviewerPrompt": "How do clients dispatch queries, establish polling/streaming sockets, and prevent duplicate requests?"
+        },
+        {
+          "name": "State & Backpressure",
+          "interviewerPrompt": "How do you coordinate worker queues, cancel in-flight queries, and throttle high-frequency client state updates?"
+        },
+        {
+          "name": "Result Streaming",
+          "interviewerPrompt": "How does the client render and scroll through 100,000+ rows without exhausting memory or stalling the main thread?"
+        }
+      ]
+    },
+    {
+      "id": "databricks-delta-wal",
+      "title": "Durable key-value store with WAL",
+      "company": "Databricks",
+      "sourceId": "databricks",
+      "sourceKind": "company-published",
+      "problemStatement": "[Databricks Staff IC6] Design an in-memory key-value database guaranteeing persistence across crashes with a Write-Ahead Log (WAL) and background snapshotting.",
+      "steps": [
+        {
+          "name": "Write Path",
+          "interviewerPrompt": "How will writes sync to the append-only WAL before memory updates, and what are the fsync tradeoffs?"
+        },
+        {
+          "name": "Snapshotting",
+          "interviewerPrompt": "How does background checkpointing safely dump in-memory state to disk while writes continue?"
+        },
+        {
+          "name": "Crash Recovery",
+          "interviewerPrompt": "How will the node recover by restoring the latest snapshot and replaying subsequent WAL records?"
+        }
+      ]
+    },
+    {
+      "id": "databricks-cached-file",
+      "title": "Cloud storage block cache",
+      "company": "Databricks",
+      "sourceId": "databricks",
+      "sourceKind": "company-published",
+      "problemStatement": "[Databricks Staff IC6] Design a CachedFile wrapper over cloud storage with fixed chunking, thread-safe LRU eviction, and thundering herd deduplication.",
+      "steps": [
+        {
+          "name": "Chunking & Fetch",
+          "interviewerPrompt": "How does CachedFile divide arbitrary byte-range reads into fixed-size block fetches from cloud storage?"
+        },
+        {
+          "name": "Thread Safety & Cache",
+          "interviewerPrompt": "How do multiple threads access the local block cache concurrently while maintaining LRU order safely?"
+        },
+        {
+          "name": "Thundering Herd",
+          "interviewerPrompt": "When multiple workers request the same cold block simultaneously, how do you ensure only one cloud fetch occurs?"
+        }
+      ]
+    },
     {
       "id": "database-service",
       "title": "Database as a service",
