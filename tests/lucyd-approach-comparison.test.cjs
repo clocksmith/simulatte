@@ -1,0 +1,6 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),{structure}=require('../tools/simulatte/compare-lucyd-approaches.cjs');
+const chain={nodes:[{id:'a',kernel:'source'},{id:'b',kernel:'service'},{id:'c',kernel:'service'}],edges:[{from:'a',fromPort:'out',to:'b',toPort:'in'},{from:'b',fromPort:'calls',to:'c',toPort:'in'}]};
+test('approach evidence ignores identity, labels, layout and numeric tuning',()=>{const renamed=structuredClone(chain),ids={a:'user',b:'api',c:'worker'};for(const n of renamed.nodes){n.id=ids[n.id];n.label='A new name';n.x=500;n.params={concurrency:99};}for(const e of renamed.edges){e.from=ids[e.from];e.to=ids[e.to];e.params={latencyMs:250};}assert.equal(structure(chain),structure(renamed));});
+test('a real chain and fork have distinct connection structure even with the same component types',()=>{const fork=structuredClone(chain);fork.edges[1]={from:'a',fromPort:'out',to:'c',toPort:'in'};assert.notEqual(structure(chain),structure(fork));});
+test('different executable algorithm implementations count independently of box count',()=>{const rope={nodes:[{id:'a',kernel:'studySource'},{id:'b',kernel:'ropeText'}],edges:[{from:'a',fromPort:'out',to:'b',toPort:'in'}]},flat=structuredClone(rope);flat.nodes[1].kernel='flatText';assert.notEqual(structure(rope),structure(flat));});

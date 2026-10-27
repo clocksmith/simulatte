@@ -29,7 +29,10 @@
             "wal",
             "transactions",
             "scheduler",
-            "quotas"
+            "quotas",
+            "grid-keyset",
+            "notebook-locks",
+            "transactions-locks"
           ]
         },
         "intervalMs": {
@@ -75,9 +78,9 @@
           "label": "Workload variant",
           "default": 0,
           "min": 0,
-          "max": 2,
+          "max": 3,
           "group": "basic",
-          "help": "0 baseline, 1 boundary inputs, 2 repeated burst. Every variant is an explicit authored experiment."
+          "help": "0 baseline, 1 boundary inputs, 2 repeated burst, 3 minimal two-command contract trace. Every variant is an explicit authored experiment."
         }
       },
       "ports": [

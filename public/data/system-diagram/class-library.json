@@ -1,6 +1,6 @@
 {
   "schema": "simulatte.systemDiagramClassLibrary.v1",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "payloadTypes": [
     {
       "id": "http",
@@ -790,6 +790,9 @@
     "classes/messaging.json",
     "classes/api-practice.json",
     "classes/study.json",
-    "classes/realtime.json"
+    "classes/realtime.json",
+    "classes/study-alternatives.json",
+    "classes/public-alternatives.json",
+    "classes/study-choices.json"
   ]
 }

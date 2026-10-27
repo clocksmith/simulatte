@@ -129,7 +129,7 @@ status recovery; Spark-style stages and executor loss; social posts and follower
 feeds; workspace/project/task relationships and access revocation. Show named
 operations on connections, progressive component settings, actual simulated
 records and causal progress. Examples remain compositions of reusable kernels,
-not a second canned-outcome engine. Add authored practice for threaded comments and voting, video delivery, social timelines, ephemeral stories, inventory reservations, crawling, and presence. Every authored public/private solution branch has at least eight substantive stages with an interview challenge and an observable outcome. Requirements/design stages declare intent without claiming execution; executable stages run and expose checks. Explicit solution playback reveals one editable architecture stage and a short explanation at a time; Simulate executes the completed or edited graph and displays actual synthetic requests and outcomes. Selecting a problem still starts blank. Separate source/model checks, browser authoring,
+not a second canned-outcome engine. Add authored practice for threaded comments and voting, video delivery, social timelines, ephemeral stories, inventory reservations, crawling, and presence. Every authored public/private solution branch has at least eight runnable stages per approach with an interview challenge and an observable outcome. Optional conceptual preludes declare intent and do not count toward runnable stages; every runnable stage executes and exposes checks. Explicit solution playback reveals one editable architecture stage and a short explanation at a time; Simulate executes the completed or edited graph and displays actual synthetic requests and outcomes. Selecting a problem still starts blank. Separate source/model checks, browser authoring,
 human comprehension and deployed availability.
 
 Develop challenging workloads as composable packs of typed nodes, ports, resource
@@ -216,3 +216,8 @@ The component catalog exposes light/dark and interaction states. CI rejects
 simulation-owned native-control styling and shared-component overrides with no
 legacy exceptions. Browser checks cover every catalog route; unfamiliar-user
 comprehension remains a separate study and is not established by this migration.
+
+Owner direction2026-10-27: every study problem has at least two structurally different
+approaches, each with at least eight runnable stages. Optional conceptual sketches
+remain separate preludes. Compare declared workloads, observed costs and reasons
+to choose each approach; caches/retries alone do not establish a new architecture.

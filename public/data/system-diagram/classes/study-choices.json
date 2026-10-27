@@ -1,0 +1,803 @@
+{
+  "schema": "simulatte.systemDiagramClassPack.v1",
+  "id": "study-choices",
+  "version": "1.0.0",
+  "kernels": [
+    {
+      "id": "prefixTrieSearch",
+      "label": "Prefix-trie search",
+      "description": "Fixed-corpus prefix trie enumerates matching descendants while preserving corpus order. Shows trie work and bounded query cache; no scan of every document per query.",
+      "paramSets": [],
+      "params": {
+        "serviceMs": {
+          "type": "number",
+          "label": "Service ms",
+          "default": 5,
+          "group": "basic",
+          "min": 0,
+          "max": 1000
+        },
+        "concurrency": {
+          "type": "integer",
+          "label": "Concurrency",
+          "default": 4,
+          "group": "basic",
+          "min": 1,
+          "max": 64
+        },
+        "queueCapacity": {
+          "type": "integer",
+          "label": "Queue capacity",
+          "default": 64,
+          "group": "basic",
+          "min": 0,
+          "max": 1000
+        },
+        "maxRecords": {
+          "type": "integer",
+          "label": "Max records",
+          "default": 200,
+          "group": "basic",
+          "min": 1,
+          "max": 4096
+        },
+        "capacity": {
+          "type": "integer",
+          "label": "Capacity",
+          "default": 8,
+          "group": "basic",
+          "min": 1,
+          "max": 100
+        },
+        "ttlSec": {
+          "type": "number",
+          "label": "Ttl sec",
+          "default": 1,
+          "group": "basic",
+          "min": 0.001,
+          "max": 60
+        }
+      },
+      "ports": [
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "Command",
+          "multiple": true,
+          "required": false,
+          "accepts": [
+            "json"
+          ]
+        }
+      ],
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "dropReplies"
+      ]
+    },
+    {
+      "id": "keysetTable",
+      "label": "Stable-key pagination",
+      "description": "Immutable monotonic row keys plus binary search advance afterKey. Insertions before the cursor do not repeat prior rows; no frozen snapshot is retained.",
+      "paramSets": [],
+      "params": {
+        "serviceMs": {
+          "type": "number",
+          "label": "Service ms",
+          "default": 5,
+          "group": "basic",
+          "min": 0,
+          "max": 1000
+        },
+        "concurrency": {
+          "type": "integer",
+          "label": "Concurrency",
+          "default": 4,
+          "group": "basic",
+          "min": 1,
+          "max": 64
+        },
+        "queueCapacity": {
+          "type": "integer",
+          "label": "Queue capacity",
+          "default": 64,
+          "group": "basic",
+          "min": 0,
+          "max": 1000
+        },
+        "maxRecords": {
+          "type": "integer",
+          "label": "Max records",
+          "default": 200,
+          "group": "basic",
+          "min": 1,
+          "max": 4096
+        }
+      },
+      "ports": [
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "Command",
+          "multiple": true,
+          "required": false,
+          "accepts": [
+            "json"
+          ]
+        }
+      ],
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "dropReplies"
+      ]
+    },
+    {
+      "id": "leasedState",
+      "label": "Fenced lease authority",
+      "description": "Document or metadata writes require the active owner and fencing token. Explicit acquire/write/release overhead, bounded identities and expired/stale owner rejection.",
+      "paramSets": [],
+      "params": {
+        "serviceMs": {
+          "type": "number",
+          "label": "Service ms",
+          "default": 5,
+          "group": "basic",
+          "min": 0,
+          "max": 1000
+        },
+        "concurrency": {
+          "type": "integer",
+          "label": "Concurrency",
+          "default": 4,
+          "group": "basic",
+          "min": 1,
+          "max": 64
+        },
+        "queueCapacity": {
+          "type": "integer",
+          "label": "Queue capacity",
+          "default": 64,
+          "group": "basic",
+          "min": 0,
+          "max": 1000
+        },
+        "maxRecords": {
+          "type": "integer",
+          "label": "Max records",
+          "default": 200,
+          "group": "basic",
+          "min": 1,
+          "max": 4096
+        },
+        "mode": {
+          "type": "enum",
+          "label": "State contract",
+          "default": "document",
+          "options": [
+            "document",
+            "metadata"
+          ],
+          "group": "basic"
+        },
+        "leaseSec": {
+          "type": "number",
+          "label": "Lease seconds",
+          "default": 1,
+          "min": 0.001,
+          "max": 60,
+          "group": "basic"
+        }
+      },
+      "ports": [
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "Command",
+          "multiple": true,
+          "required": false,
+          "accepts": [
+            "json"
+          ]
+        }
+      ],
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "dropReplies"
+      ]
+    },
+    {
+      "id": "tokenizedLexer",
+      "label": "Tokenized comment lexer",
+      "description": "Combined quoted-string, incomplete-string, line-comment and block-comment tokenization preserves literals and newlines. Token and character work is visible; not a full language parser.",
+      "paramSets": [],
+      "params": {
+        "serviceMs": {
+          "type": "number",
+          "label": "Service ms",
+          "default": 5,
+          "group": "basic",
+          "min": 0,
+          "max": 1000
+        },
+        "concurrency": {
+          "type": "integer",
+          "label": "Concurrency",
+          "default": 4,
+          "group": "basic",
+          "min": 1,
+          "max": 64
+        },
+        "queueCapacity": {
+          "type": "integer",
+          "label": "Queue capacity",
+          "default": 64,
+          "group": "basic",
+          "min": 0,
+          "max": 1000
+        },
+        "maxRecords": {
+          "type": "integer",
+          "label": "Max records",
+          "default": 200,
+          "group": "basic",
+          "min": 1,
+          "max": 4096
+        },
+        "sql": {
+          "type": "boolean",
+          "label": "Sql",
+          "default": false,
+          "group": "basic"
+        }
+      },
+      "ports": [
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "Command",
+          "multiple": true,
+          "required": false,
+          "accepts": [
+            "json"
+          ]
+        }
+      ],
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "dropReplies"
+      ]
+    },
+    {
+      "id": "expiryHeapCounter",
+      "label": "Expiry-heap sliding window",
+      "description": "A min-heap orders accepted-hit expirations across bounded keys. Exact window decisions remove expired counts; heap comparisons and residency remain observable.",
+      "paramSets": [],
+      "params": {
+        "serviceMs": {
+          "type": "number",
+          "label": "Service ms",
+          "default": 5,
+          "group": "basic",
+          "min": 0,
+          "max": 1000
+        },
+        "concurrency": {
+          "type": "integer",
+          "label": "Concurrency",
+          "default": 4,
+          "group": "basic",
+          "min": 1,
+          "max": 64
+        },
+        "queueCapacity": {
+          "type": "integer",
+          "label": "Queue capacity",
+          "default": 64,
+          "group": "basic",
+          "min": 0,
+          "max": 1000
+        },
+        "maxRecords": {
+          "type": "integer",
+          "label": "Max records",
+          "default": 200,
+          "group": "basic",
+          "min": 1,
+          "max": 4096
+        },
+        "capacity": {
+          "type": "integer",
+          "label": "Capacity",
+          "default": 2,
+          "group": "basic",
+          "min": 1,
+          "max": 100
+        },
+        "windowSec": {
+          "type": "number",
+          "label": "Window sec",
+          "default": 0.25,
+          "group": "basic",
+          "min": 0.001,
+          "max": 60
+        }
+      },
+      "ports": [
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "Command",
+          "multiple": true,
+          "required": false,
+          "accepts": [
+            "json"
+          ]
+        }
+      ],
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "dropReplies"
+      ]
+    },
+    {
+      "id": "linkedLruMap",
+      "label": "Linked LRU cache",
+      "description": "Own-key lookup plus doubly linked recency provides direct victim removal. TTL expiry checks remain explicit scans; pointer updates are measured separately.",
+      "paramSets": [],
+      "params": {
+        "serviceMs": {
+          "type": "number",
+          "label": "Service ms",
+          "default": 5,
+          "group": "basic",
+          "min": 0,
+          "max": 1000
+        },
+        "concurrency": {
+          "type": "integer",
+          "label": "Concurrency",
+          "default": 4,
+          "group": "basic",
+          "min": 1,
+          "max": 64
+        },
+        "queueCapacity": {
+          "type": "integer",
+          "label": "Queue capacity",
+          "default": 64,
+          "group": "basic",
+          "min": 0,
+          "max": 1000
+        },
+        "maxRecords": {
+          "type": "integer",
+          "label": "Max records",
+          "default": 200,
+          "group": "basic",
+          "min": 1,
+          "max": 4096
+        },
+        "capacity": {
+          "type": "integer",
+          "label": "Capacity",
+          "default": 2,
+          "group": "basic",
+          "min": 1,
+          "max": 100
+        },
+        "ttlSec": {
+          "type": "number",
+          "label": "Ttl sec",
+          "default": 0.3,
+          "group": "basic",
+          "min": 0.001,
+          "max": 60
+        },
+        "expire": {
+          "type": "boolean",
+          "label": "Expire",
+          "default": true,
+          "group": "basic"
+        },
+        "evict": {
+          "type": "boolean",
+          "label": "Evict",
+          "default": true,
+          "group": "basic"
+        },
+        "durable": {
+          "type": "boolean",
+          "label": "Durable",
+          "default": false,
+          "group": "basic"
+        }
+      },
+      "ports": [
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "Command",
+          "multiple": true,
+          "required": false,
+          "accepts": [
+            "json"
+          ]
+        }
+      ],
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "dropReplies"
+      ]
+    },
+    {
+      "id": "copyOnWriteMap",
+      "label": "Copy-on-write durable roots",
+      "description": "Every write builds a new bounded map and identity root. Synchronous writes, flush or checkpoint publish atomically; restart drops unpublished roots. Entry copies are observable.",
+      "paramSets": [],
+      "params": {
+        "serviceMs": {
+          "type": "number",
+          "label": "Service ms",
+          "default": 5,
+          "group": "basic",
+          "min": 0,
+          "max": 1000
+        },
+        "concurrency": {
+          "type": "integer",
+          "label": "Concurrency",
+          "default": 4,
+          "group": "basic",
+          "min": 1,
+          "max": 64
+        },
+        "queueCapacity": {
+          "type": "integer",
+          "label": "Queue capacity",
+          "default": 64,
+          "group": "basic",
+          "min": 0,
+          "max": 1000
+        },
+        "maxRecords": {
+          "type": "integer",
+          "label": "Max records",
+          "default": 200,
+          "group": "basic",
+          "min": 1,
+          "max": 4096
+        },
+        "syncWrites": {
+          "type": "boolean",
+          "label": "Sync writes",
+          "default": true,
+          "group": "basic"
+        }
+      },
+      "ports": [
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "Command",
+          "multiple": true,
+          "required": false,
+          "accepts": [
+            "json"
+          ]
+        }
+      ],
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "dropReplies"
+      ]
+    },
+    {
+      "id": "readyQueueDag",
+      "label": "Incremental ready-queue DAG",
+      "description": "A fixed ready ring and reverse dependencies update child readiness without scanning all tasks on claim. Bounded retry, dependency fan-in and identity checks remain explicit.",
+      "paramSets": [],
+      "params": {
+        "serviceMs": {
+          "type": "number",
+          "label": "Service ms",
+          "default": 5,
+          "group": "basic",
+          "min": 0,
+          "max": 1000
+        },
+        "concurrency": {
+          "type": "integer",
+          "label": "Concurrency",
+          "default": 4,
+          "group": "basic",
+          "min": 1,
+          "max": 64
+        },
+        "queueCapacity": {
+          "type": "integer",
+          "label": "Queue capacity",
+          "default": 64,
+          "group": "basic",
+          "min": 0,
+          "max": 1000
+        },
+        "maxRecords": {
+          "type": "integer",
+          "label": "Max records",
+          "default": 200,
+          "group": "basic",
+          "min": 1,
+          "max": 4096
+        },
+        "retryTasks": {
+          "type": "boolean",
+          "label": "Retry tasks",
+          "default": true,
+          "group": "basic"
+        },
+        "maxAttempts": {
+          "type": "integer",
+          "label": "Max attempts",
+          "default": 2,
+          "group": "basic",
+          "min": 1,
+          "max": 10
+        },
+        "maxDependencies": {
+          "type": "integer",
+          "label": "Dependencies per task",
+          "default": 16,
+          "min": 0,
+          "max": 64,
+          "group": "basic"
+        }
+      },
+      "ports": [
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "Command",
+          "multiple": true,
+          "required": false,
+          "accepts": [
+            "json"
+          ]
+        }
+      ],
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "dropReplies"
+      ]
+    },
+    {
+      "id": "fairSlotQueue",
+      "label": "Fair tenant slot queue",
+      "description": "Bounded per-tenant FIFO queues rotate eligible tenants. Ownership checks, finite waits, quota eligibility and explicit crash durability execute in model state.",
+      "paramSets": [],
+      "params": {
+        "maxRecords": {
+          "type": "integer",
+          "label": "Max records",
+          "default": 200,
+          "group": "basic",
+          "min": 1,
+          "max": 4096
+        },
+        "waitTimeoutMs": {
+          "type": "number",
+          "label": "Wait timeout ms",
+          "default": 300,
+          "group": "basic",
+          "min": 1,
+          "max": 5000
+        },
+        "durable": {
+          "type": "boolean",
+          "label": "Durable",
+          "default": true,
+          "group": "basic"
+        },
+        "capacity": {
+          "type": "integer",
+          "label": "Global slots",
+          "default": 3,
+          "min": 1,
+          "max": 100,
+          "group": "basic"
+        },
+        "tenantLimit": {
+          "type": "integer",
+          "label": "Tenant limit",
+          "default": 2,
+          "min": 1,
+          "max": 100,
+          "group": "basic"
+        }
+      },
+      "ports": [
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "Command",
+          "multiple": true,
+          "required": false,
+          "accepts": [
+            "json"
+          ]
+        }
+      ],
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "dropReplies"
+      ]
+    },
+    {
+      "id": "orderedRulesScan",
+      "label": "Ordered firewall rule scan",
+      "description": "Only the ordered rule array is constructed. Lookup stops at the first matching CIDR; no hidden trie index is built. Comparisons are observable.",
+      "paramSets": [],
+      "params": {
+        "serviceMs": {
+          "type": "number",
+          "label": "Service ms",
+          "default": 5,
+          "group": "basic",
+          "min": 0,
+          "max": 1000
+        },
+        "concurrency": {
+          "type": "integer",
+          "label": "Concurrency",
+          "default": 4,
+          "group": "basic",
+          "min": 1,
+          "max": 64
+        },
+        "queueCapacity": {
+          "type": "integer",
+          "label": "Queue capacity",
+          "default": 64,
+          "group": "basic",
+          "min": 0,
+          "max": 1000
+        },
+        "maxRecords": {
+          "type": "integer",
+          "label": "Max records",
+          "default": 200,
+          "group": "basic",
+          "min": 1,
+          "max": 4096
+        }
+      },
+      "ports": [
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "Command",
+          "multiple": true,
+          "required": false,
+          "accepts": [
+            "json"
+          ]
+        }
+      ],
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "dropReplies"
+      ]
+    }
+  ],
+  "classes": [
+    {
+      "id": "prefix-trie-search",
+      "label": "Prefix-trie search",
+      "description": "Fixed-corpus prefix trie enumerates matching descendants while preserving corpus order. Shows trie work and bounded query cache; no scan of every document per query.",
+      "category": "compute",
+      "kernel": "prefixTrieSearch",
+      "glyph": "server",
+      "defaults": {}
+    },
+    {
+      "id": "keyset-table",
+      "label": "Stable-key pagination",
+      "description": "Immutable monotonic row keys plus binary search advance afterKey. Insertions before the cursor do not repeat prior rows; no frozen snapshot is retained.",
+      "category": "compute",
+      "kernel": "keysetTable",
+      "glyph": "server",
+      "defaults": {}
+    },
+    {
+      "id": "leased-state",
+      "label": "Fenced lease authority",
+      "description": "Document or metadata writes require the active owner and fencing token. Explicit acquire/write/release overhead, bounded identities and expired/stale owner rejection.",
+      "category": "compute",
+      "kernel": "leasedState",
+      "glyph": "server",
+      "defaults": {}
+    },
+    {
+      "id": "tokenized-comment-lexer",
+      "label": "Tokenized comment lexer",
+      "description": "Combined quoted-string, incomplete-string, line-comment and block-comment tokenization preserves literals and newlines. Token and character work is visible; not a full language parser.",
+      "category": "compute",
+      "kernel": "tokenizedLexer",
+      "glyph": "server",
+      "defaults": {}
+    },
+    {
+      "id": "expiry-heap-counter",
+      "label": "Expiry-heap sliding window",
+      "description": "A min-heap orders accepted-hit expirations across bounded keys. Exact window decisions remove expired counts; heap comparisons and residency remain observable.",
+      "category": "compute",
+      "kernel": "expiryHeapCounter",
+      "glyph": "server",
+      "defaults": {}
+    },
+    {
+      "id": "linked-lru-map",
+      "label": "Linked LRU cache",
+      "description": "Own-key lookup plus doubly linked recency provides direct victim removal. TTL expiry checks remain explicit scans; pointer updates are measured separately.",
+      "category": "compute",
+      "kernel": "linkedLruMap",
+      "glyph": "server",
+      "defaults": {}
+    },
+    {
+      "id": "copy-on-write-map",
+      "label": "Copy-on-write durable roots",
+      "description": "Every write builds a new bounded map and identity root. Synchronous writes, flush or checkpoint publish atomically; restart drops unpublished roots. Entry copies are observable.",
+      "category": "compute",
+      "kernel": "copyOnWriteMap",
+      "glyph": "server",
+      "defaults": {}
+    },
+    {
+      "id": "ready-queue-dag",
+      "label": "Incremental ready-queue DAG",
+      "description": "A fixed ready ring and reverse dependencies update child readiness without scanning all tasks on claim. Bounded retry, dependency fan-in and identity checks remain explicit.",
+      "category": "compute",
+      "kernel": "readyQueueDag",
+      "glyph": "server",
+      "defaults": {}
+    },
+    {
+      "id": "fair-slot-queue",
+      "label": "Fair tenant slot queue",
+      "description": "Bounded per-tenant FIFO queues rotate eligible tenants. Ownership checks, finite waits, quota eligibility and explicit crash durability execute in model state.",
+      "category": "compute",
+      "kernel": "fairSlotQueue",
+      "glyph": "server",
+      "defaults": {}
+    },
+    {
+      "id": "ordered-rule-scan",
+      "label": "Ordered firewall rule scan",
+      "description": "Only the ordered rule array is constructed. Lookup stops at the first matching CIDR; no hidden trie index is built. Comparisons are observable.",
+      "category": "compute",
+      "kernel": "orderedRulesScan",
+      "glyph": "server",
+      "defaults": {}
+    }
+  ]
+}

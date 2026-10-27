@@ -34,17 +34,17 @@ async function setup(run){
 test('solution is opt-in, stages preserve edits, final navigation does not duplicate execution and return restores personal architecture',()=>setup(async({ui,model,stepper,simulated})=>{
  stepper.setScenario('reddit-comments');assert.equal(model.diagram.nodes.length,0);
  model.apply({type:'addNode',classId:'worker',x:10,y:20});const personal=structuredClone(model.diagram);
- await stepper.showSolution();assert.equal(model.diagram.schema,D.DESIGN_SCHEMA);await stepper.goToStep(1);assert.ok(model.diagram.nodes.some(n=>n.id==='comments-store'));
+ await stepper.showSolution();assert.equal(model.diagram.schema,D.SCHEMA);assert.ok(model.diagram.nodes.some(n=>n.id==='comments-store'));
  model.apply({type:'setNodeLabel',id:'api',label:'My API change'});
- await stepper.goToStep(2);assert.ok(model.diagram.nodes.some(n=>n.id==='votes'));
- await stepper.goToStep(1);assert.equal(model.diagram.nodes.find(n=>n.id==='api').label,'My API change');
- await stepper.goToStep(7);assert.ok(model.diagram.subsystems.length>0);
+ await stepper.goToStep(1);assert.ok(model.diagram.nodes.some(n=>n.id==='votes'));
+ await stepper.goToStep(0);assert.equal(model.diagram.nodes.find(n=>n.id==='api').label,'My API change');
+ await stepper.goToStep(stepper.getScenario().solutions[0].stages.length-1);assert.equal(model.diagram.schema,D.SCHEMA);
  assert.equal(ui.all().some(e=>e.textContent==='Simulate'),false);const next=ui.all().find(e=>e['aria-label']==='Next interview stage');assert.ok(next.disabled);assert.equal(simulated(),0);
  stepper.leaveReference();assert.deepEqual(model.diagram,personal);
 }));
 test('edits made during a pending stage load cannot be overwritten by its stage result',()=>setup(async({model,stepper,intercept})=>{
- stepper.setScenario('reddit-comments');await stepper.showSolution();await stepper.goToStep(1);
- const pending=stepper.goToStep(2);model.apply({type:'setNodeLabel',id:'api',label:'Newer edit'});
+ stepper.setScenario('reddit-comments');await stepper.showSolution();
+ const pending=stepper.goToStep(1);model.apply({type:'setNodeLabel',id:'api',label:'Newer edit'});
  await assert.rejects(pending,/Kept your newer diagram edits/);assert.equal(model.diagram.nodes.find(n=>n.id==='api').label,'Newer edit');
 }));
 test('switching problems invalidates an in-flight solution load',()=>setup(async({model,stepper,intercept})=>{
@@ -60,8 +60,8 @@ test('locking unregisters private problems, current diagrams, editable histories
 }));
 test('older public numeric stage snapshots migrate to their retained authored stage rather than the new design stage',()=>setup(async({model,stepper})=>{
  const problem=require('../public/data/system-diagram/problems.json').problems.find(p=>p.id==='reddit-comments'),solution=problem.solutions[0],target=solution.stages.find(st=>st.legacyIndex===0),edited=structuredClone(target.diagram);edited.nodes.find(n=>n.id==='api').label='Retained legacy public edit';const personal=D.emptyDiagram(config);
- model.replace(edited);stepper.restorePublicState({schema:'simulatte.lucydStudySession.v1',curriculumVersion:2,problemKey:problem.id,index:0,walkthrough:{solutionId:solution.id,index:0},reference:personal,own:[],branches:[[`${problem.id}:${solution.id}:0`,edited]],choices:[]});assert.equal(stepper.getStepIndex(),solution.stages.indexOf(target));assert.equal(stepper.getSelection().stageId,target.id);await stepper.goToStep(2);await stepper.goToStep(1);assert.equal(model.diagram.nodes.find(n=>n.id==='api').label,'Retained legacy public edit');assert.equal(stepper.publicState().walkthrough.stageId,target.id);
+ model.replace(edited);stepper.restorePublicState({schema:'simulatte.lucydStudySession.v1',curriculumVersion:2,problemKey:problem.id,index:0,walkthrough:{solutionId:solution.id,index:0},reference:personal,own:[],branches:[[`${problem.id}:${solution.id}:0`,edited]],choices:[]});const expected=stepper.getScenario().solutions.find(s=>s.id===solution.id).stages.findIndex(stage=>stage.id===target.id);assert.equal(stepper.getStepIndex(),expected);assert.equal(stepper.getSelection().stageId,target.id);await stepper.goToStep((expected+1)%stepper.getScenario().solutions[0].stages.length);await stepper.goToStep(expected);assert.equal(model.diagram.nodes.find(n=>n.id==='api').label,'Retained legacy public edit');assert.equal(stepper.publicState().walkthrough.stageId,target.id);
 }));
 test('older private numeric snapshots retain edited architecture identity across the inserted design stage',()=>setup(async({model,stepper})=>{
- const problem=structuredClone(require('../public/data/system-diagram/problems.json').problems.find(p=>p.id==='reddit-comments'));problem.id='legacy-private';const solution=problem.solutions[0],target=solution.stages.find(st=>st.legacyIndex===0),edited=structuredClone(target.diagram);edited.nodes.find(n=>n.id==='api').label='Retained legacy private edit';stepper.registerPrivate({schema:'simulatte.lucydProblems.v3',problems:[problem]});model.replace(edited);stepper.restorePrivateState({curriculumVersion:2,problemKey:'private:legacy-private',index:0,walkthrough:{solutionId:solution.id,index:0},reference:D.emptyDiagram(config),own:[],branches:[[`private:legacy-private:${solution.id}:0`,edited]]});assert.equal(stepper.getStepIndex(),solution.stages.indexOf(target));assert.equal(stepper.getSelection().stageId,target.id);await stepper.goToStep(2);await stepper.goToStep(1);assert.equal(model.diagram.nodes.find(n=>n.id==='api').label,'Retained legacy private edit');stepper.unregisterPrivate();assert.ok(!JSON.stringify(stepper.publicState()).includes('Retained legacy private edit'));
+ const problem=structuredClone(require('../public/data/system-diagram/problems.json').problems.find(p=>p.id==='reddit-comments'));problem.id='legacy-private';const solution=problem.solutions[0],target=solution.stages.find(st=>st.legacyIndex===0),edited=structuredClone(target.diagram);edited.nodes.find(n=>n.id==='api').label='Retained legacy private edit';stepper.registerPrivate({schema:'simulatte.lucydProblems.v3',problems:[problem]});model.replace(edited);stepper.restorePrivateState({curriculumVersion:2,problemKey:'private:legacy-private',index:0,walkthrough:{solutionId:solution.id,index:0},reference:D.emptyDiagram(config),own:[],branches:[[`private:legacy-private:${solution.id}:0`,edited]]});const expected=stepper.getScenario().solutions.find(s=>s.id===solution.id).stages.findIndex(stage=>stage.id===target.id);assert.equal(stepper.getStepIndex(),expected);assert.equal(stepper.getSelection().stageId,target.id);await stepper.goToStep((expected+1)%stepper.getScenario().solutions[0].stages.length);await stepper.goToStep(expected);assert.equal(model.diagram.nodes.find(n=>n.id==='api').label,'Retained legacy private edit');stepper.unregisterPrivate();assert.ok(!JSON.stringify(stepper.publicState()).includes('Retained legacy private edit'));
 }));

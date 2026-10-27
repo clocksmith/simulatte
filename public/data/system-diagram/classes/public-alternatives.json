@@ -1,0 +1,1533 @@
+{
+  "schema": "simulatte.systemDiagramClassPack.v1",
+  "id": "public-alternatives",
+  "version": "1.0.0",
+  "kernels": [
+    {
+      "id": "directAuditWorkspace",
+      "label": "Direct audited workspace",
+      "description": "Permissions and mutation use the same authority; journal application receipt is checked before reporting applied activity.",
+      "paramSets": [],
+      "params": {
+        "callTimeoutMs": {
+          "type": "number",
+          "label": "Dependency timeout",
+          "min": 1,
+          "max": 60000,
+          "default": 2000,
+          "group": "basic",
+          "unit": "ms"
+        },
+        "retries": {
+          "type": "integer",
+          "label": "Dependency retries",
+          "min": 0,
+          "max": 10,
+          "default": 1,
+          "group": "basic"
+        },
+        "retryBackoffMs": {
+          "type": "number",
+          "label": "Retry backoff",
+          "min": 0,
+          "max": 10000,
+          "default": 100,
+          "group": "basic",
+          "unit": "ms"
+        },
+        "maxOutstanding": {
+          "type": "integer",
+          "label": "In-flight command limit",
+          "min": 1,
+          "max": 1000,
+          "default": 32,
+          "group": "basic"
+        }
+      },
+      "ports": [
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "Workspace commands",
+          "accepts": [
+            "json"
+          ],
+          "multiple": true,
+          "required": false
+        },
+        {
+          "id": "permissions",
+          "direction": "out",
+          "label": "Check permission",
+          "emits": [
+            "json"
+          ],
+          "multiple": false,
+          "required": true
+        },
+        {
+          "id": "store",
+          "direction": "out",
+          "label": "Read or mutate records",
+          "emits": [
+            "json"
+          ],
+          "multiple": false,
+          "required": true
+        },
+        {
+          "id": "events",
+          "direction": "out",
+          "label": "Committed activity events",
+          "emits": [
+            "event"
+          ],
+          "multiple": false,
+          "required": false
+        }
+      ],
+      "faults": [
+        "crash",
+        "dropReplies",
+        "blackhole"
+      ]
+    },
+    {
+      "id": "directAuditClient",
+      "label": "Direct audit client",
+      "description": "Same finite workspace commands with actual application receipts.",
+      "paramSets": [],
+      "params": {
+        "callTimeoutMs": {
+          "type": "number",
+          "label": "Dependency timeout",
+          "min": 1,
+          "max": 60000,
+          "default": 2000,
+          "group": "basic",
+          "unit": "ms"
+        },
+        "retries": {
+          "type": "integer",
+          "label": "Dependency retries",
+          "min": 0,
+          "max": 10,
+          "default": 1,
+          "group": "basic"
+        },
+        "retryBackoffMs": {
+          "type": "number",
+          "label": "Retry backoff",
+          "min": 0,
+          "max": 10000,
+          "default": 100,
+          "group": "basic",
+          "unit": "ms"
+        },
+        "scenario": {
+          "type": "enum",
+          "label": "Application scenario",
+          "options": [
+            "chat",
+            "workspace"
+          ],
+          "default": "chat",
+          "group": "basic"
+        },
+        "startSec": {
+          "type": "number",
+          "label": "First command",
+          "min": 0,
+          "max": 3600,
+          "default": 0,
+          "group": "basic",
+          "unit": "s"
+        },
+        "intervalMs": {
+          "type": "number",
+          "label": "Command spacing",
+          "min": 1,
+          "max": 60000,
+          "default": 500,
+          "group": "basic",
+          "unit": "ms"
+        },
+        "maxRecords": {
+          "type": "integer",
+          "label": "Received chunk capacity",
+          "min": 1,
+          "max": 10000,
+          "default": 2048,
+          "group": "basic"
+        }
+      },
+      "ports": [
+        {
+          "id": "out",
+          "direction": "out",
+          "label": "Commands",
+          "emits": [
+            "json"
+          ],
+          "multiple": false,
+          "required": true
+        },
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "Live chunks",
+          "accepts": [
+            "json"
+          ],
+          "multiple": true,
+          "required": false
+        }
+      ],
+      "faults": [
+        "crash",
+        "dropReplies",
+        "blackhole"
+      ]
+    },
+    {
+      "id": "sharedTenantDatabase",
+      "label": "Shared tenant database",
+      "description": "Trusted direct source IDs bind tenant namespaces inside one shared process. Not real authentication, SQL or replicated durability.",
+      "paramSets": [],
+      "params": {
+        "concurrency": {
+          "type": "integer",
+          "label": "Concurrency",
+          "default": 4,
+          "min": 1,
+          "max": 100,
+          "group": "basic"
+        },
+        "queueCapacity": {
+          "type": "integer",
+          "label": "Queue capacity",
+          "default": 100,
+          "min": 0,
+          "max": 10000,
+          "group": "basic"
+        },
+        "serviceMs": {
+          "type": "number",
+          "label": "Service time",
+          "default": 20,
+          "min": 0,
+          "max": 10000,
+          "group": "basic"
+        },
+        "maxRecords": {
+          "type": "integer",
+          "label": "Record capacity",
+          "default": 200,
+          "min": 1,
+          "max": 10000,
+          "group": "basic"
+        }
+      },
+      "ports": [
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "Tenant commands",
+          "accepts": [
+            "any"
+          ],
+          "multiple": true,
+          "required": true
+        }
+      ],
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "dropReplies"
+      ]
+    },
+    {
+      "id": "materializedPages",
+      "label": "Materialized page session",
+      "description": "Copy the first snapshot into immutable page arrays; subsequent page tokens index the session.",
+      "paramSets": [],
+      "params": {
+        "concurrency": {
+          "type": "integer",
+          "label": "Concurrency",
+          "unit": "workers",
+          "min": 1,
+          "max": 100000,
+          "default": 8,
+          "group": "basic"
+        },
+        "queueCapacity": {
+          "type": "integer",
+          "label": "Queue capacity",
+          "unit": "requests",
+          "min": 0,
+          "max": 100000,
+          "default": 1000,
+          "group": "basic"
+        },
+        "serviceMs": {
+          "type": "number",
+          "label": "Service time",
+          "unit": "ms",
+          "min": 0,
+          "max": 3600000,
+          "default": 10,
+          "group": "basic"
+        },
+        "serviceDist": {
+          "type": "enum",
+          "label": "Service distribution",
+          "options": [
+            "constant",
+            "exponential",
+            "lognormal"
+          ],
+          "default": "exponential",
+          "group": "advanced"
+        },
+        "serviceCv": {
+          "type": "number",
+          "label": "Lognormal variation",
+          "unit": "cv",
+          "min": 0,
+          "max": 10,
+          "default": 1,
+          "group": "advanced"
+        },
+        "perKbMs": {
+          "type": "number",
+          "label": "Cost per KB",
+          "unit": "ms/KB",
+          "min": 0,
+          "max": 10000,
+          "default": 0,
+          "group": "advanced"
+        },
+        "errorRate": {
+          "type": "number",
+          "label": "Error rate",
+          "unit": "fraction",
+          "min": 0,
+          "max": 1,
+          "default": 0,
+          "group": "basic"
+        },
+        "responseKb": {
+          "type": "number",
+          "label": "Response size",
+          "unit": "KB",
+          "min": 0,
+          "max": 1000000,
+          "default": 1,
+          "group": "advanced"
+        },
+        "pageSize": {
+          "type": "integer",
+          "label": "Page size",
+          "default": 3,
+          "min": 1,
+          "max": 20,
+          "group": "basic"
+        },
+        "maxRecords": {
+          "type": "integer",
+          "label": "Retained page receipts",
+          "default": 200,
+          "min": 1,
+          "max": 1000,
+          "group": "basic"
+        }
+      },
+      "ports": [
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "in",
+          "multiple": true,
+          "required": false,
+          "accepts": [
+            "json"
+          ]
+        }
+      ],
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "dropReplies"
+      ]
+    },
+    {
+      "id": "materializedPageClient",
+      "label": "Materialized session client",
+      "description": "Same finite logical page and mutation commands, using the actual returned session token.",
+      "paramSets": [],
+      "params": {
+        "scenario": {
+          "type": "enum",
+          "label": "Scenario",
+          "default": "pagination",
+          "group": "basic",
+          "options": [
+            "pagination",
+            "subscriptions"
+          ]
+        },
+        "startSec": {
+          "type": "number",
+          "label": "Start",
+          "default": 0,
+          "min": 0,
+          "max": 10000,
+          "group": "basic"
+        },
+        "intervalMs": {
+          "type": "number",
+          "label": "Interval",
+          "default": 800,
+          "min": 1,
+          "max": 10000,
+          "group": "basic"
+        },
+        "timeoutMs": {
+          "type": "number",
+          "label": "Timeout",
+          "default": 300,
+          "min": 1,
+          "max": 10000,
+          "group": "basic"
+        },
+        "retries": {
+          "type": "integer",
+          "label": "Retries",
+          "default": 0,
+          "min": 0,
+          "max": 5,
+          "group": "basic"
+        },
+        "retryBackoffMs": {
+          "type": "number",
+          "label": "Retry backoff",
+          "default": 100,
+          "min": 1,
+          "max": 10000,
+          "group": "basic"
+        }
+      },
+      "ports": [
+        {
+          "id": "out",
+          "direction": "out",
+          "label": "out",
+          "multiple": true,
+          "required": false,
+          "emits": [
+            "json"
+          ]
+        }
+      ],
+      "faults": [
+        "crash"
+      ]
+    },
+    {
+      "id": "digestScanMatcher",
+      "label": "Digest-time listing scan",
+      "description": "Retain listings at write time; scan saved terms and listing words only at a digest request.",
+      "paramSets": [],
+      "params": {
+        "concurrency": {
+          "type": "integer",
+          "label": "Concurrency",
+          "unit": "workers",
+          "min": 1,
+          "max": 100000,
+          "default": 8,
+          "group": "basic"
+        },
+        "queueCapacity": {
+          "type": "integer",
+          "label": "Queue capacity",
+          "unit": "requests",
+          "min": 0,
+          "max": 100000,
+          "default": 1000,
+          "group": "basic"
+        },
+        "serviceMs": {
+          "type": "number",
+          "label": "Service time",
+          "unit": "ms",
+          "min": 0,
+          "max": 3600000,
+          "default": 10,
+          "group": "basic"
+        },
+        "serviceDist": {
+          "type": "enum",
+          "label": "Service distribution",
+          "options": [
+            "constant",
+            "exponential",
+            "lognormal"
+          ],
+          "default": "exponential",
+          "group": "advanced"
+        },
+        "serviceCv": {
+          "type": "number",
+          "label": "Lognormal variation",
+          "unit": "cv",
+          "min": 0,
+          "max": 10,
+          "default": 1,
+          "group": "advanced"
+        },
+        "perKbMs": {
+          "type": "number",
+          "label": "Cost per KB",
+          "unit": "ms/KB",
+          "min": 0,
+          "max": 10000,
+          "default": 0,
+          "group": "advanced"
+        },
+        "errorRate": {
+          "type": "number",
+          "label": "Error rate",
+          "unit": "fraction",
+          "min": 0,
+          "max": 1,
+          "default": 0,
+          "group": "basic"
+        },
+        "responseKb": {
+          "type": "number",
+          "label": "Response size",
+          "unit": "KB",
+          "min": 0,
+          "max": 1000000,
+          "default": 1,
+          "group": "advanced"
+        },
+        "memoryPerRequestMiB": {
+          "type": "number",
+          "label": "Retained memory per admitted request",
+          "unit": "MiB",
+          "min": 0,
+          "max": 1048576,
+          "default": 1,
+          "group": "advanced"
+        },
+        "memoryLimitMiB": {
+          "type": "number",
+          "label": "Admission memory budget",
+          "unit": "MiB",
+          "min": 0,
+          "max": 1048576,
+          "default": 1024,
+          "group": "advanced"
+        },
+        "memoryPressureThreshold": {
+          "type": "number",
+          "label": "Memory pressure threshold",
+          "min": 0.01,
+          "max": 1,
+          "default": 0.8,
+          "group": "advanced"
+        },
+        "memoryThrashFactor": {
+          "type": "number",
+          "label": "Pressure slowdown factor",
+          "min": 1,
+          "max": 1000,
+          "default": 1,
+          "group": "advanced"
+        },
+        "memoryGarbageFraction": {
+          "type": "number",
+          "label": "Completed allocation retained until GC",
+          "min": 0,
+          "max": 1,
+          "default": 0,
+          "group": "advanced"
+        },
+        "memoryGcPauseMs": {
+          "type": "number",
+          "label": "GC pause",
+          "min": 0,
+          "max": 60000,
+          "default": 0,
+          "group": "advanced"
+        },
+        "memoryGcCooldownMs": {
+          "type": "number",
+          "label": "Minimum GC interval",
+          "min": 1,
+          "max": 60000,
+          "default": 1000,
+          "group": "advanced"
+        },
+        "memoryOomRecoveryMs": {
+          "type": "number",
+          "label": "OOM recovery delay (0 = manual)",
+          "min": 0,
+          "max": 60000,
+          "default": 1000,
+          "group": "advanced"
+        },
+        "memoryOomPolicy": {
+          "type": "enum",
+          "label": "Memory admission failure",
+          "options": [
+            "reject",
+            "crash"
+          ],
+          "default": "reject",
+          "group": "advanced"
+        },
+        "maxRecords": {
+          "type": "integer",
+          "label": "Retained record capacity",
+          "default": 100,
+          "group": "basic",
+          "min": 1,
+          "max": 20000
+        },
+        "callTimeoutMs": {
+          "type": "number",
+          "label": "Delivery timeout",
+          "default": 200,
+          "min": 1,
+          "max": 60000,
+          "group": "basic"
+        },
+        "retries": {
+          "type": "integer",
+          "label": "Delivery retries",
+          "default": 2,
+          "min": 0,
+          "max": 10,
+          "group": "basic"
+        },
+        "retryBackoffMs": {
+          "type": "number",
+          "label": "Delivery retry delay",
+          "default": 100,
+          "min": 1,
+          "max": 60000,
+          "group": "basic"
+        }
+      },
+      "ports": [
+        {
+          "id": "in",
+          "label": "in",
+          "direction": "in",
+          "multiple": false,
+          "required": true,
+          "accepts": [
+            "json"
+          ]
+        },
+        {
+          "id": "delivery",
+          "label": "delivery",
+          "direction": "out",
+          "multiple": false,
+          "required": false,
+          "emits": [
+            "json"
+          ]
+        }
+      ],
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "blackhole",
+        "dropReplies"
+      ]
+    },
+    {
+      "id": "invoiceOutbox",
+      "label": "Invoice outbox",
+      "description": "Record bounded invoice intents before asynchronous provider charging; cancellation versions fence delayed settlement.",
+      "paramSets": [],
+      "params": {
+        "concurrency": {
+          "type": "integer",
+          "label": "Concurrency",
+          "unit": "workers",
+          "min": 1,
+          "max": 100000,
+          "default": 8,
+          "group": "basic"
+        },
+        "queueCapacity": {
+          "type": "integer",
+          "label": "Queue capacity",
+          "unit": "requests",
+          "min": 0,
+          "max": 100000,
+          "default": 1000,
+          "group": "basic"
+        },
+        "serviceMs": {
+          "type": "number",
+          "label": "Service time",
+          "unit": "ms",
+          "min": 0,
+          "max": 3600000,
+          "default": 10,
+          "group": "basic"
+        },
+        "serviceDist": {
+          "type": "enum",
+          "label": "Service distribution",
+          "options": [
+            "constant",
+            "exponential",
+            "lognormal"
+          ],
+          "default": "exponential",
+          "group": "advanced"
+        },
+        "serviceCv": {
+          "type": "number",
+          "label": "Lognormal variation",
+          "unit": "cv",
+          "min": 0,
+          "max": 10,
+          "default": 1,
+          "group": "advanced"
+        },
+        "perKbMs": {
+          "type": "number",
+          "label": "Cost per KB",
+          "unit": "ms/KB",
+          "min": 0,
+          "max": 10000,
+          "default": 0,
+          "group": "advanced"
+        },
+        "errorRate": {
+          "type": "number",
+          "label": "Error rate",
+          "unit": "fraction",
+          "min": 0,
+          "max": 1,
+          "default": 0,
+          "group": "basic"
+        },
+        "responseKb": {
+          "type": "number",
+          "label": "Response size",
+          "unit": "KB",
+          "min": 0,
+          "max": 1000000,
+          "default": 1,
+          "group": "advanced"
+        },
+        "callMode": {
+          "type": "enum",
+          "label": "Downstream calls",
+          "options": [
+            "sequential",
+            "parallel"
+          ],
+          "default": "sequential",
+          "group": "basic"
+        },
+        "blockingCalls": {
+          "type": "boolean",
+          "label": "Hold worker while calling",
+          "default": true,
+          "group": "advanced"
+        },
+        "callTimeoutMs": {
+          "type": "number",
+          "label": "Call timeout",
+          "unit": "ms",
+          "min": 1,
+          "max": 3600000,
+          "default": 1000,
+          "group": "basic"
+        },
+        "retries": {
+          "type": "integer",
+          "label": "Retries per call",
+          "min": 0,
+          "max": 20,
+          "default": 0,
+          "group": "basic"
+        },
+        "retryBackoffMs": {
+          "type": "number",
+          "label": "Retry backoff",
+          "unit": "ms",
+          "min": 0,
+          "max": 600000,
+          "default": 100,
+          "group": "advanced"
+        },
+        "backoffMultiplier": {
+          "type": "number",
+          "label": "Backoff multiplier",
+          "min": 1,
+          "max": 10,
+          "default": 2,
+          "group": "advanced"
+        },
+        "retryJitter": {
+          "type": "boolean",
+          "label": "Jitter retries",
+          "default": true,
+          "group": "advanced"
+        },
+        "idempotent": {
+          "type": "boolean",
+          "label": "Suppress repeated commands",
+          "default": false,
+          "group": "basic"
+        },
+        "dispatchMs": {
+          "type": "number",
+          "label": "Outbox dispatch interval",
+          "default": 50,
+          "min": 1,
+          "max": 1000,
+          "group": "basic"
+        },
+        "maxAttempts": {
+          "type": "integer",
+          "label": "Provider attempt budget",
+          "default": 8,
+          "min": 1,
+          "max": 32,
+          "group": "basic"
+        },
+        "maxRecords": {
+          "type": "integer",
+          "label": "Invoice capacity",
+          "default": 200,
+          "min": 1,
+          "max": 1000,
+          "group": "basic"
+        }
+      },
+      "ports": [
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "in",
+          "multiple": true,
+          "required": false,
+          "accepts": [
+            "json"
+          ]
+        },
+        {
+          "id": "provider",
+          "direction": "out",
+          "label": "provider",
+          "multiple": true,
+          "required": false,
+          "emits": [
+            "json"
+          ]
+        }
+      ],
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "dropReplies"
+      ]
+    },
+    {
+      "id": "invoiceOutboxClient",
+      "label": "Invoice client",
+      "description": "Same finite lifecycle commands, with pending acceptance distinct from provider settlement.",
+      "paramSets": [],
+      "params": {
+        "scenario": {
+          "type": "enum",
+          "label": "Scenario",
+          "default": "pagination",
+          "group": "basic",
+          "options": [
+            "pagination",
+            "subscriptions"
+          ]
+        },
+        "startSec": {
+          "type": "number",
+          "label": "Start",
+          "default": 0,
+          "min": 0,
+          "max": 10000,
+          "group": "basic"
+        },
+        "intervalMs": {
+          "type": "number",
+          "label": "Interval",
+          "default": 800,
+          "min": 1,
+          "max": 10000,
+          "group": "basic"
+        },
+        "timeoutMs": {
+          "type": "number",
+          "label": "Timeout",
+          "default": 300,
+          "min": 1,
+          "max": 10000,
+          "group": "basic"
+        },
+        "retries": {
+          "type": "integer",
+          "label": "Retries",
+          "default": 0,
+          "min": 0,
+          "max": 5,
+          "group": "basic"
+        },
+        "retryBackoffMs": {
+          "type": "number",
+          "label": "Retry backoff",
+          "default": 100,
+          "min": 1,
+          "max": 10000,
+          "group": "basic"
+        }
+      },
+      "ports": [
+        {
+          "id": "out",
+          "direction": "out",
+          "label": "out",
+          "multiple": true,
+          "required": false,
+          "emits": [
+            "json"
+          ]
+        }
+      ],
+      "faults": [
+        "crash"
+      ]
+    },
+    {
+      "id": "commentScanStore",
+      "label": "Read-time vote aggregation",
+      "description": "Store per-user votes; derive comment scores by scanning those votes during read/receipt creation.",
+      "paramSets": [],
+      "params": {
+        "concurrency": {
+          "type": "integer",
+          "label": "Concurrency",
+          "default": 4,
+          "min": 1,
+          "max": 100,
+          "group": "basic"
+        },
+        "queueCapacity": {
+          "type": "integer",
+          "label": "Queue capacity",
+          "default": 100,
+          "min": 0,
+          "max": 10000,
+          "group": "basic"
+        },
+        "serviceMs": {
+          "type": "number",
+          "label": "Service time",
+          "default": 20,
+          "min": 0,
+          "max": 10000,
+          "group": "basic"
+        },
+        "maxRecords": {
+          "type": "integer",
+          "label": "Record capacity",
+          "default": 200,
+          "min": 1,
+          "max": 10000,
+          "group": "basic"
+        }
+      },
+      "ports": [
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "in",
+          "multiple": true,
+          "required": false,
+          "accepts": [
+            "json"
+          ]
+        },
+        {
+          "id": "updates",
+          "direction": "out",
+          "label": "updates",
+          "multiple": true,
+          "required": false,
+          "emits": [
+            "json"
+          ]
+        }
+      ],
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "dropReplies"
+      ]
+    },
+    {
+      "id": "commandJournal",
+      "label": "Serial command journal",
+      "description": "FIFO acknowledged commands, bounded identity journal and recorded successful receipts; no distributed transaction claim.",
+      "paramSets": [],
+      "params": {
+        "capacity": {
+          "type": "integer",
+          "label": "Pending commands",
+          "default": 64,
+          "min": 1,
+          "max": 1000,
+          "group": "basic"
+        },
+        "maxRecords": {
+          "type": "integer",
+          "label": "Journal records",
+          "default": 200,
+          "min": 1,
+          "max": 1000,
+          "group": "basic"
+        },
+        "callTimeoutMs": {
+          "type": "number",
+          "label": "Authority timeout",
+          "default": 2000,
+          "min": 1,
+          "max": 60000,
+          "group": "basic"
+        },
+        "retries": {
+          "type": "integer",
+          "label": "Authority retries",
+          "default": 1,
+          "min": 0,
+          "max": 10,
+          "group": "basic"
+        }
+      },
+      "ports": [
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "Commands",
+          "accepts": [
+            "any"
+          ],
+          "multiple": true,
+          "required": true
+        },
+        {
+          "id": "authority",
+          "direction": "out",
+          "label": "Serialized authority",
+          "emits": [
+            "inherit"
+          ],
+          "multiple": false,
+          "required": true
+        }
+      ],
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "blackhole",
+        "dropReplies"
+      ]
+    },
+    {
+      "id": "pollingPresence",
+      "label": "Polled presence leases",
+      "description": "Reap expired leases when requests inspect state; no expiry timers or push delivery.",
+      "paramSets": [],
+      "params": {
+        "concurrency": {
+          "type": "integer",
+          "label": "Concurrency",
+          "default": 4,
+          "min": 1,
+          "max": 100,
+          "group": "basic"
+        },
+        "queueCapacity": {
+          "type": "integer",
+          "label": "Queue capacity",
+          "default": 100,
+          "min": 0,
+          "max": 10000,
+          "group": "basic"
+        },
+        "serviceMs": {
+          "type": "number",
+          "label": "Service time",
+          "default": 20,
+          "min": 0,
+          "max": 10000,
+          "group": "basic"
+        },
+        "maxRecords": {
+          "type": "integer",
+          "label": "Record capacity",
+          "default": 200,
+          "min": 1,
+          "max": 10000,
+          "group": "basic"
+        },
+        "ttlSec": {
+          "type": "number",
+          "label": "Heartbeat lifetime",
+          "default": 4,
+          "min": 0.1,
+          "max": 3600,
+          "group": "basic"
+        }
+      },
+      "ports": [
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "in",
+          "multiple": true,
+          "required": false,
+          "accepts": [
+            "json"
+          ]
+        },
+        {
+          "id": "updates",
+          "direction": "out",
+          "label": "updates",
+          "multiple": true,
+          "required": false,
+          "emits": [
+            "json"
+          ]
+        }
+      ],
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "dropReplies"
+      ]
+    },
+    {
+      "id": "batchReconcile",
+      "label": "Microbatch reconciliation",
+      "description": "Hold real pending record jobs until a bounded flush; execute ledger matching and quarantine on those records.",
+      "paramSets": [],
+      "params": {
+        "concurrency": {
+          "type": "integer",
+          "label": "Concurrency",
+          "unit": "workers",
+          "min": 1,
+          "max": 100000,
+          "default": 8,
+          "group": "basic"
+        },
+        "queueCapacity": {
+          "type": "integer",
+          "label": "Queue capacity",
+          "unit": "requests",
+          "min": 0,
+          "max": 100000,
+          "default": 1000,
+          "group": "basic"
+        },
+        "serviceMs": {
+          "type": "number",
+          "label": "Service time",
+          "unit": "ms",
+          "min": 0,
+          "max": 3600000,
+          "default": 10,
+          "group": "basic"
+        },
+        "serviceDist": {
+          "type": "enum",
+          "label": "Service distribution",
+          "options": [
+            "constant",
+            "exponential",
+            "lognormal"
+          ],
+          "default": "exponential",
+          "group": "advanced"
+        },
+        "serviceCv": {
+          "type": "number",
+          "label": "Lognormal variation",
+          "unit": "cv",
+          "min": 0,
+          "max": 10,
+          "default": 1,
+          "group": "advanced"
+        },
+        "perKbMs": {
+          "type": "number",
+          "label": "Cost per KB",
+          "unit": "ms/KB",
+          "min": 0,
+          "max": 10000,
+          "default": 0,
+          "group": "advanced"
+        },
+        "errorRate": {
+          "type": "number",
+          "label": "Error rate",
+          "unit": "fraction",
+          "min": 0,
+          "max": 1,
+          "default": 0,
+          "group": "basic"
+        },
+        "responseKb": {
+          "type": "number",
+          "label": "Response size",
+          "unit": "KB",
+          "min": 0,
+          "max": 1000000,
+          "default": 1,
+          "group": "advanced"
+        },
+        "memoryPerRequestMiB": {
+          "type": "number",
+          "label": "Retained memory per admitted request",
+          "unit": "MiB",
+          "min": 0,
+          "max": 1048576,
+          "default": 1,
+          "group": "advanced"
+        },
+        "memoryLimitMiB": {
+          "type": "number",
+          "label": "Admission memory budget",
+          "unit": "MiB",
+          "min": 0,
+          "max": 1048576,
+          "default": 1024,
+          "group": "advanced"
+        },
+        "memoryPressureThreshold": {
+          "type": "number",
+          "label": "Memory pressure threshold",
+          "min": 0.01,
+          "max": 1,
+          "default": 0.8,
+          "group": "advanced"
+        },
+        "memoryThrashFactor": {
+          "type": "number",
+          "label": "Pressure slowdown factor",
+          "min": 1,
+          "max": 1000,
+          "default": 1,
+          "group": "advanced"
+        },
+        "memoryGarbageFraction": {
+          "type": "number",
+          "label": "Completed allocation retained until GC",
+          "min": 0,
+          "max": 1,
+          "default": 0,
+          "group": "advanced"
+        },
+        "memoryGcPauseMs": {
+          "type": "number",
+          "label": "GC pause",
+          "min": 0,
+          "max": 60000,
+          "default": 0,
+          "group": "advanced"
+        },
+        "memoryGcCooldownMs": {
+          "type": "number",
+          "label": "Minimum GC interval",
+          "min": 1,
+          "max": 60000,
+          "default": 1000,
+          "group": "advanced"
+        },
+        "memoryOomRecoveryMs": {
+          "type": "number",
+          "label": "OOM recovery delay (0 = manual)",
+          "min": 0,
+          "max": 60000,
+          "default": 1000,
+          "group": "advanced"
+        },
+        "memoryOomPolicy": {
+          "type": "enum",
+          "label": "Memory admission failure",
+          "options": [
+            "reject",
+            "crash"
+          ],
+          "default": "reject",
+          "group": "advanced"
+        },
+        "callTimeoutMs": {
+          "type": "number",
+          "label": "Downstream timeout",
+          "min": 1,
+          "max": 3600000,
+          "default": 5000,
+          "group": "basic",
+          "unit": "ms"
+        },
+        "retries": {
+          "type": "integer",
+          "label": "Downstream retry budget",
+          "min": 0,
+          "max": 20,
+          "default": 1,
+          "group": "basic"
+        },
+        "retryBackoffMs": {
+          "type": "number",
+          "label": "Retry backoff",
+          "min": 0,
+          "max": 60000,
+          "default": 100,
+          "group": "advanced",
+          "unit": "ms"
+        },
+        "mode": {
+          "type": "enum",
+          "label": "Ledger behavior",
+          "default": "idempotent",
+          "options": [
+            "idempotent",
+            "ordered",
+            "reconcile"
+          ],
+          "group": "basic"
+        },
+        "ordering": {
+          "type": "enum",
+          "label": "Sequence policy",
+          "default": "monotonic",
+          "options": [
+            "monotonic",
+            "strict"
+          ],
+          "group": "basic"
+        },
+        "tolerance": {
+          "type": "number",
+          "label": "Scalar reconciliation tolerance",
+          "min": 0,
+          "max": 1000000000,
+          "default": 0,
+          "group": "basic"
+        },
+        "maxRecords": {
+          "type": "integer",
+          "label": "Identity state capacity",
+          "min": 1,
+          "max": 100000,
+          "default": 10000,
+          "group": "basic"
+        },
+        "flushMs": {
+          "type": "number",
+          "label": "Batch flush interval",
+          "default": 250,
+          "min": 1,
+          "max": 2000,
+          "group": "basic"
+        }
+      },
+      "ports": [
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "Events",
+          "accepts": [
+            "event"
+          ],
+          "multiple": true,
+          "required": true
+        },
+        {
+          "id": "accepted",
+          "direction": "out",
+          "label": "Accepted events",
+          "emits": [
+            "event"
+          ],
+          "multiple": true,
+          "required": false
+        },
+        {
+          "id": "quarantine",
+          "direction": "out",
+          "label": "Quarantine",
+          "emits": [
+            "event"
+          ],
+          "multiple": true,
+          "required": false
+        },
+        {
+          "id": "pending",
+          "direction": "out",
+          "label": "Awaiting counterpart",
+          "emits": [
+            "event"
+          ],
+          "multiple": true,
+          "required": false
+        }
+      ],
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "blackhole",
+        "dropReplies"
+      ]
+    }
+  ],
+  "classes": [
+    {
+      "id": "direct-audit-workspace",
+      "label": "Direct audited workspace",
+      "description": "Permissions and mutation use the same authority; journal application receipt is checked before reporting applied activity.",
+      "category": "compute",
+      "kernel": "directAuditWorkspace",
+      "glyph": "server",
+      "defaults": {}
+    },
+    {
+      "id": "direct-audit-client",
+      "label": "Direct audit client",
+      "description": "Same finite workspace commands with actual application receipts.",
+      "category": "clients",
+      "kernel": "directAuditClient",
+      "glyph": "users",
+      "defaults": {
+        "scenario": "workspace"
+      }
+    },
+    {
+      "id": "shared-tenant-database",
+      "label": "Shared tenant database",
+      "description": "Trusted direct source IDs bind tenant namespaces inside one shared process. Not real authentication, SQL or replicated durability.",
+      "category": "storage",
+      "kernel": "sharedTenantDatabase",
+      "glyph": "database",
+      "defaults": {}
+    },
+    {
+      "id": "materialized-page-store",
+      "label": "Materialized page session",
+      "description": "Copy the first snapshot into immutable page arrays; subsequent page tokens index the session.",
+      "category": "storage",
+      "kernel": "materializedPages",
+      "glyph": "database",
+      "defaults": {}
+    },
+    {
+      "id": "materialized-page-client",
+      "label": "Materialized session client",
+      "description": "Same finite logical page and mutation commands, using the actual returned session token.",
+      "category": "clients",
+      "kernel": "materializedPageClient",
+      "glyph": "users",
+      "defaults": {}
+    },
+    {
+      "id": "digest-scan-matcher",
+      "label": "Digest-time listing scan",
+      "description": "Retain listings at write time; scan saved terms and listing words only at a digest request.",
+      "category": "compute",
+      "kernel": "digestScanMatcher",
+      "glyph": "database",
+      "defaults": {}
+    },
+    {
+      "id": "invoice-outbox",
+      "label": "Invoice outbox",
+      "description": "Record bounded invoice intents before asynchronous provider charging; cancellation versions fence delayed settlement.",
+      "category": "compute",
+      "kernel": "invoiceOutbox",
+      "glyph": "server",
+      "defaults": {}
+    },
+    {
+      "id": "invoice-outbox-client",
+      "label": "Invoice client",
+      "description": "Same finite lifecycle commands, with pending acceptance distinct from provider settlement.",
+      "category": "clients",
+      "kernel": "invoiceOutboxClient",
+      "glyph": "users",
+      "defaults": {
+        "scenario": "subscriptions"
+      }
+    },
+    {
+      "id": "comment-scan-store",
+      "label": "Read-time vote aggregation",
+      "description": "Store per-user votes; derive comment scores by scanning those votes during read/receipt creation.",
+      "category": "storage",
+      "kernel": "commentScanStore",
+      "glyph": "database",
+      "defaults": {}
+    },
+    {
+      "id": "command-journal",
+      "label": "Serial command journal",
+      "description": "FIFO acknowledged commands, bounded identity journal and recorded successful receipts; no distributed transaction claim.",
+      "category": "messaging",
+      "kernel": "commandJournal",
+      "glyph": "server",
+      "defaults": {}
+    },
+    {
+      "id": "polling-presence",
+      "label": "Polled presence leases",
+      "description": "Reap expired leases when requests inspect state; no expiry timers or push delivery.",
+      "category": "storage",
+      "kernel": "pollingPresence",
+      "glyph": "database",
+      "defaults": {}
+    },
+    {
+      "id": "batch-reconciliation",
+      "label": "Microbatch reconciliation",
+      "description": "Hold real pending record jobs until a bounded flush; execute ledger matching and quarantine on those records.",
+      "category": "storage",
+      "kernel": "batchReconcile",
+      "glyph": "database",
+      "defaults": {}
+    }
+  ]
+}

@@ -1,0 +1,281 @@
+{
+  "schema": "simulatte.systemDiagramClassPack.v1",
+  "id": "study-alternatives",
+  "version": "1.0.0",
+  "kernels": [
+    {
+      "id": "flatText",
+      "label": "Flat Unicode text buffer",
+      "description": "Contiguous code-point array. Insert/delete copy retained code points; read indexes code points. copiedCodePoints counts storage writes, not wall time or response serialization.",
+      "paramSets": [],
+      "params": {
+        "serviceMs": {
+          "type": "number",
+          "label": "Service ms",
+          "default": 5,
+          "group": "basic",
+          "min": 0,
+          "max": 1000
+        },
+        "concurrency": {
+          "type": "integer",
+          "label": "Concurrency",
+          "default": 4,
+          "group": "basic",
+          "min": 1,
+          "max": 64
+        },
+        "queueCapacity": {
+          "type": "integer",
+          "label": "Queue capacity",
+          "default": 64,
+          "group": "basic",
+          "min": 0,
+          "max": 1000
+        },
+        "maxRecords": {
+          "type": "integer",
+          "label": "Max records",
+          "default": 200,
+          "group": "basic",
+          "min": 1,
+          "max": 4096
+        }
+      },
+      "ports": [
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "Command",
+          "multiple": true,
+          "required": false,
+          "accepts": [
+            "json"
+          ]
+        }
+      ],
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "dropReplies"
+      ]
+    },
+    {
+      "id": "wholeFileCache",
+      "label": "Whole-file read cache",
+      "description": "Fetch the fixed 62-byte file once and serve validated ranges. Shows actual modeled fetched bytes and residency; concurrent cold reads share one admitted fetch. No production capacity claim.",
+      "paramSets": [],
+      "params": {
+        "serviceMs": {
+          "type": "number",
+          "label": "Service ms",
+          "default": 5,
+          "group": "basic",
+          "min": 0,
+          "max": 1000
+        },
+        "concurrency": {
+          "type": "integer",
+          "label": "Concurrency",
+          "default": 4,
+          "group": "basic",
+          "min": 1,
+          "max": 64
+        },
+        "queueCapacity": {
+          "type": "integer",
+          "label": "Queue capacity",
+          "default": 64,
+          "group": "basic",
+          "min": 0,
+          "max": 1000
+        },
+        "maxRecords": {
+          "type": "integer",
+          "label": "Max records",
+          "default": 200,
+          "group": "basic",
+          "min": 1,
+          "max": 4096
+        },
+        "durable": {
+          "type": "boolean",
+          "label": "Retain cache on crash",
+          "default": false,
+          "group": "basic"
+        }
+      },
+      "ports": [
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "Command",
+          "multiple": true,
+          "required": false,
+          "accepts": [
+            "json"
+          ]
+        }
+      ],
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "dropReplies"
+      ]
+    },
+    {
+      "id": "eagerSequence",
+      "label": "Eager map/filter sequence",
+      "description": "Map/filter immediately materialize bounded arrays. Reset restores the original eight values. Visits count transform work and find comparisons; materializations count intermediate arrays.",
+      "paramSets": [],
+      "params": {
+        "serviceMs": {
+          "type": "number",
+          "label": "Service ms",
+          "default": 5,
+          "group": "basic",
+          "min": 0,
+          "max": 1000
+        },
+        "concurrency": {
+          "type": "integer",
+          "label": "Concurrency",
+          "default": 4,
+          "group": "basic",
+          "min": 1,
+          "max": 64
+        },
+        "queueCapacity": {
+          "type": "integer",
+          "label": "Queue capacity",
+          "default": 64,
+          "group": "basic",
+          "min": 0,
+          "max": 1000
+        },
+        "maxRecords": {
+          "type": "integer",
+          "label": "Max records",
+          "default": 200,
+          "group": "basic",
+          "min": 1,
+          "max": 4096
+        }
+      },
+      "ports": [
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "Command",
+          "multiple": true,
+          "required": false,
+          "accepts": [
+            "json"
+          ]
+        }
+      ],
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "dropReplies"
+      ]
+    },
+    {
+      "id": "ringQueue",
+      "label": "Ring-buffer blocking queue",
+      "description": "Fixed-size item and FIFO waiter rings support put/take/cancel/close, timeout and explicit crash durability. Values are finite JSON bounded to 4096 characters, depth 8 and 1024 nodes.",
+      "paramSets": [],
+      "params": {
+        "maxRecords": {
+          "type": "integer",
+          "label": "Max records",
+          "default": 200,
+          "group": "basic",
+          "min": 1,
+          "max": 4096
+        },
+        "capacity": {
+          "type": "integer",
+          "label": "Capacity",
+          "default": 2,
+          "group": "basic",
+          "min": 1,
+          "max": 64
+        },
+        "waitTimeoutMs": {
+          "type": "number",
+          "label": "Wait timeout ms",
+          "default": 300,
+          "group": "basic",
+          "min": 1,
+          "max": 5000
+        },
+        "durable": {
+          "type": "boolean",
+          "label": "Durable",
+          "default": false,
+          "group": "basic"
+        }
+      },
+      "ports": [
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "Command",
+          "multiple": true,
+          "required": false,
+          "accepts": [
+            "json"
+          ]
+        }
+      ],
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "dropReplies"
+      ]
+    }
+  ],
+  "classes": [
+    {
+      "id": "flat-text-buffer",
+      "label": "Flat Unicode text buffer",
+      "description": "Contiguous code-point array. Insert/delete copy retained code points; read indexes code points. copiedCodePoints counts storage writes, not wall time or response serialization.",
+      "category": "compute",
+      "kernel": "flatText",
+      "glyph": "server",
+      "defaults": {}
+    },
+    {
+      "id": "whole-file-cache",
+      "label": "Whole-file read cache",
+      "description": "Fetch the fixed 62-byte file once and serve validated ranges. Shows actual modeled fetched bytes and residency; concurrent cold reads share one admitted fetch. No production capacity claim.",
+      "category": "compute",
+      "kernel": "wholeFileCache",
+      "glyph": "server",
+      "defaults": {}
+    },
+    {
+      "id": "eager-sequence",
+      "label": "Eager map/filter sequence",
+      "description": "Map/filter immediately materialize bounded arrays. Reset restores the original eight values. Visits count transform work and find comparisons; materializations count intermediate arrays.",
+      "category": "compute",
+      "kernel": "eagerSequence",
+      "glyph": "server",
+      "defaults": {}
+    },
+    {
+      "id": "ring-buffer-queue",
+      "label": "Ring-buffer blocking queue",
+      "description": "Fixed-size item and FIFO waiter rings support put/take/cancel/close, timeout and explicit crash durability. Values are finite JSON bounded to 4096 characters, depth 8 and 1024 nodes.",
+      "category": "compute",
+      "kernel": "ringQueue",
+      "glyph": "server",
+      "defaults": {}
+    }
+  ]
+}

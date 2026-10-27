@@ -19,7 +19,7 @@
  function ipv4(text){const parts=String(text).split('.');required(parts.length===4&&parts.every(p=>/^\d{1,3}$/.test(p)&&Number(p)<=255));return parts.reduce((n,p)=>(n*256+Number(p))>>>0,0);}
  function rule(c,index){const parts=String(c.cidr).split('/'),bits=Number(parts[1]);required(parts.length===2&&Number.isInteger(bits)&&bits>=0&&bits<=32&&['allow','deny'].includes(c.action));const mask=bits===0?0:(0xffffffff<<(32-bits))>>>0;return {network:(ipv4(parts[0])&mask)>>>0,mask,bits,action:c.action,index};}
  machine('prefixRules',()=>({rules:[],trie:{},lookups:0,comparisons:0}),function(k,c,p){
-  if(c.op==='rule'){if(k.rules.length>=p.maxRecords)return {accepted:false,reason:'rule capacity'};const r=rule(c,k.rules.length);k.rules.push(r);let n=k.trie;for(let bit=31;bit>=32-r.bits;bit--){const b=(r.network>>>bit)&1;n[b]??={};n=n[b];}n.rule??=r;return {accepted:true,rules:k.rules.length};}
+  if(c.op==='rule'){if(k.rules.length>=p.maxRecords)return {accepted:false,reason:'rule capacity'};const r=rule(c,k.rules.length);k.rules.push(r);if(p.useTrie){let n=k.trie;for(let bit=31;bit>=32-r.bits;bit--){const b=(r.network>>>bit)&1;n[b]??={};n=n[b];}n.rule??=r;}return {accepted:true,rules:k.rules.length};}
   required(c.op==='check');const ip=ipv4(c.ip);let chosen=null;k.lookups++;
   if(p.useTrie){let n=k.trie;for(let bit=31;bit>=-1&&n;bit--){k.comparisons++;if(n.rule&&(!chosen||n.rule.index<chosen.index))chosen=n.rule;if(bit>=0)n=n[(ip>>>bit)&1];}}
   else for(const r of k.rules){k.comparisons++;if(((ip&r.mask)>>>0)===r.network){chosen=r;break;}}
@@ -36,7 +36,7 @@
  }return {text:out,unterminated:state==='block'||state==='quote'};}
  machine('commentLexer',()=>({processed:0,characters:0}),function(k,c,p){required(c.op==='strip'&&typeof c.text==='string'&&c.text.length<=p.maxRecords);k.processed++;k.characters+=c.text.length;return {accepted:true,...strip(c.text,p.sql,p.respectQuotes)};});
  machine('taskDag',()=>({tasks:{},completed:[],failed:0,retries:0}),function(k,c,p){
-  if(c.op==='submit'){required(typeof c.id==='string'&&Array.isArray(c.deps)&&c.deps.every(id=>Object.hasOwn(k.tasks,id)));if(Object.hasOwn(k.tasks,c.id))return {accepted:true,duplicate:true};if(Object.keys(k.tasks).length>=p.maxRecords)return {accepted:false,reason:'task capacity'};put(k.tasks,c.id,{id:c.id,deps:c.deps,state:'pending',attempts:0});}
+  if(c.op==='submit'){required(typeof c.id==='string'&&Array.isArray(c.deps)&&c.deps.every(id=>Object.hasOwn(k.tasks,id)));if(Object.hasOwn(k.tasks,c.id))return {accepted:JSON.stringify(read(k.tasks,c.id).deps)===JSON.stringify(c.deps),duplicate:true};if(Object.keys(k.tasks).length>=p.maxRecords)return {accepted:false,reason:'task capacity'};put(k.tasks,c.id,{id:c.id,deps:c.deps,state:'pending',attempts:0});}
   else if(c.op==='claim'){const ready=Object.values(k.tasks).filter(row=>row.state==='pending'&&row.deps.every(id=>k.tasks[id].state==='done'));const row=ready[0];if(row){row.state='running';row.attempts++;return {accepted:true,task:row.id};}return {accepted:false,reason:'no ready task'};}
   else if(c.op==='complete'){const row=read(k.tasks,c.id);required(row&&row.state==='running');row.state='done';k.completed.push(row.id);}
   else if(c.op==='fail'){const row=read(k.tasks,c.id);required(row&&row.state==='running');row.state=p.retryTasks&&row.attempts<p.maxAttempts?'pending':'failed';k.failed++;if(row.state==='pending')k.retries++;}

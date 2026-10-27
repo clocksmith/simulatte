@@ -4,6 +4,9 @@
  const programs={
   search:[{op:'query',key:'da',sequence:1,delayMs:180},{op:'query',key:'data',sequence:2,delayMs:10},{op:'query',key:'data',sequence:3,delayMs:10}],
   grid:[{op:'page',offset:0,limit:3},{op:'insertFirst',value:99},{op:'page',offset:3,limit:3,snapshot:'snapshot-1'},{op:'append',value:8},{op:'page',offset:6,limit:3,snapshot:'snapshot-1'}],
+  'grid-keyset':[{op:'page',afterKey:null,limit:3},{op:'insertFirst',value:99},{op:'page',afterKey:2,limit:3},{op:'append',value:8},{op:'page',afterKey:5,limit:3}],
+  'notebook-locks':[{op:'read'},{op:'acquire',owner:'a'},{op:'write',owner:'a',fence:1,id:'a',text:'first cell'},{op:'write',owner:'b',fence:1,id:'stale',text:'stale cell'},{op:'release',owner:'a',fence:1},{op:'acquire',owner:'b'},{op:'write',owner:'b',fence:2,id:'b',text:'merged cell'},{op:'write',owner:'b',fence:2,id:'b',text:'merged cell'},{op:'release',owner:'b',fence:2},{op:'read'}],
+  'transactions-locks':[{op:'read'},{op:'acquire',owner:'a'},{op:'write',owner:'a',fence:1,id:'a',key:'a',value:1},{op:'write',owner:'b',fence:1,id:'stale',key:'b',value:2},{op:'release',owner:'a',fence:1},{op:'acquire',owner:'b'},{op:'write',owner:'b',fence:2,id:'b',key:'b',value:2},{op:'write',owner:'b',fence:2,id:'b',key:'b',value:2},{op:'release',owner:'b',fence:2},{op:'read'}],
   notebook:[{op:'read'},{op:'edit',id:'a',version:0,text:'first cell'},{op:'edit',id:'b',version:0,text:'stale cell'},{op:'edit',id:'b-retry',version:1,text:'merged cell'},{op:'edit',id:'b-retry',version:1,text:'merged cell'},{op:'read'}],
   chunks:[{op:'read',offset:0,length:6},{op:'read',offset:2,length:8},{op:'read',offset:0,length:6},{op:'read',offset:16,length:12},{op:'read',offset:0,length:3}],
   lazy:[{op:'map',value:2},{op:'filter',value:6},{op:'find',value:8},{op:'collect'},{op:'reset'},{op:'map',value:3},{op:'collect'}],
@@ -18,7 +21,10 @@
   scheduler:[{op:'submit',id:'map',deps:[]},{op:'submit',id:'reduce',deps:['map']},{op:'claim'},{op:'fail',id:'map'},{op:'claim'},{op:'complete',id:'map'},{op:'claim'},{op:'complete',id:'reduce'}],
   quotas:[{op:'acquire',id:'a1',tenant:'a'},{op:'acquire',id:'a2',tenant:'a'},{op:'acquire',id:'a3',tenant:'a'},{op:'acquire',id:'b1',tenant:'b'},{op:'release',id:'a1',tenant:'a'},{op:'acquire',id:'a4',tenant:'a'},{op:'release',id:'b1',tenant:'b'}]
  };
- return Object.freeze({names:Object.freeze(Object.keys(programs)),commands(name,variant=0){if(!programs[name])throw Error('Unknown command workload');let rows=structuredClone(programs[name]);if(variant===1){const extra={
+ return Object.freeze({names:Object.freeze(Object.keys(programs)),commands(name,variant=0){if(!programs[name])throw Error('Unknown command workload');let rows=structuredClone(programs[name]);if(variant===3)return rows.slice(0,2);if(variant===1){const extra={
+ 'grid-keyset':[{op:'page',afterKey:8,limit:3}],
+ 'notebook-locks':[{op:'write',owner:'a',fence:1,id:'stale-after-release',text:'invalid'}],
+ 'transactions-locks':[{op:'write',owner:'a',fence:1,id:'stale-after-release',key:'x',value:999}],
  search:[{op:'query',key:'missing',sequence:4,delayMs:1}],grid:[{op:'page',offset:8,limit:3,snapshot:'snapshot-1'}],
  notebook:[{op:'edit',id:'b-retry',version:2,text:'conflicting retry'}],chunks:[{op:'read',offset:62,length:0},{op:'read',offset:61,length:2}],
  lazy:[{op:'reset'},{op:'filter',value:100},{op:'collect'}],rope:[{op:'insert',index:0,text:'\u{1f600}'},{op:'read',index:0},{op:'delete',index:0,length:1}],

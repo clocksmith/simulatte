@@ -17,4 +17,7 @@ require('./kernels-api-practice.js');
 require('./kernels-study-data.js');
 require('./kernels-study-algorithms.js');
 require('./kernels-study-protocols.js');
+require('./kernels-study-alternatives.js');
+require('./kernels-study-choices.js');
+require('./kernels-public-alternatives.js');
 module.exports = require('./kernel-registry.js');

@@ -1,0 +1,76 @@
+{
+  "boundary": "Local fixture-bound v4 schema, navigation and authenticated encryption; no catalogue qualification or deployment claim",
+  "source": {
+    "head": "8c7a5091ea8497c58807ebb98e0f63aee1df2efc",
+    "capturedAt": "2026-10-27T13:09:49.203Z",
+    "modifiedSources": {
+      "public/data/system-diagram/class-library.json": {
+        "sha256": "517efbba23f8656f65879fd3fa08d74fc635da4adc71a5103288d98014ce7266",
+        "modifiedAt": "2026-10-27T13:08:21.436Z"
+      },
+      "public/data/system-diagram/classes/study-alternatives.json": {
+        "sha256": "bdd25a2fa44bca6517fb76ce92df97dbfe321db7782a0f51bb09f0f9c8c0adb8",
+        "modifiedAt": "2026-10-27T13:02:48.726Z"
+      },
+      "public/simulatte/system-diagram/index.html": {
+        "sha256": "3841f87cba561685478d2599168d1a7b1ad049b313d50c55336d5115d64dee15",
+        "modifiedAt": "2026-10-27T13:08:21.437Z"
+      },
+      "public/simulatte/system-diagram/interview-stepper.js": {
+        "sha256": "557cd0e16c489e4ae8af272e18e8174d761b3742e6024a57aa7bfe66e7705d75",
+        "modifiedAt": "2026-10-27T13:08:05.880Z"
+      },
+      "public/simulatte/system-diagram/kernels-all.js": {
+        "sha256": "f1ab92f80103085b78c6b0686b30a3211b89452027a58ca33df796972f3d4e73",
+        "modifiedAt": "2026-10-27T13:08:21.436Z"
+      },
+      "public/simulatte/system-diagram/kernels-public-alternatives.js": {
+        "sha256": "91a6e3e96a7c9f357fbd63cee2c0e9734f1c494a61d908d268ab2705a9bc9cd9",
+        "modifiedAt": "2026-10-27T13:08:57.296Z"
+      },
+      "public/simulatte/system-diagram/kernels-study-alternatives.js": {
+        "sha256": "29ee4934406a97dc8aa25f1b9a9ac6b54a2e50e463e585708ce6b3c6fd3635c0",
+        "modifiedAt": "2026-10-27T13:06:00.681Z"
+      },
+      "public/simulatte/system-diagram/problem-model.js": {
+        "sha256": "8569ee871415385a057abfd09ccb432446c897796a97506b6cb15968be7dac09",
+        "modifiedAt": "2026-10-27T13:07:20.982Z"
+      },
+      "public/simulatte/system-diagram/study-contract.js": {
+        "sha256": "0abfe6c2f5a97d3e452b36cf13b45737186381b55dc754f00676d556e129cfe1",
+        "modifiedAt": "2026-10-27T13:01:14.340Z"
+      }
+    },
+    "boundary": "Local served public output with this working-tree delta; not a deployed release or physical GPU/acoustic validation."
+  },
+  "cases": [
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "errors": [],
+      "checks": {
+        "playStartsExecutableOneOfEight": true,
+        "sketchSeparateAndNonExecutable": true,
+        "approachChoiceLoadsDifferentTopology": true,
+        "finalRunnableEightOfEight": true,
+        "privateEncryptedSketchRestores": true
+      }
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "errors": [],
+      "checks": {
+        "playStartsExecutableOneOfEight": true,
+        "sketchSeparateAndNonExecutable": true,
+        "approachChoiceLoadsDifferentTopology": true,
+        "finalRunnableEightOfEight": true,
+        "privateEncryptedSketchRestores": true
+      }
+    }
+  ]
+}

@@ -28,7 +28,7 @@ Evolve intent into executable architecture; study sourced problems with editable
 - Evolution layers 0–5: sketch, simulation, specification, deployment, operation, system. Detail levels 0–4: context, capabilities, architecture, internals, implementation. Neither axis changes compiler phases.
 - Strict v4 remains compatible. v5 refinement preserves identity/external contracts; unbound behavior refuses execution/deployment.
 - Canonical problems share public/private code paths; compatibility registries are generated.
-- Published approaches have eight substantive stages minimum, declared design/executable kinds, challenges and checks.
+- Published problems have two structurally distinct approaches minimum, each with eight runnable stages, challenges and checks. Optional conceptual preludes do not count.
 - Stages retain edits and personal diagrams; replay configured demand without claiming matched closed-loop arrivals.
 - Rail is collapsed/expanded; expanded resizing caps at 280px and viewport bounds.
 - Parameters resolve kernel/class/instance. Unknown values refuse; layout cannot affect results.
