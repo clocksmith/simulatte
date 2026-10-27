@@ -12,6 +12,36 @@
       "title": "Vatsal Vora: firsthand system design interview account",
       "url": "https://www.vectorbuilds.dev/notes/raw-every-system-design-question-i-was-asked-in-real-interviews-at-10-companies",
       "kind": "candidate-reported"
+    },
+    "bytebytego": {
+      "title": "Alex Xu: System Design Interview reference architectures",
+      "url": "https://bytebytego.com",
+      "kind": "candidate-reported"
+    },
+    "netflix-techblog": {
+      "title": "Netflix Technology Blog: Global Video Delivery",
+      "url": "https://netflixtechblog.com",
+      "kind": "company-published"
+    },
+    "twitter-engineering": {
+      "title": "Twitter Engineering: Timelines at Scale",
+      "url": "https://blog.x.com/engineering",
+      "kind": "company-published"
+    },
+    "meta-engineering": {
+      "title": "Meta Engineering: Real-Time Infrastructure",
+      "url": "https://engineering.fb.com",
+      "kind": "company-published"
+    },
+    "amazon-builders": {
+      "title": "Amazon Builders' Library: Distributed Systems and Transactions",
+      "url": "https://aws.amazon.com/builders-library",
+      "kind": "company-published"
+    },
+    "google-research": {
+      "title": "Google Research: Distributed Systems and Large-Scale Web Search",
+      "url": "https://research.google",
+      "kind": "company-published"
     }
   },
   "problems": [
@@ -188,6 +218,160 @@
         {
           "name": "Reconciliation",
           "interviewerPrompt": "How will you recover when payment succeeds but local state was not updated?"
+        }
+      ]
+    },
+    {
+      "id": "reddit-comments",
+      "title": "Threaded comments and voting",
+      "company": "Reddit",
+      "sourceId": "bytebytego",
+      "sourceKind": "candidate-reported",
+      "problemStatement": "Design a discussion platform supporting deeply nested comment trees and live upvote/downvote tallies.",
+      "steps": [
+        {
+          "name": "Tree Storage",
+          "interviewerPrompt": "How will you model and query deeply nested comment trees with high read throughput?"
+        },
+        {
+          "name": "Vote Aggregation",
+          "interviewerPrompt": "How will you handle hot-post vote storms without overwhelming the database with write locks?"
+        },
+        {
+          "name": "Ranking Delivery",
+          "interviewerPrompt": "How will you compute top and best comment rankings and stream updates to connected clients?"
+        }
+      ]
+    },
+    {
+      "id": "netflix-streaming",
+      "title": "Global video streaming and CDN",
+      "company": "Netflix",
+      "sourceId": "netflix-techblog",
+      "sourceKind": "company-published",
+      "problemStatement": "Design an adaptive bitrate video streaming service delivering high-throughput playback globally.",
+      "steps": [
+        {
+          "name": "Ingest and Encoding",
+          "interviewerPrompt": "How will raw video uploads be split into chunks and encoded into multiple bitrate streams?"
+        },
+        {
+          "name": "Edge Caching",
+          "interviewerPrompt": "How will tiered CDN caching and prefetching minimize buffer stalls in regional networks?"
+        },
+        {
+          "name": "Manifest Delivery",
+          "interviewerPrompt": "How will player clients dynamically adapt bitrate during network degradation?"
+        }
+      ]
+    },
+    {
+      "id": "twitter-timeline",
+      "title": "Realtime social timeline",
+      "company": "Twitter/X",
+      "sourceId": "twitter-engineering",
+      "sourceKind": "company-published",
+      "problemStatement": "Design a real-time social timeline where users follow accounts and receive fresh home feeds.",
+      "steps": [
+        {
+          "name": "Fanout",
+          "interviewerPrompt": "How will you balance fanout-on-write against fanout-on-read for high-follower celebrity accounts?"
+        },
+        {
+          "name": "Timeline Cache",
+          "interviewerPrompt": "How will home timelines be stored, bounded, and evicted in memory?"
+        },
+        {
+          "name": "Delivery",
+          "interviewerPrompt": "How will active connected clients receive new tweets in real time without polling?"
+        }
+      ]
+    },
+    {
+      "id": "meta-stories",
+      "title": "Ephemeral stories media pipeline",
+      "company": "Meta",
+      "sourceId": "meta-engineering",
+      "sourceKind": "company-published",
+      "problemStatement": "Design ephemeral photo and video stories that replicate to friends and expire in 24 hours.",
+      "steps": [
+        {
+          "name": "Media Processing",
+          "interviewerPrompt": "How will uploaded images and videos be processed, stored, and replicated across regions?"
+        },
+        {
+          "name": "Audience Routing",
+          "interviewerPrompt": "How will friend privacy graphs and viewed-state tracking determine story tray order?"
+        },
+        {
+          "name": "Expiration",
+          "interviewerPrompt": "How will media and metadata be automatically purged upon reaching their 24-hour TTL?"
+        }
+      ]
+    },
+    {
+      "id": "amazon-flash-sale",
+      "title": "Flash sale inventory reservation",
+      "company": "Amazon",
+      "sourceId": "amazon-builders",
+      "sourceKind": "company-published",
+      "problemStatement": "Design an e-commerce checkout system handling high-concurrency item reservation without double-selling.",
+      "steps": [
+        {
+          "name": "Reservation",
+          "interviewerPrompt": "How will the system reserve stock atomically under extreme checkout concurrency?"
+        },
+        {
+          "name": "Idempotency",
+          "interviewerPrompt": "How will duplicate payment webhooks and retried checkout submissions be prevented?"
+        },
+        {
+          "name": "Timeout Recovery",
+          "interviewerPrompt": "How will uncompleted reservations safely expire and return inventory to available stock?"
+        }
+      ]
+    },
+    {
+      "id": "google-crawler",
+      "title": "Distributed web crawler",
+      "company": "Google",
+      "sourceId": "google-research",
+      "sourceKind": "company-published",
+      "problemStatement": "Design a scalable web crawler that traverses billions of web pages while honoring politeness.",
+      "steps": [
+        {
+          "name": "URL Frontier",
+          "interviewerPrompt": "How will the URL frontier manage prioritization, politeness queues, and deduplication?"
+        },
+        {
+          "name": "Fetch Workers",
+          "interviewerPrompt": "How will distributed fetchers handle DNS caching, timeouts, and robots.txt rules?"
+        },
+        {
+          "name": "Index Handoff",
+          "interviewerPrompt": "How will crawled document content be parsed, fingerprinted, and handed off to indexing?"
+        }
+      ]
+    },
+    {
+      "id": "microsoft-presence",
+      "title": "Distributed presence broker",
+      "company": "Microsoft",
+      "sourceId": "bytebytego",
+      "sourceKind": "candidate-reported",
+      "problemStatement": "Design a real-time presence service broadcasting user availability across enterprise channels.",
+      "steps": [
+        {
+          "name": "Heartbeat Ingest",
+          "interviewerPrompt": "How will the service track keep-alive heartbeats and detect client disconnections?"
+        },
+        {
+          "name": "Status Fanout",
+          "interviewerPrompt": "How will status transitions fan out efficiently to channels and active contact lists?"
+        },
+        {
+          "name": "Bulk Sync",
+          "interviewerPrompt": "How will desktop and mobile clients sync bulk presence states on initial login?"
         }
       ]
     }
