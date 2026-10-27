@@ -21,8 +21,10 @@
     function syncPalette() {
       palette.panel.inert = false; palette.panel.dataset.open = 'true';
       doc.body.dataset.paletteExpanded = String(expanded);
-      layout.style.setProperty('--lucyd-rail-width',`${expanded?Math.max(160,Math.min(maxWidth(),width)):56}px`);
-      dragger.hidden=!expanded;dragger.setAttribute('aria-valuemin','160');dragger.setAttribute('aria-valuemax',String(maxWidth()));dragger.setAttribute('aria-valuenow',String(Math.min(maxWidth(),width)));
+      const panelWidth=expanded?Math.max(160,Math.min(maxWidth(),width)):56;
+      layout.style.setProperty('--lucyd-rail-width',`${compact.matches?56:panelWidth}px`);
+      layout.style.setProperty('--lucyd-palette-width',`${panelWidth}px`);
+      dragger.hidden=!expanded||compact.matches;dragger.setAttribute('aria-valuemin','160');dragger.setAttribute('aria-valuemax',String(maxWidth()));dragger.setAttribute('aria-valuenow',String(Math.min(maxWidth(),width)));
       palette.toggle.textContent=expanded?'‹':'›';
       palette.toggle.setAttribute('aria-expanded', String(expanded));
       palette.toggle.setAttribute('aria-label', expanded ? 'Collapse component library' : 'Expand component library');
@@ -71,7 +73,7 @@
       const task = doc.querySelector('.lucyd-task-bar')?.getBoundingClientRect();
       const step = doc.querySelector('.interview-stepper:not([hidden])')?.getBoundingClientRect();
       const playback = doc.querySelector('.sd-run-dock')?.getBoundingClientRect();
-      const left = Math.max(12, palette.panel.getBoundingClientRect().right - rect.left + 12);
+      const left = compact.matches ? 12 : Math.max(12, palette.panel.getBoundingClientRect().right - rect.left + 12);
       const drawer = properties.panel.dataset.open === 'true' ? properties.panel.getBoundingClientRect().width + 12 : 12;
       // A drawer that would leave almost no canvas overlays it instead; otherwise Fit collapses the camera to a dot.
       const right = rect.width - left - drawer >= MIN_INSET_CANVAS ? drawer : 12;

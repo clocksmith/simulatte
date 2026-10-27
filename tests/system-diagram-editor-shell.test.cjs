@@ -108,3 +108,11 @@ test('an open drawer overlays a phone canvas instead of leaving Fit no usable wi
   desktop.dom.dispatch(desktop.dom.id('properties-toggle'), 'click'); desktop.api.updateInsets();
   assert.equal(desktop.insets().right, 322, 'wide canvases still reserve the drawer width');
 });
+test('expanded phone rail overlays a stable compact workspace at 390 and 320 pixels',()=>{
+ for(const width of [390,320]){
+  const {dom,api,expand,insets}=shell(width),layout=dom.doc.querySelector('.editor-layout');
+  expand();assert.equal(layout.style['--lucyd-rail-width'],'56px');assert.equal(layout.style['--lucyd-palette-width'],'208px');assert.equal(insets().left,12);
+  api.updateInsets();assert.equal(api.getRailState().expanded,true,'layout updates preserve explicit expansion');
+  dom.dispatch(dom.doc,'keydown',{key:'Escape'});assert.equal(layout.style['--lucyd-rail-width'],'56px');assert.equal(layout.style['--lucyd-palette-width'],'56px');assert.equal(dom.doc.activeElement,dom.id('palette-toggle'));
+ }
+});
