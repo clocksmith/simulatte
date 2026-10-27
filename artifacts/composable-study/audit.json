@@ -1,0 +1,422 @@
+{
+  "checks": {
+    "browserAppearance": "not checked by this tool",
+    "contractTests": {
+      "command": "node --test tests/composable-study.test.cjs",
+      "failed": 0,
+      "outputSha256": "890878b9c66275480a1217700d30d348cce058d38e0781da11c99187927f9e5a",
+      "passed": 17,
+      "tests": 17
+    },
+    "deployment": "not performed by this tool",
+    "interfaceParser": {
+      "acceptedDocuments": 7,
+      "path": "public/simulatte/system-diagram/composable-study.js",
+      "scope": "data parsing only; not browser interaction",
+      "sha256": "06a0c426ed07bb894794bd442e2dcedd5b5eb9640827d3fbd06141f805b6b360"
+    }
+  },
+  "componentCounting": "Includes subsystem boundaries and their internal component identities; excludes edges and notes.",
+  "implementationStatus": "conceptual designs; running simulation catalogue unchanged",
+  "priorityBatch": {
+    "archive": "/Users/xyz/.local/state/deco/lucyd-priority-intake-20261027",
+    "referenceTests": {
+      "command": "node --test reference/chat.test.mjs reference/comments.test.mjs reference/flashsale.test.mjs reference/pagination.test.mjs reference/timeline.test.mjs",
+      "failed": 0,
+      "outputSha256": "83b77c461b0d6630e7ceb2d4eb7d058198dc58535ebca451156e2ed899ac37aa",
+      "passed": 56,
+      "scope": "small mechanism reference implementations; not distributed systems qualification",
+      "tests": 56
+    },
+    "sourceHashes": [
+      {
+        "path": "solutions/L003-pagination.mjs",
+        "sha256": "5f8faf5ec89c8987f8d752ccda411fd0143a06b2acc05be29e81398e2f7d84df"
+      },
+      {
+        "path": "solutions/L004-chat.mjs",
+        "sha256": "07e47518dcde83d11a6284488c0172bb4952ef62dd452ca460e2c358ebc30a56"
+      },
+      {
+        "path": "solutions/L009-comments.mjs",
+        "sha256": "965e0a7b5da944a8876781102774b5f47473049fb4d4801a87aa81f116b162eb"
+      },
+      {
+        "path": "solutions/L011-timeline.mjs",
+        "sha256": "65bbb09ebe9353e44bdd745151c9f326b85f84c52d34fcf18189a1cfd2f94e44"
+      },
+      {
+        "path": "solutions/L013-flash-sale.mjs",
+        "sha256": "afe5c60c28c4d94025a426a8f80ef29b21afc18f0df8517f53df6359691a47b9"
+      }
+    ],
+    "status": "preserved; conversion to the shared contract pending"
+  },
+  "schema": "simulatte.composableStudyAudit.v1",
+  "secondBatch": [
+    {
+      "referenceId": "L001",
+      "sha256": "ef4aba626a98429ad80694abba82e3e29eae9f91633f3d9ddde8d5ab74f883f5",
+      "solutions": [
+        {
+          "acceptanceCases": 5,
+          "acceptanceEvidence": "authored scenarios; no implementation execution claimed",
+          "componentInstancesByStage": [
+            2,
+            4,
+            6,
+            7,
+            8,
+            9,
+            11,
+            11
+          ],
+          "id": "dedicated",
+          "operations": {
+            "connect": 13,
+            "expand": 1,
+            "insert": 10,
+            "merge": 1
+          },
+          "stages": 8
+        },
+        {
+          "acceptanceCases": 5,
+          "acceptanceEvidence": "authored scenarios; no implementation execution claimed",
+          "componentInstancesByStage": [
+            2,
+            4,
+            6,
+            7,
+            9,
+            10,
+            12,
+            12
+          ],
+          "id": "shared",
+          "operations": {
+            "connect": 15,
+            "disconnect": 1,
+            "expand": 1,
+            "insert": 11,
+            "merge": 1
+          },
+          "stages": 8
+        }
+      ]
+    },
+    {
+      "referenceId": "L005",
+      "sha256": "05c667f6249b4ce4580326944a01f59d7159705977ed3fde01982aa30db7238e",
+      "solutions": [
+        {
+          "acceptanceCases": 5,
+          "acceptanceEvidence": "authored scenarios; no implementation execution claimed",
+          "componentInstancesByStage": [
+            2,
+            4,
+            6,
+            7,
+            8,
+            9,
+            10,
+            9
+          ],
+          "id": "async-primary",
+          "operations": {
+            "connect": 15,
+            "disconnect": 1,
+            "expand": 1,
+            "insert": 8,
+            "merge": 1
+          },
+          "stages": 8
+        },
+        {
+          "acceptanceCases": 5,
+          "acceptanceEvidence": "authored scenarios; no implementation execution claimed",
+          "componentInstancesByStage": [
+            2,
+            4,
+            6,
+            7,
+            8,
+            9,
+            10,
+            9
+          ],
+          "id": "raft",
+          "operations": {
+            "connect": 15,
+            "disconnect": 1,
+            "expand": 1,
+            "insert": 8,
+            "merge": 1
+          },
+          "stages": 8
+        }
+      ]
+    },
+    {
+      "referenceId": "L007",
+      "sha256": "38934d031aea122632dba081e9d66415c822384e795f0e84a9d856737e2deb54",
+      "solutions": [
+        {
+          "acceptanceCases": 4,
+          "acceptanceEvidence": "authored scenarios; no implementation execution claimed",
+          "componentInstancesByStage": [
+            2,
+            4,
+            5,
+            6,
+            7,
+            9,
+            11,
+            10
+          ],
+          "id": "proxy",
+          "operations": {
+            "connect": 12,
+            "disconnect": 2,
+            "expand": 1,
+            "insert": 9,
+            "merge": 1
+          },
+          "stages": 8
+        },
+        {
+          "acceptanceCases": 4,
+          "acceptanceEvidence": "authored scenarios; no implementation execution claimed",
+          "componentInstancesByStage": [
+            2,
+            4,
+            5,
+            6,
+            7,
+            9,
+            11,
+            10
+          ],
+          "id": "client",
+          "operations": {
+            "connect": 12,
+            "disconnect": 2,
+            "expand": 1,
+            "insert": 9,
+            "merge": 1
+          },
+          "stages": 8
+        }
+      ]
+    },
+    {
+      "referenceId": "L010",
+      "sha256": "09d2610d9a74a2ccb29f031dd73ca88c09b9cb328ae52181a7ccbfd989d0e1da",
+      "solutions": [
+        {
+          "acceptanceCases": 6,
+          "acceptanceEvidence": "authored scenarios; no implementation execution claimed",
+          "componentInstancesByStage": [
+            2,
+            4,
+            5,
+            6,
+            8,
+            10,
+            11,
+            9
+          ],
+          "id": "pull-cdn",
+          "operations": {
+            "connect": 14,
+            "disconnect": 2,
+            "expand": 1,
+            "insert": 9,
+            "merge": 1
+          },
+          "stages": 8
+        },
+        {
+          "acceptanceCases": 6,
+          "acceptanceEvidence": "authored scenarios; no implementation execution claimed",
+          "componentInstancesByStage": [
+            2,
+            4,
+            5,
+            7,
+            9,
+            11,
+            12,
+            10
+          ],
+          "id": "regional-placement",
+          "operations": {
+            "connect": 17,
+            "disconnect": 2,
+            "expand": 1,
+            "insert": 10,
+            "merge": 1
+          },
+          "stages": 8
+        }
+      ]
+    },
+    {
+      "referenceId": "L014",
+      "sha256": "9a09891675aa60ec2672ab7d6c28efca8f22045084fa2e824e90733485a18840",
+      "solutions": [
+        {
+          "acceptanceCases": 6,
+          "acceptanceEvidence": "authored scenarios; no implementation execution claimed",
+          "componentInstancesByStage": [
+            2,
+            4,
+            5,
+            6,
+            7,
+            9,
+            11,
+            10
+          ],
+          "id": "host-workers",
+          "operations": {
+            "connect": 13,
+            "disconnect": 2,
+            "expand": 1,
+            "insert": 9,
+            "merge": 1
+          },
+          "stages": 8
+        },
+        {
+          "acceptanceCases": 6,
+          "acceptanceEvidence": "authored scenarios; no implementation execution claimed",
+          "componentInstancesByStage": [
+            2,
+            4,
+            5,
+            6,
+            7,
+            11,
+            13,
+            12
+          ],
+          "id": "split-pipeline",
+          "operations": {
+            "connect": 16,
+            "disconnect": 2,
+            "expand": 1,
+            "insert": 11,
+            "merge": 1,
+            "replace": 1
+          },
+          "stages": 8
+        }
+      ]
+    },
+    {
+      "referenceId": "L032",
+      "sha256": "4a53986972921bbe944546876610ecafa9e34e546e16a5ed40002f5b8167209d",
+      "solutions": [
+        {
+          "acceptanceCases": 4,
+          "acceptanceEvidence": "authored scenarios; no implementation execution claimed",
+          "componentInstancesByStage": [
+            2,
+            4,
+            6,
+            7,
+            9,
+            10,
+            11,
+            9
+          ],
+          "id": "server",
+          "operations": {
+            "connect": 12,
+            "disconnect": 2,
+            "expand": 1,
+            "insert": 9,
+            "merge": 1
+          },
+          "stages": 8
+        },
+        {
+          "acceptanceCases": 4,
+          "acceptanceEvidence": "authored scenarios; no implementation execution claimed",
+          "componentInstancesByStage": [
+            2,
+            4,
+            6,
+            7,
+            9,
+            10,
+            11,
+            10
+          ],
+          "id": "local-prefix",
+          "operations": {
+            "connect": 12,
+            "disconnect": 2,
+            "expand": 1,
+            "insert": 9,
+            "merge": 1
+          },
+          "stages": 8
+        }
+      ]
+    },
+    {
+      "referenceId": "L034",
+      "sha256": "837b346f7f3dec5243dbf7e5bf2130ea4c58b9369d932d4f88776649c650022b",
+      "solutions": [
+        {
+          "acceptanceCases": 5,
+          "acceptanceEvidence": "authored scenarios; no implementation execution claimed",
+          "componentInstancesByStage": [
+            2,
+            4,
+            5,
+            8,
+            11,
+            12,
+            13,
+            11
+          ],
+          "id": "push",
+          "operations": {
+            "connect": 18,
+            "disconnect": 1,
+            "expand": 1,
+            "insert": 11,
+            "merge": 1
+          },
+          "stages": 8
+        },
+        {
+          "acceptanceCases": 5,
+          "acceptanceEvidence": "authored scenarios; no implementation execution claimed",
+          "componentInstancesByStage": [
+            2,
+            4,
+            5,
+            8,
+            11,
+            13,
+            14,
+            12
+          ],
+          "id": "lease-poll",
+          "operations": {
+            "connect": 19,
+            "disconnect": 1,
+            "expand": 1,
+            "insert": 12,
+            "merge": 1
+          },
+          "stages": 8
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,66 @@
+{
+  "components": [
+    {
+      "description": "Logical client responsibility. Deployment and execution require an explicit implementation binding.",
+      "id": "core.client",
+      "kind": "client",
+      "version": 1
+    },
+    {
+      "description": "Logical service responsibility. Deployment and execution require an explicit implementation binding.",
+      "id": "core.service",
+      "kind": "service",
+      "version": 1
+    },
+    {
+      "description": "Logical module responsibility. Deployment and execution require an explicit implementation binding.",
+      "id": "core.module",
+      "kind": "module",
+      "version": 1
+    },
+    {
+      "description": "Logical store responsibility. Deployment and execution require an explicit implementation binding.",
+      "id": "core.store",
+      "kind": "store",
+      "version": 1
+    },
+    {
+      "description": "Logical log responsibility. Deployment and execution require an explicit implementation binding.",
+      "id": "core.log",
+      "kind": "log",
+      "version": 1
+    },
+    {
+      "description": "Logical queue responsibility. Deployment and execution require an explicit implementation binding.",
+      "id": "core.queue",
+      "kind": "queue",
+      "version": 1
+    },
+    {
+      "description": "Logical worker responsibility. Deployment and execution require an explicit implementation binding.",
+      "id": "core.worker",
+      "kind": "worker",
+      "version": 1
+    },
+    {
+      "description": "Logical cache responsibility. Deployment and execution require an explicit implementation binding.",
+      "id": "core.cache",
+      "kind": "cache",
+      "version": 1
+    },
+    {
+      "description": "Logical directory responsibility. Deployment and execution require an explicit implementation binding.",
+      "id": "core.directory",
+      "kind": "directory",
+      "version": 1
+    },
+    {
+      "description": "Logical external responsibility. Deployment and execution require an explicit implementation binding.",
+      "id": "core.external",
+      "kind": "external",
+      "version": 1
+    }
+  ],
+  "schema": "simulatte.studyComponents.v1",
+  "version": 1
+}

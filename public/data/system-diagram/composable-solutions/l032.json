@@ -1,0 +1,4365 @@
+{
+  "components": [
+    {
+      "extends": {
+        "id": "core.client",
+        "version": 1
+      },
+      "id": "search.ui",
+      "label": "Search controls",
+      "ports": [
+        {
+          "contractId": "search.query",
+          "direction": "out",
+          "id": "out-search.query"
+        },
+        {
+          "contractId": "search.query",
+          "direction": "in",
+          "id": "in-search.query"
+        },
+        {
+          "contractId": "search.saved",
+          "direction": "out",
+          "id": "out-search.saved"
+        }
+      ],
+      "responsibility": "Own typed filter input and explicit loading/error/empty state.",
+      "stateOwnership": [
+        "draft filter"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.service",
+        "version": 1
+      },
+      "id": "search.system",
+      "label": "Search service",
+      "ports": [
+        {
+          "contractId": "search.query",
+          "direction": "in",
+          "id": "in-search.query"
+        },
+        {
+          "contractId": "search.query",
+          "direction": "out",
+          "id": "out-search.query-api"
+        },
+        {
+          "contractId": "search.index",
+          "direction": "in",
+          "id": "in-search.index-api"
+        }
+      ],
+      "responsibility": "Search an authorized corpus with a declared stable ordering.",
+      "stateOwnership": [
+        "search index"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.service",
+        "version": 1
+      },
+      "id": "search.api",
+      "label": "Search API",
+      "ports": [
+        {
+          "contractId": "search.query",
+          "direction": "out",
+          "id": "out-search.query"
+        },
+        {
+          "contractId": "search.query",
+          "direction": "in",
+          "id": "in-search.query"
+        },
+        {
+          "contractId": "search.index",
+          "direction": "in",
+          "id": "in-search.index"
+        }
+      ],
+      "responsibility": "Validate typed filters, scope authorization and cursor identity.",
+      "stateOwnership": [
+        "no per-client authoritative UI state"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "search.index",
+      "label": "Server search index",
+      "ports": [
+        {
+          "contractId": "search.query",
+          "direction": "in",
+          "id": "in-search.query"
+        }
+      ],
+      "responsibility": "Execute bounded indexed searches and expose dataset revisions.",
+      "stateOwnership": [
+        "indexed documents"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "search.debounce",
+      "label": "Input scheduler",
+      "ports": [
+        {
+          "contractId": "search.query",
+          "direction": "in",
+          "id": "in-search.query"
+        },
+        {
+          "contractId": "search.query",
+          "direction": "out",
+          "id": "out-search.query"
+        }
+      ],
+      "responsibility": "Issue a new query only after the debounce policy; flush explicit submission.",
+      "stateOwnership": [
+        "pending timer"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "search.cancel",
+      "label": "Request cancellation",
+      "ports": [
+        {
+          "contractId": "search.query",
+          "direction": "in",
+          "id": "in-search.query"
+        },
+        {
+          "contractId": "search.query",
+          "direction": "out",
+          "id": "out-search.query"
+        }
+      ],
+      "responsibility": "Abort obsolete network work without assuming every server stops.",
+      "stateOwnership": [
+        "AbortController"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "search.guard",
+      "label": "Response revision guard",
+      "ports": [
+        {
+          "contractId": "search.query",
+          "direction": "in",
+          "id": "in-search.query"
+        },
+        {
+          "contractId": "search.query",
+          "direction": "out",
+          "id": "out-search.query"
+        }
+      ],
+      "responsibility": "Reject responses whose generation or filter hash is stale.",
+      "stateOwnership": [
+        "latest generation"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.cache",
+        "version": 1
+      },
+      "id": "search.cache",
+      "label": "Bounded result cache",
+      "ports": [
+        {
+          "contractId": "search.query",
+          "direction": "in",
+          "id": "in-search.query"
+        }
+      ],
+      "responsibility": "Key by authorization scope, filter, sort and dataset policy; use TTL and LRU bounds.",
+      "stateOwnership": [
+        "cached response copies"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "search.saved",
+      "label": "Saved-filter store",
+      "ports": [
+        {
+          "contractId": "search.saved",
+          "direction": "in",
+          "id": "in-search.saved"
+        }
+      ],
+      "responsibility": "Own account filter versions using authenticated conditional updates.",
+      "stateOwnership": [
+        "saved typed filters"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "search.pages",
+      "label": "Page identity merger",
+      "ports": [
+        {
+          "contractId": "search.query",
+          "direction": "in",
+          "id": "in-search.query"
+        },
+        {
+          "contractId": "search.query",
+          "direction": "out",
+          "id": "out-search.query"
+        }
+      ],
+      "responsibility": "Merge by stable record ID only within the same query generation and ordering.",
+      "stateOwnership": [
+        "visible result IDs"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "search.local-index",
+      "label": "Local prefix index",
+      "ports": [
+        {
+          "contractId": "search.query",
+          "direction": "in",
+          "id": "in-search.query"
+        },
+        {
+          "contractId": "search.index",
+          "direction": "in",
+          "id": "in-search.index"
+        },
+        {
+          "contractId": "search.query",
+          "direction": "out",
+          "id": "out-search.query"
+        }
+      ],
+      "responsibility": "Search a bounded authorized downloaded corpus using a trie.",
+      "stateOwnership": [
+        "prefix trie",
+        "dataset revision"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "search.loader",
+      "label": "Index loader",
+      "ports": [
+        {
+          "contractId": "search.index",
+          "direction": "out",
+          "id": "out-search.index"
+        }
+      ],
+      "responsibility": "Fetch a bounded versioned corpus, replace indexes atomically and erase it on scope changes.",
+      "stateOwnership": [
+        "index generation"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "search.persist",
+      "label": "URL/local draft state",
+      "ports": [
+        {
+          "contractId": "search.saved",
+          "direction": "in",
+          "id": "in-search.saved"
+        }
+      ],
+      "responsibility": "Serialize validated versioned filters; migrate or reject unknown formats.",
+      "stateOwnership": [
+        "draft only; no secrets in URLs"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "search.coordinator",
+      "label": "Unified query coordinator",
+      "ports": [
+        {
+          "contractId": "search.query",
+          "direction": "in",
+          "id": "in-search.query"
+        },
+        {
+          "contractId": "search.query",
+          "direction": "out",
+          "id": "out-search.query"
+        }
+      ],
+      "responsibility": "Own request generation, cancellation, response application and page merge ordering.",
+      "stateOwnership": [
+        "active generation",
+        "pending request",
+        "visible IDs"
+      ],
+      "version": 1
+    }
+  ],
+  "contracts": [
+    {
+      "id": "search.query",
+      "request": {
+        "after": "opaque cursor|null",
+        "filter": "typed filter AST",
+        "filterHash": "sha256",
+        "generation": "uint64",
+        "query": "string",
+        "sort": "allowlisted stable ordering"
+      },
+      "response": {
+        "datasetRevision": "string",
+        "filterHash": "sha256",
+        "generation": "uint64",
+        "items": "{id,sortKey,data}[]",
+        "next": "cursor|null"
+      },
+      "version": 1
+    },
+    {
+      "id": "search.saved",
+      "request": {
+        "expectedVersion": "uint64",
+        "filter": "typed filter AST",
+        "id": "uuid",
+        "sort": "allowlisted sort"
+      },
+      "response": {
+        "filter": "typed filter AST",
+        "id": "uuid",
+        "version": "uint64"
+      },
+      "version": 1
+    },
+    {
+      "id": "search.index",
+      "request": {
+        "authorizedScope": "string",
+        "revision": "string|null"
+      },
+      "response": {
+        "entries": "bounded authorized prefix entries[]",
+        "revision": "string"
+      },
+      "version": 1
+    }
+  ],
+  "execution": {
+    "implementation": null,
+    "kind": "conceptual-design"
+  },
+  "problem": {
+    "referenceId": "L032",
+    "requirements": [
+      {
+        "id": "latest",
+        "text": "Only responses for the current query generation and filter identity may update the visible results."
+      },
+      {
+        "id": "persist",
+        "text": "Saved filters restore consistently across reloads; account saves use authorization and optimistic version checks."
+      },
+      {
+        "id": "pages",
+        "text": "Page tokens bind ordering, filter identity and dataset policy; merging cannot duplicate result identities."
+      },
+      {
+        "id": "bounds",
+        "text": "Debounce, cancellation and bounded caches reduce work without being relied upon for correctness."
+      }
+    ],
+    "scope": "Extend autocomplete explicitly with versioned saved filters. A client-side prefix index is limited to an authorized bounded corpus; it is not a general distributed search engine.",
+    "studyLabel": "Interactive search with saved filters"
+  },
+  "provenance": {
+    "kind": "authored-practice",
+    "note": "Authored interview preparation. Technical references support mechanisms, not the claim that a company asked this question."
+  },
+  "references": [
+    {
+      "id": "abort",
+      "scope": "background",
+      "supports": "Cancellation is an optimization; a response-generation guard is still necessary.",
+      "title": "AbortController",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/AbortController"
+    },
+    {
+      "id": "cursor",
+      "scope": "background",
+      "supports": "Cursor and page boundary contracts.",
+      "title": "GraphQL cursor pagination",
+      "url": "https://graphql.org/learn/pagination/"
+    }
+  ],
+  "schema": "simulatte.composableStudy.v1",
+  "solutions": [
+    {
+      "acceptanceCases": [
+        {
+          "given": "Request A is generation 1; B is generation 2.",
+          "id": "stale-response",
+          "relatedRequirementIds": [
+            "latest",
+            "bounds"
+          ],
+          "then": "Only B is visible.",
+          "when": "B returns, then A returns despite cancellation."
+        },
+        {
+          "given": "Page two of filter A is in flight.",
+          "id": "page-reset",
+          "relatedRequirementIds": [
+            "pages",
+            "latest"
+          ],
+          "then": "The page is discarded; no A record enters B results.",
+          "when": "Change to filter B, then receive page two of A."
+        },
+        {
+          "given": "Two devices loaded saved-filter version 3.",
+          "id": "save-conflict",
+          "relatedRequirementIds": [
+            "persist"
+          ],
+          "then": "One succeeds at version 4; the other gets a conflict.",
+          "when": "Both update with expectedVersion=3."
+        },
+        {
+          "given": "User A has cached results and a local index.",
+          "id": "scope-change",
+          "relatedRequirementIds": [
+            "bounds"
+          ],
+          "then": "A data is erased before B queries or renders results.",
+          "when": "Sign out and sign in as B."
+        }
+      ],
+      "algorithms": [
+        {
+          "code": "onFilterChange(nextFilter) {\n  generation += 1; active = {generation, hash: canonicalHash(nextFilter)}; const captured = {...active};\n  abortPreviousRequest(); clearVisiblePages();\n  scheduleDebounced(() => { if (captured.generation === active.generation) requestPage(nextFilter, null, captured); });\n}\nonResponse(response, captured) {\n  if (captured.generation !== active.generation || captured.hash !== active.hash) return;\n  // Valid cached payloads are re-enveloped with the captured generation after scope/filter/dataset checks.\n  if (response.filterHash !== active.hash || response.generation !== captured.generation) throw InvalidResponse;\n  mergeByStableId(response.items); setNextCursor(response.next);\n}\nloadMore() { if (!pageInFlight && nextCursor) requestPage(filter, nextCursor, active); }",
+          "guarantees": [
+            "An abort is not the stale-response correctness mechanism."
+          ],
+          "id": "query-state",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "coordinator"
+        },
+        {
+          "code": "authorize(actor, savedSearchId);\nvalidateFilterAST(filter); validateAllowedSort(sort);\nUPDATE saved_searches SET filter = :newFilter, sort = :newSort, version = version + 1\n WHERE owner = :actor AND id = :savedSearchId AND version = :expectedVersion;\nif (affectedRows !== 1) return Conflict(currentVersion);\nreturn UpdatedRecord;",
+          "guarantees": [
+            "Concurrent device edits cannot silently overwrite a newer saved definition."
+          ],
+          "id": "save-filter",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "saved"
+        }
+      ],
+      "apis": [
+        {
+          "errors": "400 invalid filter; 403 scope; 409 cursor/filter mismatch",
+          "method": "GET",
+          "ownerNodeId": "api",
+          "path": "/search",
+          "request": "{query, filter, sort, after, generation}",
+          "response": "{generation, filterHash, items, next, datasetRevision}"
+        },
+        {
+          "errors": "409 version conflict; 403 unauthorized",
+          "method": "PUT",
+          "ownerNodeId": "saved",
+          "path": "/saved-searches/{id}",
+          "request": "{expectedVersion, filter, sort}",
+          "response": "{id, version, filter}"
+        }
+      ],
+      "assumptions": [
+        "Result IDs are stable within the declared dataset policy.",
+        "Saved filters contain an allowlisted AST, not executable SQL or credentials."
+      ],
+      "chooseWhen": "The corpus is large, private, or requires server-side filtering and ranking.",
+      "id": "server",
+      "initialGraph": {
+        "edges": [],
+        "nodes": []
+      },
+      "stages": [
+        {
+          "checkIds": [
+            "stale-response"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "ui",
+                  "portId": "out-search.query"
+                },
+                "id": "query",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-search.query"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "search.ui",
+                "id": "ui",
+                "label": "Search controls",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.system",
+                "id": "system",
+                "label": "Search service",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "server-s1",
+          "invariants": [
+            "A response identifies its query generation."
+          ],
+          "number": 1,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "search.ui",
+                "id": "ui",
+                "label": "Search controls",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "search.system",
+                "id": "system",
+                "label": "Search service",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "ui",
+                  "portId": "out-search.query"
+                },
+                "id": "query",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-search.query"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What is the exact search state?",
+          "reason": "Begin with one request path and stable result identities.",
+          "title": "Define typed filters and a request path"
+        },
+        {
+          "checkIds": [
+            "page-reset"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "ui",
+                  "portId": "out-search.query"
+                },
+                "id": "query",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-search.query"
+                }
+              },
+              {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "api",
+                  "portId": "out-search.query"
+                },
+                "id": "indexed-query",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "index",
+                  "portId": "in-search.query"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "search.ui",
+                "id": "ui",
+                "label": "Search controls",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.system",
+                "id": "system",
+                "label": "Search service",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "server-search",
+                "version": 1
+              },
+              {
+                "definitionId": "search.api",
+                "id": "api",
+                "label": "Search API",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.index",
+                "id": "index",
+                "label": "Server search index",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "server-s2",
+          "invariants": [
+            "Unauthorized filters never reach a broader corpus."
+          ],
+          "number": 2,
+          "operations": [
+            {
+              "edges": [
+                {
+                  "contractId": "search.query",
+                  "from": {
+                    "nodeId": "api",
+                    "portId": "out-search.query"
+                  },
+                  "id": "indexed-query",
+                  "mode": "storage",
+                  "to": {
+                    "nodeId": "index",
+                    "portId": "in-search.query"
+                  }
+                }
+              ],
+              "nodeId": "system",
+              "nodes": [
+                {
+                  "definitionId": "search.api",
+                  "id": "api",
+                  "label": "Search API",
+                  "position": {
+                    "x": 560,
+                    "y": 0
+                  },
+                  "version": 1
+                },
+                {
+                  "definitionId": "search.index",
+                  "id": "index",
+                  "label": "Server search index",
+                  "position": {
+                    "x": 840,
+                    "y": 0
+                  },
+                  "version": 1
+                }
+              ],
+              "op": "expand",
+              "subsystemId": "server-search"
+            }
+          ],
+          "question": "Where are filtering and dataset versioning owned?",
+          "reason": "Expose API validation and the actual index without adding a second authoritative UI state.",
+          "title": "Expand query execution"
+        },
+        {
+          "checkIds": [
+            "stale-response"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "api",
+                  "portId": "out-search.query"
+                },
+                "id": "indexed-query",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "index",
+                  "portId": "in-search.query"
+                }
+              },
+              {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "ui",
+                  "portId": "out-search.query"
+                },
+                "id": "draft",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "debounce",
+                  "portId": "in-search.query"
+                }
+              },
+              {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "debounce",
+                  "portId": "out-search.query"
+                },
+                "id": "scheduled",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "cancel",
+                  "portId": "in-search.query"
+                }
+              },
+              {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "cancel",
+                  "portId": "out-search.query"
+                },
+                "id": "network",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-search.query"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "search.ui",
+                "id": "ui",
+                "label": "Search controls",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.system",
+                "id": "system",
+                "label": "Search service",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "server-search",
+                "version": 1
+              },
+              {
+                "definitionId": "search.api",
+                "id": "api",
+                "label": "Search API",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.index",
+                "id": "index",
+                "label": "Server search index",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.debounce",
+                "id": "debounce",
+                "label": "Input scheduler",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.cancel",
+                "id": "cancel",
+                "label": "Request cancellation",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "server-s3",
+          "invariants": [
+            "A cancelled query can still finish remotely.",
+            "Local index replacement is atomic, never half-built."
+          ],
+          "number": 3,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "search.debounce",
+                "id": "debounce",
+                "label": "Input scheduler",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "search.cancel",
+                "id": "cancel",
+                "label": "Request cancellation",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edgeId": "query",
+              "op": "disconnect"
+            },
+            {
+              "edge": {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "ui",
+                  "portId": "out-search.query"
+                },
+                "id": "draft",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "debounce",
+                  "portId": "in-search.query"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "debounce",
+                  "portId": "out-search.query"
+                },
+                "id": "scheduled",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "cancel",
+                  "portId": "in-search.query"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "cancel",
+                  "portId": "out-search.query"
+                },
+                "id": "network",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-search.query"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How is unnecessary repeated work avoided?",
+          "reason": "Keep work-reduction mechanisms separate from correctness.",
+          "title": "Debounce and cancel obsolete requests"
+        },
+        {
+          "checkIds": [
+            "stale-response"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "api",
+                  "portId": "out-search.query"
+                },
+                "id": "indexed-query",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "index",
+                  "portId": "in-search.query"
+                }
+              },
+              {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "ui",
+                  "portId": "out-search.query"
+                },
+                "id": "draft",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "debounce",
+                  "portId": "in-search.query"
+                }
+              },
+              {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "debounce",
+                  "portId": "out-search.query"
+                },
+                "id": "scheduled",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "cancel",
+                  "portId": "in-search.query"
+                }
+              },
+              {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "cancel",
+                  "portId": "out-search.query"
+                },
+                "id": "network",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-search.query"
+                }
+              },
+              {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-search.query-api"
+                },
+                "id": "response-guard",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "guard",
+                  "portId": "in-search.query"
+                }
+              },
+              {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "guard",
+                  "portId": "out-search.query"
+                },
+                "id": "visible-results",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "ui",
+                  "portId": "in-search.query"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "search.ui",
+                "id": "ui",
+                "label": "Search controls",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.system",
+                "id": "system",
+                "label": "Search service",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "server-search",
+                "version": 1
+              },
+              {
+                "definitionId": "search.api",
+                "id": "api",
+                "label": "Search API",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.index",
+                "id": "index",
+                "label": "Server search index",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.debounce",
+                "id": "debounce",
+                "label": "Input scheduler",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.cancel",
+                "id": "cancel",
+                "label": "Request cancellation",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.guard",
+                "id": "guard",
+                "label": "Response revision guard",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "server-s4",
+          "invariants": [
+            "Generation A cannot overwrite generation B."
+          ],
+          "number": 4,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "search.guard",
+                "id": "guard",
+                "label": "Response revision guard",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-search.query-api"
+                },
+                "id": "response-guard",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "guard",
+                  "portId": "in-search.query"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "guard",
+                  "portId": "out-search.query"
+                },
+                "id": "visible-results",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "ui",
+                  "portId": "in-search.query"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What if the oldest request returns last?",
+          "reason": "Response application checks both generation and filter identity.",
+          "title": "Guard responses by generation"
+        },
+        {
+          "checkIds": [
+            "save-conflict"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "api",
+                  "portId": "out-search.query"
+                },
+                "id": "indexed-query",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "index",
+                  "portId": "in-search.query"
+                }
+              },
+              {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "ui",
+                  "portId": "out-search.query"
+                },
+                "id": "draft",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "debounce",
+                  "portId": "in-search.query"
+                }
+              },
+              {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "debounce",
+                  "portId": "out-search.query"
+                },
+                "id": "scheduled",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "cancel",
+                  "portId": "in-search.query"
+                }
+              },
+              {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "cancel",
+                  "portId": "out-search.query"
+                },
+                "id": "network",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-search.query"
+                }
+              },
+              {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-search.query-api"
+                },
+                "id": "response-guard",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "guard",
+                  "portId": "in-search.query"
+                }
+              },
+              {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "guard",
+                  "portId": "out-search.query"
+                },
+                "id": "visible-results",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "ui",
+                  "portId": "in-search.query"
+                }
+              },
+              {
+                "contractId": "search.saved",
+                "from": {
+                  "nodeId": "ui",
+                  "portId": "out-search.saved"
+                },
+                "id": "save-filter",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "saved",
+                  "portId": "in-search.saved"
+                }
+              },
+              {
+                "contractId": "search.saved",
+                "from": {
+                  "nodeId": "ui",
+                  "portId": "out-search.saved"
+                },
+                "id": "draft-state",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "persist",
+                  "portId": "in-search.saved"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "search.ui",
+                "id": "ui",
+                "label": "Search controls",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.system",
+                "id": "system",
+                "label": "Search service",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "server-search",
+                "version": 1
+              },
+              {
+                "definitionId": "search.api",
+                "id": "api",
+                "label": "Search API",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.index",
+                "id": "index",
+                "label": "Server search index",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.debounce",
+                "id": "debounce",
+                "label": "Input scheduler",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.cancel",
+                "id": "cancel",
+                "label": "Request cancellation",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.guard",
+                "id": "guard",
+                "label": "Response revision guard",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.saved",
+                "id": "saved",
+                "label": "Saved-filter store",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.persist",
+                "id": "persist",
+                "label": "URL/local draft state",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "server-s5",
+          "invariants": [
+            "Updating a stale saved-filter version returns a conflict instead of losing another device edit."
+          ],
+          "number": 5,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "search.saved",
+                "id": "saved",
+                "label": "Saved-filter store",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "search.persist",
+                "id": "persist",
+                "label": "URL/local draft state",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "search.saved",
+                "from": {
+                  "nodeId": "ui",
+                  "portId": "out-search.saved"
+                },
+                "id": "save-filter",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "saved",
+                  "portId": "in-search.saved"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "search.saved",
+                "from": {
+                  "nodeId": "ui",
+                  "portId": "out-search.saved"
+                },
+                "id": "draft-state",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "persist",
+                  "portId": "in-search.saved"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What exactly survives a reload or another device?",
+          "reason": "Separate shareable draft state from authenticated account saves.",
+          "title": "Persist versioned search definitions"
+        },
+        {
+          "checkIds": [
+            "scope-change"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "api",
+                  "portId": "out-search.query"
+                },
+                "id": "indexed-query",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "index",
+                  "portId": "in-search.query"
+                }
+              },
+              {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "ui",
+                  "portId": "out-search.query"
+                },
+                "id": "draft",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "debounce",
+                  "portId": "in-search.query"
+                }
+              },
+              {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "debounce",
+                  "portId": "out-search.query"
+                },
+                "id": "scheduled",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "cancel",
+                  "portId": "in-search.query"
+                }
+              },
+              {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "cancel",
+                  "portId": "out-search.query"
+                },
+                "id": "network",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-search.query"
+                }
+              },
+              {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-search.query-api"
+                },
+                "id": "response-guard",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "guard",
+                  "portId": "in-search.query"
+                }
+              },
+              {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "guard",
+                  "portId": "out-search.query"
+                },
+                "id": "visible-results",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "ui",
+                  "portId": "in-search.query"
+                }
+              },
+              {
+                "contractId": "search.saved",
+                "from": {
+                  "nodeId": "ui",
+                  "portId": "out-search.saved"
+                },
+                "id": "save-filter",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "saved",
+                  "portId": "in-search.saved"
+                }
+              },
+              {
+                "contractId": "search.saved",
+                "from": {
+                  "nodeId": "ui",
+                  "portId": "out-search.saved"
+                },
+                "id": "draft-state",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "persist",
+                  "portId": "in-search.saved"
+                }
+              },
+              {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "guard",
+                  "portId": "out-search.query"
+                },
+                "id": "cache-lookup",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "cache",
+                  "portId": "in-search.query"
+                }
+              },
+              {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "guard",
+                  "portId": "out-search.query"
+                },
+                "id": "cache-fill",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "cache",
+                  "portId": "in-search.query"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "search.ui",
+                "id": "ui",
+                "label": "Search controls",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.system",
+                "id": "system",
+                "label": "Search service",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "server-search",
+                "version": 1
+              },
+              {
+                "definitionId": "search.api",
+                "id": "api",
+                "label": "Search API",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.index",
+                "id": "index",
+                "label": "Server search index",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.debounce",
+                "id": "debounce",
+                "label": "Input scheduler",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.cancel",
+                "id": "cancel",
+                "label": "Request cancellation",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.guard",
+                "id": "guard",
+                "label": "Response revision guard",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.saved",
+                "id": "saved",
+                "label": "Saved-filter store",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.persist",
+                "id": "persist",
+                "label": "URL/local draft state",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.cache",
+                "id": "cache",
+                "label": "Bounded result cache",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "server-s6",
+          "invariants": [
+            "Sign-out and authorization-scope changes invalidate cache and local index copies."
+          ],
+          "number": 6,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "search.cache",
+                "id": "cache",
+                "label": "Bounded result cache",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "guard",
+                  "portId": "out-search.query"
+                },
+                "id": "cache-lookup",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "cache",
+                  "portId": "in-search.query"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "guard",
+                  "portId": "out-search.query"
+                },
+                "id": "cache-fill",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "cache",
+                  "portId": "in-search.query"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can another user inherit a cached private result?",
+          "reason": "Cache identity includes authorization and dataset scope.",
+          "title": "Add bounded reuse and scope invalidation"
+        },
+        {
+          "checkIds": [
+            "page-reset"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "api",
+                  "portId": "out-search.query"
+                },
+                "id": "indexed-query",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "index",
+                  "portId": "in-search.query"
+                }
+              },
+              {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "ui",
+                  "portId": "out-search.query"
+                },
+                "id": "draft",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "debounce",
+                  "portId": "in-search.query"
+                }
+              },
+              {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "debounce",
+                  "portId": "out-search.query"
+                },
+                "id": "scheduled",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "cancel",
+                  "portId": "in-search.query"
+                }
+              },
+              {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "cancel",
+                  "portId": "out-search.query"
+                },
+                "id": "network",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-search.query"
+                }
+              },
+              {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-search.query-api"
+                },
+                "id": "response-guard",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "guard",
+                  "portId": "in-search.query"
+                }
+              },
+              {
+                "contractId": "search.saved",
+                "from": {
+                  "nodeId": "ui",
+                  "portId": "out-search.saved"
+                },
+                "id": "save-filter",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "saved",
+                  "portId": "in-search.saved"
+                }
+              },
+              {
+                "contractId": "search.saved",
+                "from": {
+                  "nodeId": "ui",
+                  "portId": "out-search.saved"
+                },
+                "id": "draft-state",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "persist",
+                  "portId": "in-search.saved"
+                }
+              },
+              {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "guard",
+                  "portId": "out-search.query"
+                },
+                "id": "cache-lookup",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "cache",
+                  "portId": "in-search.query"
+                }
+              },
+              {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "guard",
+                  "portId": "out-search.query"
+                },
+                "id": "cache-fill",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "cache",
+                  "portId": "in-search.query"
+                }
+              },
+              {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "guard",
+                  "portId": "out-search.query"
+                },
+                "id": "merge-page",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "pages",
+                  "portId": "in-search.query"
+                }
+              },
+              {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "pages",
+                  "portId": "out-search.query"
+                },
+                "id": "render-page",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "ui",
+                  "portId": "in-search.query"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "search.ui",
+                "id": "ui",
+                "label": "Search controls",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.system",
+                "id": "system",
+                "label": "Search service",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "server-search",
+                "version": 1
+              },
+              {
+                "definitionId": "search.api",
+                "id": "api",
+                "label": "Search API",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.index",
+                "id": "index",
+                "label": "Server search index",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.debounce",
+                "id": "debounce",
+                "label": "Input scheduler",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.cancel",
+                "id": "cancel",
+                "label": "Request cancellation",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.guard",
+                "id": "guard",
+                "label": "Response revision guard",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.saved",
+                "id": "saved",
+                "label": "Saved-filter store",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.persist",
+                "id": "persist",
+                "label": "URL/local draft state",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.cache",
+                "id": "cache",
+                "label": "Bounded result cache",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.pages",
+                "id": "pages",
+                "label": "Page identity merger",
+                "position": {
+                  "x": 560,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "server-s7",
+          "invariants": [
+            "Cross-query pages are discarded and duplicate record IDs appear once."
+          ],
+          "number": 7,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "search.pages",
+                "id": "pages",
+                "label": "Page identity merger",
+                "position": {
+                  "x": 560,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edgeId": "visible-results",
+              "op": "disconnect"
+            },
+            {
+              "edge": {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "guard",
+                  "portId": "out-search.query"
+                },
+                "id": "merge-page",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "pages",
+                  "portId": "in-search.query"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "pages",
+                  "portId": "out-search.query"
+                },
+                "id": "render-page",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "ui",
+                  "portId": "in-search.query"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What happens when filters change during a next-page request?",
+          "reason": "A page belongs to exactly one filter, ordering and query generation.",
+          "title": "Merge pages within one query identity"
+        },
+        {
+          "checkIds": [
+            "stale-response",
+            "page-reset"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "api",
+                  "portId": "out-search.query"
+                },
+                "id": "indexed-query",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "index",
+                  "portId": "in-search.query"
+                }
+              },
+              {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "ui",
+                  "portId": "out-search.query"
+                },
+                "id": "draft",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "debounce",
+                  "portId": "in-search.query"
+                }
+              },
+              {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "debounce",
+                  "portId": "out-search.query"
+                },
+                "id": "scheduled",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "coordinator",
+                  "portId": "in-search.query"
+                }
+              },
+              {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "coordinator",
+                  "portId": "out-search.query"
+                },
+                "id": "network",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-search.query"
+                }
+              },
+              {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-search.query-api"
+                },
+                "id": "response-guard",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "coordinator",
+                  "portId": "in-search.query"
+                }
+              },
+              {
+                "contractId": "search.saved",
+                "from": {
+                  "nodeId": "ui",
+                  "portId": "out-search.saved"
+                },
+                "id": "save-filter",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "saved",
+                  "portId": "in-search.saved"
+                }
+              },
+              {
+                "contractId": "search.saved",
+                "from": {
+                  "nodeId": "ui",
+                  "portId": "out-search.saved"
+                },
+                "id": "draft-state",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "persist",
+                  "portId": "in-search.saved"
+                }
+              },
+              {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "coordinator",
+                  "portId": "out-search.query"
+                },
+                "id": "cache-lookup",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "cache",
+                  "portId": "in-search.query"
+                }
+              },
+              {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "coordinator",
+                  "portId": "out-search.query"
+                },
+                "id": "cache-fill",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "cache",
+                  "portId": "in-search.query"
+                }
+              },
+              {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "coordinator",
+                  "portId": "out-search.query"
+                },
+                "id": "render-page",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "ui",
+                  "portId": "in-search.query"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "search.ui",
+                "id": "ui",
+                "label": "Search controls",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.system",
+                "id": "system",
+                "label": "Search service",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "server-search",
+                "version": 1
+              },
+              {
+                "definitionId": "search.api",
+                "id": "api",
+                "label": "Search API",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.index",
+                "id": "index",
+                "label": "Server search index",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.debounce",
+                "id": "debounce",
+                "label": "Input scheduler",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.saved",
+                "id": "saved",
+                "label": "Saved-filter store",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.persist",
+                "id": "persist",
+                "label": "URL/local draft state",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.cache",
+                "id": "cache",
+                "label": "Bounded result cache",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.coordinator",
+                "id": "coordinator",
+                "label": "Unified query coordinator",
+                "lineageIds": [
+                  "cancel",
+                  "guard",
+                  "pages"
+                ],
+                "position": {
+                  "x": 840,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "server-s8",
+          "invariants": [
+            "Cache hits and network responses pass through the same generation guard."
+          ],
+          "number": 8,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "search.coordinator",
+                "id": "coordinator",
+                "label": "Unified query coordinator",
+                "position": {
+                  "x": 840,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "nodeIds": [
+                "cancel",
+                "guard",
+                "pages"
+              ],
+              "op": "merge",
+              "reason": "Unify competing writers to current search results; keep cache and saved filters as separate stores."
+            }
+          ],
+          "question": "Can cancellation, cached responses and network pages race?",
+          "reason": "A single coordinator owns generation, cancellation and visible page identity.",
+          "title": "Merge the request-state writers"
+        }
+      ],
+      "title": "Server queries with revision-guarded results",
+      "tradeoffs": [
+        "Network latency remains visible; cancellation may not stop server work.",
+        "Server cursors must bind the chosen consistency policy."
+      ]
+    },
+    {
+      "acceptanceCases": [
+        {
+          "given": "Request A is generation 1; B is generation 2.",
+          "id": "stale-response",
+          "relatedRequirementIds": [
+            "latest",
+            "bounds"
+          ],
+          "then": "Only B is visible.",
+          "when": "B returns, then A returns despite cancellation."
+        },
+        {
+          "given": "Page two of filter A is in flight.",
+          "id": "page-reset",
+          "relatedRequirementIds": [
+            "pages",
+            "latest"
+          ],
+          "then": "The page is discarded; no A record enters B results.",
+          "when": "Change to filter B, then receive page two of A."
+        },
+        {
+          "given": "Two devices loaded saved-filter version 3.",
+          "id": "save-conflict",
+          "relatedRequirementIds": [
+            "persist"
+          ],
+          "then": "One succeeds at version 4; the other gets a conflict.",
+          "when": "Both update with expectedVersion=3."
+        },
+        {
+          "given": "User A has cached results and a local index.",
+          "id": "scope-change",
+          "relatedRequirementIds": [
+            "bounds"
+          ],
+          "then": "A data is erased before B queries or renders results.",
+          "when": "Sign out and sign in as B."
+        }
+      ],
+      "algorithms": [
+        {
+          "code": "onFilterChange(nextFilter) {\n  generation += 1; active = {generation, hash: canonicalHash(nextFilter)}; const captured = {...active};\n  abortPreviousRequest(); clearVisiblePages();\n  scheduleDebounced(() => { if (captured.generation === active.generation) requestPage(nextFilter, null, captured); });\n}\nonResponse(response, captured) {\n  if (captured.generation !== active.generation || captured.hash !== active.hash) return;\n  // Valid cached payloads are re-enveloped with the captured generation after scope/filter/dataset checks.\n  if (response.filterHash !== active.hash || response.generation !== captured.generation) throw InvalidResponse;\n  mergeByStableId(response.items); setNextCursor(response.next);\n}\nloadMore() { if (!pageInFlight && nextCursor) requestPage(filter, nextCursor, active); }",
+          "guarantees": [
+            "An abort is not the stale-response correctness mechanism."
+          ],
+          "id": "query-state",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "coordinator"
+        },
+        {
+          "code": "authorize(actor, savedSearchId);\nvalidateFilterAST(filter); validateAllowedSort(sort);\nUPDATE saved_searches SET filter = :newFilter, sort = :newSort, version = version + 1\n WHERE owner = :actor AND id = :savedSearchId AND version = :expectedVersion;\nif (affectedRows !== 1) return Conflict(currentVersion);\nreturn UpdatedRecord;",
+          "guarantees": [
+            "Concurrent device edits cannot silently overwrite a newer saved definition."
+          ],
+          "id": "save-filter",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "saved"
+        }
+      ],
+      "apis": [
+        {
+          "errors": "400 invalid filter; 403 scope; 409 cursor/filter mismatch",
+          "method": "GET",
+          "ownerNodeId": "api",
+          "path": "/search",
+          "request": "{query, filter, sort, after, generation}",
+          "response": "{generation, filterHash, items, next, datasetRevision}"
+        },
+        {
+          "errors": "409 version conflict; 403 unauthorized",
+          "method": "PUT",
+          "ownerNodeId": "saved",
+          "path": "/saved-searches/{id}",
+          "request": "{expectedVersion, filter, sort}",
+          "response": "{id, version, filter}"
+        }
+      ],
+      "assumptions": [
+        "Result IDs are stable within the declared dataset policy.",
+        "Saved filters contain an allowlisted AST, not executable SQL or credentials."
+      ],
+      "chooseWhen": "The authorized corpus is small enough to download and prefix matching meets the requirement.",
+      "id": "local-prefix",
+      "initialGraph": {
+        "edges": [],
+        "nodes": []
+      },
+      "stages": [
+        {
+          "checkIds": [
+            "stale-response"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "ui",
+                  "portId": "out-search.query"
+                },
+                "id": "query",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-search.query"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "search.ui",
+                "id": "ui",
+                "label": "Search controls",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.system",
+                "id": "system",
+                "label": "Search service",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "local-prefix-s1",
+          "invariants": [
+            "A response identifies its query generation."
+          ],
+          "number": 1,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "search.ui",
+                "id": "ui",
+                "label": "Search controls",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "search.system",
+                "id": "system",
+                "label": "Search service",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "ui",
+                  "portId": "out-search.query"
+                },
+                "id": "query",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-search.query"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What is the exact search state?",
+          "reason": "Begin with one request path and stable result identities.",
+          "title": "Define typed filters and a request path"
+        },
+        {
+          "checkIds": [
+            "page-reset"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "ui",
+                  "portId": "out-search.query"
+                },
+                "id": "query",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-search.query"
+                }
+              },
+              {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "api",
+                  "portId": "out-search.query"
+                },
+                "id": "indexed-query",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "index",
+                  "portId": "in-search.query"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "search.ui",
+                "id": "ui",
+                "label": "Search controls",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.system",
+                "id": "system",
+                "label": "Search service",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "local-prefix-search",
+                "version": 1
+              },
+              {
+                "definitionId": "search.api",
+                "id": "api",
+                "label": "Search API",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.index",
+                "id": "index",
+                "label": "Server search index",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "local-prefix-s2",
+          "invariants": [
+            "Unauthorized filters never reach a broader corpus."
+          ],
+          "number": 2,
+          "operations": [
+            {
+              "edges": [
+                {
+                  "contractId": "search.query",
+                  "from": {
+                    "nodeId": "api",
+                    "portId": "out-search.query"
+                  },
+                  "id": "indexed-query",
+                  "mode": "storage",
+                  "to": {
+                    "nodeId": "index",
+                    "portId": "in-search.query"
+                  }
+                }
+              ],
+              "nodeId": "system",
+              "nodes": [
+                {
+                  "definitionId": "search.api",
+                  "id": "api",
+                  "label": "Search API",
+                  "position": {
+                    "x": 560,
+                    "y": 0
+                  },
+                  "version": 1
+                },
+                {
+                  "definitionId": "search.index",
+                  "id": "index",
+                  "label": "Server search index",
+                  "position": {
+                    "x": 840,
+                    "y": 0
+                  },
+                  "version": 1
+                }
+              ],
+              "op": "expand",
+              "subsystemId": "local-prefix-search"
+            }
+          ],
+          "question": "Where are filtering and dataset versioning owned?",
+          "reason": "Expose API validation and the actual index without adding a second authoritative UI state.",
+          "title": "Expand query execution"
+        },
+        {
+          "checkIds": [
+            "stale-response"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "api",
+                  "portId": "out-search.query"
+                },
+                "id": "indexed-query",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "index",
+                  "portId": "in-search.query"
+                }
+              },
+              {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "ui",
+                  "portId": "out-search.query"
+                },
+                "id": "local-query",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "local-index",
+                  "portId": "in-search.query"
+                }
+              },
+              {
+                "contractId": "search.index",
+                "from": {
+                  "nodeId": "loader",
+                  "portId": "out-search.index"
+                },
+                "id": "download-index",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-search.index-api"
+                }
+              },
+              {
+                "contractId": "search.index",
+                "from": {
+                  "nodeId": "loader",
+                  "portId": "out-search.index"
+                },
+                "id": "install-index",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "local-index",
+                  "portId": "in-search.index"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "search.ui",
+                "id": "ui",
+                "label": "Search controls",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.system",
+                "id": "system",
+                "label": "Search service",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "local-prefix-search",
+                "version": 1
+              },
+              {
+                "definitionId": "search.api",
+                "id": "api",
+                "label": "Search API",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.index",
+                "id": "index",
+                "label": "Server search index",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.loader",
+                "id": "loader",
+                "label": "Index loader",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.local-index",
+                "id": "local-index",
+                "label": "Local prefix index",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "local-prefix-s3",
+          "invariants": [
+            "A cancelled query can still finish remotely.",
+            "Local index replacement is atomic, never half-built."
+          ],
+          "number": 3,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "search.loader",
+                "id": "loader",
+                "label": "Index loader",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "search.local-index",
+                "id": "local-index",
+                "label": "Local prefix index",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edgeId": "query",
+              "op": "disconnect"
+            },
+            {
+              "edge": {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "ui",
+                  "portId": "out-search.query"
+                },
+                "id": "local-query",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "local-index",
+                  "portId": "in-search.query"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "search.index",
+                "from": {
+                  "nodeId": "loader",
+                  "portId": "out-search.index"
+                },
+                "id": "download-index",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-search.index-api"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "search.index",
+                "from": {
+                  "nodeId": "loader",
+                  "portId": "out-search.index"
+                },
+                "id": "install-index",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "local-index",
+                  "portId": "in-search.index"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How is unnecessary repeated work avoided?",
+          "reason": "Keep work-reduction mechanisms separate from correctness.",
+          "title": "Insert a bounded local index"
+        },
+        {
+          "checkIds": [
+            "stale-response"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "api",
+                  "portId": "out-search.query"
+                },
+                "id": "indexed-query",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "index",
+                  "portId": "in-search.query"
+                }
+              },
+              {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "ui",
+                  "portId": "out-search.query"
+                },
+                "id": "local-query",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "local-index",
+                  "portId": "in-search.query"
+                }
+              },
+              {
+                "contractId": "search.index",
+                "from": {
+                  "nodeId": "loader",
+                  "portId": "out-search.index"
+                },
+                "id": "download-index",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-search.index-api"
+                }
+              },
+              {
+                "contractId": "search.index",
+                "from": {
+                  "nodeId": "loader",
+                  "portId": "out-search.index"
+                },
+                "id": "install-index",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "local-index",
+                  "portId": "in-search.index"
+                }
+              },
+              {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "local-index",
+                  "portId": "out-search.query"
+                },
+                "id": "response-guard",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "guard",
+                  "portId": "in-search.query"
+                }
+              },
+              {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "guard",
+                  "portId": "out-search.query"
+                },
+                "id": "visible-results",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "ui",
+                  "portId": "in-search.query"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "search.ui",
+                "id": "ui",
+                "label": "Search controls",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.system",
+                "id": "system",
+                "label": "Search service",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "local-prefix-search",
+                "version": 1
+              },
+              {
+                "definitionId": "search.api",
+                "id": "api",
+                "label": "Search API",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.index",
+                "id": "index",
+                "label": "Server search index",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.loader",
+                "id": "loader",
+                "label": "Index loader",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.local-index",
+                "id": "local-index",
+                "label": "Local prefix index",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.guard",
+                "id": "guard",
+                "label": "Response revision guard",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "local-prefix-s4",
+          "invariants": [
+            "Generation A cannot overwrite generation B."
+          ],
+          "number": 4,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "search.guard",
+                "id": "guard",
+                "label": "Response revision guard",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "local-index",
+                  "portId": "out-search.query"
+                },
+                "id": "response-guard",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "guard",
+                  "portId": "in-search.query"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "guard",
+                  "portId": "out-search.query"
+                },
+                "id": "visible-results",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "ui",
+                  "portId": "in-search.query"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What if the oldest request returns last?",
+          "reason": "Response application checks both generation and filter identity.",
+          "title": "Guard responses by generation"
+        },
+        {
+          "checkIds": [
+            "save-conflict"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "api",
+                  "portId": "out-search.query"
+                },
+                "id": "indexed-query",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "index",
+                  "portId": "in-search.query"
+                }
+              },
+              {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "ui",
+                  "portId": "out-search.query"
+                },
+                "id": "local-query",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "local-index",
+                  "portId": "in-search.query"
+                }
+              },
+              {
+                "contractId": "search.index",
+                "from": {
+                  "nodeId": "loader",
+                  "portId": "out-search.index"
+                },
+                "id": "download-index",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-search.index-api"
+                }
+              },
+              {
+                "contractId": "search.index",
+                "from": {
+                  "nodeId": "loader",
+                  "portId": "out-search.index"
+                },
+                "id": "install-index",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "local-index",
+                  "portId": "in-search.index"
+                }
+              },
+              {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "local-index",
+                  "portId": "out-search.query"
+                },
+                "id": "response-guard",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "guard",
+                  "portId": "in-search.query"
+                }
+              },
+              {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "guard",
+                  "portId": "out-search.query"
+                },
+                "id": "visible-results",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "ui",
+                  "portId": "in-search.query"
+                }
+              },
+              {
+                "contractId": "search.saved",
+                "from": {
+                  "nodeId": "ui",
+                  "portId": "out-search.saved"
+                },
+                "id": "save-filter",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "saved",
+                  "portId": "in-search.saved"
+                }
+              },
+              {
+                "contractId": "search.saved",
+                "from": {
+                  "nodeId": "ui",
+                  "portId": "out-search.saved"
+                },
+                "id": "draft-state",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "persist",
+                  "portId": "in-search.saved"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "search.ui",
+                "id": "ui",
+                "label": "Search controls",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.system",
+                "id": "system",
+                "label": "Search service",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "local-prefix-search",
+                "version": 1
+              },
+              {
+                "definitionId": "search.api",
+                "id": "api",
+                "label": "Search API",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.index",
+                "id": "index",
+                "label": "Server search index",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.loader",
+                "id": "loader",
+                "label": "Index loader",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.local-index",
+                "id": "local-index",
+                "label": "Local prefix index",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.guard",
+                "id": "guard",
+                "label": "Response revision guard",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.saved",
+                "id": "saved",
+                "label": "Saved-filter store",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.persist",
+                "id": "persist",
+                "label": "URL/local draft state",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "local-prefix-s5",
+          "invariants": [
+            "Updating a stale saved-filter version returns a conflict instead of losing another device edit."
+          ],
+          "number": 5,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "search.saved",
+                "id": "saved",
+                "label": "Saved-filter store",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "search.persist",
+                "id": "persist",
+                "label": "URL/local draft state",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "search.saved",
+                "from": {
+                  "nodeId": "ui",
+                  "portId": "out-search.saved"
+                },
+                "id": "save-filter",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "saved",
+                  "portId": "in-search.saved"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "search.saved",
+                "from": {
+                  "nodeId": "ui",
+                  "portId": "out-search.saved"
+                },
+                "id": "draft-state",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "persist",
+                  "portId": "in-search.saved"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What exactly survives a reload or another device?",
+          "reason": "Separate shareable draft state from authenticated account saves.",
+          "title": "Persist versioned search definitions"
+        },
+        {
+          "checkIds": [
+            "scope-change"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "api",
+                  "portId": "out-search.query"
+                },
+                "id": "indexed-query",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "index",
+                  "portId": "in-search.query"
+                }
+              },
+              {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "ui",
+                  "portId": "out-search.query"
+                },
+                "id": "local-query",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "local-index",
+                  "portId": "in-search.query"
+                }
+              },
+              {
+                "contractId": "search.index",
+                "from": {
+                  "nodeId": "loader",
+                  "portId": "out-search.index"
+                },
+                "id": "download-index",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-search.index-api"
+                }
+              },
+              {
+                "contractId": "search.index",
+                "from": {
+                  "nodeId": "loader",
+                  "portId": "out-search.index"
+                },
+                "id": "install-index",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "local-index",
+                  "portId": "in-search.index"
+                }
+              },
+              {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "local-index",
+                  "portId": "out-search.query"
+                },
+                "id": "response-guard",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "guard",
+                  "portId": "in-search.query"
+                }
+              },
+              {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "guard",
+                  "portId": "out-search.query"
+                },
+                "id": "visible-results",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "ui",
+                  "portId": "in-search.query"
+                }
+              },
+              {
+                "contractId": "search.saved",
+                "from": {
+                  "nodeId": "ui",
+                  "portId": "out-search.saved"
+                },
+                "id": "save-filter",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "saved",
+                  "portId": "in-search.saved"
+                }
+              },
+              {
+                "contractId": "search.saved",
+                "from": {
+                  "nodeId": "ui",
+                  "portId": "out-search.saved"
+                },
+                "id": "draft-state",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "persist",
+                  "portId": "in-search.saved"
+                }
+              },
+              {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "guard",
+                  "portId": "out-search.query"
+                },
+                "id": "cache-lookup",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "cache",
+                  "portId": "in-search.query"
+                }
+              },
+              {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "guard",
+                  "portId": "out-search.query"
+                },
+                "id": "cache-fill",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "cache",
+                  "portId": "in-search.query"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "search.ui",
+                "id": "ui",
+                "label": "Search controls",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.system",
+                "id": "system",
+                "label": "Search service",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "local-prefix-search",
+                "version": 1
+              },
+              {
+                "definitionId": "search.api",
+                "id": "api",
+                "label": "Search API",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.index",
+                "id": "index",
+                "label": "Server search index",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.loader",
+                "id": "loader",
+                "label": "Index loader",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.local-index",
+                "id": "local-index",
+                "label": "Local prefix index",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.guard",
+                "id": "guard",
+                "label": "Response revision guard",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.saved",
+                "id": "saved",
+                "label": "Saved-filter store",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.persist",
+                "id": "persist",
+                "label": "URL/local draft state",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.cache",
+                "id": "cache",
+                "label": "Bounded result cache",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "local-prefix-s6",
+          "invariants": [
+            "Sign-out and authorization-scope changes invalidate cache and local index copies."
+          ],
+          "number": 6,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "search.cache",
+                "id": "cache",
+                "label": "Bounded result cache",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "guard",
+                  "portId": "out-search.query"
+                },
+                "id": "cache-lookup",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "cache",
+                  "portId": "in-search.query"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "guard",
+                  "portId": "out-search.query"
+                },
+                "id": "cache-fill",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "cache",
+                  "portId": "in-search.query"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can another user inherit a cached private result?",
+          "reason": "Cache identity includes authorization and dataset scope.",
+          "title": "Add bounded reuse and scope invalidation"
+        },
+        {
+          "checkIds": [
+            "page-reset"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "api",
+                  "portId": "out-search.query"
+                },
+                "id": "indexed-query",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "index",
+                  "portId": "in-search.query"
+                }
+              },
+              {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "ui",
+                  "portId": "out-search.query"
+                },
+                "id": "local-query",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "local-index",
+                  "portId": "in-search.query"
+                }
+              },
+              {
+                "contractId": "search.index",
+                "from": {
+                  "nodeId": "loader",
+                  "portId": "out-search.index"
+                },
+                "id": "download-index",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-search.index-api"
+                }
+              },
+              {
+                "contractId": "search.index",
+                "from": {
+                  "nodeId": "loader",
+                  "portId": "out-search.index"
+                },
+                "id": "install-index",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "local-index",
+                  "portId": "in-search.index"
+                }
+              },
+              {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "local-index",
+                  "portId": "out-search.query"
+                },
+                "id": "response-guard",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "guard",
+                  "portId": "in-search.query"
+                }
+              },
+              {
+                "contractId": "search.saved",
+                "from": {
+                  "nodeId": "ui",
+                  "portId": "out-search.saved"
+                },
+                "id": "save-filter",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "saved",
+                  "portId": "in-search.saved"
+                }
+              },
+              {
+                "contractId": "search.saved",
+                "from": {
+                  "nodeId": "ui",
+                  "portId": "out-search.saved"
+                },
+                "id": "draft-state",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "persist",
+                  "portId": "in-search.saved"
+                }
+              },
+              {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "guard",
+                  "portId": "out-search.query"
+                },
+                "id": "cache-lookup",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "cache",
+                  "portId": "in-search.query"
+                }
+              },
+              {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "guard",
+                  "portId": "out-search.query"
+                },
+                "id": "cache-fill",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "cache",
+                  "portId": "in-search.query"
+                }
+              },
+              {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "guard",
+                  "portId": "out-search.query"
+                },
+                "id": "merge-page",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "pages",
+                  "portId": "in-search.query"
+                }
+              },
+              {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "pages",
+                  "portId": "out-search.query"
+                },
+                "id": "render-page",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "ui",
+                  "portId": "in-search.query"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "search.ui",
+                "id": "ui",
+                "label": "Search controls",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.system",
+                "id": "system",
+                "label": "Search service",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "local-prefix-search",
+                "version": 1
+              },
+              {
+                "definitionId": "search.api",
+                "id": "api",
+                "label": "Search API",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.index",
+                "id": "index",
+                "label": "Server search index",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.loader",
+                "id": "loader",
+                "label": "Index loader",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.local-index",
+                "id": "local-index",
+                "label": "Local prefix index",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.guard",
+                "id": "guard",
+                "label": "Response revision guard",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.saved",
+                "id": "saved",
+                "label": "Saved-filter store",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.persist",
+                "id": "persist",
+                "label": "URL/local draft state",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.cache",
+                "id": "cache",
+                "label": "Bounded result cache",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.pages",
+                "id": "pages",
+                "label": "Page identity merger",
+                "position": {
+                  "x": 560,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "local-prefix-s7",
+          "invariants": [
+            "Cross-query pages are discarded and duplicate record IDs appear once."
+          ],
+          "number": 7,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "search.pages",
+                "id": "pages",
+                "label": "Page identity merger",
+                "position": {
+                  "x": 560,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edgeId": "visible-results",
+              "op": "disconnect"
+            },
+            {
+              "edge": {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "guard",
+                  "portId": "out-search.query"
+                },
+                "id": "merge-page",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "pages",
+                  "portId": "in-search.query"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "pages",
+                  "portId": "out-search.query"
+                },
+                "id": "render-page",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "ui",
+                  "portId": "in-search.query"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What happens when filters change during a next-page request?",
+          "reason": "A page belongs to exactly one filter, ordering and query generation.",
+          "title": "Merge pages within one query identity"
+        },
+        {
+          "checkIds": [
+            "stale-response",
+            "page-reset"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "api",
+                  "portId": "out-search.query"
+                },
+                "id": "indexed-query",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "index",
+                  "portId": "in-search.query"
+                }
+              },
+              {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "ui",
+                  "portId": "out-search.query"
+                },
+                "id": "local-query",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "local-index",
+                  "portId": "in-search.query"
+                }
+              },
+              {
+                "contractId": "search.index",
+                "from": {
+                  "nodeId": "loader",
+                  "portId": "out-search.index"
+                },
+                "id": "download-index",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-search.index-api"
+                }
+              },
+              {
+                "contractId": "search.index",
+                "from": {
+                  "nodeId": "loader",
+                  "portId": "out-search.index"
+                },
+                "id": "install-index",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "local-index",
+                  "portId": "in-search.index"
+                }
+              },
+              {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "local-index",
+                  "portId": "out-search.query"
+                },
+                "id": "response-guard",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "coordinator",
+                  "portId": "in-search.query"
+                }
+              },
+              {
+                "contractId": "search.saved",
+                "from": {
+                  "nodeId": "ui",
+                  "portId": "out-search.saved"
+                },
+                "id": "save-filter",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "saved",
+                  "portId": "in-search.saved"
+                }
+              },
+              {
+                "contractId": "search.saved",
+                "from": {
+                  "nodeId": "ui",
+                  "portId": "out-search.saved"
+                },
+                "id": "draft-state",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "persist",
+                  "portId": "in-search.saved"
+                }
+              },
+              {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "coordinator",
+                  "portId": "out-search.query"
+                },
+                "id": "cache-lookup",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "cache",
+                  "portId": "in-search.query"
+                }
+              },
+              {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "coordinator",
+                  "portId": "out-search.query"
+                },
+                "id": "cache-fill",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "cache",
+                  "portId": "in-search.query"
+                }
+              },
+              {
+                "contractId": "search.query",
+                "from": {
+                  "nodeId": "coordinator",
+                  "portId": "out-search.query"
+                },
+                "id": "render-page",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "ui",
+                  "portId": "in-search.query"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "search.ui",
+                "id": "ui",
+                "label": "Search controls",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.system",
+                "id": "system",
+                "label": "Search service",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "local-prefix-search",
+                "version": 1
+              },
+              {
+                "definitionId": "search.api",
+                "id": "api",
+                "label": "Search API",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.index",
+                "id": "index",
+                "label": "Server search index",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.loader",
+                "id": "loader",
+                "label": "Index loader",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.local-index",
+                "id": "local-index",
+                "label": "Local prefix index",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.saved",
+                "id": "saved",
+                "label": "Saved-filter store",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.persist",
+                "id": "persist",
+                "label": "URL/local draft state",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.cache",
+                "id": "cache",
+                "label": "Bounded result cache",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "search.coordinator",
+                "id": "coordinator",
+                "label": "Unified query coordinator",
+                "lineageIds": [
+                  "guard",
+                  "pages"
+                ],
+                "position": {
+                  "x": 840,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "local-prefix-s8",
+          "invariants": [
+            "Cache hits and network responses pass through the same generation guard."
+          ],
+          "number": 8,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "search.coordinator",
+                "id": "coordinator",
+                "label": "Unified query coordinator",
+                "position": {
+                  "x": 840,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "nodeIds": [
+                "guard",
+                "pages"
+              ],
+              "op": "merge",
+              "reason": "Unify competing writers to current search results; keep cache and saved filters as separate stores."
+            }
+          ],
+          "question": "Can cancellation, cached responses and network pages race?",
+          "reason": "A single coordinator owns generation, cancellation and visible page identity.",
+          "title": "Merge the request-state writers"
+        }
+      ],
+      "title": "Bounded local prefix index with versioned saved filters",
+      "tradeoffs": [
+        "Download and browser memory are real costs; corpus freshness needs explicit invalidation.",
+        "A prefix trie does not implement arbitrary full-text relevance or private server predicates."
+      ]
+    }
+  ],
+  "subsystems": [
+    {
+      "definitionId": "search.system",
+      "id": "server-search",
+      "ports": [
+        {
+          "contractId": "search.query",
+          "direction": "in",
+          "id": "in-search.query",
+          "target": {
+            "nodeId": "api",
+            "portId": "in-search.query"
+          }
+        },
+        {
+          "contractId": "search.query",
+          "direction": "out",
+          "id": "out-search.query-api",
+          "target": {
+            "nodeId": "api",
+            "portId": "out-search.query"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "search.system",
+      "id": "local-prefix-search",
+      "ports": [
+        {
+          "contractId": "search.query",
+          "direction": "in",
+          "id": "in-search.query",
+          "target": {
+            "nodeId": "api",
+            "portId": "in-search.query"
+          }
+        },
+        {
+          "contractId": "search.index",
+          "direction": "in",
+          "id": "in-search.index-api",
+          "target": {
+            "nodeId": "api",
+            "portId": "in-search.index"
+          }
+        }
+      ],
+      "version": 1
+    }
+  ],
+  "version": 1
+}

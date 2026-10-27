@@ -1,0 +1,4688 @@
+{
+  "components": [
+    {
+      "extends": {
+        "id": "core.client",
+        "version": 1
+      },
+      "id": "crawl.seed",
+      "label": "Seed submitter",
+      "ports": [
+        {
+          "contractId": "crawl.url",
+          "direction": "out",
+          "id": "out-crawl.url"
+        }
+      ],
+      "responsibility": "Submit URLs and a bounded crawl scope.",
+      "stateOwnership": [
+        "crawl configuration"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.service",
+        "version": 1
+      },
+      "id": "crawl.system",
+      "label": "Crawler boundary",
+      "ports": [
+        {
+          "contractId": "crawl.url",
+          "direction": "in",
+          "id": "in-crawl.url"
+        },
+        {
+          "contractId": "crawl.policy",
+          "direction": "out",
+          "id": "out-crawl.policy-worker"
+        },
+        {
+          "contractId": "crawl.lease",
+          "direction": "out",
+          "id": "out-crawl.lease-worker"
+        },
+        {
+          "contractId": "crawl.lease",
+          "direction": "in",
+          "id": "in-crawl.lease-frontier"
+        },
+        {
+          "contractId": "crawl.fetch",
+          "direction": "out",
+          "id": "out-crawl.fetch-worker"
+        },
+        {
+          "contractId": "crawl.parse",
+          "direction": "out",
+          "id": "out-crawl.parse-worker"
+        },
+        {
+          "contractId": "crawl.result",
+          "direction": "in",
+          "id": "in-crawl.result-frontier"
+        }
+      ],
+      "responsibility": "Discover, fetch and persist pages within policy.",
+      "stateOwnership": [
+        "logical crawl progress"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "crawl.frontier",
+      "label": "Durable host frontier",
+      "ports": [
+        {
+          "contractId": "crawl.lease",
+          "direction": "in",
+          "id": "in-crawl.lease"
+        },
+        {
+          "contractId": "crawl.url",
+          "direction": "in",
+          "id": "in-crawl.url"
+        },
+        {
+          "contractId": "crawl.result",
+          "direction": "in",
+          "id": "in-crawl.result"
+        }
+      ],
+      "responsibility": "Own pending URLs, host leases, attempt state and transactional outbox.",
+      "stateOwnership": [
+        "URLs",
+        "leases",
+        "nextAllowedAt"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "crawl.worker",
+      "label": "Fetch/parse worker",
+      "ports": [
+        {
+          "contractId": "crawl.lease",
+          "direction": "out",
+          "id": "out-crawl.lease"
+        },
+        {
+          "contractId": "crawl.policy",
+          "direction": "out",
+          "id": "out-crawl.policy"
+        },
+        {
+          "contractId": "crawl.fetch",
+          "direction": "out",
+          "id": "out-crawl.fetch"
+        },
+        {
+          "contractId": "crawl.parse",
+          "direction": "out",
+          "id": "out-crawl.parse"
+        },
+        {
+          "contractId": "crawl.result",
+          "direction": "out",
+          "id": "out-crawl.result"
+        }
+      ],
+      "responsibility": "Process one leased URL with bounded network and parser work.",
+      "stateOwnership": [
+        "one current attempt"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "crawl.admission",
+      "label": "URL canonicalizer and admission",
+      "ports": [
+        {
+          "contractId": "crawl.url",
+          "direction": "in",
+          "id": "in-crawl.url"
+        },
+        {
+          "contractId": "crawl.url",
+          "direction": "out",
+          "id": "out-crawl.url"
+        }
+      ],
+      "responsibility": "Normalize only semantics-preserving URL parts; deduplicate atomically by crawl ID and canonical URL.",
+      "stateOwnership": [
+        "admission key"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.service",
+        "version": 1
+      },
+      "id": "crawl.policy",
+      "label": "Robots and destination guard",
+      "ports": [
+        {
+          "contractId": "crawl.policy",
+          "direction": "in",
+          "id": "in-crawl.policy"
+        }
+      ],
+      "responsibility": "Check robots, scheme, resolved IPs and each redirect; deny private/reserved destinations.",
+      "stateOwnership": [
+        "robots cache"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "crawl.hosts",
+      "label": "Host scheduler",
+      "ports": [
+        {
+          "contractId": "crawl.lease",
+          "direction": "in",
+          "id": "in-crawl.lease"
+        },
+        {
+          "contractId": "crawl.lease",
+          "direction": "out",
+          "id": "out-crawl.lease"
+        }
+      ],
+      "responsibility": "Allocate per-origin permits in durable shared state with fencing tokens.",
+      "stateOwnership": [
+        "per-origin concurrency",
+        "next start time"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "crawl.bodies",
+      "label": "Immutable response store",
+      "ports": [
+        {
+          "contractId": "crawl.fetch",
+          "direction": "in",
+          "id": "in-crawl.fetch"
+        },
+        {
+          "contractId": "crawl.parse",
+          "direction": "in",
+          "id": "in-crawl.parse"
+        }
+      ],
+      "responsibility": "Persist response bytes and attempt metadata before acknowledging fetch.",
+      "stateOwnership": [
+        "content objects"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "crawl.index",
+      "label": "Document index",
+      "ports": [
+        {
+          "contractId": "crawl.parse",
+          "direction": "in",
+          "id": "in-crawl.parse"
+        }
+      ],
+      "responsibility": "Upsert by crawl identity, canonical URL and document version.",
+      "stateOwnership": [
+        "search documents"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "crawl.fetch",
+      "label": "Fetch workers",
+      "ports": [
+        {
+          "contractId": "crawl.lease",
+          "direction": "out",
+          "id": "out-crawl.lease"
+        },
+        {
+          "contractId": "crawl.policy",
+          "direction": "out",
+          "id": "out-crawl.policy"
+        },
+        {
+          "contractId": "crawl.fetch",
+          "direction": "out",
+          "id": "out-crawl.fetch"
+        },
+        {
+          "contractId": "crawl.parse",
+          "direction": "out",
+          "id": "out-crawl.parse"
+        },
+        {
+          "contractId": "crawl.result",
+          "direction": "out",
+          "id": "out-crawl.result"
+        }
+      ],
+      "responsibility": "Only network and response persistence; no expensive extraction on this stage.",
+      "stateOwnership": [
+        "fetch attempt"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "crawl.parse",
+      "label": "Parse workers",
+      "ports": [
+        {
+          "contractId": "crawl.parse",
+          "direction": "in",
+          "id": "in-crawl.parse"
+        },
+        {
+          "contractId": "crawl.parse",
+          "direction": "out",
+          "id": "out-crawl.parse"
+        },
+        {
+          "contractId": "crawl.result",
+          "direction": "out",
+          "id": "out-crawl.result"
+        }
+      ],
+      "responsibility": "Run bounded parsing on persisted objects without re-fetching.",
+      "stateOwnership": [
+        "parser version"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.queue",
+        "version": 1
+      },
+      "id": "crawl.parse-queue",
+      "label": "Durable parse queue",
+      "ports": [
+        {
+          "contractId": "crawl.parse",
+          "direction": "in",
+          "id": "in-crawl.parse"
+        },
+        {
+          "contractId": "crawl.parse",
+          "direction": "out",
+          "id": "out-crawl.parse"
+        }
+      ],
+      "responsibility": "Deliver persisted body references at least once.",
+      "stateOwnership": [
+        "pending extraction jobs"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "crawl.recovery",
+      "label": "Lease recovery sweeper",
+      "ports": [
+        {
+          "contractId": "crawl.lease",
+          "direction": "out",
+          "id": "out-crawl.lease"
+        }
+      ],
+      "responsibility": "Requeue expired attempts with a new fencing token and bounded retry policy.",
+      "stateOwnership": [
+        "attempt counts"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "crawl.outbox",
+      "label": "Index/discovery outbox",
+      "ports": [
+        {
+          "contractId": "crawl.result",
+          "direction": "out",
+          "id": "out-crawl.result"
+        },
+        {
+          "contractId": "crawl.parse",
+          "direction": "out",
+          "id": "out-crawl.parse"
+        },
+        {
+          "contractId": "crawl.url",
+          "direction": "out",
+          "id": "out-crawl.url"
+        }
+      ],
+      "responsibility": "Dispatch document and link events durably; mark each intent complete after acknowledged handling.",
+      "stateOwnership": [
+        "outbox cursor"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "crawl.scheduler",
+      "label": "Unified crawl scheduler",
+      "ports": [
+        {
+          "contractId": "crawl.url",
+          "direction": "in",
+          "id": "in-crawl.url"
+        },
+        {
+          "contractId": "crawl.url",
+          "direction": "out",
+          "id": "out-crawl.url"
+        },
+        {
+          "contractId": "crawl.lease",
+          "direction": "in",
+          "id": "in-crawl.lease"
+        },
+        {
+          "contractId": "crawl.lease",
+          "direction": "out",
+          "id": "out-crawl.lease"
+        }
+      ],
+      "responsibility": "Own admission, host scheduling and scope budgets through durable transactions.",
+      "stateOwnership": [
+        "admission keys",
+        "host lease state",
+        "crawl budgets"
+      ],
+      "version": 1
+    }
+  ],
+  "contracts": [
+    {
+      "id": "crawl.url",
+      "request": {
+        "crawlId": "uuid",
+        "depth": "bounded integer",
+        "discoveredFrom": "URL|null",
+        "url": "canonical HTTP(S) URL"
+      },
+      "response": {
+        "accepted": "boolean",
+        "reason": "duplicate|policy|budget|null"
+      },
+      "version": 1
+    },
+    {
+      "id": "crawl.lease",
+      "request": {
+        "attemptId": "uuid",
+        "fencingToken": "uint64",
+        "origin": "scheme+host+port",
+        "workerId": "string"
+      },
+      "response": {
+        "expiresAt": "database timestamp",
+        "nextAllowedAt": "database timestamp",
+        "url": "URL"
+      },
+      "version": 1
+    },
+    {
+      "id": "crawl.fetch",
+      "request": {
+        "attemptId": "uuid",
+        "deadlineMs": "positive integer",
+        "maxBytes": "positive integer",
+        "url": "URL"
+      },
+      "response": {
+        "bodyRef": "immutable object ID|null",
+        "hash": "sha256|null",
+        "redirect": "URL|null",
+        "status": "HTTP status"
+      },
+      "version": 1
+    },
+    {
+      "id": "crawl.parse",
+      "request": {
+        "bodyRef": "immutable object ID",
+        "hash": "sha256",
+        "parserVersion": "string"
+      },
+      "response": {
+        "document": "bounded extracted fields",
+        "errors": "bounded diagnostic[]",
+        "links": "bounded URL[]"
+      },
+      "version": 1
+    },
+    {
+      "id": "crawl.result",
+      "request": {
+        "attemptId": "uuid",
+        "bodyRef": "immutable object ID",
+        "fencingToken": "uint64",
+        "hash": "sha256",
+        "outboxIntents": "bounded {kind,payload}[]"
+      },
+      "response": {
+        "accepted": "boolean",
+        "outboxCursor": "uint64"
+      },
+      "version": 1
+    },
+    {
+      "id": "crawl.policy",
+      "request": {
+        "origin": "HTTP(S) origin",
+        "url": "URL",
+        "userAgent": "configured identity"
+      },
+      "response": {
+        "allowed": "boolean",
+        "nextAllowedAt": "database timestamp",
+        "policyVersion": "string"
+      },
+      "version": 1
+    }
+  ],
+  "execution": {
+    "implementation": null,
+    "kind": "conceptual-design"
+  },
+  "problem": {
+    "referenceId": "L014",
+    "requirements": [
+      {
+        "id": "schedule",
+        "text": "Schedule URLs with durable leases, retries and per-origin politeness."
+      },
+      {
+        "id": "safety",
+        "text": "Apply robots policy, URL normalization and network destination checks before every request and redirect."
+      },
+      {
+        "id": "dedup",
+        "text": "Deduplicate admission without collapsing semantically different URLs; idempotently store and index fetched content."
+      },
+      {
+        "id": "recover",
+        "text": "Recover after worker failure with bounded outstanding work and observable terminal outcomes."
+      }
+    ],
+    "scope": "Crawl public HTTP(S) pages with explicit robots policy, bounded fetches and durable progress. Compare a host-partitioned fetch/parse worker with separate fetch and parse pipelines. URL deduplication is not content equivalence.",
+    "studyLabel": "Distributed crawler with host politeness"
+  },
+  "provenance": {
+    "kind": "authored-practice",
+    "note": "Authored interview preparation. Technical references support mechanisms, not the claim that a company asked this question."
+  },
+  "references": [
+    {
+      "id": "robots",
+      "scope": "background",
+      "supports": "Robots matching and retrieval error semantics.",
+      "title": "Robots Exclusion Protocol",
+      "url": "https://www.rfc-editor.org/rfc/rfc9309"
+    },
+    {
+      "id": "controller",
+      "scope": "background",
+      "supports": "Reconciliation of durable progress after partial failures.",
+      "title": "Durable controller pattern",
+      "url": "https://kubernetes.io/docs/concepts/architecture/controller/"
+    }
+  ],
+  "schema": "simulatte.composableStudy.v1",
+  "solutions": [
+    {
+      "acceptanceCases": [
+        {
+          "given": "Two workers discover the same URL and another URL with a distinct query value.",
+          "id": "dedup",
+          "relatedRequirementIds": [
+            "dedup"
+          ],
+          "then": "Admit one copy of the exact canonical URL and preserve the semantically distinct URL.",
+          "when": "Admit them concurrently."
+        },
+        {
+          "given": "An allowed public URL redirects to loopback or resolves to a private IP.",
+          "id": "ssrf",
+          "relatedRequirementIds": [
+            "safety"
+          ],
+          "then": "Refuse the private destination before sending the HTTP request.",
+          "when": "Follow the redirect or reconnect after DNS changes."
+        },
+        {
+          "given": "Policy disallows a path and a stale cached robots document exists.",
+          "id": "robots",
+          "relatedRequirementIds": [
+            "safety"
+          ],
+          "then": "Apply explicit RFC-compatible refresh/error policy; do not assume stale permission forever.",
+          "when": "Try to fetch after the cache policy expires."
+        },
+        {
+          "given": "Several workers share one origin.",
+          "id": "politeness",
+          "relatedRequirementIds": [
+            "schedule"
+          ],
+          "then": "Shared permits enforce the configured request-start interval and concurrency ceiling.",
+          "when": "Try to claim work simultaneously."
+        },
+        {
+          "given": "Attempt A expires and attempt B is leased.",
+          "id": "lease-recovery",
+          "relatedRequirementIds": [
+            "recover"
+          ],
+          "then": "Fence A from completing B’s work; retry policy remains bounded and observable.",
+          "when": "A later completes while B is processing."
+        },
+        {
+          "given": "A body and discovery intents commit but the delivery acknowledgement is lost.",
+          "id": "idempotent-index",
+          "relatedRequirementIds": [
+            "dedup",
+            "recover"
+          ],
+          "then": "Upsert the same document version and admit each discovered URL once.",
+          "when": "Replay the parse/index/outbox deliveries."
+        }
+      ],
+      "algorithms": [
+        {
+          "code": "transaction(() => {\n  const host = lockHost(origin);\n  if (host.inFlight >= policy.perHost || databaseNow() < host.nextAllowedAt) return None;\n  const url = claimReadyUrl(origin, ++host.fencingToken);\n  host.inFlight++; host.nextAllowedAt = databaseNow() + policy.minimumStartInterval;\n  return {url, fencingToken: host.fencingToken};\n});\n// Every redirect rechecks allowed scheme, resolved and connected destination, robots and scope.\n// Fetch enforces redirect count, total time and byte limits. Parsing enforces output and CPU limits.\ntransaction(() => {\n  assertCurrentAttempt(url, fencingToken);\n  // Immutable body was persisted before this transaction.\n  persistResultMetadataAndLinkIndexOutbox(result); markCompleted(url, fencingToken);\n  releaseHostPermit(origin);\n});\n// After timeout, quarantine/retry with backoff; a lease cannot stop an old HTTP request already sent.",
+          "guarantees": [
+            "Attempt fencing protects progress; host politeness also needs conservative handling of uncertain in-flight calls."
+          ],
+          "id": "claim-and-complete",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "scheduler"
+        }
+      ],
+      "apis": [
+        {
+          "errors": "400 invalid scheme; 403 destination/scope; 429 crawl budget",
+          "method": "POST",
+          "ownerNodeId": "scheduler",
+          "path": "/crawls/{id}/urls",
+          "request": "{url,discoveredFrom,depth}",
+          "response": "{accepted,reason}"
+        }
+      ],
+      "assumptions": [
+        "Per-origin request starts are serialized or budgeted in shared durable state.",
+        "A timed-out worker can still have an in-flight network request; leases cannot recall packets."
+      ],
+      "chooseWhen": "A simpler crawler can process bounded pages inline within each host lease.",
+      "id": "host-workers",
+      "initialGraph": {
+        "edges": [],
+        "nodes": []
+      },
+      "stages": [
+        {
+          "checkIds": [
+            "dedup"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "crawl.url",
+                "from": {
+                  "nodeId": "seed",
+                  "portId": "out-crawl.url"
+                },
+                "id": "seed",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-crawl.url"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "crawl.seed",
+                "id": "seed",
+                "label": "Seed submitter",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.system",
+                "id": "system",
+                "label": "Crawler boundary",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "host-workers-s1",
+          "invariants": [
+            "Crawl scope, depth and total work have explicit ceilings."
+          ],
+          "number": 1,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "crawl.seed",
+                "id": "seed",
+                "label": "Seed submitter",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "crawl.system",
+                "id": "system",
+                "label": "Crawler boundary",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "crawl.url",
+                "from": {
+                  "nodeId": "seed",
+                  "portId": "out-crawl.url"
+                },
+                "id": "seed",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-crawl.url"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Which URLs and budgets belong to this crawl?",
+          "reason": "Begin with seed input and a coarse crawler.",
+          "title": "Define scope and a seed path"
+        },
+        {
+          "checkIds": [
+            "lease-recovery"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "crawl.url",
+                "from": {
+                  "nodeId": "seed",
+                  "portId": "out-crawl.url"
+                },
+                "id": "seed",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-crawl.url"
+                }
+              },
+              {
+                "contractId": "crawl.lease",
+                "from": {
+                  "nodeId": "worker",
+                  "portId": "out-crawl.lease"
+                },
+                "id": "lease",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "frontier",
+                  "portId": "in-crawl.lease"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "crawl.seed",
+                "id": "seed",
+                "label": "Seed submitter",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.system",
+                "id": "system",
+                "label": "Crawler boundary",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "host-workers-crawler",
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.frontier",
+                "id": "frontier",
+                "label": "Durable host frontier",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.worker",
+                "id": "worker",
+                "label": "Fetch/parse worker",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "host-workers-s2",
+          "invariants": [
+            "Deleting pending work before a durable result is forbidden."
+          ],
+          "number": 2,
+          "operations": [
+            {
+              "edges": [
+                {
+                  "contractId": "crawl.lease",
+                  "from": {
+                    "nodeId": "worker",
+                    "portId": "out-crawl.lease"
+                  },
+                  "id": "lease",
+                  "mode": "request-response",
+                  "to": {
+                    "nodeId": "frontier",
+                    "portId": "in-crawl.lease"
+                  }
+                }
+              ],
+              "nodeId": "system",
+              "nodes": [
+                {
+                  "definitionId": "crawl.frontier",
+                  "id": "frontier",
+                  "label": "Durable host frontier",
+                  "position": {
+                    "x": 560,
+                    "y": 0
+                  },
+                  "version": 1
+                },
+                {
+                  "definitionId": "crawl.worker",
+                  "id": "worker",
+                  "label": "Fetch/parse worker",
+                  "position": {
+                    "x": 840,
+                    "y": 0
+                  },
+                  "version": 1
+                }
+              ],
+              "op": "expand",
+              "subsystemId": "host-workers-crawler"
+            }
+          ],
+          "question": "Where does work survive a crash?",
+          "reason": "Expand the crawler into durable pending work and a worker.",
+          "title": "Separate frontier and execution"
+        },
+        {
+          "checkIds": [
+            "dedup"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "crawl.lease",
+                "from": {
+                  "nodeId": "worker",
+                  "portId": "out-crawl.lease"
+                },
+                "id": "lease",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "frontier",
+                  "portId": "in-crawl.lease"
+                }
+              },
+              {
+                "contractId": "crawl.url",
+                "from": {
+                  "nodeId": "seed",
+                  "portId": "out-crawl.url"
+                },
+                "id": "candidate",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "admission",
+                  "portId": "in-crawl.url"
+                }
+              },
+              {
+                "contractId": "crawl.url",
+                "from": {
+                  "nodeId": "admission",
+                  "portId": "out-crawl.url"
+                },
+                "id": "admit",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-crawl.url"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "crawl.seed",
+                "id": "seed",
+                "label": "Seed submitter",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.system",
+                "id": "system",
+                "label": "Crawler boundary",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "host-workers-crawler",
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.frontier",
+                "id": "frontier",
+                "label": "Durable host frontier",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.worker",
+                "id": "worker",
+                "label": "Fetch/parse worker",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.admission",
+                "id": "admission",
+                "label": "URL canonicalizer and admission",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "host-workers-s3",
+          "invariants": [
+            "Do not drop query parameters or reorder them without a site-specific semantic rule."
+          ],
+          "number": 3,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "crawl.admission",
+                "id": "admission",
+                "label": "URL canonicalizer and admission",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edgeId": "seed",
+              "op": "disconnect"
+            },
+            {
+              "edge": {
+                "contractId": "crawl.url",
+                "from": {
+                  "nodeId": "seed",
+                  "portId": "out-crawl.url"
+                },
+                "id": "candidate",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "admission",
+                  "portId": "in-crawl.url"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "crawl.url",
+                "from": {
+                  "nodeId": "admission",
+                  "portId": "out-crawl.url"
+                },
+                "id": "admit",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-crawl.url"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can normalization accidentally remove a distinct page?",
+          "reason": "Make URL canonicalization and atomic admission visible.",
+          "title": "Add semantics-preserving admission"
+        },
+        {
+          "checkIds": [
+            "ssrf",
+            "robots"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "crawl.lease",
+                "from": {
+                  "nodeId": "worker",
+                  "portId": "out-crawl.lease"
+                },
+                "id": "lease",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "frontier",
+                  "portId": "in-crawl.lease"
+                }
+              },
+              {
+                "contractId": "crawl.url",
+                "from": {
+                  "nodeId": "seed",
+                  "portId": "out-crawl.url"
+                },
+                "id": "candidate",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "admission",
+                  "portId": "in-crawl.url"
+                }
+              },
+              {
+                "contractId": "crawl.url",
+                "from": {
+                  "nodeId": "admission",
+                  "portId": "out-crawl.url"
+                },
+                "id": "admit",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-crawl.url"
+                }
+              },
+              {
+                "contractId": "crawl.policy",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-crawl.policy-worker"
+                },
+                "id": "authorize-fetch",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "policy",
+                  "portId": "in-crawl.policy"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "crawl.seed",
+                "id": "seed",
+                "label": "Seed submitter",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.system",
+                "id": "system",
+                "label": "Crawler boundary",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "host-workers-crawler",
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.frontier",
+                "id": "frontier",
+                "label": "Durable host frontier",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.worker",
+                "id": "worker",
+                "label": "Fetch/parse worker",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.admission",
+                "id": "admission",
+                "label": "URL canonicalizer and admission",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.policy",
+                "id": "policy",
+                "label": "Robots and destination guard",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "host-workers-s4",
+          "invariants": [
+            "Robots controls crawling policy; it is not authentication or permission to access private networks."
+          ],
+          "number": 4,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "crawl.policy",
+                "id": "policy",
+                "label": "Robots and destination guard",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "crawl.policy",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-crawl.policy-worker"
+                },
+                "id": "authorize-fetch",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "policy",
+                  "portId": "in-crawl.policy"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What prevents internal-network requests and disallowed paths?",
+          "reason": "Guard each fetch and redirect, including DNS results and connection destination.",
+          "title": "Enforce robots and destination safety"
+        },
+        {
+          "checkIds": [
+            "politeness",
+            "lease-recovery"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "crawl.lease",
+                "from": {
+                  "nodeId": "worker",
+                  "portId": "out-crawl.lease"
+                },
+                "id": "lease",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "frontier",
+                  "portId": "in-crawl.lease"
+                }
+              },
+              {
+                "contractId": "crawl.url",
+                "from": {
+                  "nodeId": "seed",
+                  "portId": "out-crawl.url"
+                },
+                "id": "candidate",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "admission",
+                  "portId": "in-crawl.url"
+                }
+              },
+              {
+                "contractId": "crawl.url",
+                "from": {
+                  "nodeId": "admission",
+                  "portId": "out-crawl.url"
+                },
+                "id": "admit",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-crawl.url"
+                }
+              },
+              {
+                "contractId": "crawl.policy",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-crawl.policy-worker"
+                },
+                "id": "authorize-fetch",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "policy",
+                  "portId": "in-crawl.policy"
+                }
+              },
+              {
+                "contractId": "crawl.lease",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-crawl.lease-worker"
+                },
+                "id": "host-permit",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "hosts",
+                  "portId": "in-crawl.lease"
+                }
+              },
+              {
+                "contractId": "crawl.lease",
+                "from": {
+                  "nodeId": "hosts",
+                  "portId": "out-crawl.lease"
+                },
+                "id": "durable-permit",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-crawl.lease-frontier"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "crawl.seed",
+                "id": "seed",
+                "label": "Seed submitter",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.system",
+                "id": "system",
+                "label": "Crawler boundary",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "host-workers-crawler",
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.frontier",
+                "id": "frontier",
+                "label": "Durable host frontier",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.worker",
+                "id": "worker",
+                "label": "Fetch/parse worker",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.admission",
+                "id": "admission",
+                "label": "URL canonicalizer and admission",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.policy",
+                "id": "policy",
+                "label": "Robots and destination guard",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.hosts",
+                "id": "hosts",
+                "label": "Host scheduler",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "host-workers-s5",
+          "invariants": [
+            "A lease expiry may cause overlapping attempts; bound duplicate load and fence stale completion."
+          ],
+          "number": 5,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "crawl.hosts",
+                "id": "hosts",
+                "label": "Host scheduler",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "crawl.lease",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-crawl.lease-worker"
+                },
+                "id": "host-permit",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "hosts",
+                  "portId": "in-crawl.lease"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "crawl.lease",
+                "from": {
+                  "nodeId": "hosts",
+                  "portId": "out-crawl.lease"
+                },
+                "id": "durable-permit",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-crawl.lease-frontier"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What if several workers share a target host?",
+          "reason": "Use a shared host scheduler instead of process-local delays.",
+          "title": "Coordinate host politeness"
+        },
+        {
+          "checkIds": [
+            "idempotent-index"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "crawl.lease",
+                "from": {
+                  "nodeId": "worker",
+                  "portId": "out-crawl.lease"
+                },
+                "id": "lease",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "frontier",
+                  "portId": "in-crawl.lease"
+                }
+              },
+              {
+                "contractId": "crawl.url",
+                "from": {
+                  "nodeId": "seed",
+                  "portId": "out-crawl.url"
+                },
+                "id": "candidate",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "admission",
+                  "portId": "in-crawl.url"
+                }
+              },
+              {
+                "contractId": "crawl.url",
+                "from": {
+                  "nodeId": "admission",
+                  "portId": "out-crawl.url"
+                },
+                "id": "admit",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-crawl.url"
+                }
+              },
+              {
+                "contractId": "crawl.policy",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-crawl.policy-worker"
+                },
+                "id": "authorize-fetch",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "policy",
+                  "portId": "in-crawl.policy"
+                }
+              },
+              {
+                "contractId": "crawl.lease",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-crawl.lease-worker"
+                },
+                "id": "host-permit",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "hosts",
+                  "portId": "in-crawl.lease"
+                }
+              },
+              {
+                "contractId": "crawl.lease",
+                "from": {
+                  "nodeId": "hosts",
+                  "portId": "out-crawl.lease"
+                },
+                "id": "durable-permit",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-crawl.lease-frontier"
+                }
+              },
+              {
+                "contractId": "crawl.fetch",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-crawl.fetch-worker"
+                },
+                "id": "save-body",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "bodies",
+                  "portId": "in-crawl.fetch"
+                }
+              },
+              {
+                "contractId": "crawl.parse",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-crawl.parse-worker"
+                },
+                "id": "index",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "index",
+                  "portId": "in-crawl.parse"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "crawl.seed",
+                "id": "seed",
+                "label": "Seed submitter",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.system",
+                "id": "system",
+                "label": "Crawler boundary",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "host-workers-crawler",
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.frontier",
+                "id": "frontier",
+                "label": "Durable host frontier",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.worker",
+                "id": "worker",
+                "label": "Fetch/parse worker",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.admission",
+                "id": "admission",
+                "label": "URL canonicalizer and admission",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.policy",
+                "id": "policy",
+                "label": "Robots and destination guard",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.hosts",
+                "id": "hosts",
+                "label": "Host scheduler",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.bodies",
+                "id": "bodies",
+                "label": "Immutable response store",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.index",
+                "id": "index",
+                "label": "Document index",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "host-workers-s6",
+          "invariants": [
+            "Fetch completion records and body references must commit before parse dispatch is acknowledged."
+          ],
+          "number": 6,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "crawl.bodies",
+                "id": "bodies",
+                "label": "Immutable response store",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "crawl.index",
+                "id": "index",
+                "label": "Document index",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "crawl.fetch",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-crawl.fetch-worker"
+                },
+                "id": "save-body",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "bodies",
+                  "portId": "in-crawl.fetch"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "crawl.parse",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-crawl.parse-worker"
+                },
+                "id": "index",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "index",
+                  "portId": "in-crawl.parse"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can parsing retry without fetching the network again?",
+          "reason": "Store immutable bodies; make the independent parsing boundary explicit when selected.",
+          "title": "Persist responses before inline parsing"
+        },
+        {
+          "checkIds": [
+            "lease-recovery",
+            "idempotent-index"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "crawl.lease",
+                "from": {
+                  "nodeId": "worker",
+                  "portId": "out-crawl.lease"
+                },
+                "id": "lease",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "frontier",
+                  "portId": "in-crawl.lease"
+                }
+              },
+              {
+                "contractId": "crawl.url",
+                "from": {
+                  "nodeId": "seed",
+                  "portId": "out-crawl.url"
+                },
+                "id": "candidate",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "admission",
+                  "portId": "in-crawl.url"
+                }
+              },
+              {
+                "contractId": "crawl.url",
+                "from": {
+                  "nodeId": "admission",
+                  "portId": "out-crawl.url"
+                },
+                "id": "admit",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-crawl.url"
+                }
+              },
+              {
+                "contractId": "crawl.policy",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-crawl.policy-worker"
+                },
+                "id": "authorize-fetch",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "policy",
+                  "portId": "in-crawl.policy"
+                }
+              },
+              {
+                "contractId": "crawl.lease",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-crawl.lease-worker"
+                },
+                "id": "host-permit",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "hosts",
+                  "portId": "in-crawl.lease"
+                }
+              },
+              {
+                "contractId": "crawl.lease",
+                "from": {
+                  "nodeId": "hosts",
+                  "portId": "out-crawl.lease"
+                },
+                "id": "durable-permit",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-crawl.lease-frontier"
+                }
+              },
+              {
+                "contractId": "crawl.fetch",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-crawl.fetch-worker"
+                },
+                "id": "save-body",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "bodies",
+                  "portId": "in-crawl.fetch"
+                }
+              },
+              {
+                "contractId": "crawl.lease",
+                "from": {
+                  "nodeId": "recovery",
+                  "portId": "out-crawl.lease"
+                },
+                "id": "reclaim",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-crawl.lease-frontier"
+                }
+              },
+              {
+                "contractId": "crawl.result",
+                "from": {
+                  "nodeId": "outbox",
+                  "portId": "out-crawl.result"
+                },
+                "id": "dispatch-intents",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-crawl.result-frontier"
+                }
+              },
+              {
+                "contractId": "crawl.result",
+                "from": {
+                  "nodeId": "worker",
+                  "portId": "out-crawl.result"
+                },
+                "id": "commit-result",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "frontier",
+                  "portId": "in-crawl.result"
+                }
+              },
+              {
+                "contractId": "crawl.parse",
+                "from": {
+                  "nodeId": "outbox",
+                  "portId": "out-crawl.parse"
+                },
+                "id": "index-intent",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "index",
+                  "portId": "in-crawl.parse"
+                }
+              },
+              {
+                "contractId": "crawl.url",
+                "from": {
+                  "nodeId": "outbox",
+                  "portId": "out-crawl.url"
+                },
+                "id": "discovered",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "admission",
+                  "portId": "in-crawl.url"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "crawl.seed",
+                "id": "seed",
+                "label": "Seed submitter",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.system",
+                "id": "system",
+                "label": "Crawler boundary",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "host-workers-crawler",
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.frontier",
+                "id": "frontier",
+                "label": "Durable host frontier",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.worker",
+                "id": "worker",
+                "label": "Fetch/parse worker",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.admission",
+                "id": "admission",
+                "label": "URL canonicalizer and admission",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.policy",
+                "id": "policy",
+                "label": "Robots and destination guard",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.hosts",
+                "id": "hosts",
+                "label": "Host scheduler",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.bodies",
+                "id": "bodies",
+                "label": "Immutable response store",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.index",
+                "id": "index",
+                "label": "Document index",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.recovery",
+                "id": "recovery",
+                "label": "Lease recovery sweeper",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.outbox",
+                "id": "outbox",
+                "label": "Index/discovery outbox",
+                "position": {
+                  "x": 560,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "host-workers-s7",
+          "invariants": [
+            "A stale attempt cannot mark a newer attempt complete.",
+            "Persist immutable body bytes first, then atomically commit the frontier result metadata and link/index outbox intents before acknowledgement; orphaned body objects are safe to collect."
+          ],
+          "number": 7,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "crawl.recovery",
+                "id": "recovery",
+                "label": "Lease recovery sweeper",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "crawl.outbox",
+                "id": "outbox",
+                "label": "Index/discovery outbox",
+                "position": {
+                  "x": 560,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "crawl.lease",
+                "from": {
+                  "nodeId": "recovery",
+                  "portId": "out-crawl.lease"
+                },
+                "id": "reclaim",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-crawl.lease-frontier"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "crawl.result",
+                "from": {
+                  "nodeId": "outbox",
+                  "portId": "out-crawl.result"
+                },
+                "id": "dispatch-intents",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-crawl.result-frontier"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "crawl.result",
+                "from": {
+                  "nodeId": "worker",
+                  "portId": "out-crawl.result"
+                },
+                "id": "commit-result",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "frontier",
+                  "portId": "in-crawl.result"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edgeId": "index",
+              "op": "disconnect"
+            },
+            {
+              "edge": {
+                "contractId": "crawl.parse",
+                "from": {
+                  "nodeId": "outbox",
+                  "portId": "out-crawl.parse"
+                },
+                "id": "index-intent",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "index",
+                  "portId": "in-crawl.parse"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "crawl.url",
+                "from": {
+                  "nodeId": "outbox",
+                  "portId": "out-crawl.url"
+                },
+                "id": "discovered",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "admission",
+                  "portId": "in-crawl.url"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What if a worker dies between storage and publishing discovered URLs?",
+          "reason": "Add retry recovery and a transactional outbox for derived work.",
+          "title": "Recover leases and durable publication"
+        },
+        {
+          "checkIds": [
+            "politeness",
+            "dedup"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "crawl.lease",
+                "from": {
+                  "nodeId": "worker",
+                  "portId": "out-crawl.lease"
+                },
+                "id": "lease",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "frontier",
+                  "portId": "in-crawl.lease"
+                }
+              },
+              {
+                "contractId": "crawl.url",
+                "from": {
+                  "nodeId": "seed",
+                  "portId": "out-crawl.url"
+                },
+                "id": "candidate",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "scheduler",
+                  "portId": "in-crawl.url"
+                }
+              },
+              {
+                "contractId": "crawl.url",
+                "from": {
+                  "nodeId": "scheduler",
+                  "portId": "out-crawl.url"
+                },
+                "id": "admit",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-crawl.url"
+                }
+              },
+              {
+                "contractId": "crawl.policy",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-crawl.policy-worker"
+                },
+                "id": "authorize-fetch",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "policy",
+                  "portId": "in-crawl.policy"
+                }
+              },
+              {
+                "contractId": "crawl.lease",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-crawl.lease-worker"
+                },
+                "id": "host-permit",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "scheduler",
+                  "portId": "in-crawl.lease"
+                }
+              },
+              {
+                "contractId": "crawl.lease",
+                "from": {
+                  "nodeId": "scheduler",
+                  "portId": "out-crawl.lease"
+                },
+                "id": "durable-permit",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-crawl.lease-frontier"
+                }
+              },
+              {
+                "contractId": "crawl.fetch",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-crawl.fetch-worker"
+                },
+                "id": "save-body",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "bodies",
+                  "portId": "in-crawl.fetch"
+                }
+              },
+              {
+                "contractId": "crawl.lease",
+                "from": {
+                  "nodeId": "recovery",
+                  "portId": "out-crawl.lease"
+                },
+                "id": "reclaim",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-crawl.lease-frontier"
+                }
+              },
+              {
+                "contractId": "crawl.result",
+                "from": {
+                  "nodeId": "outbox",
+                  "portId": "out-crawl.result"
+                },
+                "id": "dispatch-intents",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-crawl.result-frontier"
+                }
+              },
+              {
+                "contractId": "crawl.result",
+                "from": {
+                  "nodeId": "worker",
+                  "portId": "out-crawl.result"
+                },
+                "id": "commit-result",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "frontier",
+                  "portId": "in-crawl.result"
+                }
+              },
+              {
+                "contractId": "crawl.parse",
+                "from": {
+                  "nodeId": "outbox",
+                  "portId": "out-crawl.parse"
+                },
+                "id": "index-intent",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "index",
+                  "portId": "in-crawl.parse"
+                }
+              },
+              {
+                "contractId": "crawl.url",
+                "from": {
+                  "nodeId": "outbox",
+                  "portId": "out-crawl.url"
+                },
+                "id": "discovered",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "scheduler",
+                  "portId": "in-crawl.url"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "crawl.seed",
+                "id": "seed",
+                "label": "Seed submitter",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.system",
+                "id": "system",
+                "label": "Crawler boundary",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "host-workers-crawler",
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.frontier",
+                "id": "frontier",
+                "label": "Durable host frontier",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.worker",
+                "id": "worker",
+                "label": "Fetch/parse worker",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.policy",
+                "id": "policy",
+                "label": "Robots and destination guard",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.bodies",
+                "id": "bodies",
+                "label": "Immutable response store",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.index",
+                "id": "index",
+                "label": "Document index",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.recovery",
+                "id": "recovery",
+                "label": "Lease recovery sweeper",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.outbox",
+                "id": "outbox",
+                "label": "Index/discovery outbox",
+                "position": {
+                  "x": 560,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.scheduler",
+                "id": "scheduler",
+                "label": "Unified crawl scheduler",
+                "lineageIds": [
+                  "admission",
+                  "hosts"
+                ],
+                "position": {
+                  "x": 840,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "host-workers-s8",
+          "invariants": [
+            "Restarting a scheduler never resets the durable crawl budget."
+          ],
+          "number": 8,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "crawl.scheduler",
+                "id": "scheduler",
+                "label": "Unified crawl scheduler",
+                "position": {
+                  "x": 840,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "nodeIds": [
+                "admission",
+                "hosts"
+              ],
+              "op": "merge",
+              "reason": "One owner checks scope, admission identity and host capacity rather than competing process-local counters."
+            }
+          ],
+          "question": "Can admission and per-host scheduling race against the crawl budget?",
+          "reason": "Unify budget and scheduling decisions under one durable transaction boundary.",
+          "title": "Merge scheduling authority"
+        }
+      ],
+      "title": "Host-partitioned fetch/parse workers",
+      "tradeoffs": [
+        "Slow parsing ties up worker capacity even after network I/O completes.",
+        "A single worker implementation is simpler to deploy and trace."
+      ]
+    },
+    {
+      "acceptanceCases": [
+        {
+          "given": "Two workers discover the same URL and another URL with a distinct query value.",
+          "id": "dedup",
+          "relatedRequirementIds": [
+            "dedup"
+          ],
+          "then": "Admit one copy of the exact canonical URL and preserve the semantically distinct URL.",
+          "when": "Admit them concurrently."
+        },
+        {
+          "given": "An allowed public URL redirects to loopback or resolves to a private IP.",
+          "id": "ssrf",
+          "relatedRequirementIds": [
+            "safety"
+          ],
+          "then": "Refuse the private destination before sending the HTTP request.",
+          "when": "Follow the redirect or reconnect after DNS changes."
+        },
+        {
+          "given": "Policy disallows a path and a stale cached robots document exists.",
+          "id": "robots",
+          "relatedRequirementIds": [
+            "safety"
+          ],
+          "then": "Apply explicit RFC-compatible refresh/error policy; do not assume stale permission forever.",
+          "when": "Try to fetch after the cache policy expires."
+        },
+        {
+          "given": "Several workers share one origin.",
+          "id": "politeness",
+          "relatedRequirementIds": [
+            "schedule"
+          ],
+          "then": "Shared permits enforce the configured request-start interval and concurrency ceiling.",
+          "when": "Try to claim work simultaneously."
+        },
+        {
+          "given": "Attempt A expires and attempt B is leased.",
+          "id": "lease-recovery",
+          "relatedRequirementIds": [
+            "recover"
+          ],
+          "then": "Fence A from completing B’s work; retry policy remains bounded and observable.",
+          "when": "A later completes while B is processing."
+        },
+        {
+          "given": "A body and discovery intents commit but the delivery acknowledgement is lost.",
+          "id": "idempotent-index",
+          "relatedRequirementIds": [
+            "dedup",
+            "recover"
+          ],
+          "then": "Upsert the same document version and admit each discovered URL once.",
+          "when": "Replay the parse/index/outbox deliveries."
+        }
+      ],
+      "algorithms": [
+        {
+          "code": "transaction(() => {\n  const host = lockHost(origin);\n  if (host.inFlight >= policy.perHost || databaseNow() < host.nextAllowedAt) return None;\n  const url = claimReadyUrl(origin, ++host.fencingToken);\n  host.inFlight++; host.nextAllowedAt = databaseNow() + policy.minimumStartInterval;\n  return {url, fencingToken: host.fencingToken};\n});\n// Every redirect rechecks allowed scheme, resolved and connected destination, robots and scope.\n// Fetch enforces redirect count, total time and byte limits. Parsing enforces output and CPU limits.\ntransaction(() => {\n  assertCurrentAttempt(url, fencingToken);\n  // Immutable body was persisted before this transaction.\n  persistResultMetadataAndLinkIndexOutbox(result); markCompleted(url, fencingToken);\n  releaseHostPermit(origin);\n});\n// After timeout, quarantine/retry with backoff; a lease cannot stop an old HTTP request already sent.",
+          "guarantees": [
+            "Attempt fencing protects progress; host politeness also needs conservative handling of uncertain in-flight calls."
+          ],
+          "id": "claim-and-complete",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "scheduler"
+        }
+      ],
+      "apis": [
+        {
+          "errors": "400 invalid scheme; 403 destination/scope; 429 crawl budget",
+          "method": "POST",
+          "ownerNodeId": "scheduler",
+          "path": "/crawls/{id}/urls",
+          "request": "{url,discoveredFrom,depth}",
+          "response": "{accepted,reason}"
+        }
+      ],
+      "assumptions": [
+        "Per-origin request starts are serialized or budgeted in shared durable state.",
+        "A timed-out worker can still have an in-flight network request; leases cannot recall packets."
+      ],
+      "chooseWhen": "Parsing is expensive or changes independently from fetch throughput.",
+      "id": "split-pipeline",
+      "initialGraph": {
+        "edges": [],
+        "nodes": []
+      },
+      "stages": [
+        {
+          "checkIds": [
+            "dedup"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "crawl.url",
+                "from": {
+                  "nodeId": "seed",
+                  "portId": "out-crawl.url"
+                },
+                "id": "seed",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-crawl.url"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "crawl.seed",
+                "id": "seed",
+                "label": "Seed submitter",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.system",
+                "id": "system",
+                "label": "Crawler boundary",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "split-pipeline-s1",
+          "invariants": [
+            "Crawl scope, depth and total work have explicit ceilings."
+          ],
+          "number": 1,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "crawl.seed",
+                "id": "seed",
+                "label": "Seed submitter",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "crawl.system",
+                "id": "system",
+                "label": "Crawler boundary",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "crawl.url",
+                "from": {
+                  "nodeId": "seed",
+                  "portId": "out-crawl.url"
+                },
+                "id": "seed",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-crawl.url"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Which URLs and budgets belong to this crawl?",
+          "reason": "Begin with seed input and a coarse crawler.",
+          "title": "Define scope and a seed path"
+        },
+        {
+          "checkIds": [
+            "lease-recovery"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "crawl.url",
+                "from": {
+                  "nodeId": "seed",
+                  "portId": "out-crawl.url"
+                },
+                "id": "seed",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-crawl.url"
+                }
+              },
+              {
+                "contractId": "crawl.lease",
+                "from": {
+                  "nodeId": "worker",
+                  "portId": "out-crawl.lease"
+                },
+                "id": "lease",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "frontier",
+                  "portId": "in-crawl.lease"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "crawl.seed",
+                "id": "seed",
+                "label": "Seed submitter",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.system",
+                "id": "system",
+                "label": "Crawler boundary",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "split-pipeline-crawler",
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.frontier",
+                "id": "frontier",
+                "label": "Durable host frontier",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.worker",
+                "id": "worker",
+                "label": "Fetch/parse worker",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "split-pipeline-s2",
+          "invariants": [
+            "Deleting pending work before a durable result is forbidden."
+          ],
+          "number": 2,
+          "operations": [
+            {
+              "edges": [
+                {
+                  "contractId": "crawl.lease",
+                  "from": {
+                    "nodeId": "worker",
+                    "portId": "out-crawl.lease"
+                  },
+                  "id": "lease",
+                  "mode": "request-response",
+                  "to": {
+                    "nodeId": "frontier",
+                    "portId": "in-crawl.lease"
+                  }
+                }
+              ],
+              "nodeId": "system",
+              "nodes": [
+                {
+                  "definitionId": "crawl.frontier",
+                  "id": "frontier",
+                  "label": "Durable host frontier",
+                  "position": {
+                    "x": 560,
+                    "y": 0
+                  },
+                  "version": 1
+                },
+                {
+                  "definitionId": "crawl.worker",
+                  "id": "worker",
+                  "label": "Fetch/parse worker",
+                  "position": {
+                    "x": 840,
+                    "y": 0
+                  },
+                  "version": 1
+                }
+              ],
+              "op": "expand",
+              "subsystemId": "split-pipeline-crawler"
+            }
+          ],
+          "question": "Where does work survive a crash?",
+          "reason": "Expand the crawler into durable pending work and a worker.",
+          "title": "Separate frontier and execution"
+        },
+        {
+          "checkIds": [
+            "dedup"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "crawl.lease",
+                "from": {
+                  "nodeId": "worker",
+                  "portId": "out-crawl.lease"
+                },
+                "id": "lease",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "frontier",
+                  "portId": "in-crawl.lease"
+                }
+              },
+              {
+                "contractId": "crawl.url",
+                "from": {
+                  "nodeId": "seed",
+                  "portId": "out-crawl.url"
+                },
+                "id": "candidate",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "admission",
+                  "portId": "in-crawl.url"
+                }
+              },
+              {
+                "contractId": "crawl.url",
+                "from": {
+                  "nodeId": "admission",
+                  "portId": "out-crawl.url"
+                },
+                "id": "admit",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-crawl.url"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "crawl.seed",
+                "id": "seed",
+                "label": "Seed submitter",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.system",
+                "id": "system",
+                "label": "Crawler boundary",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "split-pipeline-crawler",
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.frontier",
+                "id": "frontier",
+                "label": "Durable host frontier",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.worker",
+                "id": "worker",
+                "label": "Fetch/parse worker",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.admission",
+                "id": "admission",
+                "label": "URL canonicalizer and admission",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "split-pipeline-s3",
+          "invariants": [
+            "Do not drop query parameters or reorder them without a site-specific semantic rule."
+          ],
+          "number": 3,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "crawl.admission",
+                "id": "admission",
+                "label": "URL canonicalizer and admission",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edgeId": "seed",
+              "op": "disconnect"
+            },
+            {
+              "edge": {
+                "contractId": "crawl.url",
+                "from": {
+                  "nodeId": "seed",
+                  "portId": "out-crawl.url"
+                },
+                "id": "candidate",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "admission",
+                  "portId": "in-crawl.url"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "crawl.url",
+                "from": {
+                  "nodeId": "admission",
+                  "portId": "out-crawl.url"
+                },
+                "id": "admit",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-crawl.url"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can normalization accidentally remove a distinct page?",
+          "reason": "Make URL canonicalization and atomic admission visible.",
+          "title": "Add semantics-preserving admission"
+        },
+        {
+          "checkIds": [
+            "ssrf",
+            "robots"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "crawl.lease",
+                "from": {
+                  "nodeId": "worker",
+                  "portId": "out-crawl.lease"
+                },
+                "id": "lease",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "frontier",
+                  "portId": "in-crawl.lease"
+                }
+              },
+              {
+                "contractId": "crawl.url",
+                "from": {
+                  "nodeId": "seed",
+                  "portId": "out-crawl.url"
+                },
+                "id": "candidate",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "admission",
+                  "portId": "in-crawl.url"
+                }
+              },
+              {
+                "contractId": "crawl.url",
+                "from": {
+                  "nodeId": "admission",
+                  "portId": "out-crawl.url"
+                },
+                "id": "admit",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-crawl.url"
+                }
+              },
+              {
+                "contractId": "crawl.policy",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-crawl.policy-worker"
+                },
+                "id": "authorize-fetch",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "policy",
+                  "portId": "in-crawl.policy"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "crawl.seed",
+                "id": "seed",
+                "label": "Seed submitter",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.system",
+                "id": "system",
+                "label": "Crawler boundary",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "split-pipeline-crawler",
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.frontier",
+                "id": "frontier",
+                "label": "Durable host frontier",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.worker",
+                "id": "worker",
+                "label": "Fetch/parse worker",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.admission",
+                "id": "admission",
+                "label": "URL canonicalizer and admission",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.policy",
+                "id": "policy",
+                "label": "Robots and destination guard",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "split-pipeline-s4",
+          "invariants": [
+            "Robots controls crawling policy; it is not authentication or permission to access private networks."
+          ],
+          "number": 4,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "crawl.policy",
+                "id": "policy",
+                "label": "Robots and destination guard",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "crawl.policy",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-crawl.policy-worker"
+                },
+                "id": "authorize-fetch",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "policy",
+                  "portId": "in-crawl.policy"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What prevents internal-network requests and disallowed paths?",
+          "reason": "Guard each fetch and redirect, including DNS results and connection destination.",
+          "title": "Enforce robots and destination safety"
+        },
+        {
+          "checkIds": [
+            "politeness",
+            "lease-recovery"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "crawl.lease",
+                "from": {
+                  "nodeId": "worker",
+                  "portId": "out-crawl.lease"
+                },
+                "id": "lease",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "frontier",
+                  "portId": "in-crawl.lease"
+                }
+              },
+              {
+                "contractId": "crawl.url",
+                "from": {
+                  "nodeId": "seed",
+                  "portId": "out-crawl.url"
+                },
+                "id": "candidate",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "admission",
+                  "portId": "in-crawl.url"
+                }
+              },
+              {
+                "contractId": "crawl.url",
+                "from": {
+                  "nodeId": "admission",
+                  "portId": "out-crawl.url"
+                },
+                "id": "admit",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-crawl.url"
+                }
+              },
+              {
+                "contractId": "crawl.policy",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-crawl.policy-worker"
+                },
+                "id": "authorize-fetch",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "policy",
+                  "portId": "in-crawl.policy"
+                }
+              },
+              {
+                "contractId": "crawl.lease",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-crawl.lease-worker"
+                },
+                "id": "host-permit",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "hosts",
+                  "portId": "in-crawl.lease"
+                }
+              },
+              {
+                "contractId": "crawl.lease",
+                "from": {
+                  "nodeId": "hosts",
+                  "portId": "out-crawl.lease"
+                },
+                "id": "durable-permit",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-crawl.lease-frontier"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "crawl.seed",
+                "id": "seed",
+                "label": "Seed submitter",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.system",
+                "id": "system",
+                "label": "Crawler boundary",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "split-pipeline-crawler",
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.frontier",
+                "id": "frontier",
+                "label": "Durable host frontier",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.worker",
+                "id": "worker",
+                "label": "Fetch/parse worker",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.admission",
+                "id": "admission",
+                "label": "URL canonicalizer and admission",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.policy",
+                "id": "policy",
+                "label": "Robots and destination guard",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.hosts",
+                "id": "hosts",
+                "label": "Host scheduler",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "split-pipeline-s5",
+          "invariants": [
+            "A lease expiry may cause overlapping attempts; bound duplicate load and fence stale completion."
+          ],
+          "number": 5,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "crawl.hosts",
+                "id": "hosts",
+                "label": "Host scheduler",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "crawl.lease",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-crawl.lease-worker"
+                },
+                "id": "host-permit",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "hosts",
+                  "portId": "in-crawl.lease"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "crawl.lease",
+                "from": {
+                  "nodeId": "hosts",
+                  "portId": "out-crawl.lease"
+                },
+                "id": "durable-permit",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-crawl.lease-frontier"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What if several workers share a target host?",
+          "reason": "Use a shared host scheduler instead of process-local delays.",
+          "title": "Coordinate host politeness"
+        },
+        {
+          "checkIds": [
+            "idempotent-index"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "crawl.lease",
+                "from": {
+                  "nodeId": "worker",
+                  "portId": "out-crawl.lease"
+                },
+                "id": "lease",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "frontier",
+                  "portId": "in-crawl.lease"
+                }
+              },
+              {
+                "contractId": "crawl.url",
+                "from": {
+                  "nodeId": "seed",
+                  "portId": "out-crawl.url"
+                },
+                "id": "candidate",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "admission",
+                  "portId": "in-crawl.url"
+                }
+              },
+              {
+                "contractId": "crawl.url",
+                "from": {
+                  "nodeId": "admission",
+                  "portId": "out-crawl.url"
+                },
+                "id": "admit",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-crawl.url"
+                }
+              },
+              {
+                "contractId": "crawl.policy",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-crawl.policy-worker"
+                },
+                "id": "authorize-fetch",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "policy",
+                  "portId": "in-crawl.policy"
+                }
+              },
+              {
+                "contractId": "crawl.lease",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-crawl.lease-worker"
+                },
+                "id": "host-permit",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "hosts",
+                  "portId": "in-crawl.lease"
+                }
+              },
+              {
+                "contractId": "crawl.lease",
+                "from": {
+                  "nodeId": "hosts",
+                  "portId": "out-crawl.lease"
+                },
+                "id": "durable-permit",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-crawl.lease-frontier"
+                }
+              },
+              {
+                "contractId": "crawl.fetch",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-crawl.fetch-worker"
+                },
+                "id": "save-body",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "bodies",
+                  "portId": "in-crawl.fetch"
+                }
+              },
+              {
+                "contractId": "crawl.parse",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-crawl.parse-worker"
+                },
+                "id": "parse-job",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "parse-queue",
+                  "portId": "in-crawl.parse"
+                }
+              },
+              {
+                "contractId": "crawl.parse",
+                "from": {
+                  "nodeId": "parse-queue",
+                  "portId": "out-crawl.parse"
+                },
+                "id": "take-parse",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "parse",
+                  "portId": "in-crawl.parse"
+                }
+              },
+              {
+                "contractId": "crawl.parse",
+                "from": {
+                  "nodeId": "parse",
+                  "portId": "out-crawl.parse"
+                },
+                "id": "read-body",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "bodies",
+                  "portId": "in-crawl.parse"
+                }
+              },
+              {
+                "contractId": "crawl.parse",
+                "from": {
+                  "nodeId": "parse",
+                  "portId": "out-crawl.parse"
+                },
+                "id": "index",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "index",
+                  "portId": "in-crawl.parse"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "crawl.seed",
+                "id": "seed",
+                "label": "Seed submitter",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.system",
+                "id": "system",
+                "label": "Crawler boundary",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "split-pipeline-crawler",
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.frontier",
+                "id": "frontier",
+                "label": "Durable host frontier",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.fetch",
+                "id": "worker",
+                "label": "Fetch/parse worker",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.admission",
+                "id": "admission",
+                "label": "URL canonicalizer and admission",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.policy",
+                "id": "policy",
+                "label": "Robots and destination guard",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.hosts",
+                "id": "hosts",
+                "label": "Host scheduler",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.bodies",
+                "id": "bodies",
+                "label": "Immutable response store",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.index",
+                "id": "index",
+                "label": "Document index",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.parse-queue",
+                "id": "parse-queue",
+                "label": "Durable parse queue",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.parse",
+                "id": "parse",
+                "label": "Parse workers",
+                "position": {
+                  "x": 560,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "split-pipeline-s6",
+          "invariants": [
+            "Fetch completion records and body references must commit before parse dispatch is acknowledged."
+          ],
+          "number": 6,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "crawl.bodies",
+                "id": "bodies",
+                "label": "Immutable response store",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "crawl.index",
+                "id": "index",
+                "label": "Document index",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "definitionId": "crawl.fetch",
+              "migration": "Keep the current attempt identity; stop inline parsing only after body persistence.",
+              "nodeId": "worker",
+              "op": "replace"
+            },
+            {
+              "node": {
+                "definitionId": "crawl.parse-queue",
+                "id": "parse-queue",
+                "label": "Durable parse queue",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "crawl.parse",
+                "id": "parse",
+                "label": "Parse workers",
+                "position": {
+                  "x": 560,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "crawl.fetch",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-crawl.fetch-worker"
+                },
+                "id": "save-body",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "bodies",
+                  "portId": "in-crawl.fetch"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "crawl.parse",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-crawl.parse-worker"
+                },
+                "id": "parse-job",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "parse-queue",
+                  "portId": "in-crawl.parse"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "crawl.parse",
+                "from": {
+                  "nodeId": "parse-queue",
+                  "portId": "out-crawl.parse"
+                },
+                "id": "take-parse",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "parse",
+                  "portId": "in-crawl.parse"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "crawl.parse",
+                "from": {
+                  "nodeId": "parse",
+                  "portId": "out-crawl.parse"
+                },
+                "id": "read-body",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "bodies",
+                  "portId": "in-crawl.parse"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "crawl.parse",
+                "from": {
+                  "nodeId": "parse",
+                  "portId": "out-crawl.parse"
+                },
+                "id": "index",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "index",
+                  "portId": "in-crawl.parse"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can parsing retry without fetching the network again?",
+          "reason": "Store immutable bodies; make the independent parsing boundary explicit when selected.",
+          "title": "Split fetch from persisted-body parsing"
+        },
+        {
+          "checkIds": [
+            "lease-recovery",
+            "idempotent-index"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "crawl.lease",
+                "from": {
+                  "nodeId": "worker",
+                  "portId": "out-crawl.lease"
+                },
+                "id": "lease",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "frontier",
+                  "portId": "in-crawl.lease"
+                }
+              },
+              {
+                "contractId": "crawl.url",
+                "from": {
+                  "nodeId": "seed",
+                  "portId": "out-crawl.url"
+                },
+                "id": "candidate",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "admission",
+                  "portId": "in-crawl.url"
+                }
+              },
+              {
+                "contractId": "crawl.url",
+                "from": {
+                  "nodeId": "admission",
+                  "portId": "out-crawl.url"
+                },
+                "id": "admit",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-crawl.url"
+                }
+              },
+              {
+                "contractId": "crawl.policy",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-crawl.policy-worker"
+                },
+                "id": "authorize-fetch",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "policy",
+                  "portId": "in-crawl.policy"
+                }
+              },
+              {
+                "contractId": "crawl.lease",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-crawl.lease-worker"
+                },
+                "id": "host-permit",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "hosts",
+                  "portId": "in-crawl.lease"
+                }
+              },
+              {
+                "contractId": "crawl.lease",
+                "from": {
+                  "nodeId": "hosts",
+                  "portId": "out-crawl.lease"
+                },
+                "id": "durable-permit",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-crawl.lease-frontier"
+                }
+              },
+              {
+                "contractId": "crawl.fetch",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-crawl.fetch-worker"
+                },
+                "id": "save-body",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "bodies",
+                  "portId": "in-crawl.fetch"
+                }
+              },
+              {
+                "contractId": "crawl.parse",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-crawl.parse-worker"
+                },
+                "id": "parse-job",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "parse-queue",
+                  "portId": "in-crawl.parse"
+                }
+              },
+              {
+                "contractId": "crawl.parse",
+                "from": {
+                  "nodeId": "parse-queue",
+                  "portId": "out-crawl.parse"
+                },
+                "id": "take-parse",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "parse",
+                  "portId": "in-crawl.parse"
+                }
+              },
+              {
+                "contractId": "crawl.parse",
+                "from": {
+                  "nodeId": "parse",
+                  "portId": "out-crawl.parse"
+                },
+                "id": "read-body",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "bodies",
+                  "portId": "in-crawl.parse"
+                }
+              },
+              {
+                "contractId": "crawl.lease",
+                "from": {
+                  "nodeId": "recovery",
+                  "portId": "out-crawl.lease"
+                },
+                "id": "reclaim",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-crawl.lease-frontier"
+                }
+              },
+              {
+                "contractId": "crawl.result",
+                "from": {
+                  "nodeId": "outbox",
+                  "portId": "out-crawl.result"
+                },
+                "id": "dispatch-intents",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-crawl.result-frontier"
+                }
+              },
+              {
+                "contractId": "crawl.result",
+                "from": {
+                  "nodeId": "parse",
+                  "portId": "out-crawl.result"
+                },
+                "id": "commit-result",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-crawl.result-frontier"
+                }
+              },
+              {
+                "contractId": "crawl.parse",
+                "from": {
+                  "nodeId": "outbox",
+                  "portId": "out-crawl.parse"
+                },
+                "id": "index-intent",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "index",
+                  "portId": "in-crawl.parse"
+                }
+              },
+              {
+                "contractId": "crawl.url",
+                "from": {
+                  "nodeId": "outbox",
+                  "portId": "out-crawl.url"
+                },
+                "id": "discovered",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "admission",
+                  "portId": "in-crawl.url"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "crawl.seed",
+                "id": "seed",
+                "label": "Seed submitter",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.system",
+                "id": "system",
+                "label": "Crawler boundary",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "split-pipeline-crawler",
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.frontier",
+                "id": "frontier",
+                "label": "Durable host frontier",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.fetch",
+                "id": "worker",
+                "label": "Fetch/parse worker",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.admission",
+                "id": "admission",
+                "label": "URL canonicalizer and admission",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.policy",
+                "id": "policy",
+                "label": "Robots and destination guard",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.hosts",
+                "id": "hosts",
+                "label": "Host scheduler",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.bodies",
+                "id": "bodies",
+                "label": "Immutable response store",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.index",
+                "id": "index",
+                "label": "Document index",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.parse-queue",
+                "id": "parse-queue",
+                "label": "Durable parse queue",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.parse",
+                "id": "parse",
+                "label": "Parse workers",
+                "position": {
+                  "x": 560,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.recovery",
+                "id": "recovery",
+                "label": "Lease recovery sweeper",
+                "position": {
+                  "x": 840,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.outbox",
+                "id": "outbox",
+                "label": "Index/discovery outbox",
+                "position": {
+                  "x": 0,
+                  "y": 540
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "split-pipeline-s7",
+          "invariants": [
+            "A stale attempt cannot mark a newer attempt complete.",
+            "Persist immutable body bytes first, then atomically commit the frontier result metadata and link/index outbox intents before acknowledgement; orphaned body objects are safe to collect."
+          ],
+          "number": 7,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "crawl.recovery",
+                "id": "recovery",
+                "label": "Lease recovery sweeper",
+                "position": {
+                  "x": 840,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "crawl.outbox",
+                "id": "outbox",
+                "label": "Index/discovery outbox",
+                "position": {
+                  "x": 0,
+                  "y": 540
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "crawl.lease",
+                "from": {
+                  "nodeId": "recovery",
+                  "portId": "out-crawl.lease"
+                },
+                "id": "reclaim",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-crawl.lease-frontier"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "crawl.result",
+                "from": {
+                  "nodeId": "outbox",
+                  "portId": "out-crawl.result"
+                },
+                "id": "dispatch-intents",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-crawl.result-frontier"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "crawl.result",
+                "from": {
+                  "nodeId": "parse",
+                  "portId": "out-crawl.result"
+                },
+                "id": "commit-result",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-crawl.result-frontier"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edgeId": "index",
+              "op": "disconnect"
+            },
+            {
+              "edge": {
+                "contractId": "crawl.parse",
+                "from": {
+                  "nodeId": "outbox",
+                  "portId": "out-crawl.parse"
+                },
+                "id": "index-intent",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "index",
+                  "portId": "in-crawl.parse"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "crawl.url",
+                "from": {
+                  "nodeId": "outbox",
+                  "portId": "out-crawl.url"
+                },
+                "id": "discovered",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "admission",
+                  "portId": "in-crawl.url"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What if a worker dies between storage and publishing discovered URLs?",
+          "reason": "Add retry recovery and a transactional outbox for derived work.",
+          "title": "Recover leases and durable publication"
+        },
+        {
+          "checkIds": [
+            "politeness",
+            "dedup"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "crawl.lease",
+                "from": {
+                  "nodeId": "worker",
+                  "portId": "out-crawl.lease"
+                },
+                "id": "lease",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "frontier",
+                  "portId": "in-crawl.lease"
+                }
+              },
+              {
+                "contractId": "crawl.url",
+                "from": {
+                  "nodeId": "seed",
+                  "portId": "out-crawl.url"
+                },
+                "id": "candidate",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "scheduler",
+                  "portId": "in-crawl.url"
+                }
+              },
+              {
+                "contractId": "crawl.url",
+                "from": {
+                  "nodeId": "scheduler",
+                  "portId": "out-crawl.url"
+                },
+                "id": "admit",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-crawl.url"
+                }
+              },
+              {
+                "contractId": "crawl.policy",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-crawl.policy-worker"
+                },
+                "id": "authorize-fetch",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "policy",
+                  "portId": "in-crawl.policy"
+                }
+              },
+              {
+                "contractId": "crawl.lease",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-crawl.lease-worker"
+                },
+                "id": "host-permit",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "scheduler",
+                  "portId": "in-crawl.lease"
+                }
+              },
+              {
+                "contractId": "crawl.lease",
+                "from": {
+                  "nodeId": "scheduler",
+                  "portId": "out-crawl.lease"
+                },
+                "id": "durable-permit",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-crawl.lease-frontier"
+                }
+              },
+              {
+                "contractId": "crawl.fetch",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-crawl.fetch-worker"
+                },
+                "id": "save-body",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "bodies",
+                  "portId": "in-crawl.fetch"
+                }
+              },
+              {
+                "contractId": "crawl.parse",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-crawl.parse-worker"
+                },
+                "id": "parse-job",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "parse-queue",
+                  "portId": "in-crawl.parse"
+                }
+              },
+              {
+                "contractId": "crawl.parse",
+                "from": {
+                  "nodeId": "parse-queue",
+                  "portId": "out-crawl.parse"
+                },
+                "id": "take-parse",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "parse",
+                  "portId": "in-crawl.parse"
+                }
+              },
+              {
+                "contractId": "crawl.parse",
+                "from": {
+                  "nodeId": "parse",
+                  "portId": "out-crawl.parse"
+                },
+                "id": "read-body",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "bodies",
+                  "portId": "in-crawl.parse"
+                }
+              },
+              {
+                "contractId": "crawl.lease",
+                "from": {
+                  "nodeId": "recovery",
+                  "portId": "out-crawl.lease"
+                },
+                "id": "reclaim",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-crawl.lease-frontier"
+                }
+              },
+              {
+                "contractId": "crawl.result",
+                "from": {
+                  "nodeId": "outbox",
+                  "portId": "out-crawl.result"
+                },
+                "id": "dispatch-intents",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-crawl.result-frontier"
+                }
+              },
+              {
+                "contractId": "crawl.result",
+                "from": {
+                  "nodeId": "parse",
+                  "portId": "out-crawl.result"
+                },
+                "id": "commit-result",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-crawl.result-frontier"
+                }
+              },
+              {
+                "contractId": "crawl.parse",
+                "from": {
+                  "nodeId": "outbox",
+                  "portId": "out-crawl.parse"
+                },
+                "id": "index-intent",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "index",
+                  "portId": "in-crawl.parse"
+                }
+              },
+              {
+                "contractId": "crawl.url",
+                "from": {
+                  "nodeId": "outbox",
+                  "portId": "out-crawl.url"
+                },
+                "id": "discovered",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "scheduler",
+                  "portId": "in-crawl.url"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "crawl.seed",
+                "id": "seed",
+                "label": "Seed submitter",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.system",
+                "id": "system",
+                "label": "Crawler boundary",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "split-pipeline-crawler",
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.frontier",
+                "id": "frontier",
+                "label": "Durable host frontier",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.fetch",
+                "id": "worker",
+                "label": "Fetch/parse worker",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.policy",
+                "id": "policy",
+                "label": "Robots and destination guard",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.bodies",
+                "id": "bodies",
+                "label": "Immutable response store",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.index",
+                "id": "index",
+                "label": "Document index",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.parse-queue",
+                "id": "parse-queue",
+                "label": "Durable parse queue",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.parse",
+                "id": "parse",
+                "label": "Parse workers",
+                "position": {
+                  "x": 560,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.recovery",
+                "id": "recovery",
+                "label": "Lease recovery sweeper",
+                "position": {
+                  "x": 840,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.outbox",
+                "id": "outbox",
+                "label": "Index/discovery outbox",
+                "position": {
+                  "x": 0,
+                  "y": 540
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "crawl.scheduler",
+                "id": "scheduler",
+                "label": "Unified crawl scheduler",
+                "lineageIds": [
+                  "admission",
+                  "hosts"
+                ],
+                "position": {
+                  "x": 280,
+                  "y": 540
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "split-pipeline-s8",
+          "invariants": [
+            "Restarting a scheduler never resets the durable crawl budget."
+          ],
+          "number": 8,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "crawl.scheduler",
+                "id": "scheduler",
+                "label": "Unified crawl scheduler",
+                "position": {
+                  "x": 280,
+                  "y": 540
+                },
+                "version": 1
+              },
+              "nodeIds": [
+                "admission",
+                "hosts"
+              ],
+              "op": "merge",
+              "reason": "One owner checks scope, admission identity and host capacity rather than competing process-local counters."
+            }
+          ],
+          "question": "Can admission and per-host scheduling race against the crawl budget?",
+          "reason": "Unify budget and scheduling decisions under one durable transaction boundary.",
+          "title": "Merge scheduling authority"
+        }
+      ],
+      "title": "Durable fetch/parse pipeline",
+      "tradeoffs": [
+        "Persisted bodies and a second queue add storage and scheduling overhead.",
+        "Fetch and parse failures can be retried independently."
+      ]
+    }
+  ],
+  "subsystems": [
+    {
+      "definitionId": "crawl.system",
+      "id": "host-workers-crawler",
+      "ports": [
+        {
+          "contractId": "crawl.url",
+          "direction": "in",
+          "id": "in-crawl.url",
+          "target": {
+            "nodeId": "frontier",
+            "portId": "in-crawl.url"
+          }
+        },
+        {
+          "contractId": "crawl.policy",
+          "direction": "out",
+          "id": "out-crawl.policy-worker",
+          "target": {
+            "nodeId": "worker",
+            "portId": "out-crawl.policy"
+          }
+        },
+        {
+          "contractId": "crawl.lease",
+          "direction": "out",
+          "id": "out-crawl.lease-worker",
+          "target": {
+            "nodeId": "worker",
+            "portId": "out-crawl.lease"
+          }
+        },
+        {
+          "contractId": "crawl.lease",
+          "direction": "in",
+          "id": "in-crawl.lease-frontier",
+          "target": {
+            "nodeId": "frontier",
+            "portId": "in-crawl.lease"
+          }
+        },
+        {
+          "contractId": "crawl.fetch",
+          "direction": "out",
+          "id": "out-crawl.fetch-worker",
+          "target": {
+            "nodeId": "worker",
+            "portId": "out-crawl.fetch"
+          }
+        },
+        {
+          "contractId": "crawl.parse",
+          "direction": "out",
+          "id": "out-crawl.parse-worker",
+          "target": {
+            "nodeId": "worker",
+            "portId": "out-crawl.parse"
+          }
+        },
+        {
+          "contractId": "crawl.result",
+          "direction": "in",
+          "id": "in-crawl.result-frontier",
+          "target": {
+            "nodeId": "frontier",
+            "portId": "in-crawl.result"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "crawl.system",
+      "id": "split-pipeline-crawler",
+      "ports": [
+        {
+          "contractId": "crawl.url",
+          "direction": "in",
+          "id": "in-crawl.url",
+          "target": {
+            "nodeId": "frontier",
+            "portId": "in-crawl.url"
+          }
+        },
+        {
+          "contractId": "crawl.policy",
+          "direction": "out",
+          "id": "out-crawl.policy-worker",
+          "target": {
+            "nodeId": "worker",
+            "portId": "out-crawl.policy"
+          }
+        },
+        {
+          "contractId": "crawl.lease",
+          "direction": "out",
+          "id": "out-crawl.lease-worker",
+          "target": {
+            "nodeId": "worker",
+            "portId": "out-crawl.lease"
+          }
+        },
+        {
+          "contractId": "crawl.lease",
+          "direction": "in",
+          "id": "in-crawl.lease-frontier",
+          "target": {
+            "nodeId": "frontier",
+            "portId": "in-crawl.lease"
+          }
+        },
+        {
+          "contractId": "crawl.fetch",
+          "direction": "out",
+          "id": "out-crawl.fetch-worker",
+          "target": {
+            "nodeId": "worker",
+            "portId": "out-crawl.fetch"
+          }
+        },
+        {
+          "contractId": "crawl.parse",
+          "direction": "out",
+          "id": "out-crawl.parse-worker",
+          "target": {
+            "nodeId": "worker",
+            "portId": "out-crawl.parse"
+          }
+        },
+        {
+          "contractId": "crawl.result",
+          "direction": "in",
+          "id": "in-crawl.result-frontier",
+          "target": {
+            "nodeId": "frontier",
+            "portId": "in-crawl.result"
+          }
+        }
+      ],
+      "version": 1
+    }
+  ],
+  "version": 1
+}

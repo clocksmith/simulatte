@@ -1,0 +1,4766 @@
+{
+  "components": [
+    {
+      "extends": {
+        "id": "core.client",
+        "version": 1
+      },
+      "id": "db.client",
+      "label": "Tenant application",
+      "ports": [
+        {
+          "contractId": "db.query",
+          "direction": "out",
+          "id": "out-db.query"
+        },
+        {
+          "contractId": "db.desired",
+          "direction": "out",
+          "id": "out-db.desired"
+        }
+      ],
+      "responsibility": "Own application queries and transaction intent.",
+      "stateOwnership": [
+        "pending operation IDs"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.service",
+        "version": 1
+      },
+      "id": "db.system",
+      "label": "Database service",
+      "ports": [
+        {
+          "contractId": "db.query",
+          "direction": "in",
+          "id": "in-db.query"
+        },
+        {
+          "contractId": "db.desired",
+          "direction": "in",
+          "id": "in-db.desired-engine"
+        },
+        {
+          "contractId": "db.route",
+          "direction": "out",
+          "id": "out-db.route-gateway"
+        },
+        {
+          "contractId": "db.query",
+          "direction": "out",
+          "id": "out-db.query-gateway"
+        },
+        {
+          "contractId": "db.backup",
+          "direction": "in",
+          "id": "in-db.backup-engine"
+        },
+        {
+          "contractId": "db.route",
+          "direction": "in",
+          "id": "in-db.route-engine"
+        },
+        {
+          "contractId": "db.query",
+          "direction": "in",
+          "id": "in-db.query-engine"
+        }
+      ],
+      "responsibility": "Offer tenant-scoped queries and provisioning.",
+      "stateOwnership": [
+        "logical tenant database"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.service",
+        "version": 1
+      },
+      "id": "db.gateway",
+      "label": "Authenticated query gateway",
+      "ports": [
+        {
+          "contractId": "db.query",
+          "direction": "out",
+          "id": "out-db.query"
+        },
+        {
+          "contractId": "db.query",
+          "direction": "in",
+          "id": "in-db.query"
+        },
+        {
+          "contractId": "db.route",
+          "direction": "out",
+          "id": "out-db.route"
+        }
+      ],
+      "responsibility": "Derive tenant identity from credentials; reject caller-controlled cross-tenant routing.",
+      "stateOwnership": [
+        "bounded connection pools"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "db.engine",
+      "label": "Database data plane",
+      "ports": [
+        {
+          "contractId": "db.query",
+          "direction": "in",
+          "id": "in-db.query"
+        },
+        {
+          "contractId": "db.desired",
+          "direction": "in",
+          "id": "in-db.desired"
+        },
+        {
+          "contractId": "db.backup",
+          "direction": "in",
+          "id": "in-db.backup"
+        },
+        {
+          "contractId": "db.route",
+          "direction": "in",
+          "id": "in-db.route"
+        }
+      ],
+      "responsibility": "Own transactions, indexes, WAL and database-enforced roles.",
+      "stateOwnership": [
+        "tenant data"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.service",
+        "version": 1
+      },
+      "id": "db.control",
+      "label": "Provisioning API",
+      "ports": [
+        {
+          "contractId": "db.desired",
+          "direction": "in",
+          "id": "in-db.desired"
+        },
+        {
+          "contractId": "db.desired",
+          "direction": "out",
+          "id": "out-db.desired"
+        }
+      ],
+      "responsibility": "Validate tenant requests and commit desired state before reporting accepted.",
+      "stateOwnership": [
+        "no in-memory authoritative operation status"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "db.desired",
+      "label": "Desired-state registry",
+      "ports": [
+        {
+          "contractId": "db.desired",
+          "direction": "in",
+          "id": "in-db.desired"
+        }
+      ],
+      "responsibility": "Persist desired versions, operation deduplication and observations.",
+      "stateOwnership": [
+        "tenant desired state"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "db.reconcile",
+      "label": "Provisioning reconciler",
+      "ports": [
+        {
+          "contractId": "db.desired",
+          "direction": "out",
+          "id": "out-db.desired"
+        },
+        {
+          "contractId": "db.route",
+          "direction": "out",
+          "id": "out-db.route"
+        }
+      ],
+      "responsibility": "Retry provider operations using stable resource identities and generation checks.",
+      "stateOwnership": [
+        "reconciliation progress"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.directory",
+        "version": 1
+      },
+      "id": "db.directory",
+      "label": "Tenant route directory",
+      "ports": [
+        {
+          "contractId": "db.route",
+          "direction": "in",
+          "id": "in-db.route"
+        }
+      ],
+      "responsibility": "Publish epoch-versioned tenant-to-database roles and endpoints.",
+      "stateOwnership": [
+        "route epoch"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.service",
+        "version": 1
+      },
+      "id": "db.pool",
+      "label": "Shared connection broker",
+      "ports": [
+        {
+          "contractId": "db.query",
+          "direction": "in",
+          "id": "in-db.query"
+        },
+        {
+          "contractId": "db.query",
+          "direction": "out",
+          "id": "out-db.query"
+        }
+      ],
+      "responsibility": "Set and reset tenant context for every checkout; never trust connection leftovers.",
+      "stateOwnership": [
+        "bounded sessions"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "db.quota",
+      "label": "Tenant admission policy",
+      "ports": [
+        {
+          "contractId": "db.query",
+          "direction": "in",
+          "id": "in-db.query"
+        },
+        {
+          "contractId": "db.desired",
+          "direction": "in",
+          "id": "in-db.desired"
+        }
+      ],
+      "responsibility": "Enforce per-tenant and global outstanding-work limits.",
+      "stateOwnership": [
+        "permits",
+        "quota configuration"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "db.backup",
+      "label": "Backup coordinator",
+      "ports": [
+        {
+          "contractId": "db.backup",
+          "direction": "out",
+          "id": "out-db.backup"
+        }
+      ],
+      "responsibility": "Create engine-consistent backups and retain encryption-key references without exposing secrets.",
+      "stateOwnership": [
+        "backup manifests"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "db.restore",
+      "label": "Restore verifier",
+      "ports": [
+        {
+          "contractId": "db.backup",
+          "direction": "in",
+          "id": "in-db.backup"
+        }
+      ],
+      "responsibility": "Restore to an isolated target and validate data before it becomes routable.",
+      "stateOwnership": [
+        "restore evidence"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "db.migration",
+      "label": "Cutover coordinator",
+      "ports": [
+        {
+          "contractId": "db.route",
+          "direction": "out",
+          "id": "out-db.route"
+        }
+      ],
+      "responsibility": "Fence writes, advance routing epoch and reconcile uncertain operations at migration.",
+      "stateOwnership": [
+        "migration state"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "db.control-state",
+      "label": "Unified lifecycle controller",
+      "ports": [
+        {
+          "contractId": "db.desired",
+          "direction": "out",
+          "id": "out-db.desired"
+        },
+        {
+          "contractId": "db.route",
+          "direction": "out",
+          "id": "out-db.route"
+        }
+      ],
+      "responsibility": "Own reconcile and cutover transitions under one durable desired generation.",
+      "stateOwnership": [
+        "desired generation",
+        "migration phase"
+      ],
+      "version": 1
+    }
+  ],
+  "contracts": [
+    {
+      "id": "db.query",
+      "request": {
+        "bindings": "typed values",
+        "deadlineMs": "positive integer",
+        "principal": "authenticated principal",
+        "sql": "parameterized permitted statement",
+        "tenantId": "server-derived tenant"
+      },
+      "response": {
+        "error": "bounded diagnostic|null",
+        "rows": "row[]",
+        "transactionId": "string"
+      },
+      "version": 1
+    },
+    {
+      "id": "db.desired",
+      "request": {
+        "expectedVersion": "uint64",
+        "requestId": "uuid",
+        "tenantId": "uuid",
+        "tier": "allowlisted tier"
+      },
+      "response": {
+        "desiredVersion": "uint64",
+        "observedVersion": "uint64",
+        "operationId": "uuid",
+        "status": "pending|ready|failed"
+      },
+      "version": 1
+    },
+    {
+      "id": "db.route",
+      "request": {
+        "expectedEpoch": "uint64|null",
+        "tenantId": "authenticated tenant"
+      },
+      "response": {
+        "databaseRole": "scoped role",
+        "endpoint": "private address",
+        "epoch": "uint64"
+      },
+      "version": 1
+    },
+    {
+      "id": "db.backup",
+      "request": {
+        "checkpoint": "LSN",
+        "manifestHash": "sha256",
+        "operationId": "uuid",
+        "tenantId": "uuid"
+      },
+      "response": {
+        "restoredThrough": "LSN",
+        "status": "verified|failed"
+      },
+      "version": 1
+    }
+  ],
+  "execution": {
+    "implementation": null,
+    "kind": "conceptual-design"
+  },
+  "problem": {
+    "referenceId": "L001",
+    "requirements": [
+      {
+        "id": "isolate",
+        "text": "Authenticate every request and enforce tenant isolation through routing and database authorization."
+      },
+      {
+        "id": "provision",
+        "text": "Reconcile durable desired state with idempotent provisioning and explicit observed status."
+      },
+      {
+        "id": "capacity",
+        "text": "Apply tenant quotas and bounded admission without claiming simulation concurrency maps directly to CPU."
+      },
+      {
+        "id": "recover",
+        "text": "Back up and restore consistently; fence migrations and verify the restored data before cutover."
+      }
+    ],
+    "scope": "Study a control plane that provisions database access and a separate data plane. This design delegates transactions, WAL and replication to a real database engine rather than inventing a database in an API wrapper.",
+    "studyLabel": "Database service with tenant isolation"
+  },
+  "provenance": {
+    "kind": "authored-practice",
+    "note": "Authored interview preparation. Technical references support mechanisms, not the claim that a company asked this question."
+  },
+  "references": [
+    {
+      "id": "controller",
+      "scope": "background",
+      "supports": "Desired state and reconciliation.",
+      "title": "Kubernetes controller pattern",
+      "url": "https://kubernetes.io/docs/concepts/architecture/controller/"
+    },
+    {
+      "id": "quotas",
+      "scope": "background",
+      "supports": "Isolation budgets require explicit limits.",
+      "title": "Resource quotas",
+      "url": "https://kubernetes.io/docs/concepts/policy/resource-quotas/"
+    },
+    {
+      "id": "locks",
+      "scope": "background",
+      "supports": "Transaction and schema-change concurrency.",
+      "title": "PostgreSQL locking",
+      "url": "https://www.postgresql.org/docs/current/explicit-locking.html"
+    }
+  ],
+  "schema": "simulatte.composableStudy.v1",
+  "solutions": [
+    {
+      "acceptanceCases": [
+        {
+          "given": "Tenant A and B share a gateway or pool.",
+          "id": "tenant-isolation",
+          "relatedRequirementIds": [
+            "isolate"
+          ],
+          "then": "Authentication-derived scoping and database permissions prevent access to B.",
+          "when": "A forges tenant B in a query and a pooled session is reused."
+        },
+        {
+          "given": "Provider created a resource but the controller lost its reply.",
+          "id": "reconcile-retry",
+          "relatedRequirementIds": [
+            "provision"
+          ],
+          "then": "Discover and adopt the stable resource ID; no second resource is created.",
+          "when": "Restart reconciliation with the same desired generation."
+        },
+        {
+          "given": "Tenant A fills its concurrency budget.",
+          "id": "quota",
+          "relatedRequirementIds": [
+            "capacity"
+          ],
+          "then": "A gets bounded overload; B retains its configured share, subject to global capacity.",
+          "when": "A and B submit another query."
+        },
+        {
+          "given": "A verified checkpoint and WAL are retained.",
+          "id": "restore",
+          "relatedRequirementIds": [
+            "recover"
+          ],
+          "then": "Validate schema, checksums and committed records through the stated position.",
+          "when": "Restore to a fresh isolated target."
+        },
+        {
+          "given": "Old and new targets coexist during migration.",
+          "id": "cutover",
+          "relatedRequirementIds": [
+            "recover",
+            "isolate"
+          ],
+          "then": "Old target rejects the stale write and the client receives an explicit retry/uncertain outcome.",
+          "when": "A delayed write uses the old route epoch after cutover."
+        }
+      ],
+      "algorithms": [
+        {
+          "code": "const desired = loadDesired(tenant);\nconst resource = await ensureResource(stableResourceId(tenant), desired.spec);\nif (loadDesired(tenant).version !== desired.version) return Retry;\nawait validateDatabaseRoleAndHealth(resource, tenant);\npublishObservedStatusWithCAS(tenant, desired.version, resource);\n// Cutover: fence old writer -> verify replay position -> CAS route epoch -> enable new writer.\n// On an ambiguous provider response, observe by stable ID before creating anything else.",
+          "guarantees": [
+            "A retry cannot create an unrelated duplicate database or publish stale status."
+          ],
+          "id": "reconcile-generation",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "control-state"
+        }
+      ],
+      "apis": [
+        {
+          "errors": "409 stale version; 403 tenant mismatch",
+          "method": "PUT",
+          "ownerNodeId": "control",
+          "path": "/tenants/{id}/database",
+          "request": "{requestId,expectedVersion,tier}",
+          "response": "{operationId,desiredVersion,status}"
+        }
+      ],
+      "assumptions": [
+        "The database engine supplies durable transactional behavior.",
+        "Capacity promises require measured resource qualification, not simulation parameter conversion."
+      ],
+      "chooseWhen": "Strong fault and performance isolation justifies per-tenant resource overhead.",
+      "id": "dedicated",
+      "initialGraph": {
+        "edges": [],
+        "nodes": []
+      },
+      "stages": [
+        {
+          "checkIds": [
+            "tenant-isolation"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "db.query",
+                "from": {
+                  "nodeId": "client",
+                  "portId": "out-db.query"
+                },
+                "id": "query",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-db.query"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "db.client",
+                "id": "client",
+                "label": "Tenant application",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.system",
+                "id": "system",
+                "label": "Database service",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "dedicated-s1",
+          "invariants": [
+            "Tenant identity is authenticated, not accepted from an arbitrary URL."
+          ],
+          "number": 1,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "db.client",
+                "id": "client",
+                "label": "Tenant application",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "db.system",
+                "id": "system",
+                "label": "Database service",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "db.query",
+                "from": {
+                  "nodeId": "client",
+                  "portId": "out-db.query"
+                },
+                "id": "query",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-db.query"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What can the tenant request?",
+          "reason": "Begin with an application and a logical database boundary.",
+          "title": "Separate tenant intent from service"
+        },
+        {
+          "checkIds": [
+            "tenant-isolation"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "db.query",
+                "from": {
+                  "nodeId": "client",
+                  "portId": "out-db.query"
+                },
+                "id": "query",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-db.query"
+                }
+              },
+              {
+                "contractId": "db.query",
+                "from": {
+                  "nodeId": "gateway",
+                  "portId": "out-db.query"
+                },
+                "id": "execute",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "engine",
+                  "portId": "in-db.query"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "db.client",
+                "id": "client",
+                "label": "Tenant application",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.system",
+                "id": "system",
+                "label": "Database service",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "dedicated-data-plane",
+                "version": 1
+              },
+              {
+                "definitionId": "db.gateway",
+                "id": "gateway",
+                "label": "Authenticated query gateway",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.engine",
+                "id": "engine",
+                "label": "Database data plane",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "dedicated-s2",
+          "invariants": [
+            "Gateway retries do not invent transaction success."
+          ],
+          "number": 2,
+          "operations": [
+            {
+              "edges": [
+                {
+                  "contractId": "db.query",
+                  "from": {
+                    "nodeId": "gateway",
+                    "portId": "out-db.query"
+                  },
+                  "id": "execute",
+                  "mode": "storage",
+                  "to": {
+                    "nodeId": "engine",
+                    "portId": "in-db.query"
+                  }
+                }
+              ],
+              "nodeId": "system",
+              "nodes": [
+                {
+                  "definitionId": "db.gateway",
+                  "id": "gateway",
+                  "label": "Authenticated query gateway",
+                  "position": {
+                    "x": 560,
+                    "y": 0
+                  },
+                  "version": 1
+                },
+                {
+                  "definitionId": "db.engine",
+                  "id": "engine",
+                  "label": "Database data plane",
+                  "position": {
+                    "x": 840,
+                    "y": 0
+                  },
+                  "version": 1
+                }
+              ],
+              "op": "expand",
+              "subsystemId": "dedicated-data-plane"
+            }
+          ],
+          "question": "Who owns transaction state?",
+          "reason": "Expand the service into query validation and the actual storage engine.",
+          "title": "Expose the data-plane boundary"
+        },
+        {
+          "checkIds": [
+            "reconcile-retry"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "db.query",
+                "from": {
+                  "nodeId": "client",
+                  "portId": "out-db.query"
+                },
+                "id": "query",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-db.query"
+                }
+              },
+              {
+                "contractId": "db.query",
+                "from": {
+                  "nodeId": "gateway",
+                  "portId": "out-db.query"
+                },
+                "id": "execute",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "engine",
+                  "portId": "in-db.query"
+                }
+              },
+              {
+                "contractId": "db.desired",
+                "from": {
+                  "nodeId": "client",
+                  "portId": "out-db.desired"
+                },
+                "id": "provision",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "control",
+                  "portId": "in-db.desired"
+                }
+              },
+              {
+                "contractId": "db.desired",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-db.desired"
+                },
+                "id": "desired",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "desired",
+                  "portId": "in-db.desired"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "db.client",
+                "id": "client",
+                "label": "Tenant application",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.system",
+                "id": "system",
+                "label": "Database service",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "dedicated-data-plane",
+                "version": 1
+              },
+              {
+                "definitionId": "db.gateway",
+                "id": "gateway",
+                "label": "Authenticated query gateway",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.engine",
+                "id": "engine",
+                "label": "Database data plane",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.control",
+                "id": "control",
+                "label": "Provisioning API",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.desired",
+                "id": "desired",
+                "label": "Desired-state registry",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "dedicated-s3",
+          "invariants": [
+            "Accepted means desired state is durable, not that a database is ready."
+          ],
+          "number": 3,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "db.control",
+                "id": "control",
+                "label": "Provisioning API",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "db.desired",
+                "id": "desired",
+                "label": "Desired-state registry",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "db.desired",
+                "from": {
+                  "nodeId": "client",
+                  "portId": "out-db.desired"
+                },
+                "id": "provision",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "control",
+                  "portId": "in-db.desired"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "db.desired",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-db.desired"
+                },
+                "id": "desired",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "desired",
+                  "portId": "in-db.desired"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Does an accepted request survive a controller crash?",
+          "reason": "Introduce a separate control API and durable desired-state registry.",
+          "title": "Persist provisioning intent"
+        },
+        {
+          "checkIds": [
+            "reconcile-retry"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "db.query",
+                "from": {
+                  "nodeId": "client",
+                  "portId": "out-db.query"
+                },
+                "id": "query",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-db.query"
+                }
+              },
+              {
+                "contractId": "db.query",
+                "from": {
+                  "nodeId": "gateway",
+                  "portId": "out-db.query"
+                },
+                "id": "execute",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "engine",
+                  "portId": "in-db.query"
+                }
+              },
+              {
+                "contractId": "db.desired",
+                "from": {
+                  "nodeId": "client",
+                  "portId": "out-db.desired"
+                },
+                "id": "provision",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "control",
+                  "portId": "in-db.desired"
+                }
+              },
+              {
+                "contractId": "db.desired",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-db.desired"
+                },
+                "id": "desired",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "desired",
+                  "portId": "in-db.desired"
+                }
+              },
+              {
+                "contractId": "db.desired",
+                "from": {
+                  "nodeId": "reconcile",
+                  "portId": "out-db.desired"
+                },
+                "id": "watch-desired",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "desired",
+                  "portId": "in-db.desired"
+                }
+              },
+              {
+                "contractId": "db.desired",
+                "from": {
+                  "nodeId": "reconcile",
+                  "portId": "out-db.desired"
+                },
+                "id": "ensure-data-plane",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-db.desired-engine"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "db.client",
+                "id": "client",
+                "label": "Tenant application",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.system",
+                "id": "system",
+                "label": "Database service",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "dedicated-data-plane",
+                "version": 1
+              },
+              {
+                "definitionId": "db.gateway",
+                "id": "gateway",
+                "label": "Authenticated query gateway",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.engine",
+                "id": "engine",
+                "label": "Database data plane",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.control",
+                "id": "control",
+                "label": "Provisioning API",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.desired",
+                "id": "desired",
+                "label": "Desired-state registry",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.reconcile",
+                "id": "reconcile",
+                "label": "Provisioning reconciler",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "dedicated-s4",
+          "invariants": [
+            "Stale desired generations cannot publish ready for a newer request."
+          ],
+          "number": 4,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "db.reconcile",
+                "id": "reconcile",
+                "label": "Provisioning reconciler",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "db.desired",
+                "from": {
+                  "nodeId": "reconcile",
+                  "portId": "out-db.desired"
+                },
+                "id": "watch-desired",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "desired",
+                  "portId": "in-db.desired"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "db.desired",
+                "from": {
+                  "nodeId": "reconcile",
+                  "portId": "out-db.desired"
+                },
+                "id": "ensure-data-plane",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-db.desired-engine"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What happens after a partial provider success?",
+          "reason": "Add a controller whose retries use stable resource IDs and generation guards.",
+          "title": "Reconcile resources to desired state"
+        },
+        {
+          "checkIds": [
+            "tenant-isolation"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "db.query",
+                "from": {
+                  "nodeId": "client",
+                  "portId": "out-db.query"
+                },
+                "id": "query",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-db.query"
+                }
+              },
+              {
+                "contractId": "db.query",
+                "from": {
+                  "nodeId": "gateway",
+                  "portId": "out-db.query"
+                },
+                "id": "execute",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "engine",
+                  "portId": "in-db.query"
+                }
+              },
+              {
+                "contractId": "db.desired",
+                "from": {
+                  "nodeId": "client",
+                  "portId": "out-db.desired"
+                },
+                "id": "provision",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "control",
+                  "portId": "in-db.desired"
+                }
+              },
+              {
+                "contractId": "db.desired",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-db.desired"
+                },
+                "id": "desired",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "desired",
+                  "portId": "in-db.desired"
+                }
+              },
+              {
+                "contractId": "db.desired",
+                "from": {
+                  "nodeId": "reconcile",
+                  "portId": "out-db.desired"
+                },
+                "id": "watch-desired",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "desired",
+                  "portId": "in-db.desired"
+                }
+              },
+              {
+                "contractId": "db.desired",
+                "from": {
+                  "nodeId": "reconcile",
+                  "portId": "out-db.desired"
+                },
+                "id": "ensure-data-plane",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-db.desired-engine"
+                }
+              },
+              {
+                "contractId": "db.route",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-db.route-gateway"
+                },
+                "id": "resolve",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "directory",
+                  "portId": "in-db.route"
+                }
+              },
+              {
+                "contractId": "db.route",
+                "from": {
+                  "nodeId": "reconcile",
+                  "portId": "out-db.route"
+                },
+                "id": "publish-route",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "directory",
+                  "portId": "in-db.route"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "db.client",
+                "id": "client",
+                "label": "Tenant application",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.system",
+                "id": "system",
+                "label": "Database service",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "dedicated-data-plane",
+                "version": 1
+              },
+              {
+                "definitionId": "db.gateway",
+                "id": "gateway",
+                "label": "Authenticated query gateway",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.engine",
+                "id": "engine",
+                "label": "Database data plane",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.control",
+                "id": "control",
+                "label": "Provisioning API",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.desired",
+                "id": "desired",
+                "label": "Desired-state registry",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.reconcile",
+                "id": "reconcile",
+                "label": "Provisioning reconciler",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.directory",
+                "id": "directory",
+                "label": "Tenant route directory",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "dedicated-s5",
+          "invariants": [
+            "Never reuse a pooled session with another tenant context still installed."
+          ],
+          "number": 5,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "db.directory",
+                "id": "directory",
+                "label": "Tenant route directory",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "db.route",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-db.route-gateway"
+                },
+                "id": "resolve",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "directory",
+                  "portId": "in-db.route"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "db.route",
+                "from": {
+                  "nodeId": "reconcile",
+                  "portId": "out-db.route"
+                },
+                "id": "publish-route",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "directory",
+                  "portId": "in-db.route"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How do queries reach the correct isolation boundary?",
+          "reason": "Make tenant routing and pooled-session reset obligations explicit.",
+          "title": "Route tenants to dedicated endpoints"
+        },
+        {
+          "checkIds": [
+            "quota"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "db.query",
+                "from": {
+                  "nodeId": "client",
+                  "portId": "out-db.query"
+                },
+                "id": "query",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-db.query"
+                }
+              },
+              {
+                "contractId": "db.query",
+                "from": {
+                  "nodeId": "gateway",
+                  "portId": "out-db.query"
+                },
+                "id": "execute",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "engine",
+                  "portId": "in-db.query"
+                }
+              },
+              {
+                "contractId": "db.desired",
+                "from": {
+                  "nodeId": "client",
+                  "portId": "out-db.desired"
+                },
+                "id": "provision",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "control",
+                  "portId": "in-db.desired"
+                }
+              },
+              {
+                "contractId": "db.desired",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-db.desired"
+                },
+                "id": "desired",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "desired",
+                  "portId": "in-db.desired"
+                }
+              },
+              {
+                "contractId": "db.desired",
+                "from": {
+                  "nodeId": "reconcile",
+                  "portId": "out-db.desired"
+                },
+                "id": "watch-desired",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "desired",
+                  "portId": "in-db.desired"
+                }
+              },
+              {
+                "contractId": "db.desired",
+                "from": {
+                  "nodeId": "reconcile",
+                  "portId": "out-db.desired"
+                },
+                "id": "ensure-data-plane",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-db.desired-engine"
+                }
+              },
+              {
+                "contractId": "db.route",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-db.route-gateway"
+                },
+                "id": "resolve",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "directory",
+                  "portId": "in-db.route"
+                }
+              },
+              {
+                "contractId": "db.route",
+                "from": {
+                  "nodeId": "reconcile",
+                  "portId": "out-db.route"
+                },
+                "id": "publish-route",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "directory",
+                  "portId": "in-db.route"
+                }
+              },
+              {
+                "contractId": "db.query",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-db.query-gateway"
+                },
+                "id": "admission",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "quota",
+                  "portId": "in-db.query"
+                }
+              },
+              {
+                "contractId": "db.desired",
+                "from": {
+                  "nodeId": "reconcile",
+                  "portId": "out-db.desired"
+                },
+                "id": "quota-config",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "quota",
+                  "portId": "in-db.desired"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "db.client",
+                "id": "client",
+                "label": "Tenant application",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.system",
+                "id": "system",
+                "label": "Database service",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "dedicated-data-plane",
+                "version": 1
+              },
+              {
+                "definitionId": "db.gateway",
+                "id": "gateway",
+                "label": "Authenticated query gateway",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.engine",
+                "id": "engine",
+                "label": "Database data plane",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.control",
+                "id": "control",
+                "label": "Provisioning API",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.desired",
+                "id": "desired",
+                "label": "Desired-state registry",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.reconcile",
+                "id": "reconcile",
+                "label": "Provisioning reconciler",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.directory",
+                "id": "directory",
+                "label": "Tenant route directory",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.quota",
+                "id": "quota",
+                "label": "Tenant admission policy",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "dedicated-s6",
+          "invariants": [
+            "All terminal query paths release admission permits."
+          ],
+          "number": 6,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "db.quota",
+                "id": "quota",
+                "label": "Tenant admission policy",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "db.query",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-db.query-gateway"
+                },
+                "id": "admission",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "quota",
+                  "portId": "in-db.query"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "db.desired",
+                "from": {
+                  "nodeId": "reconcile",
+                  "portId": "out-db.desired"
+                },
+                "id": "quota-config",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "quota",
+                  "portId": "in-db.desired"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How is one tenant prevented from exhausting the pool?",
+          "reason": "Add tenant and global admission before database work.",
+          "title": "Bound per-tenant work"
+        },
+        {
+          "checkIds": [
+            "restore"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "db.query",
+                "from": {
+                  "nodeId": "client",
+                  "portId": "out-db.query"
+                },
+                "id": "query",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-db.query"
+                }
+              },
+              {
+                "contractId": "db.query",
+                "from": {
+                  "nodeId": "gateway",
+                  "portId": "out-db.query"
+                },
+                "id": "execute",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "engine",
+                  "portId": "in-db.query"
+                }
+              },
+              {
+                "contractId": "db.desired",
+                "from": {
+                  "nodeId": "client",
+                  "portId": "out-db.desired"
+                },
+                "id": "provision",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "control",
+                  "portId": "in-db.desired"
+                }
+              },
+              {
+                "contractId": "db.desired",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-db.desired"
+                },
+                "id": "desired",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "desired",
+                  "portId": "in-db.desired"
+                }
+              },
+              {
+                "contractId": "db.desired",
+                "from": {
+                  "nodeId": "reconcile",
+                  "portId": "out-db.desired"
+                },
+                "id": "watch-desired",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "desired",
+                  "portId": "in-db.desired"
+                }
+              },
+              {
+                "contractId": "db.desired",
+                "from": {
+                  "nodeId": "reconcile",
+                  "portId": "out-db.desired"
+                },
+                "id": "ensure-data-plane",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-db.desired-engine"
+                }
+              },
+              {
+                "contractId": "db.route",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-db.route-gateway"
+                },
+                "id": "resolve",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "directory",
+                  "portId": "in-db.route"
+                }
+              },
+              {
+                "contractId": "db.route",
+                "from": {
+                  "nodeId": "reconcile",
+                  "portId": "out-db.route"
+                },
+                "id": "publish-route",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "directory",
+                  "portId": "in-db.route"
+                }
+              },
+              {
+                "contractId": "db.query",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-db.query-gateway"
+                },
+                "id": "admission",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "quota",
+                  "portId": "in-db.query"
+                }
+              },
+              {
+                "contractId": "db.desired",
+                "from": {
+                  "nodeId": "reconcile",
+                  "portId": "out-db.desired"
+                },
+                "id": "quota-config",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "quota",
+                  "portId": "in-db.desired"
+                }
+              },
+              {
+                "contractId": "db.backup",
+                "from": {
+                  "nodeId": "backup",
+                  "portId": "out-db.backup"
+                },
+                "id": "consistent-backup",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-db.backup-engine"
+                }
+              },
+              {
+                "contractId": "db.backup",
+                "from": {
+                  "nodeId": "backup",
+                  "portId": "out-db.backup"
+                },
+                "id": "restore-test",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "restore",
+                  "portId": "in-db.backup"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "db.client",
+                "id": "client",
+                "label": "Tenant application",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.system",
+                "id": "system",
+                "label": "Database service",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "dedicated-data-plane",
+                "version": 1
+              },
+              {
+                "definitionId": "db.gateway",
+                "id": "gateway",
+                "label": "Authenticated query gateway",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.engine",
+                "id": "engine",
+                "label": "Database data plane",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.control",
+                "id": "control",
+                "label": "Provisioning API",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.desired",
+                "id": "desired",
+                "label": "Desired-state registry",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.reconcile",
+                "id": "reconcile",
+                "label": "Provisioning reconciler",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.directory",
+                "id": "directory",
+                "label": "Tenant route directory",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.quota",
+                "id": "quota",
+                "label": "Tenant admission policy",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.backup",
+                "id": "backup",
+                "label": "Backup coordinator",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.restore",
+                "id": "restore",
+                "label": "Restore verifier",
+                "position": {
+                  "x": 560,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "dedicated-s7",
+          "invariants": [
+            "A backup manifest without a successful restore is not recovery proof."
+          ],
+          "number": 7,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "db.backup",
+                "id": "backup",
+                "label": "Backup coordinator",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "db.restore",
+                "id": "restore",
+                "label": "Restore verifier",
+                "position": {
+                  "x": 560,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "db.backup",
+                "from": {
+                  "nodeId": "backup",
+                  "portId": "out-db.backup"
+                },
+                "id": "consistent-backup",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-db.backup-engine"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "db.backup",
+                "from": {
+                  "nodeId": "backup",
+                  "portId": "out-db.backup"
+                },
+                "id": "restore-test",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "restore",
+                  "portId": "in-db.backup"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Is a backup usable or merely present?",
+          "reason": "Add engine-consistent backup and isolated restore verification.",
+          "title": "Prove restore before routing it"
+        },
+        {
+          "checkIds": [
+            "cutover",
+            "reconcile-retry"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "db.query",
+                "from": {
+                  "nodeId": "client",
+                  "portId": "out-db.query"
+                },
+                "id": "query",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-db.query"
+                }
+              },
+              {
+                "contractId": "db.query",
+                "from": {
+                  "nodeId": "gateway",
+                  "portId": "out-db.query"
+                },
+                "id": "execute",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "engine",
+                  "portId": "in-db.query"
+                }
+              },
+              {
+                "contractId": "db.desired",
+                "from": {
+                  "nodeId": "client",
+                  "portId": "out-db.desired"
+                },
+                "id": "provision",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "control",
+                  "portId": "in-db.desired"
+                }
+              },
+              {
+                "contractId": "db.desired",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-db.desired"
+                },
+                "id": "desired",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "desired",
+                  "portId": "in-db.desired"
+                }
+              },
+              {
+                "contractId": "db.desired",
+                "from": {
+                  "nodeId": "control-state",
+                  "portId": "out-db.desired"
+                },
+                "id": "watch-desired",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "desired",
+                  "portId": "in-db.desired"
+                }
+              },
+              {
+                "contractId": "db.desired",
+                "from": {
+                  "nodeId": "control-state",
+                  "portId": "out-db.desired"
+                },
+                "id": "ensure-data-plane",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-db.desired-engine"
+                }
+              },
+              {
+                "contractId": "db.route",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-db.route-gateway"
+                },
+                "id": "resolve",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "directory",
+                  "portId": "in-db.route"
+                }
+              },
+              {
+                "contractId": "db.route",
+                "from": {
+                  "nodeId": "control-state",
+                  "portId": "out-db.route"
+                },
+                "id": "publish-route",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "directory",
+                  "portId": "in-db.route"
+                }
+              },
+              {
+                "contractId": "db.query",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-db.query-gateway"
+                },
+                "id": "admission",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "quota",
+                  "portId": "in-db.query"
+                }
+              },
+              {
+                "contractId": "db.desired",
+                "from": {
+                  "nodeId": "control-state",
+                  "portId": "out-db.desired"
+                },
+                "id": "quota-config",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "quota",
+                  "portId": "in-db.desired"
+                }
+              },
+              {
+                "contractId": "db.backup",
+                "from": {
+                  "nodeId": "backup",
+                  "portId": "out-db.backup"
+                },
+                "id": "consistent-backup",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-db.backup-engine"
+                }
+              },
+              {
+                "contractId": "db.backup",
+                "from": {
+                  "nodeId": "backup",
+                  "portId": "out-db.backup"
+                },
+                "id": "restore-test",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "restore",
+                  "portId": "in-db.backup"
+                }
+              },
+              {
+                "contractId": "db.route",
+                "from": {
+                  "nodeId": "control-state",
+                  "portId": "out-db.route"
+                },
+                "id": "fence-writes",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-db.route-engine"
+                }
+              },
+              {
+                "contractId": "db.route",
+                "from": {
+                  "nodeId": "control-state",
+                  "portId": "out-db.route"
+                },
+                "id": "advance-route",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "directory",
+                  "portId": "in-db.route"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "db.client",
+                "id": "client",
+                "label": "Tenant application",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.system",
+                "id": "system",
+                "label": "Database service",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "dedicated-data-plane",
+                "version": 1
+              },
+              {
+                "definitionId": "db.gateway",
+                "id": "gateway",
+                "label": "Authenticated query gateway",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.engine",
+                "id": "engine",
+                "label": "Database data plane",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.control",
+                "id": "control",
+                "label": "Provisioning API",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.desired",
+                "id": "desired",
+                "label": "Desired-state registry",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.directory",
+                "id": "directory",
+                "label": "Tenant route directory",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.quota",
+                "id": "quota",
+                "label": "Tenant admission policy",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.backup",
+                "id": "backup",
+                "label": "Backup coordinator",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.restore",
+                "id": "restore",
+                "label": "Restore verifier",
+                "position": {
+                  "x": 560,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.control-state",
+                "id": "control-state",
+                "label": "Unified lifecycle controller",
+                "lineageIds": [
+                  "reconcile",
+                  "migration"
+                ],
+                "position": {
+                  "x": 0,
+                  "y": 540
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "dedicated-s8",
+          "invariants": [
+            "Only the new epoch becomes writable after cutover; old targets reject stale epochs."
+          ],
+          "number": 8,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "db.migration",
+                "id": "migration",
+                "label": "Cutover coordinator",
+                "position": {
+                  "x": 840,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "db.route",
+                "from": {
+                  "nodeId": "migration",
+                  "portId": "out-db.route"
+                },
+                "id": "fence-writes",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-db.route-engine"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "db.route",
+                "from": {
+                  "nodeId": "migration",
+                  "portId": "out-db.route"
+                },
+                "id": "advance-route",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "directory",
+                  "portId": "in-db.route"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "node": {
+                "definitionId": "db.control-state",
+                "id": "control-state",
+                "label": "Unified lifecycle controller",
+                "position": {
+                  "x": 0,
+                  "y": 540
+                },
+                "version": 1
+              },
+              "nodeIds": [
+                "reconcile",
+                "migration"
+              ],
+              "op": "merge",
+              "reason": "One durable lifecycle state machine owns provisioning and cutover epochs."
+            }
+          ],
+          "question": "Can an old route still accept writes during migration?",
+          "reason": "Add write fencing and join lifecycle decisions under one desired generation.",
+          "title": "Unify reconciliation and fenced cutover"
+        }
+      ],
+      "title": "Dedicated tenant data planes",
+      "tradeoffs": [
+        "Idle resources and fleet upgrades cost more.",
+        "Tenant placement and provisioning still need a control plane."
+      ]
+    },
+    {
+      "acceptanceCases": [
+        {
+          "given": "Tenant A and B share a gateway or pool.",
+          "id": "tenant-isolation",
+          "relatedRequirementIds": [
+            "isolate"
+          ],
+          "then": "Authentication-derived scoping and database permissions prevent access to B.",
+          "when": "A forges tenant B in a query and a pooled session is reused."
+        },
+        {
+          "given": "Provider created a resource but the controller lost its reply.",
+          "id": "reconcile-retry",
+          "relatedRequirementIds": [
+            "provision"
+          ],
+          "then": "Discover and adopt the stable resource ID; no second resource is created.",
+          "when": "Restart reconciliation with the same desired generation."
+        },
+        {
+          "given": "Tenant A fills its concurrency budget.",
+          "id": "quota",
+          "relatedRequirementIds": [
+            "capacity"
+          ],
+          "then": "A gets bounded overload; B retains its configured share, subject to global capacity.",
+          "when": "A and B submit another query."
+        },
+        {
+          "given": "A verified checkpoint and WAL are retained.",
+          "id": "restore",
+          "relatedRequirementIds": [
+            "recover"
+          ],
+          "then": "Validate schema, checksums and committed records through the stated position.",
+          "when": "Restore to a fresh isolated target."
+        },
+        {
+          "given": "Old and new targets coexist during migration.",
+          "id": "cutover",
+          "relatedRequirementIds": [
+            "recover",
+            "isolate"
+          ],
+          "then": "Old target rejects the stale write and the client receives an explicit retry/uncertain outcome.",
+          "when": "A delayed write uses the old route epoch after cutover."
+        }
+      ],
+      "algorithms": [
+        {
+          "code": "const desired = loadDesired(tenant);\nconst resource = await ensureResource(stableResourceId(tenant), desired.spec);\nif (loadDesired(tenant).version !== desired.version) return Retry;\nawait validateDatabaseRoleAndHealth(resource, tenant);\npublishObservedStatusWithCAS(tenant, desired.version, resource);\n// Cutover: fence old writer -> verify replay position -> CAS route epoch -> enable new writer.\n// On an ambiguous provider response, observe by stable ID before creating anything else.",
+          "guarantees": [
+            "A retry cannot create an unrelated duplicate database or publish stale status."
+          ],
+          "id": "reconcile-generation",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "control-state"
+        }
+      ],
+      "apis": [
+        {
+          "errors": "409 stale version; 403 tenant mismatch",
+          "method": "PUT",
+          "ownerNodeId": "control",
+          "path": "/tenants/{id}/database",
+          "request": "{requestId,expectedVersion,tier}",
+          "response": "{operationId,desiredVersion,status}"
+        }
+      ],
+      "assumptions": [
+        "The database engine supplies durable transactional behavior.",
+        "Capacity promises require measured resource qualification, not simulation parameter conversion."
+      ],
+      "chooseWhen": "Many smaller tenants benefit from pooled resources with enforced tenant authorization.",
+      "id": "shared",
+      "initialGraph": {
+        "edges": [],
+        "nodes": []
+      },
+      "stages": [
+        {
+          "checkIds": [
+            "tenant-isolation"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "db.query",
+                "from": {
+                  "nodeId": "client",
+                  "portId": "out-db.query"
+                },
+                "id": "query",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-db.query"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "db.client",
+                "id": "client",
+                "label": "Tenant application",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.system",
+                "id": "system",
+                "label": "Database service",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "shared-s1",
+          "invariants": [
+            "Tenant identity is authenticated, not accepted from an arbitrary URL."
+          ],
+          "number": 1,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "db.client",
+                "id": "client",
+                "label": "Tenant application",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "db.system",
+                "id": "system",
+                "label": "Database service",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "db.query",
+                "from": {
+                  "nodeId": "client",
+                  "portId": "out-db.query"
+                },
+                "id": "query",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-db.query"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What can the tenant request?",
+          "reason": "Begin with an application and a logical database boundary.",
+          "title": "Separate tenant intent from service"
+        },
+        {
+          "checkIds": [
+            "tenant-isolation"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "db.query",
+                "from": {
+                  "nodeId": "client",
+                  "portId": "out-db.query"
+                },
+                "id": "query",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-db.query"
+                }
+              },
+              {
+                "contractId": "db.query",
+                "from": {
+                  "nodeId": "gateway",
+                  "portId": "out-db.query"
+                },
+                "id": "execute",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "engine",
+                  "portId": "in-db.query"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "db.client",
+                "id": "client",
+                "label": "Tenant application",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.system",
+                "id": "system",
+                "label": "Database service",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "shared-data-plane",
+                "version": 1
+              },
+              {
+                "definitionId": "db.gateway",
+                "id": "gateway",
+                "label": "Authenticated query gateway",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.engine",
+                "id": "engine",
+                "label": "Database data plane",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "shared-s2",
+          "invariants": [
+            "Gateway retries do not invent transaction success."
+          ],
+          "number": 2,
+          "operations": [
+            {
+              "edges": [
+                {
+                  "contractId": "db.query",
+                  "from": {
+                    "nodeId": "gateway",
+                    "portId": "out-db.query"
+                  },
+                  "id": "execute",
+                  "mode": "storage",
+                  "to": {
+                    "nodeId": "engine",
+                    "portId": "in-db.query"
+                  }
+                }
+              ],
+              "nodeId": "system",
+              "nodes": [
+                {
+                  "definitionId": "db.gateway",
+                  "id": "gateway",
+                  "label": "Authenticated query gateway",
+                  "position": {
+                    "x": 560,
+                    "y": 0
+                  },
+                  "version": 1
+                },
+                {
+                  "definitionId": "db.engine",
+                  "id": "engine",
+                  "label": "Database data plane",
+                  "position": {
+                    "x": 840,
+                    "y": 0
+                  },
+                  "version": 1
+                }
+              ],
+              "op": "expand",
+              "subsystemId": "shared-data-plane"
+            }
+          ],
+          "question": "Who owns transaction state?",
+          "reason": "Expand the service into query validation and the actual storage engine.",
+          "title": "Expose the data-plane boundary"
+        },
+        {
+          "checkIds": [
+            "reconcile-retry"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "db.query",
+                "from": {
+                  "nodeId": "client",
+                  "portId": "out-db.query"
+                },
+                "id": "query",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-db.query"
+                }
+              },
+              {
+                "contractId": "db.query",
+                "from": {
+                  "nodeId": "gateway",
+                  "portId": "out-db.query"
+                },
+                "id": "execute",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "engine",
+                  "portId": "in-db.query"
+                }
+              },
+              {
+                "contractId": "db.desired",
+                "from": {
+                  "nodeId": "client",
+                  "portId": "out-db.desired"
+                },
+                "id": "provision",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "control",
+                  "portId": "in-db.desired"
+                }
+              },
+              {
+                "contractId": "db.desired",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-db.desired"
+                },
+                "id": "desired",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "desired",
+                  "portId": "in-db.desired"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "db.client",
+                "id": "client",
+                "label": "Tenant application",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.system",
+                "id": "system",
+                "label": "Database service",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "shared-data-plane",
+                "version": 1
+              },
+              {
+                "definitionId": "db.gateway",
+                "id": "gateway",
+                "label": "Authenticated query gateway",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.engine",
+                "id": "engine",
+                "label": "Database data plane",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.control",
+                "id": "control",
+                "label": "Provisioning API",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.desired",
+                "id": "desired",
+                "label": "Desired-state registry",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "shared-s3",
+          "invariants": [
+            "Accepted means desired state is durable, not that a database is ready."
+          ],
+          "number": 3,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "db.control",
+                "id": "control",
+                "label": "Provisioning API",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "db.desired",
+                "id": "desired",
+                "label": "Desired-state registry",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "db.desired",
+                "from": {
+                  "nodeId": "client",
+                  "portId": "out-db.desired"
+                },
+                "id": "provision",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "control",
+                  "portId": "in-db.desired"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "db.desired",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-db.desired"
+                },
+                "id": "desired",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "desired",
+                  "portId": "in-db.desired"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Does an accepted request survive a controller crash?",
+          "reason": "Introduce a separate control API and durable desired-state registry.",
+          "title": "Persist provisioning intent"
+        },
+        {
+          "checkIds": [
+            "reconcile-retry"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "db.query",
+                "from": {
+                  "nodeId": "client",
+                  "portId": "out-db.query"
+                },
+                "id": "query",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-db.query"
+                }
+              },
+              {
+                "contractId": "db.query",
+                "from": {
+                  "nodeId": "gateway",
+                  "portId": "out-db.query"
+                },
+                "id": "execute",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "engine",
+                  "portId": "in-db.query"
+                }
+              },
+              {
+                "contractId": "db.desired",
+                "from": {
+                  "nodeId": "client",
+                  "portId": "out-db.desired"
+                },
+                "id": "provision",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "control",
+                  "portId": "in-db.desired"
+                }
+              },
+              {
+                "contractId": "db.desired",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-db.desired"
+                },
+                "id": "desired",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "desired",
+                  "portId": "in-db.desired"
+                }
+              },
+              {
+                "contractId": "db.desired",
+                "from": {
+                  "nodeId": "reconcile",
+                  "portId": "out-db.desired"
+                },
+                "id": "watch-desired",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "desired",
+                  "portId": "in-db.desired"
+                }
+              },
+              {
+                "contractId": "db.desired",
+                "from": {
+                  "nodeId": "reconcile",
+                  "portId": "out-db.desired"
+                },
+                "id": "ensure-data-plane",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-db.desired-engine"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "db.client",
+                "id": "client",
+                "label": "Tenant application",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.system",
+                "id": "system",
+                "label": "Database service",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "shared-data-plane",
+                "version": 1
+              },
+              {
+                "definitionId": "db.gateway",
+                "id": "gateway",
+                "label": "Authenticated query gateway",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.engine",
+                "id": "engine",
+                "label": "Database data plane",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.control",
+                "id": "control",
+                "label": "Provisioning API",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.desired",
+                "id": "desired",
+                "label": "Desired-state registry",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.reconcile",
+                "id": "reconcile",
+                "label": "Provisioning reconciler",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "shared-s4",
+          "invariants": [
+            "Stale desired generations cannot publish ready for a newer request."
+          ],
+          "number": 4,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "db.reconcile",
+                "id": "reconcile",
+                "label": "Provisioning reconciler",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "db.desired",
+                "from": {
+                  "nodeId": "reconcile",
+                  "portId": "out-db.desired"
+                },
+                "id": "watch-desired",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "desired",
+                  "portId": "in-db.desired"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "db.desired",
+                "from": {
+                  "nodeId": "reconcile",
+                  "portId": "out-db.desired"
+                },
+                "id": "ensure-data-plane",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-db.desired-engine"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What happens after a partial provider success?",
+          "reason": "Add a controller whose retries use stable resource IDs and generation guards.",
+          "title": "Reconcile resources to desired state"
+        },
+        {
+          "checkIds": [
+            "tenant-isolation"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "db.query",
+                "from": {
+                  "nodeId": "client",
+                  "portId": "out-db.query"
+                },
+                "id": "query",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-db.query"
+                }
+              },
+              {
+                "contractId": "db.desired",
+                "from": {
+                  "nodeId": "client",
+                  "portId": "out-db.desired"
+                },
+                "id": "provision",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "control",
+                  "portId": "in-db.desired"
+                }
+              },
+              {
+                "contractId": "db.desired",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-db.desired"
+                },
+                "id": "desired",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "desired",
+                  "portId": "in-db.desired"
+                }
+              },
+              {
+                "contractId": "db.desired",
+                "from": {
+                  "nodeId": "reconcile",
+                  "portId": "out-db.desired"
+                },
+                "id": "watch-desired",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "desired",
+                  "portId": "in-db.desired"
+                }
+              },
+              {
+                "contractId": "db.desired",
+                "from": {
+                  "nodeId": "reconcile",
+                  "portId": "out-db.desired"
+                },
+                "id": "ensure-data-plane",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-db.desired-engine"
+                }
+              },
+              {
+                "contractId": "db.route",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-db.route-gateway"
+                },
+                "id": "resolve",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "directory",
+                  "portId": "in-db.route"
+                }
+              },
+              {
+                "contractId": "db.route",
+                "from": {
+                  "nodeId": "reconcile",
+                  "portId": "out-db.route"
+                },
+                "id": "publish-route",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "directory",
+                  "portId": "in-db.route"
+                }
+              },
+              {
+                "contractId": "db.query",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-db.query-gateway"
+                },
+                "id": "borrow",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "pool",
+                  "portId": "in-db.query"
+                }
+              },
+              {
+                "contractId": "db.query",
+                "from": {
+                  "nodeId": "pool",
+                  "portId": "out-db.query"
+                },
+                "id": "scoped-execute",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-db.query-engine"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "db.client",
+                "id": "client",
+                "label": "Tenant application",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.system",
+                "id": "system",
+                "label": "Database service",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "shared-data-plane",
+                "version": 1
+              },
+              {
+                "definitionId": "db.gateway",
+                "id": "gateway",
+                "label": "Authenticated query gateway",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.engine",
+                "id": "engine",
+                "label": "Database data plane",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.control",
+                "id": "control",
+                "label": "Provisioning API",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.desired",
+                "id": "desired",
+                "label": "Desired-state registry",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.reconcile",
+                "id": "reconcile",
+                "label": "Provisioning reconciler",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.directory",
+                "id": "directory",
+                "label": "Tenant route directory",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.pool",
+                "id": "pool",
+                "label": "Shared connection broker",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "shared-s5",
+          "invariants": [
+            "Never reuse a pooled session with another tenant context still installed."
+          ],
+          "number": 5,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "db.directory",
+                "id": "directory",
+                "label": "Tenant route directory",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "db.route",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-db.route-gateway"
+                },
+                "id": "resolve",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "directory",
+                  "portId": "in-db.route"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "db.route",
+                "from": {
+                  "nodeId": "reconcile",
+                  "portId": "out-db.route"
+                },
+                "id": "publish-route",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "directory",
+                  "portId": "in-db.route"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "node": {
+                "definitionId": "db.pool",
+                "id": "pool",
+                "label": "Shared connection broker",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edgeId": "execute",
+              "op": "disconnect"
+            },
+            {
+              "edge": {
+                "contractId": "db.query",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-db.query-gateway"
+                },
+                "id": "borrow",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "pool",
+                  "portId": "in-db.query"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "db.query",
+                "from": {
+                  "nodeId": "pool",
+                  "portId": "out-db.query"
+                },
+                "id": "scoped-execute",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-db.query-engine"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How do queries reach the correct isolation boundary?",
+          "reason": "Make tenant routing and pooled-session reset obligations explicit.",
+          "title": "Insert a tenant-scoped shared broker"
+        },
+        {
+          "checkIds": [
+            "quota"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "db.query",
+                "from": {
+                  "nodeId": "client",
+                  "portId": "out-db.query"
+                },
+                "id": "query",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-db.query"
+                }
+              },
+              {
+                "contractId": "db.desired",
+                "from": {
+                  "nodeId": "client",
+                  "portId": "out-db.desired"
+                },
+                "id": "provision",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "control",
+                  "portId": "in-db.desired"
+                }
+              },
+              {
+                "contractId": "db.desired",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-db.desired"
+                },
+                "id": "desired",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "desired",
+                  "portId": "in-db.desired"
+                }
+              },
+              {
+                "contractId": "db.desired",
+                "from": {
+                  "nodeId": "reconcile",
+                  "portId": "out-db.desired"
+                },
+                "id": "watch-desired",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "desired",
+                  "portId": "in-db.desired"
+                }
+              },
+              {
+                "contractId": "db.desired",
+                "from": {
+                  "nodeId": "reconcile",
+                  "portId": "out-db.desired"
+                },
+                "id": "ensure-data-plane",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-db.desired-engine"
+                }
+              },
+              {
+                "contractId": "db.route",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-db.route-gateway"
+                },
+                "id": "resolve",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "directory",
+                  "portId": "in-db.route"
+                }
+              },
+              {
+                "contractId": "db.route",
+                "from": {
+                  "nodeId": "reconcile",
+                  "portId": "out-db.route"
+                },
+                "id": "publish-route",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "directory",
+                  "portId": "in-db.route"
+                }
+              },
+              {
+                "contractId": "db.query",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-db.query-gateway"
+                },
+                "id": "borrow",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "pool",
+                  "portId": "in-db.query"
+                }
+              },
+              {
+                "contractId": "db.query",
+                "from": {
+                  "nodeId": "pool",
+                  "portId": "out-db.query"
+                },
+                "id": "scoped-execute",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-db.query-engine"
+                }
+              },
+              {
+                "contractId": "db.query",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-db.query-gateway"
+                },
+                "id": "admission",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "quota",
+                  "portId": "in-db.query"
+                }
+              },
+              {
+                "contractId": "db.desired",
+                "from": {
+                  "nodeId": "reconcile",
+                  "portId": "out-db.desired"
+                },
+                "id": "quota-config",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "quota",
+                  "portId": "in-db.desired"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "db.client",
+                "id": "client",
+                "label": "Tenant application",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.system",
+                "id": "system",
+                "label": "Database service",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "shared-data-plane",
+                "version": 1
+              },
+              {
+                "definitionId": "db.gateway",
+                "id": "gateway",
+                "label": "Authenticated query gateway",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.engine",
+                "id": "engine",
+                "label": "Database data plane",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.control",
+                "id": "control",
+                "label": "Provisioning API",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.desired",
+                "id": "desired",
+                "label": "Desired-state registry",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.reconcile",
+                "id": "reconcile",
+                "label": "Provisioning reconciler",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.directory",
+                "id": "directory",
+                "label": "Tenant route directory",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.pool",
+                "id": "pool",
+                "label": "Shared connection broker",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.quota",
+                "id": "quota",
+                "label": "Tenant admission policy",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "shared-s6",
+          "invariants": [
+            "All terminal query paths release admission permits."
+          ],
+          "number": 6,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "db.quota",
+                "id": "quota",
+                "label": "Tenant admission policy",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "db.query",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-db.query-gateway"
+                },
+                "id": "admission",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "quota",
+                  "portId": "in-db.query"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "db.desired",
+                "from": {
+                  "nodeId": "reconcile",
+                  "portId": "out-db.desired"
+                },
+                "id": "quota-config",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "quota",
+                  "portId": "in-db.desired"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How is one tenant prevented from exhausting the pool?",
+          "reason": "Add tenant and global admission before database work.",
+          "title": "Bound per-tenant work"
+        },
+        {
+          "checkIds": [
+            "restore"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "db.query",
+                "from": {
+                  "nodeId": "client",
+                  "portId": "out-db.query"
+                },
+                "id": "query",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-db.query"
+                }
+              },
+              {
+                "contractId": "db.desired",
+                "from": {
+                  "nodeId": "client",
+                  "portId": "out-db.desired"
+                },
+                "id": "provision",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "control",
+                  "portId": "in-db.desired"
+                }
+              },
+              {
+                "contractId": "db.desired",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-db.desired"
+                },
+                "id": "desired",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "desired",
+                  "portId": "in-db.desired"
+                }
+              },
+              {
+                "contractId": "db.desired",
+                "from": {
+                  "nodeId": "reconcile",
+                  "portId": "out-db.desired"
+                },
+                "id": "watch-desired",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "desired",
+                  "portId": "in-db.desired"
+                }
+              },
+              {
+                "contractId": "db.desired",
+                "from": {
+                  "nodeId": "reconcile",
+                  "portId": "out-db.desired"
+                },
+                "id": "ensure-data-plane",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-db.desired-engine"
+                }
+              },
+              {
+                "contractId": "db.route",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-db.route-gateway"
+                },
+                "id": "resolve",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "directory",
+                  "portId": "in-db.route"
+                }
+              },
+              {
+                "contractId": "db.route",
+                "from": {
+                  "nodeId": "reconcile",
+                  "portId": "out-db.route"
+                },
+                "id": "publish-route",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "directory",
+                  "portId": "in-db.route"
+                }
+              },
+              {
+                "contractId": "db.query",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-db.query-gateway"
+                },
+                "id": "borrow",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "pool",
+                  "portId": "in-db.query"
+                }
+              },
+              {
+                "contractId": "db.query",
+                "from": {
+                  "nodeId": "pool",
+                  "portId": "out-db.query"
+                },
+                "id": "scoped-execute",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-db.query-engine"
+                }
+              },
+              {
+                "contractId": "db.query",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-db.query-gateway"
+                },
+                "id": "admission",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "quota",
+                  "portId": "in-db.query"
+                }
+              },
+              {
+                "contractId": "db.desired",
+                "from": {
+                  "nodeId": "reconcile",
+                  "portId": "out-db.desired"
+                },
+                "id": "quota-config",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "quota",
+                  "portId": "in-db.desired"
+                }
+              },
+              {
+                "contractId": "db.backup",
+                "from": {
+                  "nodeId": "backup",
+                  "portId": "out-db.backup"
+                },
+                "id": "consistent-backup",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-db.backup-engine"
+                }
+              },
+              {
+                "contractId": "db.backup",
+                "from": {
+                  "nodeId": "backup",
+                  "portId": "out-db.backup"
+                },
+                "id": "restore-test",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "restore",
+                  "portId": "in-db.backup"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "db.client",
+                "id": "client",
+                "label": "Tenant application",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.system",
+                "id": "system",
+                "label": "Database service",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "shared-data-plane",
+                "version": 1
+              },
+              {
+                "definitionId": "db.gateway",
+                "id": "gateway",
+                "label": "Authenticated query gateway",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.engine",
+                "id": "engine",
+                "label": "Database data plane",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.control",
+                "id": "control",
+                "label": "Provisioning API",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.desired",
+                "id": "desired",
+                "label": "Desired-state registry",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.reconcile",
+                "id": "reconcile",
+                "label": "Provisioning reconciler",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.directory",
+                "id": "directory",
+                "label": "Tenant route directory",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.pool",
+                "id": "pool",
+                "label": "Shared connection broker",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.quota",
+                "id": "quota",
+                "label": "Tenant admission policy",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.backup",
+                "id": "backup",
+                "label": "Backup coordinator",
+                "position": {
+                  "x": 560,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.restore",
+                "id": "restore",
+                "label": "Restore verifier",
+                "position": {
+                  "x": 840,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "shared-s7",
+          "invariants": [
+            "A backup manifest without a successful restore is not recovery proof."
+          ],
+          "number": 7,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "db.backup",
+                "id": "backup",
+                "label": "Backup coordinator",
+                "position": {
+                  "x": 560,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "db.restore",
+                "id": "restore",
+                "label": "Restore verifier",
+                "position": {
+                  "x": 840,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "db.backup",
+                "from": {
+                  "nodeId": "backup",
+                  "portId": "out-db.backup"
+                },
+                "id": "consistent-backup",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-db.backup-engine"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "db.backup",
+                "from": {
+                  "nodeId": "backup",
+                  "portId": "out-db.backup"
+                },
+                "id": "restore-test",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "restore",
+                  "portId": "in-db.backup"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Is a backup usable or merely present?",
+          "reason": "Add engine-consistent backup and isolated restore verification.",
+          "title": "Prove restore before routing it"
+        },
+        {
+          "checkIds": [
+            "cutover",
+            "reconcile-retry"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "db.query",
+                "from": {
+                  "nodeId": "client",
+                  "portId": "out-db.query"
+                },
+                "id": "query",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-db.query"
+                }
+              },
+              {
+                "contractId": "db.desired",
+                "from": {
+                  "nodeId": "client",
+                  "portId": "out-db.desired"
+                },
+                "id": "provision",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "control",
+                  "portId": "in-db.desired"
+                }
+              },
+              {
+                "contractId": "db.desired",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-db.desired"
+                },
+                "id": "desired",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "desired",
+                  "portId": "in-db.desired"
+                }
+              },
+              {
+                "contractId": "db.desired",
+                "from": {
+                  "nodeId": "control-state",
+                  "portId": "out-db.desired"
+                },
+                "id": "watch-desired",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "desired",
+                  "portId": "in-db.desired"
+                }
+              },
+              {
+                "contractId": "db.desired",
+                "from": {
+                  "nodeId": "control-state",
+                  "portId": "out-db.desired"
+                },
+                "id": "ensure-data-plane",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-db.desired-engine"
+                }
+              },
+              {
+                "contractId": "db.route",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-db.route-gateway"
+                },
+                "id": "resolve",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "directory",
+                  "portId": "in-db.route"
+                }
+              },
+              {
+                "contractId": "db.route",
+                "from": {
+                  "nodeId": "control-state",
+                  "portId": "out-db.route"
+                },
+                "id": "publish-route",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "directory",
+                  "portId": "in-db.route"
+                }
+              },
+              {
+                "contractId": "db.query",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-db.query-gateway"
+                },
+                "id": "borrow",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "pool",
+                  "portId": "in-db.query"
+                }
+              },
+              {
+                "contractId": "db.query",
+                "from": {
+                  "nodeId": "pool",
+                  "portId": "out-db.query"
+                },
+                "id": "scoped-execute",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-db.query-engine"
+                }
+              },
+              {
+                "contractId": "db.query",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-db.query-gateway"
+                },
+                "id": "admission",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "quota",
+                  "portId": "in-db.query"
+                }
+              },
+              {
+                "contractId": "db.desired",
+                "from": {
+                  "nodeId": "control-state",
+                  "portId": "out-db.desired"
+                },
+                "id": "quota-config",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "quota",
+                  "portId": "in-db.desired"
+                }
+              },
+              {
+                "contractId": "db.backup",
+                "from": {
+                  "nodeId": "backup",
+                  "portId": "out-db.backup"
+                },
+                "id": "consistent-backup",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-db.backup-engine"
+                }
+              },
+              {
+                "contractId": "db.backup",
+                "from": {
+                  "nodeId": "backup",
+                  "portId": "out-db.backup"
+                },
+                "id": "restore-test",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "restore",
+                  "portId": "in-db.backup"
+                }
+              },
+              {
+                "contractId": "db.route",
+                "from": {
+                  "nodeId": "control-state",
+                  "portId": "out-db.route"
+                },
+                "id": "fence-writes",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-db.route-engine"
+                }
+              },
+              {
+                "contractId": "db.route",
+                "from": {
+                  "nodeId": "control-state",
+                  "portId": "out-db.route"
+                },
+                "id": "advance-route",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "directory",
+                  "portId": "in-db.route"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "db.client",
+                "id": "client",
+                "label": "Tenant application",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.system",
+                "id": "system",
+                "label": "Database service",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "shared-data-plane",
+                "version": 1
+              },
+              {
+                "definitionId": "db.gateway",
+                "id": "gateway",
+                "label": "Authenticated query gateway",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.engine",
+                "id": "engine",
+                "label": "Database data plane",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.control",
+                "id": "control",
+                "label": "Provisioning API",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.desired",
+                "id": "desired",
+                "label": "Desired-state registry",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.directory",
+                "id": "directory",
+                "label": "Tenant route directory",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.pool",
+                "id": "pool",
+                "label": "Shared connection broker",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.quota",
+                "id": "quota",
+                "label": "Tenant admission policy",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.backup",
+                "id": "backup",
+                "label": "Backup coordinator",
+                "position": {
+                  "x": 560,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.restore",
+                "id": "restore",
+                "label": "Restore verifier",
+                "position": {
+                  "x": 840,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "db.control-state",
+                "id": "control-state",
+                "label": "Unified lifecycle controller",
+                "lineageIds": [
+                  "reconcile",
+                  "migration"
+                ],
+                "position": {
+                  "x": 280,
+                  "y": 540
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "shared-s8",
+          "invariants": [
+            "Only the new epoch becomes writable after cutover; old targets reject stale epochs."
+          ],
+          "number": 8,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "db.migration",
+                "id": "migration",
+                "label": "Cutover coordinator",
+                "position": {
+                  "x": 0,
+                  "y": 540
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "db.route",
+                "from": {
+                  "nodeId": "migration",
+                  "portId": "out-db.route"
+                },
+                "id": "fence-writes",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-db.route-engine"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "db.route",
+                "from": {
+                  "nodeId": "migration",
+                  "portId": "out-db.route"
+                },
+                "id": "advance-route",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "directory",
+                  "portId": "in-db.route"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "node": {
+                "definitionId": "db.control-state",
+                "id": "control-state",
+                "label": "Unified lifecycle controller",
+                "position": {
+                  "x": 280,
+                  "y": 540
+                },
+                "version": 1
+              },
+              "nodeIds": [
+                "reconcile",
+                "migration"
+              ],
+              "op": "merge",
+              "reason": "One durable lifecycle state machine owns provisioning and cutover epochs."
+            }
+          ],
+          "question": "Can an old route still accept writes during migration?",
+          "reason": "Add write fencing and join lifecycle decisions under one desired generation.",
+          "title": "Unify reconciliation and fenced cutover"
+        }
+      ],
+      "title": "Shared data plane with scoped tenant namespaces",
+      "tradeoffs": [
+        "Noisy neighbors and authorization mistakes have a larger blast radius.",
+        "Database roles or enforced row policies must back the gateway isolation."
+      ]
+    }
+  ],
+  "subsystems": [
+    {
+      "definitionId": "db.system",
+      "id": "dedicated-data-plane",
+      "ports": [
+        {
+          "contractId": "db.query",
+          "direction": "in",
+          "id": "in-db.query",
+          "target": {
+            "nodeId": "gateway",
+            "portId": "in-db.query"
+          }
+        },
+        {
+          "contractId": "db.desired",
+          "direction": "in",
+          "id": "in-db.desired-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-db.desired"
+          }
+        },
+        {
+          "contractId": "db.route",
+          "direction": "out",
+          "id": "out-db.route-gateway",
+          "target": {
+            "nodeId": "gateway",
+            "portId": "out-db.route"
+          }
+        },
+        {
+          "contractId": "db.query",
+          "direction": "out",
+          "id": "out-db.query-gateway",
+          "target": {
+            "nodeId": "gateway",
+            "portId": "out-db.query"
+          }
+        },
+        {
+          "contractId": "db.backup",
+          "direction": "in",
+          "id": "in-db.backup-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-db.backup"
+          }
+        },
+        {
+          "contractId": "db.route",
+          "direction": "in",
+          "id": "in-db.route-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-db.route"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "db.system",
+      "id": "shared-data-plane",
+      "ports": [
+        {
+          "contractId": "db.query",
+          "direction": "in",
+          "id": "in-db.query",
+          "target": {
+            "nodeId": "gateway",
+            "portId": "in-db.query"
+          }
+        },
+        {
+          "contractId": "db.desired",
+          "direction": "in",
+          "id": "in-db.desired-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-db.desired"
+          }
+        },
+        {
+          "contractId": "db.route",
+          "direction": "out",
+          "id": "out-db.route-gateway",
+          "target": {
+            "nodeId": "gateway",
+            "portId": "out-db.route"
+          }
+        },
+        {
+          "contractId": "db.query",
+          "direction": "out",
+          "id": "out-db.query-gateway",
+          "target": {
+            "nodeId": "gateway",
+            "portId": "out-db.query"
+          }
+        },
+        {
+          "contractId": "db.query",
+          "direction": "in",
+          "id": "in-db.query-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-db.query"
+          }
+        },
+        {
+          "contractId": "db.backup",
+          "direction": "in",
+          "id": "in-db.backup-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-db.backup"
+          }
+        },
+        {
+          "contractId": "db.route",
+          "direction": "in",
+          "id": "in-db.route-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-db.route"
+          }
+        }
+      ],
+      "version": 1
+    }
+  ],
+  "version": 1
+}

@@ -1,0 +1,4794 @@
+{
+  "components": [
+    {
+      "extends": {
+        "id": "core.client",
+        "version": 1
+      },
+      "id": "rep.client",
+      "label": "Client",
+      "ports": [
+        {
+          "contractId": "rep.command",
+          "direction": "out",
+          "id": "out-rep.command"
+        },
+        {
+          "contractId": "rep.read",
+          "direction": "out",
+          "id": "out-rep.read"
+        }
+      ],
+      "responsibility": "Own request identity and minimum observed write position.",
+      "stateOwnership": [
+        "session watermark"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.service",
+        "version": 1
+      },
+      "id": "rep.system",
+      "label": "Replicated storage boundary",
+      "ports": [
+        {
+          "contractId": "rep.command",
+          "direction": "in",
+          "id": "in-rep.command"
+        },
+        {
+          "contractId": "rep.log",
+          "direction": "in",
+          "id": "in-rep.log-log"
+        },
+        {
+          "contractId": "rep.read",
+          "direction": "in",
+          "id": "in-rep.read-leader"
+        },
+        {
+          "contractId": "rep.control",
+          "direction": "out",
+          "id": "out-rep.control-leader"
+        },
+        {
+          "contractId": "rep.command",
+          "direction": "out",
+          "id": "out-rep.command-leader"
+        },
+        {
+          "contractId": "rep.snapshot",
+          "direction": "in",
+          "id": "in-rep.snapshot-log"
+        }
+      ],
+      "responsibility": "Expose the chosen acknowledgement and read guarantees.",
+      "stateOwnership": [
+        "logical key state"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.service",
+        "version": 1
+      },
+      "id": "rep.leader",
+      "label": "Primary writer",
+      "ports": [
+        {
+          "contractId": "rep.command",
+          "direction": "out",
+          "id": "out-rep.command"
+        },
+        {
+          "contractId": "rep.command",
+          "direction": "in",
+          "id": "in-rep.command"
+        },
+        {
+          "contractId": "rep.read",
+          "direction": "in",
+          "id": "in-rep.read"
+        },
+        {
+          "contractId": "rep.control",
+          "direction": "out",
+          "id": "out-rep.control"
+        }
+      ],
+      "responsibility": "Serialize commands and durable receipts before acknowledging.",
+      "stateOwnership": [
+        "current leadership epoch"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.log",
+        "version": 1
+      },
+      "id": "rep.log",
+      "label": "Durable write-ahead log",
+      "ports": [
+        {
+          "contractId": "rep.command",
+          "direction": "in",
+          "id": "in-rep.command"
+        },
+        {
+          "contractId": "rep.log",
+          "direction": "in",
+          "id": "in-rep.log"
+        },
+        {
+          "contractId": "rep.snapshot",
+          "direction": "in",
+          "id": "in-rep.snapshot"
+        }
+      ],
+      "responsibility": "Persist ordered commands and idempotency receipts.",
+      "stateOwnership": [
+        "log entries"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "rep.replica",
+      "label": "Follower data store",
+      "ports": [
+        {
+          "contractId": "rep.log",
+          "direction": "in",
+          "id": "in-rep.log"
+        },
+        {
+          "contractId": "rep.read",
+          "direction": "in",
+          "id": "in-rep.read"
+        },
+        {
+          "contractId": "rep.control",
+          "direction": "out",
+          "id": "out-rep.control"
+        },
+        {
+          "contractId": "rep.snapshot",
+          "direction": "in",
+          "id": "in-rep.snapshot"
+        }
+      ],
+      "responsibility": "Replay durable entries and track applied position.",
+      "stateOwnership": [
+        "replicated keys",
+        "applied position"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "rep.sender",
+      "label": "Replication sender",
+      "ports": [
+        {
+          "contractId": "rep.log",
+          "direction": "out",
+          "id": "out-rep.log"
+        }
+      ],
+      "responsibility": "Ship bounded batches and retry gaps from acknowledged offsets.",
+      "stateOwnership": [
+        "peer match positions"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "rep.read",
+      "label": "Read router",
+      "ports": [
+        {
+          "contractId": "rep.read",
+          "direction": "in",
+          "id": "in-rep.read"
+        },
+        {
+          "contractId": "rep.read",
+          "direction": "out",
+          "id": "out-rep.read"
+        }
+      ],
+      "responsibility": "Choose reads using declared consistency and session position.",
+      "stateOwnership": [
+        "client minimum positions"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.directory",
+        "version": 1
+      },
+      "id": "rep.authority",
+      "label": "Fenced leadership authority",
+      "ports": [
+        {
+          "contractId": "rep.control",
+          "direction": "in",
+          "id": "in-rep.control"
+        }
+      ],
+      "responsibility": "Allocate a unique writer epoch and fence the old primary through storage enforcement.",
+      "stateOwnership": [
+        "writer epoch"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.service",
+        "version": 1
+      },
+      "id": "rep.voters",
+      "label": "Consensus voter group",
+      "ports": [
+        {
+          "contractId": "rep.control",
+          "direction": "in",
+          "id": "in-rep.control"
+        }
+      ],
+      "responsibility": "Persist terms and votes and implement Raft voting/log matching/commit rules.",
+      "stateOwnership": [
+        "current term",
+        "votedFor",
+        "peer matchIndex"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "rep.gate",
+      "label": "Commit-index gate",
+      "ports": [
+        {
+          "contractId": "rep.command",
+          "direction": "in",
+          "id": "in-rep.command"
+        },
+        {
+          "contractId": "rep.control",
+          "direction": "out",
+          "id": "out-rep.control"
+        },
+        {
+          "contractId": "rep.log",
+          "direction": "out",
+          "id": "out-rep.log"
+        }
+      ],
+      "responsibility": "Acknowledge current-term entries only after durable majority replication and commit advancement.",
+      "stateOwnership": [
+        "commitIndex"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "rep.snapshot",
+      "label": "Snapshot coordinator",
+      "ports": [
+        {
+          "contractId": "rep.snapshot",
+          "direction": "out",
+          "id": "out-rep.snapshot"
+        }
+      ],
+      "responsibility": "Install a checked snapshot at a committed boundary, then replay its suffix.",
+      "stateOwnership": [
+        "snapshot metadata"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "rep.router",
+      "label": "Unified consistency router",
+      "ports": [
+        {
+          "contractId": "rep.read",
+          "direction": "in",
+          "id": "in-rep.read"
+        },
+        {
+          "contractId": "rep.read",
+          "direction": "out",
+          "id": "out-rep.read"
+        },
+        {
+          "contractId": "rep.command",
+          "direction": "out",
+          "id": "out-rep.command"
+        }
+      ],
+      "responsibility": "Reconcile leader discovery, session reads and command receipt handling.",
+      "stateOwnership": [
+        "leader epoch",
+        "session position"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "rep.catchup",
+      "label": "Recovery log reader",
+      "ports": [
+        {
+          "contractId": "rep.command",
+          "direction": "in",
+          "id": "in-rep.command"
+        },
+        {
+          "contractId": "rep.control",
+          "direction": "out",
+          "id": "out-rep.control"
+        },
+        {
+          "contractId": "rep.log",
+          "direction": "out",
+          "id": "out-rep.log"
+        }
+      ],
+      "responsibility": "Fetch retained log suffixes or request a snapshot for lag beyond retention.",
+      "stateOwnership": [
+        "recovery position"
+      ],
+      "version": 1
+    }
+  ],
+  "contracts": [
+    {
+      "id": "rep.command",
+      "request": {
+        "expectedVersion": "uint64|null",
+        "key": "bytes",
+        "opId": "uuid",
+        "term": "uint64",
+        "value": "bytes"
+      },
+      "response": {
+        "durability": "primary-fsync|quorum-fsync",
+        "position": "uint64",
+        "version": "uint64"
+      },
+      "version": 1
+    },
+    {
+      "id": "rep.log",
+      "request": {
+        "entries": "{index,term,command}[]",
+        "leaderCommit": "uint64",
+        "previousIndex": "uint64",
+        "previousTerm": "uint64",
+        "term": "uint64"
+      },
+      "response": {
+        "matchedIndex": "uint64",
+        "success": "boolean",
+        "term": "uint64"
+      },
+      "version": 1
+    },
+    {
+      "id": "rep.read",
+      "request": {
+        "consistency": "leader|session|stale-ok",
+        "key": "bytes",
+        "minimumPosition": "uint64|null"
+      },
+      "response": {
+        "appliedPosition": "uint64",
+        "value": "bytes|null"
+      },
+      "version": 1
+    },
+    {
+      "id": "rep.control",
+      "request": {
+        "candidateId": "string",
+        "lastIndex": "uint64",
+        "lastTerm": "uint64",
+        "term": "uint64"
+      },
+      "response": {
+        "granted": "boolean",
+        "term": "uint64"
+      },
+      "version": 1
+    },
+    {
+      "id": "rep.snapshot",
+      "request": {
+        "hash": "sha256",
+        "lastIncludedIndex": "uint64",
+        "lastIncludedTerm": "uint64",
+        "state": "bytes"
+      },
+      "response": {
+        "installedThrough": "uint64"
+      },
+      "version": 1
+    }
+  ],
+  "execution": {
+    "implementation": null,
+    "kind": "conceptual-design"
+  },
+  "problem": {
+    "referenceId": "L005",
+    "requirements": [
+      {
+        "id": "ack",
+        "text": "Specify exactly which failures an acknowledged write survives."
+      },
+      {
+        "id": "read",
+        "text": "Expose read consistency and session progress explicitly."
+      },
+      {
+        "id": "leader",
+        "text": "Prevent an obsolete leader from accepting authoritative writes after failover."
+      },
+      {
+        "id": "recover",
+        "text": "Recover replicas without overwriting committed history; handle snapshot and log retention."
+      }
+    ],
+    "scope": "Compare asynchronous primary replication with a consensus-backed replicated log. The Raft branch names protocol obligations and uses a verified implementation in production; a majority-write sketch is not a complete consensus algorithm.",
+    "studyLabel": "Replication, durability and leadership"
+  },
+  "provenance": {
+    "kind": "authored-practice",
+    "note": "Authored interview preparation. Technical references support mechanisms, not the claim that a company asked this question."
+  },
+  "references": [
+    {
+      "id": "postgres",
+      "scope": "background",
+      "supports": "Async standby replication and acknowledgement durability differ.",
+      "title": "PostgreSQL standby replication",
+      "url": "https://www.postgresql.org/docs/current/warm-standby.html"
+    },
+    {
+      "id": "raft",
+      "scope": "background",
+      "supports": "Leader election, log matching, commit rules, snapshots and membership obligations.",
+      "title": "Raft paper",
+      "url": "https://raft.github.io/raft.pdf"
+    }
+  ],
+  "schema": "simulatte.composableStudy.v1",
+  "solutions": [
+    {
+      "acceptanceCases": [
+        {
+          "given": "A write is acknowledged and the current primary permanently fails.",
+          "id": "ack-loss",
+          "relatedRequirementIds": [
+            "ack",
+            "recover"
+          ],
+          "then": "The async write can be absent; report the measured loss window rather than claiming zero loss.",
+          "when": "Recover using a surviving follower group."
+        },
+        {
+          "given": "A write commits but its reply is lost.",
+          "id": "duplicate",
+          "relatedRequirementIds": [
+            "ack"
+          ],
+          "then": "Return the original receipt for the identical request; reject the changed payload.",
+          "when": "Retry the same opId and then reuse it with a different value."
+        },
+        {
+          "given": "Caller observed position 12 but follower applied only 10.",
+          "id": "read-watermark",
+          "relatedRequirementIds": [
+            "read"
+          ],
+          "then": "Wait, route elsewhere, or return unavailable; never silently return position 10 as session-consistent.",
+          "when": "Read with minimumPosition=12."
+        },
+        {
+          "given": "Leader epoch T loses authority while isolated.",
+          "id": "stale-leader",
+          "relatedRequirementIds": [
+            "leader"
+          ],
+          "then": "Storage fencing or consensus prevents old-authority acknowledgement.",
+          "when": "A new leader is established and the old leader receives a write."
+        },
+        {
+          "given": "Follower is behind the oldest retained log record.",
+          "id": "snapshot-recovery",
+          "relatedRequirementIds": [
+            "recover"
+          ],
+          "then": "State equals replay from the committed history; inconsistent snapshot metadata is rejected.",
+          "when": "Install snapshot S then replay the suffix."
+        }
+      ],
+      "algorithms": [
+        {
+          "code": "transactionOnPrimary(() => {\n  if (receipt(opId)) return samePayloadOrConflict(opId, command);\n  appendCommandAndReceipt(command, opId); fsyncPrimaryLog();\n});\nreturn {position, durability: \"primary-fsync\"};\n// A subsequent failure before follower fsync may lose this acknowledged write.",
+          "guarantees": [
+            "Reply guarantees are explicit; transport acknowledgements alone are insufficient."
+          ],
+          "id": "acknowledge",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "leader"
+        }
+      ],
+      "apis": [
+        {
+          "errors": "409 version conflict; 503 no writer/majority",
+          "method": "POST",
+          "ownerNodeId": "leader",
+          "path": "/keys/{key}",
+          "request": "{opId,value,expectedVersion}",
+          "response": "{version,position,durability}"
+        }
+      ],
+      "assumptions": [
+        "One writer; primary fsync is not remote durability.",
+        "Snapshots and operation receipts share the log recovery boundary."
+      ],
+      "chooseWhen": "Low primary-write latency matters and the business accepts a nonzero recovery point.",
+      "id": "async-primary",
+      "initialGraph": {
+        "edges": [],
+        "nodes": []
+      },
+      "stages": [
+        {
+          "checkIds": [
+            "ack-loss"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "rep.command",
+                "from": {
+                  "nodeId": "client",
+                  "portId": "out-rep.command"
+                },
+                "id": "write",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-rep.command"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "rep.client",
+                "id": "client",
+                "label": "Client",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.system",
+                "id": "system",
+                "label": "Replicated storage boundary",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "async-primary-s1",
+          "invariants": [
+            "Success means primary fsync; remote replication may lag."
+          ],
+          "number": 1,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "rep.client",
+                "id": "client",
+                "label": "Client",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "rep.system",
+                "id": "system",
+                "label": "Replicated storage boundary",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "rep.command",
+                "from": {
+                  "nodeId": "client",
+                  "portId": "out-rep.command"
+                },
+                "id": "write",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-rep.command"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What does a successful write promise?",
+          "reason": "Start with the client and the storage abstraction.",
+          "title": "Declare the acknowledgement boundary"
+        },
+        {
+          "checkIds": [
+            "duplicate"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "rep.command",
+                "from": {
+                  "nodeId": "client",
+                  "portId": "out-rep.command"
+                },
+                "id": "write",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-rep.command"
+                }
+              },
+              {
+                "contractId": "rep.command",
+                "from": {
+                  "nodeId": "leader",
+                  "portId": "out-rep.command"
+                },
+                "id": "append",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "log",
+                  "portId": "in-rep.command"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "rep.client",
+                "id": "client",
+                "label": "Client",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.system",
+                "id": "system",
+                "label": "Replicated storage boundary",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "async-primary-primary",
+                "version": 1
+              },
+              {
+                "definitionId": "rep.leader",
+                "id": "leader",
+                "label": "Primary writer",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.log",
+                "id": "log",
+                "label": "Durable write-ahead log",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "async-primary-s2",
+          "invariants": [
+            "A returned operation receipt is persisted with its command."
+          ],
+          "number": 2,
+          "operations": [
+            {
+              "edges": [
+                {
+                  "contractId": "rep.command",
+                  "from": {
+                    "nodeId": "leader",
+                    "portId": "out-rep.command"
+                  },
+                  "id": "append",
+                  "mode": "storage",
+                  "to": {
+                    "nodeId": "log",
+                    "portId": "in-rep.command"
+                  }
+                }
+              ],
+              "nodeId": "system",
+              "nodes": [
+                {
+                  "definitionId": "rep.leader",
+                  "id": "leader",
+                  "label": "Primary writer",
+                  "position": {
+                    "x": 560,
+                    "y": 0
+                  },
+                  "version": 1
+                },
+                {
+                  "definitionId": "rep.log",
+                  "id": "log",
+                  "label": "Durable write-ahead log",
+                  "position": {
+                    "x": 840,
+                    "y": 0
+                  },
+                  "version": 1
+                }
+              ],
+              "op": "expand",
+              "subsystemId": "async-primary-primary"
+            }
+          ],
+          "question": "What survives a primary restart?",
+          "reason": "Expand the boundary into a writer and replayable command log.",
+          "title": "Separate writer and durable log"
+        },
+        {
+          "checkIds": [
+            "ack-loss"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "rep.command",
+                "from": {
+                  "nodeId": "client",
+                  "portId": "out-rep.command"
+                },
+                "id": "write",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-rep.command"
+                }
+              },
+              {
+                "contractId": "rep.command",
+                "from": {
+                  "nodeId": "leader",
+                  "portId": "out-rep.command"
+                },
+                "id": "append",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "log",
+                  "portId": "in-rep.command"
+                }
+              },
+              {
+                "contractId": "rep.log",
+                "from": {
+                  "nodeId": "sender",
+                  "portId": "out-rep.log"
+                },
+                "id": "tail",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-rep.log-log"
+                }
+              },
+              {
+                "contractId": "rep.log",
+                "from": {
+                  "nodeId": "sender",
+                  "portId": "out-rep.log"
+                },
+                "id": "replicate",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "replica",
+                  "portId": "in-rep.log"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "rep.client",
+                "id": "client",
+                "label": "Client",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.system",
+                "id": "system",
+                "label": "Replicated storage boundary",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "async-primary-primary",
+                "version": 1
+              },
+              {
+                "definitionId": "rep.leader",
+                "id": "leader",
+                "label": "Primary writer",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.log",
+                "id": "log",
+                "label": "Durable write-ahead log",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.sender",
+                "id": "sender",
+                "label": "Replication sender",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.replica",
+                "id": "replica",
+                "label": "Follower data store",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "async-primary-s3",
+          "invariants": [
+            "A received batch is not necessarily fsynced or applied."
+          ],
+          "number": 3,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "rep.sender",
+                "id": "sender",
+                "label": "Replication sender",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "rep.replica",
+                "id": "replica",
+                "label": "Follower data store",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "rep.log",
+                "from": {
+                  "nodeId": "sender",
+                  "portId": "out-rep.log"
+                },
+                "id": "tail",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-rep.log-log"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "rep.log",
+                "from": {
+                  "nodeId": "sender",
+                  "portId": "out-rep.log"
+                },
+                "id": "replicate",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "replica",
+                  "portId": "in-rep.log"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Which offset is durable and which is applied?",
+          "reason": "Separate transport acknowledgements from application progress.",
+          "title": "Add a separate follower"
+        },
+        {
+          "checkIds": [
+            "read-watermark"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "rep.command",
+                "from": {
+                  "nodeId": "client",
+                  "portId": "out-rep.command"
+                },
+                "id": "write",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-rep.command"
+                }
+              },
+              {
+                "contractId": "rep.command",
+                "from": {
+                  "nodeId": "leader",
+                  "portId": "out-rep.command"
+                },
+                "id": "append",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "log",
+                  "portId": "in-rep.command"
+                }
+              },
+              {
+                "contractId": "rep.log",
+                "from": {
+                  "nodeId": "sender",
+                  "portId": "out-rep.log"
+                },
+                "id": "tail",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-rep.log-log"
+                }
+              },
+              {
+                "contractId": "rep.log",
+                "from": {
+                  "nodeId": "sender",
+                  "portId": "out-rep.log"
+                },
+                "id": "replicate",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "replica",
+                  "portId": "in-rep.log"
+                }
+              },
+              {
+                "contractId": "rep.read",
+                "from": {
+                  "nodeId": "client",
+                  "portId": "out-rep.read"
+                },
+                "id": "read",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "read",
+                  "portId": "in-rep.read"
+                }
+              },
+              {
+                "contractId": "rep.read",
+                "from": {
+                  "nodeId": "read",
+                  "portId": "out-rep.read"
+                },
+                "id": "follower-read",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "replica",
+                  "portId": "in-rep.read"
+                }
+              },
+              {
+                "contractId": "rep.read",
+                "from": {
+                  "nodeId": "read",
+                  "portId": "out-rep.read"
+                },
+                "id": "primary-read",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-rep.read-leader"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "rep.client",
+                "id": "client",
+                "label": "Client",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.system",
+                "id": "system",
+                "label": "Replicated storage boundary",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "async-primary-primary",
+                "version": 1
+              },
+              {
+                "definitionId": "rep.leader",
+                "id": "leader",
+                "label": "Primary writer",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.log",
+                "id": "log",
+                "label": "Durable write-ahead log",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.sender",
+                "id": "sender",
+                "label": "Replication sender",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.replica",
+                "id": "replica",
+                "label": "Follower data store",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.read",
+                "id": "read",
+                "label": "Read router",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "async-primary-s4",
+          "invariants": [
+            "A session read waits, chooses a sufficiently caught-up node, or fails explicitly."
+          ],
+          "number": 4,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "rep.read",
+                "id": "read",
+                "label": "Read router",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "rep.read",
+                "from": {
+                  "nodeId": "client",
+                  "portId": "out-rep.read"
+                },
+                "id": "read",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "read",
+                  "portId": "in-rep.read"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "rep.read",
+                "from": {
+                  "nodeId": "read",
+                  "portId": "out-rep.read"
+                },
+                "id": "follower-read",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "replica",
+                  "portId": "in-rep.read"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "rep.read",
+                "from": {
+                  "nodeId": "read",
+                  "portId": "out-rep.read"
+                },
+                "id": "primary-read",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-rep.read-leader"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can a read observe the caller’s preceding write?",
+          "reason": "Add a read router with a minimum position watermark.",
+          "title": "Expose read consistency"
+        },
+        {
+          "checkIds": [
+            "stale-leader"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "rep.command",
+                "from": {
+                  "nodeId": "client",
+                  "portId": "out-rep.command"
+                },
+                "id": "write",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-rep.command"
+                }
+              },
+              {
+                "contractId": "rep.command",
+                "from": {
+                  "nodeId": "leader",
+                  "portId": "out-rep.command"
+                },
+                "id": "append",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "log",
+                  "portId": "in-rep.command"
+                }
+              },
+              {
+                "contractId": "rep.log",
+                "from": {
+                  "nodeId": "sender",
+                  "portId": "out-rep.log"
+                },
+                "id": "tail",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-rep.log-log"
+                }
+              },
+              {
+                "contractId": "rep.log",
+                "from": {
+                  "nodeId": "sender",
+                  "portId": "out-rep.log"
+                },
+                "id": "replicate",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "replica",
+                  "portId": "in-rep.log"
+                }
+              },
+              {
+                "contractId": "rep.read",
+                "from": {
+                  "nodeId": "client",
+                  "portId": "out-rep.read"
+                },
+                "id": "read",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "read",
+                  "portId": "in-rep.read"
+                }
+              },
+              {
+                "contractId": "rep.read",
+                "from": {
+                  "nodeId": "read",
+                  "portId": "out-rep.read"
+                },
+                "id": "follower-read",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "replica",
+                  "portId": "in-rep.read"
+                }
+              },
+              {
+                "contractId": "rep.read",
+                "from": {
+                  "nodeId": "read",
+                  "portId": "out-rep.read"
+                },
+                "id": "primary-read",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-rep.read-leader"
+                }
+              },
+              {
+                "contractId": "rep.control",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-rep.control-leader"
+                },
+                "id": "leadership",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "authority",
+                  "portId": "in-rep.control"
+                }
+              },
+              {
+                "contractId": "rep.control",
+                "from": {
+                  "nodeId": "replica",
+                  "portId": "out-rep.control"
+                },
+                "id": "follower-epoch",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "authority",
+                  "portId": "in-rep.control"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "rep.client",
+                "id": "client",
+                "label": "Client",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.system",
+                "id": "system",
+                "label": "Replicated storage boundary",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "async-primary-primary",
+                "version": 1
+              },
+              {
+                "definitionId": "rep.leader",
+                "id": "leader",
+                "label": "Primary writer",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.log",
+                "id": "log",
+                "label": "Durable write-ahead log",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.sender",
+                "id": "sender",
+                "label": "Replication sender",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.replica",
+                "id": "replica",
+                "label": "Follower data store",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.read",
+                "id": "read",
+                "label": "Read router",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.authority",
+                "id": "authority",
+                "label": "Fenced leadership authority",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "async-primary-s5",
+          "invariants": [
+            "An old epoch cannot append authoritative commands after fencing."
+          ],
+          "number": 5,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "rep.authority",
+                "id": "authority",
+                "label": "Fenced leadership authority",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "rep.control",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-rep.control-leader"
+                },
+                "id": "leadership",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "authority",
+                  "portId": "in-rep.control"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "rep.control",
+                "from": {
+                  "nodeId": "replica",
+                  "portId": "out-rep.control"
+                },
+                "id": "follower-epoch",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "authority",
+                  "portId": "in-rep.control"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How is an obsolete writer stopped?",
+          "reason": "Leadership needs an enforceable protocol, not a DNS update.",
+          "title": "Introduce an external fencing authority"
+        },
+        {
+          "checkIds": [
+            "ack-loss",
+            "stale-leader"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "rep.command",
+                "from": {
+                  "nodeId": "client",
+                  "portId": "out-rep.command"
+                },
+                "id": "write",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-rep.command"
+                }
+              },
+              {
+                "contractId": "rep.command",
+                "from": {
+                  "nodeId": "leader",
+                  "portId": "out-rep.command"
+                },
+                "id": "append",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "log",
+                  "portId": "in-rep.command"
+                }
+              },
+              {
+                "contractId": "rep.log",
+                "from": {
+                  "nodeId": "sender",
+                  "portId": "out-rep.log"
+                },
+                "id": "tail",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-rep.log-log"
+                }
+              },
+              {
+                "contractId": "rep.log",
+                "from": {
+                  "nodeId": "sender",
+                  "portId": "out-rep.log"
+                },
+                "id": "replicate",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "replica",
+                  "portId": "in-rep.log"
+                }
+              },
+              {
+                "contractId": "rep.read",
+                "from": {
+                  "nodeId": "client",
+                  "portId": "out-rep.read"
+                },
+                "id": "read",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "read",
+                  "portId": "in-rep.read"
+                }
+              },
+              {
+                "contractId": "rep.read",
+                "from": {
+                  "nodeId": "read",
+                  "portId": "out-rep.read"
+                },
+                "id": "follower-read",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "replica",
+                  "portId": "in-rep.read"
+                }
+              },
+              {
+                "contractId": "rep.read",
+                "from": {
+                  "nodeId": "read",
+                  "portId": "out-rep.read"
+                },
+                "id": "primary-read",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-rep.read-leader"
+                }
+              },
+              {
+                "contractId": "rep.control",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-rep.control-leader"
+                },
+                "id": "leadership",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "authority",
+                  "portId": "in-rep.control"
+                }
+              },
+              {
+                "contractId": "rep.control",
+                "from": {
+                  "nodeId": "replica",
+                  "portId": "out-rep.control"
+                },
+                "id": "follower-epoch",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "authority",
+                  "portId": "in-rep.control"
+                }
+              },
+              {
+                "contractId": "rep.command",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-rep.command-leader"
+                },
+                "id": "acknowledgement-gate",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "gate",
+                  "portId": "in-rep.command"
+                }
+              },
+              {
+                "contractId": "rep.control",
+                "from": {
+                  "nodeId": "gate",
+                  "portId": "out-rep.control"
+                },
+                "id": "commit-progress",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "authority",
+                  "portId": "in-rep.control"
+                }
+              },
+              {
+                "contractId": "rep.log",
+                "from": {
+                  "nodeId": "gate",
+                  "portId": "out-rep.log"
+                },
+                "id": "log-progress",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-rep.log-log"
+                }
+              },
+              {
+                "contractId": "rep.log",
+                "from": {
+                  "nodeId": "gate",
+                  "portId": "out-rep.log"
+                },
+                "id": "replica-progress",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "replica",
+                  "portId": "in-rep.log"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "rep.client",
+                "id": "client",
+                "label": "Client",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.system",
+                "id": "system",
+                "label": "Replicated storage boundary",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "async-primary-primary",
+                "version": 1
+              },
+              {
+                "definitionId": "rep.leader",
+                "id": "leader",
+                "label": "Primary writer",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.log",
+                "id": "log",
+                "label": "Durable write-ahead log",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.sender",
+                "id": "sender",
+                "label": "Replication sender",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.replica",
+                "id": "replica",
+                "label": "Follower data store",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.read",
+                "id": "read",
+                "label": "Read router",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.authority",
+                "id": "authority",
+                "label": "Fenced leadership authority",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.catchup",
+                "id": "gate",
+                "label": "Recovery log reader",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "async-primary-s6",
+          "invariants": [
+            "Promotion reports its replayed position and the accepted loss window."
+          ],
+          "number": 6,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "rep.catchup",
+                "id": "gate",
+                "label": "Recovery log reader",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "rep.command",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-rep.command-leader"
+                },
+                "id": "acknowledgement-gate",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "gate",
+                  "portId": "in-rep.command"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "rep.control",
+                "from": {
+                  "nodeId": "gate",
+                  "portId": "out-rep.control"
+                },
+                "id": "commit-progress",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "authority",
+                  "portId": "in-rep.control"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "rep.log",
+                "from": {
+                  "nodeId": "gate",
+                  "portId": "out-rep.log"
+                },
+                "id": "log-progress",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-rep.log-log"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "rep.log",
+                "from": {
+                  "nodeId": "gate",
+                  "portId": "out-rep.log"
+                },
+                "id": "replica-progress",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "replica",
+                  "portId": "in-rep.log"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Which writes can disappear after failover?",
+          "reason": "Tie reply visibility to the selected durability contract.",
+          "title": "Make promotion policy explicit"
+        },
+        {
+          "checkIds": [
+            "snapshot-recovery"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "rep.command",
+                "from": {
+                  "nodeId": "client",
+                  "portId": "out-rep.command"
+                },
+                "id": "write",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-rep.command"
+                }
+              },
+              {
+                "contractId": "rep.command",
+                "from": {
+                  "nodeId": "leader",
+                  "portId": "out-rep.command"
+                },
+                "id": "append",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "log",
+                  "portId": "in-rep.command"
+                }
+              },
+              {
+                "contractId": "rep.log",
+                "from": {
+                  "nodeId": "sender",
+                  "portId": "out-rep.log"
+                },
+                "id": "tail",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-rep.log-log"
+                }
+              },
+              {
+                "contractId": "rep.log",
+                "from": {
+                  "nodeId": "sender",
+                  "portId": "out-rep.log"
+                },
+                "id": "replicate",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "replica",
+                  "portId": "in-rep.log"
+                }
+              },
+              {
+                "contractId": "rep.read",
+                "from": {
+                  "nodeId": "client",
+                  "portId": "out-rep.read"
+                },
+                "id": "read",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "read",
+                  "portId": "in-rep.read"
+                }
+              },
+              {
+                "contractId": "rep.read",
+                "from": {
+                  "nodeId": "read",
+                  "portId": "out-rep.read"
+                },
+                "id": "follower-read",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "replica",
+                  "portId": "in-rep.read"
+                }
+              },
+              {
+                "contractId": "rep.read",
+                "from": {
+                  "nodeId": "read",
+                  "portId": "out-rep.read"
+                },
+                "id": "primary-read",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-rep.read-leader"
+                }
+              },
+              {
+                "contractId": "rep.control",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-rep.control-leader"
+                },
+                "id": "leadership",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "authority",
+                  "portId": "in-rep.control"
+                }
+              },
+              {
+                "contractId": "rep.control",
+                "from": {
+                  "nodeId": "replica",
+                  "portId": "out-rep.control"
+                },
+                "id": "follower-epoch",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "authority",
+                  "portId": "in-rep.control"
+                }
+              },
+              {
+                "contractId": "rep.command",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-rep.command-leader"
+                },
+                "id": "acknowledgement-gate",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "gate",
+                  "portId": "in-rep.command"
+                }
+              },
+              {
+                "contractId": "rep.control",
+                "from": {
+                  "nodeId": "gate",
+                  "portId": "out-rep.control"
+                },
+                "id": "commit-progress",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "authority",
+                  "portId": "in-rep.control"
+                }
+              },
+              {
+                "contractId": "rep.log",
+                "from": {
+                  "nodeId": "gate",
+                  "portId": "out-rep.log"
+                },
+                "id": "log-progress",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-rep.log-log"
+                }
+              },
+              {
+                "contractId": "rep.log",
+                "from": {
+                  "nodeId": "gate",
+                  "portId": "out-rep.log"
+                },
+                "id": "replica-progress",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "replica",
+                  "portId": "in-rep.log"
+                }
+              },
+              {
+                "contractId": "rep.snapshot",
+                "from": {
+                  "nodeId": "snapshot",
+                  "portId": "out-rep.snapshot"
+                },
+                "id": "snapshot-source",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-rep.snapshot-log"
+                }
+              },
+              {
+                "contractId": "rep.snapshot",
+                "from": {
+                  "nodeId": "snapshot",
+                  "portId": "out-rep.snapshot"
+                },
+                "id": "install",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "replica",
+                  "portId": "in-rep.snapshot"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "rep.client",
+                "id": "client",
+                "label": "Client",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.system",
+                "id": "system",
+                "label": "Replicated storage boundary",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "async-primary-primary",
+                "version": 1
+              },
+              {
+                "definitionId": "rep.leader",
+                "id": "leader",
+                "label": "Primary writer",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.log",
+                "id": "log",
+                "label": "Durable write-ahead log",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.sender",
+                "id": "sender",
+                "label": "Replication sender",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.replica",
+                "id": "replica",
+                "label": "Follower data store",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.read",
+                "id": "read",
+                "label": "Read router",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.authority",
+                "id": "authority",
+                "label": "Fenced leadership authority",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.catchup",
+                "id": "gate",
+                "label": "Recovery log reader",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.snapshot",
+                "id": "snapshot",
+                "label": "Snapshot coordinator",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "async-primary-s7",
+          "invariants": [
+            "Verify hash and included index/term before replaying entries beyond the snapshot."
+          ],
+          "number": 7,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "rep.snapshot",
+                "id": "snapshot",
+                "label": "Snapshot coordinator",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "rep.snapshot",
+                "from": {
+                  "nodeId": "snapshot",
+                  "portId": "out-rep.snapshot"
+                },
+                "id": "snapshot-source",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-rep.snapshot-log"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "rep.snapshot",
+                "from": {
+                  "nodeId": "snapshot",
+                  "portId": "out-rep.snapshot"
+                },
+                "id": "install",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "replica",
+                  "portId": "in-rep.snapshot"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What if lag exceeds retained log history?",
+          "reason": "Add a recovery boundary that never mixes unrelated snapshots and log suffixes.",
+          "title": "Install checked snapshots and replay suffixes"
+        },
+        {
+          "checkIds": [
+            "duplicate",
+            "read-watermark"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "rep.command",
+                "from": {
+                  "nodeId": "leader",
+                  "portId": "out-rep.command"
+                },
+                "id": "append",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "log",
+                  "portId": "in-rep.command"
+                }
+              },
+              {
+                "contractId": "rep.log",
+                "from": {
+                  "nodeId": "sender",
+                  "portId": "out-rep.log"
+                },
+                "id": "tail",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-rep.log-log"
+                }
+              },
+              {
+                "contractId": "rep.log",
+                "from": {
+                  "nodeId": "sender",
+                  "portId": "out-rep.log"
+                },
+                "id": "replicate",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "replica",
+                  "portId": "in-rep.log"
+                }
+              },
+              {
+                "contractId": "rep.read",
+                "from": {
+                  "nodeId": "router",
+                  "portId": "out-rep.read"
+                },
+                "id": "follower-read",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "replica",
+                  "portId": "in-rep.read"
+                }
+              },
+              {
+                "contractId": "rep.read",
+                "from": {
+                  "nodeId": "router",
+                  "portId": "out-rep.read"
+                },
+                "id": "primary-read",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-rep.read-leader"
+                }
+              },
+              {
+                "contractId": "rep.control",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-rep.control-leader"
+                },
+                "id": "leadership",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "authority",
+                  "portId": "in-rep.control"
+                }
+              },
+              {
+                "contractId": "rep.control",
+                "from": {
+                  "nodeId": "replica",
+                  "portId": "out-rep.control"
+                },
+                "id": "follower-epoch",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "authority",
+                  "portId": "in-rep.control"
+                }
+              },
+              {
+                "contractId": "rep.command",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-rep.command-leader"
+                },
+                "id": "acknowledgement-gate",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "gate",
+                  "portId": "in-rep.command"
+                }
+              },
+              {
+                "contractId": "rep.control",
+                "from": {
+                  "nodeId": "gate",
+                  "portId": "out-rep.control"
+                },
+                "id": "commit-progress",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "authority",
+                  "portId": "in-rep.control"
+                }
+              },
+              {
+                "contractId": "rep.log",
+                "from": {
+                  "nodeId": "gate",
+                  "portId": "out-rep.log"
+                },
+                "id": "log-progress",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-rep.log-log"
+                }
+              },
+              {
+                "contractId": "rep.log",
+                "from": {
+                  "nodeId": "gate",
+                  "portId": "out-rep.log"
+                },
+                "id": "replica-progress",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "replica",
+                  "portId": "in-rep.log"
+                }
+              },
+              {
+                "contractId": "rep.snapshot",
+                "from": {
+                  "nodeId": "snapshot",
+                  "portId": "out-rep.snapshot"
+                },
+                "id": "snapshot-source",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-rep.snapshot-log"
+                }
+              },
+              {
+                "contractId": "rep.snapshot",
+                "from": {
+                  "nodeId": "snapshot",
+                  "portId": "out-rep.snapshot"
+                },
+                "id": "install",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "replica",
+                  "portId": "in-rep.snapshot"
+                }
+              },
+              {
+                "contractId": "rep.command",
+                "from": {
+                  "nodeId": "router",
+                  "portId": "out-rep.command"
+                },
+                "id": "write",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-rep.command"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "rep.system",
+                "id": "system",
+                "label": "Replicated storage boundary",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "async-primary-primary",
+                "version": 1
+              },
+              {
+                "definitionId": "rep.leader",
+                "id": "leader",
+                "label": "Primary writer",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.log",
+                "id": "log",
+                "label": "Durable write-ahead log",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.sender",
+                "id": "sender",
+                "label": "Replication sender",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.replica",
+                "id": "replica",
+                "label": "Follower data store",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.authority",
+                "id": "authority",
+                "label": "Fenced leadership authority",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.catchup",
+                "id": "gate",
+                "label": "Recovery log reader",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.snapshot",
+                "id": "snapshot",
+                "label": "Snapshot coordinator",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.router",
+                "id": "router",
+                "label": "Unified consistency router",
+                "lineageIds": [
+                  "read",
+                  "client"
+                ],
+                "position": {
+                  "x": 560,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "async-primary-s8",
+          "invariants": [
+            "Duplicate requests return their original committed receipt or explicit uncertainty."
+          ],
+          "number": 8,
+          "operations": [
+            {
+              "edgeId": "write",
+              "op": "disconnect"
+            },
+            {
+              "node": {
+                "definitionId": "rep.router",
+                "id": "router",
+                "label": "Unified consistency router",
+                "position": {
+                  "x": 560,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "nodeIds": [
+                "read",
+                "client"
+              ],
+              "op": "merge",
+              "reason": "Join the session watermark and leader choice instead of keeping competing consistency decisions."
+            },
+            {
+              "edge": {
+                "contractId": "rep.command",
+                "from": {
+                  "nodeId": "router",
+                  "portId": "out-rep.command"
+                },
+                "id": "write",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-rep.command"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can discovery and read routing use conflicting leadership views?",
+          "reason": "One client consistency owner carries epoch, receipt and read watermark.",
+          "title": "Merge client consistency decisions"
+        }
+      ],
+      "title": "Asynchronous primary with explicit loss window",
+      "tradeoffs": [
+        "A promoted async follower can lose previously acknowledged writes.",
+        "Safe failover requires fencing and an explicit choice of recovery position."
+      ]
+    },
+    {
+      "acceptanceCases": [
+        {
+          "given": "A write is acknowledged and the current primary permanently fails.",
+          "id": "ack-loss",
+          "relatedRequirementIds": [
+            "ack",
+            "recover"
+          ],
+          "then": "The committed write remains in every valid new leader history.",
+          "when": "Recover using a surviving follower group."
+        },
+        {
+          "given": "A write commits but its reply is lost.",
+          "id": "duplicate",
+          "relatedRequirementIds": [
+            "ack"
+          ],
+          "then": "Return the original receipt for the identical request; reject the changed payload.",
+          "when": "Retry the same opId and then reuse it with a different value."
+        },
+        {
+          "given": "Caller observed position 12 but follower applied only 10.",
+          "id": "read-watermark",
+          "relatedRequirementIds": [
+            "read"
+          ],
+          "then": "Wait, route elsewhere, or return unavailable; never silently return position 10 as session-consistent.",
+          "when": "Read with minimumPosition=12."
+        },
+        {
+          "given": "Leader epoch T loses authority while isolated.",
+          "id": "stale-leader",
+          "relatedRequirementIds": [
+            "leader"
+          ],
+          "then": "Storage fencing or consensus prevents old-authority acknowledgement.",
+          "when": "A new leader is established and the old leader receives a write."
+        },
+        {
+          "given": "Follower is behind the oldest retained log record.",
+          "id": "snapshot-recovery",
+          "relatedRequirementIds": [
+            "recover"
+          ],
+          "then": "State equals replay from the committed history; inconsistent snapshot metadata is rejected.",
+          "when": "Install snapshot S then replay the suffix."
+        }
+      ],
+      "algorithms": [
+        {
+          "code": "// Delegate elections, AppendEntries and membership to a qualified Raft library.\nconst index = raft.propose({opId, command});\nawait raft.waitCommitted(index); // durable majority, log matching, current-term commit rule\nawait stateMachine.waitApplied(index);\nreturn durableReceipt(opId);",
+          "guarantees": [
+            "Reply guarantees are explicit; transport acknowledgements alone are insufficient."
+          ],
+          "id": "acknowledge",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "leader"
+        }
+      ],
+      "apis": [
+        {
+          "errors": "409 version conflict; 503 no writer/majority",
+          "method": "POST",
+          "ownerNodeId": "leader",
+          "path": "/keys/{key}",
+          "request": "{opId,value,expectedVersion}",
+          "response": "{version,position,durability}"
+        }
+      ],
+      "assumptions": [
+        "Three voters, crash faults, durable disks; not Byzantine faults.",
+        "Snapshots and operation receipts share the log recovery boundary."
+      ],
+      "chooseWhen": "Acknowledged writes must survive one node loss in a three-voter group.",
+      "id": "raft",
+      "initialGraph": {
+        "edges": [],
+        "nodes": []
+      },
+      "stages": [
+        {
+          "checkIds": [
+            "ack-loss"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "rep.command",
+                "from": {
+                  "nodeId": "client",
+                  "portId": "out-rep.command"
+                },
+                "id": "write",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-rep.command"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "rep.client",
+                "id": "client",
+                "label": "Client",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.system",
+                "id": "system",
+                "label": "Replicated storage boundary",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "raft-s1",
+          "invariants": [
+            "Success will mean a durably committed quorum log entry."
+          ],
+          "number": 1,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "rep.client",
+                "id": "client",
+                "label": "Client",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "rep.system",
+                "id": "system",
+                "label": "Replicated storage boundary",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "rep.command",
+                "from": {
+                  "nodeId": "client",
+                  "portId": "out-rep.command"
+                },
+                "id": "write",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-rep.command"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What does a successful write promise?",
+          "reason": "Start with the client and the storage abstraction.",
+          "title": "Declare the acknowledgement boundary"
+        },
+        {
+          "checkIds": [
+            "duplicate"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "rep.command",
+                "from": {
+                  "nodeId": "client",
+                  "portId": "out-rep.command"
+                },
+                "id": "write",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-rep.command"
+                }
+              },
+              {
+                "contractId": "rep.command",
+                "from": {
+                  "nodeId": "leader",
+                  "portId": "out-rep.command"
+                },
+                "id": "append",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "log",
+                  "portId": "in-rep.command"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "rep.client",
+                "id": "client",
+                "label": "Client",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.system",
+                "id": "system",
+                "label": "Replicated storage boundary",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "raft-primary",
+                "version": 1
+              },
+              {
+                "definitionId": "rep.leader",
+                "id": "leader",
+                "label": "Primary writer",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.log",
+                "id": "log",
+                "label": "Durable write-ahead log",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "raft-s2",
+          "invariants": [
+            "A returned operation receipt is persisted with its command."
+          ],
+          "number": 2,
+          "operations": [
+            {
+              "edges": [
+                {
+                  "contractId": "rep.command",
+                  "from": {
+                    "nodeId": "leader",
+                    "portId": "out-rep.command"
+                  },
+                  "id": "append",
+                  "mode": "storage",
+                  "to": {
+                    "nodeId": "log",
+                    "portId": "in-rep.command"
+                  }
+                }
+              ],
+              "nodeId": "system",
+              "nodes": [
+                {
+                  "definitionId": "rep.leader",
+                  "id": "leader",
+                  "label": "Primary writer",
+                  "position": {
+                    "x": 560,
+                    "y": 0
+                  },
+                  "version": 1
+                },
+                {
+                  "definitionId": "rep.log",
+                  "id": "log",
+                  "label": "Durable write-ahead log",
+                  "position": {
+                    "x": 840,
+                    "y": 0
+                  },
+                  "version": 1
+                }
+              ],
+              "op": "expand",
+              "subsystemId": "raft-primary"
+            }
+          ],
+          "question": "What survives a primary restart?",
+          "reason": "Expand the boundary into a writer and replayable command log.",
+          "title": "Separate writer and durable log"
+        },
+        {
+          "checkIds": [
+            "ack-loss"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "rep.command",
+                "from": {
+                  "nodeId": "client",
+                  "portId": "out-rep.command"
+                },
+                "id": "write",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-rep.command"
+                }
+              },
+              {
+                "contractId": "rep.command",
+                "from": {
+                  "nodeId": "leader",
+                  "portId": "out-rep.command"
+                },
+                "id": "append",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "log",
+                  "portId": "in-rep.command"
+                }
+              },
+              {
+                "contractId": "rep.log",
+                "from": {
+                  "nodeId": "sender",
+                  "portId": "out-rep.log"
+                },
+                "id": "tail",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-rep.log-log"
+                }
+              },
+              {
+                "contractId": "rep.log",
+                "from": {
+                  "nodeId": "sender",
+                  "portId": "out-rep.log"
+                },
+                "id": "replicate",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "replica",
+                  "portId": "in-rep.log"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "rep.client",
+                "id": "client",
+                "label": "Client",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.system",
+                "id": "system",
+                "label": "Replicated storage boundary",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "raft-primary",
+                "version": 1
+              },
+              {
+                "definitionId": "rep.leader",
+                "id": "leader",
+                "label": "Primary writer",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.log",
+                "id": "log",
+                "label": "Durable write-ahead log",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.sender",
+                "id": "sender",
+                "label": "Replication sender",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.replica",
+                "id": "replica",
+                "label": "Follower data store",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "raft-s3",
+          "invariants": [
+            "A received batch is not necessarily fsynced or applied."
+          ],
+          "number": 3,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "rep.sender",
+                "id": "sender",
+                "label": "Replication sender",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "rep.replica",
+                "id": "replica",
+                "label": "Follower data store",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "rep.log",
+                "from": {
+                  "nodeId": "sender",
+                  "portId": "out-rep.log"
+                },
+                "id": "tail",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-rep.log-log"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "rep.log",
+                "from": {
+                  "nodeId": "sender",
+                  "portId": "out-rep.log"
+                },
+                "id": "replicate",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "replica",
+                  "portId": "in-rep.log"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Which offset is durable and which is applied?",
+          "reason": "Separate transport acknowledgements from application progress.",
+          "title": "Add a separate follower"
+        },
+        {
+          "checkIds": [
+            "read-watermark"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "rep.command",
+                "from": {
+                  "nodeId": "client",
+                  "portId": "out-rep.command"
+                },
+                "id": "write",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-rep.command"
+                }
+              },
+              {
+                "contractId": "rep.command",
+                "from": {
+                  "nodeId": "leader",
+                  "portId": "out-rep.command"
+                },
+                "id": "append",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "log",
+                  "portId": "in-rep.command"
+                }
+              },
+              {
+                "contractId": "rep.log",
+                "from": {
+                  "nodeId": "sender",
+                  "portId": "out-rep.log"
+                },
+                "id": "tail",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-rep.log-log"
+                }
+              },
+              {
+                "contractId": "rep.log",
+                "from": {
+                  "nodeId": "sender",
+                  "portId": "out-rep.log"
+                },
+                "id": "replicate",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "replica",
+                  "portId": "in-rep.log"
+                }
+              },
+              {
+                "contractId": "rep.read",
+                "from": {
+                  "nodeId": "client",
+                  "portId": "out-rep.read"
+                },
+                "id": "read",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "read",
+                  "portId": "in-rep.read"
+                }
+              },
+              {
+                "contractId": "rep.read",
+                "from": {
+                  "nodeId": "read",
+                  "portId": "out-rep.read"
+                },
+                "id": "follower-read",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "replica",
+                  "portId": "in-rep.read"
+                }
+              },
+              {
+                "contractId": "rep.read",
+                "from": {
+                  "nodeId": "read",
+                  "portId": "out-rep.read"
+                },
+                "id": "primary-read",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-rep.read-leader"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "rep.client",
+                "id": "client",
+                "label": "Client",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.system",
+                "id": "system",
+                "label": "Replicated storage boundary",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "raft-primary",
+                "version": 1
+              },
+              {
+                "definitionId": "rep.leader",
+                "id": "leader",
+                "label": "Primary writer",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.log",
+                "id": "log",
+                "label": "Durable write-ahead log",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.sender",
+                "id": "sender",
+                "label": "Replication sender",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.replica",
+                "id": "replica",
+                "label": "Follower data store",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.read",
+                "id": "read",
+                "label": "Read router",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "raft-s4",
+          "invariants": [
+            "A session read waits, chooses a sufficiently caught-up node, or fails explicitly."
+          ],
+          "number": 4,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "rep.read",
+                "id": "read",
+                "label": "Read router",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "rep.read",
+                "from": {
+                  "nodeId": "client",
+                  "portId": "out-rep.read"
+                },
+                "id": "read",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "read",
+                  "portId": "in-rep.read"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "rep.read",
+                "from": {
+                  "nodeId": "read",
+                  "portId": "out-rep.read"
+                },
+                "id": "follower-read",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "replica",
+                  "portId": "in-rep.read"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "rep.read",
+                "from": {
+                  "nodeId": "read",
+                  "portId": "out-rep.read"
+                },
+                "id": "primary-read",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-rep.read-leader"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can a read observe the caller’s preceding write?",
+          "reason": "Add a read router with a minimum position watermark.",
+          "title": "Expose read consistency"
+        },
+        {
+          "checkIds": [
+            "stale-leader"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "rep.command",
+                "from": {
+                  "nodeId": "client",
+                  "portId": "out-rep.command"
+                },
+                "id": "write",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-rep.command"
+                }
+              },
+              {
+                "contractId": "rep.command",
+                "from": {
+                  "nodeId": "leader",
+                  "portId": "out-rep.command"
+                },
+                "id": "append",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "log",
+                  "portId": "in-rep.command"
+                }
+              },
+              {
+                "contractId": "rep.log",
+                "from": {
+                  "nodeId": "sender",
+                  "portId": "out-rep.log"
+                },
+                "id": "tail",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-rep.log-log"
+                }
+              },
+              {
+                "contractId": "rep.log",
+                "from": {
+                  "nodeId": "sender",
+                  "portId": "out-rep.log"
+                },
+                "id": "replicate",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "replica",
+                  "portId": "in-rep.log"
+                }
+              },
+              {
+                "contractId": "rep.read",
+                "from": {
+                  "nodeId": "client",
+                  "portId": "out-rep.read"
+                },
+                "id": "read",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "read",
+                  "portId": "in-rep.read"
+                }
+              },
+              {
+                "contractId": "rep.read",
+                "from": {
+                  "nodeId": "read",
+                  "portId": "out-rep.read"
+                },
+                "id": "follower-read",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "replica",
+                  "portId": "in-rep.read"
+                }
+              },
+              {
+                "contractId": "rep.read",
+                "from": {
+                  "nodeId": "read",
+                  "portId": "out-rep.read"
+                },
+                "id": "primary-read",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-rep.read-leader"
+                }
+              },
+              {
+                "contractId": "rep.control",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-rep.control-leader"
+                },
+                "id": "leadership",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "authority",
+                  "portId": "in-rep.control"
+                }
+              },
+              {
+                "contractId": "rep.control",
+                "from": {
+                  "nodeId": "replica",
+                  "portId": "out-rep.control"
+                },
+                "id": "follower-epoch",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "authority",
+                  "portId": "in-rep.control"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "rep.client",
+                "id": "client",
+                "label": "Client",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.system",
+                "id": "system",
+                "label": "Replicated storage boundary",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "raft-primary",
+                "version": 1
+              },
+              {
+                "definitionId": "rep.leader",
+                "id": "leader",
+                "label": "Primary writer",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.log",
+                "id": "log",
+                "label": "Durable write-ahead log",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.sender",
+                "id": "sender",
+                "label": "Replication sender",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.replica",
+                "id": "replica",
+                "label": "Follower data store",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.read",
+                "id": "read",
+                "label": "Read router",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.voters",
+                "id": "authority",
+                "label": "Consensus voter group",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "raft-s5",
+          "invariants": [
+            "An old epoch cannot append authoritative commands after fencing."
+          ],
+          "number": 5,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "rep.voters",
+                "id": "authority",
+                "label": "Consensus voter group",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "rep.control",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-rep.control-leader"
+                },
+                "id": "leadership",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "authority",
+                  "portId": "in-rep.control"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "rep.control",
+                "from": {
+                  "nodeId": "replica",
+                  "portId": "out-rep.control"
+                },
+                "id": "follower-epoch",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "authority",
+                  "portId": "in-rep.control"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How is an obsolete writer stopped?",
+          "reason": "Leadership needs an enforceable protocol, not a DNS update.",
+          "title": "Introduce durable voters"
+        },
+        {
+          "checkIds": [
+            "ack-loss",
+            "stale-leader"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "rep.command",
+                "from": {
+                  "nodeId": "client",
+                  "portId": "out-rep.command"
+                },
+                "id": "write",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-rep.command"
+                }
+              },
+              {
+                "contractId": "rep.command",
+                "from": {
+                  "nodeId": "leader",
+                  "portId": "out-rep.command"
+                },
+                "id": "append",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "log",
+                  "portId": "in-rep.command"
+                }
+              },
+              {
+                "contractId": "rep.log",
+                "from": {
+                  "nodeId": "sender",
+                  "portId": "out-rep.log"
+                },
+                "id": "tail",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-rep.log-log"
+                }
+              },
+              {
+                "contractId": "rep.log",
+                "from": {
+                  "nodeId": "sender",
+                  "portId": "out-rep.log"
+                },
+                "id": "replicate",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "replica",
+                  "portId": "in-rep.log"
+                }
+              },
+              {
+                "contractId": "rep.read",
+                "from": {
+                  "nodeId": "client",
+                  "portId": "out-rep.read"
+                },
+                "id": "read",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "read",
+                  "portId": "in-rep.read"
+                }
+              },
+              {
+                "contractId": "rep.read",
+                "from": {
+                  "nodeId": "read",
+                  "portId": "out-rep.read"
+                },
+                "id": "follower-read",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "replica",
+                  "portId": "in-rep.read"
+                }
+              },
+              {
+                "contractId": "rep.read",
+                "from": {
+                  "nodeId": "read",
+                  "portId": "out-rep.read"
+                },
+                "id": "primary-read",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-rep.read-leader"
+                }
+              },
+              {
+                "contractId": "rep.control",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-rep.control-leader"
+                },
+                "id": "leadership",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "authority",
+                  "portId": "in-rep.control"
+                }
+              },
+              {
+                "contractId": "rep.control",
+                "from": {
+                  "nodeId": "replica",
+                  "portId": "out-rep.control"
+                },
+                "id": "follower-epoch",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "authority",
+                  "portId": "in-rep.control"
+                }
+              },
+              {
+                "contractId": "rep.command",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-rep.command-leader"
+                },
+                "id": "acknowledgement-gate",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "gate",
+                  "portId": "in-rep.command"
+                }
+              },
+              {
+                "contractId": "rep.control",
+                "from": {
+                  "nodeId": "gate",
+                  "portId": "out-rep.control"
+                },
+                "id": "commit-progress",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "authority",
+                  "portId": "in-rep.control"
+                }
+              },
+              {
+                "contractId": "rep.log",
+                "from": {
+                  "nodeId": "gate",
+                  "portId": "out-rep.log"
+                },
+                "id": "log-progress",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-rep.log-log"
+                }
+              },
+              {
+                "contractId": "rep.log",
+                "from": {
+                  "nodeId": "gate",
+                  "portId": "out-rep.log"
+                },
+                "id": "replica-progress",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "replica",
+                  "portId": "in-rep.log"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "rep.client",
+                "id": "client",
+                "label": "Client",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.system",
+                "id": "system",
+                "label": "Replicated storage boundary",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "raft-primary",
+                "version": 1
+              },
+              {
+                "definitionId": "rep.leader",
+                "id": "leader",
+                "label": "Primary writer",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.log",
+                "id": "log",
+                "label": "Durable write-ahead log",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.sender",
+                "id": "sender",
+                "label": "Replication sender",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.replica",
+                "id": "replica",
+                "label": "Follower data store",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.read",
+                "id": "read",
+                "label": "Read router",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.voters",
+                "id": "authority",
+                "label": "Consensus voter group",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.gate",
+                "id": "gate",
+                "label": "Commit-index gate",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "raft-s6",
+          "invariants": [
+            "Advance commitIndex by Raft rules, including the current-term restriction."
+          ],
+          "number": 6,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "rep.gate",
+                "id": "gate",
+                "label": "Commit-index gate",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "rep.command",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-rep.command-leader"
+                },
+                "id": "acknowledgement-gate",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "gate",
+                  "portId": "in-rep.command"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "rep.control",
+                "from": {
+                  "nodeId": "gate",
+                  "portId": "out-rep.control"
+                },
+                "id": "commit-progress",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "authority",
+                  "portId": "in-rep.control"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "rep.log",
+                "from": {
+                  "nodeId": "gate",
+                  "portId": "out-rep.log"
+                },
+                "id": "log-progress",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-rep.log-log"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "rep.log",
+                "from": {
+                  "nodeId": "gate",
+                  "portId": "out-rep.log"
+                },
+                "id": "replica-progress",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "replica",
+                  "portId": "in-rep.log"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Which writes can disappear after failover?",
+          "reason": "Tie reply visibility to the selected durability contract.",
+          "title": "Gate replies on committed majority"
+        },
+        {
+          "checkIds": [
+            "snapshot-recovery"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "rep.command",
+                "from": {
+                  "nodeId": "client",
+                  "portId": "out-rep.command"
+                },
+                "id": "write",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-rep.command"
+                }
+              },
+              {
+                "contractId": "rep.command",
+                "from": {
+                  "nodeId": "leader",
+                  "portId": "out-rep.command"
+                },
+                "id": "append",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "log",
+                  "portId": "in-rep.command"
+                }
+              },
+              {
+                "contractId": "rep.log",
+                "from": {
+                  "nodeId": "sender",
+                  "portId": "out-rep.log"
+                },
+                "id": "tail",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-rep.log-log"
+                }
+              },
+              {
+                "contractId": "rep.log",
+                "from": {
+                  "nodeId": "sender",
+                  "portId": "out-rep.log"
+                },
+                "id": "replicate",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "replica",
+                  "portId": "in-rep.log"
+                }
+              },
+              {
+                "contractId": "rep.read",
+                "from": {
+                  "nodeId": "client",
+                  "portId": "out-rep.read"
+                },
+                "id": "read",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "read",
+                  "portId": "in-rep.read"
+                }
+              },
+              {
+                "contractId": "rep.read",
+                "from": {
+                  "nodeId": "read",
+                  "portId": "out-rep.read"
+                },
+                "id": "follower-read",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "replica",
+                  "portId": "in-rep.read"
+                }
+              },
+              {
+                "contractId": "rep.read",
+                "from": {
+                  "nodeId": "read",
+                  "portId": "out-rep.read"
+                },
+                "id": "primary-read",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-rep.read-leader"
+                }
+              },
+              {
+                "contractId": "rep.control",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-rep.control-leader"
+                },
+                "id": "leadership",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "authority",
+                  "portId": "in-rep.control"
+                }
+              },
+              {
+                "contractId": "rep.control",
+                "from": {
+                  "nodeId": "replica",
+                  "portId": "out-rep.control"
+                },
+                "id": "follower-epoch",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "authority",
+                  "portId": "in-rep.control"
+                }
+              },
+              {
+                "contractId": "rep.command",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-rep.command-leader"
+                },
+                "id": "acknowledgement-gate",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "gate",
+                  "portId": "in-rep.command"
+                }
+              },
+              {
+                "contractId": "rep.control",
+                "from": {
+                  "nodeId": "gate",
+                  "portId": "out-rep.control"
+                },
+                "id": "commit-progress",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "authority",
+                  "portId": "in-rep.control"
+                }
+              },
+              {
+                "contractId": "rep.log",
+                "from": {
+                  "nodeId": "gate",
+                  "portId": "out-rep.log"
+                },
+                "id": "log-progress",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-rep.log-log"
+                }
+              },
+              {
+                "contractId": "rep.log",
+                "from": {
+                  "nodeId": "gate",
+                  "portId": "out-rep.log"
+                },
+                "id": "replica-progress",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "replica",
+                  "portId": "in-rep.log"
+                }
+              },
+              {
+                "contractId": "rep.snapshot",
+                "from": {
+                  "nodeId": "snapshot",
+                  "portId": "out-rep.snapshot"
+                },
+                "id": "snapshot-source",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-rep.snapshot-log"
+                }
+              },
+              {
+                "contractId": "rep.snapshot",
+                "from": {
+                  "nodeId": "snapshot",
+                  "portId": "out-rep.snapshot"
+                },
+                "id": "install",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "replica",
+                  "portId": "in-rep.snapshot"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "rep.client",
+                "id": "client",
+                "label": "Client",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.system",
+                "id": "system",
+                "label": "Replicated storage boundary",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "raft-primary",
+                "version": 1
+              },
+              {
+                "definitionId": "rep.leader",
+                "id": "leader",
+                "label": "Primary writer",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.log",
+                "id": "log",
+                "label": "Durable write-ahead log",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.sender",
+                "id": "sender",
+                "label": "Replication sender",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.replica",
+                "id": "replica",
+                "label": "Follower data store",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.read",
+                "id": "read",
+                "label": "Read router",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.voters",
+                "id": "authority",
+                "label": "Consensus voter group",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.gate",
+                "id": "gate",
+                "label": "Commit-index gate",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.snapshot",
+                "id": "snapshot",
+                "label": "Snapshot coordinator",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "raft-s7",
+          "invariants": [
+            "Verify hash and included index/term before replaying entries beyond the snapshot."
+          ],
+          "number": 7,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "rep.snapshot",
+                "id": "snapshot",
+                "label": "Snapshot coordinator",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "rep.snapshot",
+                "from": {
+                  "nodeId": "snapshot",
+                  "portId": "out-rep.snapshot"
+                },
+                "id": "snapshot-source",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-rep.snapshot-log"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "rep.snapshot",
+                "from": {
+                  "nodeId": "snapshot",
+                  "portId": "out-rep.snapshot"
+                },
+                "id": "install",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "replica",
+                  "portId": "in-rep.snapshot"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What if lag exceeds retained log history?",
+          "reason": "Add a recovery boundary that never mixes unrelated snapshots and log suffixes.",
+          "title": "Install checked snapshots and replay suffixes"
+        },
+        {
+          "checkIds": [
+            "duplicate",
+            "read-watermark"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "rep.command",
+                "from": {
+                  "nodeId": "leader",
+                  "portId": "out-rep.command"
+                },
+                "id": "append",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "log",
+                  "portId": "in-rep.command"
+                }
+              },
+              {
+                "contractId": "rep.log",
+                "from": {
+                  "nodeId": "sender",
+                  "portId": "out-rep.log"
+                },
+                "id": "tail",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-rep.log-log"
+                }
+              },
+              {
+                "contractId": "rep.log",
+                "from": {
+                  "nodeId": "sender",
+                  "portId": "out-rep.log"
+                },
+                "id": "replicate",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "replica",
+                  "portId": "in-rep.log"
+                }
+              },
+              {
+                "contractId": "rep.read",
+                "from": {
+                  "nodeId": "router",
+                  "portId": "out-rep.read"
+                },
+                "id": "follower-read",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "replica",
+                  "portId": "in-rep.read"
+                }
+              },
+              {
+                "contractId": "rep.read",
+                "from": {
+                  "nodeId": "router",
+                  "portId": "out-rep.read"
+                },
+                "id": "primary-read",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-rep.read-leader"
+                }
+              },
+              {
+                "contractId": "rep.control",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-rep.control-leader"
+                },
+                "id": "leadership",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "authority",
+                  "portId": "in-rep.control"
+                }
+              },
+              {
+                "contractId": "rep.control",
+                "from": {
+                  "nodeId": "replica",
+                  "portId": "out-rep.control"
+                },
+                "id": "follower-epoch",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "authority",
+                  "portId": "in-rep.control"
+                }
+              },
+              {
+                "contractId": "rep.command",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-rep.command-leader"
+                },
+                "id": "acknowledgement-gate",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "gate",
+                  "portId": "in-rep.command"
+                }
+              },
+              {
+                "contractId": "rep.control",
+                "from": {
+                  "nodeId": "gate",
+                  "portId": "out-rep.control"
+                },
+                "id": "commit-progress",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "authority",
+                  "portId": "in-rep.control"
+                }
+              },
+              {
+                "contractId": "rep.log",
+                "from": {
+                  "nodeId": "gate",
+                  "portId": "out-rep.log"
+                },
+                "id": "log-progress",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-rep.log-log"
+                }
+              },
+              {
+                "contractId": "rep.log",
+                "from": {
+                  "nodeId": "gate",
+                  "portId": "out-rep.log"
+                },
+                "id": "replica-progress",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "replica",
+                  "portId": "in-rep.log"
+                }
+              },
+              {
+                "contractId": "rep.snapshot",
+                "from": {
+                  "nodeId": "snapshot",
+                  "portId": "out-rep.snapshot"
+                },
+                "id": "snapshot-source",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-rep.snapshot-log"
+                }
+              },
+              {
+                "contractId": "rep.snapshot",
+                "from": {
+                  "nodeId": "snapshot",
+                  "portId": "out-rep.snapshot"
+                },
+                "id": "install",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "replica",
+                  "portId": "in-rep.snapshot"
+                }
+              },
+              {
+                "contractId": "rep.command",
+                "from": {
+                  "nodeId": "router",
+                  "portId": "out-rep.command"
+                },
+                "id": "write",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-rep.command"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "rep.system",
+                "id": "system",
+                "label": "Replicated storage boundary",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "raft-primary",
+                "version": 1
+              },
+              {
+                "definitionId": "rep.leader",
+                "id": "leader",
+                "label": "Primary writer",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.log",
+                "id": "log",
+                "label": "Durable write-ahead log",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.sender",
+                "id": "sender",
+                "label": "Replication sender",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.replica",
+                "id": "replica",
+                "label": "Follower data store",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.voters",
+                "id": "authority",
+                "label": "Consensus voter group",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.gate",
+                "id": "gate",
+                "label": "Commit-index gate",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.snapshot",
+                "id": "snapshot",
+                "label": "Snapshot coordinator",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "rep.router",
+                "id": "router",
+                "label": "Unified consistency router",
+                "lineageIds": [
+                  "read",
+                  "client"
+                ],
+                "position": {
+                  "x": 560,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "raft-s8",
+          "invariants": [
+            "Duplicate requests return their original committed receipt or explicit uncertainty."
+          ],
+          "number": 8,
+          "operations": [
+            {
+              "edgeId": "write",
+              "op": "disconnect"
+            },
+            {
+              "node": {
+                "definitionId": "rep.router",
+                "id": "router",
+                "label": "Unified consistency router",
+                "position": {
+                  "x": 560,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "nodeIds": [
+                "read",
+                "client"
+              ],
+              "op": "merge",
+              "reason": "Join the session watermark and leader choice instead of keeping competing consistency decisions."
+            },
+            {
+              "edge": {
+                "contractId": "rep.command",
+                "from": {
+                  "nodeId": "router",
+                  "portId": "out-rep.command"
+                },
+                "id": "write",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-rep.command"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can discovery and read routing use conflicting leadership views?",
+          "reason": "One client consistency owner carries epoch, receipt and read watermark.",
+          "title": "Merge client consistency decisions"
+        }
+      ],
+      "title": "Consensus-backed log with quorum durability",
+      "tradeoffs": [
+        "A majority must be reachable; minority partitions cannot accept writes.",
+        "Quorum latency and protocol complexity require a proven implementation."
+      ]
+    }
+  ],
+  "subsystems": [
+    {
+      "definitionId": "rep.system",
+      "id": "async-primary-primary",
+      "ports": [
+        {
+          "contractId": "rep.command",
+          "direction": "in",
+          "id": "in-rep.command",
+          "target": {
+            "nodeId": "leader",
+            "portId": "in-rep.command"
+          }
+        },
+        {
+          "contractId": "rep.log",
+          "direction": "in",
+          "id": "in-rep.log-log",
+          "target": {
+            "nodeId": "log",
+            "portId": "in-rep.log"
+          }
+        },
+        {
+          "contractId": "rep.read",
+          "direction": "in",
+          "id": "in-rep.read-leader",
+          "target": {
+            "nodeId": "leader",
+            "portId": "in-rep.read"
+          }
+        },
+        {
+          "contractId": "rep.control",
+          "direction": "out",
+          "id": "out-rep.control-leader",
+          "target": {
+            "nodeId": "leader",
+            "portId": "out-rep.control"
+          }
+        },
+        {
+          "contractId": "rep.command",
+          "direction": "out",
+          "id": "out-rep.command-leader",
+          "target": {
+            "nodeId": "leader",
+            "portId": "out-rep.command"
+          }
+        },
+        {
+          "contractId": "rep.snapshot",
+          "direction": "in",
+          "id": "in-rep.snapshot-log",
+          "target": {
+            "nodeId": "log",
+            "portId": "in-rep.snapshot"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "rep.system",
+      "id": "raft-primary",
+      "ports": [
+        {
+          "contractId": "rep.command",
+          "direction": "in",
+          "id": "in-rep.command",
+          "target": {
+            "nodeId": "leader",
+            "portId": "in-rep.command"
+          }
+        },
+        {
+          "contractId": "rep.log",
+          "direction": "in",
+          "id": "in-rep.log-log",
+          "target": {
+            "nodeId": "log",
+            "portId": "in-rep.log"
+          }
+        },
+        {
+          "contractId": "rep.read",
+          "direction": "in",
+          "id": "in-rep.read-leader",
+          "target": {
+            "nodeId": "leader",
+            "portId": "in-rep.read"
+          }
+        },
+        {
+          "contractId": "rep.control",
+          "direction": "out",
+          "id": "out-rep.control-leader",
+          "target": {
+            "nodeId": "leader",
+            "portId": "out-rep.control"
+          }
+        },
+        {
+          "contractId": "rep.command",
+          "direction": "out",
+          "id": "out-rep.command-leader",
+          "target": {
+            "nodeId": "leader",
+            "portId": "out-rep.command"
+          }
+        },
+        {
+          "contractId": "rep.snapshot",
+          "direction": "in",
+          "id": "in-rep.snapshot-log",
+          "target": {
+            "nodeId": "log",
+            "portId": "in-rep.snapshot"
+          }
+        }
+      ],
+      "version": 1
+    }
+  ],
+  "version": 1
+}

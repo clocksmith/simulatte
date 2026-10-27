@@ -1,0 +1,4884 @@
+{
+  "components": [
+    {
+      "extends": {
+        "id": "core.client",
+        "version": 1
+      },
+      "id": "vid.viewer",
+      "label": "Viewer/player",
+      "ports": [
+        {
+          "contractId": "vid.manifest",
+          "direction": "out",
+          "id": "out-vid.manifest"
+        },
+        {
+          "contractId": "vid.fetch",
+          "direction": "out",
+          "id": "out-vid.fetch"
+        }
+      ],
+      "responsibility": "Own playback position and visible playback state.",
+      "stateOwnership": [
+        "playhead"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.service",
+        "version": 1
+      },
+      "id": "vid.system",
+      "label": "Video delivery service",
+      "ports": [
+        {
+          "contractId": "vid.manifest",
+          "direction": "in",
+          "id": "in-vid.manifest"
+        },
+        {
+          "contractId": "vid.publish",
+          "direction": "in",
+          "id": "in-vid.publish-origin"
+        },
+        {
+          "contractId": "vid.publish",
+          "direction": "in",
+          "id": "in-vid.publish-manifest"
+        },
+        {
+          "contractId": "vid.fetch",
+          "direction": "in",
+          "id": "in-vid.fetch-origin"
+        },
+        {
+          "contractId": "vid.manifest",
+          "direction": "out",
+          "id": "out-vid.manifest-manifest"
+        }
+      ],
+      "responsibility": "Expose versioned manifests and authorized media bytes.",
+      "stateOwnership": [
+        "logical video catalogue"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.service",
+        "version": 1
+      },
+      "id": "vid.manifest",
+      "label": "Manifest API",
+      "ports": [
+        {
+          "contractId": "vid.manifest",
+          "direction": "out",
+          "id": "out-vid.manifest"
+        },
+        {
+          "contractId": "vid.manifest",
+          "direction": "in",
+          "id": "in-vid.manifest"
+        },
+        {
+          "contractId": "vid.publish",
+          "direction": "in",
+          "id": "in-vid.publish"
+        }
+      ],
+      "responsibility": "Authorize access and return one atomically published asset version.",
+      "stateOwnership": [
+        "catalogue pointer"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "vid.origin",
+      "label": "Immutable media origin",
+      "ports": [
+        {
+          "contractId": "vid.manifest",
+          "direction": "in",
+          "id": "in-vid.manifest"
+        },
+        {
+          "contractId": "vid.publish",
+          "direction": "in",
+          "id": "in-vid.publish"
+        },
+        {
+          "contractId": "vid.fetch",
+          "direction": "in",
+          "id": "in-vid.fetch"
+        }
+      ],
+      "responsibility": "Store encoded segments and manifests by immutable version.",
+      "stateOwnership": [
+        "media objects"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "vid.encoder",
+      "label": "Encoding pipeline",
+      "ports": [
+        {
+          "contractId": "vid.publish",
+          "direction": "out",
+          "id": "out-vid.publish"
+        }
+      ],
+      "responsibility": "Generate aligned renditions, validate decodability, then publish the manifest pointer.",
+      "stateOwnership": [
+        "encoding job receipts"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.cache",
+        "version": 1
+      },
+      "id": "vid.cdn",
+      "label": "CDN edge cache",
+      "ports": [
+        {
+          "contractId": "vid.fetch",
+          "direction": "in",
+          "id": "in-vid.fetch"
+        },
+        {
+          "contractId": "vid.fetch",
+          "direction": "out",
+          "id": "out-vid.fetch"
+        }
+      ],
+      "responsibility": "Serve version-keyed segments while enforcing signed-request policy.",
+      "stateOwnership": [
+        "evictable media copies"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.cache",
+        "version": 1
+      },
+      "id": "vid.shield",
+      "label": "Origin shield",
+      "ports": [
+        {
+          "contractId": "vid.fetch",
+          "direction": "in",
+          "id": "in-vid.fetch"
+        },
+        {
+          "contractId": "vid.fetch",
+          "direction": "out",
+          "id": "out-vid.fetch"
+        }
+      ],
+      "responsibility": "Collapse concurrent misses and bound origin fetch concurrency.",
+      "stateOwnership": [
+        "in-flight fill promises"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.service",
+        "version": 1
+      },
+      "id": "vid.auth",
+      "label": "Playback authorization",
+      "ports": [
+        {
+          "contractId": "vid.manifest",
+          "direction": "in",
+          "id": "in-vid.manifest"
+        },
+        {
+          "contractId": "vid.fetch",
+          "direction": "in",
+          "id": "in-vid.fetch"
+        }
+      ],
+      "responsibility": "Issue short-lived asset-scoped capabilities; keep authorization out of shared cache keys where safe.",
+      "stateOwnership": [
+        "entitlements"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "vid.abr",
+      "label": "Adaptive bitrate chooser",
+      "ports": [
+        {
+          "contractId": "vid.manifest",
+          "direction": "in",
+          "id": "in-vid.manifest"
+        },
+        {
+          "contractId": "vid.fetch",
+          "direction": "out",
+          "id": "out-vid.fetch"
+        }
+      ],
+      "responsibility": "Estimate throughput conservatively and use buffer hysteresis to avoid rapid oscillation.",
+      "stateOwnership": [
+        "throughput EWMA"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "vid.buffer",
+      "label": "Bounded media buffer",
+      "ports": [
+        {
+          "contractId": "vid.fetch",
+          "direction": "in",
+          "id": "in-vid.fetch"
+        },
+        {
+          "contractId": "vid.fetch",
+          "direction": "out",
+          "id": "out-vid.fetch"
+        },
+        {
+          "contractId": "vid.placement",
+          "direction": "out",
+          "id": "out-vid.placement"
+        }
+      ],
+      "responsibility": "Fetch sequential segments up to explicit time and byte limits.",
+      "stateOwnership": [
+        "queued playable segments"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "vid.placement",
+      "label": "Regional placement planner",
+      "ports": [
+        {
+          "contractId": "vid.placement",
+          "direction": "out",
+          "id": "out-vid.placement"
+        },
+        {
+          "contractId": "vid.fetch",
+          "direction": "out",
+          "id": "out-vid.fetch"
+        },
+        {
+          "contractId": "vid.placement",
+          "direction": "in",
+          "id": "in-vid.placement"
+        }
+      ],
+      "responsibility": "Preposition popular immutable versions using capacity and demand budgets.",
+      "stateOwnership": [
+        "placement plans"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.cache",
+        "version": 1
+      },
+      "id": "vid.regional",
+      "label": "Regional media cache",
+      "ports": [
+        {
+          "contractId": "vid.fetch",
+          "direction": "in",
+          "id": "in-vid.fetch"
+        },
+        {
+          "contractId": "vid.fetch",
+          "direction": "out",
+          "id": "out-vid.fetch"
+        },
+        {
+          "contractId": "vid.placement",
+          "direction": "in",
+          "id": "in-vid.placement"
+        }
+      ],
+      "responsibility": "Own region-local prepositioned copies and verify hashes before advertising them.",
+      "stateOwnership": [
+        "regional inventory"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "vid.failover",
+      "label": "Delivery failover selector",
+      "ports": [
+        {
+          "contractId": "vid.placement",
+          "direction": "in",
+          "id": "in-vid.placement"
+        },
+        {
+          "contractId": "vid.fetch",
+          "direction": "out",
+          "id": "out-vid.fetch"
+        },
+        {
+          "contractId": "vid.placement",
+          "direction": "out",
+          "id": "out-vid.placement"
+        }
+      ],
+      "responsibility": "Choose healthy locations without changing the requested content version.",
+      "stateOwnership": [
+        "failure observations"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "vid.player-state",
+      "label": "Unified playback coordinator",
+      "ports": [
+        {
+          "contractId": "vid.manifest",
+          "direction": "in",
+          "id": "in-vid.manifest"
+        },
+        {
+          "contractId": "vid.fetch",
+          "direction": "out",
+          "id": "out-vid.fetch"
+        },
+        {
+          "contractId": "vid.fetch",
+          "direction": "in",
+          "id": "in-vid.fetch"
+        },
+        {
+          "contractId": "vid.placement",
+          "direction": "out",
+          "id": "out-vid.placement"
+        },
+        {
+          "contractId": "vid.placement",
+          "direction": "in",
+          "id": "in-vid.placement"
+        }
+      ],
+      "responsibility": "Own fetching, adaptation, buffering and failover under one playback generation.",
+      "stateOwnership": [
+        "generation",
+        "buffered intervals",
+        "rendition",
+        "location"
+      ],
+      "version": 1
+    }
+  ],
+  "contracts": [
+    {
+      "id": "vid.fetch",
+      "request": {
+        "assetVersion": "content version",
+        "authorization": "scoped short-lived capability",
+        "rendition": "allowlisted rendition",
+        "segmentId": "string"
+      },
+      "response": {
+        "bytes": "bounded media bytes",
+        "cachePolicy": "versioned immutable|private-no-store",
+        "contentHash": "sha256"
+      },
+      "version": 1
+    },
+    {
+      "id": "vid.manifest",
+      "request": {
+        "assetId": "string",
+        "authorization": "scoped capability"
+      },
+      "response": {
+        "expiresAt": "timestamp",
+        "renditions": "{bitrate,codec,segments}[]",
+        "version": "string"
+      },
+      "version": 1
+    },
+    {
+      "id": "vid.publish",
+      "request": {
+        "assetId": "string",
+        "jobId": "uuid",
+        "sourceHash": "sha256"
+      },
+      "response": {
+        "status": "encoding|validated|published|failed",
+        "version": "string"
+      },
+      "version": 1
+    },
+    {
+      "id": "vid.placement",
+      "request": {
+        "assetVersion": "string",
+        "demand": "bounded demand observation",
+        "region": "string"
+      },
+      "response": {
+        "epoch": "uint64",
+        "locations": "healthy cache endpoints[]"
+      },
+      "version": 1
+    }
+  ],
+  "execution": {
+    "implementation": null,
+    "kind": "conceptual-design"
+  },
+  "problem": {
+    "referenceId": "L010",
+    "requirements": [
+      {
+        "id": "play",
+        "text": "Play authorized content with a bounded client buffer and versioned segment identities."
+      },
+      {
+        "id": "adapt",
+        "text": "Adapt rendition to measured download throughput and buffer health without promising zero stalls."
+      },
+      {
+        "id": "origin",
+        "text": "Protect origin capacity during misses, demand spikes and regional failures."
+      },
+      {
+        "id": "verify",
+        "text": "Reject corrupt or mismatched media and make publishing, expiry and failover policies explicit."
+      }
+    ],
+    "scope": "Video-on-demand with immutable encoded segments and manifests. Compare request-driven CDN fills with regional prepositioning. Live media, DRM implementation and peer-to-peer delivery are outside these authored branches.",
+    "studyLabel": "Adaptive video delivery"
+  },
+  "provenance": {
+    "kind": "authored-practice",
+    "note": "Authored interview preparation. Technical references support mechanisms, not the claim that a company asked this question."
+  },
+  "references": [
+    {
+      "id": "hls",
+      "scope": "background",
+      "supports": "Variant playlists, segment sequences and client playback semantics.",
+      "title": "HTTP Live Streaming RFC 8216",
+      "url": "https://www.rfc-editor.org/rfc/rfc8216"
+    },
+    {
+      "id": "netflix",
+      "scope": "background",
+      "supports": "Regional content placement and delivery infrastructure.",
+      "title": "Netflix Open Connect",
+      "url": "https://openconnect.netflix.com/en/"
+    }
+  ],
+  "schema": "simulatte.composableStudy.v1",
+  "solutions": [
+    {
+      "acceptanceCases": [
+        {
+          "given": "One rendition has not finished encoding.",
+          "id": "atomic-publish",
+          "relatedRequirementIds": [
+            "verify",
+            "play"
+          ],
+          "then": "Keep serving the prior version or unavailable; no published manifest points at missing media.",
+          "when": "A viewer requests the new asset."
+        },
+        {
+          "given": "A regional cache has incorrect bytes under the requested segment key.",
+          "id": "corruption",
+          "relatedRequirementIds": [
+            "verify"
+          ],
+          "then": "Reject/quarantine that copy and retry the same version within a bounded attempt policy.",
+          "when": "Download and validate against the trusted content hash."
+        },
+        {
+          "given": "Many viewers request one uncached segment.",
+          "id": "cold-spike",
+          "relatedRequirementIds": [
+            "origin"
+          ],
+          "then": "One fill per key runs per shield and global origin admission stays bounded.",
+          "when": "All miss concurrently."
+        },
+        {
+          "given": "An unentitled viewer requests an already cached segment.",
+          "id": "entitlement",
+          "relatedRequirementIds": [
+            "play"
+          ],
+          "then": "Deny access despite the cache hit; a capability has asset and expiry scope.",
+          "when": "The edge receives the request."
+        },
+        {
+          "given": "Downloads complete quickly while playback is paused or seeking.",
+          "id": "bounded-buffer",
+          "relatedRequirementIds": [
+            "adapt"
+          ],
+          "then": "Old results are ignored and queued media respects time and byte ceilings.",
+          "when": "Continue completion callbacks from an old generation."
+        },
+        {
+          "given": "A region fails midway through playback.",
+          "id": "regional-loss",
+          "relatedRequirementIds": [
+            "origin",
+            "play"
+          ],
+          "then": "Continue exact assetVersion and sequence; expose rebuffering if no eligible location meets the deadline.",
+          "when": "Select an alternate healthy location."
+        }
+      ],
+      "algorithms": [
+        {
+          "code": "onSeek(target) { generation++; abortPriorDownloads(); clearBuffer(); playhead = target; }\nasync function fetchNext() {\n  if (bufferSeconds >= policy.maxSeconds || bufferBytes >= policy.maxBytes) return;\n  const g = generation;\n  const rendition = chooseWithHysteresis(throughputEWMA, bufferSeconds);\n  const segment = await downloadExactVersion(assetVersion, rendition, nextSegment);\n  if (g !== generation) return;\n  verifyExpectedHashAndLength(segment);\n  appendIfWithinByteAndTimeBudgets(segment);\n}\n// CDN access validates entitlement even on cache hits; capability expiry bounds revocation latency.",
+          "guarantees": [
+            "Buffer memory stays bounded and stale seek results cannot alter the current playback."
+          ],
+          "id": "buffer-policy",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "player-state"
+        }
+      ],
+      "apis": [
+        {
+          "errors": "403 entitlement; 404 unpublished version",
+          "method": "GET",
+          "ownerNodeId": "manifest",
+          "path": "/assets/{id}/manifest",
+          "request": "{capability}",
+          "response": "{version,renditions,expiresAt}"
+        }
+      ],
+      "assumptions": [
+        "VOD segments are immutable per asset version.",
+        "Authorized responses must not be shared across users unless the cache can enforce entitlement."
+      ],
+      "chooseWhen": "The catalogue is long-tailed and demand is difficult to predict.",
+      "id": "pull-cdn",
+      "initialGraph": {
+        "edges": [],
+        "nodes": []
+      },
+      "stages": [
+        {
+          "checkIds": [
+            "atomic-publish"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "vid.manifest",
+                "from": {
+                  "nodeId": "viewer",
+                  "portId": "out-vid.manifest"
+                },
+                "id": "manifest",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-vid.manifest"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "vid.viewer",
+                "id": "viewer",
+                "label": "Viewer/player",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.system",
+                "id": "system",
+                "label": "Video delivery service",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "pull-cdn-s1",
+          "invariants": [
+            "A manifest refers to a single published media version."
+          ],
+          "number": 1,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "vid.viewer",
+                "id": "viewer",
+                "label": "Viewer/player",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "vid.system",
+                "id": "system",
+                "label": "Video delivery service",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "vid.manifest",
+                "from": {
+                  "nodeId": "viewer",
+                  "portId": "out-vid.manifest"
+                },
+                "id": "manifest",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-vid.manifest"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What does the player request?",
+          "reason": "Start with a viewer and a coarse video boundary.",
+          "title": "State playback and media identity"
+        },
+        {
+          "checkIds": [
+            "atomic-publish"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "vid.manifest",
+                "from": {
+                  "nodeId": "viewer",
+                  "portId": "out-vid.manifest"
+                },
+                "id": "manifest",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-vid.manifest"
+                }
+              },
+              {
+                "contractId": "vid.manifest",
+                "from": {
+                  "nodeId": "manifest",
+                  "portId": "out-vid.manifest"
+                },
+                "id": "read-manifest",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "origin",
+                  "portId": "in-vid.manifest"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "vid.viewer",
+                "id": "viewer",
+                "label": "Viewer/player",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.system",
+                "id": "system",
+                "label": "Video delivery service",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "pull-cdn-origin",
+                "version": 1
+              },
+              {
+                "definitionId": "vid.manifest",
+                "id": "manifest",
+                "label": "Manifest API",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.origin",
+                "id": "origin",
+                "label": "Immutable media origin",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "pull-cdn-s2",
+          "invariants": [
+            "Do not publish a playlist referencing unavailable segments."
+          ],
+          "number": 2,
+          "operations": [
+            {
+              "edges": [
+                {
+                  "contractId": "vid.manifest",
+                  "from": {
+                    "nodeId": "manifest",
+                    "portId": "out-vid.manifest"
+                  },
+                  "id": "read-manifest",
+                  "mode": "storage",
+                  "to": {
+                    "nodeId": "origin",
+                    "portId": "in-vid.manifest"
+                  }
+                }
+              ],
+              "nodeId": "system",
+              "nodes": [
+                {
+                  "definitionId": "vid.manifest",
+                  "id": "manifest",
+                  "label": "Manifest API",
+                  "position": {
+                    "x": 560,
+                    "y": 0
+                  },
+                  "version": 1
+                },
+                {
+                  "definitionId": "vid.origin",
+                  "id": "origin",
+                  "label": "Immutable media origin",
+                  "position": {
+                    "x": 840,
+                    "y": 0
+                  },
+                  "version": 1
+                }
+              ],
+              "op": "expand",
+              "subsystemId": "pull-cdn-origin"
+            }
+          ],
+          "question": "Where do media bytes live?",
+          "reason": "Expand serving into a manifest API and immutable segment storage.",
+          "title": "Expose manifests and immutable origin"
+        },
+        {
+          "checkIds": [
+            "atomic-publish"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "vid.manifest",
+                "from": {
+                  "nodeId": "viewer",
+                  "portId": "out-vid.manifest"
+                },
+                "id": "manifest",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-vid.manifest"
+                }
+              },
+              {
+                "contractId": "vid.manifest",
+                "from": {
+                  "nodeId": "manifest",
+                  "portId": "out-vid.manifest"
+                },
+                "id": "read-manifest",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "origin",
+                  "portId": "in-vid.manifest"
+                }
+              },
+              {
+                "contractId": "vid.publish",
+                "from": {
+                  "nodeId": "encoder",
+                  "portId": "out-vid.publish"
+                },
+                "id": "write-media",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-vid.publish-origin"
+                }
+              },
+              {
+                "contractId": "vid.publish",
+                "from": {
+                  "nodeId": "encoder",
+                  "portId": "out-vid.publish"
+                },
+                "id": "publish-pointer",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-vid.publish-manifest"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "vid.viewer",
+                "id": "viewer",
+                "label": "Viewer/player",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.system",
+                "id": "system",
+                "label": "Video delivery service",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "pull-cdn-origin",
+                "version": 1
+              },
+              {
+                "definitionId": "vid.manifest",
+                "id": "manifest",
+                "label": "Manifest API",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.origin",
+                "id": "origin",
+                "label": "Immutable media origin",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.encoder",
+                "id": "encoder",
+                "label": "Encoding pipeline",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "pull-cdn-s3",
+          "invariants": [
+            "Publish pointer only after every required rendition passes validation."
+          ],
+          "number": 3,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "vid.encoder",
+                "id": "encoder",
+                "label": "Encoding pipeline",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "vid.publish",
+                "from": {
+                  "nodeId": "encoder",
+                  "portId": "out-vid.publish"
+                },
+                "id": "write-media",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-vid.publish-origin"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "vid.publish",
+                "from": {
+                  "nodeId": "encoder",
+                  "portId": "out-vid.publish"
+                },
+                "id": "publish-pointer",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-vid.publish-manifest"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "When can a new version become visible?",
+          "reason": "Separate costly rendition generation from request serving.",
+          "title": "Add encoding and validation"
+        },
+        {
+          "checkIds": [
+            "corruption"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "vid.manifest",
+                "from": {
+                  "nodeId": "viewer",
+                  "portId": "out-vid.manifest"
+                },
+                "id": "manifest",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-vid.manifest"
+                }
+              },
+              {
+                "contractId": "vid.manifest",
+                "from": {
+                  "nodeId": "manifest",
+                  "portId": "out-vid.manifest"
+                },
+                "id": "read-manifest",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "origin",
+                  "portId": "in-vid.manifest"
+                }
+              },
+              {
+                "contractId": "vid.publish",
+                "from": {
+                  "nodeId": "encoder",
+                  "portId": "out-vid.publish"
+                },
+                "id": "write-media",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-vid.publish-origin"
+                }
+              },
+              {
+                "contractId": "vid.publish",
+                "from": {
+                  "nodeId": "encoder",
+                  "portId": "out-vid.publish"
+                },
+                "id": "publish-pointer",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-vid.publish-manifest"
+                }
+              },
+              {
+                "contractId": "vid.fetch",
+                "from": {
+                  "nodeId": "viewer",
+                  "portId": "out-vid.fetch"
+                },
+                "id": "segments",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "cdn",
+                  "portId": "in-vid.fetch"
+                }
+              },
+              {
+                "contractId": "vid.fetch",
+                "from": {
+                  "nodeId": "cdn",
+                  "portId": "out-vid.fetch"
+                },
+                "id": "miss",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-vid.fetch-origin"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "vid.viewer",
+                "id": "viewer",
+                "label": "Viewer/player",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.system",
+                "id": "system",
+                "label": "Video delivery service",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "pull-cdn-origin",
+                "version": 1
+              },
+              {
+                "definitionId": "vid.manifest",
+                "id": "manifest",
+                "label": "Manifest API",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.origin",
+                "id": "origin",
+                "label": "Immutable media origin",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.encoder",
+                "id": "encoder",
+                "label": "Encoding pipeline",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.cdn",
+                "id": "cdn",
+                "label": "CDN edge cache",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "pull-cdn-s4",
+          "invariants": [
+            "A cache miss cannot change assetVersion or rendition identity."
+          ],
+          "number": 4,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "vid.cdn",
+                "id": "cdn",
+                "label": "CDN edge cache",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "vid.fetch",
+                "from": {
+                  "nodeId": "viewer",
+                  "portId": "out-vid.fetch"
+                },
+                "id": "segments",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "cdn",
+                  "portId": "in-vid.fetch"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "vid.fetch",
+                "from": {
+                  "nodeId": "cdn",
+                  "portId": "out-vid.fetch"
+                },
+                "id": "miss",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-vid.fetch-origin"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How do most media bytes avoid the central origin?",
+          "reason": "Make the chosen distribution architecture explicit.",
+          "title": "Insert an edge cache"
+        },
+        {
+          "checkIds": [
+            "cold-spike",
+            "entitlement"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "vid.manifest",
+                "from": {
+                  "nodeId": "viewer",
+                  "portId": "out-vid.manifest"
+                },
+                "id": "manifest",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-vid.manifest"
+                }
+              },
+              {
+                "contractId": "vid.manifest",
+                "from": {
+                  "nodeId": "manifest",
+                  "portId": "out-vid.manifest"
+                },
+                "id": "read-manifest",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "origin",
+                  "portId": "in-vid.manifest"
+                }
+              },
+              {
+                "contractId": "vid.publish",
+                "from": {
+                  "nodeId": "encoder",
+                  "portId": "out-vid.publish"
+                },
+                "id": "write-media",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-vid.publish-origin"
+                }
+              },
+              {
+                "contractId": "vid.publish",
+                "from": {
+                  "nodeId": "encoder",
+                  "portId": "out-vid.publish"
+                },
+                "id": "publish-pointer",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-vid.publish-manifest"
+                }
+              },
+              {
+                "contractId": "vid.fetch",
+                "from": {
+                  "nodeId": "viewer",
+                  "portId": "out-vid.fetch"
+                },
+                "id": "segments",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "cdn",
+                  "portId": "in-vid.fetch"
+                }
+              },
+              {
+                "contractId": "vid.fetch",
+                "from": {
+                  "nodeId": "cdn",
+                  "portId": "out-vid.fetch"
+                },
+                "id": "fill",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "shield",
+                  "portId": "in-vid.fetch"
+                }
+              },
+              {
+                "contractId": "vid.fetch",
+                "from": {
+                  "nodeId": "shield",
+                  "portId": "out-vid.fetch"
+                },
+                "id": "origin-fetch",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-vid.fetch-origin"
+                }
+              },
+              {
+                "contractId": "vid.manifest",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-vid.manifest-manifest"
+                },
+                "id": "entitlement",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "auth",
+                  "portId": "in-vid.manifest"
+                }
+              },
+              {
+                "contractId": "vid.fetch",
+                "from": {
+                  "nodeId": "cdn",
+                  "portId": "out-vid.fetch"
+                },
+                "id": "media-access",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "auth",
+                  "portId": "in-vid.fetch"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "vid.viewer",
+                "id": "viewer",
+                "label": "Viewer/player",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.system",
+                "id": "system",
+                "label": "Video delivery service",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "pull-cdn-origin",
+                "version": 1
+              },
+              {
+                "definitionId": "vid.manifest",
+                "id": "manifest",
+                "label": "Manifest API",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.origin",
+                "id": "origin",
+                "label": "Immutable media origin",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.encoder",
+                "id": "encoder",
+                "label": "Encoding pipeline",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.cdn",
+                "id": "cdn",
+                "label": "CDN edge cache",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.shield",
+                "id": "shield",
+                "label": "Origin shield",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.auth",
+                "id": "auth",
+                "label": "Playback authorization",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "pull-cdn-s5",
+          "invariants": [
+            "One in-flight fill per immutable key; failed fills wake waiters and can retry boundedly."
+          ],
+          "number": 5,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "vid.shield",
+                "id": "shield",
+                "label": "Origin shield",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "vid.auth",
+                "id": "auth",
+                "label": "Playback authorization",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edgeId": "miss",
+              "op": "disconnect"
+            },
+            {
+              "edge": {
+                "contractId": "vid.fetch",
+                "from": {
+                  "nodeId": "cdn",
+                  "portId": "out-vid.fetch"
+                },
+                "id": "fill",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "shield",
+                  "portId": "in-vid.fetch"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "vid.fetch",
+                "from": {
+                  "nodeId": "shield",
+                  "portId": "out-vid.fetch"
+                },
+                "id": "origin-fetch",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-vid.fetch-origin"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "vid.manifest",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-vid.manifest-manifest"
+                },
+                "id": "entitlement",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "auth",
+                  "portId": "in-vid.manifest"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "vid.fetch",
+                "from": {
+                  "nodeId": "cdn",
+                  "portId": "out-vid.fetch"
+                },
+                "id": "media-access",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "auth",
+                  "portId": "in-vid.fetch"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What happens on a popular cold release?",
+          "reason": "Collapse misses behind a shield and enforce capability checks before media delivery.",
+          "title": "Bound origin work and authorize delivery"
+        },
+        {
+          "checkIds": [
+            "bounded-buffer"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "vid.manifest",
+                "from": {
+                  "nodeId": "viewer",
+                  "portId": "out-vid.manifest"
+                },
+                "id": "manifest",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-vid.manifest"
+                }
+              },
+              {
+                "contractId": "vid.manifest",
+                "from": {
+                  "nodeId": "manifest",
+                  "portId": "out-vid.manifest"
+                },
+                "id": "read-manifest",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "origin",
+                  "portId": "in-vid.manifest"
+                }
+              },
+              {
+                "contractId": "vid.publish",
+                "from": {
+                  "nodeId": "encoder",
+                  "portId": "out-vid.publish"
+                },
+                "id": "write-media",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-vid.publish-origin"
+                }
+              },
+              {
+                "contractId": "vid.publish",
+                "from": {
+                  "nodeId": "encoder",
+                  "portId": "out-vid.publish"
+                },
+                "id": "publish-pointer",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-vid.publish-manifest"
+                }
+              },
+              {
+                "contractId": "vid.fetch",
+                "from": {
+                  "nodeId": "cdn",
+                  "portId": "out-vid.fetch"
+                },
+                "id": "fill",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "shield",
+                  "portId": "in-vid.fetch"
+                }
+              },
+              {
+                "contractId": "vid.fetch",
+                "from": {
+                  "nodeId": "shield",
+                  "portId": "out-vid.fetch"
+                },
+                "id": "origin-fetch",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-vid.fetch-origin"
+                }
+              },
+              {
+                "contractId": "vid.manifest",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-vid.manifest-manifest"
+                },
+                "id": "entitlement",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "auth",
+                  "portId": "in-vid.manifest"
+                }
+              },
+              {
+                "contractId": "vid.fetch",
+                "from": {
+                  "nodeId": "cdn",
+                  "portId": "out-vid.fetch"
+                },
+                "id": "media-access",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "auth",
+                  "portId": "in-vid.fetch"
+                }
+              },
+              {
+                "contractId": "vid.manifest",
+                "from": {
+                  "nodeId": "viewer",
+                  "portId": "out-vid.manifest"
+                },
+                "id": "play-intent",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "abr",
+                  "portId": "in-vid.manifest"
+                }
+              },
+              {
+                "contractId": "vid.fetch",
+                "from": {
+                  "nodeId": "abr",
+                  "portId": "out-vid.fetch"
+                },
+                "id": "chosen-segments",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "buffer",
+                  "portId": "in-vid.fetch"
+                }
+              },
+              {
+                "contractId": "vid.fetch",
+                "from": {
+                  "nodeId": "buffer",
+                  "portId": "out-vid.fetch"
+                },
+                "id": "download",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "cdn",
+                  "portId": "in-vid.fetch"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "vid.viewer",
+                "id": "viewer",
+                "label": "Viewer/player",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.system",
+                "id": "system",
+                "label": "Video delivery service",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "pull-cdn-origin",
+                "version": 1
+              },
+              {
+                "definitionId": "vid.manifest",
+                "id": "manifest",
+                "label": "Manifest API",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.origin",
+                "id": "origin",
+                "label": "Immutable media origin",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.encoder",
+                "id": "encoder",
+                "label": "Encoding pipeline",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.cdn",
+                "id": "cdn",
+                "label": "CDN edge cache",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.shield",
+                "id": "shield",
+                "label": "Origin shield",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.auth",
+                "id": "auth",
+                "label": "Playback authorization",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.abr",
+                "id": "abr",
+                "label": "Adaptive bitrate chooser",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.buffer",
+                "id": "buffer",
+                "label": "Bounded media buffer",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "pull-cdn-s6",
+          "invariants": [
+            "Use buffer and throughput hysteresis, not the last single download alone."
+          ],
+          "number": 6,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "vid.abr",
+                "id": "abr",
+                "label": "Adaptive bitrate chooser",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "vid.buffer",
+                "id": "buffer",
+                "label": "Bounded media buffer",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edgeId": "segments",
+              "op": "disconnect"
+            },
+            {
+              "edge": {
+                "contractId": "vid.manifest",
+                "from": {
+                  "nodeId": "viewer",
+                  "portId": "out-vid.manifest"
+                },
+                "id": "play-intent",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "abr",
+                  "portId": "in-vid.manifest"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "vid.fetch",
+                "from": {
+                  "nodeId": "abr",
+                  "portId": "out-vid.fetch"
+                },
+                "id": "chosen-segments",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "buffer",
+                  "portId": "in-vid.fetch"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "vid.fetch",
+                "from": {
+                  "nodeId": "buffer",
+                  "portId": "out-vid.fetch"
+                },
+                "id": "download",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "cdn",
+                  "portId": "in-vid.fetch"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How is bitrate selected without unbounded prefetch?",
+          "reason": "Expose the player’s bandwidth estimate and bounded playback buffer.",
+          "title": "Split adaptation from buffering"
+        },
+        {
+          "checkIds": [
+            "corruption",
+            "regional-loss"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "vid.manifest",
+                "from": {
+                  "nodeId": "viewer",
+                  "portId": "out-vid.manifest"
+                },
+                "id": "manifest",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-vid.manifest"
+                }
+              },
+              {
+                "contractId": "vid.manifest",
+                "from": {
+                  "nodeId": "manifest",
+                  "portId": "out-vid.manifest"
+                },
+                "id": "read-manifest",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "origin",
+                  "portId": "in-vid.manifest"
+                }
+              },
+              {
+                "contractId": "vid.publish",
+                "from": {
+                  "nodeId": "encoder",
+                  "portId": "out-vid.publish"
+                },
+                "id": "write-media",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-vid.publish-origin"
+                }
+              },
+              {
+                "contractId": "vid.publish",
+                "from": {
+                  "nodeId": "encoder",
+                  "portId": "out-vid.publish"
+                },
+                "id": "publish-pointer",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-vid.publish-manifest"
+                }
+              },
+              {
+                "contractId": "vid.fetch",
+                "from": {
+                  "nodeId": "cdn",
+                  "portId": "out-vid.fetch"
+                },
+                "id": "fill",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "shield",
+                  "portId": "in-vid.fetch"
+                }
+              },
+              {
+                "contractId": "vid.fetch",
+                "from": {
+                  "nodeId": "shield",
+                  "portId": "out-vid.fetch"
+                },
+                "id": "origin-fetch",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-vid.fetch-origin"
+                }
+              },
+              {
+                "contractId": "vid.manifest",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-vid.manifest-manifest"
+                },
+                "id": "entitlement",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "auth",
+                  "portId": "in-vid.manifest"
+                }
+              },
+              {
+                "contractId": "vid.fetch",
+                "from": {
+                  "nodeId": "cdn",
+                  "portId": "out-vid.fetch"
+                },
+                "id": "media-access",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "auth",
+                  "portId": "in-vid.fetch"
+                }
+              },
+              {
+                "contractId": "vid.manifest",
+                "from": {
+                  "nodeId": "viewer",
+                  "portId": "out-vid.manifest"
+                },
+                "id": "play-intent",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "abr",
+                  "portId": "in-vid.manifest"
+                }
+              },
+              {
+                "contractId": "vid.fetch",
+                "from": {
+                  "nodeId": "abr",
+                  "portId": "out-vid.fetch"
+                },
+                "id": "chosen-segments",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "buffer",
+                  "portId": "in-vid.fetch"
+                }
+              },
+              {
+                "contractId": "vid.fetch",
+                "from": {
+                  "nodeId": "buffer",
+                  "portId": "out-vid.fetch"
+                },
+                "id": "download",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "cdn",
+                  "portId": "in-vid.fetch"
+                }
+              },
+              {
+                "contractId": "vid.placement",
+                "from": {
+                  "nodeId": "buffer",
+                  "portId": "out-vid.placement"
+                },
+                "id": "alternate",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "failover",
+                  "portId": "in-vid.placement"
+                }
+              },
+              {
+                "contractId": "vid.fetch",
+                "from": {
+                  "nodeId": "failover",
+                  "portId": "out-vid.fetch"
+                },
+                "id": "origin-fallback",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "shield",
+                  "portId": "in-vid.fetch"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "vid.viewer",
+                "id": "viewer",
+                "label": "Viewer/player",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.system",
+                "id": "system",
+                "label": "Video delivery service",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "pull-cdn-origin",
+                "version": 1
+              },
+              {
+                "definitionId": "vid.manifest",
+                "id": "manifest",
+                "label": "Manifest API",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.origin",
+                "id": "origin",
+                "label": "Immutable media origin",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.encoder",
+                "id": "encoder",
+                "label": "Encoding pipeline",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.cdn",
+                "id": "cdn",
+                "label": "CDN edge cache",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.shield",
+                "id": "shield",
+                "label": "Origin shield",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.auth",
+                "id": "auth",
+                "label": "Playback authorization",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.abr",
+                "id": "abr",
+                "label": "Adaptive bitrate chooser",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.buffer",
+                "id": "buffer",
+                "label": "Bounded media buffer",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.failover",
+                "id": "failover",
+                "label": "Delivery failover selector",
+                "position": {
+                  "x": 560,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "pull-cdn-s7",
+          "invariants": [
+            "Only identical versioned segments are eligible; corrupt copies are quarantined."
+          ],
+          "number": 7,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "vid.failover",
+                "id": "failover",
+                "label": "Delivery failover selector",
+                "position": {
+                  "x": 560,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "vid.placement",
+                "from": {
+                  "nodeId": "buffer",
+                  "portId": "out-vid.placement"
+                },
+                "id": "alternate",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "failover",
+                  "portId": "in-vid.placement"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "vid.fetch",
+                "from": {
+                  "nodeId": "failover",
+                  "portId": "out-vid.fetch"
+                },
+                "id": "origin-fallback",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "shield",
+                  "portId": "in-vid.fetch"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can a failover silently switch to different bytes?",
+          "reason": "Choose an alternate healthy location while preserving the media contract.",
+          "title": "Add version-preserving regional failover"
+        },
+        {
+          "checkIds": [
+            "bounded-buffer",
+            "regional-loss"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "vid.manifest",
+                "from": {
+                  "nodeId": "viewer",
+                  "portId": "out-vid.manifest"
+                },
+                "id": "manifest",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-vid.manifest"
+                }
+              },
+              {
+                "contractId": "vid.manifest",
+                "from": {
+                  "nodeId": "manifest",
+                  "portId": "out-vid.manifest"
+                },
+                "id": "read-manifest",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "origin",
+                  "portId": "in-vid.manifest"
+                }
+              },
+              {
+                "contractId": "vid.publish",
+                "from": {
+                  "nodeId": "encoder",
+                  "portId": "out-vid.publish"
+                },
+                "id": "write-media",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-vid.publish-origin"
+                }
+              },
+              {
+                "contractId": "vid.publish",
+                "from": {
+                  "nodeId": "encoder",
+                  "portId": "out-vid.publish"
+                },
+                "id": "publish-pointer",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-vid.publish-manifest"
+                }
+              },
+              {
+                "contractId": "vid.fetch",
+                "from": {
+                  "nodeId": "cdn",
+                  "portId": "out-vid.fetch"
+                },
+                "id": "fill",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "shield",
+                  "portId": "in-vid.fetch"
+                }
+              },
+              {
+                "contractId": "vid.fetch",
+                "from": {
+                  "nodeId": "shield",
+                  "portId": "out-vid.fetch"
+                },
+                "id": "origin-fetch",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-vid.fetch-origin"
+                }
+              },
+              {
+                "contractId": "vid.manifest",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-vid.manifest-manifest"
+                },
+                "id": "entitlement",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "auth",
+                  "portId": "in-vid.manifest"
+                }
+              },
+              {
+                "contractId": "vid.fetch",
+                "from": {
+                  "nodeId": "cdn",
+                  "portId": "out-vid.fetch"
+                },
+                "id": "media-access",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "auth",
+                  "portId": "in-vid.fetch"
+                }
+              },
+              {
+                "contractId": "vid.manifest",
+                "from": {
+                  "nodeId": "viewer",
+                  "portId": "out-vid.manifest"
+                },
+                "id": "play-intent",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "player-state",
+                  "portId": "in-vid.manifest"
+                }
+              },
+              {
+                "contractId": "vid.fetch",
+                "from": {
+                  "nodeId": "player-state",
+                  "portId": "out-vid.fetch"
+                },
+                "id": "download",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "cdn",
+                  "portId": "in-vid.fetch"
+                }
+              },
+              {
+                "contractId": "vid.fetch",
+                "from": {
+                  "nodeId": "player-state",
+                  "portId": "out-vid.fetch"
+                },
+                "id": "origin-fallback",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "shield",
+                  "portId": "in-vid.fetch"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "vid.viewer",
+                "id": "viewer",
+                "label": "Viewer/player",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.system",
+                "id": "system",
+                "label": "Video delivery service",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "pull-cdn-origin",
+                "version": 1
+              },
+              {
+                "definitionId": "vid.manifest",
+                "id": "manifest",
+                "label": "Manifest API",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.origin",
+                "id": "origin",
+                "label": "Immutable media origin",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.encoder",
+                "id": "encoder",
+                "label": "Encoding pipeline",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.cdn",
+                "id": "cdn",
+                "label": "CDN edge cache",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.shield",
+                "id": "shield",
+                "label": "Origin shield",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.auth",
+                "id": "auth",
+                "label": "Playback authorization",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.player-state",
+                "id": "player-state",
+                "label": "Unified playback coordinator",
+                "lineageIds": [
+                  "abr",
+                  "buffer",
+                  "failover"
+                ],
+                "position": {
+                  "x": 840,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "pull-cdn-s8",
+          "invariants": [
+            "An old playback generation never appends media after a seek."
+          ],
+          "number": 8,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "vid.player-state",
+                "id": "player-state",
+                "label": "Unified playback coordinator",
+                "position": {
+                  "x": 840,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "nodeIds": [
+                "abr",
+                "buffer",
+                "failover"
+              ],
+              "op": "merge",
+              "reason": "A seek invalidates all prior fetch callbacks before changing the playback view."
+            }
+          ],
+          "question": "Can seek, adaptation and retries publish stale segments?",
+          "reason": "One generation-aware owner reconciles download, buffer and failover decisions.",
+          "title": "Merge competing player controllers"
+        }
+      ],
+      "title": "Pull-through CDN with an origin shield",
+      "tradeoffs": [
+        "Cold misses incur fill latency and can overload an unprotected origin.",
+        "Cache policy and authorization must not leak private media."
+      ]
+    },
+    {
+      "acceptanceCases": [
+        {
+          "given": "One rendition has not finished encoding.",
+          "id": "atomic-publish",
+          "relatedRequirementIds": [
+            "verify",
+            "play"
+          ],
+          "then": "Keep serving the prior version or unavailable; no published manifest points at missing media.",
+          "when": "A viewer requests the new asset."
+        },
+        {
+          "given": "A regional cache has incorrect bytes under the requested segment key.",
+          "id": "corruption",
+          "relatedRequirementIds": [
+            "verify"
+          ],
+          "then": "Reject/quarantine that copy and retry the same version within a bounded attempt policy.",
+          "when": "Download and validate against the trusted content hash."
+        },
+        {
+          "given": "Many viewers request one uncached segment.",
+          "id": "cold-spike",
+          "relatedRequirementIds": [
+            "origin"
+          ],
+          "then": "One fill per key runs per shield and global origin admission stays bounded.",
+          "when": "All miss concurrently."
+        },
+        {
+          "given": "An unentitled viewer requests an already cached segment.",
+          "id": "entitlement",
+          "relatedRequirementIds": [
+            "play"
+          ],
+          "then": "Deny access despite the cache hit; a capability has asset and expiry scope.",
+          "when": "The edge receives the request."
+        },
+        {
+          "given": "Downloads complete quickly while playback is paused or seeking.",
+          "id": "bounded-buffer",
+          "relatedRequirementIds": [
+            "adapt"
+          ],
+          "then": "Old results are ignored and queued media respects time and byte ceilings.",
+          "when": "Continue completion callbacks from an old generation."
+        },
+        {
+          "given": "A region fails midway through playback.",
+          "id": "regional-loss",
+          "relatedRequirementIds": [
+            "origin",
+            "play"
+          ],
+          "then": "Continue exact assetVersion and sequence; expose rebuffering if no eligible location meets the deadline.",
+          "when": "Select an alternate healthy location."
+        }
+      ],
+      "algorithms": [
+        {
+          "code": "onSeek(target) { generation++; abortPriorDownloads(); clearBuffer(); playhead = target; }\nasync function fetchNext() {\n  if (bufferSeconds >= policy.maxSeconds || bufferBytes >= policy.maxBytes) return;\n  const g = generation;\n  const rendition = chooseWithHysteresis(throughputEWMA, bufferSeconds);\n  const segment = await downloadExactVersion(assetVersion, rendition, nextSegment);\n  if (g !== generation) return;\n  verifyExpectedHashAndLength(segment);\n  appendIfWithinByteAndTimeBudgets(segment);\n}\n// CDN access validates entitlement even on cache hits; capability expiry bounds revocation latency.",
+          "guarantees": [
+            "Buffer memory stays bounded and stale seek results cannot alter the current playback."
+          ],
+          "id": "buffer-policy",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "player-state"
+        }
+      ],
+      "apis": [
+        {
+          "errors": "403 entitlement; 404 unpublished version",
+          "method": "GET",
+          "ownerNodeId": "manifest",
+          "path": "/assets/{id}/manifest",
+          "request": "{capability}",
+          "response": "{version,renditions,expiresAt}"
+        }
+      ],
+      "assumptions": [
+        "VOD segments are immutable per asset version.",
+        "Authorized responses must not be shared across users unless the cache can enforce entitlement."
+      ],
+      "chooseWhen": "Demand is concentrated enough to justify scheduled regional copies.",
+      "id": "regional-placement",
+      "initialGraph": {
+        "edges": [],
+        "nodes": []
+      },
+      "stages": [
+        {
+          "checkIds": [
+            "atomic-publish"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "vid.manifest",
+                "from": {
+                  "nodeId": "viewer",
+                  "portId": "out-vid.manifest"
+                },
+                "id": "manifest",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-vid.manifest"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "vid.viewer",
+                "id": "viewer",
+                "label": "Viewer/player",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.system",
+                "id": "system",
+                "label": "Video delivery service",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "regional-placement-s1",
+          "invariants": [
+            "A manifest refers to a single published media version."
+          ],
+          "number": 1,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "vid.viewer",
+                "id": "viewer",
+                "label": "Viewer/player",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "vid.system",
+                "id": "system",
+                "label": "Video delivery service",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "vid.manifest",
+                "from": {
+                  "nodeId": "viewer",
+                  "portId": "out-vid.manifest"
+                },
+                "id": "manifest",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-vid.manifest"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What does the player request?",
+          "reason": "Start with a viewer and a coarse video boundary.",
+          "title": "State playback and media identity"
+        },
+        {
+          "checkIds": [
+            "atomic-publish"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "vid.manifest",
+                "from": {
+                  "nodeId": "viewer",
+                  "portId": "out-vid.manifest"
+                },
+                "id": "manifest",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-vid.manifest"
+                }
+              },
+              {
+                "contractId": "vid.manifest",
+                "from": {
+                  "nodeId": "manifest",
+                  "portId": "out-vid.manifest"
+                },
+                "id": "read-manifest",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "origin",
+                  "portId": "in-vid.manifest"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "vid.viewer",
+                "id": "viewer",
+                "label": "Viewer/player",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.system",
+                "id": "system",
+                "label": "Video delivery service",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "regional-placement-origin",
+                "version": 1
+              },
+              {
+                "definitionId": "vid.manifest",
+                "id": "manifest",
+                "label": "Manifest API",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.origin",
+                "id": "origin",
+                "label": "Immutable media origin",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "regional-placement-s2",
+          "invariants": [
+            "Do not publish a playlist referencing unavailable segments."
+          ],
+          "number": 2,
+          "operations": [
+            {
+              "edges": [
+                {
+                  "contractId": "vid.manifest",
+                  "from": {
+                    "nodeId": "manifest",
+                    "portId": "out-vid.manifest"
+                  },
+                  "id": "read-manifest",
+                  "mode": "storage",
+                  "to": {
+                    "nodeId": "origin",
+                    "portId": "in-vid.manifest"
+                  }
+                }
+              ],
+              "nodeId": "system",
+              "nodes": [
+                {
+                  "definitionId": "vid.manifest",
+                  "id": "manifest",
+                  "label": "Manifest API",
+                  "position": {
+                    "x": 560,
+                    "y": 0
+                  },
+                  "version": 1
+                },
+                {
+                  "definitionId": "vid.origin",
+                  "id": "origin",
+                  "label": "Immutable media origin",
+                  "position": {
+                    "x": 840,
+                    "y": 0
+                  },
+                  "version": 1
+                }
+              ],
+              "op": "expand",
+              "subsystemId": "regional-placement-origin"
+            }
+          ],
+          "question": "Where do media bytes live?",
+          "reason": "Expand serving into a manifest API and immutable segment storage.",
+          "title": "Expose manifests and immutable origin"
+        },
+        {
+          "checkIds": [
+            "atomic-publish"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "vid.manifest",
+                "from": {
+                  "nodeId": "viewer",
+                  "portId": "out-vid.manifest"
+                },
+                "id": "manifest",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-vid.manifest"
+                }
+              },
+              {
+                "contractId": "vid.manifest",
+                "from": {
+                  "nodeId": "manifest",
+                  "portId": "out-vid.manifest"
+                },
+                "id": "read-manifest",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "origin",
+                  "portId": "in-vid.manifest"
+                }
+              },
+              {
+                "contractId": "vid.publish",
+                "from": {
+                  "nodeId": "encoder",
+                  "portId": "out-vid.publish"
+                },
+                "id": "write-media",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-vid.publish-origin"
+                }
+              },
+              {
+                "contractId": "vid.publish",
+                "from": {
+                  "nodeId": "encoder",
+                  "portId": "out-vid.publish"
+                },
+                "id": "publish-pointer",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-vid.publish-manifest"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "vid.viewer",
+                "id": "viewer",
+                "label": "Viewer/player",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.system",
+                "id": "system",
+                "label": "Video delivery service",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "regional-placement-origin",
+                "version": 1
+              },
+              {
+                "definitionId": "vid.manifest",
+                "id": "manifest",
+                "label": "Manifest API",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.origin",
+                "id": "origin",
+                "label": "Immutable media origin",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.encoder",
+                "id": "encoder",
+                "label": "Encoding pipeline",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "regional-placement-s3",
+          "invariants": [
+            "Publish pointer only after every required rendition passes validation."
+          ],
+          "number": 3,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "vid.encoder",
+                "id": "encoder",
+                "label": "Encoding pipeline",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "vid.publish",
+                "from": {
+                  "nodeId": "encoder",
+                  "portId": "out-vid.publish"
+                },
+                "id": "write-media",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-vid.publish-origin"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "vid.publish",
+                "from": {
+                  "nodeId": "encoder",
+                  "portId": "out-vid.publish"
+                },
+                "id": "publish-pointer",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-vid.publish-manifest"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "When can a new version become visible?",
+          "reason": "Separate costly rendition generation from request serving.",
+          "title": "Add encoding and validation"
+        },
+        {
+          "checkIds": [
+            "corruption"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "vid.manifest",
+                "from": {
+                  "nodeId": "viewer",
+                  "portId": "out-vid.manifest"
+                },
+                "id": "manifest",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-vid.manifest"
+                }
+              },
+              {
+                "contractId": "vid.manifest",
+                "from": {
+                  "nodeId": "manifest",
+                  "portId": "out-vid.manifest"
+                },
+                "id": "read-manifest",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "origin",
+                  "portId": "in-vid.manifest"
+                }
+              },
+              {
+                "contractId": "vid.publish",
+                "from": {
+                  "nodeId": "encoder",
+                  "portId": "out-vid.publish"
+                },
+                "id": "write-media",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-vid.publish-origin"
+                }
+              },
+              {
+                "contractId": "vid.publish",
+                "from": {
+                  "nodeId": "encoder",
+                  "portId": "out-vid.publish"
+                },
+                "id": "publish-pointer",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-vid.publish-manifest"
+                }
+              },
+              {
+                "contractId": "vid.fetch",
+                "from": {
+                  "nodeId": "viewer",
+                  "portId": "out-vid.fetch"
+                },
+                "id": "segments",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "cdn",
+                  "portId": "in-vid.fetch"
+                }
+              },
+              {
+                "contractId": "vid.fetch",
+                "from": {
+                  "nodeId": "cdn",
+                  "portId": "out-vid.fetch"
+                },
+                "id": "miss",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-vid.fetch-origin"
+                }
+              },
+              {
+                "contractId": "vid.placement",
+                "from": {
+                  "nodeId": "placement",
+                  "portId": "out-vid.placement"
+                },
+                "id": "plan",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "cdn",
+                  "portId": "in-vid.placement"
+                }
+              },
+              {
+                "contractId": "vid.fetch",
+                "from": {
+                  "nodeId": "placement",
+                  "portId": "out-vid.fetch"
+                },
+                "id": "copy-source",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-vid.fetch-origin"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "vid.viewer",
+                "id": "viewer",
+                "label": "Viewer/player",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.system",
+                "id": "system",
+                "label": "Video delivery service",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "regional-placement-origin",
+                "version": 1
+              },
+              {
+                "definitionId": "vid.manifest",
+                "id": "manifest",
+                "label": "Manifest API",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.origin",
+                "id": "origin",
+                "label": "Immutable media origin",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.encoder",
+                "id": "encoder",
+                "label": "Encoding pipeline",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.regional",
+                "id": "cdn",
+                "label": "Regional media cache",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.placement",
+                "id": "placement",
+                "label": "Regional placement planner",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "regional-placement-s4",
+          "invariants": [
+            "A cache miss cannot change assetVersion or rendition identity."
+          ],
+          "number": 4,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "vid.regional",
+                "id": "cdn",
+                "label": "Regional media cache",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "vid.fetch",
+                "from": {
+                  "nodeId": "viewer",
+                  "portId": "out-vid.fetch"
+                },
+                "id": "segments",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "cdn",
+                  "portId": "in-vid.fetch"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "vid.fetch",
+                "from": {
+                  "nodeId": "cdn",
+                  "portId": "out-vid.fetch"
+                },
+                "id": "miss",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-vid.fetch-origin"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "node": {
+                "definitionId": "vid.placement",
+                "id": "placement",
+                "label": "Regional placement planner",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "vid.placement",
+                "from": {
+                  "nodeId": "placement",
+                  "portId": "out-vid.placement"
+                },
+                "id": "plan",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "cdn",
+                  "portId": "in-vid.placement"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "vid.fetch",
+                "from": {
+                  "nodeId": "placement",
+                  "portId": "out-vid.fetch"
+                },
+                "id": "copy-source",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-vid.fetch-origin"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How do most media bytes avoid the central origin?",
+          "reason": "Make the chosen distribution architecture explicit.",
+          "title": "Add regional placement and media inventory"
+        },
+        {
+          "checkIds": [
+            "cold-spike",
+            "entitlement"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "vid.manifest",
+                "from": {
+                  "nodeId": "viewer",
+                  "portId": "out-vid.manifest"
+                },
+                "id": "manifest",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-vid.manifest"
+                }
+              },
+              {
+                "contractId": "vid.manifest",
+                "from": {
+                  "nodeId": "manifest",
+                  "portId": "out-vid.manifest"
+                },
+                "id": "read-manifest",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "origin",
+                  "portId": "in-vid.manifest"
+                }
+              },
+              {
+                "contractId": "vid.publish",
+                "from": {
+                  "nodeId": "encoder",
+                  "portId": "out-vid.publish"
+                },
+                "id": "write-media",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-vid.publish-origin"
+                }
+              },
+              {
+                "contractId": "vid.publish",
+                "from": {
+                  "nodeId": "encoder",
+                  "portId": "out-vid.publish"
+                },
+                "id": "publish-pointer",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-vid.publish-manifest"
+                }
+              },
+              {
+                "contractId": "vid.fetch",
+                "from": {
+                  "nodeId": "viewer",
+                  "portId": "out-vid.fetch"
+                },
+                "id": "segments",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "cdn",
+                  "portId": "in-vid.fetch"
+                }
+              },
+              {
+                "contractId": "vid.placement",
+                "from": {
+                  "nodeId": "placement",
+                  "portId": "out-vid.placement"
+                },
+                "id": "plan",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "cdn",
+                  "portId": "in-vid.placement"
+                }
+              },
+              {
+                "contractId": "vid.fetch",
+                "from": {
+                  "nodeId": "placement",
+                  "portId": "out-vid.fetch"
+                },
+                "id": "copy-source",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-vid.fetch-origin"
+                }
+              },
+              {
+                "contractId": "vid.fetch",
+                "from": {
+                  "nodeId": "cdn",
+                  "portId": "out-vid.fetch"
+                },
+                "id": "fill",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "shield",
+                  "portId": "in-vid.fetch"
+                }
+              },
+              {
+                "contractId": "vid.fetch",
+                "from": {
+                  "nodeId": "shield",
+                  "portId": "out-vid.fetch"
+                },
+                "id": "origin-fetch",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-vid.fetch-origin"
+                }
+              },
+              {
+                "contractId": "vid.manifest",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-vid.manifest-manifest"
+                },
+                "id": "entitlement",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "auth",
+                  "portId": "in-vid.manifest"
+                }
+              },
+              {
+                "contractId": "vid.fetch",
+                "from": {
+                  "nodeId": "cdn",
+                  "portId": "out-vid.fetch"
+                },
+                "id": "media-access",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "auth",
+                  "portId": "in-vid.fetch"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "vid.viewer",
+                "id": "viewer",
+                "label": "Viewer/player",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.system",
+                "id": "system",
+                "label": "Video delivery service",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "regional-placement-origin",
+                "version": 1
+              },
+              {
+                "definitionId": "vid.manifest",
+                "id": "manifest",
+                "label": "Manifest API",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.origin",
+                "id": "origin",
+                "label": "Immutable media origin",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.encoder",
+                "id": "encoder",
+                "label": "Encoding pipeline",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.regional",
+                "id": "cdn",
+                "label": "Regional media cache",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.placement",
+                "id": "placement",
+                "label": "Regional placement planner",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.shield",
+                "id": "shield",
+                "label": "Origin shield",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.auth",
+                "id": "auth",
+                "label": "Playback authorization",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "regional-placement-s5",
+          "invariants": [
+            "One in-flight fill per immutable key; failed fills wake waiters and can retry boundedly."
+          ],
+          "number": 5,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "vid.shield",
+                "id": "shield",
+                "label": "Origin shield",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "vid.auth",
+                "id": "auth",
+                "label": "Playback authorization",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edgeId": "miss",
+              "op": "disconnect"
+            },
+            {
+              "edge": {
+                "contractId": "vid.fetch",
+                "from": {
+                  "nodeId": "cdn",
+                  "portId": "out-vid.fetch"
+                },
+                "id": "fill",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "shield",
+                  "portId": "in-vid.fetch"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "vid.fetch",
+                "from": {
+                  "nodeId": "shield",
+                  "portId": "out-vid.fetch"
+                },
+                "id": "origin-fetch",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-vid.fetch-origin"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "vid.manifest",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-vid.manifest-manifest"
+                },
+                "id": "entitlement",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "auth",
+                  "portId": "in-vid.manifest"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "vid.fetch",
+                "from": {
+                  "nodeId": "cdn",
+                  "portId": "out-vid.fetch"
+                },
+                "id": "media-access",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "auth",
+                  "portId": "in-vid.fetch"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What happens on a popular cold release?",
+          "reason": "Collapse misses behind a shield and enforce capability checks before media delivery.",
+          "title": "Bound origin work and authorize delivery"
+        },
+        {
+          "checkIds": [
+            "bounded-buffer"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "vid.manifest",
+                "from": {
+                  "nodeId": "viewer",
+                  "portId": "out-vid.manifest"
+                },
+                "id": "manifest",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-vid.manifest"
+                }
+              },
+              {
+                "contractId": "vid.manifest",
+                "from": {
+                  "nodeId": "manifest",
+                  "portId": "out-vid.manifest"
+                },
+                "id": "read-manifest",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "origin",
+                  "portId": "in-vid.manifest"
+                }
+              },
+              {
+                "contractId": "vid.publish",
+                "from": {
+                  "nodeId": "encoder",
+                  "portId": "out-vid.publish"
+                },
+                "id": "write-media",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-vid.publish-origin"
+                }
+              },
+              {
+                "contractId": "vid.publish",
+                "from": {
+                  "nodeId": "encoder",
+                  "portId": "out-vid.publish"
+                },
+                "id": "publish-pointer",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-vid.publish-manifest"
+                }
+              },
+              {
+                "contractId": "vid.placement",
+                "from": {
+                  "nodeId": "placement",
+                  "portId": "out-vid.placement"
+                },
+                "id": "plan",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "cdn",
+                  "portId": "in-vid.placement"
+                }
+              },
+              {
+                "contractId": "vid.fetch",
+                "from": {
+                  "nodeId": "placement",
+                  "portId": "out-vid.fetch"
+                },
+                "id": "copy-source",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-vid.fetch-origin"
+                }
+              },
+              {
+                "contractId": "vid.fetch",
+                "from": {
+                  "nodeId": "cdn",
+                  "portId": "out-vid.fetch"
+                },
+                "id": "fill",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "shield",
+                  "portId": "in-vid.fetch"
+                }
+              },
+              {
+                "contractId": "vid.fetch",
+                "from": {
+                  "nodeId": "shield",
+                  "portId": "out-vid.fetch"
+                },
+                "id": "origin-fetch",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-vid.fetch-origin"
+                }
+              },
+              {
+                "contractId": "vid.manifest",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-vid.manifest-manifest"
+                },
+                "id": "entitlement",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "auth",
+                  "portId": "in-vid.manifest"
+                }
+              },
+              {
+                "contractId": "vid.fetch",
+                "from": {
+                  "nodeId": "cdn",
+                  "portId": "out-vid.fetch"
+                },
+                "id": "media-access",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "auth",
+                  "portId": "in-vid.fetch"
+                }
+              },
+              {
+                "contractId": "vid.manifest",
+                "from": {
+                  "nodeId": "viewer",
+                  "portId": "out-vid.manifest"
+                },
+                "id": "play-intent",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "abr",
+                  "portId": "in-vid.manifest"
+                }
+              },
+              {
+                "contractId": "vid.fetch",
+                "from": {
+                  "nodeId": "abr",
+                  "portId": "out-vid.fetch"
+                },
+                "id": "chosen-segments",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "buffer",
+                  "portId": "in-vid.fetch"
+                }
+              },
+              {
+                "contractId": "vid.fetch",
+                "from": {
+                  "nodeId": "buffer",
+                  "portId": "out-vid.fetch"
+                },
+                "id": "download",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "cdn",
+                  "portId": "in-vid.fetch"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "vid.viewer",
+                "id": "viewer",
+                "label": "Viewer/player",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.system",
+                "id": "system",
+                "label": "Video delivery service",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "regional-placement-origin",
+                "version": 1
+              },
+              {
+                "definitionId": "vid.manifest",
+                "id": "manifest",
+                "label": "Manifest API",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.origin",
+                "id": "origin",
+                "label": "Immutable media origin",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.encoder",
+                "id": "encoder",
+                "label": "Encoding pipeline",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.regional",
+                "id": "cdn",
+                "label": "Regional media cache",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.placement",
+                "id": "placement",
+                "label": "Regional placement planner",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.shield",
+                "id": "shield",
+                "label": "Origin shield",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.auth",
+                "id": "auth",
+                "label": "Playback authorization",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.abr",
+                "id": "abr",
+                "label": "Adaptive bitrate chooser",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.buffer",
+                "id": "buffer",
+                "label": "Bounded media buffer",
+                "position": {
+                  "x": 560,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "regional-placement-s6",
+          "invariants": [
+            "Use buffer and throughput hysteresis, not the last single download alone."
+          ],
+          "number": 6,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "vid.abr",
+                "id": "abr",
+                "label": "Adaptive bitrate chooser",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "vid.buffer",
+                "id": "buffer",
+                "label": "Bounded media buffer",
+                "position": {
+                  "x": 560,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edgeId": "segments",
+              "op": "disconnect"
+            },
+            {
+              "edge": {
+                "contractId": "vid.manifest",
+                "from": {
+                  "nodeId": "viewer",
+                  "portId": "out-vid.manifest"
+                },
+                "id": "play-intent",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "abr",
+                  "portId": "in-vid.manifest"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "vid.fetch",
+                "from": {
+                  "nodeId": "abr",
+                  "portId": "out-vid.fetch"
+                },
+                "id": "chosen-segments",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "buffer",
+                  "portId": "in-vid.fetch"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "vid.fetch",
+                "from": {
+                  "nodeId": "buffer",
+                  "portId": "out-vid.fetch"
+                },
+                "id": "download",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "cdn",
+                  "portId": "in-vid.fetch"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How is bitrate selected without unbounded prefetch?",
+          "reason": "Expose the player’s bandwidth estimate and bounded playback buffer.",
+          "title": "Split adaptation from buffering"
+        },
+        {
+          "checkIds": [
+            "corruption",
+            "regional-loss"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "vid.manifest",
+                "from": {
+                  "nodeId": "viewer",
+                  "portId": "out-vid.manifest"
+                },
+                "id": "manifest",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-vid.manifest"
+                }
+              },
+              {
+                "contractId": "vid.manifest",
+                "from": {
+                  "nodeId": "manifest",
+                  "portId": "out-vid.manifest"
+                },
+                "id": "read-manifest",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "origin",
+                  "portId": "in-vid.manifest"
+                }
+              },
+              {
+                "contractId": "vid.publish",
+                "from": {
+                  "nodeId": "encoder",
+                  "portId": "out-vid.publish"
+                },
+                "id": "write-media",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-vid.publish-origin"
+                }
+              },
+              {
+                "contractId": "vid.publish",
+                "from": {
+                  "nodeId": "encoder",
+                  "portId": "out-vid.publish"
+                },
+                "id": "publish-pointer",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-vid.publish-manifest"
+                }
+              },
+              {
+                "contractId": "vid.placement",
+                "from": {
+                  "nodeId": "placement",
+                  "portId": "out-vid.placement"
+                },
+                "id": "plan",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "cdn",
+                  "portId": "in-vid.placement"
+                }
+              },
+              {
+                "contractId": "vid.fetch",
+                "from": {
+                  "nodeId": "placement",
+                  "portId": "out-vid.fetch"
+                },
+                "id": "copy-source",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-vid.fetch-origin"
+                }
+              },
+              {
+                "contractId": "vid.fetch",
+                "from": {
+                  "nodeId": "cdn",
+                  "portId": "out-vid.fetch"
+                },
+                "id": "fill",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "shield",
+                  "portId": "in-vid.fetch"
+                }
+              },
+              {
+                "contractId": "vid.fetch",
+                "from": {
+                  "nodeId": "shield",
+                  "portId": "out-vid.fetch"
+                },
+                "id": "origin-fetch",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-vid.fetch-origin"
+                }
+              },
+              {
+                "contractId": "vid.manifest",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-vid.manifest-manifest"
+                },
+                "id": "entitlement",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "auth",
+                  "portId": "in-vid.manifest"
+                }
+              },
+              {
+                "contractId": "vid.fetch",
+                "from": {
+                  "nodeId": "cdn",
+                  "portId": "out-vid.fetch"
+                },
+                "id": "media-access",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "auth",
+                  "portId": "in-vid.fetch"
+                }
+              },
+              {
+                "contractId": "vid.manifest",
+                "from": {
+                  "nodeId": "viewer",
+                  "portId": "out-vid.manifest"
+                },
+                "id": "play-intent",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "abr",
+                  "portId": "in-vid.manifest"
+                }
+              },
+              {
+                "contractId": "vid.fetch",
+                "from": {
+                  "nodeId": "abr",
+                  "portId": "out-vid.fetch"
+                },
+                "id": "chosen-segments",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "buffer",
+                  "portId": "in-vid.fetch"
+                }
+              },
+              {
+                "contractId": "vid.fetch",
+                "from": {
+                  "nodeId": "buffer",
+                  "portId": "out-vid.fetch"
+                },
+                "id": "download",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "cdn",
+                  "portId": "in-vid.fetch"
+                }
+              },
+              {
+                "contractId": "vid.placement",
+                "from": {
+                  "nodeId": "buffer",
+                  "portId": "out-vid.placement"
+                },
+                "id": "alternate",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "failover",
+                  "portId": "in-vid.placement"
+                }
+              },
+              {
+                "contractId": "vid.fetch",
+                "from": {
+                  "nodeId": "failover",
+                  "portId": "out-vid.fetch"
+                },
+                "id": "origin-fallback",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "shield",
+                  "portId": "in-vid.fetch"
+                }
+              },
+              {
+                "contractId": "vid.placement",
+                "from": {
+                  "nodeId": "failover",
+                  "portId": "out-vid.placement"
+                },
+                "id": "placement-inventory",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "placement",
+                  "portId": "in-vid.placement"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "vid.viewer",
+                "id": "viewer",
+                "label": "Viewer/player",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.system",
+                "id": "system",
+                "label": "Video delivery service",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "regional-placement-origin",
+                "version": 1
+              },
+              {
+                "definitionId": "vid.manifest",
+                "id": "manifest",
+                "label": "Manifest API",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.origin",
+                "id": "origin",
+                "label": "Immutable media origin",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.encoder",
+                "id": "encoder",
+                "label": "Encoding pipeline",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.regional",
+                "id": "cdn",
+                "label": "Regional media cache",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.placement",
+                "id": "placement",
+                "label": "Regional placement planner",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.shield",
+                "id": "shield",
+                "label": "Origin shield",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.auth",
+                "id": "auth",
+                "label": "Playback authorization",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.abr",
+                "id": "abr",
+                "label": "Adaptive bitrate chooser",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.buffer",
+                "id": "buffer",
+                "label": "Bounded media buffer",
+                "position": {
+                  "x": 560,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.failover",
+                "id": "failover",
+                "label": "Delivery failover selector",
+                "position": {
+                  "x": 840,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "regional-placement-s7",
+          "invariants": [
+            "Only identical versioned segments are eligible; corrupt copies are quarantined."
+          ],
+          "number": 7,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "vid.failover",
+                "id": "failover",
+                "label": "Delivery failover selector",
+                "position": {
+                  "x": 840,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "vid.placement",
+                "from": {
+                  "nodeId": "buffer",
+                  "portId": "out-vid.placement"
+                },
+                "id": "alternate",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "failover",
+                  "portId": "in-vid.placement"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "vid.fetch",
+                "from": {
+                  "nodeId": "failover",
+                  "portId": "out-vid.fetch"
+                },
+                "id": "origin-fallback",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "shield",
+                  "portId": "in-vid.fetch"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "vid.placement",
+                "from": {
+                  "nodeId": "failover",
+                  "portId": "out-vid.placement"
+                },
+                "id": "placement-inventory",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "placement",
+                  "portId": "in-vid.placement"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can a failover silently switch to different bytes?",
+          "reason": "Choose an alternate healthy location while preserving the media contract.",
+          "title": "Add version-preserving regional failover"
+        },
+        {
+          "checkIds": [
+            "bounded-buffer",
+            "regional-loss"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "vid.manifest",
+                "from": {
+                  "nodeId": "viewer",
+                  "portId": "out-vid.manifest"
+                },
+                "id": "manifest",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-vid.manifest"
+                }
+              },
+              {
+                "contractId": "vid.manifest",
+                "from": {
+                  "nodeId": "manifest",
+                  "portId": "out-vid.manifest"
+                },
+                "id": "read-manifest",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "origin",
+                  "portId": "in-vid.manifest"
+                }
+              },
+              {
+                "contractId": "vid.publish",
+                "from": {
+                  "nodeId": "encoder",
+                  "portId": "out-vid.publish"
+                },
+                "id": "write-media",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-vid.publish-origin"
+                }
+              },
+              {
+                "contractId": "vid.publish",
+                "from": {
+                  "nodeId": "encoder",
+                  "portId": "out-vid.publish"
+                },
+                "id": "publish-pointer",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-vid.publish-manifest"
+                }
+              },
+              {
+                "contractId": "vid.placement",
+                "from": {
+                  "nodeId": "placement",
+                  "portId": "out-vid.placement"
+                },
+                "id": "plan",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "cdn",
+                  "portId": "in-vid.placement"
+                }
+              },
+              {
+                "contractId": "vid.fetch",
+                "from": {
+                  "nodeId": "placement",
+                  "portId": "out-vid.fetch"
+                },
+                "id": "copy-source",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-vid.fetch-origin"
+                }
+              },
+              {
+                "contractId": "vid.fetch",
+                "from": {
+                  "nodeId": "cdn",
+                  "portId": "out-vid.fetch"
+                },
+                "id": "fill",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "shield",
+                  "portId": "in-vid.fetch"
+                }
+              },
+              {
+                "contractId": "vid.fetch",
+                "from": {
+                  "nodeId": "shield",
+                  "portId": "out-vid.fetch"
+                },
+                "id": "origin-fetch",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-vid.fetch-origin"
+                }
+              },
+              {
+                "contractId": "vid.manifest",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-vid.manifest-manifest"
+                },
+                "id": "entitlement",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "auth",
+                  "portId": "in-vid.manifest"
+                }
+              },
+              {
+                "contractId": "vid.fetch",
+                "from": {
+                  "nodeId": "cdn",
+                  "portId": "out-vid.fetch"
+                },
+                "id": "media-access",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "auth",
+                  "portId": "in-vid.fetch"
+                }
+              },
+              {
+                "contractId": "vid.manifest",
+                "from": {
+                  "nodeId": "viewer",
+                  "portId": "out-vid.manifest"
+                },
+                "id": "play-intent",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "player-state",
+                  "portId": "in-vid.manifest"
+                }
+              },
+              {
+                "contractId": "vid.fetch",
+                "from": {
+                  "nodeId": "player-state",
+                  "portId": "out-vid.fetch"
+                },
+                "id": "download",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "cdn",
+                  "portId": "in-vid.fetch"
+                }
+              },
+              {
+                "contractId": "vid.fetch",
+                "from": {
+                  "nodeId": "player-state",
+                  "portId": "out-vid.fetch"
+                },
+                "id": "origin-fallback",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "shield",
+                  "portId": "in-vid.fetch"
+                }
+              },
+              {
+                "contractId": "vid.placement",
+                "from": {
+                  "nodeId": "player-state",
+                  "portId": "out-vid.placement"
+                },
+                "id": "placement-inventory",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "placement",
+                  "portId": "in-vid.placement"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "vid.viewer",
+                "id": "viewer",
+                "label": "Viewer/player",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.system",
+                "id": "system",
+                "label": "Video delivery service",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "regional-placement-origin",
+                "version": 1
+              },
+              {
+                "definitionId": "vid.manifest",
+                "id": "manifest",
+                "label": "Manifest API",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.origin",
+                "id": "origin",
+                "label": "Immutable media origin",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.encoder",
+                "id": "encoder",
+                "label": "Encoding pipeline",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.regional",
+                "id": "cdn",
+                "label": "Regional media cache",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.placement",
+                "id": "placement",
+                "label": "Regional placement planner",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.shield",
+                "id": "shield",
+                "label": "Origin shield",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.auth",
+                "id": "auth",
+                "label": "Playback authorization",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "vid.player-state",
+                "id": "player-state",
+                "label": "Unified playback coordinator",
+                "lineageIds": [
+                  "abr",
+                  "buffer",
+                  "failover"
+                ],
+                "position": {
+                  "x": 0,
+                  "y": 540
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "regional-placement-s8",
+          "invariants": [
+            "An old playback generation never appends media after a seek."
+          ],
+          "number": 8,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "vid.player-state",
+                "id": "player-state",
+                "label": "Unified playback coordinator",
+                "position": {
+                  "x": 0,
+                  "y": 540
+                },
+                "version": 1
+              },
+              "nodeIds": [
+                "abr",
+                "buffer",
+                "failover"
+              ],
+              "op": "merge",
+              "reason": "A seek invalidates all prior fetch callbacks before changing the playback view."
+            }
+          ],
+          "question": "Can seek, adaptation and retries publish stale segments?",
+          "reason": "One generation-aware owner reconciles download, buffer and failover decisions.",
+          "title": "Merge competing player controllers"
+        }
+      ],
+      "title": "Regional prepositioning with origin-shield fallback",
+      "tradeoffs": [
+        "Placement consumes storage and transfer capacity before demand arrives.",
+        "Unpopular content still needs an authenticated fallback route."
+      ]
+    }
+  ],
+  "subsystems": [
+    {
+      "definitionId": "vid.system",
+      "id": "pull-cdn-origin",
+      "ports": [
+        {
+          "contractId": "vid.manifest",
+          "direction": "in",
+          "id": "in-vid.manifest",
+          "target": {
+            "nodeId": "manifest",
+            "portId": "in-vid.manifest"
+          }
+        },
+        {
+          "contractId": "vid.publish",
+          "direction": "in",
+          "id": "in-vid.publish-origin",
+          "target": {
+            "nodeId": "origin",
+            "portId": "in-vid.publish"
+          }
+        },
+        {
+          "contractId": "vid.publish",
+          "direction": "in",
+          "id": "in-vid.publish-manifest",
+          "target": {
+            "nodeId": "manifest",
+            "portId": "in-vid.publish"
+          }
+        },
+        {
+          "contractId": "vid.fetch",
+          "direction": "in",
+          "id": "in-vid.fetch-origin",
+          "target": {
+            "nodeId": "origin",
+            "portId": "in-vid.fetch"
+          }
+        },
+        {
+          "contractId": "vid.manifest",
+          "direction": "out",
+          "id": "out-vid.manifest-manifest",
+          "target": {
+            "nodeId": "manifest",
+            "portId": "out-vid.manifest"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "vid.system",
+      "id": "regional-placement-origin",
+      "ports": [
+        {
+          "contractId": "vid.manifest",
+          "direction": "in",
+          "id": "in-vid.manifest",
+          "target": {
+            "nodeId": "manifest",
+            "portId": "in-vid.manifest"
+          }
+        },
+        {
+          "contractId": "vid.publish",
+          "direction": "in",
+          "id": "in-vid.publish-origin",
+          "target": {
+            "nodeId": "origin",
+            "portId": "in-vid.publish"
+          }
+        },
+        {
+          "contractId": "vid.publish",
+          "direction": "in",
+          "id": "in-vid.publish-manifest",
+          "target": {
+            "nodeId": "manifest",
+            "portId": "in-vid.publish"
+          }
+        },
+        {
+          "contractId": "vid.fetch",
+          "direction": "in",
+          "id": "in-vid.fetch-origin",
+          "target": {
+            "nodeId": "origin",
+            "portId": "in-vid.fetch"
+          }
+        },
+        {
+          "contractId": "vid.manifest",
+          "direction": "out",
+          "id": "out-vid.manifest-manifest",
+          "target": {
+            "nodeId": "manifest",
+            "portId": "out-vid.manifest"
+          }
+        }
+      ],
+      "version": 1
+    }
+  ],
+  "version": 1
+}

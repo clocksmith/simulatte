@@ -1,0 +1,5737 @@
+{
+  "components": [
+    {
+      "extends": {
+        "id": "core.client",
+        "version": 1
+      },
+      "id": "nb.client",
+      "label": "Notebook UI",
+      "ports": [
+        {
+          "contractId": "nb.request",
+          "direction": "out",
+          "id": "out-nb.request"
+        },
+        {
+          "contractId": "nb.changes",
+          "direction": "in",
+          "id": "in-nb.changes"
+        }
+      ],
+      "responsibility": "Own user intent and visible local state; do not make server revisions.",
+      "stateOwnership": [
+        "pending operations"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.service",
+        "version": 1
+      },
+      "id": "nb.system",
+      "label": "Notebook backend",
+      "ports": [
+        {
+          "contractId": "nb.request",
+          "direction": "in",
+          "id": "in-nb.request"
+        },
+        {
+          "contractId": "nb.changes",
+          "direction": "out",
+          "id": "out-nb.changes-store"
+        },
+        {
+          "contractId": "nb.job",
+          "direction": "out",
+          "id": "out-nb.job-store"
+        },
+        {
+          "contractId": "nb.outcome",
+          "direction": "in",
+          "id": "in-nb.outcome-store"
+        },
+        {
+          "contractId": "nb.changes",
+          "direction": "in",
+          "id": "in-nb.changes-store"
+        },
+        {
+          "contractId": "nb.access",
+          "direction": "out",
+          "id": "out-nb.access-api"
+        },
+        {
+          "contractId": "nb.lease",
+          "direction": "out",
+          "id": "out-nb.lease-api"
+        }
+      ],
+      "responsibility": "Expose revisioned edits, execution and synchronization.",
+      "stateOwnership": [
+        "authoritative notebook state"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.service",
+        "version": 1
+      },
+      "id": "nb.api",
+      "label": "Notebook API",
+      "ports": [
+        {
+          "contractId": "nb.request",
+          "direction": "out",
+          "id": "out-nb.request"
+        },
+        {
+          "contractId": "nb.request",
+          "direction": "in",
+          "id": "in-nb.request"
+        },
+        {
+          "contractId": "nb.access",
+          "direction": "out",
+          "id": "out-nb.access"
+        },
+        {
+          "contractId": "nb.lease",
+          "direction": "out",
+          "id": "out-nb.lease"
+        }
+      ],
+      "responsibility": "Authenticate, validate revisions and apply notebook transactions.",
+      "stateOwnership": [
+        "operation receipts"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "nb.store",
+      "label": "Notebook database",
+      "ports": [
+        {
+          "contractId": "nb.request",
+          "direction": "in",
+          "id": "in-nb.request"
+        },
+        {
+          "contractId": "nb.changes",
+          "direction": "out",
+          "id": "out-nb.changes"
+        },
+        {
+          "contractId": "nb.job",
+          "direction": "out",
+          "id": "out-nb.job"
+        },
+        {
+          "contractId": "nb.outcome",
+          "direction": "in",
+          "id": "in-nb.outcome"
+        },
+        {
+          "contractId": "nb.changes",
+          "direction": "in",
+          "id": "in-nb.changes"
+        }
+      ],
+      "responsibility": "Commit cells, revision counter, operation receipts and change rows atomically.",
+      "stateOwnership": [
+        "cells",
+        "execution states",
+        "operation deduplication",
+        "membership"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.log",
+        "version": 1
+      },
+      "id": "nb.log",
+      "label": "Notebook change log",
+      "ports": [
+        {
+          "contractId": "nb.changes",
+          "direction": "in",
+          "id": "in-nb.changes"
+        }
+      ],
+      "responsibility": "Ordered rows in the same database transaction as cell changes.",
+      "stateOwnership": [
+        "immutable notebook revision events"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "nb.pending",
+      "label": "Optimistic edit handler",
+      "ports": [
+        {
+          "contractId": "nb.request",
+          "direction": "in",
+          "id": "in-nb.request"
+        },
+        {
+          "contractId": "nb.request",
+          "direction": "out",
+          "id": "out-nb.request"
+        }
+      ],
+      "responsibility": "Track pending edits until a matching receipt or authoritative update.",
+      "stateOwnership": [
+        "pending opId map"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "nb.events",
+      "label": "Live update reducer",
+      "ports": [
+        {
+          "contractId": "nb.changes",
+          "direction": "in",
+          "id": "in-nb.changes"
+        },
+        {
+          "contractId": "nb.changes",
+          "direction": "out",
+          "id": "out-nb.changes"
+        }
+      ],
+      "responsibility": "Apply events only in contiguous server revision order.",
+      "stateOwnership": [
+        "lastAppliedRevision"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "nb.replay",
+      "label": "Catch-up reducer",
+      "ports": [
+        {
+          "contractId": "nb.changes",
+          "direction": "out",
+          "id": "out-nb.changes"
+        }
+      ],
+      "responsibility": "Apply reset snapshots and resumed change batches without restarting jobs.",
+      "stateOwnership": [
+        "resume cursor"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "nb.snapshot",
+      "label": "Snapshot reader",
+      "ports": [
+        {
+          "contractId": "nb.changes",
+          "direction": "out",
+          "id": "out-nb.changes"
+        },
+        {
+          "contractId": "nb.changes",
+          "direction": "in",
+          "id": "in-nb.changes"
+        },
+        {
+          "contractId": "nb.access",
+          "direction": "out",
+          "id": "out-nb.access"
+        }
+      ],
+      "responsibility": "Read cells and revision in one consistent database snapshot.",
+      "stateOwnership": [
+        "no independent authoritative state"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.service",
+        "version": 1
+      },
+      "id": "nb.hub",
+      "label": "Subscription hub",
+      "ports": [
+        {
+          "contractId": "nb.changes",
+          "direction": "out",
+          "id": "out-nb.changes"
+        },
+        {
+          "contractId": "nb.access",
+          "direction": "out",
+          "id": "out-nb.access"
+        }
+      ],
+      "responsibility": "Tail durable changes, authorize subscribers and bound per-client queues.",
+      "stateOwnership": [
+        "ephemeral connections"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "nb.queue",
+      "label": "Execution outbox dispatcher",
+      "ports": [
+        {
+          "contractId": "nb.job",
+          "direction": "in",
+          "id": "in-nb.job"
+        },
+        {
+          "contractId": "nb.job",
+          "direction": "out",
+          "id": "out-nb.job"
+        }
+      ],
+      "responsibility": "Dispatch committed execution IDs; duplicate delivery is allowed.",
+      "stateOwnership": [
+        "outbox delivery cursor"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "nb.worker",
+      "label": "Execution worker",
+      "ports": [
+        {
+          "contractId": "nb.job",
+          "direction": "in",
+          "id": "in-nb.job"
+        },
+        {
+          "contractId": "nb.outcome",
+          "direction": "out",
+          "id": "out-nb.outcome"
+        }
+      ],
+      "responsibility": "Claim execution IDs once; publish versioned outputs and terminal state.",
+      "stateOwnership": [
+        "leased execution claim"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "nb.access",
+      "label": "Notebook access policy",
+      "ports": [
+        {
+          "contractId": "nb.access",
+          "direction": "in",
+          "id": "in-nb.access"
+        }
+      ],
+      "responsibility": "Check membership and revoke active subscriptions when access changes.",
+      "stateOwnership": [
+        "membership revision cache"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "nb.lease",
+      "label": "Fenced editing leases",
+      "ports": [
+        {
+          "contractId": "nb.lease",
+          "direction": "in",
+          "id": "in-nb.lease"
+        }
+      ],
+      "responsibility": "Allocate monotonic fencing tokens using database transactions and database time.",
+      "stateOwnership": [
+        "lease owner",
+        "fencing token",
+        "expiry"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "nb.poll",
+      "label": "Conditional change poller",
+      "ports": [
+        {
+          "contractId": "nb.changes",
+          "direction": "out",
+          "id": "out-nb.changes"
+        },
+        {
+          "contractId": "nb.access",
+          "direction": "out",
+          "id": "out-nb.access"
+        }
+      ],
+      "responsibility": "One outstanding bounded poll; carry the last applied revision.",
+      "stateOwnership": [
+        "poll generation"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "nb.client-state",
+      "label": "Unified client reconciler",
+      "ports": [
+        {
+          "contractId": "nb.request",
+          "direction": "in",
+          "id": "in-nb.request"
+        },
+        {
+          "contractId": "nb.request",
+          "direction": "out",
+          "id": "out-nb.request"
+        },
+        {
+          "contractId": "nb.changes",
+          "direction": "in",
+          "id": "in-nb.changes"
+        },
+        {
+          "contractId": "nb.changes",
+          "direction": "out",
+          "id": "out-nb.changes"
+        }
+      ],
+      "responsibility": "One owner reconciles receipts, pushes, polling and snapshots.",
+      "stateOwnership": [
+        "pending opIds",
+        "lastAppliedRevision",
+        "cell view"
+      ],
+      "version": 1
+    }
+  ],
+  "contracts": [
+    {
+      "id": "nb.request",
+      "request": {
+        "actor": "authenticated principal",
+        "cellId": "uuid",
+        "code": "string|null",
+        "codeRevision": "uint64|null",
+        "expectedRevision": "uint64",
+        "fencingToken": "uint64|null",
+        "kind": "edit|execute|read",
+        "notebookId": "uuid",
+        "opId": "uuid"
+      },
+      "response": {
+        "executionId": "uuid|null",
+        "revision": "uint64",
+        "status": "applied|conflict|accepted|forbidden"
+      },
+      "version": 1
+    },
+    {
+      "id": "nb.changes",
+      "request": {
+        "after": "uint64|null",
+        "limit": "integer 1..500",
+        "notebookId": "uuid"
+      },
+      "response": {
+        "cursor": "uint64",
+        "events": "ordered event[]",
+        "reset": "boolean",
+        "snapshot": "cells[]|null"
+      },
+      "version": 1
+    },
+    {
+      "id": "nb.job",
+      "request": {
+        "cellId": "uuid",
+        "codeRevision": "uint64",
+        "executionId": "uuid"
+      },
+      "response": {
+        "status": "queued|running|complete|failed"
+      },
+      "version": 1
+    },
+    {
+      "id": "nb.access",
+      "request": {
+        "action": "read|edit|execute",
+        "actor": "principal",
+        "notebookId": "uuid"
+      },
+      "response": {
+        "allowed": "boolean",
+        "membershipRevision": "uint64"
+      },
+      "version": 1
+    },
+    {
+      "id": "nb.lease",
+      "request": {
+        "action": "acquire|renew|validate",
+        "actor": "principal",
+        "cellId": "uuid",
+        "fencingToken": "uint64",
+        "notebookId": "uuid"
+      },
+      "response": {
+        "expiresAt": "database timestamp",
+        "fencingToken": "uint64",
+        "valid": "boolean"
+      },
+      "version": 1
+    },
+    {
+      "id": "nb.outcome",
+      "request": {
+        "claimToken": "uint64",
+        "executionId": "uuid",
+        "output": "bounded bytes|null",
+        "outputSequence": "uint64",
+        "status": "running|complete|failed|uncertain"
+      },
+      "response": {
+        "accepted": "boolean",
+        "committedRevision": "uint64"
+      },
+      "version": 1
+    }
+  ],
+  "execution": {
+    "implementation": null,
+    "kind": "conceptual-design"
+  },
+  "problem": {
+    "referenceId": "L034",
+    "requirements": [
+      {
+        "id": "state",
+        "text": "Server owns cell revisions, execution state and output sequence; clients may show explicit pending edits."
+      },
+      {
+        "id": "sync",
+        "text": "Initial snapshot plus subsequent updates has no gap; reconnect resumes or explicitly resets when history expired."
+      },
+      {
+        "id": "execute",
+        "text": "Retrying one execution operation never starts a second job; reconnect never resubmits a job."
+      },
+      {
+        "id": "access",
+        "text": "Every request and ongoing subscription enforces notebook membership; slow subscribers consume bounded memory."
+      }
+    ],
+    "scope": "Whole-cell edits use revision checks, not character-level OT/CRDT. Study snapshot/update subscriptions and execution state; transport delivery is at least once.",
+    "studyLabel": "Live notebook state subscriptions"
+  },
+  "provenance": {
+    "kind": "authored-practice",
+    "note": "Authored interview preparation. Technical references support mechanisms, not the claim that a company asked this question."
+  },
+  "references": [
+    {
+      "id": "watch",
+      "scope": "background",
+      "supports": "Snapshot resource versions, resumed watches and expired-history recovery.",
+      "title": "Kubernetes list/watch semantics",
+      "url": "https://kubernetes.io/docs/reference/using-api/api-concepts/"
+    },
+    {
+      "id": "sync",
+      "scope": "background",
+      "supports": "Incremental client synchronization is a protocol, not merely a WebSocket connection.",
+      "title": "Matrix client/server sync",
+      "url": "https://spec.matrix.org/latest/client-server-api/"
+    }
+  ],
+  "schema": "simulatte.composableStudy.v1",
+  "solutions": [
+    {
+      "acceptanceCases": [
+        {
+          "given": "Cell revision is 8; two editors read 8.",
+          "id": "stale-edit",
+          "relatedRequirementIds": [
+            "state"
+          ],
+          "then": "Exactly one commits revision 9; the other receives conflict and does not overwrite it.",
+          "when": "Both submit different replacement text with expectedRevision=8."
+        },
+        {
+          "given": "Execution request K was committed but its acknowledgement was lost.",
+          "id": "duplicate-execution",
+          "relatedRequirementIds": [
+            "execute"
+          ],
+          "then": "The original executionId is returned; no second queue job is created.",
+          "when": "Retry K with identical cell revision."
+        },
+        {
+          "given": "Snapshot is pinned at revision 10 while revision 11 commits.",
+          "id": "snapshot-race",
+          "relatedRequirementIds": [
+            "sync",
+            "state"
+          ],
+          "then": "Install snapshot 10, apply 11 once, and finish at revision 11.",
+          "when": "Deliver event 11 before the snapshot, then duplicate 11 after it."
+        },
+        {
+          "given": "Client cursor is 4; retained events begin at 20.",
+          "id": "cursor-expiry",
+          "relatedRequirementIds": [
+            "sync",
+            "execute"
+          ],
+          "then": "Explicit reset supplies a new snapshot; no execution is resubmitted.",
+          "when": "Reconnect with cursor 4."
+        },
+        {
+          "given": "A live subscriber loses notebook membership.",
+          "id": "revocation",
+          "relatedRequirementIds": [
+            "access"
+          ],
+          "then": "Order the revocation in the notebook log; stop later revisions before sending. Previously transmitted events cannot be recalled.",
+          "when": "A subsequent cell event commits."
+        }
+      ],
+      "algorithms": [
+        {
+          "code": "authorize(actor, notebookId, \"edit\");\ntransaction(() => {\n  lockNotebookRevision(notebookId);\n  assertCurrentMembership(actor, notebookId, \"edit\");\n  cell = loadCellForUpdate(cellId);\n  prior = receiptFor(actor, notebookId, opId);\n  if (prior) return samePayloadOrConflict(prior, request);\n  // Whole-cell optimistic concurrency.\n  if (cell.revision !== expectedRevision) throw Conflict(currentCell);\n  next = incrementNotebookRevision();\n  writeCell(code, next); appendChange(next, opId, cellId, code);\n  saveReceipt(opId, payloadHash(request), {revision: next});\n  return {revision: next, opId};\n});",
+          "guarantees": [
+            "No receipt is acknowledged before its cell and change row commit."
+          ],
+          "id": "commit-edit",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "api"
+        },
+        {
+          "code": "transaction(() => {\n  assertCurrentMembership(actor, notebookId, \"execute\");\n  prior = findExecutionReceipt(actor, notebookId, opId);\n  if (prior) return samePayloadOrConflict(prior, request);\n  code = loadImmutableCellRevision(cellId, codeRevision);\n  job = insertUniqueExecution(opId, code, \"queued\");\n  insertExecutionOutbox(job.id); saveExecutionReceipt(opId, payloadHash(request), job.id);\n  return {executionId: job.id, status: \"queued\"};\n});\n// A worker crash after arbitrary user code ran leaves an uncertain attempt.\n// Do not transparently rerun side-effecting code; expose uncertainty or require an explicit idempotent execution contract.",
+          "guarantees": [
+            "Submission retries reuse one job identity; this is not exactly-once arbitrary code execution."
+          ],
+          "id": "accept-execution",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "api"
+        },
+        {
+          "code": "onSnapshot(snapshot, V) { replaceView(snapshot); last = V; drainBufferedAfter(V); }\nonEvent(event) {\n  if (event.revision <= last) return;\n  if (event.revision !== last + 1) { bufferBoundedly(event); requestCatchUp(last); return; }\n  applyAuthoritative(event); last = event.revision; pending.delete(event.opId);\n}\nonEditConflict(opId, currentCell) { markConflict(opId); showServerVersion(currentCell); }\nonResetRequired() { stopApplyingDeltas(); requestFreshSnapshot(); }",
+          "guarantees": [
+            "Duplicate acknowledgements and updates never duplicate execution."
+          ],
+          "id": "apply-updates",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "client-state"
+        }
+      ],
+      "apis": [
+        {
+          "errors": "409 stale revision; 403 unauthorized; 423 invalid lease",
+          "method": "PATCH",
+          "ownerNodeId": "api",
+          "path": "/notebooks/{id}/cells/{cellId}",
+          "request": "{opId, expectedRevision, code}",
+          "response": "{revision, opId}"
+        },
+        {
+          "errors": "409 reused opId with different payload",
+          "method": "POST",
+          "ownerNodeId": "api",
+          "path": "/notebooks/{id}/executions",
+          "request": "{opId, cellId, codeRevision}",
+          "response": "{executionId, status}"
+        },
+        {
+          "errors": "410 expired cursor or explicit reset=true",
+          "method": "GET",
+          "ownerNodeId": "snapshot",
+          "path": "/notebooks/{id}/changes",
+          "request": "{after, limit}",
+          "response": "{snapshot?, events, cursor, reset}"
+        }
+      ],
+      "assumptions": [
+        "Text collaboration means whole-cell replacement with visible conflicts.",
+        "Execution deduplication uses a durable operation identity and an explicit retry policy."
+      ],
+      "chooseWhen": "Low update latency matters and the service can operate long-lived subscriptions.",
+      "id": "push",
+      "initialGraph": {
+        "edges": [],
+        "nodes": []
+      },
+      "stages": [
+        {
+          "checkIds": [
+            "stale-edit"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "nb.request",
+                "from": {
+                  "nodeId": "client",
+                  "portId": "out-nb.request"
+                },
+                "id": "requests",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-nb.request"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "nb.client",
+                "id": "client",
+                "label": "Notebook UI",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.system",
+                "id": "system",
+                "label": "Notebook backend",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "push-s1",
+          "invariants": [
+            "A pending edit is not a committed revision."
+          ],
+          "number": 1,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "nb.client",
+                "id": "client",
+                "label": "Notebook UI",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "nb.system",
+                "id": "system",
+                "label": "Notebook backend",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "nb.request",
+                "from": {
+                  "nodeId": "client",
+                  "portId": "out-nb.request"
+                },
+                "id": "requests",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-nb.request"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Who owns a cell and what does completion mean?",
+          "reason": "Separate user intent from authoritative state before adding collaboration.",
+          "title": "State the notebook boundary"
+        },
+        {
+          "checkIds": [
+            "duplicate-execution"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "nb.request",
+                "from": {
+                  "nodeId": "client",
+                  "portId": "out-nb.request"
+                },
+                "id": "requests",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-nb.request"
+                }
+              },
+              {
+                "contractId": "nb.request",
+                "from": {
+                  "nodeId": "api",
+                  "portId": "out-nb.request"
+                },
+                "id": "transactions",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "store",
+                  "portId": "in-nb.request"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "nb.client",
+                "id": "client",
+                "label": "Notebook UI",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.system",
+                "id": "system",
+                "label": "Notebook backend",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "push-backend",
+                "version": 1
+              },
+              {
+                "definitionId": "nb.api",
+                "id": "api",
+                "label": "Notebook API",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.store",
+                "id": "store",
+                "label": "Notebook database",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "push-s2",
+          "invariants": [
+            "Cells and operation receipts commit together."
+          ],
+          "number": 2,
+          "operations": [
+            {
+              "edges": [
+                {
+                  "contractId": "nb.request",
+                  "from": {
+                    "nodeId": "api",
+                    "portId": "out-nb.request"
+                  },
+                  "id": "transactions",
+                  "mode": "storage",
+                  "to": {
+                    "nodeId": "store",
+                    "portId": "in-nb.request"
+                  }
+                }
+              ],
+              "nodeId": "system",
+              "nodes": [
+                {
+                  "definitionId": "nb.api",
+                  "id": "api",
+                  "label": "Notebook API",
+                  "position": {
+                    "x": 560,
+                    "y": 0
+                  },
+                  "version": 1
+                },
+                {
+                  "definitionId": "nb.store",
+                  "id": "store",
+                  "label": "Notebook database",
+                  "position": {
+                    "x": 840,
+                    "y": 0
+                  },
+                  "version": 1
+                }
+              ],
+              "op": "expand",
+              "subsystemId": "push-backend"
+            }
+          ],
+          "question": "Where are revision checks and durable records stored?",
+          "reason": "Make the API/database transaction boundary visible without changing the outer notebook identity.",
+          "title": "Expand the authoritative backend"
+        },
+        {
+          "checkIds": [
+            "stale-edit"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "nb.request",
+                "from": {
+                  "nodeId": "api",
+                  "portId": "out-nb.request"
+                },
+                "id": "transactions",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "store",
+                  "portId": "in-nb.request"
+                }
+              },
+              {
+                "contractId": "nb.request",
+                "from": {
+                  "nodeId": "client",
+                  "portId": "out-nb.request"
+                },
+                "id": "local-edits",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "pending",
+                  "portId": "in-nb.request"
+                }
+              },
+              {
+                "contractId": "nb.request",
+                "from": {
+                  "nodeId": "pending",
+                  "portId": "out-nb.request"
+                },
+                "id": "guarded-requests",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-nb.request"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "nb.client",
+                "id": "client",
+                "label": "Notebook UI",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.system",
+                "id": "system",
+                "label": "Notebook backend",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "push-backend",
+                "version": 1
+              },
+              {
+                "definitionId": "nb.api",
+                "id": "api",
+                "label": "Notebook API",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.store",
+                "id": "store",
+                "label": "Notebook database",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.pending",
+                "id": "pending",
+                "label": "Optimistic edit handler",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "push-s3",
+          "invariants": [
+            "A rejected pending edit remains distinguishable from committed code."
+          ],
+          "number": 3,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "nb.pending",
+                "id": "pending",
+                "label": "Optimistic edit handler",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edgeId": "requests",
+              "op": "disconnect"
+            },
+            {
+              "edge": {
+                "contractId": "nb.request",
+                "from": {
+                  "nodeId": "client",
+                  "portId": "out-nb.request"
+                },
+                "id": "local-edits",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "pending",
+                  "portId": "in-nb.request"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "nb.request",
+                "from": {
+                  "nodeId": "pending",
+                  "portId": "out-nb.request"
+                },
+                "id": "guarded-requests",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-nb.request"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What if an edit is rejected after the UI displayed it?",
+          "reason": "The client tracks tentative changes rather than overwriting authoritative revisions.",
+          "title": "Add explicit optimistic state"
+        },
+        {
+          "checkIds": [
+            "duplicate-execution"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "nb.request",
+                "from": {
+                  "nodeId": "api",
+                  "portId": "out-nb.request"
+                },
+                "id": "transactions",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "store",
+                  "portId": "in-nb.request"
+                }
+              },
+              {
+                "contractId": "nb.request",
+                "from": {
+                  "nodeId": "client",
+                  "portId": "out-nb.request"
+                },
+                "id": "local-edits",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "pending",
+                  "portId": "in-nb.request"
+                }
+              },
+              {
+                "contractId": "nb.request",
+                "from": {
+                  "nodeId": "pending",
+                  "portId": "out-nb.request"
+                },
+                "id": "guarded-requests",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-nb.request"
+                }
+              },
+              {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-nb.changes-store"
+                },
+                "id": "change-records",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "log",
+                  "portId": "in-nb.changes"
+                }
+              },
+              {
+                "contractId": "nb.job",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-nb.job-store"
+                },
+                "id": "dispatch",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "queue",
+                  "portId": "in-nb.job"
+                }
+              },
+              {
+                "contractId": "nb.job",
+                "from": {
+                  "nodeId": "queue",
+                  "portId": "out-nb.job"
+                },
+                "id": "execute",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "worker",
+                  "portId": "in-nb.job"
+                }
+              },
+              {
+                "contractId": "nb.outcome",
+                "from": {
+                  "nodeId": "worker",
+                  "portId": "out-nb.outcome"
+                },
+                "id": "record-outcome",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-nb.outcome-store"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "nb.client",
+                "id": "client",
+                "label": "Notebook UI",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.system",
+                "id": "system",
+                "label": "Notebook backend",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "push-backend",
+                "version": 1
+              },
+              {
+                "definitionId": "nb.api",
+                "id": "api",
+                "label": "Notebook API",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.store",
+                "id": "store",
+                "label": "Notebook database",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.pending",
+                "id": "pending",
+                "label": "Optimistic edit handler",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.log",
+                "id": "log",
+                "label": "Notebook change log",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.queue",
+                "id": "queue",
+                "label": "Execution outbox dispatcher",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.worker",
+                "id": "worker",
+                "label": "Execution worker",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "push-s4",
+          "invariants": [
+            "A request receipt and execution ID survive retries.",
+            "A worker claim does not by itself make arbitrary external effects exactly once."
+          ],
+          "number": 4,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "nb.log",
+                "id": "log",
+                "label": "Notebook change log",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "nb.queue",
+                "id": "queue",
+                "label": "Execution outbox dispatcher",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "nb.worker",
+                "id": "worker",
+                "label": "Execution worker",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-nb.changes-store"
+                },
+                "id": "change-records",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "log",
+                  "portId": "in-nb.changes"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "nb.job",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-nb.job-store"
+                },
+                "id": "dispatch",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "queue",
+                  "portId": "in-nb.job"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "nb.job",
+                "from": {
+                  "nodeId": "queue",
+                  "portId": "out-nb.job"
+                },
+                "id": "execute",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "worker",
+                  "portId": "in-nb.job"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "nb.outcome",
+                "from": {
+                  "nodeId": "worker",
+                  "portId": "out-nb.outcome"
+                },
+                "id": "record-outcome",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-nb.outcome-store"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How do retry and reconnect avoid running a cell twice?",
+          "reason": "A durable execution identity is handed to workers through committed outbox records.",
+          "title": "Separate execution from reconnect"
+        },
+        {
+          "checkIds": [
+            "snapshot-race"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "nb.request",
+                "from": {
+                  "nodeId": "api",
+                  "portId": "out-nb.request"
+                },
+                "id": "transactions",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "store",
+                  "portId": "in-nb.request"
+                }
+              },
+              {
+                "contractId": "nb.request",
+                "from": {
+                  "nodeId": "client",
+                  "portId": "out-nb.request"
+                },
+                "id": "local-edits",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "pending",
+                  "portId": "in-nb.request"
+                }
+              },
+              {
+                "contractId": "nb.request",
+                "from": {
+                  "nodeId": "pending",
+                  "portId": "out-nb.request"
+                },
+                "id": "guarded-requests",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-nb.request"
+                }
+              },
+              {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-nb.changes-store"
+                },
+                "id": "change-records",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "log",
+                  "portId": "in-nb.changes"
+                }
+              },
+              {
+                "contractId": "nb.job",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-nb.job-store"
+                },
+                "id": "dispatch",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "queue",
+                  "portId": "in-nb.job"
+                }
+              },
+              {
+                "contractId": "nb.job",
+                "from": {
+                  "nodeId": "queue",
+                  "portId": "out-nb.job"
+                },
+                "id": "execute",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "worker",
+                  "portId": "in-nb.job"
+                }
+              },
+              {
+                "contractId": "nb.outcome",
+                "from": {
+                  "nodeId": "worker",
+                  "portId": "out-nb.outcome"
+                },
+                "id": "record-outcome",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-nb.outcome-store"
+                }
+              },
+              {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "snapshot",
+                  "portId": "out-nb.changes"
+                },
+                "id": "snapshot-state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-nb.changes-store"
+                }
+              },
+              {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "hub",
+                  "portId": "out-nb.changes"
+                },
+                "id": "subscribe",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "log",
+                  "portId": "in-nb.changes"
+                }
+              },
+              {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "hub",
+                  "portId": "out-nb.changes"
+                },
+                "id": "delivery",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "events",
+                  "portId": "in-nb.changes"
+                }
+              },
+              {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "snapshot",
+                  "portId": "out-nb.changes"
+                },
+                "id": "initial-snapshot",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "events",
+                  "portId": "in-nb.changes"
+                }
+              },
+              {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "events",
+                  "portId": "out-nb.changes"
+                },
+                "id": "render",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "client",
+                  "portId": "in-nb.changes"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "nb.client",
+                "id": "client",
+                "label": "Notebook UI",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.system",
+                "id": "system",
+                "label": "Notebook backend",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "push-backend",
+                "version": 1
+              },
+              {
+                "definitionId": "nb.api",
+                "id": "api",
+                "label": "Notebook API",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.store",
+                "id": "store",
+                "label": "Notebook database",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.pending",
+                "id": "pending",
+                "label": "Optimistic edit handler",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.log",
+                "id": "log",
+                "label": "Notebook change log",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.queue",
+                "id": "queue",
+                "label": "Execution outbox dispatcher",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.worker",
+                "id": "worker",
+                "label": "Execution worker",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.snapshot",
+                "id": "snapshot",
+                "label": "Snapshot reader",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.hub",
+                "id": "hub",
+                "label": "Subscription hub",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.events",
+                "id": "events",
+                "label": "Live update reducer",
+                "position": {
+                  "x": 560,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "push-s5",
+          "invariants": [
+            "Install snapshot at V, then apply only contiguous events after V."
+          ],
+          "number": 5,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "nb.snapshot",
+                "id": "snapshot",
+                "label": "Snapshot reader",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "nb.hub",
+                "id": "hub",
+                "label": "Subscription hub",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "nb.events",
+                "id": "events",
+                "label": "Live update reducer",
+                "position": {
+                  "x": 560,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "snapshot",
+                  "portId": "out-nb.changes"
+                },
+                "id": "snapshot-state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-nb.changes-store"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "hub",
+                  "portId": "out-nb.changes"
+                },
+                "id": "subscribe",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "log",
+                  "portId": "in-nb.changes"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "hub",
+                  "portId": "out-nb.changes"
+                },
+                "id": "delivery",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "events",
+                  "portId": "in-nb.changes"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "snapshot",
+                  "portId": "out-nb.changes"
+                },
+                "id": "initial-snapshot",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "events",
+                  "portId": "in-nb.changes"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "events",
+                  "portId": "out-nb.changes"
+                },
+                "id": "render",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "client",
+                  "portId": "in-nb.changes"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How do updates committed during initial loading remain visible?",
+          "reason": "Use the snapshot revision as a durable cursor rather than subscribing after an unversioned read.",
+          "title": "Join a snapshot to live updates"
+        },
+        {
+          "checkIds": [
+            "cursor-expiry"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "nb.request",
+                "from": {
+                  "nodeId": "api",
+                  "portId": "out-nb.request"
+                },
+                "id": "transactions",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "store",
+                  "portId": "in-nb.request"
+                }
+              },
+              {
+                "contractId": "nb.request",
+                "from": {
+                  "nodeId": "client",
+                  "portId": "out-nb.request"
+                },
+                "id": "local-edits",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "pending",
+                  "portId": "in-nb.request"
+                }
+              },
+              {
+                "contractId": "nb.request",
+                "from": {
+                  "nodeId": "pending",
+                  "portId": "out-nb.request"
+                },
+                "id": "guarded-requests",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-nb.request"
+                }
+              },
+              {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-nb.changes-store"
+                },
+                "id": "change-records",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "log",
+                  "portId": "in-nb.changes"
+                }
+              },
+              {
+                "contractId": "nb.job",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-nb.job-store"
+                },
+                "id": "dispatch",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "queue",
+                  "portId": "in-nb.job"
+                }
+              },
+              {
+                "contractId": "nb.job",
+                "from": {
+                  "nodeId": "queue",
+                  "portId": "out-nb.job"
+                },
+                "id": "execute",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "worker",
+                  "portId": "in-nb.job"
+                }
+              },
+              {
+                "contractId": "nb.outcome",
+                "from": {
+                  "nodeId": "worker",
+                  "portId": "out-nb.outcome"
+                },
+                "id": "record-outcome",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-nb.outcome-store"
+                }
+              },
+              {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "snapshot",
+                  "portId": "out-nb.changes"
+                },
+                "id": "snapshot-state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-nb.changes-store"
+                }
+              },
+              {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "hub",
+                  "portId": "out-nb.changes"
+                },
+                "id": "subscribe",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "log",
+                  "portId": "in-nb.changes"
+                }
+              },
+              {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "hub",
+                  "portId": "out-nb.changes"
+                },
+                "id": "delivery",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "events",
+                  "portId": "in-nb.changes"
+                }
+              },
+              {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "snapshot",
+                  "portId": "out-nb.changes"
+                },
+                "id": "initial-snapshot",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "events",
+                  "portId": "in-nb.changes"
+                }
+              },
+              {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "events",
+                  "portId": "out-nb.changes"
+                },
+                "id": "render",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "client",
+                  "portId": "in-nb.changes"
+                }
+              },
+              {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "replay",
+                  "portId": "out-nb.changes"
+                },
+                "id": "catch-up",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "snapshot",
+                  "portId": "in-nb.changes"
+                }
+              },
+              {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "replay",
+                  "portId": "out-nb.changes"
+                },
+                "id": "resume-log",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "log",
+                  "portId": "in-nb.changes"
+                }
+              },
+              {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "replay",
+                  "portId": "out-nb.changes"
+                },
+                "id": "apply-recovery",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "events",
+                  "portId": "in-nb.changes"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "nb.client",
+                "id": "client",
+                "label": "Notebook UI",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.system",
+                "id": "system",
+                "label": "Notebook backend",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "push-backend",
+                "version": 1
+              },
+              {
+                "definitionId": "nb.api",
+                "id": "api",
+                "label": "Notebook API",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.store",
+                "id": "store",
+                "label": "Notebook database",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.pending",
+                "id": "pending",
+                "label": "Optimistic edit handler",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.log",
+                "id": "log",
+                "label": "Notebook change log",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.queue",
+                "id": "queue",
+                "label": "Execution outbox dispatcher",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.worker",
+                "id": "worker",
+                "label": "Execution worker",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.snapshot",
+                "id": "snapshot",
+                "label": "Snapshot reader",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.hub",
+                "id": "hub",
+                "label": "Subscription hub",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.events",
+                "id": "events",
+                "label": "Live update reducer",
+                "position": {
+                  "x": 560,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.replay",
+                "id": "replay",
+                "label": "Catch-up reducer",
+                "position": {
+                  "x": 840,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "push-s6",
+          "invariants": [
+            "Cursor expiry is reset, not silent omission.",
+            "A recovered view does not create a new execution request."
+          ],
+          "number": 6,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "nb.replay",
+                "id": "replay",
+                "label": "Catch-up reducer",
+                "position": {
+                  "x": 840,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "replay",
+                  "portId": "out-nb.changes"
+                },
+                "id": "catch-up",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "snapshot",
+                  "portId": "in-nb.changes"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "replay",
+                  "portId": "out-nb.changes"
+                },
+                "id": "resume-log",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "log",
+                  "portId": "in-nb.changes"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "replay",
+                  "portId": "out-nb.changes"
+                },
+                "id": "apply-recovery",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "events",
+                  "portId": "in-nb.changes"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What if a tab returns after history was compacted?",
+          "reason": "Resume within retention; otherwise obtain a new snapshot and replace the local view explicitly.",
+          "title": "Recover an expired cursor"
+        },
+        {
+          "checkIds": [
+            "revocation"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "nb.request",
+                "from": {
+                  "nodeId": "api",
+                  "portId": "out-nb.request"
+                },
+                "id": "transactions",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "store",
+                  "portId": "in-nb.request"
+                }
+              },
+              {
+                "contractId": "nb.request",
+                "from": {
+                  "nodeId": "client",
+                  "portId": "out-nb.request"
+                },
+                "id": "local-edits",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "pending",
+                  "portId": "in-nb.request"
+                }
+              },
+              {
+                "contractId": "nb.request",
+                "from": {
+                  "nodeId": "pending",
+                  "portId": "out-nb.request"
+                },
+                "id": "guarded-requests",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-nb.request"
+                }
+              },
+              {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-nb.changes-store"
+                },
+                "id": "change-records",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "log",
+                  "portId": "in-nb.changes"
+                }
+              },
+              {
+                "contractId": "nb.job",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-nb.job-store"
+                },
+                "id": "dispatch",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "queue",
+                  "portId": "in-nb.job"
+                }
+              },
+              {
+                "contractId": "nb.job",
+                "from": {
+                  "nodeId": "queue",
+                  "portId": "out-nb.job"
+                },
+                "id": "execute",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "worker",
+                  "portId": "in-nb.job"
+                }
+              },
+              {
+                "contractId": "nb.outcome",
+                "from": {
+                  "nodeId": "worker",
+                  "portId": "out-nb.outcome"
+                },
+                "id": "record-outcome",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-nb.outcome-store"
+                }
+              },
+              {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "snapshot",
+                  "portId": "out-nb.changes"
+                },
+                "id": "snapshot-state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-nb.changes-store"
+                }
+              },
+              {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "hub",
+                  "portId": "out-nb.changes"
+                },
+                "id": "subscribe",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "log",
+                  "portId": "in-nb.changes"
+                }
+              },
+              {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "hub",
+                  "portId": "out-nb.changes"
+                },
+                "id": "delivery",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "events",
+                  "portId": "in-nb.changes"
+                }
+              },
+              {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "snapshot",
+                  "portId": "out-nb.changes"
+                },
+                "id": "initial-snapshot",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "events",
+                  "portId": "in-nb.changes"
+                }
+              },
+              {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "events",
+                  "portId": "out-nb.changes"
+                },
+                "id": "render",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "client",
+                  "portId": "in-nb.changes"
+                }
+              },
+              {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "replay",
+                  "portId": "out-nb.changes"
+                },
+                "id": "catch-up",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "snapshot",
+                  "portId": "in-nb.changes"
+                }
+              },
+              {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "replay",
+                  "portId": "out-nb.changes"
+                },
+                "id": "resume-log",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "log",
+                  "portId": "in-nb.changes"
+                }
+              },
+              {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "replay",
+                  "portId": "out-nb.changes"
+                },
+                "id": "apply-recovery",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "events",
+                  "portId": "in-nb.changes"
+                }
+              },
+              {
+                "contractId": "nb.access",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-nb.access-api"
+                },
+                "id": "edit-authorization",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "access",
+                  "portId": "in-nb.access"
+                }
+              },
+              {
+                "contractId": "nb.access",
+                "from": {
+                  "nodeId": "hub",
+                  "portId": "out-nb.access"
+                },
+                "id": "delivery-authorization",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "access",
+                  "portId": "in-nb.access"
+                }
+              },
+              {
+                "contractId": "nb.access",
+                "from": {
+                  "nodeId": "snapshot",
+                  "portId": "out-nb.access"
+                },
+                "id": "recovery-authorization",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "access",
+                  "portId": "in-nb.access"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "nb.client",
+                "id": "client",
+                "label": "Notebook UI",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.system",
+                "id": "system",
+                "label": "Notebook backend",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "push-backend",
+                "version": 1
+              },
+              {
+                "definitionId": "nb.api",
+                "id": "api",
+                "label": "Notebook API",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.store",
+                "id": "store",
+                "label": "Notebook database",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.pending",
+                "id": "pending",
+                "label": "Optimistic edit handler",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.log",
+                "id": "log",
+                "label": "Notebook change log",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.queue",
+                "id": "queue",
+                "label": "Execution outbox dispatcher",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.worker",
+                "id": "worker",
+                "label": "Execution worker",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.snapshot",
+                "id": "snapshot",
+                "label": "Snapshot reader",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.hub",
+                "id": "hub",
+                "label": "Subscription hub",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.events",
+                "id": "events",
+                "label": "Live update reducer",
+                "position": {
+                  "x": 560,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.replay",
+                "id": "replay",
+                "label": "Catch-up reducer",
+                "position": {
+                  "x": 840,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.access",
+                "id": "access",
+                "label": "Notebook access policy",
+                "position": {
+                  "x": 0,
+                  "y": 540
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "push-s7",
+          "invariants": [
+            "Membership changes are ordered with cell events; later revisions cannot be delivered under revoked access. Already transmitted data cannot be recalled.",
+            "Dropping arbitrary execution events is not a valid coalescing policy."
+          ],
+          "number": 7,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "nb.access",
+                "id": "access",
+                "label": "Notebook access policy",
+                "position": {
+                  "x": 0,
+                  "y": 540
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "nb.access",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-nb.access-api"
+                },
+                "id": "edit-authorization",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "access",
+                  "portId": "in-nb.access"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "nb.access",
+                "from": {
+                  "nodeId": "hub",
+                  "portId": "out-nb.access"
+                },
+                "id": "delivery-authorization",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "access",
+                  "portId": "in-nb.access"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "nb.access",
+                "from": {
+                  "nodeId": "snapshot",
+                  "portId": "out-nb.access"
+                },
+                "id": "recovery-authorization",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "access",
+                  "portId": "in-nb.access"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What happens when membership changes or a consumer is slow?",
+          "reason": "Use explicit membership revisions and bounded buffers; disconnect and resnapshot when a lossless stream cannot keep up.",
+          "title": "Bound and authorize delivery"
+        },
+        {
+          "checkIds": [
+            "snapshot-race",
+            "cursor-expiry",
+            "duplicate-execution"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "nb.request",
+                "from": {
+                  "nodeId": "api",
+                  "portId": "out-nb.request"
+                },
+                "id": "transactions",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "store",
+                  "portId": "in-nb.request"
+                }
+              },
+              {
+                "contractId": "nb.request",
+                "from": {
+                  "nodeId": "client",
+                  "portId": "out-nb.request"
+                },
+                "id": "local-edits",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "client-state",
+                  "portId": "in-nb.request"
+                }
+              },
+              {
+                "contractId": "nb.request",
+                "from": {
+                  "nodeId": "client-state",
+                  "portId": "out-nb.request"
+                },
+                "id": "guarded-requests",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-nb.request"
+                }
+              },
+              {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-nb.changes-store"
+                },
+                "id": "change-records",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "log",
+                  "portId": "in-nb.changes"
+                }
+              },
+              {
+                "contractId": "nb.job",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-nb.job-store"
+                },
+                "id": "dispatch",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "queue",
+                  "portId": "in-nb.job"
+                }
+              },
+              {
+                "contractId": "nb.job",
+                "from": {
+                  "nodeId": "queue",
+                  "portId": "out-nb.job"
+                },
+                "id": "execute",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "worker",
+                  "portId": "in-nb.job"
+                }
+              },
+              {
+                "contractId": "nb.outcome",
+                "from": {
+                  "nodeId": "worker",
+                  "portId": "out-nb.outcome"
+                },
+                "id": "record-outcome",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-nb.outcome-store"
+                }
+              },
+              {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "snapshot",
+                  "portId": "out-nb.changes"
+                },
+                "id": "snapshot-state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-nb.changes-store"
+                }
+              },
+              {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "hub",
+                  "portId": "out-nb.changes"
+                },
+                "id": "subscribe",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "log",
+                  "portId": "in-nb.changes"
+                }
+              },
+              {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "hub",
+                  "portId": "out-nb.changes"
+                },
+                "id": "delivery",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "client-state",
+                  "portId": "in-nb.changes"
+                }
+              },
+              {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "snapshot",
+                  "portId": "out-nb.changes"
+                },
+                "id": "initial-snapshot",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "client-state",
+                  "portId": "in-nb.changes"
+                }
+              },
+              {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "client-state",
+                  "portId": "out-nb.changes"
+                },
+                "id": "render",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "client",
+                  "portId": "in-nb.changes"
+                }
+              },
+              {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "client-state",
+                  "portId": "out-nb.changes"
+                },
+                "id": "catch-up",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "snapshot",
+                  "portId": "in-nb.changes"
+                }
+              },
+              {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "client-state",
+                  "portId": "out-nb.changes"
+                },
+                "id": "resume-log",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "log",
+                  "portId": "in-nb.changes"
+                }
+              },
+              {
+                "contractId": "nb.access",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-nb.access-api"
+                },
+                "id": "edit-authorization",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "access",
+                  "portId": "in-nb.access"
+                }
+              },
+              {
+                "contractId": "nb.access",
+                "from": {
+                  "nodeId": "hub",
+                  "portId": "out-nb.access"
+                },
+                "id": "delivery-authorization",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "access",
+                  "portId": "in-nb.access"
+                }
+              },
+              {
+                "contractId": "nb.access",
+                "from": {
+                  "nodeId": "snapshot",
+                  "portId": "out-nb.access"
+                },
+                "id": "recovery-authorization",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "access",
+                  "portId": "in-nb.access"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "nb.client",
+                "id": "client",
+                "label": "Notebook UI",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.system",
+                "id": "system",
+                "label": "Notebook backend",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "push-backend",
+                "version": 1
+              },
+              {
+                "definitionId": "nb.api",
+                "id": "api",
+                "label": "Notebook API",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.store",
+                "id": "store",
+                "label": "Notebook database",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.log",
+                "id": "log",
+                "label": "Notebook change log",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.queue",
+                "id": "queue",
+                "label": "Execution outbox dispatcher",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.worker",
+                "id": "worker",
+                "label": "Execution worker",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.snapshot",
+                "id": "snapshot",
+                "label": "Snapshot reader",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.hub",
+                "id": "hub",
+                "label": "Subscription hub",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.access",
+                "id": "access",
+                "label": "Notebook access policy",
+                "position": {
+                  "x": 0,
+                  "y": 540
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.client-state",
+                "id": "client-state",
+                "label": "Unified client reconciler",
+                "lineageIds": [
+                  "pending",
+                  "events",
+                  "replay"
+                ],
+                "position": {
+                  "x": 280,
+                  "y": 540
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "push-s8",
+          "invariants": [
+            "Only the unified reducer mutates the displayed authoritative notebook."
+          ],
+          "number": 8,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "nb.client-state",
+                "id": "client-state",
+                "label": "Unified client reconciler",
+                "position": {
+                  "x": 280,
+                  "y": 540
+                },
+                "version": 1
+              },
+              "nodeIds": [
+                "pending",
+                "events",
+                "replay"
+              ],
+              "op": "merge",
+              "reason": "Replace competing writers to the same visible cell state with one revision-aware reconciler."
+            }
+          ],
+          "question": "Can a receipt, push and catch-up response apply the same change three times?",
+          "reason": "One client state owner deduplicates opIds and orders revisions across all transports.",
+          "title": "Merge the competing client reducers"
+        }
+      ],
+      "title": "Revision log and server push",
+      "tradeoffs": [
+        "Keep a change-log retention window and operate bounded connection buffers.",
+        "A server revision serializes whole-cell writes; conflicting edits require user resolution."
+      ]
+    },
+    {
+      "acceptanceCases": [
+        {
+          "given": "Cell revision is 8; two editors read 8.",
+          "id": "stale-edit",
+          "relatedRequirementIds": [
+            "state"
+          ],
+          "then": "Exactly one commits revision 9; the other receives conflict and does not overwrite it.",
+          "when": "Both submit different replacement text with expectedRevision=8."
+        },
+        {
+          "given": "Execution request K was committed but its acknowledgement was lost.",
+          "id": "duplicate-execution",
+          "relatedRequirementIds": [
+            "execute"
+          ],
+          "then": "The original executionId is returned; no second queue job is created.",
+          "when": "Retry K with identical cell revision."
+        },
+        {
+          "given": "Snapshot is pinned at revision 10 while revision 11 commits.",
+          "id": "snapshot-race",
+          "relatedRequirementIds": [
+            "sync",
+            "state"
+          ],
+          "then": "Install snapshot 10, apply 11 once, and finish at revision 11.",
+          "when": "Deliver event 11 before the snapshot, then duplicate 11 after it."
+        },
+        {
+          "given": "Client cursor is 4; retained events begin at 20.",
+          "id": "cursor-expiry",
+          "relatedRequirementIds": [
+            "sync",
+            "execute"
+          ],
+          "then": "Explicit reset supplies a new snapshot; no execution is resubmitted.",
+          "when": "Reconnect with cursor 4."
+        },
+        {
+          "given": "A live subscriber loses notebook membership.",
+          "id": "revocation",
+          "relatedRequirementIds": [
+            "access"
+          ],
+          "then": "Order the revocation in the notebook log; stop later revisions before sending. Previously transmitted events cannot be recalled.",
+          "when": "A subsequent cell event commits."
+        }
+      ],
+      "algorithms": [
+        {
+          "code": "authorize(actor, notebookId, \"edit\");\ntransaction(() => {\n  lockNotebookRevision(notebookId);\n  assertCurrentMembership(actor, notebookId, \"edit\");\n  cell = loadCellForUpdate(cellId);\n  prior = receiptFor(actor, notebookId, opId);\n  if (prior) return samePayloadOrConflict(prior, request);\n  assertLeaseInThisTransaction(actor, fencingToken, databaseNow());\n  if (cell.revision !== expectedRevision) throw Conflict(currentCell);\n  next = incrementNotebookRevision();\n  writeCell(code, next); appendChange(next, opId, cellId, code);\n  saveReceipt(opId, payloadHash(request), {revision: next});\n  return {revision: next, opId};\n});",
+          "guarantees": [
+            "No receipt is acknowledged before its cell and change row commit."
+          ],
+          "id": "commit-edit",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "api"
+        },
+        {
+          "code": "transaction(() => {\n  assertCurrentMembership(actor, notebookId, \"execute\");\n  prior = findExecutionReceipt(actor, notebookId, opId);\n  if (prior) return samePayloadOrConflict(prior, request);\n  code = loadImmutableCellRevision(cellId, codeRevision);\n  job = insertUniqueExecution(opId, code, \"queued\");\n  insertExecutionOutbox(job.id); saveExecutionReceipt(opId, payloadHash(request), job.id);\n  return {executionId: job.id, status: \"queued\"};\n});\n// A worker crash after arbitrary user code ran leaves an uncertain attempt.\n// Do not transparently rerun side-effecting code; expose uncertainty or require an explicit idempotent execution contract.",
+          "guarantees": [
+            "Submission retries reuse one job identity; this is not exactly-once arbitrary code execution."
+          ],
+          "id": "accept-execution",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "api"
+        },
+        {
+          "code": "onSnapshot(snapshot, V) { replaceView(snapshot); last = V; drainBufferedAfter(V); }\nonEvent(event) {\n  if (event.revision <= last) return;\n  if (event.revision !== last + 1) { bufferBoundedly(event); requestCatchUp(last); return; }\n  applyAuthoritative(event); last = event.revision; pending.delete(event.opId);\n}\nonEditConflict(opId, currentCell) { markConflict(opId); showServerVersion(currentCell); }\nonResetRequired() { stopApplyingDeltas(); requestFreshSnapshot(); }",
+          "guarantees": [
+            "Duplicate acknowledgements and updates never duplicate execution."
+          ],
+          "id": "apply-updates",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "client-state"
+        }
+      ],
+      "apis": [
+        {
+          "errors": "409 stale revision; 403 unauthorized; 423 invalid lease",
+          "method": "PATCH",
+          "ownerNodeId": "api",
+          "path": "/notebooks/{id}/cells/{cellId}",
+          "request": "{opId, expectedRevision, code, fencingToken}",
+          "response": "{revision, opId}"
+        },
+        {
+          "errors": "409 reused opId with different payload",
+          "method": "POST",
+          "ownerNodeId": "api",
+          "path": "/notebooks/{id}/executions",
+          "request": "{opId, cellId, codeRevision}",
+          "response": "{executionId, status}"
+        },
+        {
+          "errors": "410 expired cursor or explicit reset=true",
+          "method": "GET",
+          "ownerNodeId": "snapshot",
+          "path": "/notebooks/{id}/changes",
+          "request": "{after, limit}",
+          "response": "{snapshot?, events, cursor, reset}"
+        }
+      ],
+      "assumptions": [
+        "Text collaboration means whole-cell replacement with visible conflicts.",
+        "Execution deduplication uses a durable operation identity and an explicit retry policy."
+      ],
+      "chooseWhen": "Whole-cell edits can be serialized by a lease and polling latency is acceptable.",
+      "id": "lease-poll",
+      "initialGraph": {
+        "edges": [],
+        "nodes": []
+      },
+      "stages": [
+        {
+          "checkIds": [
+            "stale-edit"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "nb.request",
+                "from": {
+                  "nodeId": "client",
+                  "portId": "out-nb.request"
+                },
+                "id": "requests",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-nb.request"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "nb.client",
+                "id": "client",
+                "label": "Notebook UI",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.system",
+                "id": "system",
+                "label": "Notebook backend",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "lease-poll-s1",
+          "invariants": [
+            "A pending edit is not a committed revision."
+          ],
+          "number": 1,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "nb.client",
+                "id": "client",
+                "label": "Notebook UI",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "nb.system",
+                "id": "system",
+                "label": "Notebook backend",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "nb.request",
+                "from": {
+                  "nodeId": "client",
+                  "portId": "out-nb.request"
+                },
+                "id": "requests",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-nb.request"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Who owns a cell and what does completion mean?",
+          "reason": "Separate user intent from authoritative state before adding collaboration.",
+          "title": "State the notebook boundary"
+        },
+        {
+          "checkIds": [
+            "duplicate-execution"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "nb.request",
+                "from": {
+                  "nodeId": "client",
+                  "portId": "out-nb.request"
+                },
+                "id": "requests",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-nb.request"
+                }
+              },
+              {
+                "contractId": "nb.request",
+                "from": {
+                  "nodeId": "api",
+                  "portId": "out-nb.request"
+                },
+                "id": "transactions",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "store",
+                  "portId": "in-nb.request"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "nb.client",
+                "id": "client",
+                "label": "Notebook UI",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.system",
+                "id": "system",
+                "label": "Notebook backend",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "lease-poll-backend",
+                "version": 1
+              },
+              {
+                "definitionId": "nb.api",
+                "id": "api",
+                "label": "Notebook API",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.store",
+                "id": "store",
+                "label": "Notebook database",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "lease-poll-s2",
+          "invariants": [
+            "Cells and operation receipts commit together."
+          ],
+          "number": 2,
+          "operations": [
+            {
+              "edges": [
+                {
+                  "contractId": "nb.request",
+                  "from": {
+                    "nodeId": "api",
+                    "portId": "out-nb.request"
+                  },
+                  "id": "transactions",
+                  "mode": "storage",
+                  "to": {
+                    "nodeId": "store",
+                    "portId": "in-nb.request"
+                  }
+                }
+              ],
+              "nodeId": "system",
+              "nodes": [
+                {
+                  "definitionId": "nb.api",
+                  "id": "api",
+                  "label": "Notebook API",
+                  "position": {
+                    "x": 560,
+                    "y": 0
+                  },
+                  "version": 1
+                },
+                {
+                  "definitionId": "nb.store",
+                  "id": "store",
+                  "label": "Notebook database",
+                  "position": {
+                    "x": 840,
+                    "y": 0
+                  },
+                  "version": 1
+                }
+              ],
+              "op": "expand",
+              "subsystemId": "lease-poll-backend"
+            }
+          ],
+          "question": "Where are revision checks and durable records stored?",
+          "reason": "Make the API/database transaction boundary visible without changing the outer notebook identity.",
+          "title": "Expand the authoritative backend"
+        },
+        {
+          "checkIds": [
+            "stale-edit"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "nb.request",
+                "from": {
+                  "nodeId": "client",
+                  "portId": "out-nb.request"
+                },
+                "id": "requests",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-nb.request"
+                }
+              },
+              {
+                "contractId": "nb.request",
+                "from": {
+                  "nodeId": "api",
+                  "portId": "out-nb.request"
+                },
+                "id": "transactions",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "store",
+                  "portId": "in-nb.request"
+                }
+              },
+              {
+                "contractId": "nb.lease",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-nb.lease-api"
+                },
+                "id": "lease-check",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "lease",
+                  "portId": "in-nb.lease"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "nb.client",
+                "id": "client",
+                "label": "Notebook UI",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.system",
+                "id": "system",
+                "label": "Notebook backend",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "lease-poll-backend",
+                "version": 1
+              },
+              {
+                "definitionId": "nb.api",
+                "id": "api",
+                "label": "Notebook API",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.store",
+                "id": "store",
+                "label": "Notebook database",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.lease",
+                "id": "lease",
+                "label": "Fenced editing leases",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "lease-poll-s3",
+          "invariants": [
+            "An expired or superseded fencing token cannot update a cell."
+          ],
+          "number": 3,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "nb.lease",
+                "id": "lease",
+                "label": "Fenced editing leases",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "nb.lease",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-nb.lease-api"
+                },
+                "id": "lease-check",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "lease",
+                  "portId": "in-nb.lease"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can an expired editor still write?",
+          "reason": "A lease is useful only when every write validates its fencing token in the same transaction.",
+          "title": "Serialize editing with fenced leases"
+        },
+        {
+          "checkIds": [
+            "duplicate-execution"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "nb.request",
+                "from": {
+                  "nodeId": "client",
+                  "portId": "out-nb.request"
+                },
+                "id": "requests",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-nb.request"
+                }
+              },
+              {
+                "contractId": "nb.request",
+                "from": {
+                  "nodeId": "api",
+                  "portId": "out-nb.request"
+                },
+                "id": "transactions",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "store",
+                  "portId": "in-nb.request"
+                }
+              },
+              {
+                "contractId": "nb.lease",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-nb.lease-api"
+                },
+                "id": "lease-check",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "lease",
+                  "portId": "in-nb.lease"
+                }
+              },
+              {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-nb.changes-store"
+                },
+                "id": "change-records",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "log",
+                  "portId": "in-nb.changes"
+                }
+              },
+              {
+                "contractId": "nb.job",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-nb.job-store"
+                },
+                "id": "dispatch",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "queue",
+                  "portId": "in-nb.job"
+                }
+              },
+              {
+                "contractId": "nb.job",
+                "from": {
+                  "nodeId": "queue",
+                  "portId": "out-nb.job"
+                },
+                "id": "execute",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "worker",
+                  "portId": "in-nb.job"
+                }
+              },
+              {
+                "contractId": "nb.outcome",
+                "from": {
+                  "nodeId": "worker",
+                  "portId": "out-nb.outcome"
+                },
+                "id": "record-outcome",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-nb.outcome-store"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "nb.client",
+                "id": "client",
+                "label": "Notebook UI",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.system",
+                "id": "system",
+                "label": "Notebook backend",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "lease-poll-backend",
+                "version": 1
+              },
+              {
+                "definitionId": "nb.api",
+                "id": "api",
+                "label": "Notebook API",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.store",
+                "id": "store",
+                "label": "Notebook database",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.lease",
+                "id": "lease",
+                "label": "Fenced editing leases",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.log",
+                "id": "log",
+                "label": "Notebook change log",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.queue",
+                "id": "queue",
+                "label": "Execution outbox dispatcher",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.worker",
+                "id": "worker",
+                "label": "Execution worker",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "lease-poll-s4",
+          "invariants": [
+            "A request receipt and execution ID survive retries.",
+            "A worker claim does not by itself make arbitrary external effects exactly once."
+          ],
+          "number": 4,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "nb.log",
+                "id": "log",
+                "label": "Notebook change log",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "nb.queue",
+                "id": "queue",
+                "label": "Execution outbox dispatcher",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "nb.worker",
+                "id": "worker",
+                "label": "Execution worker",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-nb.changes-store"
+                },
+                "id": "change-records",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "log",
+                  "portId": "in-nb.changes"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "nb.job",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-nb.job-store"
+                },
+                "id": "dispatch",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "queue",
+                  "portId": "in-nb.job"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "nb.job",
+                "from": {
+                  "nodeId": "queue",
+                  "portId": "out-nb.job"
+                },
+                "id": "execute",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "worker",
+                  "portId": "in-nb.job"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "nb.outcome",
+                "from": {
+                  "nodeId": "worker",
+                  "portId": "out-nb.outcome"
+                },
+                "id": "record-outcome",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-nb.outcome-store"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How do retry and reconnect avoid running a cell twice?",
+          "reason": "A durable execution identity is handed to workers through committed outbox records.",
+          "title": "Separate execution from reconnect"
+        },
+        {
+          "checkIds": [
+            "snapshot-race"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "nb.request",
+                "from": {
+                  "nodeId": "client",
+                  "portId": "out-nb.request"
+                },
+                "id": "requests",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-nb.request"
+                }
+              },
+              {
+                "contractId": "nb.request",
+                "from": {
+                  "nodeId": "api",
+                  "portId": "out-nb.request"
+                },
+                "id": "transactions",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "store",
+                  "portId": "in-nb.request"
+                }
+              },
+              {
+                "contractId": "nb.lease",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-nb.lease-api"
+                },
+                "id": "lease-check",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "lease",
+                  "portId": "in-nb.lease"
+                }
+              },
+              {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-nb.changes-store"
+                },
+                "id": "change-records",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "log",
+                  "portId": "in-nb.changes"
+                }
+              },
+              {
+                "contractId": "nb.job",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-nb.job-store"
+                },
+                "id": "dispatch",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "queue",
+                  "portId": "in-nb.job"
+                }
+              },
+              {
+                "contractId": "nb.job",
+                "from": {
+                  "nodeId": "queue",
+                  "portId": "out-nb.job"
+                },
+                "id": "execute",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "worker",
+                  "portId": "in-nb.job"
+                }
+              },
+              {
+                "contractId": "nb.outcome",
+                "from": {
+                  "nodeId": "worker",
+                  "portId": "out-nb.outcome"
+                },
+                "id": "record-outcome",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-nb.outcome-store"
+                }
+              },
+              {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "snapshot",
+                  "portId": "out-nb.changes"
+                },
+                "id": "snapshot-state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-nb.changes-store"
+                }
+              },
+              {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "poll",
+                  "portId": "out-nb.changes"
+                },
+                "id": "subscribe",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "log",
+                  "portId": "in-nb.changes"
+                }
+              },
+              {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "poll",
+                  "portId": "out-nb.changes"
+                },
+                "id": "delivery",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "events",
+                  "portId": "in-nb.changes"
+                }
+              },
+              {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "snapshot",
+                  "portId": "out-nb.changes"
+                },
+                "id": "initial-snapshot",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "events",
+                  "portId": "in-nb.changes"
+                }
+              },
+              {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "events",
+                  "portId": "out-nb.changes"
+                },
+                "id": "render",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "client",
+                  "portId": "in-nb.changes"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "nb.client",
+                "id": "client",
+                "label": "Notebook UI",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.system",
+                "id": "system",
+                "label": "Notebook backend",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "lease-poll-backend",
+                "version": 1
+              },
+              {
+                "definitionId": "nb.api",
+                "id": "api",
+                "label": "Notebook API",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.store",
+                "id": "store",
+                "label": "Notebook database",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.lease",
+                "id": "lease",
+                "label": "Fenced editing leases",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.log",
+                "id": "log",
+                "label": "Notebook change log",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.queue",
+                "id": "queue",
+                "label": "Execution outbox dispatcher",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.worker",
+                "id": "worker",
+                "label": "Execution worker",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.snapshot",
+                "id": "snapshot",
+                "label": "Snapshot reader",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.poll",
+                "id": "poll",
+                "label": "Conditional change poller",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.events",
+                "id": "events",
+                "label": "Live update reducer",
+                "position": {
+                  "x": 560,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "lease-poll-s5",
+          "invariants": [
+            "Install snapshot at V, then apply only contiguous events after V."
+          ],
+          "number": 5,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "nb.snapshot",
+                "id": "snapshot",
+                "label": "Snapshot reader",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "nb.poll",
+                "id": "poll",
+                "label": "Conditional change poller",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "nb.events",
+                "id": "events",
+                "label": "Live update reducer",
+                "position": {
+                  "x": 560,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "snapshot",
+                  "portId": "out-nb.changes"
+                },
+                "id": "snapshot-state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-nb.changes-store"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "poll",
+                  "portId": "out-nb.changes"
+                },
+                "id": "subscribe",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "log",
+                  "portId": "in-nb.changes"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "poll",
+                  "portId": "out-nb.changes"
+                },
+                "id": "delivery",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "events",
+                  "portId": "in-nb.changes"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "snapshot",
+                  "portId": "out-nb.changes"
+                },
+                "id": "initial-snapshot",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "events",
+                  "portId": "in-nb.changes"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "events",
+                  "portId": "out-nb.changes"
+                },
+                "id": "render",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "client",
+                  "portId": "in-nb.changes"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How do updates committed during initial loading remain visible?",
+          "reason": "Use the snapshot revision as a durable cursor rather than subscribing after an unversioned read.",
+          "title": "Add versioned conditional polling"
+        },
+        {
+          "checkIds": [
+            "cursor-expiry"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "nb.request",
+                "from": {
+                  "nodeId": "api",
+                  "portId": "out-nb.request"
+                },
+                "id": "transactions",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "store",
+                  "portId": "in-nb.request"
+                }
+              },
+              {
+                "contractId": "nb.lease",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-nb.lease-api"
+                },
+                "id": "lease-check",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "lease",
+                  "portId": "in-nb.lease"
+                }
+              },
+              {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-nb.changes-store"
+                },
+                "id": "change-records",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "log",
+                  "portId": "in-nb.changes"
+                }
+              },
+              {
+                "contractId": "nb.job",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-nb.job-store"
+                },
+                "id": "dispatch",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "queue",
+                  "portId": "in-nb.job"
+                }
+              },
+              {
+                "contractId": "nb.job",
+                "from": {
+                  "nodeId": "queue",
+                  "portId": "out-nb.job"
+                },
+                "id": "execute",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "worker",
+                  "portId": "in-nb.job"
+                }
+              },
+              {
+                "contractId": "nb.outcome",
+                "from": {
+                  "nodeId": "worker",
+                  "portId": "out-nb.outcome"
+                },
+                "id": "record-outcome",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-nb.outcome-store"
+                }
+              },
+              {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "snapshot",
+                  "portId": "out-nb.changes"
+                },
+                "id": "snapshot-state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-nb.changes-store"
+                }
+              },
+              {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "poll",
+                  "portId": "out-nb.changes"
+                },
+                "id": "subscribe",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "log",
+                  "portId": "in-nb.changes"
+                }
+              },
+              {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "poll",
+                  "portId": "out-nb.changes"
+                },
+                "id": "delivery",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "events",
+                  "portId": "in-nb.changes"
+                }
+              },
+              {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "snapshot",
+                  "portId": "out-nb.changes"
+                },
+                "id": "initial-snapshot",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "events",
+                  "portId": "in-nb.changes"
+                }
+              },
+              {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "events",
+                  "portId": "out-nb.changes"
+                },
+                "id": "render",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "client",
+                  "portId": "in-nb.changes"
+                }
+              },
+              {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "replay",
+                  "portId": "out-nb.changes"
+                },
+                "id": "catch-up",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "snapshot",
+                  "portId": "in-nb.changes"
+                }
+              },
+              {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "replay",
+                  "portId": "out-nb.changes"
+                },
+                "id": "resume-log",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "log",
+                  "portId": "in-nb.changes"
+                }
+              },
+              {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "replay",
+                  "portId": "out-nb.changes"
+                },
+                "id": "apply-recovery",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "events",
+                  "portId": "in-nb.changes"
+                }
+              },
+              {
+                "contractId": "nb.request",
+                "from": {
+                  "nodeId": "client",
+                  "portId": "out-nb.request"
+                },
+                "id": "lease-edits",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "pending",
+                  "portId": "in-nb.request"
+                }
+              },
+              {
+                "contractId": "nb.request",
+                "from": {
+                  "nodeId": "pending",
+                  "portId": "out-nb.request"
+                },
+                "id": "submit-edits",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-nb.request"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "nb.client",
+                "id": "client",
+                "label": "Notebook UI",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.system",
+                "id": "system",
+                "label": "Notebook backend",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "lease-poll-backend",
+                "version": 1
+              },
+              {
+                "definitionId": "nb.api",
+                "id": "api",
+                "label": "Notebook API",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.store",
+                "id": "store",
+                "label": "Notebook database",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.lease",
+                "id": "lease",
+                "label": "Fenced editing leases",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.log",
+                "id": "log",
+                "label": "Notebook change log",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.queue",
+                "id": "queue",
+                "label": "Execution outbox dispatcher",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.worker",
+                "id": "worker",
+                "label": "Execution worker",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.snapshot",
+                "id": "snapshot",
+                "label": "Snapshot reader",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.poll",
+                "id": "poll",
+                "label": "Conditional change poller",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.events",
+                "id": "events",
+                "label": "Live update reducer",
+                "position": {
+                  "x": 560,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.replay",
+                "id": "replay",
+                "label": "Catch-up reducer",
+                "position": {
+                  "x": 840,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.pending",
+                "id": "pending",
+                "label": "Optimistic edit handler",
+                "position": {
+                  "x": 0,
+                  "y": 540
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "lease-poll-s6",
+          "invariants": [
+            "Cursor expiry is reset, not silent omission.",
+            "A recovered view does not create a new execution request."
+          ],
+          "number": 6,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "nb.replay",
+                "id": "replay",
+                "label": "Catch-up reducer",
+                "position": {
+                  "x": 840,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "replay",
+                  "portId": "out-nb.changes"
+                },
+                "id": "catch-up",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "snapshot",
+                  "portId": "in-nb.changes"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "replay",
+                  "portId": "out-nb.changes"
+                },
+                "id": "resume-log",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "log",
+                  "portId": "in-nb.changes"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "replay",
+                  "portId": "out-nb.changes"
+                },
+                "id": "apply-recovery",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "events",
+                  "portId": "in-nb.changes"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "node": {
+                "definitionId": "nb.pending",
+                "id": "pending",
+                "label": "Optimistic edit handler",
+                "position": {
+                  "x": 0,
+                  "y": 540
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "nb.request",
+                "from": {
+                  "nodeId": "client",
+                  "portId": "out-nb.request"
+                },
+                "id": "lease-edits",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "pending",
+                  "portId": "in-nb.request"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "nb.request",
+                "from": {
+                  "nodeId": "pending",
+                  "portId": "out-nb.request"
+                },
+                "id": "submit-edits",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-nb.request"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edgeId": "requests",
+              "op": "disconnect"
+            }
+          ],
+          "question": "What if a tab returns after history was compacted?",
+          "reason": "Resume within retention; otherwise obtain a new snapshot and replace the local view explicitly.",
+          "title": "Recover an expired cursor"
+        },
+        {
+          "checkIds": [
+            "revocation"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "nb.request",
+                "from": {
+                  "nodeId": "api",
+                  "portId": "out-nb.request"
+                },
+                "id": "transactions",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "store",
+                  "portId": "in-nb.request"
+                }
+              },
+              {
+                "contractId": "nb.lease",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-nb.lease-api"
+                },
+                "id": "lease-check",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "lease",
+                  "portId": "in-nb.lease"
+                }
+              },
+              {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-nb.changes-store"
+                },
+                "id": "change-records",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "log",
+                  "portId": "in-nb.changes"
+                }
+              },
+              {
+                "contractId": "nb.job",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-nb.job-store"
+                },
+                "id": "dispatch",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "queue",
+                  "portId": "in-nb.job"
+                }
+              },
+              {
+                "contractId": "nb.job",
+                "from": {
+                  "nodeId": "queue",
+                  "portId": "out-nb.job"
+                },
+                "id": "execute",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "worker",
+                  "portId": "in-nb.job"
+                }
+              },
+              {
+                "contractId": "nb.outcome",
+                "from": {
+                  "nodeId": "worker",
+                  "portId": "out-nb.outcome"
+                },
+                "id": "record-outcome",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-nb.outcome-store"
+                }
+              },
+              {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "snapshot",
+                  "portId": "out-nb.changes"
+                },
+                "id": "snapshot-state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-nb.changes-store"
+                }
+              },
+              {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "poll",
+                  "portId": "out-nb.changes"
+                },
+                "id": "subscribe",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "log",
+                  "portId": "in-nb.changes"
+                }
+              },
+              {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "poll",
+                  "portId": "out-nb.changes"
+                },
+                "id": "delivery",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "events",
+                  "portId": "in-nb.changes"
+                }
+              },
+              {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "snapshot",
+                  "portId": "out-nb.changes"
+                },
+                "id": "initial-snapshot",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "events",
+                  "portId": "in-nb.changes"
+                }
+              },
+              {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "events",
+                  "portId": "out-nb.changes"
+                },
+                "id": "render",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "client",
+                  "portId": "in-nb.changes"
+                }
+              },
+              {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "replay",
+                  "portId": "out-nb.changes"
+                },
+                "id": "catch-up",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "snapshot",
+                  "portId": "in-nb.changes"
+                }
+              },
+              {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "replay",
+                  "portId": "out-nb.changes"
+                },
+                "id": "resume-log",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "log",
+                  "portId": "in-nb.changes"
+                }
+              },
+              {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "replay",
+                  "portId": "out-nb.changes"
+                },
+                "id": "apply-recovery",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "events",
+                  "portId": "in-nb.changes"
+                }
+              },
+              {
+                "contractId": "nb.request",
+                "from": {
+                  "nodeId": "client",
+                  "portId": "out-nb.request"
+                },
+                "id": "lease-edits",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "pending",
+                  "portId": "in-nb.request"
+                }
+              },
+              {
+                "contractId": "nb.request",
+                "from": {
+                  "nodeId": "pending",
+                  "portId": "out-nb.request"
+                },
+                "id": "submit-edits",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-nb.request"
+                }
+              },
+              {
+                "contractId": "nb.access",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-nb.access-api"
+                },
+                "id": "edit-authorization",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "access",
+                  "portId": "in-nb.access"
+                }
+              },
+              {
+                "contractId": "nb.access",
+                "from": {
+                  "nodeId": "poll",
+                  "portId": "out-nb.access"
+                },
+                "id": "delivery-authorization",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "access",
+                  "portId": "in-nb.access"
+                }
+              },
+              {
+                "contractId": "nb.access",
+                "from": {
+                  "nodeId": "snapshot",
+                  "portId": "out-nb.access"
+                },
+                "id": "recovery-authorization",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "access",
+                  "portId": "in-nb.access"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "nb.client",
+                "id": "client",
+                "label": "Notebook UI",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.system",
+                "id": "system",
+                "label": "Notebook backend",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "lease-poll-backend",
+                "version": 1
+              },
+              {
+                "definitionId": "nb.api",
+                "id": "api",
+                "label": "Notebook API",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.store",
+                "id": "store",
+                "label": "Notebook database",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.lease",
+                "id": "lease",
+                "label": "Fenced editing leases",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.log",
+                "id": "log",
+                "label": "Notebook change log",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.queue",
+                "id": "queue",
+                "label": "Execution outbox dispatcher",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.worker",
+                "id": "worker",
+                "label": "Execution worker",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.snapshot",
+                "id": "snapshot",
+                "label": "Snapshot reader",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.poll",
+                "id": "poll",
+                "label": "Conditional change poller",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.events",
+                "id": "events",
+                "label": "Live update reducer",
+                "position": {
+                  "x": 560,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.replay",
+                "id": "replay",
+                "label": "Catch-up reducer",
+                "position": {
+                  "x": 840,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.pending",
+                "id": "pending",
+                "label": "Optimistic edit handler",
+                "position": {
+                  "x": 0,
+                  "y": 540
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.access",
+                "id": "access",
+                "label": "Notebook access policy",
+                "position": {
+                  "x": 280,
+                  "y": 540
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "lease-poll-s7",
+          "invariants": [
+            "Membership changes are ordered with cell events; later revisions cannot be delivered under revoked access. Already transmitted data cannot be recalled.",
+            "Dropping arbitrary execution events is not a valid coalescing policy."
+          ],
+          "number": 7,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "nb.access",
+                "id": "access",
+                "label": "Notebook access policy",
+                "position": {
+                  "x": 280,
+                  "y": 540
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "nb.access",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-nb.access-api"
+                },
+                "id": "edit-authorization",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "access",
+                  "portId": "in-nb.access"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "nb.access",
+                "from": {
+                  "nodeId": "poll",
+                  "portId": "out-nb.access"
+                },
+                "id": "delivery-authorization",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "access",
+                  "portId": "in-nb.access"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "nb.access",
+                "from": {
+                  "nodeId": "snapshot",
+                  "portId": "out-nb.access"
+                },
+                "id": "recovery-authorization",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "access",
+                  "portId": "in-nb.access"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What happens when membership changes or a consumer is slow?",
+          "reason": "Use explicit membership revisions and bounded buffers; disconnect and resnapshot when a lossless stream cannot keep up.",
+          "title": "Bound and authorize delivery"
+        },
+        {
+          "checkIds": [
+            "snapshot-race",
+            "cursor-expiry",
+            "duplicate-execution"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "nb.request",
+                "from": {
+                  "nodeId": "api",
+                  "portId": "out-nb.request"
+                },
+                "id": "transactions",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "store",
+                  "portId": "in-nb.request"
+                }
+              },
+              {
+                "contractId": "nb.lease",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-nb.lease-api"
+                },
+                "id": "lease-check",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "lease",
+                  "portId": "in-nb.lease"
+                }
+              },
+              {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-nb.changes-store"
+                },
+                "id": "change-records",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "log",
+                  "portId": "in-nb.changes"
+                }
+              },
+              {
+                "contractId": "nb.job",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-nb.job-store"
+                },
+                "id": "dispatch",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "queue",
+                  "portId": "in-nb.job"
+                }
+              },
+              {
+                "contractId": "nb.job",
+                "from": {
+                  "nodeId": "queue",
+                  "portId": "out-nb.job"
+                },
+                "id": "execute",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "worker",
+                  "portId": "in-nb.job"
+                }
+              },
+              {
+                "contractId": "nb.outcome",
+                "from": {
+                  "nodeId": "worker",
+                  "portId": "out-nb.outcome"
+                },
+                "id": "record-outcome",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-nb.outcome-store"
+                }
+              },
+              {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "snapshot",
+                  "portId": "out-nb.changes"
+                },
+                "id": "snapshot-state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-nb.changes-store"
+                }
+              },
+              {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "poll",
+                  "portId": "out-nb.changes"
+                },
+                "id": "subscribe",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "log",
+                  "portId": "in-nb.changes"
+                }
+              },
+              {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "poll",
+                  "portId": "out-nb.changes"
+                },
+                "id": "delivery",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "client-state",
+                  "portId": "in-nb.changes"
+                }
+              },
+              {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "snapshot",
+                  "portId": "out-nb.changes"
+                },
+                "id": "initial-snapshot",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "client-state",
+                  "portId": "in-nb.changes"
+                }
+              },
+              {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "client-state",
+                  "portId": "out-nb.changes"
+                },
+                "id": "render",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "client",
+                  "portId": "in-nb.changes"
+                }
+              },
+              {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "client-state",
+                  "portId": "out-nb.changes"
+                },
+                "id": "catch-up",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "snapshot",
+                  "portId": "in-nb.changes"
+                }
+              },
+              {
+                "contractId": "nb.changes",
+                "from": {
+                  "nodeId": "client-state",
+                  "portId": "out-nb.changes"
+                },
+                "id": "resume-log",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "log",
+                  "portId": "in-nb.changes"
+                }
+              },
+              {
+                "contractId": "nb.request",
+                "from": {
+                  "nodeId": "client",
+                  "portId": "out-nb.request"
+                },
+                "id": "lease-edits",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "client-state",
+                  "portId": "in-nb.request"
+                }
+              },
+              {
+                "contractId": "nb.request",
+                "from": {
+                  "nodeId": "client-state",
+                  "portId": "out-nb.request"
+                },
+                "id": "submit-edits",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-nb.request"
+                }
+              },
+              {
+                "contractId": "nb.access",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-nb.access-api"
+                },
+                "id": "edit-authorization",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "access",
+                  "portId": "in-nb.access"
+                }
+              },
+              {
+                "contractId": "nb.access",
+                "from": {
+                  "nodeId": "poll",
+                  "portId": "out-nb.access"
+                },
+                "id": "delivery-authorization",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "access",
+                  "portId": "in-nb.access"
+                }
+              },
+              {
+                "contractId": "nb.access",
+                "from": {
+                  "nodeId": "snapshot",
+                  "portId": "out-nb.access"
+                },
+                "id": "recovery-authorization",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "access",
+                  "portId": "in-nb.access"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "nb.client",
+                "id": "client",
+                "label": "Notebook UI",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.system",
+                "id": "system",
+                "label": "Notebook backend",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "lease-poll-backend",
+                "version": 1
+              },
+              {
+                "definitionId": "nb.api",
+                "id": "api",
+                "label": "Notebook API",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.store",
+                "id": "store",
+                "label": "Notebook database",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.lease",
+                "id": "lease",
+                "label": "Fenced editing leases",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.log",
+                "id": "log",
+                "label": "Notebook change log",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.queue",
+                "id": "queue",
+                "label": "Execution outbox dispatcher",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.worker",
+                "id": "worker",
+                "label": "Execution worker",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.snapshot",
+                "id": "snapshot",
+                "label": "Snapshot reader",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.poll",
+                "id": "poll",
+                "label": "Conditional change poller",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.access",
+                "id": "access",
+                "label": "Notebook access policy",
+                "position": {
+                  "x": 280,
+                  "y": 540
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "nb.client-state",
+                "id": "client-state",
+                "label": "Unified client reconciler",
+                "lineageIds": [
+                  "pending",
+                  "events",
+                  "replay"
+                ],
+                "position": {
+                  "x": 560,
+                  "y": 540
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "lease-poll-s8",
+          "invariants": [
+            "Only the unified reducer mutates the displayed authoritative notebook."
+          ],
+          "number": 8,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "nb.client-state",
+                "id": "client-state",
+                "label": "Unified client reconciler",
+                "position": {
+                  "x": 560,
+                  "y": 540
+                },
+                "version": 1
+              },
+              "nodeIds": [
+                "pending",
+                "events",
+                "replay"
+              ],
+              "op": "merge",
+              "reason": "Replace competing writers to the same visible cell state with one revision-aware reconciler."
+            }
+          ],
+          "question": "Can a receipt, push and catch-up response apply the same change three times?",
+          "reason": "One client state owner deduplicates opIds and orders revisions across all transports.",
+          "title": "Merge the competing client reducers"
+        }
+      ],
+      "title": "Fenced editing leases and conditional polling",
+      "tradeoffs": [
+        "A disconnected editor can temporarily block another editor until its lease expires.",
+        "Polling adds empty requests and delays observation; fencing is required even with leases."
+      ]
+    }
+  ],
+  "subsystems": [
+    {
+      "definitionId": "nb.system",
+      "id": "push-backend",
+      "ports": [
+        {
+          "contractId": "nb.request",
+          "direction": "in",
+          "id": "in-nb.request",
+          "target": {
+            "nodeId": "api",
+            "portId": "in-nb.request"
+          }
+        },
+        {
+          "contractId": "nb.changes",
+          "direction": "out",
+          "id": "out-nb.changes-store",
+          "target": {
+            "nodeId": "store",
+            "portId": "out-nb.changes"
+          }
+        },
+        {
+          "contractId": "nb.job",
+          "direction": "out",
+          "id": "out-nb.job-store",
+          "target": {
+            "nodeId": "store",
+            "portId": "out-nb.job"
+          }
+        },
+        {
+          "contractId": "nb.outcome",
+          "direction": "in",
+          "id": "in-nb.outcome-store",
+          "target": {
+            "nodeId": "store",
+            "portId": "in-nb.outcome"
+          }
+        },
+        {
+          "contractId": "nb.changes",
+          "direction": "in",
+          "id": "in-nb.changes-store",
+          "target": {
+            "nodeId": "store",
+            "portId": "in-nb.changes"
+          }
+        },
+        {
+          "contractId": "nb.access",
+          "direction": "out",
+          "id": "out-nb.access-api",
+          "target": {
+            "nodeId": "api",
+            "portId": "out-nb.access"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "nb.system",
+      "id": "lease-poll-backend",
+      "ports": [
+        {
+          "contractId": "nb.request",
+          "direction": "in",
+          "id": "in-nb.request",
+          "target": {
+            "nodeId": "api",
+            "portId": "in-nb.request"
+          }
+        },
+        {
+          "contractId": "nb.lease",
+          "direction": "out",
+          "id": "out-nb.lease-api",
+          "target": {
+            "nodeId": "api",
+            "portId": "out-nb.lease"
+          }
+        },
+        {
+          "contractId": "nb.changes",
+          "direction": "out",
+          "id": "out-nb.changes-store",
+          "target": {
+            "nodeId": "store",
+            "portId": "out-nb.changes"
+          }
+        },
+        {
+          "contractId": "nb.job",
+          "direction": "out",
+          "id": "out-nb.job-store",
+          "target": {
+            "nodeId": "store",
+            "portId": "out-nb.job"
+          }
+        },
+        {
+          "contractId": "nb.outcome",
+          "direction": "in",
+          "id": "in-nb.outcome-store",
+          "target": {
+            "nodeId": "store",
+            "portId": "in-nb.outcome"
+          }
+        },
+        {
+          "contractId": "nb.changes",
+          "direction": "in",
+          "id": "in-nb.changes-store",
+          "target": {
+            "nodeId": "store",
+            "portId": "in-nb.changes"
+          }
+        },
+        {
+          "contractId": "nb.access",
+          "direction": "out",
+          "id": "out-nb.access-api",
+          "target": {
+            "nodeId": "api",
+            "portId": "out-nb.access"
+          }
+        }
+      ],
+      "version": 1
+    }
+  ],
+  "version": 1
+}

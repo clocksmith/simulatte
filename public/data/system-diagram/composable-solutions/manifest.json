@@ -1,0 +1,71 @@
+{
+  "componentLibrary": {
+    "path": "components.json",
+    "sha256": "45b90e455690abf21415119af9695982e4e0db0a032d341e6fe4d19d8a3c8eb6"
+  },
+  "executionKind": "conceptual-design",
+  "problemSchema": {
+    "path": "problem.schema.json",
+    "sha256": "186f63f508e8757ec7c5481f56f044fd8e345a9231d398391fd5611e2bbca7f0"
+  },
+  "problems": [
+    {
+      "path": "l001.json",
+      "problemId": "database-service",
+      "referenceId": "L001",
+      "sha256": "ef4aba626a98429ad80694abba82e3e29eae9f91633f3d9ddde8d5ab74f883f5",
+      "solutions": 2,
+      "stages": 16
+    },
+    {
+      "path": "l005.json",
+      "problemId": "replication",
+      "referenceId": "L005",
+      "sha256": "05c667f6249b4ce4580326944a01f59d7159705977ed3fde01982aa30db7238e",
+      "solutions": 2,
+      "stages": 16
+    },
+    {
+      "path": "l007.json",
+      "problemId": "load-balancer",
+      "referenceId": "L007",
+      "sha256": "38934d031aea122632dba081e9d66415c822384e795f0e84a9d856737e2deb54",
+      "solutions": 2,
+      "stages": 16
+    },
+    {
+      "path": "l010.json",
+      "problemId": "netflix-streaming",
+      "referenceId": "L010",
+      "sha256": "09d2610d9a74a2ccb29f031dd73ca88c09b9cb328ae52181a7ccbfd989d0e1da",
+      "solutions": 2,
+      "stages": 16
+    },
+    {
+      "path": "l014.json",
+      "problemId": "google-crawler",
+      "referenceId": "L014",
+      "sha256": "9a09891675aa60ec2672ab7d6c28efca8f22045084fa2e824e90733485a18840",
+      "solutions": 2,
+      "stages": 16
+    },
+    {
+      "path": "l032.json",
+      "problemId": "private-practice-1",
+      "referenceId": "L032",
+      "sha256": "4a53986972921bbe944546876610ecafa9e34e546e16a5ed40002f5b8167209d",
+      "solutions": 2,
+      "stages": 16
+    },
+    {
+      "path": "l034.json",
+      "problemId": "private-practice-3",
+      "referenceId": "L034",
+      "sha256": "837b346f7f3dec5243dbf7e5bf2130ea4c58b9369d932d4f88776649c650022b",
+      "solutions": 2,
+      "stages": 16
+    }
+  ],
+  "schema": "simulatte.studyCatalogue.v1",
+  "version": 1
+}

@@ -1,0 +1,4141 @@
+{
+  "components": [
+    {
+      "extends": {
+        "id": "core.client",
+        "version": 1
+      },
+      "id": "lb.caller",
+      "label": "Caller",
+      "ports": [
+        {
+          "contractId": "lb.request",
+          "direction": "out",
+          "id": "out-lb.request"
+        }
+      ],
+      "responsibility": "Own the end-to-end deadline and operation identity.",
+      "stateOwnership": [
+        "pending request"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.service",
+        "version": 1
+      },
+      "id": "lb.router",
+      "label": "Logical request router",
+      "ports": [
+        {
+          "contractId": "lb.request",
+          "direction": "in",
+          "id": "in-lb.request"
+        },
+        {
+          "contractId": "lb.endpoints",
+          "direction": "out",
+          "id": "out-lb.endpoints-selector"
+        },
+        {
+          "contractId": "lb.health",
+          "direction": "in",
+          "id": "in-lb.health-backends"
+        },
+        {
+          "contractId": "lb.health",
+          "direction": "in",
+          "id": "in-lb.health-selector"
+        },
+        {
+          "contractId": "lb.permit",
+          "direction": "out",
+          "id": "out-lb.permit-selector"
+        },
+        {
+          "contractId": "lb.permit",
+          "direction": "in",
+          "id": "in-lb.permit-backends"
+        }
+      ],
+      "responsibility": "Route calls through a policy that preserves their application contract.",
+      "stateOwnership": [
+        "routing policy"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "lb.selector",
+      "label": "Eligible round-robin selector",
+      "ports": [
+        {
+          "contractId": "lb.request",
+          "direction": "out",
+          "id": "out-lb.request"
+        },
+        {
+          "contractId": "lb.request",
+          "direction": "in",
+          "id": "in-lb.request"
+        },
+        {
+          "contractId": "lb.endpoints",
+          "direction": "out",
+          "id": "out-lb.endpoints"
+        },
+        {
+          "contractId": "lb.health",
+          "direction": "in",
+          "id": "in-lb.health"
+        },
+        {
+          "contractId": "lb.permit",
+          "direction": "out",
+          "id": "out-lb.permit"
+        }
+      ],
+      "responsibility": "Choose from an immutable eligible endpoint snapshot; advance the counter atomically.",
+      "stateOwnership": [
+        "round-robin counter"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.service",
+        "version": 1
+      },
+      "id": "lb.backends",
+      "label": "Backend pool",
+      "ports": [
+        {
+          "contractId": "lb.request",
+          "direction": "in",
+          "id": "in-lb.request"
+        },
+        {
+          "contractId": "lb.health",
+          "direction": "in",
+          "id": "in-lb.health"
+        },
+        {
+          "contractId": "lb.permit",
+          "direction": "in",
+          "id": "in-lb.permit"
+        }
+      ],
+      "responsibility": "Equivalent application instances own application state through a separate durable store.",
+      "stateOwnership": [
+        "in-flight requests"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.directory",
+        "version": 1
+      },
+      "id": "lb.directory",
+      "label": "Endpoint directory",
+      "ports": [
+        {
+          "contractId": "lb.endpoints",
+          "direction": "in",
+          "id": "in-lb.endpoints"
+        }
+      ],
+      "responsibility": "Publish monotonically versioned address and drain snapshots.",
+      "stateOwnership": [
+        "membership epoch"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "lb.health",
+      "label": "Health sampler",
+      "ports": [
+        {
+          "contractId": "lb.health",
+          "direction": "out",
+          "id": "out-lb.health"
+        }
+      ],
+      "responsibility": "Combine active probes and passive failures with thresholds and cooldown.",
+      "stateOwnership": [
+        "bounded observation window"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "lb.retry",
+      "label": "Deadline and retry budget",
+      "ports": [
+        {
+          "contractId": "lb.request",
+          "direction": "in",
+          "id": "in-lb.request"
+        },
+        {
+          "contractId": "lb.permit",
+          "direction": "out",
+          "id": "out-lb.permit"
+        }
+      ],
+      "responsibility": "Only retry allowed operations; cap total attempts and remaining deadline.",
+      "stateOwnership": [
+        "attempt budget"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "lb.admission",
+      "label": "Admission controller",
+      "ports": [
+        {
+          "contractId": "lb.permit",
+          "direction": "in",
+          "id": "in-lb.permit"
+        },
+        {
+          "contractId": "lb.request",
+          "direction": "out",
+          "id": "out-lb.request"
+        }
+      ],
+      "responsibility": "Bound outstanding work and reject overload before a long queue forms.",
+      "stateOwnership": [
+        "permits"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "lb.breaker",
+      "label": "Circuit state",
+      "ports": [
+        {
+          "contractId": "lb.permit",
+          "direction": "in",
+          "id": "in-lb.permit"
+        }
+      ],
+      "responsibility": "Open on policy thresholds, limit half-open probes, close after successes.",
+      "stateOwnership": [
+        "per-endpoint circuit state"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "lb.drain",
+      "label": "Drain coordinator",
+      "ports": [
+        {
+          "contractId": "lb.endpoints",
+          "direction": "out",
+          "id": "out-lb.endpoints"
+        },
+        {
+          "contractId": "lb.permit",
+          "direction": "out",
+          "id": "out-lb.permit"
+        }
+      ],
+      "responsibility": "Withdraw eligibility, keep existing work until deadline, then report forced termination.",
+      "stateOwnership": [
+        "drain epoch"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.service",
+        "version": 1
+      },
+      "id": "lb.proxy",
+      "label": "Reverse proxy",
+      "ports": [
+        {
+          "contractId": "lb.request",
+          "direction": "in",
+          "id": "in-lb.request"
+        },
+        {
+          "contractId": "lb.request",
+          "direction": "out",
+          "id": "out-lb.request"
+        }
+      ],
+      "responsibility": "Terminate the request and apply routing policy outside callers.",
+      "stateOwnership": [
+        "connection pools"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "lb.sdk",
+      "label": "Discovery-aware client",
+      "ports": [
+        {
+          "contractId": "lb.request",
+          "direction": "in",
+          "id": "in-lb.request"
+        },
+        {
+          "contractId": "lb.request",
+          "direction": "out",
+          "id": "out-lb.request"
+        }
+      ],
+      "responsibility": "Apply routing inside each controlled caller; keep policy versions observable.",
+      "stateOwnership": [
+        "local discovery snapshot"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "lb.policy",
+      "label": "Unified routing policy",
+      "ports": [
+        {
+          "contractId": "lb.request",
+          "direction": "in",
+          "id": "in-lb.request"
+        },
+        {
+          "contractId": "lb.permit",
+          "direction": "out",
+          "id": "out-lb.permit"
+        },
+        {
+          "contractId": "lb.permit",
+          "direction": "in",
+          "id": "in-lb.permit"
+        },
+        {
+          "contractId": "lb.request",
+          "direction": "out",
+          "id": "out-lb.request"
+        }
+      ],
+      "responsibility": "One owner composes eligibility, admission, deadlines and retry accounting.",
+      "stateOwnership": [
+        "endpoint snapshot",
+        "permits",
+        "attempt counters"
+      ],
+      "version": 1
+    }
+  ],
+  "contracts": [
+    {
+      "id": "lb.request",
+      "request": {
+        "attempt": "positive integer",
+        "deadline": "monotonic remaining duration",
+        "method": "allowlisted HTTP method",
+        "operationId": "uuid",
+        "path": "validated path"
+      },
+      "response": {
+        "body": "bytes",
+        "retryable": "boolean",
+        "status": "HTTP status"
+      },
+      "version": 1
+    },
+    {
+      "id": "lb.endpoints",
+      "request": {
+        "afterEpoch": "uint64",
+        "serviceId": "string"
+      },
+      "response": {
+        "endpoints": "{id,address,weight,draining}[]",
+        "epoch": "uint64"
+      },
+      "version": 1
+    },
+    {
+      "id": "lb.health",
+      "request": {
+        "endpointId": "string",
+        "probeId": "uuid",
+        "timeoutMs": "positive integer"
+      },
+      "response": {
+        "observedAt": "monotonic observation time",
+        "ready": "boolean"
+      },
+      "version": 1
+    },
+    {
+      "id": "lb.permit",
+      "request": {
+        "endpointId": "string",
+        "operationId": "uuid",
+        "remainingMs": "positive integer"
+      },
+      "response": {
+        "accepted": "boolean",
+        "reason": "capacity|circuit|deadline|null"
+      },
+      "version": 1
+    }
+  ],
+  "execution": {
+    "implementation": null,
+    "kind": "conceptual-design"
+  },
+  "problem": {
+    "referenceId": "L007",
+    "requirements": [
+      {
+        "id": "route",
+        "text": "Route only to eligible endpoints using an explicit scheduling policy."
+      },
+      {
+        "id": "health",
+        "text": "Converge on unhealthy endpoints without treating one network timeout as proof of server death."
+      },
+      {
+        "id": "retry",
+        "text": "Bound attempts, deadlines and amplification; preserve application operation identities."
+      },
+      {
+        "id": "drain",
+        "text": "Apply versioned discovery and drain endpoints without terminating accepted work silently."
+      }
+    ],
+    "scope": "Route HTTP requests to equivalent backends. The client-discovery approach requires clients we control; neither design retries arbitrary writes safely without an application idempotency contract.",
+    "studyLabel": "Load balancing and bounded failover"
+  },
+  "provenance": {
+    "kind": "authored-practice",
+    "note": "Authored interview preparation. Technical references support mechanisms, not the claim that a company asked this question."
+  },
+  "references": [
+    {
+      "id": "envoy",
+      "scope": "background",
+      "supports": "Routing, timeouts, retries and circuit breaking are separate policies.",
+      "title": "Envoy HTTP routing",
+      "url": "https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/http/http_routing.html"
+    }
+  ],
+  "schema": "simulatte.composableStudy.v1",
+  "solutions": [
+    {
+      "acceptanceCases": [
+        {
+          "given": "Epoch 7 contains A and B; B is not ready.",
+          "id": "eligibility",
+          "relatedRequirementIds": [
+            "route",
+            "health"
+          ],
+          "then": "Only A receives calls; epoch 6 is ignored.",
+          "when": "Route concurrent calls, then receive stale epoch 6."
+        },
+        {
+          "given": "Each operation allows three attempts with a fixed total deadline.",
+          "id": "retry-budget",
+          "relatedRequirementIds": [
+            "retry"
+          ],
+          "then": "At most three calls occur; deadline expiry can stop earlier.",
+          "when": "Every backend returns a retryable failure."
+        },
+        {
+          "given": "All permits are used and the circuit is open.",
+          "id": "overload",
+          "relatedRequirementIds": [
+            "retry",
+            "health"
+          ],
+          "then": "Reject excess calls; permit only a bounded half-open sample; no leak on cancellation.",
+          "when": "A burst arrives and then cooldown ends."
+        },
+        {
+          "given": "Endpoint B has accepted work when a newer epoch marks it draining.",
+          "id": "draining",
+          "relatedRequirementIds": [
+            "drain"
+          ],
+          "then": "No new B work starts; accepted work completes or gets an explicit deadline outcome.",
+          "when": "Advance the local epoch and finish the accepted work."
+        }
+      ],
+      "algorithms": [
+        {
+          "code": "route(req) {\n  const deadline = monotonicNow() + req.remainingMs;\n  for (let attempt = 1; attempt <= policy.maxAttempts; attempt++) {\n    if (monotonicNow() >= deadline) throw DeadlineExceeded;\n    const endpoint = eligibleSnapshot().nextRoundRobin();\n    if (!endpoint) throw Unavailable;\n    const permit = tryAcquire(endpoint); if (!permit) throw Overloaded;\n    let result;\n    try { result = await call(endpoint, req, deadline); }\n    finally { release(permit); }\n    if (result.ok) return result;\n    if (!retrySafe(req) || !result.retryable || !retryBudget.take()) return result;\n    await boundedJitterBackoff(deadline);\n  }\n  throw AttemptsExhausted;\n}",
+          "guarantees": [
+            "No unbounded retries; ambiguous write outcomes require idempotency before retry."
+          ],
+          "id": "route-attempt",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "policy"
+        }
+      ],
+      "apis": [
+        {
+          "errors": "503 no current snapshot",
+          "method": "GET",
+          "ownerNodeId": "directory",
+          "path": "/discovery/{service}",
+          "request": "{afterEpoch}",
+          "response": "{epoch,endpoints}"
+        }
+      ],
+      "assumptions": [
+        "Backends expose readiness separately from liveness.",
+        "Application receipts are durable if write retries are enabled."
+      ],
+      "chooseWhen": "Heterogeneous clients need one observable routing boundary.",
+      "id": "proxy",
+      "initialGraph": {
+        "edges": [],
+        "nodes": []
+      },
+      "stages": [
+        {
+          "checkIds": [
+            "retry-budget"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "lb.request",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-lb.request"
+                },
+                "id": "call",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "router",
+                  "portId": "in-lb.request"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "lb.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "lb.router",
+                "id": "router",
+                "label": "Logical request router",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "proxy-s1",
+          "invariants": [
+            "All attempts belong to one operation ID."
+          ],
+          "number": 1,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "lb.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "lb.router",
+                "id": "router",
+                "label": "Logical request router",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "lb.request",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-lb.request"
+                },
+                "id": "call",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "router",
+                  "portId": "in-lb.request"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Who owns the request deadline?",
+          "reason": "Begin with a caller and a coarse routing boundary.",
+          "title": "Draw one request boundary"
+        },
+        {
+          "checkIds": [
+            "eligibility"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "lb.request",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-lb.request"
+                },
+                "id": "call",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "router",
+                  "portId": "in-lb.request"
+                }
+              },
+              {
+                "contractId": "lb.request",
+                "from": {
+                  "nodeId": "selector",
+                  "portId": "out-lb.request"
+                },
+                "id": "dispatch",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "backends",
+                  "portId": "in-lb.request"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "lb.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "lb.router",
+                "id": "router",
+                "label": "Logical request router",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "proxy-routing",
+                "version": 1
+              },
+              {
+                "definitionId": "lb.selector",
+                "id": "selector",
+                "label": "Eligible round-robin selector",
+                "parentId": "router",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "lb.backends",
+                "id": "backends",
+                "label": "Backend pool",
+                "parentId": "router",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "proxy-s2",
+          "invariants": [
+            "Select against one immutable eligible snapshot."
+          ],
+          "number": 2,
+          "operations": [
+            {
+              "edges": [
+                {
+                  "contractId": "lb.request",
+                  "from": {
+                    "nodeId": "selector",
+                    "portId": "out-lb.request"
+                  },
+                  "id": "dispatch",
+                  "mode": "request-response",
+                  "to": {
+                    "nodeId": "backends",
+                    "portId": "in-lb.request"
+                  }
+                }
+              ],
+              "nodeId": "router",
+              "nodes": [
+                {
+                  "definitionId": "lb.selector",
+                  "id": "selector",
+                  "label": "Eligible round-robin selector",
+                  "position": {
+                    "x": 560,
+                    "y": 0
+                  },
+                  "version": 1
+                },
+                {
+                  "definitionId": "lb.backends",
+                  "id": "backends",
+                  "label": "Backend pool",
+                  "position": {
+                    "x": 840,
+                    "y": 0
+                  },
+                  "version": 1
+                }
+              ],
+              "op": "expand",
+              "subsystemId": "proxy-routing"
+            }
+          ],
+          "question": "How is round robin synchronized?",
+          "reason": "Expand the routing boundary into selection and a backend pool.",
+          "title": "Expose selection and destinations"
+        },
+        {
+          "checkIds": [
+            "eligibility"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "lb.request",
+                "from": {
+                  "nodeId": "selector",
+                  "portId": "out-lb.request"
+                },
+                "id": "dispatch",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "backends",
+                  "portId": "in-lb.request"
+                }
+              },
+              {
+                "contractId": "lb.request",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-lb.request"
+                },
+                "id": "request-policy",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "entry",
+                  "portId": "in-lb.request"
+                }
+              },
+              {
+                "contractId": "lb.request",
+                "from": {
+                  "nodeId": "entry",
+                  "portId": "out-lb.request"
+                },
+                "id": "route",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "router",
+                  "portId": "in-lb.request"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "lb.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "lb.router",
+                "id": "router",
+                "label": "Logical request router",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "proxy-routing",
+                "version": 1
+              },
+              {
+                "definitionId": "lb.selector",
+                "id": "selector",
+                "label": "Eligible round-robin selector",
+                "parentId": "router",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "lb.backends",
+                "id": "backends",
+                "label": "Backend pool",
+                "parentId": "router",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "lb.proxy",
+                "id": "entry",
+                "label": "Reverse proxy",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "proxy-s3",
+          "invariants": [
+            "The application contract does not change when routing moves."
+          ],
+          "number": 3,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "lb.proxy",
+                "id": "entry",
+                "label": "Reverse proxy",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edgeId": "call",
+              "op": "disconnect"
+            },
+            {
+              "edge": {
+                "contractId": "lb.request",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-lb.request"
+                },
+                "id": "request-policy",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "entry",
+                  "portId": "in-lb.request"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "lb.request",
+                "from": {
+                  "nodeId": "entry",
+                  "portId": "out-lb.request"
+                },
+                "id": "route",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "router",
+                  "portId": "in-lb.request"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Where should routing policy execute?",
+          "reason": "Make the location of policy an architectural choice, not a label on an arrow.",
+          "title": "Place a proxy at ingress"
+        },
+        {
+          "checkIds": [
+            "draining"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "lb.request",
+                "from": {
+                  "nodeId": "selector",
+                  "portId": "out-lb.request"
+                },
+                "id": "dispatch",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "backends",
+                  "portId": "in-lb.request"
+                }
+              },
+              {
+                "contractId": "lb.request",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-lb.request"
+                },
+                "id": "request-policy",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "entry",
+                  "portId": "in-lb.request"
+                }
+              },
+              {
+                "contractId": "lb.request",
+                "from": {
+                  "nodeId": "entry",
+                  "portId": "out-lb.request"
+                },
+                "id": "route",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "router",
+                  "portId": "in-lb.request"
+                }
+              },
+              {
+                "contractId": "lb.endpoints",
+                "from": {
+                  "nodeId": "router",
+                  "portId": "out-lb.endpoints-selector"
+                },
+                "id": "discover",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "directory",
+                  "portId": "in-lb.endpoints"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "lb.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "lb.router",
+                "id": "router",
+                "label": "Logical request router",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "proxy-routing",
+                "version": 1
+              },
+              {
+                "definitionId": "lb.selector",
+                "id": "selector",
+                "label": "Eligible round-robin selector",
+                "parentId": "router",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "lb.backends",
+                "id": "backends",
+                "label": "Backend pool",
+                "parentId": "router",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "lb.proxy",
+                "id": "entry",
+                "label": "Reverse proxy",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "lb.directory",
+                "id": "directory",
+                "label": "Endpoint directory",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "proxy-s4",
+          "invariants": [
+            "An older discovery epoch cannot replace a newer one."
+          ],
+          "number": 4,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "lb.directory",
+                "id": "directory",
+                "label": "Endpoint directory",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "lb.endpoints",
+                "from": {
+                  "nodeId": "router",
+                  "portId": "out-lb.endpoints-selector"
+                },
+                "id": "discover",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "directory",
+                  "portId": "in-lb.endpoints"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What happens when backends are replaced?",
+          "reason": "Decouple endpoint membership from request execution.",
+          "title": "Add versioned endpoint discovery"
+        },
+        {
+          "checkIds": [
+            "eligibility"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "lb.request",
+                "from": {
+                  "nodeId": "selector",
+                  "portId": "out-lb.request"
+                },
+                "id": "dispatch",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "backends",
+                  "portId": "in-lb.request"
+                }
+              },
+              {
+                "contractId": "lb.request",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-lb.request"
+                },
+                "id": "request-policy",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "entry",
+                  "portId": "in-lb.request"
+                }
+              },
+              {
+                "contractId": "lb.request",
+                "from": {
+                  "nodeId": "entry",
+                  "portId": "out-lb.request"
+                },
+                "id": "route",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "router",
+                  "portId": "in-lb.request"
+                }
+              },
+              {
+                "contractId": "lb.endpoints",
+                "from": {
+                  "nodeId": "router",
+                  "portId": "out-lb.endpoints-selector"
+                },
+                "id": "discover",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "directory",
+                  "portId": "in-lb.endpoints"
+                }
+              },
+              {
+                "contractId": "lb.health",
+                "from": {
+                  "nodeId": "health",
+                  "portId": "out-lb.health"
+                },
+                "id": "probe",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "router",
+                  "portId": "in-lb.health-backends"
+                }
+              },
+              {
+                "contractId": "lb.health",
+                "from": {
+                  "nodeId": "health",
+                  "portId": "out-lb.health"
+                },
+                "id": "observations",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "router",
+                  "portId": "in-lb.health-selector"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "lb.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "lb.router",
+                "id": "router",
+                "label": "Logical request router",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "proxy-routing",
+                "version": 1
+              },
+              {
+                "definitionId": "lb.selector",
+                "id": "selector",
+                "label": "Eligible round-robin selector",
+                "parentId": "router",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "lb.backends",
+                "id": "backends",
+                "label": "Backend pool",
+                "parentId": "router",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "lb.proxy",
+                "id": "entry",
+                "label": "Reverse proxy",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "lb.directory",
+                "id": "directory",
+                "label": "Endpoint directory",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "lb.health",
+                "id": "health",
+                "label": "Health sampler",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "proxy-s5",
+          "invariants": [
+            "A directory entry alone does not imply readiness."
+          ],
+          "number": 5,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "lb.health",
+                "id": "health",
+                "label": "Health sampler",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "lb.health",
+                "from": {
+                  "nodeId": "health",
+                  "portId": "out-lb.health"
+                },
+                "id": "probe",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "router",
+                  "portId": "in-lb.health-backends"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "lb.health",
+                "from": {
+                  "nodeId": "health",
+                  "portId": "out-lb.health"
+                },
+                "id": "observations",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "router",
+                  "portId": "in-lb.health-selector"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Does a timeout prove a backend is dead?",
+          "reason": "Probe and sample failures using explicit thresholds before changing eligibility.",
+          "title": "Separate health from membership"
+        },
+        {
+          "checkIds": [
+            "retry-budget",
+            "overload"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "lb.request",
+                "from": {
+                  "nodeId": "selector",
+                  "portId": "out-lb.request"
+                },
+                "id": "dispatch",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "backends",
+                  "portId": "in-lb.request"
+                }
+              },
+              {
+                "contractId": "lb.request",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-lb.request"
+                },
+                "id": "request-policy",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "entry",
+                  "portId": "in-lb.request"
+                }
+              },
+              {
+                "contractId": "lb.endpoints",
+                "from": {
+                  "nodeId": "router",
+                  "portId": "out-lb.endpoints-selector"
+                },
+                "id": "discover",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "directory",
+                  "portId": "in-lb.endpoints"
+                }
+              },
+              {
+                "contractId": "lb.health",
+                "from": {
+                  "nodeId": "health",
+                  "portId": "out-lb.health"
+                },
+                "id": "probe",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "router",
+                  "portId": "in-lb.health-backends"
+                }
+              },
+              {
+                "contractId": "lb.health",
+                "from": {
+                  "nodeId": "health",
+                  "portId": "out-lb.health"
+                },
+                "id": "observations",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "router",
+                  "portId": "in-lb.health-selector"
+                }
+              },
+              {
+                "contractId": "lb.request",
+                "from": {
+                  "nodeId": "entry",
+                  "portId": "out-lb.request"
+                },
+                "id": "attempt",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "retry",
+                  "portId": "in-lb.request"
+                }
+              },
+              {
+                "contractId": "lb.permit",
+                "from": {
+                  "nodeId": "retry",
+                  "portId": "out-lb.permit"
+                },
+                "id": "admit",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "admission",
+                  "portId": "in-lb.permit"
+                }
+              },
+              {
+                "contractId": "lb.request",
+                "from": {
+                  "nodeId": "admission",
+                  "portId": "out-lb.request"
+                },
+                "id": "permitted",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "router",
+                  "portId": "in-lb.request"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "lb.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "lb.router",
+                "id": "router",
+                "label": "Logical request router",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "proxy-routing",
+                "version": 1
+              },
+              {
+                "definitionId": "lb.selector",
+                "id": "selector",
+                "label": "Eligible round-robin selector",
+                "parentId": "router",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "lb.backends",
+                "id": "backends",
+                "label": "Backend pool",
+                "parentId": "router",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "lb.proxy",
+                "id": "entry",
+                "label": "Reverse proxy",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "lb.directory",
+                "id": "directory",
+                "label": "Endpoint directory",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "lb.health",
+                "id": "health",
+                "label": "Health sampler",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "lb.retry",
+                "id": "retry",
+                "label": "Deadline and retry budget",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "lb.admission",
+                "id": "admission",
+                "label": "Admission controller",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "proxy-s6",
+          "invariants": [
+            "Reject when no deadline or permit remains; never create an unbounded retry queue."
+          ],
+          "number": 6,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "lb.retry",
+                "id": "retry",
+                "label": "Deadline and retry budget",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "lb.admission",
+                "id": "admission",
+                "label": "Admission controller",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edgeId": "route",
+              "op": "disconnect"
+            },
+            {
+              "edge": {
+                "contractId": "lb.request",
+                "from": {
+                  "nodeId": "entry",
+                  "portId": "out-lb.request"
+                },
+                "id": "attempt",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "retry",
+                  "portId": "in-lb.request"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "lb.permit",
+                "from": {
+                  "nodeId": "retry",
+                  "portId": "out-lb.permit"
+                },
+                "id": "admit",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "admission",
+                  "portId": "in-lb.permit"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "lb.request",
+                "from": {
+                  "nodeId": "admission",
+                  "portId": "out-lb.request"
+                },
+                "id": "permitted",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "router",
+                  "portId": "in-lb.request"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How many backend calls can one caller cause?",
+          "reason": "Insert explicit admission and retry accounting before dispatch.",
+          "title": "Bound overload and retry amplification"
+        },
+        {
+          "checkIds": [
+            "draining",
+            "overload"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "lb.request",
+                "from": {
+                  "nodeId": "selector",
+                  "portId": "out-lb.request"
+                },
+                "id": "dispatch",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "backends",
+                  "portId": "in-lb.request"
+                }
+              },
+              {
+                "contractId": "lb.request",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-lb.request"
+                },
+                "id": "request-policy",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "entry",
+                  "portId": "in-lb.request"
+                }
+              },
+              {
+                "contractId": "lb.endpoints",
+                "from": {
+                  "nodeId": "router",
+                  "portId": "out-lb.endpoints-selector"
+                },
+                "id": "discover",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "directory",
+                  "portId": "in-lb.endpoints"
+                }
+              },
+              {
+                "contractId": "lb.health",
+                "from": {
+                  "nodeId": "health",
+                  "portId": "out-lb.health"
+                },
+                "id": "probe",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "router",
+                  "portId": "in-lb.health-backends"
+                }
+              },
+              {
+                "contractId": "lb.health",
+                "from": {
+                  "nodeId": "health",
+                  "portId": "out-lb.health"
+                },
+                "id": "observations",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "router",
+                  "portId": "in-lb.health-selector"
+                }
+              },
+              {
+                "contractId": "lb.request",
+                "from": {
+                  "nodeId": "entry",
+                  "portId": "out-lb.request"
+                },
+                "id": "attempt",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "retry",
+                  "portId": "in-lb.request"
+                }
+              },
+              {
+                "contractId": "lb.permit",
+                "from": {
+                  "nodeId": "retry",
+                  "portId": "out-lb.permit"
+                },
+                "id": "admit",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "admission",
+                  "portId": "in-lb.permit"
+                }
+              },
+              {
+                "contractId": "lb.request",
+                "from": {
+                  "nodeId": "admission",
+                  "portId": "out-lb.request"
+                },
+                "id": "permitted",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "router",
+                  "portId": "in-lb.request"
+                }
+              },
+              {
+                "contractId": "lb.permit",
+                "from": {
+                  "nodeId": "router",
+                  "portId": "out-lb.permit-selector"
+                },
+                "id": "circuit",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "breaker",
+                  "portId": "in-lb.permit"
+                }
+              },
+              {
+                "contractId": "lb.endpoints",
+                "from": {
+                  "nodeId": "drain",
+                  "portId": "out-lb.endpoints"
+                },
+                "id": "drain-membership",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "directory",
+                  "portId": "in-lb.endpoints"
+                }
+              },
+              {
+                "contractId": "lb.permit",
+                "from": {
+                  "nodeId": "drain",
+                  "portId": "out-lb.permit"
+                },
+                "id": "drain-work",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "router",
+                  "portId": "in-lb.permit-backends"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "lb.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "lb.router",
+                "id": "router",
+                "label": "Logical request router",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "proxy-routing",
+                "version": 1
+              },
+              {
+                "definitionId": "lb.selector",
+                "id": "selector",
+                "label": "Eligible round-robin selector",
+                "parentId": "router",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "lb.backends",
+                "id": "backends",
+                "label": "Backend pool",
+                "parentId": "router",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "lb.proxy",
+                "id": "entry",
+                "label": "Reverse proxy",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "lb.directory",
+                "id": "directory",
+                "label": "Endpoint directory",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "lb.health",
+                "id": "health",
+                "label": "Health sampler",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "lb.retry",
+                "id": "retry",
+                "label": "Deadline and retry budget",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "lb.admission",
+                "id": "admission",
+                "label": "Admission controller",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "lb.breaker",
+                "id": "breaker",
+                "label": "Circuit state",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "lb.drain",
+                "id": "drain",
+                "label": "Drain coordinator",
+                "position": {
+                  "x": 560,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "proxy-s7",
+          "invariants": [
+            "Draining endpoints receive no new work after the local snapshot advances."
+          ],
+          "number": 7,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "lb.breaker",
+                "id": "breaker",
+                "label": "Circuit state",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "lb.drain",
+                "id": "drain",
+                "label": "Drain coordinator",
+                "position": {
+                  "x": 560,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "lb.permit",
+                "from": {
+                  "nodeId": "router",
+                  "portId": "out-lb.permit-selector"
+                },
+                "id": "circuit",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "breaker",
+                  "portId": "in-lb.permit"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "lb.endpoints",
+                "from": {
+                  "nodeId": "drain",
+                  "portId": "out-lb.endpoints"
+                },
+                "id": "drain-membership",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "directory",
+                  "portId": "in-lb.endpoints"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "lb.permit",
+                "from": {
+                  "nodeId": "drain",
+                  "portId": "out-lb.permit"
+                },
+                "id": "drain-work",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "router",
+                  "portId": "in-lb.permit-backends"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How does an endpoint return without another request storm?",
+          "reason": "Limit half-open probes and coordinate membership removal with accepted work.",
+          "title": "Add circuit recovery and draining"
+        },
+        {
+          "checkIds": [
+            "retry-budget",
+            "overload"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "lb.request",
+                "from": {
+                  "nodeId": "selector",
+                  "portId": "out-lb.request"
+                },
+                "id": "dispatch",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "backends",
+                  "portId": "in-lb.request"
+                }
+              },
+              {
+                "contractId": "lb.request",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-lb.request"
+                },
+                "id": "request-policy",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "entry",
+                  "portId": "in-lb.request"
+                }
+              },
+              {
+                "contractId": "lb.endpoints",
+                "from": {
+                  "nodeId": "router",
+                  "portId": "out-lb.endpoints-selector"
+                },
+                "id": "discover",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "directory",
+                  "portId": "in-lb.endpoints"
+                }
+              },
+              {
+                "contractId": "lb.health",
+                "from": {
+                  "nodeId": "health",
+                  "portId": "out-lb.health"
+                },
+                "id": "probe",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "router",
+                  "portId": "in-lb.health-backends"
+                }
+              },
+              {
+                "contractId": "lb.health",
+                "from": {
+                  "nodeId": "health",
+                  "portId": "out-lb.health"
+                },
+                "id": "observations",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "router",
+                  "portId": "in-lb.health-selector"
+                }
+              },
+              {
+                "contractId": "lb.request",
+                "from": {
+                  "nodeId": "entry",
+                  "portId": "out-lb.request"
+                },
+                "id": "attempt",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "policy",
+                  "portId": "in-lb.request"
+                }
+              },
+              {
+                "contractId": "lb.request",
+                "from": {
+                  "nodeId": "policy",
+                  "portId": "out-lb.request"
+                },
+                "id": "permitted",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "router",
+                  "portId": "in-lb.request"
+                }
+              },
+              {
+                "contractId": "lb.permit",
+                "from": {
+                  "nodeId": "router",
+                  "portId": "out-lb.permit-selector"
+                },
+                "id": "circuit",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "breaker",
+                  "portId": "in-lb.permit"
+                }
+              },
+              {
+                "contractId": "lb.endpoints",
+                "from": {
+                  "nodeId": "drain",
+                  "portId": "out-lb.endpoints"
+                },
+                "id": "drain-membership",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "directory",
+                  "portId": "in-lb.endpoints"
+                }
+              },
+              {
+                "contractId": "lb.permit",
+                "from": {
+                  "nodeId": "drain",
+                  "portId": "out-lb.permit"
+                },
+                "id": "drain-work",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "router",
+                  "portId": "in-lb.permit-backends"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "lb.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "lb.router",
+                "id": "router",
+                "label": "Logical request router",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "proxy-routing",
+                "version": 1
+              },
+              {
+                "definitionId": "lb.selector",
+                "id": "selector",
+                "label": "Eligible round-robin selector",
+                "parentId": "router",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "lb.backends",
+                "id": "backends",
+                "label": "Backend pool",
+                "parentId": "router",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "lb.proxy",
+                "id": "entry",
+                "label": "Reverse proxy",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "lb.directory",
+                "id": "directory",
+                "label": "Endpoint directory",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "lb.health",
+                "id": "health",
+                "label": "Health sampler",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "lb.breaker",
+                "id": "breaker",
+                "label": "Circuit state",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "lb.drain",
+                "id": "drain",
+                "label": "Drain coordinator",
+                "position": {
+                  "x": 560,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "lb.policy",
+                "id": "policy",
+                "label": "Unified routing policy",
+                "lineageIds": [
+                  "retry",
+                  "admission"
+                ],
+                "position": {
+                  "x": 840,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "proxy-s8",
+          "invariants": [
+            "Every accepted attempt releases exactly one permit on success, failure or cancellation."
+          ],
+          "number": 8,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "lb.policy",
+                "id": "policy",
+                "label": "Unified routing policy",
+                "position": {
+                  "x": 840,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "nodeIds": [
+                "retry",
+                "admission"
+              ],
+              "op": "merge",
+              "reason": "One routing state owner must charge attempts and acquire/release permits on every terminal path."
+            }
+          ],
+          "question": "Can retry, admission and selection disagree?",
+          "reason": "Unify policy state while keeping backend execution and discovery separate.",
+          "title": "Merge policy accounting"
+        }
+      ],
+      "title": "Central reverse proxy with bounded routing",
+      "tradeoffs": [
+        "Proxy capacity and availability require independent operation.",
+        "An extra hop buys centralized policy and simpler clients."
+      ]
+    },
+    {
+      "acceptanceCases": [
+        {
+          "given": "Epoch 7 contains A and B; B is not ready.",
+          "id": "eligibility",
+          "relatedRequirementIds": [
+            "route",
+            "health"
+          ],
+          "then": "Only A receives calls; epoch 6 is ignored.",
+          "when": "Route concurrent calls, then receive stale epoch 6."
+        },
+        {
+          "given": "Each operation allows three attempts with a fixed total deadline.",
+          "id": "retry-budget",
+          "relatedRequirementIds": [
+            "retry"
+          ],
+          "then": "At most three calls occur; deadline expiry can stop earlier.",
+          "when": "Every backend returns a retryable failure."
+        },
+        {
+          "given": "All permits are used and the circuit is open.",
+          "id": "overload",
+          "relatedRequirementIds": [
+            "retry",
+            "health"
+          ],
+          "then": "Reject excess calls; permit only a bounded half-open sample; no leak on cancellation.",
+          "when": "A burst arrives and then cooldown ends."
+        },
+        {
+          "given": "Endpoint B has accepted work when a newer epoch marks it draining.",
+          "id": "draining",
+          "relatedRequirementIds": [
+            "drain"
+          ],
+          "then": "No new B work starts; accepted work completes or gets an explicit deadline outcome.",
+          "when": "Advance the local epoch and finish the accepted work."
+        }
+      ],
+      "algorithms": [
+        {
+          "code": "route(req) {\n  const deadline = monotonicNow() + req.remainingMs;\n  for (let attempt = 1; attempt <= policy.maxAttempts; attempt++) {\n    if (monotonicNow() >= deadline) throw DeadlineExceeded;\n    const endpoint = eligibleSnapshot().nextRoundRobin();\n    if (!endpoint) throw Unavailable;\n    const permit = tryAcquire(endpoint); if (!permit) throw Overloaded;\n    let result;\n    try { result = await call(endpoint, req, deadline); }\n    finally { release(permit); }\n    if (result.ok) return result;\n    if (!retrySafe(req) || !result.retryable || !retryBudget.take()) return result;\n    await boundedJitterBackoff(deadline);\n  }\n  throw AttemptsExhausted;\n}",
+          "guarantees": [
+            "No unbounded retries; ambiguous write outcomes require idempotency before retry."
+          ],
+          "id": "route-attempt",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "policy"
+        }
+      ],
+      "apis": [
+        {
+          "errors": "503 no current snapshot",
+          "method": "GET",
+          "ownerNodeId": "directory",
+          "path": "/discovery/{service}",
+          "request": "{afterEpoch}",
+          "response": "{epoch,endpoints}"
+        }
+      ],
+      "assumptions": [
+        "Backends expose readiness separately from liveness.",
+        "Application receipts are durable if write retries are enabled."
+      ],
+      "chooseWhen": "All callers can run and update the same supported discovery client.",
+      "id": "client",
+      "initialGraph": {
+        "edges": [],
+        "nodes": []
+      },
+      "stages": [
+        {
+          "checkIds": [
+            "retry-budget"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "lb.request",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-lb.request"
+                },
+                "id": "call",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "router",
+                  "portId": "in-lb.request"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "lb.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "lb.router",
+                "id": "router",
+                "label": "Logical request router",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "client-s1",
+          "invariants": [
+            "All attempts belong to one operation ID."
+          ],
+          "number": 1,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "lb.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "lb.router",
+                "id": "router",
+                "label": "Logical request router",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "lb.request",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-lb.request"
+                },
+                "id": "call",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "router",
+                  "portId": "in-lb.request"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Who owns the request deadline?",
+          "reason": "Begin with a caller and a coarse routing boundary.",
+          "title": "Draw one request boundary"
+        },
+        {
+          "checkIds": [
+            "eligibility"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "lb.request",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-lb.request"
+                },
+                "id": "call",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "router",
+                  "portId": "in-lb.request"
+                }
+              },
+              {
+                "contractId": "lb.request",
+                "from": {
+                  "nodeId": "selector",
+                  "portId": "out-lb.request"
+                },
+                "id": "dispatch",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "backends",
+                  "portId": "in-lb.request"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "lb.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "lb.router",
+                "id": "router",
+                "label": "Logical request router",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "client-routing",
+                "version": 1
+              },
+              {
+                "definitionId": "lb.selector",
+                "id": "selector",
+                "label": "Eligible round-robin selector",
+                "parentId": "router",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "lb.backends",
+                "id": "backends",
+                "label": "Backend pool",
+                "parentId": "router",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "client-s2",
+          "invariants": [
+            "Select against one immutable eligible snapshot."
+          ],
+          "number": 2,
+          "operations": [
+            {
+              "edges": [
+                {
+                  "contractId": "lb.request",
+                  "from": {
+                    "nodeId": "selector",
+                    "portId": "out-lb.request"
+                  },
+                  "id": "dispatch",
+                  "mode": "request-response",
+                  "to": {
+                    "nodeId": "backends",
+                    "portId": "in-lb.request"
+                  }
+                }
+              ],
+              "nodeId": "router",
+              "nodes": [
+                {
+                  "definitionId": "lb.selector",
+                  "id": "selector",
+                  "label": "Eligible round-robin selector",
+                  "position": {
+                    "x": 560,
+                    "y": 0
+                  },
+                  "version": 1
+                },
+                {
+                  "definitionId": "lb.backends",
+                  "id": "backends",
+                  "label": "Backend pool",
+                  "position": {
+                    "x": 840,
+                    "y": 0
+                  },
+                  "version": 1
+                }
+              ],
+              "op": "expand",
+              "subsystemId": "client-routing"
+            }
+          ],
+          "question": "How is round robin synchronized?",
+          "reason": "Expand the routing boundary into selection and a backend pool.",
+          "title": "Expose selection and destinations"
+        },
+        {
+          "checkIds": [
+            "eligibility"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "lb.request",
+                "from": {
+                  "nodeId": "selector",
+                  "portId": "out-lb.request"
+                },
+                "id": "dispatch",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "backends",
+                  "portId": "in-lb.request"
+                }
+              },
+              {
+                "contractId": "lb.request",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-lb.request"
+                },
+                "id": "request-policy",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "entry",
+                  "portId": "in-lb.request"
+                }
+              },
+              {
+                "contractId": "lb.request",
+                "from": {
+                  "nodeId": "entry",
+                  "portId": "out-lb.request"
+                },
+                "id": "route",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "router",
+                  "portId": "in-lb.request"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "lb.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "lb.router",
+                "id": "router",
+                "label": "Logical request router",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "client-routing",
+                "version": 1
+              },
+              {
+                "definitionId": "lb.selector",
+                "id": "selector",
+                "label": "Eligible round-robin selector",
+                "parentId": "router",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "lb.backends",
+                "id": "backends",
+                "label": "Backend pool",
+                "parentId": "router",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "lb.sdk",
+                "id": "entry",
+                "label": "Discovery-aware client",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "client-s3",
+          "invariants": [
+            "The application contract does not change when routing moves."
+          ],
+          "number": 3,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "lb.sdk",
+                "id": "entry",
+                "label": "Discovery-aware client",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edgeId": "call",
+              "op": "disconnect"
+            },
+            {
+              "edge": {
+                "contractId": "lb.request",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-lb.request"
+                },
+                "id": "request-policy",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "entry",
+                  "portId": "in-lb.request"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "lb.request",
+                "from": {
+                  "nodeId": "entry",
+                  "portId": "out-lb.request"
+                },
+                "id": "route",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "router",
+                  "portId": "in-lb.request"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Where should routing policy execute?",
+          "reason": "Make the location of policy an architectural choice, not a label on an arrow.",
+          "title": "Move the selector into a client SDK"
+        },
+        {
+          "checkIds": [
+            "draining"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "lb.request",
+                "from": {
+                  "nodeId": "selector",
+                  "portId": "out-lb.request"
+                },
+                "id": "dispatch",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "backends",
+                  "portId": "in-lb.request"
+                }
+              },
+              {
+                "contractId": "lb.request",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-lb.request"
+                },
+                "id": "request-policy",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "entry",
+                  "portId": "in-lb.request"
+                }
+              },
+              {
+                "contractId": "lb.request",
+                "from": {
+                  "nodeId": "entry",
+                  "portId": "out-lb.request"
+                },
+                "id": "route",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "router",
+                  "portId": "in-lb.request"
+                }
+              },
+              {
+                "contractId": "lb.endpoints",
+                "from": {
+                  "nodeId": "router",
+                  "portId": "out-lb.endpoints-selector"
+                },
+                "id": "discover",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "directory",
+                  "portId": "in-lb.endpoints"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "lb.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "lb.router",
+                "id": "router",
+                "label": "Logical request router",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "client-routing",
+                "version": 1
+              },
+              {
+                "definitionId": "lb.selector",
+                "id": "selector",
+                "label": "Eligible round-robin selector",
+                "parentId": "router",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "lb.backends",
+                "id": "backends",
+                "label": "Backend pool",
+                "parentId": "router",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "lb.sdk",
+                "id": "entry",
+                "label": "Discovery-aware client",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "lb.directory",
+                "id": "directory",
+                "label": "Endpoint directory",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "client-s4",
+          "invariants": [
+            "An older discovery epoch cannot replace a newer one."
+          ],
+          "number": 4,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "lb.directory",
+                "id": "directory",
+                "label": "Endpoint directory",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "lb.endpoints",
+                "from": {
+                  "nodeId": "router",
+                  "portId": "out-lb.endpoints-selector"
+                },
+                "id": "discover",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "directory",
+                  "portId": "in-lb.endpoints"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What happens when backends are replaced?",
+          "reason": "Decouple endpoint membership from request execution.",
+          "title": "Add versioned endpoint discovery"
+        },
+        {
+          "checkIds": [
+            "eligibility"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "lb.request",
+                "from": {
+                  "nodeId": "selector",
+                  "portId": "out-lb.request"
+                },
+                "id": "dispatch",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "backends",
+                  "portId": "in-lb.request"
+                }
+              },
+              {
+                "contractId": "lb.request",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-lb.request"
+                },
+                "id": "request-policy",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "entry",
+                  "portId": "in-lb.request"
+                }
+              },
+              {
+                "contractId": "lb.request",
+                "from": {
+                  "nodeId": "entry",
+                  "portId": "out-lb.request"
+                },
+                "id": "route",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "router",
+                  "portId": "in-lb.request"
+                }
+              },
+              {
+                "contractId": "lb.endpoints",
+                "from": {
+                  "nodeId": "router",
+                  "portId": "out-lb.endpoints-selector"
+                },
+                "id": "discover",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "directory",
+                  "portId": "in-lb.endpoints"
+                }
+              },
+              {
+                "contractId": "lb.health",
+                "from": {
+                  "nodeId": "health",
+                  "portId": "out-lb.health"
+                },
+                "id": "probe",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "router",
+                  "portId": "in-lb.health-backends"
+                }
+              },
+              {
+                "contractId": "lb.health",
+                "from": {
+                  "nodeId": "health",
+                  "portId": "out-lb.health"
+                },
+                "id": "observations",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "router",
+                  "portId": "in-lb.health-selector"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "lb.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "lb.router",
+                "id": "router",
+                "label": "Logical request router",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "client-routing",
+                "version": 1
+              },
+              {
+                "definitionId": "lb.selector",
+                "id": "selector",
+                "label": "Eligible round-robin selector",
+                "parentId": "router",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "lb.backends",
+                "id": "backends",
+                "label": "Backend pool",
+                "parentId": "router",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "lb.sdk",
+                "id": "entry",
+                "label": "Discovery-aware client",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "lb.directory",
+                "id": "directory",
+                "label": "Endpoint directory",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "lb.health",
+                "id": "health",
+                "label": "Health sampler",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "client-s5",
+          "invariants": [
+            "A directory entry alone does not imply readiness."
+          ],
+          "number": 5,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "lb.health",
+                "id": "health",
+                "label": "Health sampler",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "lb.health",
+                "from": {
+                  "nodeId": "health",
+                  "portId": "out-lb.health"
+                },
+                "id": "probe",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "router",
+                  "portId": "in-lb.health-backends"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "lb.health",
+                "from": {
+                  "nodeId": "health",
+                  "portId": "out-lb.health"
+                },
+                "id": "observations",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "router",
+                  "portId": "in-lb.health-selector"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Does a timeout prove a backend is dead?",
+          "reason": "Probe and sample failures using explicit thresholds before changing eligibility.",
+          "title": "Separate health from membership"
+        },
+        {
+          "checkIds": [
+            "retry-budget",
+            "overload"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "lb.request",
+                "from": {
+                  "nodeId": "selector",
+                  "portId": "out-lb.request"
+                },
+                "id": "dispatch",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "backends",
+                  "portId": "in-lb.request"
+                }
+              },
+              {
+                "contractId": "lb.request",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-lb.request"
+                },
+                "id": "request-policy",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "entry",
+                  "portId": "in-lb.request"
+                }
+              },
+              {
+                "contractId": "lb.endpoints",
+                "from": {
+                  "nodeId": "router",
+                  "portId": "out-lb.endpoints-selector"
+                },
+                "id": "discover",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "directory",
+                  "portId": "in-lb.endpoints"
+                }
+              },
+              {
+                "contractId": "lb.health",
+                "from": {
+                  "nodeId": "health",
+                  "portId": "out-lb.health"
+                },
+                "id": "probe",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "router",
+                  "portId": "in-lb.health-backends"
+                }
+              },
+              {
+                "contractId": "lb.health",
+                "from": {
+                  "nodeId": "health",
+                  "portId": "out-lb.health"
+                },
+                "id": "observations",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "router",
+                  "portId": "in-lb.health-selector"
+                }
+              },
+              {
+                "contractId": "lb.request",
+                "from": {
+                  "nodeId": "entry",
+                  "portId": "out-lb.request"
+                },
+                "id": "attempt",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "retry",
+                  "portId": "in-lb.request"
+                }
+              },
+              {
+                "contractId": "lb.permit",
+                "from": {
+                  "nodeId": "retry",
+                  "portId": "out-lb.permit"
+                },
+                "id": "admit",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "admission",
+                  "portId": "in-lb.permit"
+                }
+              },
+              {
+                "contractId": "lb.request",
+                "from": {
+                  "nodeId": "admission",
+                  "portId": "out-lb.request"
+                },
+                "id": "permitted",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "router",
+                  "portId": "in-lb.request"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "lb.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "lb.router",
+                "id": "router",
+                "label": "Logical request router",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "client-routing",
+                "version": 1
+              },
+              {
+                "definitionId": "lb.selector",
+                "id": "selector",
+                "label": "Eligible round-robin selector",
+                "parentId": "router",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "lb.backends",
+                "id": "backends",
+                "label": "Backend pool",
+                "parentId": "router",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "lb.sdk",
+                "id": "entry",
+                "label": "Discovery-aware client",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "lb.directory",
+                "id": "directory",
+                "label": "Endpoint directory",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "lb.health",
+                "id": "health",
+                "label": "Health sampler",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "lb.retry",
+                "id": "retry",
+                "label": "Deadline and retry budget",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "lb.admission",
+                "id": "admission",
+                "label": "Admission controller",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "client-s6",
+          "invariants": [
+            "Reject when no deadline or permit remains; never create an unbounded retry queue."
+          ],
+          "number": 6,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "lb.retry",
+                "id": "retry",
+                "label": "Deadline and retry budget",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "lb.admission",
+                "id": "admission",
+                "label": "Admission controller",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edgeId": "route",
+              "op": "disconnect"
+            },
+            {
+              "edge": {
+                "contractId": "lb.request",
+                "from": {
+                  "nodeId": "entry",
+                  "portId": "out-lb.request"
+                },
+                "id": "attempt",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "retry",
+                  "portId": "in-lb.request"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "lb.permit",
+                "from": {
+                  "nodeId": "retry",
+                  "portId": "out-lb.permit"
+                },
+                "id": "admit",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "admission",
+                  "portId": "in-lb.permit"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "lb.request",
+                "from": {
+                  "nodeId": "admission",
+                  "portId": "out-lb.request"
+                },
+                "id": "permitted",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "router",
+                  "portId": "in-lb.request"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How many backend calls can one caller cause?",
+          "reason": "Insert explicit admission and retry accounting before dispatch.",
+          "title": "Bound overload and retry amplification"
+        },
+        {
+          "checkIds": [
+            "draining",
+            "overload"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "lb.request",
+                "from": {
+                  "nodeId": "selector",
+                  "portId": "out-lb.request"
+                },
+                "id": "dispatch",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "backends",
+                  "portId": "in-lb.request"
+                }
+              },
+              {
+                "contractId": "lb.request",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-lb.request"
+                },
+                "id": "request-policy",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "entry",
+                  "portId": "in-lb.request"
+                }
+              },
+              {
+                "contractId": "lb.endpoints",
+                "from": {
+                  "nodeId": "router",
+                  "portId": "out-lb.endpoints-selector"
+                },
+                "id": "discover",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "directory",
+                  "portId": "in-lb.endpoints"
+                }
+              },
+              {
+                "contractId": "lb.health",
+                "from": {
+                  "nodeId": "health",
+                  "portId": "out-lb.health"
+                },
+                "id": "probe",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "router",
+                  "portId": "in-lb.health-backends"
+                }
+              },
+              {
+                "contractId": "lb.health",
+                "from": {
+                  "nodeId": "health",
+                  "portId": "out-lb.health"
+                },
+                "id": "observations",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "router",
+                  "portId": "in-lb.health-selector"
+                }
+              },
+              {
+                "contractId": "lb.request",
+                "from": {
+                  "nodeId": "entry",
+                  "portId": "out-lb.request"
+                },
+                "id": "attempt",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "retry",
+                  "portId": "in-lb.request"
+                }
+              },
+              {
+                "contractId": "lb.permit",
+                "from": {
+                  "nodeId": "retry",
+                  "portId": "out-lb.permit"
+                },
+                "id": "admit",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "admission",
+                  "portId": "in-lb.permit"
+                }
+              },
+              {
+                "contractId": "lb.request",
+                "from": {
+                  "nodeId": "admission",
+                  "portId": "out-lb.request"
+                },
+                "id": "permitted",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "router",
+                  "portId": "in-lb.request"
+                }
+              },
+              {
+                "contractId": "lb.permit",
+                "from": {
+                  "nodeId": "router",
+                  "portId": "out-lb.permit-selector"
+                },
+                "id": "circuit",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "breaker",
+                  "portId": "in-lb.permit"
+                }
+              },
+              {
+                "contractId": "lb.endpoints",
+                "from": {
+                  "nodeId": "drain",
+                  "portId": "out-lb.endpoints"
+                },
+                "id": "drain-membership",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "directory",
+                  "portId": "in-lb.endpoints"
+                }
+              },
+              {
+                "contractId": "lb.permit",
+                "from": {
+                  "nodeId": "drain",
+                  "portId": "out-lb.permit"
+                },
+                "id": "drain-work",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "router",
+                  "portId": "in-lb.permit-backends"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "lb.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "lb.router",
+                "id": "router",
+                "label": "Logical request router",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "client-routing",
+                "version": 1
+              },
+              {
+                "definitionId": "lb.selector",
+                "id": "selector",
+                "label": "Eligible round-robin selector",
+                "parentId": "router",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "lb.backends",
+                "id": "backends",
+                "label": "Backend pool",
+                "parentId": "router",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "lb.sdk",
+                "id": "entry",
+                "label": "Discovery-aware client",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "lb.directory",
+                "id": "directory",
+                "label": "Endpoint directory",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "lb.health",
+                "id": "health",
+                "label": "Health sampler",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "lb.retry",
+                "id": "retry",
+                "label": "Deadline and retry budget",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "lb.admission",
+                "id": "admission",
+                "label": "Admission controller",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "lb.breaker",
+                "id": "breaker",
+                "label": "Circuit state",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "lb.drain",
+                "id": "drain",
+                "label": "Drain coordinator",
+                "position": {
+                  "x": 560,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "client-s7",
+          "invariants": [
+            "Draining endpoints receive no new work after the local snapshot advances."
+          ],
+          "number": 7,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "lb.breaker",
+                "id": "breaker",
+                "label": "Circuit state",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "lb.drain",
+                "id": "drain",
+                "label": "Drain coordinator",
+                "position": {
+                  "x": 560,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "lb.permit",
+                "from": {
+                  "nodeId": "router",
+                  "portId": "out-lb.permit-selector"
+                },
+                "id": "circuit",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "breaker",
+                  "portId": "in-lb.permit"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "lb.endpoints",
+                "from": {
+                  "nodeId": "drain",
+                  "portId": "out-lb.endpoints"
+                },
+                "id": "drain-membership",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "directory",
+                  "portId": "in-lb.endpoints"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "lb.permit",
+                "from": {
+                  "nodeId": "drain",
+                  "portId": "out-lb.permit"
+                },
+                "id": "drain-work",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "router",
+                  "portId": "in-lb.permit-backends"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How does an endpoint return without another request storm?",
+          "reason": "Limit half-open probes and coordinate membership removal with accepted work.",
+          "title": "Add circuit recovery and draining"
+        },
+        {
+          "checkIds": [
+            "retry-budget",
+            "overload"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "lb.request",
+                "from": {
+                  "nodeId": "selector",
+                  "portId": "out-lb.request"
+                },
+                "id": "dispatch",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "backends",
+                  "portId": "in-lb.request"
+                }
+              },
+              {
+                "contractId": "lb.request",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-lb.request"
+                },
+                "id": "request-policy",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "entry",
+                  "portId": "in-lb.request"
+                }
+              },
+              {
+                "contractId": "lb.endpoints",
+                "from": {
+                  "nodeId": "router",
+                  "portId": "out-lb.endpoints-selector"
+                },
+                "id": "discover",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "directory",
+                  "portId": "in-lb.endpoints"
+                }
+              },
+              {
+                "contractId": "lb.health",
+                "from": {
+                  "nodeId": "health",
+                  "portId": "out-lb.health"
+                },
+                "id": "probe",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "router",
+                  "portId": "in-lb.health-backends"
+                }
+              },
+              {
+                "contractId": "lb.health",
+                "from": {
+                  "nodeId": "health",
+                  "portId": "out-lb.health"
+                },
+                "id": "observations",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "router",
+                  "portId": "in-lb.health-selector"
+                }
+              },
+              {
+                "contractId": "lb.request",
+                "from": {
+                  "nodeId": "entry",
+                  "portId": "out-lb.request"
+                },
+                "id": "attempt",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "policy",
+                  "portId": "in-lb.request"
+                }
+              },
+              {
+                "contractId": "lb.request",
+                "from": {
+                  "nodeId": "policy",
+                  "portId": "out-lb.request"
+                },
+                "id": "permitted",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "router",
+                  "portId": "in-lb.request"
+                }
+              },
+              {
+                "contractId": "lb.permit",
+                "from": {
+                  "nodeId": "router",
+                  "portId": "out-lb.permit-selector"
+                },
+                "id": "circuit",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "breaker",
+                  "portId": "in-lb.permit"
+                }
+              },
+              {
+                "contractId": "lb.endpoints",
+                "from": {
+                  "nodeId": "drain",
+                  "portId": "out-lb.endpoints"
+                },
+                "id": "drain-membership",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "directory",
+                  "portId": "in-lb.endpoints"
+                }
+              },
+              {
+                "contractId": "lb.permit",
+                "from": {
+                  "nodeId": "drain",
+                  "portId": "out-lb.permit"
+                },
+                "id": "drain-work",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "router",
+                  "portId": "in-lb.permit-backends"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "lb.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "lb.router",
+                "id": "router",
+                "label": "Logical request router",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "client-routing",
+                "version": 1
+              },
+              {
+                "definitionId": "lb.selector",
+                "id": "selector",
+                "label": "Eligible round-robin selector",
+                "parentId": "router",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "lb.backends",
+                "id": "backends",
+                "label": "Backend pool",
+                "parentId": "router",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "lb.sdk",
+                "id": "entry",
+                "label": "Discovery-aware client",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "lb.directory",
+                "id": "directory",
+                "label": "Endpoint directory",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "lb.health",
+                "id": "health",
+                "label": "Health sampler",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "lb.breaker",
+                "id": "breaker",
+                "label": "Circuit state",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "lb.drain",
+                "id": "drain",
+                "label": "Drain coordinator",
+                "position": {
+                  "x": 560,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "lb.policy",
+                "id": "policy",
+                "label": "Unified routing policy",
+                "lineageIds": [
+                  "retry",
+                  "admission"
+                ],
+                "position": {
+                  "x": 840,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "client-s8",
+          "invariants": [
+            "Every accepted attempt releases exactly one permit on success, failure or cancellation."
+          ],
+          "number": 8,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "lb.policy",
+                "id": "policy",
+                "label": "Unified routing policy",
+                "position": {
+                  "x": 840,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "nodeIds": [
+                "retry",
+                "admission"
+              ],
+              "op": "merge",
+              "reason": "One routing state owner must charge attempts and acquire/release permits on every terminal path."
+            }
+          ],
+          "question": "Can retry, admission and selection disagree?",
+          "reason": "Unify policy state while keeping backend execution and discovery separate.",
+          "title": "Merge policy accounting"
+        }
+      ],
+      "title": "Client-side discovery and load balancing",
+      "tradeoffs": [
+        "Every client must converge on discovery and policy updates.",
+        "Connection storms and heterogeneous client versions complicate incidents."
+      ]
+    }
+  ],
+  "subsystems": [
+    {
+      "definitionId": "lb.router",
+      "id": "proxy-routing",
+      "ports": [
+        {
+          "contractId": "lb.request",
+          "direction": "in",
+          "id": "in-lb.request",
+          "target": {
+            "nodeId": "selector",
+            "portId": "in-lb.request"
+          }
+        },
+        {
+          "contractId": "lb.endpoints",
+          "direction": "out",
+          "id": "out-lb.endpoints-selector",
+          "target": {
+            "nodeId": "selector",
+            "portId": "out-lb.endpoints"
+          }
+        },
+        {
+          "contractId": "lb.health",
+          "direction": "in",
+          "id": "in-lb.health-backends",
+          "target": {
+            "nodeId": "backends",
+            "portId": "in-lb.health"
+          }
+        },
+        {
+          "contractId": "lb.health",
+          "direction": "in",
+          "id": "in-lb.health-selector",
+          "target": {
+            "nodeId": "selector",
+            "portId": "in-lb.health"
+          }
+        },
+        {
+          "contractId": "lb.permit",
+          "direction": "out",
+          "id": "out-lb.permit-selector",
+          "target": {
+            "nodeId": "selector",
+            "portId": "out-lb.permit"
+          }
+        },
+        {
+          "contractId": "lb.permit",
+          "direction": "in",
+          "id": "in-lb.permit-backends",
+          "target": {
+            "nodeId": "backends",
+            "portId": "in-lb.permit"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "lb.router",
+      "id": "client-routing",
+      "ports": [
+        {
+          "contractId": "lb.request",
+          "direction": "in",
+          "id": "in-lb.request",
+          "target": {
+            "nodeId": "selector",
+            "portId": "in-lb.request"
+          }
+        },
+        {
+          "contractId": "lb.endpoints",
+          "direction": "out",
+          "id": "out-lb.endpoints-selector",
+          "target": {
+            "nodeId": "selector",
+            "portId": "out-lb.endpoints"
+          }
+        },
+        {
+          "contractId": "lb.health",
+          "direction": "in",
+          "id": "in-lb.health-backends",
+          "target": {
+            "nodeId": "backends",
+            "portId": "in-lb.health"
+          }
+        },
+        {
+          "contractId": "lb.health",
+          "direction": "in",
+          "id": "in-lb.health-selector",
+          "target": {
+            "nodeId": "selector",
+            "portId": "in-lb.health"
+          }
+        },
+        {
+          "contractId": "lb.permit",
+          "direction": "out",
+          "id": "out-lb.permit-selector",
+          "target": {
+            "nodeId": "selector",
+            "portId": "out-lb.permit"
+          }
+        },
+        {
+          "contractId": "lb.permit",
+          "direction": "in",
+          "id": "in-lb.permit-backends",
+          "target": {
+            "nodeId": "backends",
+            "portId": "in-lb.permit"
+          }
+        }
+      ],
+      "version": 1
+    }
+  ],
+  "version": 1
+}
