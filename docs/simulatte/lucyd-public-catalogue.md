@@ -201,3 +201,12 @@ problem/approach metadata was ready. Load now awaits that restoration; a queued
 Save waits for it too. Independent drafts remain savable with the catalogue delayed
 or unavailable. [Four deterministic browser cases](../../artifacts/lucyd-load-race/after-fix/report.json)
 cover those boundaries without relying on timing-only sleeps.
+
+Verified v4 live build: `9abaff205e4a234fcb798f352a6df0f414e7b5d3-2f7e7e78be3b` at <https://simulatte.world/system-diagram>.
+[Live desktop/mobile journeys](../../artifacts/lucyd-branches/live/report.json)
+pass25 desktop and29 mobile checks, including encrypted private lifecycle and
+saved-stage restoration. [Live assets](../../artifacts/lucyd-branches/live-assets.json)
+match15 runtime/data hashes, including the exact executed public catalogue and
+private ciphertext. Cache headers revalidate. Private notes and password remain
+unchanged. The source implementation is pushed; this receipt adds build stamps
+and verification evidence.

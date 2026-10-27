@@ -1,0 +1,112 @@
+{
+  "recordedAt": "2026-10-27T13:42:31.976Z",
+  "url": "https://simulatte.world/system-diagram",
+  "build": "9abaff205e4a234fcb798f352a6df0f414e7b5d3-2f7e7e78be3b",
+  "assets": [
+    {
+      "file": "data/system-diagram/problems.json",
+      "status": 200,
+      "sha256": "e7e27d7a6508c2eeee8abdca91b00a3c27ef0d84808f1a2506c24d1f08bd388a",
+      "match": true,
+      "cacheControl": "no-cache"
+    },
+    {
+      "file": "data/system-diagram/private-collection.enc.json",
+      "status": 200,
+      "sha256": "b136fdb13e2984eae6ebca14e6ec9e1be7329f45d3d2093a1ff78863e4c49eff",
+      "match": true,
+      "cacheControl": "no-cache"
+    },
+    {
+      "file": "data/system-diagram/class-library.json",
+      "status": 200,
+      "sha256": "85a8a04ad5c791a8841695fbe803504ac527b81fa1b9ecdf19d1cac97a06518f",
+      "match": true,
+      "cacheControl": "no-cache"
+    },
+    {
+      "file": "data/system-diagram/classes/study.json",
+      "status": 200,
+      "sha256": "2354181f4aa67c1b97c9f6e6f1eea9fe94637ca255977cc77afbb33acfca3f09",
+      "match": true,
+      "cacheControl": "no-cache"
+    },
+    {
+      "file": "data/system-diagram/classes/public-alternatives.json",
+      "status": 200,
+      "sha256": "4956c247d88a5b810ad8e720b7f6352cd31b9551798e7d621d8536b20ee352f4",
+      "match": true,
+      "cacheControl": "no-cache"
+    },
+    {
+      "file": "data/system-diagram/classes/study-alternatives.json",
+      "status": 200,
+      "sha256": "bdd25a2fa44bca6517fb76ce92df97dbfe321db7782a0f51bb09f0f9c8c0adb8",
+      "match": true,
+      "cacheControl": "no-cache"
+    },
+    {
+      "file": "data/system-diagram/classes/study-choices.json",
+      "status": 200,
+      "sha256": "b2482b544a951f5eec81091a5ce7d105e266cbebe0c5737282973daaaabaa58b",
+      "match": true,
+      "cacheControl": "no-cache"
+    },
+    {
+      "file": "simulatte/system-diagram/problem-model.js",
+      "status": 200,
+      "sha256": "8569ee871415385a057abfd09ccb432446c897796a97506b6cb15968be7dac09",
+      "match": true,
+      "cacheControl": "no-cache"
+    },
+    {
+      "file": "simulatte/system-diagram/study-contract.js",
+      "status": 200,
+      "sha256": "0abfe6c2f5a97d3e452b36cf13b45737186381b55dc754f00676d556e129cfe1",
+      "match": true,
+      "cacheControl": "no-cache"
+    },
+    {
+      "file": "simulatte/system-diagram/kernels-public-alternatives.js",
+      "status": 200,
+      "sha256": "49717859ae2b33753ab87ee593b4f6d0e2b19cabc729219ba66bd0a6a4829c38",
+      "match": true,
+      "cacheControl": "no-cache"
+    },
+    {
+      "file": "simulatte/system-diagram/kernels-study-alternatives.js",
+      "status": 200,
+      "sha256": "29ee4934406a97dc8aa25f1b9a9ac6b54a2e50e463e585708ce6b3c6fd3635c0",
+      "match": true,
+      "cacheControl": "no-cache"
+    },
+    {
+      "file": "simulatte/system-diagram/kernels-study-choices.js",
+      "status": 200,
+      "sha256": "423a170147c29f3f0dbd17a042538648d5e5357216cdda68225d7b0550f3ded8",
+      "match": true,
+      "cacheControl": "no-cache"
+    },
+    {
+      "file": "simulatte/system-diagram/kernels-study-protocols.js",
+      "status": 200,
+      "sha256": "b2f3a249d917fc081147393b797b54e2930bd476bbf389e7ba6b7b81b0bc9316",
+      "match": true,
+      "cacheControl": "no-cache"
+    },
+    {
+      "file": "simulatte/system-diagram/interview-stepper.js",
+      "status": 200,
+      "sha256": "ab124e2b0321c3fc3a214cb4255a38f95742e731ca31b8c620828614d8164263",
+      "match": true,
+      "cacheControl": "no-cache"
+    },
+    {
+      "file": "simulatte/system-diagram/page.js",
+      "status": 200,
+      "sha256": "b55429b7a99f9943db37ebb0512a0917dc8dd1a8af0665226e17e35f38fd3c26",
+      "match": true,
+      "cacheControl": "no-cache"
+    }
+  ]
+}
