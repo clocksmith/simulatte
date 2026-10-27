@@ -161,3 +161,12 @@ Intent: deliberately changed to eight-stage authored curricula.
 Acceptance evidence: focused tests and the execution/browser receipts above.
 Boundary effects: canonical public/private content, generated compatibility
 exports, class registry and deployment source pins.
+
+Live release: build `45b9336998e7567b61ab822a7224473be0834d1a-dd231bcde5f0`
+at <https://simulatte.world/system-diagram>. The
+[live desktop/mobile receipt](../../artifacts/lucyd-curriculum/live/report.json)
+passes the same navigation, touch and encrypted-lifecycle journeys with no page
+errors. [Asset checks](../../artifacts/lucyd-curriculum/live-assets.json) match
+12 runtime/data SHA-256 hashes, including the executed public catalogue and
+private ciphertext. Catalogue requests and hosting headers now revalidate cached
+content. The private password and original encrypted notes remain unchanged.

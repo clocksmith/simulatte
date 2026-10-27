@@ -1,0 +1,116 @@
+{
+  "source": {
+    "head": "45b9336998e7567b61ab822a7224473be0834d1a",
+    "capturedAt": "2026-10-27T12:51:08.559Z",
+    "modifiedSources": {
+      "public/index.html": {
+        "sha256": "e0ad14c82c0d98e58fe6684561804536a38eadc8831521cdd4ed8c90f0bf2b92",
+        "modifiedAt": "2026-10-27T12:50:31.639Z"
+      },
+      "public/simulatte/distributed-repair/index.html": {
+        "sha256": "3b1a95c3f33453e012db8ca35e757f3bab3aa1c9abd8cd1f4759d38273260a2f",
+        "modifiedAt": "2026-10-27T12:50:31.640Z"
+      },
+      "public/simulatte/distributed-repair/repair.html": {
+        "sha256": "018a0eabc2e76d2dc74e6b72bbb1c5dc0f9fb177b1fb4ba9c0cd43f6c2e7155f",
+        "modifiedAt": "2026-10-27T12:50:31.640Z"
+      },
+      "public/simulatte/field-experiments/index.html": {
+        "sha256": "4d63d8efb9bff4e22f020c7217ba4040fa19c66ed0fc2b4a5163bac6c4e42df2",
+        "modifiedAt": "2026-10-27T12:50:31.639Z"
+      },
+      "public/simulatte/system-diagram/index.html": {
+        "sha256": "2df450141f9aa2938870a63bd811d9879f2344c6d43012cab5d8f8e48e1dd170",
+        "modifiedAt": "2026-10-27T12:50:31.640Z"
+      },
+      "public/version.json": {
+        "sha256": "2a32ff364e6c0695c4ff89f79ef21641a3bc1143c31e165a51e99f8c33974a60",
+        "modifiedAt": "2026-10-27T12:50:31.640Z"
+      }
+    },
+    "boundary": "Local comparison checkout; browser cases execute the named live route/build, not a local server."
+  },
+  "url": "https://simulatte.world/system-diagram",
+  "browser": "143.0.7499.4",
+  "privateChecks": true,
+  "cases": [
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "checks": {
+        "algorithmsSeparatedFromCompute": true,
+        "railTwoStatesAnd280Cap": true,
+        "problemStartsBlank": true,
+        "unboundRefusesSimulation": true,
+        "refinementKeepsIdentity": true,
+        "branchAndReturn": true,
+        "eightStagesAndDesignBoundary": true,
+        "savedDesignRestored": true,
+        "faultRepairReplay": true,
+        "singleExecutionOwner": true,
+        "wholeGraphFitsUsableViewport": true,
+        "secondaryChoicesInDetails": true,
+        "propertiesActionOutsideGraph": true,
+        "requestOperationAndRoute": true,
+        "viewportNoPageOverflow": true,
+        "expandedChatFinalStageFits": true,
+        "fullNodeNamesWrap": true,
+        "requestStructuredResultsOnDemand": true,
+        "encryptedSaveAndLockCleanup": true,
+        "encryptedV5DraftRestoration": true,
+        "privateSubsystemDraftCannotContaminatePublicStudy": true
+      },
+      "errors": [],
+      "build": "45b9336998e7567b61ab822a7224473be0834d1a-dd231bcde5f0",
+      "catalogue": {
+        "problems": 31,
+        "solutions": 32,
+        "stages": 256,
+        "unauthored": 0
+      }
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "checks": {
+        "algorithmsSeparatedFromCompute": true,
+        "railTwoStatesAnd280Cap": true,
+        "problemStartsBlank": true,
+        "unboundRefusesSimulation": true,
+        "refinementKeepsIdentity": true,
+        "branchAndReturn": true,
+        "eightStagesAndDesignBoundary": true,
+        "savedDesignRestored": true,
+        "faultRepairReplay": true,
+        "singleExecutionOwner": true,
+        "wholeGraphFitsUsableViewport": true,
+        "secondaryChoicesInDetails": true,
+        "twoLineMobileCaption": true,
+        "propertiesActionOutsideGraph": true,
+        "requestOperationAndRoute": true,
+        "viewportNoPageOverflow": true,
+        "expandedChatFinalStageFits": true,
+        "fullNodeNamesWrap": true,
+        "mobileTouchZoom": true,
+        "mobileTouchPan": true,
+        "mobileTouchableDetailWithinSafeArea": true,
+        "requestStructuredResultsOnDemand": true,
+        "encryptedSaveAndLockCleanup": true,
+        "encryptedV5DraftRestoration": true,
+        "privateSubsystemDraftCannotContaminatePublicStudy": true
+      },
+      "errors": [],
+      "build": "45b9336998e7567b61ab822a7224473be0834d1a-dd231bcde5f0",
+      "catalogue": {
+        "problems": 31,
+        "solutions": 32,
+        "stages": 256,
+        "unauthored": 0
+      }
+    }
+  ]
+}

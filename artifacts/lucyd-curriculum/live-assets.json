@@ -1,0 +1,103 @@
+{
+  "recordedAt": "2026-10-27T12:51:09.512Z",
+  "url": "https://simulatte.world/system-diagram",
+  "build": "45b9336998e7567b61ab822a7224473be0834d1a-dd231bcde5f0",
+  "assets": [
+    {
+      "file": "data/system-diagram/problems.json",
+      "status": 200,
+      "sha256": "94babfb70639b6c1b8c80321eac37ed50a98a23b7b833634954413c1c82a75b1",
+      "expected": "94babfb70639b6c1b8c80321eac37ed50a98a23b7b833634954413c1c82a75b1",
+      "match": true,
+      "cacheControl": "no-cache"
+    },
+    {
+      "file": "data/system-diagram/private-collection.enc.json",
+      "status": 200,
+      "sha256": "ce9b41251caf34fc1688a9556340ed1f854207d0240e163d3ec069bd69039a69",
+      "expected": "ce9b41251caf34fc1688a9556340ed1f854207d0240e163d3ec069bd69039a69",
+      "match": true,
+      "cacheControl": "no-cache"
+    },
+    {
+      "file": "data/system-diagram/class-library.json",
+      "status": 200,
+      "sha256": "730a2c6e06f4c805a439b969565fb435c0e0eedeb3ab78ad0cee6776bce42f11",
+      "expected": "730a2c6e06f4c805a439b969565fb435c0e0eedeb3ab78ad0cee6776bce42f11",
+      "match": true,
+      "cacheControl": "no-cache"
+    },
+    {
+      "file": "data/system-diagram/classes/study.json",
+      "status": 200,
+      "sha256": "021b3502d6c4e6348fbd05ca5e66824ad9216ffd0fb5edd2348f126b59a08e24",
+      "expected": "021b3502d6c4e6348fbd05ca5e66824ad9216ffd0fb5edd2348f126b59a08e24",
+      "match": true,
+      "cacheControl": "no-cache"
+    },
+    {
+      "file": "data/system-diagram/classes/realtime.json",
+      "status": 200,
+      "sha256": "a1ff19a5933d3292d7263e8c30f9174bce61ea646eef15412a2f8052cef61d8c",
+      "expected": "a1ff19a5933d3292d7263e8c30f9174bce61ea646eef15412a2f8052cef61d8c",
+      "match": true,
+      "cacheControl": "no-cache"
+    },
+    {
+      "file": "simulatte/system-diagram/problem-model.js",
+      "status": 200,
+      "sha256": "92bef6e7a57accf31e9c0a17246213b3fcc0e0bb0e37695984dfba29fbc6da58",
+      "expected": "92bef6e7a57accf31e9c0a17246213b3fcc0e0bb0e37695984dfba29fbc6da58",
+      "match": true,
+      "cacheControl": "no-cache"
+    },
+    {
+      "file": "simulatte/system-diagram/study-contract.js",
+      "status": 200,
+      "sha256": "a913937e4a4b2a5c6553471b5f0fef59216c62a076c5c6b8ff7f04dfd4b031fc",
+      "expected": "a913937e4a4b2a5c6553471b5f0fef59216c62a076c5c6b8ff7f04dfd4b031fc",
+      "match": true,
+      "cacheControl": "no-cache"
+    },
+    {
+      "file": "simulatte/system-diagram/kernels-realtime.js",
+      "status": 200,
+      "sha256": "a940238f37773206ced19ced2ff6b4bc210a00ce8128ae57dd3d51474863878f",
+      "expected": "a940238f37773206ced19ced2ff6b4bc210a00ce8128ae57dd3d51474863878f",
+      "match": true,
+      "cacheControl": "no-cache"
+    },
+    {
+      "file": "simulatte/system-diagram/kernels-study-data.js",
+      "status": 200,
+      "sha256": "308d8578b702cbdda20bea8833efbd02485dc46da87e12cd552c0620e987747c",
+      "expected": "308d8578b702cbdda20bea8833efbd02485dc46da87e12cd552c0620e987747c",
+      "match": true,
+      "cacheControl": "no-cache"
+    },
+    {
+      "file": "simulatte/system-diagram/kernels-study-algorithms.js",
+      "status": 200,
+      "sha256": "09b1f2ed3dac02c695669d6ed55b607a79ad88cdd2468404adb27be1f1fd88f8",
+      "expected": "09b1f2ed3dac02c695669d6ed55b607a79ad88cdd2468404adb27be1f1fd88f8",
+      "match": true,
+      "cacheControl": "no-cache"
+    },
+    {
+      "file": "simulatte/system-diagram/kernels-study-protocols.js",
+      "status": 200,
+      "sha256": "258c4828013a082be0b8bab0611f1f197b67bd276a74ef07459f7dfd7a05741a",
+      "expected": "258c4828013a082be0b8bab0611f1f197b67bd276a74ef07459f7dfd7a05741a",
+      "match": true,
+      "cacheControl": "no-cache"
+    },
+    {
+      "file": "simulatte/system-diagram/private-collection.js",
+      "status": 200,
+      "sha256": "d33ab58e1bb7a432fcea18e90420dcad5170431ac2c10724e459c846e2940ae6",
+      "expected": "d33ab58e1bb7a432fcea18e90420dcad5170431ac2c10724e459c846e2940ae6",
+      "match": true,
+      "cacheControl": "no-cache"
+    }
+  ]
+}
