@@ -95,11 +95,10 @@ properties rail on the right; the canvas fills the space between them. Show only
 the current interview question, with details and example architectures available
 on request. Previous and Next retain editable stage snapshots; selecting a task
 never fills in its solution. Attribute published interview exercises, firsthand
-candidate reports and synthetic practice scenarios distinctly. Local development
-opens the full study collection without password entry through an explicitly
-configured loopback server. Deployed Databricks preparation remains exclusively
-password-protected; credentials and plaintext never enter hosting assets. Keep
-local saves encrypted and compatible with the existing collection password. Choose connection sides
+candidate reports and synthetic practice scenarios distinctly. Publish all authored problems, approaches and stages without a password in local
+and hosted Lucyd. Personal notes and previously saved private diagrams remain
+encrypted, with the existing password unchanged. Preserve private edit history
+when restoring older encrypted study sessions for a now-public problem. Choose connection sides
 from component geometry and route rounded orthogonal links around node bodies,
 minimizing distance and unnecessary bends. Keep pan and zoom bounded,
 provide Fit to View, attach typed connections at port boundaries, and restore

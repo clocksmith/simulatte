@@ -4,30 +4,31 @@
     {
       "width": 1440,
       "availableProblems": 46,
-      "structuredPrivateProblems": 15,
+      "structuredPublishedProblems": 15,
       "subsystems": 7,
       "addExpandReturn": true,
       "typedBrief": true,
       "citations": true,
-      "encryptedSaveReload": true,
+      "publicSaveReload": true,
       "errors": []
     },
     {
       "width": 390,
       "availableProblems": 46,
-      "structuredPrivateProblems": 15,
+      "structuredPublishedProblems": 15,
       "subsystems": 7,
       "addExpandReturn": true,
       "typedBrief": true,
       "citations": true,
-      "encryptedSaveReload": true,
+      "publicSaveReload": true,
       "errors": []
     }
   ],
   "hostedOrigin": {
     "simulated": true,
+    "publicProblems": 46,
     "privateProblems": 0,
     "localRequests": 0,
-    "passwordRequired": true
+    "personalNotesProtected": true
   }
 }

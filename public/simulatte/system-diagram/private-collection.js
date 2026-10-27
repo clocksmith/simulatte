@@ -2,7 +2,7 @@
   'use strict';
   const RECORD_SCHEMA = 'simulatte.privateDiagram.v1';
   const STORAGE_KEY = 'simulatte.systemDiagram.privatePractice.v1';
-  function create({document: doc, sourcePath, onLoad, requestLoad, getRecord, onClear, onMessage, library, config, onRegister, onUnregister, onSelect}) {
+  function create({document: doc, sourcePath, onLoad, requestLoad, getRecord, onClear, onMessage, library, config, onRegister, onUnregister, onSelect, publicReady}) {
     const crypto = root.SimulattePrivateCrypto;
     const dialog = doc.createElement('dialog'); dialog.className = 'wui-sheet private-collection'; dialog.setAttribute('aria-label', 'Private collection');
     const heading = doc.createElement('div'); heading.className = 'panel-heading';
@@ -23,6 +23,8 @@
     }
     async function loadProtected(value) {
       const token = epoch;
+      if (value.studyState?.problemKey && publicReady) await publicReady;
+      if (!session || token !== epoch) return;
       dialog.close();
       await requestLoad(() => {
         if (!session || token !== epoch) return;
@@ -72,7 +74,7 @@
       const password = element('input'); password.id = 'private-password'; password.type = 'password'; password.autocomplete = 'current-password'; password.required = true; password.className = 'wui-field';
       label.htmlFor = password.id;
       const unlock = button('Unlock', () => form.requestSubmit()); unlock.id = 'private-unlock';
-      form.append(label, password, unlock); content.replaceChildren(element('p', 'Practice diagrams and notes are encrypted. Your password stays in this browser session.'), form);
+      form.append(label, password, unlock); content.replaceChildren(element('p', 'Personal notes and private saved diagrams are encrypted. All authored problems are available in Choose problem.'), form);
       root.SimulatteWorldUI.adoptTree(content);
       form.addEventListener('submit', async event => {
         event.preventDefault(); const token = ++epoch; unlock.disabled = true; status.textContent = 'Unlocking...';
@@ -114,7 +116,7 @@
         section.append(summary, prompt, element('p', exercise.solutions.length + ' solution approaches'), start); exercises.append(section);
       }
       const notes = element('details'); notes.id = 'private-notes'; notes.append(element('summary', 'Interview notes'), renderNotes(data.notesMarkdown || ''));
-      content.replaceChildren(element('h3', data.title), element('p', data.provenanceNote), actions, element('h3', 'Practice diagrams'), exercises, notes);
+      content.replaceChildren(element('h3', data.title), element('p', data.provenanceNote), actions, ...(data.problems.length ? [element('h3', 'Practice diagrams'), exercises] : []), notes);
       root.SimulatteWorldUI.adoptTree(content);
     }
     function open() {

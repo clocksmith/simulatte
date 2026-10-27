@@ -31,6 +31,17 @@ async function setup(run){
  try{await stepper.ready;await run({ui,model,stepper,simulated:()=>simulated,intercept:fn=>intercept=fn});}
  finally{stepper.dispose();global.fetch=oldFetch;global.Option=oldOption;}
 }
+
+test('published practice is public while older encrypted edits restore through a hidden private alias',()=>setup(async({ui,model,stepper})=>{
+ const problem=require('../public/data/system-diagram/problems.json').problems.find(p=>p.id==='private-practice-4');
+ stepper.setScenario(problem.id);assert.equal(stepper.getSelection().isPrivate,false);await stepper.showSolution(problem.solutions[0].id);
+ const diagram=structuredClone(model.diagram),node=diagram.nodes[0];node.label='Personal encrypted annotation';model.replace(diagram);
+ const key='private:'+problem.id,solution=problem.solutions[0],stage=solution.stages[0];
+ stepper.restorePrivateState({curriculumVersion:4,problemKey:key,index:0,reference:D.emptyDiagram(config),walkthrough:{solutionId:solution.id,index:0,stageId:stage.id},own:[],branches:[[[key,solution.id,'@'+stage.id].join(':'),diagram]]});
+ assert.equal(stepper.getSelection().isPrivate,true);assert.equal(model.diagram.nodes[0].label,'Personal encrypted annotation');
+ assert.ok(!ui.all().some(e=>e.tagName==='option'&&e.value===key));assert.ok(!JSON.stringify(stepper.publicState()).includes('Personal encrypted annotation'));
+ stepper.unregisterPrivate();stepper.setScenario(problem.id);assert.equal(stepper.getSelection().isPrivate,false);await stepper.showSolution(solution.id);assert.notEqual(model.diagram.nodes[0].label,'Personal encrypted annotation');
+}));
 test('solution is opt-in, stages preserve edits, final navigation does not duplicate execution and return restores personal architecture',()=>setup(async({ui,model,stepper,simulated})=>{
  stepper.setScenario('reddit-comments');assert.equal(model.diagram.nodes.length,0);
  model.apply({type:'addNode',classId:'worker',x:10,y:20});const personal=structuredClone(model.diagram);

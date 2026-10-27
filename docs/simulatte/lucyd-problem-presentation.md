@@ -35,10 +35,13 @@ and candidate reports. References scoped `background` or `interview-format` do
 not upgrade authored practice into either category. Authored prompts explicitly
 state that their exact interview-question provenance is unverified.
 
-All fifteen private imported prompts were structured, and three repeated prompt
-summaries were removed while retaining their discussion questions. The encrypted
-collection retains the existing password and salt. All solution diagrams are
-unchanged by this migration.
+All fifteen previously private prompts are now published alongside the other
+31 problems, retaining their stable IDs, structured details and unverified
+provenance labels. The public catalogue contains 46 problems, 92 approaches and
+736 stages. Personal notes remain encrypted with the existing password and salt.
+Older encrypted study edits restore through a hidden private alias and never
+become public saved state merely because their base problem was published.
+All solution diagrams are unchanged by this migration.
 
 The component rail separates Individual components from Expandable subsystems.
 Seven reusable public subsystem definitions are generated from the canonical

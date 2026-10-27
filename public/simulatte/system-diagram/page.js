@@ -287,7 +287,7 @@
       canvas.setView(diagram.view, {restore: true});
       canvas.flush();
       render();
-      const expected=model.diagram,needsCatalogue=!privateDocument&&studyState?.problemKey&&studyState.problemKey!=='custom';
+      const expected=model.diagram,needsCatalogue=studyState?.problemKey&&studyState.problemKey!=='custom';
       pendingStudyRestore=(needsCatalogue?interviewStepper.ready:Promise.resolve()).then(()=>{if(model.diagram!==expected)return;if(privateDocument)interviewStepper.restorePrivateState(studyState);else interviewStepper.restorePublicState(studyState);});
       pendingStudyRestore.catch(error=>message(error.message,true));
       message(`Loaded saved diagram: ${diagram.name || diagram.id || 'Custom architecture'}`);
@@ -891,7 +891,7 @@
   interviewStepper?.onDocumentLoaded(model.diagram);
 
   privateCollection = globalThis.SimulattePrivateCollection.create({
-    document, sourcePath: config.privateCollectionPath, library, config,
+    document, sourcePath: config.privateCollectionPath, library, config, publicReady: interviewStepper.ready,
     onRegister: data => interviewStepper.registerPrivate(data),
     onUnregister: () => { if(suspendedStudy?.privateDocument)suspendedStudy=null;replacementEpoch++;pendingReplacement?.onCancel?.();pendingReplacement=null;closeUnsavedDialog();designDialog.close();designDialog.replaceChildren(); deploymentPanel?.dispose(); deploymentPanel = null; playback.clear(); interviewStepper.unregisterPrivate(); },
     onSelect: key => interviewStepper.setScenario(key),
@@ -904,7 +904,7 @@
     },
     onMessage: message,
   });
-  button('document-actions', 'Private collection', () => privateCollection.open());
+  button('document-actions', 'Private notes and saves', () => privateCollection.open());
   button('document-actions', 'Deployment', async () => {
     if (!deploymentPanel) {
       const module = await import('./deployment/panel.js');
