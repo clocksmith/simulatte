@@ -1,35 +1,58 @@
 {
-  "schema": "simulatte.systemDiagram.v5",
-  "id": "diagram",
-  "name": "Subscription payments / Define subscription and payment boundaries",
-  "description": "",
-  "seed": 1,
+  "schema": "simulatte.systemDiagram.v4",
+  "id": "subscriptions",
+  "name": "Subscription payments / Activate one subscription",
+  "description": "Authored finite synthetic API model.",
+  "seed": 42,
   "run": {
-    "horizonSec": 120
+    "horizonSec": 20
   },
   "classes": [],
   "nodes": [
     {
       "id": "subscribers",
-      "classId": "concept.subscribers-context",
-      "label": "Users and requests",
+      "classId": "api-practice-client",
+      "label": "subscribers",
       "x": 0,
-      "y": 80,
-      "params": {}
+      "y": 0,
+      "params": {
+        "scenario": "subscriptions",
+        "intervalMs": 800,
+        "timeoutMs": 600,
+        "retries": 0
+      }
     },
     {
       "id": "subscriptions",
-      "classId": "concept.subscriptions-context",
-      "label": "System responsibility",
-      "x": 320,
-      "y": 80,
-      "params": {}
+      "classId": "subscription-service",
+      "label": "subscriptions",
+      "x": 300,
+      "y": 0,
+      "params": {
+        "serviceDist": "constant",
+        "serviceMs": 10,
+        "callTimeoutMs": 200,
+        "retries": 0,
+        "idempotent": false
+      }
+    },
+    {
+      "id": "provider",
+      "classId": "payment-provider",
+      "label": "provider",
+      "x": 600,
+      "y": 0,
+      "params": {
+        "serviceDist": "constant",
+        "serviceMs": 10,
+        "idempotent": false
+      }
     }
   ],
   "edges": [
     {
-      "id": "context-request",
-      "label": "request / outcome contract",
+      "id": "subscription-request",
+      "label": "subscription-request",
       "from": {
         "nodeId": "subscribers",
         "portId": "out"
@@ -38,7 +61,26 @@
         "nodeId": "subscriptions",
         "portId": "in"
       },
-      "params": {}
+      "params": {
+        "latencyMs": 10,
+        "bandwidthMbps": 100
+      }
+    },
+    {
+      "id": "charge-request",
+      "label": "charge-request",
+      "from": {
+        "nodeId": "subscriptions",
+        "portId": "provider"
+      },
+      "to": {
+        "nodeId": "provider",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 10,
+        "bandwidthMbps": 100
+      }
     }
   ],
   "groups": [],
@@ -48,42 +90,5 @@
     "x": 0,
     "y": 0,
     "zoom": 1
-  },
-  "intent": {
-    "outcome": "Design subscription payments with multiple payment options and safe handling of repeated requests.",
-    "users": "Callers, state owners and operators named by the problem.",
-    "constraints": "Make ordering, durability, capacity and retry assumptions explicit. Simulation stage 1 only, architecture detail level 2. One synthetic subscription and finite card/bank charge records, each worth 10 model units. Models lifecycle versions, event identity and reconciliation, not money movement, PCI compliance, provider webhooks, real credentials or multi-region transactions.",
-    "success": "An observable request path, bounded waiting, visible failures and a justified recovery policy."
-  },
-  "concepts": [
-    {
-      "id": "subscribers-context",
-      "label": "Users and requests",
-      "responsibility": "Who issues requests, and which identities or deadlines travel with them?",
-      "ports": [
-        {
-          "id": "out",
-          "direction": "out",
-          "payloadType": "json"
-        }
-      ]
-    },
-    {
-      "id": "subscriptions-context",
-      "label": "System responsibility",
-      "responsibility": "Design subscription payments with multiple payment options and safe handling of repeated requests.",
-      "ports": [
-        {
-          "id": "in",
-          "direction": "in",
-          "payloadType": "json"
-        },
-        {
-          "id": "out",
-          "direction": "out",
-          "payloadType": "json"
-        }
-      ]
-    }
-  ]
+  }
 }

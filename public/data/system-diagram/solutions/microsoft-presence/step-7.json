@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.systemDiagram.v4",
   "id": "microsoft-presence",
-  "name": "Distributed presence broker / Interrupt presence delivery",
+  "name": "Distributed presence broker / Separate committed work from a lost reply",
   "description": "Heartbeat leases, subscribed status changes and bulk snapshots.",
   "seed": 42,
   "run": {
@@ -75,7 +75,7 @@
       },
       "params": {
         "latencyMs": 80,
-        "bandwidthMbps": 100
+        "bandwidthMbps": 0.1
       }
     },
     {
@@ -113,19 +113,7 @@
   ],
   "groups": [],
   "notes": [],
-  "faults": [
-    {
-      "id": "study-outage",
-      "atSec": 0.15,
-      "untilSec": 1,
-      "target": {
-        "kind": "edge",
-        "id": "heartbeat"
-      },
-      "type": "partition",
-      "params": {}
-    }
-  ],
+  "faults": [],
   "view": {
     "x": 0,
     "y": 0,

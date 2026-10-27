@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.systemDiagram.v4",
   "id": "pagination",
-  "name": "Paginated API / Freeze a read snapshot",
+  "name": "Paginated API / Bound page work",
   "description": "Authored finite synthetic API model.",
   "seed": 42,
   "run": {
@@ -32,8 +32,7 @@
         "mode": "snapshot",
         "pageSize": 3,
         "serviceDist": "constant",
-        "serviceMs": 10,
-        "concurrency": 1
+        "serviceMs": 5
       }
     }
   ],

@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.systemDiagram.v4",
   "id": "project-review-recovery",
-  "name": "Your project architecture / Measure concurrent work",
+  "name": "Your project architecture / Investigate the first bottleneck",
   "description": "Bounded authored synthetic architecture comparison.",
   "seed": 42,
   "run": {
@@ -33,9 +33,9 @@
       "x": 220,
       "y": 100,
       "params": {
-        "serviceMs": 5,
+        "serviceMs": 2.5,
         "serviceDist": "constant",
-        "concurrency": 1,
+        "concurrency": 2,
         "queueCapacity": 8,
         "callTimeoutMs": 2000
       }

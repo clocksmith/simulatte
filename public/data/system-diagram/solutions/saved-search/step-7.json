@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.systemDiagram.v4",
   "id": "saved-search-recovery",
-  "name": "Saved search emails / Retry an interrupted digest",
+  "name": "Saved search emails / Separate committed work from a lost reply",
   "description": "Authored bounded synthetic messaging model.",
   "seed": 42,
   "run": {
@@ -79,14 +79,14 @@
   "notes": [],
   "faults": [
     {
-      "id": "study-outage",
-      "atSec": 0.15,
-      "untilSec": 1,
+      "id": "uncertain-ack",
+      "atSec": 0,
+      "untilSec": 0.5,
       "target": {
         "kind": "node",
         "id": "matcher"
       },
-      "type": "crash",
+      "type": "dropReplies",
       "params": {}
     }
   ],

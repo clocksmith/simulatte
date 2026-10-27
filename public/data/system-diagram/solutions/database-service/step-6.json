@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.systemDiagram.v4",
   "id": "database-service-isolation",
-  "name": "Database as a service / Bound operational admission",
+  "name": "Database as a service / Fail and recover a database",
   "description": "Authored bounded synthetic model, not production capacity or a deployed service.",
   "seed": 42,
   "run": {
@@ -53,8 +53,7 @@
         "maxRecords": 100,
         "timeoutMs": 80,
         "retryIntervalMs": 100,
-        "maxAttempts": 10,
-        "queueCapacity": 1
+        "maxAttempts": 10
       }
     },
     {
@@ -153,7 +152,19 @@
   ],
   "groups": [],
   "notes": [],
-  "faults": [],
+  "faults": [
+    {
+      "id": "study-outage",
+      "atSec": 0.15,
+      "untilSec": 1,
+      "target": {
+        "kind": "node",
+        "id": "db-a"
+      },
+      "type": "crash",
+      "params": {}
+    }
+  ],
   "view": {
     "x": 0,
     "y": 0,

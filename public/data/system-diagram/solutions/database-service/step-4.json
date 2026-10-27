@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.systemDiagram.v4",
   "id": "database-service-isolation",
-  "name": "Database as a service / Bound concurrent database work",
+  "name": "Database as a service / Expose replication lag",
   "description": "Authored bounded synthetic model, not production capacity or a deployed service.",
   "seed": 42,
   "run": {
@@ -49,11 +49,12 @@
       "y": 0,
       "params": {
         "writeQuorum": 2,
-        "concurrency": 1,
+        "concurrency": 4,
         "maxRecords": 100,
         "timeoutMs": 80,
         "retryIntervalMs": 100,
-        "maxAttempts": 10
+        "maxAttempts": 10,
+        "applyMs": 1
       }
     },
     {

@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.systemDiagram.v4",
   "id": "microsoft-presence",
-  "name": "Distributed presence broker / Accept heartbeats",
+  "name": "Distributed presence broker / Register watchers",
   "description": "Heartbeat leases, subscribed status changes and bulk snapshots.",
   "seed": 42,
   "run": {
@@ -49,6 +49,16 @@
       }
     },
     {
+      "id": "notifications",
+      "classId": "worker",
+      "label": "Subscriber delivery",
+      "x": 650,
+      "y": 200,
+      "params": {
+        "serviceMs": 50
+      }
+    },
+    {
       "id": "sync",
       "classId": "operation-client",
       "label": "sync",
@@ -88,6 +98,22 @@
       },
       "to": {
         "nodeId": "broker",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 80,
+        "bandwidthMbps": 100
+      }
+    },
+    {
+      "id": "notify",
+      "label": "notify",
+      "from": {
+        "nodeId": "broker",
+        "portId": "updates"
+      },
+      "to": {
+        "nodeId": "notifications",
         "portId": "in"
       },
       "params": {

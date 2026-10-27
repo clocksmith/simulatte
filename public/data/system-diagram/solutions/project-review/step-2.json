@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.systemDiagram.v4",
-  "id": "project-review-sync",
-  "name": "Your project architecture / Trace the smallest request path",
+  "id": "project-review-queue",
+  "name": "Your project architecture / Explain the persistence decision",
   "description": "Bounded authored synthetic architecture comparison.",
   "seed": 42,
   "run": {
@@ -65,6 +65,28 @@
         "writeMs": 3,
         "serviceDist": "constant"
       }
+    },
+    {
+      "id": "queue",
+      "classId": "task-queue",
+      "label": "queue",
+      "x": 450,
+      "y": 100,
+      "params": {
+        "capacity": 40,
+        "prefetch": 2,
+        "visibilityTimeoutMs": 1500,
+        "maxReceives": 4,
+        "retryDelayMs": 100
+      }
+    },
+    {
+      "id": "deadletters",
+      "classId": "dead-letter-queue",
+      "label": "deadletters",
+      "x": 450,
+      "y": 330,
+      "params": {}
     }
   ],
   "edges": [
@@ -76,21 +98,6 @@
       },
       "to": {
         "nodeId": "api",
-        "portId": "in"
-      },
-      "params": {
-        "latencyMs": 2,
-        "bandwidthMbps": 100
-      }
-    },
-    {
-      "id": "compute",
-      "from": {
-        "nodeId": "api",
-        "portId": "calls"
-      },
-      "to": {
-        "nodeId": "worker",
         "portId": "in"
       },
       "params": {
@@ -112,6 +119,53 @@
         "latencyMs": 2,
         "bandwidthMbps": 100,
         "op": "write"
+      }
+    },
+    {
+      "id": "enqueue",
+      "from": {
+        "nodeId": "api",
+        "portId": "calls"
+      },
+      "to": {
+        "nodeId": "queue",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 100,
+        "op": "write"
+      }
+    },
+    {
+      "id": "consume",
+      "from": {
+        "nodeId": "queue",
+        "portId": "consumers"
+      },
+      "to": {
+        "nodeId": "worker",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 100,
+        "op": "write"
+      }
+    },
+    {
+      "id": "dead",
+      "from": {
+        "nodeId": "queue",
+        "portId": "dlq"
+      },
+      "to": {
+        "nodeId": "deadletters",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 100
       }
     }
   ],

@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.systemDiagram.v4",
   "id": "meta-stories",
-  "name": "Ephemeral stories media pipeline / Publish owned media",
+  "name": "Ephemeral stories media pipeline / Check audience membership",
   "description": "Synthetic audience checks and expiration of story visibility.",
   "seed": 42,
   "run": {
@@ -56,6 +56,16 @@
         "startSec": 2,
         "keySpace": 3,
         "actorSpace": 4
+      }
+    },
+    {
+      "id": "updates",
+      "classId": "worker",
+      "label": "Audience updates",
+      "x": 730,
+      "y": 0,
+      "params": {
+        "serviceMs": 30
       }
     },
     {
@@ -115,6 +125,22 @@
       },
       "to": {
         "nodeId": "stories",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 80,
+        "bandwidthMbps": 100
+      }
+    },
+    {
+      "id": "story-updates",
+      "label": "story-updates",
+      "from": {
+        "nodeId": "stories",
+        "portId": "updates"
+      },
+      "to": {
+        "nodeId": "updates",
         "portId": "in"
       },
       "params": {

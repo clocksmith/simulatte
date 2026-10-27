@@ -1,0 +1,2029 @@
+{
+  "schema": "simulatte.lucydApproachComparison.v1",
+  "publicHash": "e7e27d7a6508c2eeee8abdca91b00a3c27ef0d84808f1a2506c24d1f08bd388a",
+  "privateCiphertextHash": "b136fdb13e2984eae6ebca14e6ec9e1be7329f45d3d2093a1ff78863e4c49eff",
+  "boundary": "Fresh no-fault runs of each final architecture under declared workload contracts. Structural signatures distinguish implementations/topology, not pedagogical quality or production capacity.",
+  "problems": [
+    {
+      "scope": "public",
+      "problemId": "database-service",
+      "approaches": [
+        {
+          "solutionId": "isolated-tenant-service",
+          "runnableStages": 8,
+          "structureHash": "715a8ba12d9a4660ead48d9c0cc2d1352a15ea9d9c38378fbbbf03e7c956d076",
+          "kernelCounts": {
+            "linkedReplica": 4,
+            "source": 2
+          },
+          "workloadHash": "4485b43973a2ad284027a07eb44f39a4236638cfac213aa7b0fccdf917b02895",
+          "faultsInjected": 0,
+          "metrics": {
+            "offered": 8,
+            "completed": 8,
+            "failed": 0,
+            "inFlight": 0,
+            "p95Ms": 40.21077360335145,
+            "modelTimeSec": 6,
+            "attempts": 16,
+            "effects": 8
+          }
+        },
+        {
+          "solutionId": "shared-tenant-namespaces",
+          "runnableStages": 8,
+          "structureHash": "3f542262d30786afdebf6919b2c6ff554ce6c15333e2cdeb59447e0aa4200620",
+          "kernelCounts": {
+            "sharedTenantDatabase": 1,
+            "source": 2
+          },
+          "workloadHash": "4485b43973a2ad284027a07eb44f39a4236638cfac213aa7b0fccdf917b02895",
+          "faultsInjected": 0,
+          "metrics": {
+            "offered": 8,
+            "completed": 8,
+            "failed": 0,
+            "inFlight": 0,
+            "p95Ms": 14.29343289766749,
+            "modelTimeSec": 6,
+            "attempts": 8,
+            "effects": 8
+          }
+        }
+      ],
+      "identicalConfiguredSource": true
+    },
+    {
+      "scope": "public",
+      "problemId": "project-review",
+      "approaches": [
+        {
+          "solutionId": "worked-project-review",
+          "runnableStages": 8,
+          "structureHash": "4c9583dd10de4680326e5b1c0303aeac02e7ccde77d9d675693a69a75e745890",
+          "kernelCounts": {
+            "database": 1,
+            "deadLetter": 1,
+            "queue": 1,
+            "service": 2,
+            "source": 1
+          },
+          "workloadHash": "b0b6479b03d8449f1be2565b0b968fb22a51cda55d1e68dc0ad93c6f37898b8d",
+          "faultsInjected": 0,
+          "metrics": {
+            "offered": 36,
+            "completed": 36,
+            "failed": 0,
+            "inFlight": 0,
+            "p95Ms": 14.29343289766749,
+            "modelTimeSec": 16,
+            "attempts": 144,
+            "effects": 36
+          }
+        },
+        {
+          "solutionId": "synchronous-results",
+          "runnableStages": 8,
+          "structureHash": "575db8d9d4e3f44dc79b1464bf764d2fcd355c01f36975452adb735120740aea",
+          "kernelCounts": {
+            "database": 1,
+            "service": 2,
+            "source": 1
+          },
+          "workloadHash": "b0b6479b03d8449f1be2565b0b968fb22a51cda55d1e68dc0ad93c6f37898b8d",
+          "faultsInjected": 0,
+          "metrics": {
+            "offered": 36,
+            "completed": 2,
+            "failed": 34,
+            "inFlight": 0,
+            "p95Ms": 427.6600954413116,
+            "modelTimeSec": 16,
+            "attempts": 108,
+            "effects": 36
+          }
+        }
+      ],
+      "identicalConfiguredSource": true
+    },
+    {
+      "scope": "public",
+      "problemId": "pagination",
+      "approaches": [
+        {
+          "solutionId": "stable-cursors",
+          "runnableStages": 8,
+          "structureHash": "464db506fdeb4010c779a7bf2b1705bf1d6ed4b629f9fee7883f8b685d07fc4f",
+          "kernelCounts": {
+            "apiPracticeClient": 1,
+            "paginationStore": 1
+          },
+          "workloadHash": "6b232bbfeeb524cb9c0d2e36f414a732944f98e541b1c7427c56b5c560a923cb",
+          "faultsInjected": 0,
+          "metrics": {
+            "offered": 5,
+            "completed": 4,
+            "failed": 1,
+            "inFlight": 0,
+            "p95Ms": 29.922501053156257,
+            "modelTimeSec": 20,
+            "attempts": 5,
+            "effects": 0
+          }
+        },
+        {
+          "solutionId": "materialized-page-session",
+          "runnableStages": 8,
+          "structureHash": "77a9930a77cce28d4c053d207c3d98ded325e936351e9092bbce77671829c8cb",
+          "kernelCounts": {
+            "materializedPageClient": 1,
+            "materializedPages": 1
+          },
+          "workloadHash": "57e30ddc3dadc2e64183f130351eb73f82d9098d2ece0f3aece89adfa004c13b",
+          "faultsInjected": 0,
+          "metrics": {
+            "offered": 5,
+            "completed": 4,
+            "failed": 1,
+            "inFlight": 0,
+            "p95Ms": 29.922501053156257,
+            "modelTimeSec": 20,
+            "attempts": 5,
+            "effects": 0
+          }
+        }
+      ],
+      "identicalConfiguredSource": false
+    },
+    {
+      "scope": "public",
+      "problemId": "chat",
+      "approaches": [
+        {
+          "solutionId": "durable-mailbox",
+          "runnableStages": 8,
+          "structureHash": "1981332e30aba5ed152df905bd4d44a01245133732f3bd71f893078335d1dac6",
+          "kernelCounts": {
+            "chatMailbox": 1,
+            "connectionGateway": 1,
+            "messagingSource": 1,
+            "presenceBroker": 1,
+            "pushInbox": 2,
+            "retry": 1,
+            "service": 1
+          },
+          "workloadHash": "9b46996d091172f1c8996974e78b1ba0c72f4f8a93e3611f32bf77badef809d9",
+          "faultsInjected": 0,
+          "metrics": {
+            "offered": 8,
+            "completed": 7,
+            "failed": 1,
+            "inFlight": 0,
+            "p95Ms": 31.433203717111247,
+            "modelTimeSec": 15,
+            "attempts": 47,
+            "effects": 3
+          }
+        },
+        {
+          "solutionId": "cursor-pull-mailbox",
+          "runnableStages": 8,
+          "structureHash": "1a747a7564009d0f16f9072559909a49e9c9ea49f45edc986a60629841daec11",
+          "kernelCounts": {
+            "chatMailbox": 1,
+            "messagingSource": 1,
+            "retry": 1
+          },
+          "workloadHash": "9b46996d091172f1c8996974e78b1ba0c72f4f8a93e3611f32bf77badef809d9",
+          "faultsInjected": 0,
+          "metrics": {
+            "offered": 8,
+            "completed": 7,
+            "failed": 1,
+            "inFlight": 0,
+            "p95Ms": 12.952542758923173,
+            "modelTimeSec": 15,
+            "attempts": 18,
+            "effects": 3
+          }
+        }
+      ],
+      "identicalConfiguredSource": true
+    },
+    {
+      "scope": "public",
+      "problemId": "replication",
+      "approaches": [
+        {
+          "solutionId": "explicit-replication-outbox",
+          "runnableStages": 8,
+          "structureHash": "22c0df3a424d89ef4c1ee037755f1bf93bb62885b95aa533c0c4c56fc8cf7368",
+          "kernelCounts": {
+            "linkedReplica": 2,
+            "source": 1
+          },
+          "workloadHash": "da0a8893ae35a47cadb6aff463b15b75a368c69596414091008ca09f5a9a5a6a",
+          "faultsInjected": 0,
+          "metrics": {
+            "offered": 4,
+            "completed": 4,
+            "failed": 0,
+            "inFlight": 0,
+            "p95Ms": 40.21077360335145,
+            "modelTimeSec": 6,
+            "attempts": 8,
+            "effects": 4
+          }
+        },
+        {
+          "solutionId": "internal-quorum-cluster",
+          "runnableStages": 8,
+          "structureHash": "d09a989f4fcdd0b0d333cbf230c0c96ce1c2ac343ada077a5c80f59e9feef5fe",
+          "kernelCounts": {
+            "replicatedDb": 1,
+            "source": 1
+          },
+          "workloadHash": "da0a8893ae35a47cadb6aff463b15b75a368c69596414091008ca09f5a9a5a6a",
+          "faultsInjected": 0,
+          "metrics": {
+            "offered": 4,
+            "completed": 4,
+            "failed": 0,
+            "inFlight": 0,
+            "p95Ms": 10.636335056683093,
+            "modelTimeSec": 6,
+            "attempts": 4,
+            "effects": 4
+          }
+        }
+      ],
+      "identicalConfiguredSource": true
+    },
+    {
+      "scope": "public",
+      "problemId": "saved-search",
+      "approaches": [
+        {
+          "solutionId": "match-outbox-digest",
+          "runnableStages": 8,
+          "structureHash": "f2df850539583a42df35a06ed4b0f388f311d11b31620f43c2fce0a10d6c844d",
+          "kernelCounts": {
+            "digestMailbox": 1,
+            "messagingSource": 1,
+            "savedSearch": 1
+          },
+          "workloadHash": "42458c9f48f4ba57b838fe0d6eabb900662c6d30cf3438abd7c92197d1728733",
+          "faultsInjected": 0,
+          "metrics": {
+            "offered": 11,
+            "completed": 11,
+            "failed": 0,
+            "inFlight": 0,
+            "p95Ms": 44.37352610682176,
+            "modelTimeSec": 15,
+            "attempts": 14,
+            "effects": 7
+          }
+        },
+        {
+          "solutionId": "digest-time-scan",
+          "runnableStages": 8,
+          "structureHash": "4d8cbc1c8db6b15d5af242cd6e52f99f2d30d404fb90f1e4b9e7009c5fb80bd6",
+          "kernelCounts": {
+            "digestMailbox": 1,
+            "digestScanMatcher": 1,
+            "messagingSource": 1
+          },
+          "workloadHash": "42458c9f48f4ba57b838fe0d6eabb900662c6d30cf3438abd7c92197d1728733",
+          "faultsInjected": 0,
+          "metrics": {
+            "offered": 11,
+            "completed": 11,
+            "failed": 0,
+            "inFlight": 0,
+            "p95Ms": 48.96722054083247,
+            "modelTimeSec": 15,
+            "attempts": 14,
+            "effects": 7
+          }
+        }
+      ],
+      "identicalConfiguredSource": true
+    },
+    {
+      "scope": "public",
+      "problemId": "load-balancer",
+      "approaches": [
+        {
+          "solutionId": "round-robin-recovery",
+          "runnableStages": 8,
+          "structureHash": "c4e5fed9de6794bc2e96bfd507a58cdbc2bf40f2ac3c3cacc9d3b72695bd6955",
+          "kernelCounts": {
+            "circuitBreaker": 2,
+            "loadBalancer": 1,
+            "service": 2,
+            "source": 1
+          },
+          "workloadHash": "135b75c07a967b8a2e2be032266369d8ac9313f2077cdd4e88a3022409796913",
+          "faultsInjected": 0,
+          "metrics": {
+            "offered": 80,
+            "completed": 80,
+            "failed": 0,
+            "inFlight": 0,
+            "p95Ms": 28.484403859500155,
+            "modelTimeSec": 16,
+            "attempts": 240,
+            "effects": 0
+          }
+        },
+        {
+          "solutionId": "client-side-selection",
+          "runnableStages": 8,
+          "structureHash": "803c49434a82119361dc60662010edccb0d9138a5b56eb6805121c028d17d726",
+          "kernelCounts": {
+            "circuitBreaker": 2,
+            "service": 2,
+            "source": 1
+          },
+          "workloadHash": "135b75c07a967b8a2e2be032266369d8ac9313f2077cdd4e88a3022409796913",
+          "faultsInjected": 0,
+          "metrics": {
+            "offered": 80,
+            "completed": 80,
+            "failed": 0,
+            "inFlight": 0,
+            "p95Ms": 23.390747977326765,
+            "modelTimeSec": 16,
+            "attempts": 160,
+            "effects": 0
+          }
+        }
+      ],
+      "identicalConfiguredSource": true
+    },
+    {
+      "scope": "public",
+      "problemId": "subscriptions",
+      "approaches": [
+        {
+          "solutionId": "versioned-payment-reconciliation",
+          "runnableStages": 8,
+          "structureHash": "deef9b49ae9362aea62719788e98e81b7d669e93df92fc10518f2ed0ba1e4920",
+          "kernelCounts": {
+            "apiPracticeClient": 1,
+            "paymentProvider": 1,
+            "subscriptionService": 1
+          },
+          "workloadHash": "eb28c88182c7e843be5e163ea25a2e152be3c39f2037c9bb589d2061c7fcda70",
+          "faultsInjected": 0,
+          "metrics": {
+            "offered": 7,
+            "completed": 6,
+            "failed": 1,
+            "inFlight": 0,
+            "p95Ms": 59.630503783560066,
+            "modelTimeSec": 20,
+            "attempts": 10,
+            "effects": 2
+          }
+        },
+        {
+          "solutionId": "asynchronous-invoice-outbox",
+          "runnableStages": 8,
+          "structureHash": "1cd217f8325cf2463f723f08810da3f34657cc7327d5033b0fcc56c0e8cb9357",
+          "kernelCounts": {
+            "invoiceOutbox": 1,
+            "invoiceOutboxClient": 1,
+            "paymentProvider": 1
+          },
+          "workloadHash": "2d05565d1c05ec5f261c0220bb021552491a347f87364428ccdac90449c7c692",
+          "faultsInjected": 0,
+          "metrics": {
+            "offered": 7,
+            "completed": 6,
+            "failed": 1,
+            "inFlight": 0,
+            "p95Ms": 59.630503783560066,
+            "modelTimeSec": 20,
+            "attempts": 10,
+            "effects": 2
+          }
+        }
+      ],
+      "identicalConfiguredSource": false
+    },
+    {
+      "scope": "public",
+      "problemId": "reddit-comments",
+      "approaches": [
+        {
+          "solutionId": "reddit-comments",
+          "runnableStages": 8,
+          "structureHash": "e157a1de263d72e2b96c6366936a500a9249bb5f7cd835ebc3c216b4b9a1d325",
+          "kernelCounts": {
+            "commentStore": 1,
+            "operationSource": 3,
+            "service": 2
+          },
+          "workloadHash": "1bb3c0d62e22c5949e8582500e912f1f8b22007b39822e2069f165451b342f17",
+          "faultsInjected": 0,
+          "metrics": {
+            "offered": 28,
+            "completed": 28,
+            "failed": 0,
+            "inFlight": 0,
+            "p95Ms": 427.6600954413116,
+            "modelTimeSec": 20,
+            "attempts": 76,
+            "effects": 8
+          }
+        },
+        {
+          "solutionId": "read-time-vote-aggregation",
+          "runnableStages": 8,
+          "structureHash": "ff466b0b1d9edf862502b8cc1f2d47eeabe271514a5c7d32a84d1af149506d9c",
+          "kernelCounts": {
+            "commentScanStore": 1,
+            "operationSource": 3,
+            "service": 1
+          },
+          "workloadHash": "1bb3c0d62e22c5949e8582500e912f1f8b22007b39822e2069f165451b342f17",
+          "faultsInjected": 0,
+          "metrics": {
+            "offered": 28,
+            "completed": 28,
+            "failed": 0,
+            "inFlight": 0,
+            "p95Ms": 407.10643978263835,
+            "modelTimeSec": 20,
+            "attempts": 60,
+            "effects": 8
+          }
+        }
+      ],
+      "identicalConfiguredSource": true
+    },
+    {
+      "scope": "public",
+      "problemId": "netflix-streaming",
+      "approaches": [
+        {
+          "solutionId": "netflix-streaming",
+          "runnableStages": 8,
+          "structureHash": "08c7d646301088138b316d8bfc6ead239435d2756486f01595330003f1461919",
+          "kernelCounts": {
+            "circuitBreaker": 2,
+            "rateLimiter": 3,
+            "retry": 1,
+            "videoCdn": 3,
+            "videoManifest": 1,
+            "videoOrigin": 1,
+            "videoPeers": 2,
+            "videoViewers": 2
+          },
+          "workloadHash": "9fce87b546dba1339a957e05523bd99e88b22c640614894a5b610bf556fd951e",
+          "faultsInjected": 0,
+          "metrics": {
+            "offered": 24,
+            "completed": 24,
+            "failed": 0,
+            "inFlight": 0,
+            "p95Ms": 4777.996033544856,
+            "modelTimeSec": 30,
+            "attempts": 96,
+            "effects": 0
+          }
+        },
+        {
+          "solutionId": "peer-assisted-delivery",
+          "runnableStages": 8,
+          "structureHash": "1b8f1311e817ceef1fa2d71d96bd7a18a1a088eaabc3a090260ea64bec5a28fd",
+          "kernelCounts": {
+            "circuitBreaker": 2,
+            "rateLimiter": 2,
+            "videoCdn": 2,
+            "videoManifest": 1,
+            "videoOrigin": 1,
+            "videoPeers": 2,
+            "videoViewers": 2
+          },
+          "workloadHash": "385dac08cc20859a2047454395fcaeb22262c433b37f3ad3f20ab1d20be4adde",
+          "faultsInjected": 0,
+          "metrics": {
+            "offered": 24,
+            "completed": 24,
+            "failed": 0,
+            "inFlight": 0,
+            "p95Ms": 4777.996033544856,
+            "modelTimeSec": 30,
+            "attempts": 150,
+            "effects": 0
+          }
+        }
+      ],
+      "identicalConfiguredSource": false
+    },
+    {
+      "scope": "public",
+      "problemId": "twitter-timeline",
+      "approaches": [
+        {
+          "solutionId": "twitter-timeline",
+          "runnableStages": 8,
+          "structureHash": "6d339e3497c2ef57f74c9175255d1685bfdacb908f01f4a4d478ccf1c7e9bab0",
+          "kernelCounts": {
+            "deadLetter": 1,
+            "queue": 1,
+            "rateLimiter": 2,
+            "retry": 4,
+            "service": 1,
+            "socialFanout": 1,
+            "socialFeed": 1,
+            "socialGraph": 1,
+            "socialSource": 1,
+            "socialStore": 1,
+            "socialTimeline": 1
+          },
+          "workloadHash": "8b5dbdba60f4e15b28cd12ea38f1511069e74adb5358dd0c53f085787b370a0d",
+          "faultsInjected": 0,
+          "metrics": {
+            "offered": 148,
+            "completed": 148,
+            "failed": 0,
+            "inFlight": 0,
+            "p95Ms": 51.439437364756735,
+            "modelTimeSec": 12,
+            "attempts": 1016,
+            "effects": 28
+          }
+        },
+        {
+          "solutionId": "read-time-social-merge",
+          "runnableStages": 8,
+          "structureHash": "8efdfa772c6849a78eb4315656f7c96bf89fdf5a38b559e5148ca55222db1e33",
+          "kernelCounts": {
+            "rateLimiter": 2,
+            "retry": 3,
+            "service": 1,
+            "socialFeed": 1,
+            "socialGraph": 1,
+            "socialSource": 1,
+            "socialStore": 1,
+            "socialTimeline": 1
+          },
+          "workloadHash": "8b5dbdba60f4e15b28cd12ea38f1511069e74adb5358dd0c53f085787b370a0d",
+          "faultsInjected": 0,
+          "metrics": {
+            "offered": 148,
+            "completed": 148,
+            "failed": 0,
+            "inFlight": 0,
+            "p95Ms": 46.61382025802141,
+            "modelTimeSec": 12,
+            "attempts": 952,
+            "effects": 12
+          }
+        }
+      ],
+      "identicalConfiguredSource": true
+    },
+    {
+      "scope": "public",
+      "problemId": "meta-stories",
+      "approaches": [
+        {
+          "solutionId": "meta-stories",
+          "runnableStages": 8,
+          "structureHash": "91c5de3e81af1dc34f4318ff0e46756431bc471f5970f489b471144c0ee207cb",
+          "kernelCounts": {
+            "operationSource": 3,
+            "service": 2,
+            "storyStore": 1
+          },
+          "workloadHash": "4f5c789eb79238cea64ab2f3e3882823566352edb7fb750808dd69dc26d5b89b",
+          "faultsInjected": 0,
+          "metrics": {
+            "offered": 14,
+            "completed": 7,
+            "failed": 7,
+            "inFlight": 0,
+            "p95Ms": 735.1856936617536,
+            "modelTimeSec": 20,
+            "attempts": 23,
+            "effects": 3
+          }
+        },
+        {
+          "solutionId": "queued-media-publication",
+          "runnableStages": 8,
+          "structureHash": "9379df2782551cc04a2f4b7213cbda11fe6698fcdfbe2a573b3efbf7fff4ea8a",
+          "kernelCounts": {
+            "operationSource": 3,
+            "queue": 1,
+            "service": 1,
+            "storyStore": 1
+          },
+          "workloadHash": "4f5c789eb79238cea64ab2f3e3882823566352edb7fb750808dd69dc26d5b89b",
+          "faultsInjected": 0,
+          "metrics": {
+            "offered": 14,
+            "completed": 7,
+            "failed": 7,
+            "inFlight": 0,
+            "p95Ms": 176.22402483502952,
+            "modelTimeSec": 20,
+            "attempts": 20,
+            "effects": 3
+          }
+        }
+      ],
+      "identicalConfiguredSource": true
+    },
+    {
+      "scope": "public",
+      "problemId": "amazon-flash-sale",
+      "approaches": [
+        {
+          "solutionId": "amazon-flash-sale",
+          "runnableStages": 8,
+          "structureHash": "4fb2d79f47c186a1cbe1d330acbc4a9fa573837a2368c0af5c09e510b9822bcc",
+          "kernelCounts": {
+            "inventoryReservations": 1,
+            "operationSource": 3,
+            "service": 1
+          },
+          "workloadHash": "1b8dbdeda44fe2ccc0d4a10b6f8a0f7c6bb90874ff622e3e8f21e6a4771398a5",
+          "faultsInjected": 0,
+          "metrics": {
+            "offered": 14,
+            "completed": 8,
+            "failed": 6,
+            "inFlight": 0,
+            "p95Ms": 176.22402483502952,
+            "modelTimeSec": 20,
+            "attempts": 26,
+            "effects": 8
+          }
+        },
+        {
+          "solutionId": "journaled-inventory-actor",
+          "runnableStages": 8,
+          "structureHash": "bd758ec51bc732273a8584d43192e2c90df9428f4d32b32f61641d629b388c6e",
+          "kernelCounts": {
+            "commandJournal": 1,
+            "inventoryReservations": 1,
+            "operationSource": 3
+          },
+          "workloadHash": "1b8dbdeda44fe2ccc0d4a10b6f8a0f7c6bb90874ff622e3e8f21e6a4771398a5",
+          "faultsInjected": 0,
+          "metrics": {
+            "offered": 14,
+            "completed": 8,
+            "failed": 6,
+            "inFlight": 0,
+            "p95Ms": 185.1210787042303,
+            "modelTimeSec": 20,
+            "attempts": 48,
+            "effects": 8
+          }
+        }
+      ],
+      "identicalConfiguredSource": true
+    },
+    {
+      "scope": "public",
+      "problemId": "google-crawler",
+      "approaches": [
+        {
+          "solutionId": "google-crawler",
+          "runnableStages": 8,
+          "structureHash": "2d3720a9937d5127e3a6cb1ab7550a39503ef3c3ccd2661b0a001aa9133feb21",
+          "kernelCounts": {
+            "crawler": 1,
+            "database": 1,
+            "endpoint": 1,
+            "objectStore": 1,
+            "service": 1,
+            "structuredResponse": 1
+          },
+          "workloadHash": "329324c9f2a5636e9e7480b21033d0c19272f48b13225af91a23195e25cfc397",
+          "faultsInjected": 0,
+          "metrics": {
+            "offered": 4,
+            "completed": 4,
+            "failed": 0,
+            "inFlight": 0,
+            "p95Ms": 44.37352610682176,
+            "modelTimeSec": 30,
+            "attempts": 20,
+            "effects": 8
+          }
+        },
+        {
+          "solutionId": "queued-document-processing",
+          "runnableStages": 8,
+          "structureHash": "889212f56f6f1b3a01b0524746f9ece5c2290907798d9645d7d3e2e476bcf3ba",
+          "kernelCounts": {
+            "crawler": 1,
+            "database": 1,
+            "endpoint": 1,
+            "queue": 1,
+            "service": 1,
+            "structuredResponse": 1
+          },
+          "workloadHash": "329324c9f2a5636e9e7480b21033d0c19272f48b13225af91a23195e25cfc397",
+          "faultsInjected": 0,
+          "metrics": {
+            "offered": 4,
+            "completed": 4,
+            "failed": 0,
+            "inFlight": 0,
+            "p95Ms": 28.484403859500155,
+            "modelTimeSec": 30,
+            "attempts": 20,
+            "effects": 4
+          }
+        }
+      ],
+      "identicalConfiguredSource": true
+    },
+    {
+      "scope": "public",
+      "problemId": "microsoft-presence",
+      "approaches": [
+        {
+          "solutionId": "microsoft-presence",
+          "runnableStages": 8,
+          "structureHash": "cb05872c32535ee3fd6cf1584f4a0881a0dabf7ffb93a43136f8b1d444ee14eb",
+          "kernelCounts": {
+            "operationSource": 3,
+            "presenceBroker": 1,
+            "service": 1
+          },
+          "workloadHash": "3107fe25357aa99df8461585e685558398ff0066ac912451205c80cb1e51d8b8",
+          "faultsInjected": 0,
+          "metrics": {
+            "offered": 24,
+            "completed": 24,
+            "failed": 0,
+            "inFlight": 0,
+            "p95Ms": 176.22402483502952,
+            "modelTimeSec": 20,
+            "attempts": 32,
+            "effects": 0
+          }
+        },
+        {
+          "solutionId": "on-demand-presence-snapshots",
+          "runnableStages": 8,
+          "structureHash": "329377a7bd5194bfd7c119ea34014f2fac5d41e2dad1b2e75452e077dbf525d7",
+          "kernelCounts": {
+            "operationSource": 3,
+            "pollingPresence": 1
+          },
+          "workloadHash": "3107fe25357aa99df8461585e685558398ff0066ac912451205c80cb1e51d8b8",
+          "faultsInjected": 0,
+          "metrics": {
+            "offered": 24,
+            "completed": 24,
+            "failed": 0,
+            "inFlight": 0,
+            "p95Ms": 176.22402483502952,
+            "modelTimeSec": 20,
+            "attempts": 24,
+            "effects": 0
+          }
+        }
+      ],
+      "identicalConfiguredSource": true
+    },
+    {
+      "scope": "public",
+      "problemId": "web-service",
+      "approaches": [
+        {
+          "solutionId": "progressive-design",
+          "runnableStages": 8,
+          "structureHash": "0ddcb91932b59210b7a0f5550b695ca9080612a3178bfbec5fbf741a5da23f16",
+          "kernelCounts": {
+            "cache": 1,
+            "database": 1,
+            "deadLetter": 1,
+            "queue": 1,
+            "replicatedDb": 1,
+            "service": 2,
+            "source": 1
+          },
+          "workloadHash": "c23d7bc353bdb399149ecb5a42c14bac970f960e4f89bcc2fe576ef87c9c36ef",
+          "faultsInjected": 0,
+          "metrics": {
+            "offered": 12,
+            "completed": 12,
+            "failed": 0,
+            "inFlight": 0,
+            "p95Ms": 27.115422664360604,
+            "modelTimeSec": 30,
+            "attempts": 68,
+            "effects": 17
+          }
+        },
+        {
+          "solutionId": "synchronous-application-work",
+          "runnableStages": 8,
+          "structureHash": "32315dd9382b5c5014c3ded69dd13b206167d11b8ba0c17d938ed901bdaf3849",
+          "kernelCounts": {
+            "cache": 1,
+            "database": 1,
+            "replicatedDb": 1,
+            "service": 2,
+            "source": 1
+          },
+          "workloadHash": "c23d7bc353bdb399149ecb5a42c14bac970f960e4f89bcc2fe576ef87c9c36ef",
+          "faultsInjected": 0,
+          "metrics": {
+            "offered": 12,
+            "completed": 12,
+            "failed": 0,
+            "inFlight": 0,
+            "p95Ms": 62.64107969627431,
+            "modelTimeSec": 30,
+            "attempts": 56,
+            "effects": 17
+          }
+        }
+      ],
+      "identicalConfiguredSource": true
+    },
+    {
+      "scope": "public",
+      "problemId": "chat-application",
+      "approaches": [
+        {
+          "solutionId": "progressive-design",
+          "runnableStages": 8,
+          "structureHash": "d8fa09f72ad013054fd3a6b8772ebd82146fc4fbb14563a64063b9782931a4b4",
+          "kernelCounts": {
+            "applicationClient": 1,
+            "chatApplication": 1,
+            "chatStreamSession": 1,
+            "conversationAccess": 1,
+            "conversationStore": 1,
+            "loadBalancer": 2,
+            "rateLimiter": 2,
+            "retry": 2,
+            "service": 2,
+            "syntheticStream": 2
+          },
+          "workloadHash": "c210bb3a6d1a807d185422c82a807c768f85ec05e6e649241115bfa4c58c2ea5",
+          "faultsInjected": 0,
+          "metrics": {
+            "offered": 8,
+            "completed": 7,
+            "failed": 1,
+            "inFlight": 0,
+            "p95Ms": 987.9650578586022,
+            "modelTimeSec": 15,
+            "attempts": 174,
+            "effects": 6
+          }
+        },
+        {
+          "solutionId": "application-owned-stream",
+          "runnableStages": 8,
+          "structureHash": "75d72041f450bd48c0c8756af3551c8eab9258ff30594208b5a02d856699f80d",
+          "kernelCounts": {
+            "applicationClient": 1,
+            "chatApplication": 1,
+            "conversationAccess": 1,
+            "conversationStore": 1,
+            "loadBalancer": 2,
+            "rateLimiter": 2,
+            "retry": 1,
+            "service": 1,
+            "syntheticStream": 2
+          },
+          "workloadHash": "c210bb3a6d1a807d185422c82a807c768f85ec05e6e649241115bfa4c58c2ea5",
+          "faultsInjected": 0,
+          "metrics": {
+            "offered": 8,
+            "completed": 7,
+            "failed": 1,
+            "inFlight": 0,
+            "p95Ms": 940.4827376269899,
+            "modelTimeSec": 15,
+            "attempts": 156,
+            "effects": 6
+          }
+        }
+      ],
+      "identicalConfiguredSource": true
+    },
+    {
+      "scope": "public",
+      "problemId": "rag-assistant",
+      "approaches": [
+        {
+          "solutionId": "progressive-design",
+          "runnableStages": 8,
+          "structureHash": "4f623cc6e62f1c0eb24f356a75e903bc8a5eca47f4d82058f3cbe288dd4b1ff4",
+          "kernelCounts": {
+            "batchWorker": 1,
+            "chunker": 1,
+            "embedder": 1,
+            "llm": 1,
+            "reranker": 1,
+            "retriever": 1,
+            "service": 1,
+            "source": 2,
+            "structuredResponse": 1,
+            "vectorIndex": 1
+          },
+          "workloadHash": "a88d2c28f6278fcec87ef790c9edf1452d92696e27d50c7bc1e1a132781ab894",
+          "faultsInjected": 0,
+          "metrics": {
+            "offered": 9,
+            "completed": 9,
+            "failed": 0,
+            "inFlight": 0,
+            "p95Ms": 144.7111820488941,
+            "modelTimeSec": 30,
+            "attempts": 69,
+            "effects": 9
+          }
+        },
+        {
+          "solutionId": "separate-ingestion-compute",
+          "runnableStages": 8,
+          "structureHash": "df564e00be66ab982ff5ae213970d5a53ebd3ac79309f215f0835cf90e4ecb37",
+          "kernelCounts": {
+            "batchWorker": 1,
+            "chunker": 1,
+            "embedder": 2,
+            "llm": 1,
+            "reranker": 1,
+            "retriever": 1,
+            "service": 1,
+            "source": 2,
+            "structuredResponse": 1,
+            "vectorIndex": 1
+          },
+          "workloadHash": "a88d2c28f6278fcec87ef790c9edf1452d92696e27d50c7bc1e1a132781ab894",
+          "faultsInjected": 0,
+          "metrics": {
+            "offered": 9,
+            "completed": 9,
+            "failed": 0,
+            "inFlight": 0,
+            "p95Ms": 144.7111820488941,
+            "modelTimeSec": 30,
+            "attempts": 69,
+            "effects": 9
+          }
+        }
+      ],
+      "identicalConfiguredSource": true
+    },
+    {
+      "scope": "public",
+      "problemId": "video-distribution",
+      "approaches": [
+        {
+          "solutionId": "progressive-design",
+          "runnableStages": 8,
+          "structureHash": "08c7d646301088138b316d8bfc6ead239435d2756486f01595330003f1461919",
+          "kernelCounts": {
+            "circuitBreaker": 2,
+            "rateLimiter": 3,
+            "retry": 1,
+            "videoCdn": 3,
+            "videoManifest": 1,
+            "videoOrigin": 1,
+            "videoPeers": 2,
+            "videoViewers": 2
+          },
+          "workloadHash": "dbdcbd613dbaf0818936d9b8fb0fcf785f8be4efe486170f9e285970c1fb5534",
+          "faultsInjected": 0,
+          "metrics": {
+            "offered": 96,
+            "completed": 96,
+            "failed": 0,
+            "inFlight": 0,
+            "p95Ms": 2645.798158590047,
+            "modelTimeSec": 30,
+            "attempts": 626,
+            "effects": 0
+          }
+        },
+        {
+          "solutionId": "peer-assisted-delivery",
+          "runnableStages": 8,
+          "structureHash": "1b8f1311e817ceef1fa2d71d96bd7a18a1a088eaabc3a090260ea64bec5a28fd",
+          "kernelCounts": {
+            "circuitBreaker": 2,
+            "rateLimiter": 2,
+            "videoCdn": 2,
+            "videoManifest": 1,
+            "videoOrigin": 1,
+            "videoPeers": 2,
+            "videoViewers": 2
+          },
+          "workloadHash": "a633e65b0d99aad3bd53a29614f3d3a892aef1b6377542cb9bb7b6f2672d623f",
+          "faultsInjected": 0,
+          "metrics": {
+            "offered": 96,
+            "completed": 96,
+            "failed": 0,
+            "inFlight": 0,
+            "p95Ms": 2919.699949612294,
+            "modelTimeSec": 30,
+            "attempts": 594,
+            "effects": 0
+          }
+        }
+      ],
+      "identicalConfiguredSource": false
+    },
+    {
+      "scope": "public",
+      "problemId": "social-feed",
+      "approaches": [
+        {
+          "solutionId": "progressive-design",
+          "runnableStages": 8,
+          "structureHash": "6d339e3497c2ef57f74c9175255d1685bfdacb908f01f4a4d478ccf1c7e9bab0",
+          "kernelCounts": {
+            "deadLetter": 1,
+            "queue": 1,
+            "rateLimiter": 2,
+            "retry": 4,
+            "service": 1,
+            "socialFanout": 1,
+            "socialFeed": 1,
+            "socialGraph": 1,
+            "socialSource": 1,
+            "socialStore": 1,
+            "socialTimeline": 1
+          },
+          "workloadHash": "8b5dbdba60f4e15b28cd12ea38f1511069e74adb5358dd0c53f085787b370a0d",
+          "faultsInjected": 0,
+          "metrics": {
+            "offered": 148,
+            "completed": 148,
+            "failed": 0,
+            "inFlight": 0,
+            "p95Ms": 113.12232165331275,
+            "modelTimeSec": 12,
+            "attempts": 1204,
+            "effects": 88
+          }
+        },
+        {
+          "solutionId": "fanout-on-read",
+          "runnableStages": 8,
+          "structureHash": "8efdfa772c6849a78eb4315656f7c96bf89fdf5a38b559e5148ca55222db1e33",
+          "kernelCounts": {
+            "rateLimiter": 2,
+            "retry": 3,
+            "service": 1,
+            "socialFeed": 1,
+            "socialGraph": 1,
+            "socialSource": 1,
+            "socialStore": 1,
+            "socialTimeline": 1
+          },
+          "workloadHash": "8b5dbdba60f4e15b28cd12ea38f1511069e74adb5358dd0c53f085787b370a0d",
+          "faultsInjected": 0,
+          "metrics": {
+            "offered": 148,
+            "completed": 148,
+            "failed": 0,
+            "inFlight": 0,
+            "p95Ms": 46.61382025802141,
+            "modelTimeSec": 12,
+            "attempts": 952,
+            "effects": 12
+          }
+        }
+      ],
+      "identicalConfiguredSource": true
+    },
+    {
+      "scope": "public",
+      "problemId": "agent-trajectories",
+      "approaches": [
+        {
+          "solutionId": "reference",
+          "runnableStages": 8,
+          "structureHash": "e7f5a61ef4a968be681859ee9c5d59e77f522c87701f0a21a89c23d115ecf06f",
+          "kernelCounts": {
+            "agentTask": 7,
+            "database": 4,
+            "retry": 1,
+            "service": 1,
+            "source": 1,
+            "taskJournal": 1
+          },
+          "workloadHash": "3765ec9ddae87d64bf70a57ce816a4dd5fce0a223dcfaa939bde940dcf3835f0",
+          "faultsInjected": 0,
+          "metrics": {
+            "offered": 1,
+            "completed": 1,
+            "failed": 0,
+            "inFlight": 0,
+            "p95Ms": 520.7889412066118,
+            "modelTimeSec": 20,
+            "attempts": 113,
+            "effects": 11
+          }
+        },
+        {
+          "solutionId": "sequential-task-chain",
+          "runnableStages": 8,
+          "structureHash": "ee714afe12d0712cc787f2ac3a059edda0951184cf099e3f0db75a9836ad9538",
+          "kernelCounts": {
+            "agentTask": 7,
+            "database": 4,
+            "retry": 1,
+            "service": 1,
+            "source": 1,
+            "taskJournal": 1
+          },
+          "workloadHash": "3765ec9ddae87d64bf70a57ce816a4dd5fce0a223dcfaa939bde940dcf3835f0",
+          "faultsInjected": 0,
+          "metrics": {
+            "offered": 1,
+            "completed": 1,
+            "failed": 0,
+            "inFlight": 0,
+            "p95Ms": 634.1978692288902,
+            "modelTimeSec": 20,
+            "attempts": 110,
+            "effects": 11
+          }
+        }
+      ],
+      "identicalConfiguredSource": true
+    },
+    {
+      "scope": "public",
+      "problemId": "spark-job",
+      "approaches": [
+        {
+          "solutionId": "reference",
+          "runnableStages": 8,
+          "structureHash": "11d9d263448179c61919b9d8fa8293af68cee295dd185c06fbc06a3617f7f768",
+          "kernelCounts": {
+            "database": 1,
+            "retry": 2,
+            "service": 1,
+            "sparkBlockStore": 3,
+            "sparkDriver": 1,
+            "sparkExecutor": 6,
+            "sparkInput": 1
+          },
+          "workloadHash": "35205153aa1aa292fcc5e73dee84a398eb1cbe67a3bd0423c26128f0398ed6a0",
+          "faultsInjected": 0,
+          "metrics": {
+            "offered": 1,
+            "completed": 1,
+            "failed": 0,
+            "inFlight": 0,
+            "p95Ms": 2645.798158590047,
+            "modelTimeSec": 30,
+            "attempts": 50,
+            "effects": 2
+          }
+        },
+        {
+          "solutionId": "shared-shuffle-service",
+          "runnableStages": 8,
+          "structureHash": "89945c1ee420c798110e98eba6f61f0e886aa8d0bdfd25b2e3d4fce56a317344",
+          "kernelCounts": {
+            "database": 1,
+            "retry": 2,
+            "service": 1,
+            "sparkBlockStore": 1,
+            "sparkDriver": 1,
+            "sparkExecutor": 6,
+            "sparkInput": 1
+          },
+          "workloadHash": "35205153aa1aa292fcc5e73dee84a398eb1cbe67a3bd0423c26128f0398ed6a0",
+          "faultsInjected": 0,
+          "metrics": {
+            "offered": 1,
+            "completed": 1,
+            "failed": 0,
+            "inFlight": 0,
+            "p95Ms": 2645.798158590047,
+            "modelTimeSec": 30,
+            "attempts": 50,
+            "effects": 2
+          }
+        }
+      ],
+      "identicalConfiguredSource": true
+    },
+    {
+      "scope": "public",
+      "problemId": "workspace-access",
+      "approaches": [
+        {
+          "solutionId": "reference",
+          "runnableStages": 8,
+          "structureHash": "9752e7bc6a81fc37aed7205dbe722917d7ca28273cf17ebf0844825f7ce6ae5b",
+          "kernelCounts": {
+            "applicationClient": 1,
+            "deadLetter": 1,
+            "loadBalancer": 1,
+            "permissionCache": 1,
+            "queue": 1,
+            "rateLimiter": 2,
+            "retry": 3,
+            "service": 2,
+            "workspaceApplication": 2,
+            "workspaceJournal": 1,
+            "workspaceStore": 1
+          },
+          "workloadHash": "154b13bc5fa227311520a6bb586db51c36fd186750d835ef9dce996ac67a1a53",
+          "faultsInjected": 0,
+          "metrics": {
+            "offered": 14,
+            "completed": 9,
+            "failed": 5,
+            "inFlight": 0,
+            "p95Ms": 59.630503783560066,
+            "modelTimeSec": 15,
+            "attempts": 151,
+            "effects": 12
+          }
+        },
+        {
+          "solutionId": "direct-audit-delivery",
+          "runnableStages": 8,
+          "structureHash": "ac3ec19ffefe0ca61b3c61148acd2edbe0b8632d198f8ccd4cb9890a052c2a1b",
+          "kernelCounts": {
+            "directAuditClient": 1,
+            "directAuditWorkspace": 2,
+            "loadBalancer": 1,
+            "permissionCache": 1,
+            "rateLimiter": 2,
+            "retry": 3,
+            "service": 1,
+            "workspaceJournal": 1,
+            "workspaceStore": 1
+          },
+          "workloadHash": "eb18b7821579868dc21479b656e3c241612d1cfba4143e8fdbe773323b79c6cb",
+          "faultsInjected": 0,
+          "metrics": {
+            "offered": 14,
+            "completed": 9,
+            "failed": 5,
+            "inFlight": 0,
+            "p95Ms": 69.12589179906908,
+            "modelTimeSec": 15,
+            "attempts": 137,
+            "effects": 12
+          }
+        }
+      ],
+      "identicalConfiguredSource": false
+    },
+    {
+      "scope": "public",
+      "problemId": "crawler-pipeline",
+      "approaches": [
+        {
+          "solutionId": "reference",
+          "runnableStages": 8,
+          "structureHash": "167ccb48f64010c7310b2dd10ba4fd3d1a0ac06eb976493b1729ea3ef539c341",
+          "kernelCounts": {
+            "crawler": 1,
+            "cron": 1,
+            "database": 1,
+            "endpoint": 1,
+            "objectStore": 1,
+            "service": 1,
+            "structuredResponse": 1
+          },
+          "workloadHash": "62bebe2c85066743b7f40d453749def59e9b0bbe154c9ea01c2fd0a1c0e4323e",
+          "faultsInjected": 0,
+          "metrics": {
+            "offered": 7,
+            "completed": 7,
+            "failed": 0,
+            "inFlight": 0,
+            "p95Ms": 44.37352610682176,
+            "modelTimeSec": 30,
+            "attempts": 32,
+            "effects": 14
+          }
+        },
+        {
+          "solutionId": "queued-ingestion-workers",
+          "runnableStages": 8,
+          "structureHash": "aa88c268e01cf8e5f03a51f76444a3feba18f3c49333a4a446445df439912e1b",
+          "kernelCounts": {
+            "crawler": 1,
+            "cron": 1,
+            "database": 1,
+            "endpoint": 1,
+            "objectStore": 1,
+            "queue": 1,
+            "service": 1,
+            "structuredResponse": 1
+          },
+          "workloadHash": "62bebe2c85066743b7f40d453749def59e9b0bbe154c9ea01c2fd0a1c0e4323e",
+          "faultsInjected": 0,
+          "metrics": {
+            "offered": 7,
+            "completed": 7,
+            "failed": 0,
+            "inFlight": 0,
+            "p95Ms": 28.484403859500155,
+            "modelTimeSec": 30,
+            "attempts": 39,
+            "effects": 14
+          }
+        }
+      ],
+      "identicalConfiguredSource": true
+    },
+    {
+      "scope": "public",
+      "problemId": "streaming-burst",
+      "approaches": [
+        {
+          "solutionId": "reference",
+          "runnableStages": 8,
+          "structureHash": "f073926c48fa6ffde3f61bef754451747a021dc32a540a99cf17d8579112a8d7",
+          "kernelCounts": {
+            "batchWorker": 1,
+            "cache": 1,
+            "endpoint": 1,
+            "objectStore": 1,
+            "service": 1,
+            "source": 1
+          },
+          "workloadHash": "3f31c95fb2c3c7753da650fd3becbbfe73f8a0adcf29fb346a03e6e5468bd162",
+          "faultsInjected": 0,
+          "metrics": {
+            "offered": 24,
+            "completed": 10,
+            "failed": 14,
+            "inFlight": 0,
+            "p95Ms": 6112.228282922226,
+            "modelTimeSec": 8,
+            "attempts": 69,
+            "effects": 0
+          }
+        },
+        {
+          "solutionId": "individual-stream-processing",
+          "runnableStages": 8,
+          "structureHash": "4e480b3521169f3bcf6e8a52d09f8f7e7d4fa333e4144ee11135cf2de2477732",
+          "kernelCounts": {
+            "cache": 1,
+            "endpoint": 1,
+            "objectStore": 1,
+            "service": 2,
+            "source": 1
+          },
+          "workloadHash": "3f31c95fb2c3c7753da650fd3becbbfe73f8a0adcf29fb346a03e6e5468bd162",
+          "faultsInjected": 0,
+          "metrics": {
+            "offered": 24,
+            "completed": 11,
+            "failed": 13,
+            "inFlight": 0,
+            "p95Ms": 6744.986404849924,
+            "modelTimeSec": 8,
+            "attempts": 72,
+            "effects": 0
+          }
+        }
+      ],
+      "identicalConfiguredSource": true
+    },
+    {
+      "scope": "public",
+      "problemId": "replica-recovery",
+      "approaches": [
+        {
+          "solutionId": "reference",
+          "runnableStages": 8,
+          "structureHash": "d09a989f4fcdd0b0d333cbf230c0c96ce1c2ac343ada077a5c80f59e9feef5fe",
+          "kernelCounts": {
+            "replicatedDb": 1,
+            "source": 1
+          },
+          "workloadHash": "95803a29eba0c4a3868280912e3f259a7f9cfb3300b8a76b15e1e7271a953b5a",
+          "faultsInjected": 0,
+          "metrics": {
+            "offered": 24,
+            "completed": 24,
+            "failed": 0,
+            "inFlight": 0,
+            "p95Ms": 21.196423945780136,
+            "modelTimeSec": 5,
+            "attempts": 24,
+            "effects": 16
+          }
+        },
+        {
+          "solutionId": "explicit-replica-outbox",
+          "runnableStages": 8,
+          "structureHash": "22c0df3a424d89ef4c1ee037755f1bf93bb62885b95aa533c0c4c56fc8cf7368",
+          "kernelCounts": {
+            "linkedReplica": 2,
+            "source": 1
+          },
+          "workloadHash": "95803a29eba0c4a3868280912e3f259a7f9cfb3300b8a76b15e1e7271a953b5a",
+          "faultsInjected": 0,
+          "metrics": {
+            "offered": 24,
+            "completed": 24,
+            "failed": 0,
+            "inFlight": 0,
+            "p95Ms": 28.484403859500155,
+            "modelTimeSec": 5,
+            "attempts": 40,
+            "effects": 16
+          }
+        }
+      ],
+      "identicalConfiguredSource": true
+    },
+    {
+      "scope": "public",
+      "problemId": "agent-recovery",
+      "approaches": [
+        {
+          "solutionId": "reference",
+          "runnableStages": 8,
+          "structureHash": "b7ca401b766547947e5d19f05fd9a0a75c5388e411ddbc45bef3e9cd20a2071a",
+          "kernelCounts": {
+            "chunker": 1,
+            "crawler": 1,
+            "cron": 1,
+            "embedder": 1,
+            "endpoint": 2,
+            "llm": 1,
+            "reranker": 1,
+            "retriever": 1,
+            "source": 1,
+            "structuredResponse": 1,
+            "vectorIndex": 1
+          },
+          "workloadHash": "255880ebafd880f8f4753ab896846ed0b0ec5844624299c3acafaeb74ef137e4",
+          "faultsInjected": 0,
+          "metrics": {
+            "offered": 16,
+            "completed": 11,
+            "failed": 5,
+            "inFlight": 0,
+            "p95Ms": 236.81524326875385,
+            "modelTimeSec": 20,
+            "attempts": 58,
+            "effects": 7
+          }
+        },
+        {
+          "solutionId": "isolated-retrieval-ingestion",
+          "runnableStages": 8,
+          "structureHash": "4bcb1a8b910a6fcf3ff05b2cc5ac1f9fe2ad8f9c8b9e41b6bdb4eadc0f136230",
+          "kernelCounts": {
+            "chunker": 1,
+            "crawler": 1,
+            "cron": 1,
+            "embedder": 2,
+            "endpoint": 2,
+            "llm": 1,
+            "reranker": 1,
+            "retriever": 1,
+            "source": 1,
+            "structuredResponse": 1,
+            "vectorIndex": 1
+          },
+          "workloadHash": "255880ebafd880f8f4753ab896846ed0b0ec5844624299c3acafaeb74ef137e4",
+          "faultsInjected": 0,
+          "metrics": {
+            "offered": 16,
+            "completed": 11,
+            "failed": 5,
+            "inFlight": 0,
+            "p95Ms": 236.81524326875385,
+            "modelTimeSec": 20,
+            "attempts": 58,
+            "effects": 7
+          }
+        }
+      ],
+      "identicalConfiguredSource": true
+    },
+    {
+      "scope": "public",
+      "problemId": "healthcare-ingestion",
+      "approaches": [
+        {
+          "solutionId": "reference",
+          "runnableStages": 8,
+          "structureHash": "320f69a130f9add6b9ab36c6fd2f690679f34af5ebcb7cb67335122261ba41e0",
+          "kernelCounts": {
+            "approvalGate": 1,
+            "database": 1,
+            "eventLedger": 1,
+            "eventQuarantine": 1,
+            "eventSource": 1,
+            "eventValidator": 1
+          },
+          "workloadHash": "7f0461dd0250cf310aed465c4393d1e732520792ba7d396e38e2c0ddd940e5c1",
+          "faultsInjected": 0,
+          "metrics": {
+            "offered": 12,
+            "completed": 4,
+            "failed": 8,
+            "inFlight": 0,
+            "p95Ms": 318.23957883687706,
+            "modelTimeSec": 30,
+            "attempts": 35,
+            "effects": 6
+          }
+        },
+        {
+          "solutionId": "identity-before-approval",
+          "runnableStages": 8,
+          "structureHash": "7e8d06ab7fef5957fd3eb33bf2be0a6dd1d6b7c9cc30bc996351837fedbf8b12",
+          "kernelCounts": {
+            "approvalGate": 1,
+            "database": 1,
+            "eventLedger": 1,
+            "eventQuarantine": 1,
+            "eventSource": 1,
+            "eventValidator": 1
+          },
+          "workloadHash": "7f0461dd0250cf310aed465c4393d1e732520792ba7d396e38e2c0ddd940e5c1",
+          "faultsInjected": 0,
+          "metrics": {
+            "offered": 12,
+            "completed": 4,
+            "failed": 8,
+            "inFlight": 0,
+            "p95Ms": 318.23957883687706,
+            "modelTimeSec": 30,
+            "attempts": 35,
+            "effects": 7
+          }
+        }
+      ],
+      "identicalConfiguredSource": true
+    },
+    {
+      "scope": "public",
+      "problemId": "finance-reconciliation",
+      "approaches": [
+        {
+          "solutionId": "reference",
+          "runnableStages": 8,
+          "structureHash": "7040f46f6e196da6abc2a5d92d74acd7d8f33563570bb9c07ca81932284d8619",
+          "kernelCounts": {
+            "database": 1,
+            "eventLedger": 1,
+            "eventQuarantine": 1,
+            "eventSource": 1,
+            "eventValidator": 1
+          },
+          "workloadHash": "83d0e8f16b2f5d57ff273d5a4fb73957179a107e3629201ba6a5eb20b176bb86",
+          "faultsInjected": 0,
+          "metrics": {
+            "offered": 12,
+            "completed": 10,
+            "failed": 2,
+            "inFlight": 0,
+            "p95Ms": 12.952542758923173,
+            "modelTimeSec": 30,
+            "attempts": 30,
+            "effects": 8
+          }
+        },
+        {
+          "solutionId": "microbatch-pair-reconciliation",
+          "runnableStages": 8,
+          "structureHash": "4ab6d553f29509dddc6ded88dfcb3f2e01071dbad2c0e259f5cbf313a89a13ca",
+          "kernelCounts": {
+            "batchReconcile": 1,
+            "database": 1,
+            "eventQuarantine": 1,
+            "eventSource": 1,
+            "eventValidator": 1
+          },
+          "workloadHash": "83d0e8f16b2f5d57ff273d5a4fb73957179a107e3629201ba6a5eb20b176bb86",
+          "faultsInjected": 0,
+          "metrics": {
+            "offered": 12,
+            "completed": 10,
+            "failed": 2,
+            "inFlight": 0,
+            "p95Ms": 288.3850074350585,
+            "modelTimeSec": 30,
+            "attempts": 30,
+            "effects": 8
+          }
+        }
+      ],
+      "identicalConfiguredSource": true
+    },
+    {
+      "scope": "public",
+      "problemId": "lakehouse-late-data",
+      "approaches": [
+        {
+          "solutionId": "reference",
+          "runnableStages": 8,
+          "structureHash": "1c35ac41491fb9deb7a62352bee57b92035e967baef9dc6b4dbcbec04a6573dd",
+          "kernelCounts": {
+            "database": 1,
+            "eventQuarantine": 1,
+            "eventSource": 1,
+            "eventValidator": 1,
+            "eventWindow": 1,
+            "shuffleSpill": 1
+          },
+          "workloadHash": "166d7a14d1afb7897325a25f0e27fe65983d55817bf3c2baf1d723e2f3990626",
+          "faultsInjected": 0,
+          "metrics": {
+            "offered": 20,
+            "completed": 15,
+            "failed": 5,
+            "inFlight": 0,
+            "p95Ms": 12180.641287414399,
+            "modelTimeSec": 30,
+            "attempts": 75,
+            "effects": 15
+          }
+        },
+        {
+          "solutionId": "shuffle-before-window",
+          "runnableStages": 8,
+          "structureHash": "e134aa6ad7525e91bb6e371ffba1d79d3df85a0f3f5cf4c9cbc816b1a0b29424",
+          "kernelCounts": {
+            "database": 1,
+            "eventQuarantine": 1,
+            "eventSource": 1,
+            "eventValidator": 1,
+            "eventWindow": 1,
+            "shuffleSpill": 1
+          },
+          "workloadHash": "166d7a14d1afb7897325a25f0e27fe65983d55817bf3c2baf1d723e2f3990626",
+          "faultsInjected": 0,
+          "metrics": {
+            "offered": 20,
+            "completed": 15,
+            "failed": 5,
+            "inFlight": 0,
+            "p95Ms": 12795.607503269408,
+            "modelTimeSec": 30,
+            "attempts": 80,
+            "effects": 15
+          }
+        }
+      ],
+      "identicalConfiguredSource": true
+    },
+    {
+      "scope": "public",
+      "problemId": "nested-chat",
+      "approaches": [
+        {
+          "solutionId": "reference",
+          "runnableStages": 8,
+          "structureHash": "d8fa09f72ad013054fd3a6b8772ebd82146fc4fbb14563a64063b9782931a4b4",
+          "kernelCounts": {
+            "applicationClient": 1,
+            "chatApplication": 1,
+            "chatStreamSession": 1,
+            "conversationAccess": 1,
+            "conversationStore": 1,
+            "loadBalancer": 2,
+            "rateLimiter": 2,
+            "retry": 2,
+            "service": 2,
+            "syntheticStream": 2
+          },
+          "workloadHash": "c210bb3a6d1a807d185422c82a807c768f85ec05e6e649241115bfa4c58c2ea5",
+          "faultsInjected": 0,
+          "metrics": {
+            "offered": 8,
+            "completed": 7,
+            "failed": 1,
+            "inFlight": 0,
+            "p95Ms": 987.9650578586022,
+            "modelTimeSec": 15,
+            "attempts": 174,
+            "effects": 6
+          }
+        },
+        {
+          "solutionId": "inline-owned-chat-backend",
+          "runnableStages": 8,
+          "structureHash": "75d72041f450bd48c0c8756af3551c8eab9258ff30594208b5a02d856699f80d",
+          "kernelCounts": {
+            "applicationClient": 1,
+            "chatApplication": 1,
+            "conversationAccess": 1,
+            "conversationStore": 1,
+            "loadBalancer": 2,
+            "rateLimiter": 2,
+            "retry": 1,
+            "service": 1,
+            "syntheticStream": 2
+          },
+          "workloadHash": "c210bb3a6d1a807d185422c82a807c768f85ec05e6e649241115bfa4c58c2ea5",
+          "faultsInjected": 0,
+          "metrics": {
+            "offered": 8,
+            "completed": 7,
+            "failed": 1,
+            "inFlight": 0,
+            "p95Ms": 940.4827376269899,
+            "modelTimeSec": 15,
+            "attempts": 156,
+            "effects": 6
+          }
+        }
+      ],
+      "identicalConfiguredSource": true
+    },
+    {
+      "scope": "private",
+      "problemIndex": 0,
+      "approaches": [
+        {
+          "solutionIndex": 0,
+          "runnableStages": 8,
+          "faultsInjected": 0
+        },
+        {
+          "solutionIndex": 1,
+          "runnableStages": 8,
+          "faultsInjected": 0
+        }
+      ],
+      "identicalConfiguredSource": true,
+      "structurallyDistinct": true
+    },
+    {
+      "scope": "private",
+      "problemIndex": 1,
+      "approaches": [
+        {
+          "solutionIndex": 0,
+          "runnableStages": 8,
+          "faultsInjected": 0
+        },
+        {
+          "solutionIndex": 1,
+          "runnableStages": 8,
+          "faultsInjected": 0
+        }
+      ],
+      "identicalConfiguredSource": false,
+      "structurallyDistinct": true
+    },
+    {
+      "scope": "private",
+      "problemIndex": 2,
+      "approaches": [
+        {
+          "solutionIndex": 0,
+          "runnableStages": 8,
+          "faultsInjected": 0
+        },
+        {
+          "solutionIndex": 1,
+          "runnableStages": 8,
+          "faultsInjected": 0
+        }
+      ],
+      "identicalConfiguredSource": false,
+      "structurallyDistinct": true
+    },
+    {
+      "scope": "private",
+      "problemIndex": 3,
+      "approaches": [
+        {
+          "solutionIndex": 0,
+          "runnableStages": 8,
+          "faultsInjected": 0
+        },
+        {
+          "solutionIndex": 1,
+          "runnableStages": 8,
+          "faultsInjected": 0
+        }
+      ],
+      "identicalConfiguredSource": true,
+      "structurallyDistinct": true
+    },
+    {
+      "scope": "private",
+      "problemIndex": 4,
+      "approaches": [
+        {
+          "solutionIndex": 0,
+          "runnableStages": 8,
+          "faultsInjected": 0
+        },
+        {
+          "solutionIndex": 1,
+          "runnableStages": 8,
+          "faultsInjected": 0
+        }
+      ],
+      "identicalConfiguredSource": true,
+      "structurallyDistinct": true
+    },
+    {
+      "scope": "private",
+      "problemIndex": 5,
+      "approaches": [
+        {
+          "solutionIndex": 0,
+          "runnableStages": 8,
+          "faultsInjected": 0
+        },
+        {
+          "solutionIndex": 1,
+          "runnableStages": 8,
+          "faultsInjected": 0
+        }
+      ],
+      "identicalConfiguredSource": true,
+      "structurallyDistinct": true
+    },
+    {
+      "scope": "private",
+      "problemIndex": 6,
+      "approaches": [
+        {
+          "solutionIndex": 0,
+          "runnableStages": 8,
+          "faultsInjected": 0
+        },
+        {
+          "solutionIndex": 1,
+          "runnableStages": 8,
+          "faultsInjected": 0
+        }
+      ],
+      "identicalConfiguredSource": true,
+      "structurallyDistinct": true
+    },
+    {
+      "scope": "private",
+      "problemIndex": 7,
+      "approaches": [
+        {
+          "solutionIndex": 0,
+          "runnableStages": 8,
+          "faultsInjected": 0
+        },
+        {
+          "solutionIndex": 1,
+          "runnableStages": 8,
+          "faultsInjected": 0
+        }
+      ],
+      "identicalConfiguredSource": true,
+      "structurallyDistinct": true
+    },
+    {
+      "scope": "private",
+      "problemIndex": 8,
+      "approaches": [
+        {
+          "solutionIndex": 0,
+          "runnableStages": 8,
+          "faultsInjected": 0
+        },
+        {
+          "solutionIndex": 1,
+          "runnableStages": 8,
+          "faultsInjected": 0
+        }
+      ],
+      "identicalConfiguredSource": true,
+      "structurallyDistinct": true
+    },
+    {
+      "scope": "private",
+      "problemIndex": 9,
+      "approaches": [
+        {
+          "solutionIndex": 0,
+          "runnableStages": 8,
+          "faultsInjected": 0
+        },
+        {
+          "solutionIndex": 1,
+          "runnableStages": 8,
+          "faultsInjected": 0
+        }
+      ],
+      "identicalConfiguredSource": true,
+      "structurallyDistinct": true
+    },
+    {
+      "scope": "private",
+      "problemIndex": 10,
+      "approaches": [
+        {
+          "solutionIndex": 0,
+          "runnableStages": 8,
+          "faultsInjected": 0
+        },
+        {
+          "solutionIndex": 1,
+          "runnableStages": 8,
+          "faultsInjected": 0
+        }
+      ],
+      "identicalConfiguredSource": true,
+      "structurallyDistinct": true
+    },
+    {
+      "scope": "private",
+      "problemIndex": 11,
+      "approaches": [
+        {
+          "solutionIndex": 0,
+          "runnableStages": 8,
+          "faultsInjected": 0
+        },
+        {
+          "solutionIndex": 1,
+          "runnableStages": 8,
+          "faultsInjected": 0
+        }
+      ],
+      "identicalConfiguredSource": true,
+      "structurallyDistinct": true
+    },
+    {
+      "scope": "private",
+      "problemIndex": 12,
+      "approaches": [
+        {
+          "solutionIndex": 0,
+          "runnableStages": 8,
+          "faultsInjected": 0
+        },
+        {
+          "solutionIndex": 1,
+          "runnableStages": 8,
+          "faultsInjected": 0
+        }
+      ],
+      "identicalConfiguredSource": false,
+      "structurallyDistinct": true
+    },
+    {
+      "scope": "private",
+      "problemIndex": 13,
+      "approaches": [
+        {
+          "solutionIndex": 0,
+          "runnableStages": 8,
+          "faultsInjected": 0
+        },
+        {
+          "solutionIndex": 1,
+          "runnableStages": 8,
+          "faultsInjected": 0
+        }
+      ],
+      "identicalConfiguredSource": true,
+      "structurallyDistinct": true
+    },
+    {
+      "scope": "private",
+      "problemIndex": 14,
+      "approaches": [
+        {
+          "solutionIndex": 0,
+          "runnableStages": 8,
+          "faultsInjected": 0
+        },
+        {
+          "solutionIndex": 1,
+          "runnableStages": 8,
+          "faultsInjected": 0
+        }
+      ],
+      "identicalConfiguredSource": true,
+      "structurallyDistinct": true
+    }
+  ],
+  "failures": []
+}

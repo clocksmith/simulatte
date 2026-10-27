@@ -5,10 +5,10 @@
   init:()=>({sent:0,completed:0,failed:0,latest:0,displayed:null,stale:0,outcomes:[]}),
   start(ctx){ctx.wake(ctx.p.startSec,{index:0});},
   onWake(ctx,wake){const rows=commands.commands(ctx.p.scenario,ctx.p.variant),i=wake.index;if(i>=rows.length)return;const command=rows[i],msg=ctx.message({ptype:'json',kb:1,idem:ctx.nodeId+':'+i,key:command.key||String(i),fields:{command:{...command,requestId:command.id||'command-'+i}}});
-   ctx.k.latest=Math.max(ctx.k.latest,command.sequence||0);ctx.beginRequest(msg);const job=ctx.newJob(msg),edge=ctx.edges('out')[0];ctx.k.sent++;
+   if(command.sequence>ctx.k.latest){ctx.k.latest=command.sequence;if(ctx.p.discardStale)ctx.k.displayed=null;}ctx.beginRequest(msg);const job=ctx.newJob(msg),edge=ctx.edges('out')[0];ctx.k.sent++;
    if(edge)ctx.call(job,edge.id,{}, {timeoutMs:ctx.p.timeoutMs,retries:ctx.p.retries,backoffMs:50,slot:{index:i,sequence:command.sequence||0}});else{ctx.endRequest(msg,{ok:false,err:'unavailable'});ctx.reply(job,{ok:false,err:'unavailable'});}
    if(i+1<rows.length)ctx.wake(ctx.p.intervalMs/1000,{index:i+1});},
-  onResult(ctx,job,slot,result){ctx.k[result.ok?'completed':'failed']++;const fields=copy(result.msg?.fields?.result||{});if(slot.sequence){if(ctx.p.discardStale&&slot.sequence<ctx.k.latest)ctx.k.stale++;else ctx.k.displayed=fields;}
+  onResult(ctx,job,slot,result){ctx.k[result.ok?'completed':'failed']++;const fields=copy(result.msg?.fields?.result||{});if(slot.sequence){if(result.ok){if(ctx.p.discardStale&&slot.sequence<ctx.k.latest)ctx.k.stale++;else ctx.k.displayed=fields;}else if(ctx.p.discardStale&&slot.sequence===ctx.k.latest)ctx.k.displayed=null;}
    ctx.k.outcomes.push({index:slot.index,atSec:ctx.t,ok:result.ok,result:fields,error:result.err||null});ctx.endRequest(job.msg,{ok:result.ok,...(result.ok?{}:{err:result.err||'error'})});ctx.reply(job,{ok:result.ok,...(result.ok?{}:{err:result.err||'error'})});},
   observe:ctx=>({detail:{Sent:ctx.k.sent,Completed:ctx.k.completed,Failed:ctx.k.failed,'Ignored stale replies':ctx.k.stale},records:{commands:copy(ctx.k.outcomes),display:ctx.k.displayed?[copy(ctx.k.displayed)]:[]}})
  });

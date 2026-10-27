@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.systemDiagram.v4",
-  "id": "replication-quorum",
-  "name": "Data center replication / Compare quorum thresholds",
+  "id": "replication-repair",
+  "name": "Data center replication / Separate apply delay from acknowledgement",
   "description": "Authored bounded synthetic model, not production capacity or a deployed service.",
   "seed": 42,
   "run": {
@@ -34,10 +34,10 @@
       "y": 0,
       "params": {
         "writeQuorum": 2,
-        "concurrency": 4,
+        "concurrency": 1,
         "timeoutMs": 80,
         "retryIntervalMs": 100,
-        "maxAttempts": 2
+        "maxAttempts": 10
       }
     },
     {
@@ -83,19 +83,7 @@
   ],
   "groups": [],
   "notes": [],
-  "faults": [
-    {
-      "id": "inter-region-partition",
-      "atSec": 0,
-      "untilSec": 0.5,
-      "target": {
-        "kind": "edge",
-        "id": "cross-region"
-      },
-      "type": "partition",
-      "params": {}
-    }
-  ],
+  "faults": [],
   "view": {
     "x": 0,
     "y": 0,

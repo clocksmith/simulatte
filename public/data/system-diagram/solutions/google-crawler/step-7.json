@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.systemDiagram.v4",
   "id": "google-crawler",
-  "name": "Distributed web crawler / Interrupt crawl processing",
+  "name": "Distributed web crawler / Separate committed work from a lost reply",
   "description": "An autonomous bounded crawler models per-origin delay, deduplication and provenance. Cron adds scheduled tasks to a shared CPU parser and database; no real scraping or content extraction occurs.",
   "seed": 42,
   "run": {
@@ -88,14 +88,14 @@
   "notes": [],
   "faults": [
     {
-      "id": "study-outage",
-      "atSec": 0.15,
-      "untilSec": 1,
+      "id": "uncertain-ack",
+      "atSec": 0,
+      "untilSec": 0.5,
       "target": {
-        "kind": "edge",
-        "id": "documents"
+        "kind": "node",
+        "id": "website"
       },
-      "type": "partition",
+      "type": "dropReplies",
       "params": {}
     }
   ],

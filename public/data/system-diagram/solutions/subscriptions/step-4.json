@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.systemDiagram.v4",
   "id": "subscriptions",
-  "name": "Subscription payments / Make retry identities durable",
+  "name": "Subscription payments / Serialize lifecycle transitions",
   "description": "Authored finite synthetic API model.",
   "seed": 42,
   "run": {
@@ -30,11 +30,10 @@
       "y": 0,
       "params": {
         "serviceDist": "constant",
-        "serviceMs": 10,
+        "serviceMs": 5,
         "callTimeoutMs": 200,
         "retries": 0,
-        "idempotent": true,
-        "concurrency": 1
+        "idempotent": true
       }
     },
     {

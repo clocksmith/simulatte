@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.systemDiagram.v4",
-  "id": "replication-local",
-  "name": "Data center replication / Acknowledge one replicated write",
+  "id": "replication-quorum",
+  "name": "Data center replication / Compare quorum thresholds",
   "description": "Authored bounded synthetic model, not production capacity or a deployed service.",
   "seed": 42,
   "run": {
@@ -33,7 +33,7 @@
       "x": 280,
       "y": 0,
       "params": {
-        "writeQuorum": 1,
+        "writeQuorum": 2,
         "concurrency": 4,
         "timeoutMs": 80,
         "retryIntervalMs": 100,

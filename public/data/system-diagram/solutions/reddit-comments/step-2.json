@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.systemDiagram.v4",
   "id": "reddit-comments",
-  "name": "Threaded comments and voting / Store replies and parents",
+  "name": "Threaded comments and voting / Count one vote per actor",
   "description": "Parent-linked comments, per-user votes and score-ranked reads.",
   "seed": 42,
   "run": {
@@ -56,6 +56,16 @@
       }
     },
     {
+      "id": "updates",
+      "classId": "worker",
+      "label": "Live update delivery",
+      "x": 730,
+      "y": 100,
+      "params": {
+        "serviceMs": 50
+      }
+    },
+    {
       "id": "readers",
       "classId": "operation-client",
       "label": "readers",
@@ -87,6 +97,22 @@
       }
     },
     {
+      "id": "vote",
+      "label": "vote",
+      "from": {
+        "nodeId": "votes",
+        "portId": "out"
+      },
+      "to": {
+        "nodeId": "api",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 80,
+        "bandwidthMbps": 100
+      }
+    },
+    {
       "id": "store",
       "label": "store",
       "from": {
@@ -103,14 +129,14 @@
       }
     },
     {
-      "id": "vote",
-      "label": "vote",
+      "id": "notify",
+      "label": "notify",
       "from": {
-        "nodeId": "votes",
-        "portId": "out"
+        "nodeId": "comments-store",
+        "portId": "updates"
       },
       "to": {
-        "nodeId": "api",
+        "nodeId": "updates",
         "portId": "in"
       },
       "params": {

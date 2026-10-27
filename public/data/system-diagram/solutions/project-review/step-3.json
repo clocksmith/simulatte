@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.systemDiagram.v4",
-  "id": "project-review-queue",
-  "name": "Your project architecture / Explain the persistence decision",
+  "id": "project-review-recovery",
+  "name": "Your project architecture / Measure concurrent work",
   "description": "Bounded authored synthetic architecture comparison.",
   "seed": 42,
   "run": {
@@ -35,7 +35,7 @@
       "params": {
         "serviceMs": 5,
         "serviceDist": "constant",
-        "concurrency": 2,
+        "concurrency": 1,
         "queueCapacity": 8,
         "callTimeoutMs": 2000
       }

@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.systemDiagram.v4",
   "id": "subscriptions",
-  "name": "Subscription payments / Serialize lifecycle transitions",
+  "name": "Subscription payments / Bound receipt retention",
   "description": "Authored finite synthetic API model.",
   "seed": 42,
   "run": {
@@ -30,10 +30,11 @@
       "y": 0,
       "params": {
         "serviceDist": "constant",
-        "serviceMs": 5,
+        "serviceMs": 10,
         "callTimeoutMs": 200,
         "retries": 0,
-        "idempotent": true
+        "idempotent": true,
+        "queueCapacity": 1
       }
     },
     {

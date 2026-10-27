@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.systemDiagram.v4",
-  "id": "saved-search-delivery",
-  "name": "Saved search emails / Match incoming listings",
+  "id": "saved-search-recovery",
+  "name": "Saved search emails / Deduplicate ingestion and delivery",
   "description": "Authored bounded synthetic messaging model.",
   "seed": 42,
   "run": {
@@ -28,7 +28,8 @@
       "params": {
         "callTimeoutMs": 200,
         "retries": 2,
-        "retryBackoffMs": 100
+        "retryBackoffMs": 100,
+        "concurrency": 1
       },
       "label": "Matching and digest outbox"
     },

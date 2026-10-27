@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.systemDiagram.v4",
   "id": "twitter-timeline",
-  "name": "Realtime social timeline / Interrupt timeline writes",
+  "name": "Realtime social timeline / Separate committed work from a lost reply",
   "description": "Users and follower relations live in an independent social graph. Committed posts resolve their real audience before queueing fanout; feed reads join graph-selected posts with follower timelines. Bound admission, retries and delayed writes are separate executable components.",
   "seed": 42,
   "run": {
@@ -504,14 +504,14 @@
   "notes": [],
   "faults": [
     {
-      "id": "study-outage",
-      "atSec": 0.15,
-      "untilSec": 1,
+      "id": "uncertain-ack",
+      "atSec": 0.0020080000000000002,
+      "untilSec": 0.502008,
       "target": {
         "kind": "node",
-        "id": "timelines"
+        "id": "posts"
       },
-      "type": "crash",
+      "type": "dropReplies",
       "params": {}
     }
   ],

@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.systemDiagram.v4",
-  "id": "database-service-connect",
-  "name": "Database as a service / Separate requests from data authority",
+  "id": "database-service-replicate",
+  "name": "Database as a service / Choose replication acknowledgements",
   "description": "Authored bounded synthetic model, not production capacity or a deployed service.",
   "seed": 42,
   "run": {
@@ -48,9 +48,12 @@
       "x": 300,
       "y": 0,
       "params": {
-        "writeQuorum": 1,
+        "writeQuorum": 2,
         "concurrency": 4,
-        "maxRecords": 100
+        "maxRecords": 100,
+        "timeoutMs": 80,
+        "retryIntervalMs": 100,
+        "maxAttempts": 2
       }
     },
     {
@@ -60,10 +63,29 @@
       "x": 300,
       "y": 350,
       "params": {
-        "writeQuorum": 1,
+        "writeQuorum": 2,
         "concurrency": 4,
-        "maxRecords": 100
+        "maxRecords": 100,
+        "timeoutMs": 80,
+        "retryIntervalMs": 100,
+        "maxAttempts": 2
       }
+    },
+    {
+      "id": "backup-a",
+      "classId": "database-replica",
+      "label": "Tenant A follower",
+      "x": 600,
+      "y": 0,
+      "params": {}
+    },
+    {
+      "id": "backup-b",
+      "classId": "database-replica",
+      "label": "Tenant B follower",
+      "x": 600,
+      "y": 350,
+      "params": {}
     }
   ],
   "edges": [
@@ -91,6 +113,36 @@
       "to": {
         "nodeId": "db-b",
         "portId": "in"
+      },
+      "params": {
+        "latencyMs": 5,
+        "bandwidthMbps": 100
+      }
+    },
+    {
+      "id": "a-replication",
+      "from": {
+        "nodeId": "db-a",
+        "portId": "replicate"
+      },
+      "to": {
+        "nodeId": "backup-a",
+        "portId": "replica"
+      },
+      "params": {
+        "latencyMs": 5,
+        "bandwidthMbps": 100
+      }
+    },
+    {
+      "id": "b-replication",
+      "from": {
+        "nodeId": "db-b",
+        "portId": "replicate"
+      },
+      "to": {
+        "nodeId": "backup-b",
+        "portId": "replica"
       },
       "params": {
         "latencyMs": 5,

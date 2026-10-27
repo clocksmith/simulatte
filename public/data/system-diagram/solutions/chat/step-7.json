@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.systemDiagram.v4",
   "id": "chat-catchup",
-  "name": "Realtime chat / Disconnect the mailbox",
+  "name": "Realtime chat / Separate committed work from a lost reply",
   "description": "Authored bounded synthetic messaging model.",
   "seed": 42,
   "run": {
@@ -209,25 +209,14 @@
   "notes": [],
   "faults": [
     {
-      "id": "study-outage",
-      "atSec": 0.15,
-      "untilSec": 1,
+      "id": "uncertain-ack",
+      "atSec": 0.012001216,
+      "untilSec": 0.512001216,
       "target": {
         "kind": "node",
         "id": "mailbox"
       },
-      "type": "crash",
-      "params": {}
-    },
-    {
-      "id": "bob-disconnect",
-      "atSec": 2.8,
-      "untilSec": 5,
-      "target": {
-        "kind": "node",
-        "id": "bob-device"
-      },
-      "type": "crash",
+      "type": "dropReplies",
       "params": {}
     }
   ],

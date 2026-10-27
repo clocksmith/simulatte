@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.systemDiagram.v4",
-  "id": "saved-search-matching",
-  "name": "Saved search emails / Register saved terms",
+  "id": "saved-search-delivery",
+  "name": "Saved search emails / Match incoming listings",
   "description": "Authored bounded synthetic messaging model.",
   "seed": 42,
   "run": {
@@ -31,6 +31,14 @@
         "retryBackoffMs": 100
       },
       "label": "Matching and digest outbox"
+    },
+    {
+      "id": "email",
+      "classId": "digest-mailbox",
+      "x": 800,
+      "y": 120,
+      "params": {},
+      "label": "Synthetic provider idempotency boundary"
     }
   ],
   "edges": [
@@ -43,6 +51,22 @@
       },
       "to": {
         "nodeId": "matcher",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 5,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "digest-delivery",
+      "label": "digest-delivery",
+      "from": {
+        "nodeId": "matcher",
+        "portId": "delivery"
+      },
+      "to": {
+        "nodeId": "email",
         "portId": "in"
       },
       "params": {

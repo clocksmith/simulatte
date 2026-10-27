@@ -1,0 +1,34 @@
+{
+  "schema": "simulatte.lucydCurriculumCheck.v1",
+  "publicHash": "e7e27d7a6508c2eeee8abdca91b00a3c27ef0d84808f1a2506c24d1f08bd388a",
+  "privateCiphertextHash": "b136fdb13e2984eae6ebca14e6ec9e1be7329f45d3d2093a1ff78863e4c49eff",
+  "layers": "Authoring and deterministic synthetic execution; not human comprehension or production qualification",
+  "coordinatorScope": "final-architecture-per-approach",
+  "cases": [
+    {
+      "scope": "public",
+      "problems": 31,
+      "approaches": 62,
+      "stages": 496,
+      "design": 0,
+      "preludes": 62,
+      "executed": 496,
+      "checks": 1354,
+      "checkpointContinuations": 496,
+      "coordinatorReplays": 62
+    },
+    {
+      "scope": "private",
+      "problems": 15,
+      "approaches": 30,
+      "stages": 240,
+      "design": 0,
+      "preludes": 30,
+      "executed": 240,
+      "checks": 302,
+      "checkpointContinuations": 240,
+      "coordinatorReplays": 30
+    }
+  ],
+  "failures": []
+}

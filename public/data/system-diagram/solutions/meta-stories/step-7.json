@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.systemDiagram.v4",
   "id": "meta-stories",
-  "name": "Ephemeral stories media pipeline / Interrupt story access",
+  "name": "Ephemeral stories media pipeline / Separate committed work from a lost reply",
   "description": "Synthetic audience checks and expiration of story visibility.",
   "seed": 42,
   "run": {
@@ -75,7 +75,7 @@
       },
       "params": {
         "latencyMs": 80,
-        "bandwidthMbps": 100
+        "bandwidthMbps": 0.1
       }
     },
     {
@@ -113,19 +113,7 @@
   ],
   "groups": [],
   "notes": [],
-  "faults": [
-    {
-      "id": "study-outage",
-      "atSec": 0.15,
-      "untilSec": 1,
-      "target": {
-        "kind": "edge",
-        "id": "upload"
-      },
-      "type": "partition",
-      "params": {}
-    }
-  ],
+  "faults": [],
   "view": {
     "x": 0,
     "y": 0,

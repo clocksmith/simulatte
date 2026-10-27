@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.systemDiagram.v4",
   "id": "subscriptions",
-  "name": "Subscription payments / Activate one subscription",
+  "name": "Subscription payments / Compare card and wallet receipts",
   "description": "Authored finite synthetic API model.",
   "seed": 42,
   "run": {
@@ -33,7 +33,7 @@
         "serviceMs": 10,
         "callTimeoutMs": 200,
         "retries": 0,
-        "idempotent": false
+        "idempotent": true
       }
     },
     {
@@ -45,7 +45,7 @@
       "params": {
         "serviceDist": "constant",
         "serviceMs": 10,
-        "idempotent": false
+        "idempotent": true
       }
     }
   ],

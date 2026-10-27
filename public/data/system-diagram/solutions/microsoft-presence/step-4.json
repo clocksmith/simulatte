@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.systemDiagram.v4",
   "id": "microsoft-presence",
-  "name": "Distributed presence broker / Order heartbeat revisions",
+  "name": "Distributed presence broker / Distinguish heartbeat delay from offline status",
   "description": "Heartbeat leases, subscribed status changes and bulk snapshots.",
   "seed": 42,
   "run": {
@@ -60,7 +60,8 @@
       "params": {},
       "overrides": {
         "broker": {
-          "concurrency": 1
+          "serviceMs": 10,
+          "ttlSec": 1
         }
       }
     }

@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.systemDiagram.v4",
   "id": "saved-search-recovery",
-  "name": "Saved search emails / Bound the digest backlog",
+  "name": "Saved search emails / Retry an interrupted digest",
   "description": "Authored bounded synthetic messaging model.",
   "seed": 42,
   "run": {
@@ -28,8 +28,7 @@
       "params": {
         "callTimeoutMs": 200,
         "retries": 2,
-        "retryBackoffMs": 100,
-        "queueCapacity": 1
+        "retryBackoffMs": 100
       },
       "label": "Matching and digest outbox"
     },
@@ -78,7 +77,19 @@
   ],
   "groups": [],
   "notes": [],
-  "faults": [],
+  "faults": [
+    {
+      "id": "study-outage",
+      "atSec": 0.15,
+      "untilSec": 1,
+      "target": {
+        "kind": "node",
+        "id": "matcher"
+      },
+      "type": "crash",
+      "params": {}
+    }
+  ],
   "view": {
     "x": 0,
     "y": 0,

@@ -1,35 +1,45 @@
 {
-  "schema": "simulatte.systemDiagram.v5",
-  "id": "diagram",
-  "name": "Paginated API / Define page consistency",
-  "description": "",
-  "seed": 1,
+  "schema": "simulatte.systemDiagram.v4",
+  "id": "pagination",
+  "name": "Paginated API / Return a bounded first page",
+  "description": "Authored finite synthetic API model.",
+  "seed": 42,
   "run": {
-    "horizonSec": 120
+    "horizonSec": 20
   },
   "classes": [],
   "nodes": [
     {
       "id": "readers",
-      "classId": "concept.readers-context",
-      "label": "Users and requests",
+      "classId": "api-practice-client",
+      "label": "readers",
       "x": 0,
-      "y": 80,
-      "params": {}
+      "y": 0,
+      "params": {
+        "scenario": "pagination",
+        "intervalMs": 800,
+        "timeoutMs": 300,
+        "retries": 0
+      }
     },
     {
       "id": "results",
-      "classId": "concept.results-context",
-      "label": "System responsibility",
+      "classId": "pagination-store",
+      "label": "results",
       "x": 320,
-      "y": 80,
-      "params": {}
+      "y": 0,
+      "params": {
+        "mode": "offset",
+        "pageSize": 3,
+        "serviceDist": "constant",
+        "serviceMs": 10
+      }
     }
   ],
   "edges": [
     {
-      "id": "context-request",
-      "label": "request / outcome contract",
+      "id": "page-request",
+      "label": "page-request",
       "from": {
         "nodeId": "readers",
         "portId": "out"
@@ -38,7 +48,10 @@
         "nodeId": "results",
         "portId": "in"
       },
-      "params": {}
+      "params": {
+        "latencyMs": 10,
+        "bandwidthMbps": 100
+      }
     }
   ],
   "groups": [],
@@ -48,42 +61,5 @@
     "x": 0,
     "y": 0,
     "zoom": 1
-  },
-  "intent": {
-    "outcome": "Design a website’s paginated results API and its database access.",
-    "users": "Callers, state owners and operators named by the problem.",
-    "constraints": "Make ordering, durability, capacity and retry assumptions explicit. Simulation stage 1 only, architecture detail level 2. Eight ordered synthetic records; one insert and one delete between pages. Cursor tokens are model JSON, not authenticated production cursors. Keyset uses binary search over a finite in-memory sorted index; snapshot copies model MVCC visibility, not a production database isolation proof.",
-    "success": "An observable request path, bounded waiting, visible failures and a justified recovery policy."
-  },
-  "concepts": [
-    {
-      "id": "readers-context",
-      "label": "Users and requests",
-      "responsibility": "Who issues requests, and which identities or deadlines travel with them?",
-      "ports": [
-        {
-          "id": "out",
-          "direction": "out",
-          "payloadType": "json"
-        }
-      ]
-    },
-    {
-      "id": "results-context",
-      "label": "System responsibility",
-      "responsibility": "Design a website’s paginated results API and its database access.",
-      "ports": [
-        {
-          "id": "in",
-          "direction": "in",
-          "payloadType": "json"
-        },
-        {
-          "id": "out",
-          "direction": "out",
-          "payloadType": "json"
-        }
-      ]
-    }
-  ]
+  }
 }

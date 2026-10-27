@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.systemDiagram.v4",
   "id": "chat-catchup",
-  "name": "Realtime chat / Bound retained room history",
+  "name": "Realtime chat / Disconnect the mailbox",
   "description": "Authored bounded synthetic messaging model.",
   "seed": 42,
   "run": {
@@ -39,9 +39,7 @@
       "classId": "chat-mailbox",
       "x": 750,
       "y": 0,
-      "params": {
-        "queueCapacity": 1
-      },
+      "params": {},
       "label": "History"
     },
     {
@@ -52,9 +50,7 @@
       "y": 0,
       "params": {
         "idleSec": 1.5,
-        "callTimeoutMs": 200,
-        "maxRecords": 2,
-        "queueCapacity": 1
+        "callTimeoutMs": 200
       }
     },
     {
@@ -75,8 +71,7 @@
       "y": 250,
       "params": {
         "outputPayload": "json",
-        "serviceMs": 1,
-        "queueCapacity": 1
+        "serviceMs": 1
       }
     },
     {
@@ -212,7 +207,30 @@
   ],
   "groups": [],
   "notes": [],
-  "faults": [],
+  "faults": [
+    {
+      "id": "study-outage",
+      "atSec": 0.15,
+      "untilSec": 1,
+      "target": {
+        "kind": "node",
+        "id": "mailbox"
+      },
+      "type": "crash",
+      "params": {}
+    },
+    {
+      "id": "bob-disconnect",
+      "atSec": 2.8,
+      "untilSec": 5,
+      "target": {
+        "kind": "node",
+        "id": "bob-device"
+      },
+      "type": "crash",
+      "params": {}
+    }
+  ],
   "view": {
     "x": 0,
     "y": 0,

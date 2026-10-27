@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.systemDiagram.v4",
   "id": "project-review-recovery",
-  "name": "Your project architecture / Make overload behavior explicit",
+  "name": "Your project architecture / Rehearse an incident and repair",
   "description": "Bounded authored synthetic architecture comparison.",
   "seed": 42,
   "run": {
@@ -36,7 +36,7 @@
         "serviceMs": 5,
         "serviceDist": "constant",
         "concurrency": 2,
-        "queueCapacity": 1,
+        "queueCapacity": 8,
         "callTimeoutMs": 2000
       }
     },
@@ -171,7 +171,19 @@
   ],
   "groups": [],
   "notes": [],
-  "faults": [],
+  "faults": [
+    {
+      "id": "study-outage",
+      "atSec": 0.15,
+      "untilSec": 1,
+      "target": {
+        "kind": "node",
+        "id": "api"
+      },
+      "type": "crash",
+      "params": {}
+    }
+  ],
   "view": {
     "x": 0,
     "y": 0,

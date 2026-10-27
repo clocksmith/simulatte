@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.systemDiagram.v4",
   "id": "subscriptions",
-  "name": "Subscription payments / Bound receipt retention",
+  "name": "Subscription payments / Interrupt and retry billing",
   "description": "Authored finite synthetic API model.",
   "seed": 42,
   "run": {
@@ -33,8 +33,7 @@
         "serviceMs": 10,
         "callTimeoutMs": 200,
         "retries": 0,
-        "idempotent": true,
-        "queueCapacity": 1
+        "idempotent": true
       }
     },
     {
@@ -86,7 +85,19 @@
   ],
   "groups": [],
   "notes": [],
-  "faults": [],
+  "faults": [
+    {
+      "id": "study-outage",
+      "atSec": 0.15,
+      "untilSec": 1,
+      "target": {
+        "kind": "node",
+        "id": "subscriptions"
+      },
+      "type": "crash",
+      "params": {}
+    }
+  ],
   "view": {
     "x": 0,
     "y": 0,

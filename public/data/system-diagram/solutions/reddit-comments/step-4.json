@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.systemDiagram.v4",
   "id": "reddit-comments",
-  "name": "Threaded comments and voting / Order concurrent mutations",
+  "name": "Threaded comments and voting / Read comment state",
   "description": "Parent-linked comments, per-user votes and score-ranked reads.",
   "seed": 42,
   "run": {
@@ -59,7 +59,7 @@
       "params": {},
       "overrides": {
         "comments-store": {
-          "concurrency": 1
+          "serviceMs": 10
         }
       }
     }

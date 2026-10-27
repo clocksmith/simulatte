@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.systemDiagram.v4",
   "id": "pagination",
-  "name": "Paginated API / Bound page work",
+  "name": "Paginated API / Apply request admission",
   "description": "Authored finite synthetic API model.",
   "seed": 42,
   "run": {
@@ -32,7 +32,8 @@
         "mode": "snapshot",
         "pageSize": 3,
         "serviceDist": "constant",
-        "serviceMs": 5
+        "serviceMs": 10,
+        "queueCapacity": 1
       }
     }
   ],

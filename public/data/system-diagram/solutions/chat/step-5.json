@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.systemDiagram.v4",
   "id": "chat-catchup",
-  "name": "Realtime chat / Bound concurrent append work",
+  "name": "Realtime chat / Bound retained room history",
   "description": "Authored bounded synthetic messaging model.",
   "seed": 42,
   "run": {
@@ -40,7 +40,7 @@
       "x": 750,
       "y": 0,
       "params": {
-        "serviceMs": 5
+        "queueCapacity": 1
       },
       "label": "History"
     },
@@ -52,7 +52,9 @@
       "y": 0,
       "params": {
         "idleSec": 1.5,
-        "callTimeoutMs": 200
+        "callTimeoutMs": 200,
+        "maxRecords": 2,
+        "queueCapacity": 1
       }
     },
     {
@@ -73,7 +75,8 @@
       "y": 250,
       "params": {
         "outputPayload": "json",
-        "serviceMs": 1
+        "serviceMs": 1,
+        "queueCapacity": 1
       }
     },
     {

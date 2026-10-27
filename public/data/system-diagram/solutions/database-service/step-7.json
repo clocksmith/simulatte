@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.systemDiagram.v4",
   "id": "database-service-isolation",
-  "name": "Database as a service / Fail and recover a database",
+  "name": "Database as a service / Separate committed work from a lost reply",
   "description": "Authored bounded synthetic model, not production capacity or a deployed service.",
   "seed": 42,
   "run": {
@@ -154,14 +154,14 @@
   "notes": [],
   "faults": [
     {
-      "id": "study-outage",
-      "atSec": 0.15,
-      "untilSec": 1,
+      "id": "uncertain-ack",
+      "atSec": 0,
+      "untilSec": 0.5,
       "target": {
         "kind": "node",
         "id": "db-a"
       },
-      "type": "crash",
+      "type": "dropReplies",
       "params": {}
     }
   ],

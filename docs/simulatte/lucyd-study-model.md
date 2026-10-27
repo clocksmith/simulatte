@@ -7,24 +7,27 @@ Saved browser sessions include these public study snapshots; private snapshots
 are included only in encrypted saves, backups and exports.
 
 `public/data/system-diagram/problems.json` is the public authoring authority.
-`problem-model.js` validates the `simulatte.lucydProblems.v3` collection:
+`problem-model.js` validates the `simulatte.lucydProblems.v4` collection:
 
 ```text
 problem: id, title, description, optional attribution, classified provenance,
          ordered followups[], explicit solutions[]
-solution: id, title, boundary, optional workload, ordered stages[]
+solution: id, title, boundary, decision, optional prelude and workload, ordered stages[]
 stage: id, kind, title, explanation, challenge, observe[], exact diagram, checks[]
        optional tradeoffs and explicit workload experiment
 ```
 
 Attribution is metadata and does not select a separate runtime. Published exercises
 require the linked company source; candidate reports remain reports; authored
-practice never implies a company verified the question or architecture. All thirty-one public problems have an authored approach. Thirty-two public approaches
-contain 256 stages; fifteen encrypted private approaches contain 120. Each has
-one requirements/design stage and seven executable stages, for 47 approaches and
-376 stages total. Existing three-stage scenarios retain their IDs and original
-counterexamples; additional stages address concurrency, capacity, latency and
-recovery. The read-time social feed remains an independent alternative.
+practice never implies a company verified the question or architecture. All thirty-one public problems have two authored approaches:62 public approaches
+and496 runnable stages. Fifteen encrypted problems have30 approaches and240
+runnable stages. Each of the92 approaches has eight runnable stages and a separate
+optional conceptual prelude; the shipped collection contains92 preludes. That is
+46 problems,92 approaches and736 runnable stages. Approaches differ in executable
+kernels or connections, not only labels or numeric tuning. Decision metadata
+states when to choose an approach and its costs. Source-compatible alternatives
+retain the baseline commands; keyset/lease/provider protocols state their logical
+comparison boundaries and extra coordination work.
 
 Run `node tools/simulatte/build-lucyd-compat.cjs` after editing canonical content.
 The older prompt/journey/solution registries and diagram exports are compatibility
@@ -43,8 +46,8 @@ participate in runner replay verification. Source tests execute each stage and
 require useful successful requests as well as structural validity.
 
 After unlock the encrypted collection uses the same v3 problem model and chooser.
-Legacy v1/v2 imports remain readable; the published curriculum enforces eight substantive stages. The new bounded command kernels replace the former generic web-service placeholders for data-structure practice.
-The shipped collection has been re-encrypted in v3 while preserving its existing
+Legacy v1/v2/v3 imports remain readable; published v4 problems require two approaches and eight runnable stages per approach. The new bounded command kernels replace the former generic web-service placeholders for data-structure practice.
+The shipped collection has been re-encrypted in v4 while preserving its existing
 key-derivation salt, so earlier encrypted browser saves retain compatibility.
 Notes remain inside ciphertext. Lock unregisters private problems and clears
 reference diagrams, stage snapshots, histories, request details and playback.
@@ -82,17 +85,18 @@ real implementations and separate observations.
 
 ## Stage acceptance and observations
 
-`study-contract.js` rejects published approaches with fewer than eight stages,
+`study-contract.js` rejects published problems with fewer than two approaches or
+approaches with fewer than eight runnable stages,
 missing challenges/observations, missing executable checks or repeated diagrams
-whose only differences are names, labels, layout or notes. Design stages contain
-v5 intent and do not promise simulation. Executable stages retain strict v4.
+whose only differences are names, labels, layout or notes. Optional preludes contain v5 intent and do not count as runnable stages.
+Executable stages retain strict v4.
 Details exposes What to observe and Check this stage using actual engine output;
 checks are pending/running until the horizon completes. Manual edits can fail
 a reference check without being discarded. Node records expose the actual nested
 command/result JSON on demand.
 
-The study session now records stage identities and curriculum version. Legacy
-index-based saved branch edits map through retained legacy stage identities;
+The study session records stage identities and curriculum version4. Legacy
+v2/v3 index-based branch edits map through retained stage identities;
 private session contents remain encrypted. Private conceptual drafts are separate
 from executable study stages and keep their original schema.
 
@@ -125,3 +129,14 @@ rail and execution dock instead of hiding nodes behind them. Request rows show
 operation and endpoints; selecting one exposes retained input, structured results,
 attempts and effects. Opening Requests pauses playback for stable inspection.
 Public locked collection labels do not identify the private interview material.
+
+## Structural and workload evidence
+
+`tools/simulatte/compare-lucyd-approaches.cjs` compares fresh no-fault executions
+of each final architecture. Its bounded graph signature ignores labels, instance
+IDs, layout and numeric policies; different algorithms have separately tested
+executable kernels. This is structural evidence, not a proof that an architecture
+is best. Source identity hashes distinguish38 identical configured-source pairs
+from eight protocol/policy comparisons. Closed-loop arrival times remain response
+dependent, and no production speedup is inferred. Private comparison output
+omits kernel names, workload hashes and per-problem metrics.

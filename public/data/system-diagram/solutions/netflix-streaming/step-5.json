@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.systemDiagram.v4",
   "id": "netflix-streaming",
-  "name": "Global video streaming and CDN / Constrain the edge segment cache",
+  "name": "Global video streaming and CDN / Protect origin admission",
   "description": "Three thousand viewers are split into two independently faultable regions. Playback requires a real manifest receipt; regional caches fetch through one shield and origin. Peer availability and admission are distinct from CDN delivery. Bytes are aggregate unicast, not measured video transport.",
   "seed": 42,
   "run": {
@@ -51,9 +51,7 @@
       "label": "Regional edge segment cache",
       "x": 570,
       "y": 100,
-      "params": {
-        "cacheSegments": 2
-      },
+      "params": {},
       "groupId": "video-west"
     },
     {
@@ -209,7 +207,7 @@
         "segments": 6,
         "segmentKiB": 64,
         "lowSegmentKiB": 16,
-        "serviceMs": 5
+        "queueCapacity": 1
       },
       "groupId": "video-origin"
     }

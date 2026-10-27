@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.systemDiagram.v4",
   "id": "load-balancer-probes",
-  "name": "Round robin load balancer / Bound the admission queue",
+  "name": "Round robin load balancer / Remove and restore a backend",
   "description": "Bounded authored synthetic architecture comparison.",
   "seed": 42,
   "run": {
@@ -37,8 +37,7 @@
         "healthChecks": false,
         "callTimeoutMs": 100,
         "ejectAfterErrors": 2,
-        "ejectSec": 2,
-        "queueCapacity": 1
+        "ejectSec": 2
       }
     },
     {
@@ -177,7 +176,19 @@
   ],
   "groups": [],
   "notes": [],
-  "faults": [],
+  "faults": [
+    {
+      "id": "study-outage",
+      "atSec": 0.15,
+      "untilSec": 1,
+      "target": {
+        "kind": "node",
+        "id": "router"
+      },
+      "type": "crash",
+      "params": {}
+    }
+  ],
   "view": {
     "x": 0,
     "y": 0,

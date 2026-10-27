@@ -1,35 +1,75 @@
 {
-  "schema": "simulatte.systemDiagram.v5",
-  "id": "diagram",
-  "name": "Your project architecture / State the project and its success criteria",
-  "description": "",
-  "seed": 1,
+  "schema": "simulatte.systemDiagram.v4",
+  "id": "project-review-sync",
+  "name": "Your project architecture / Trace the smallest request path",
+  "description": "Bounded authored synthetic architecture comparison.",
+  "seed": 42,
   "run": {
-    "horizonSec": 120
+    "horizonSec": 16
   },
   "classes": [],
   "nodes": [
     {
       "id": "clients",
-      "classId": "concept.clients-context",
-      "label": "Users and requests",
+      "classId": "web-client",
+      "label": "clients",
       "x": 0,
-      "y": 80,
-      "params": {}
+      "y": 100,
+      "params": {
+        "pattern": "constant",
+        "ratePerSec": 6,
+        "maxRequests": 36,
+        "stopSec": 6,
+        "retries": 0,
+        "timeoutMs": 500,
+        "readFraction": 0,
+        "keySpace": 36
+      }
     },
     {
       "id": "api",
-      "classId": "concept.api-context",
-      "label": "System responsibility",
-      "x": 320,
-      "y": 80,
-      "params": {}
+      "classId": "web-server",
+      "label": "api",
+      "x": 220,
+      "y": 100,
+      "params": {
+        "serviceMs": 5,
+        "serviceDist": "constant",
+        "concurrency": 2,
+        "queueCapacity": 8,
+        "callTimeoutMs": 2000
+      }
+    },
+    {
+      "id": "worker",
+      "classId": "worker",
+      "label": "worker",
+      "x": 680,
+      "y": 100,
+      "params": {
+        "serviceMs": 400,
+        "serviceDist": "constant",
+        "concurrency": 2,
+        "queueCapacity": 8,
+        "callTimeoutMs": 200,
+        "retries": 0
+      }
+    },
+    {
+      "id": "results",
+      "classId": "idempotent-store",
+      "label": "results",
+      "x": 930,
+      "y": 100,
+      "params": {
+        "writeMs": 3,
+        "serviceDist": "constant"
+      }
     }
   ],
   "edges": [
     {
-      "id": "context-request",
-      "label": "request / outcome contract",
+      "id": "requests",
       "from": {
         "nodeId": "clients",
         "portId": "out"
@@ -38,7 +78,41 @@
         "nodeId": "api",
         "portId": "in"
       },
-      "params": {}
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 100
+      }
+    },
+    {
+      "id": "compute",
+      "from": {
+        "nodeId": "api",
+        "portId": "calls"
+      },
+      "to": {
+        "nodeId": "worker",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 100
+      }
+    },
+    {
+      "id": "commit",
+      "from": {
+        "nodeId": "worker",
+        "portId": "calls"
+      },
+      "to": {
+        "nodeId": "results",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 100,
+        "op": "write"
+      }
     }
   ],
   "groups": [],
@@ -48,42 +122,5 @@
     "x": 0,
     "y": 0,
     "zoom": 1
-  },
-  "intent": {
-    "outcome": "Diagram a project you know deeply. Explain its design choices and the limits you encountered.",
-    "users": "Callers, state owners and operators named by the problem.",
-    "constraints": "Make ordering, durability, capacity and retry assumptions explicit. Authored worked example for the sourced open-ended project prompt, not a claim about the reader's employment or an actual incident. It models admission, worker service, leased delivery and idempotent result keys. Queue ACK means accepted work, not finished report; no HTTP polling endpoint, real report rendering, durable disk, authentication or operational deployment is implemented.",
-    "success": "An observable request path, bounded waiting, visible failures and a justified recovery policy."
-  },
-  "concepts": [
-    {
-      "id": "clients-context",
-      "label": "Users and requests",
-      "responsibility": "Who issues requests, and which identities or deadlines travel with them?",
-      "ports": [
-        {
-          "id": "out",
-          "direction": "out",
-          "payloadType": "json"
-        }
-      ]
-    },
-    {
-      "id": "api-context",
-      "label": "System responsibility",
-      "responsibility": "Diagram a project you know deeply. Explain its design choices and the limits you encountered.",
-      "ports": [
-        {
-          "id": "in",
-          "direction": "in",
-          "payloadType": "json"
-        },
-        {
-          "id": "out",
-          "direction": "out",
-          "payloadType": "json"
-        }
-      ]
-    }
-  ]
+  }
 }

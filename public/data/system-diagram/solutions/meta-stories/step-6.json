@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.systemDiagram.v4",
   "id": "meta-stories",
-  "name": "Ephemeral stories media pipeline / Bound the story ledger",
+  "name": "Ephemeral stories media pipeline / Interrupt story access",
   "description": "Synthetic audience checks and expiration of story visibility.",
   "seed": 42,
   "run": {
@@ -58,11 +58,7 @@
       "x": 240,
       "y": 0,
       "params": {},
-      "overrides": {
-        "stories": {
-          "queueCapacity": 1
-        }
-      }
+      "overrides": {}
     }
   ],
   "edges": [
@@ -117,7 +113,19 @@
   ],
   "groups": [],
   "notes": [],
-  "faults": [],
+  "faults": [
+    {
+      "id": "study-outage",
+      "atSec": 0.15,
+      "untilSec": 1,
+      "target": {
+        "kind": "edge",
+        "id": "upload"
+      },
+      "type": "partition",
+      "params": {}
+    }
+  ],
   "view": {
     "x": 0,
     "y": 0,

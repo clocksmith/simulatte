@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.systemDiagram.v4",
   "id": "twitter-timeline",
-  "name": "Realtime social timeline / Publish and fan out",
+  "name": "Realtime social timeline / Handle a large audience",
   "description": "Users and follower relations live in an independent social graph. Committed posts resolve their real audience before queueing fanout; feed reads join graph-selected posts with follower timelines. Bound admission, retries and delayed writes are separate executable components.",
   "seed": 42,
   "run": {
@@ -47,7 +47,7 @@
       "x": 570,
       "y": 100,
       "params": {
-        "fanoutMode": "push",
+        "fanoutMode": "hybrid",
         "graphMode": "external"
       },
       "groupId": "social-write"

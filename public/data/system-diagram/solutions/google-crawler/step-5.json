@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.systemDiagram.v4",
   "id": "google-crawler",
-  "name": "Distributed web crawler / Validate extraction output",
+  "name": "Distributed web crawler / Bound parser admission",
   "description": "An autonomous bounded crawler models per-origin delay, deduplication and provenance. Cron adds scheduled tasks to a shared CPU parser and database; no real scraping or content extraction occurs.",
   "seed": 42,
   "run": {
@@ -51,7 +51,7 @@
       "params": {},
       "overrides": {
         "validator": {
-          "validateMs": 1
+          "queueCapacity": 1
         }
       }
     }

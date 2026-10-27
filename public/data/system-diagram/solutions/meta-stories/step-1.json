@@ -1,44 +1,142 @@
 {
-  "schema": "simulatte.systemDiagram.v5",
-  "id": "diagram",
-  "name": "Ephemeral stories media pipeline / Define the success contract",
-  "description": "",
-  "seed": 1,
+  "schema": "simulatte.systemDiagram.v4",
+  "id": "meta-stories",
+  "name": "Ephemeral stories media pipeline / Publish owned media",
+  "description": "Synthetic audience checks and expiration of story visibility.",
+  "seed": 42,
   "run": {
-    "horizonSec": 120
+    "horizonSec": 20
   },
   "classes": [],
   "nodes": [
     {
       "id": "uploads",
-      "classId": "concept.uploads-context",
-      "label": "Users and requests",
+      "classId": "operation-client",
+      "label": "uploads",
       "x": 0,
-      "y": 80,
-      "params": {}
+      "y": 0,
+      "params": {
+        "operation": "publishStory",
+        "count": 3,
+        "intervalMs": 400,
+        "actorSpace": 1
+      }
     },
     {
-      "id": "subsystem-1",
-      "classId": "concept.subsystem-1-context",
-      "label": "System responsibility",
-      "x": 320,
-      "y": 80,
-      "params": {}
+      "id": "processing",
+      "classId": "worker",
+      "label": "Media processing",
+      "x": 240,
+      "y": 0,
+      "params": {
+        "serviceMs": 100
+      }
+    },
+    {
+      "id": "stories",
+      "classId": "story-store",
+      "label": "Story visibility",
+      "x": 480,
+      "y": 0,
+      "params": {
+        "ttlSec": 6,
+        "audienceSize": 2
+      }
+    },
+    {
+      "id": "viewers",
+      "classId": "operation-client",
+      "label": "viewers",
+      "x": 0,
+      "y": 240,
+      "params": {
+        "operation": "readStory",
+        "count": 8,
+        "intervalMs": 400,
+        "startSec": 2,
+        "keySpace": 3,
+        "actorSpace": 4
+      }
+    },
+    {
+      "id": "late-viewers",
+      "classId": "operation-client",
+      "label": "late viewers",
+      "x": 0,
+      "y": 460,
+      "params": {
+        "operation": "readStory",
+        "count": 3,
+        "intervalMs": 400,
+        "startSec": 10,
+        "keySpace": 3
+      }
     }
   ],
   "edges": [
     {
-      "id": "context-request",
-      "label": "request / outcome contract",
+      "id": "upload",
+      "label": "upload",
       "from": {
         "nodeId": "uploads",
         "portId": "out"
       },
       "to": {
-        "nodeId": "subsystem-1",
+        "nodeId": "processing",
         "portId": "in"
       },
-      "params": {}
+      "params": {
+        "latencyMs": 80,
+        "bandwidthMbps": 100
+      }
+    },
+    {
+      "id": "publish",
+      "label": "publish",
+      "from": {
+        "nodeId": "processing",
+        "portId": "calls"
+      },
+      "to": {
+        "nodeId": "stories",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 80,
+        "bandwidthMbps": 100
+      }
+    },
+    {
+      "id": "view",
+      "label": "view",
+      "from": {
+        "nodeId": "viewers",
+        "portId": "out"
+      },
+      "to": {
+        "nodeId": "stories",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 80,
+        "bandwidthMbps": 100
+      }
+    },
+    {
+      "id": "late-view",
+      "label": "late-view",
+      "from": {
+        "nodeId": "late-viewers",
+        "portId": "out"
+      },
+      "to": {
+        "nodeId": "stories",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 80,
+        "bandwidthMbps": 100
+      }
     }
   ],
   "groups": [],
@@ -48,42 +146,5 @@
     "x": 0,
     "y": 0,
     "zoom": 1
-  },
-  "intent": {
-    "outcome": "Design ephemeral photo and video stories that replicate to friends and expire in 24 hours.",
-    "users": "Callers, state owners and operators named by the problem.",
-    "constraints": "Make ordering, durability, capacity and retry assumptions explicit. Six simulated seconds stand in for the product lifetime. Models metadata visibility and view state; processing is a service-time model, not codecs, physical media erasure or a production privacy graph.",
-    "success": "An observable request path, bounded waiting, visible failures and a justified recovery policy."
-  },
-  "concepts": [
-    {
-      "id": "uploads-context",
-      "label": "Users and requests",
-      "responsibility": "Who issues requests, and which identities or deadlines travel with them?",
-      "ports": [
-        {
-          "id": "out",
-          "direction": "out",
-          "payloadType": "json"
-        }
-      ]
-    },
-    {
-      "id": "subsystem-1-context",
-      "label": "System responsibility",
-      "responsibility": "Design ephemeral photo and video stories that replicate to friends and expire in 24 hours.",
-      "ports": [
-        {
-          "id": "in",
-          "direction": "in",
-          "payloadType": "json"
-        },
-        {
-          "id": "out",
-          "direction": "out",
-          "payloadType": "json"
-        }
-      ]
-    }
-  ]
+  }
 }

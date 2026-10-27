@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.systemDiagram.v4",
   "id": "reddit-comments",
-  "name": "Threaded comments and voting / Bound comment retention",
+  "name": "Threaded comments and voting / Interrupt comment writes",
   "description": "Parent-linked comments, per-user votes and score-ranked reads.",
   "seed": 42,
   "run": {
@@ -57,11 +57,7 @@
       "x": 240,
       "y": 100,
       "params": {},
-      "overrides": {
-        "comments-store": {
-          "queueCapacity": 1
-        }
-      }
+      "overrides": {}
     }
   ],
   "edges": [
@@ -116,7 +112,19 @@
   ],
   "groups": [],
   "notes": [],
-  "faults": [],
+  "faults": [
+    {
+      "id": "study-outage",
+      "atSec": 0.15,
+      "untilSec": 1,
+      "target": {
+        "kind": "edge",
+        "id": "post"
+      },
+      "type": "partition",
+      "params": {}
+    }
+  ],
   "view": {
     "x": 0,
     "y": 0,

@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.systemDiagram.v4",
   "id": "project-review-recovery",
-  "name": "Your project architecture / Investigate the first bottleneck",
+  "name": "Your project architecture / Make overload behavior explicit",
   "description": "Bounded authored synthetic architecture comparison.",
   "seed": 42,
   "run": {
@@ -33,10 +33,10 @@
       "x": 220,
       "y": 100,
       "params": {
-        "serviceMs": 2.5,
+        "serviceMs": 5,
         "serviceDist": "constant",
         "concurrency": 2,
-        "queueCapacity": 8,
+        "queueCapacity": 1,
         "callTimeoutMs": 2000
       }
     },

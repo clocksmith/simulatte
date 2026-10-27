@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.systemDiagram.v4",
   "id": "meta-stories",
-  "name": "Ephemeral stories media pipeline / Serialize visibility updates",
+  "name": "Ephemeral stories media pipeline / Compare a shorter story lifetime",
   "description": "Synthetic audience checks and expiration of story visibility.",
   "seed": 42,
   "run": {
@@ -60,7 +60,8 @@
       "params": {},
       "overrides": {
         "stories": {
-          "concurrency": 1
+          "serviceMs": 10,
+          "ttlSec": 2
         }
       }
     }

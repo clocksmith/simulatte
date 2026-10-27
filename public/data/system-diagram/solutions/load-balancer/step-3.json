@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.systemDiagram.v4",
-  "id": "load-balancer-ejection",
-  "name": "Round robin load balancer / Distribute across healthy backends",
+  "id": "load-balancer-probes",
+  "name": "Round robin load balancer / Bound in-flight work",
   "description": "Bounded authored synthetic architecture comparison.",
   "seed": 42,
   "run": {
@@ -34,10 +34,11 @@
       "params": {
         "strategy": "round-robin",
         "retries": 1,
-        "healthChecks": true,
+        "healthChecks": false,
         "callTimeoutMs": 100,
         "ejectAfterErrors": 2,
-        "ejectSec": 2
+        "ejectSec": 2,
+        "concurrency": 1
       }
     },
     {
@@ -65,6 +66,36 @@
         "concurrency": 4,
         "queueCapacity": 8
       }
+    },
+    {
+      "id": "breaker-a",
+      "classId": "circuit-breaker",
+      "label": "breaker a",
+      "x": 500,
+      "y": 0,
+      "params": {
+        "minRequests": 2,
+        "failureThreshold": 0.5,
+        "windowSec": 1,
+        "openSec": 1,
+        "halfOpenProbes": 1,
+        "callTimeoutMs": 100
+      }
+    },
+    {
+      "id": "breaker-b",
+      "classId": "circuit-breaker",
+      "label": "breaker b",
+      "x": 500,
+      "y": 280,
+      "params": {
+        "minRequests": 2,
+        "failureThreshold": 0.5,
+        "windowSec": 1,
+        "openSec": 1,
+        "halfOpenProbes": 1,
+        "callTimeoutMs": 100
+      }
     }
   ],
   "edges": [
@@ -90,7 +121,7 @@
         "portId": "backends"
       },
       "to": {
-        "nodeId": "backend-a",
+        "nodeId": "breaker-a",
         "portId": "in"
       },
       "params": {
@@ -105,6 +136,36 @@
         "portId": "backends"
       },
       "to": {
+        "nodeId": "breaker-b",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 100
+      }
+    },
+    {
+      "id": "probe-a",
+      "from": {
+        "nodeId": "breaker-a",
+        "portId": "protected"
+      },
+      "to": {
+        "nodeId": "backend-a",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 100
+      }
+    },
+    {
+      "id": "probe-b",
+      "from": {
+        "nodeId": "breaker-b",
+        "portId": "protected"
+      },
+      "to": {
         "nodeId": "backend-b",
         "portId": "in"
       },
@@ -116,21 +177,7 @@
   ],
   "groups": [],
   "notes": [],
-  "faults": [
-    {
-      "id": "backend-errors",
-      "target": {
-        "kind": "node",
-        "id": "backend-a"
-      },
-      "type": "errors",
-      "atSec": 1,
-      "untilSec": 5,
-      "params": {
-        "rate": 1
-      }
-    }
-  ],
+  "faults": [],
   "view": {
     "x": 0,
     "y": 0,

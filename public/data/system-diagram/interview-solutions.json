@@ -9,45 +9,45 @@
       "boundary": "Stage 1 simulation of statically assigned tenant data paths, linked copies and recovery. Conceptual control plane: authorize the caller and assign an opaque tenant ID; durably record a provisioning request and reconcile it to a ready endpoint, expose credentials only after health checks, meter per-tenant capacity, and audit destructive operations. Real provisioning, IAM/TLS, SQL, CockroachDB consensus, backup/restore and alert delivery are specification obligations, not executable capabilities of this engine. Separate instances demonstrate structural isolation, not security proof. Synthetic service times establish no production capacity.",
       "steps": [
         {
-          "name": "Define tenant and operator responsibilities",
-          "kind": "design",
-          "explanation": "Declare isolation, backup, recovery and availability requirements before choosing infrastructure.",
-          "diagramPath": "/data/system-diagram/solutions/database-service/step-1.json"
-        },
-        {
           "name": "Connect through a tenant endpoint",
           "kind": "simulation",
           "explanation": "Resolve the authenticated tenant to its own database endpoint; the two synthetic sources represent already authorized tenants and deliberately reuse the same key space. A local acknowledgement has one copy and can survive neither permanent disk loss nor a region loss. Keep provisioning/reconciliation and credential issuance in a separate control plane so an operator outage does not interrupt established queries. Invariant: each tenant has four local writes in its own authority and no route to the other tenant.",
-          "diagramPath": "/data/system-diagram/solutions/database-service/step-2.json"
+          "diagramPath": "/data/system-diagram/solutions/database-service/step-1.json"
         },
         {
           "name": "Require a tenant-local follower receipt",
           "kind": "simulation",
           "explanation": "Add a separately addressable follower per tenant and require two receipts before acknowledging each write. Transfer and local apply now execute over actual drawn links. Monitor local writes, applied copies and pending replication independently: a local effect can exist even when the caller has not seen success. Invariant: acknowledged writes have a leader row and follower receipt; after healthy completion both tenant followers hold matching key versions.",
-          "diagramPath": "/data/system-diagram/solutions/database-service/step-3.json"
+          "diagramPath": "/data/system-diagram/solutions/database-service/step-2.json"
         },
         {
           "name": "Bound concurrent database work",
           "kind": "simulation",
           "explanation": "Bounded station concurrency makes database contention observable.",
-          "diagramPath": "/data/system-diagram/solutions/database-service/step-4.json"
+          "diagramPath": "/data/system-diagram/solutions/database-service/step-3.json"
         },
         {
           "name": "Expose replication lag",
           "kind": "simulation",
           "explanation": "Follower reads trade latency for possible staleness under modeled lag.",
-          "diagramPath": "/data/system-diagram/solutions/database-service/step-5.json"
+          "diagramPath": "/data/system-diagram/solutions/database-service/step-4.json"
         },
         {
           "name": "Bound operational admission",
           "kind": "simulation",
           "explanation": "Queues and retries need explicit limits during overload.",
-          "diagramPath": "/data/system-diagram/solutions/database-service/step-6.json"
+          "diagramPath": "/data/system-diagram/solutions/database-service/step-5.json"
         },
         {
           "name": "Fail and recover a database",
           "kind": "simulation",
           "explanation": "A service outage exposes recovery assumptions and client-visible failures.",
+          "diagramPath": "/data/system-diagram/solutions/database-service/step-6.json"
+        },
+        {
+          "name": "Separate committed work from a lost reply",
+          "kind": "simulation",
+          "explanation": "Drop replies briefly after work may have executed. A timeout establishes an uncertain acknowledgement, not proof that an effect did not occur. Inspect attempts and retained state; retries must preserve their operation identity.",
           "diagramPath": "/data/system-diagram/solutions/database-service/step-7.json"
         },
         {
@@ -64,45 +64,45 @@
       "boundary": "Authored worked example for the sourced open-ended project prompt, not a claim about the reader's employment or an actual incident. It models admission, worker service, leased delivery and idempotent result keys. Queue ACK means accepted work, not finished report; no HTTP polling endpoint, real report rendering, durable disk, authentication or operational deployment is implemented.",
       "steps": [
         {
-          "name": "State the project and its success criteria",
-          "kind": "design",
-          "explanation": "Use this order-processing example as a structure for discussing your own project.",
-          "diagramPath": "/data/system-diagram/solutions/project-review/step-1.json"
-        },
-        {
           "name": "Trace the blocking request",
           "kind": "simulation",
           "explanation": "A synthetic report request holds an API slot while 400 ms of worker service completes, eventually exceeding the client's 500 ms deadline as the two-worker backlog grows. Trace caller timeouts separately from downstream effects; an expired caller does not prove that work never committed.",
-          "diagramPath": "/data/system-diagram/solutions/project-review/step-2.json"
+          "diagramPath": "/data/system-diagram/solutions/project-review/step-1.json"
         },
         {
           "name": "Acknowledge accepted work",
           "kind": "simulation",
           "explanation": "Move the same requests through a bounded leased queue. API replies acknowledge admission while two consumers process reports; inspect queue backlog and result effects independently of client completion. The 1.5 s visibility lease exceeds the normal 400 ms service plus commit time.",
-          "diagramPath": "/data/system-diagram/solutions/project-review/step-3.json"
+          "diagramPath": "/data/system-diagram/solutions/project-review/step-2.json"
         },
         {
           "name": "Measure concurrent work",
           "kind": "simulation",
           "explanation": "Show how concurrent requests share finite service capacity.",
-          "diagramPath": "/data/system-diagram/solutions/project-review/step-4.json"
+          "diagramPath": "/data/system-diagram/solutions/project-review/step-3.json"
         },
         {
           "name": "Investigate the first bottleneck",
           "kind": "simulation",
           "explanation": "Change one service assumption and compare the resulting delay.",
-          "diagramPath": "/data/system-diagram/solutions/project-review/step-5.json"
+          "diagramPath": "/data/system-diagram/solutions/project-review/step-4.json"
         },
         {
           "name": "Make overload behavior explicit",
           "kind": "simulation",
           "explanation": "Admission and bounded queues are deliberate product behavior.",
-          "diagramPath": "/data/system-diagram/solutions/project-review/step-6.json"
+          "diagramPath": "/data/system-diagram/solutions/project-review/step-5.json"
         },
         {
           "name": "Rehearse an incident and repair",
           "kind": "simulation",
           "explanation": "A timed outage provides a concrete incident to explain.",
+          "diagramPath": "/data/system-diagram/solutions/project-review/step-6.json"
+        },
+        {
+          "name": "Separate committed work from a lost reply",
+          "kind": "simulation",
+          "explanation": "Drop replies briefly after work may have executed. A timeout establishes an uncertain acknowledgement, not proof that an effect did not occur. Inspect attempts and retained state; retries must preserve their operation identity.",
           "diagramPath": "/data/system-diagram/solutions/project-review/step-7.json"
         },
         {
@@ -119,45 +119,45 @@
       "boundary": "Simulation stage 1 only, architecture detail level 2. Eight ordered synthetic records; one insert and one delete between pages. Cursor tokens are model JSON, not authenticated production cursors. Keyset uses binary search over a finite in-memory sorted index; snapshot copies model MVCC visibility, not a production database isolation proof.",
       "steps": [
         {
-          "name": "Define page consistency",
-          "kind": "design",
-          "explanation": "Define whether inserts may shift an already opened result set.",
-          "diagramPath": "/data/system-diagram/solutions/pagination/step-1.json"
-        },
-        {
           "name": "Expose offset drift",
           "kind": "simulation",
           "explanation": "Read three records, then insert key 0 and delete key 8 before requesting the next page. Offset scanning repeats record 3 because the preceding prefix changed. Inspect page records and cumulative scanned entries; a fast response alone does not prove correct pagination.",
-          "diagramPath": "/data/system-diagram/solutions/pagination/step-2.json"
+          "diagramPath": "/data/system-diagram/solutions/pagination/step-1.json"
         },
         {
           "name": "Seek after the last key",
           "kind": "simulation",
           "explanation": "Keep the same client trace and page size. Next-page tokens carry the last emitted key, and a binary search seeks strictly after it. Keys 1 through 7 appear once; key 0 is behind the cursor and deleted key 8 is absent. Malformed tokens fail instead of restarting the scan.",
-          "diagramPath": "/data/system-diagram/solutions/pagination/step-3.json"
+          "diagramPath": "/data/system-diagram/solutions/pagination/step-2.json"
         },
         {
           "name": "Freeze a read snapshot",
           "kind": "simulation",
           "explanation": "Retain one snapshot identity across all page requests.",
-          "diagramPath": "/data/system-diagram/solutions/pagination/step-4.json"
+          "diagramPath": "/data/system-diagram/solutions/pagination/step-3.json"
         },
         {
           "name": "Bound page work",
           "kind": "simulation",
           "explanation": "Increasing service concurrency does not replace bounded result sizes.",
-          "diagramPath": "/data/system-diagram/solutions/pagination/step-5.json"
+          "diagramPath": "/data/system-diagram/solutions/pagination/step-4.json"
         },
         {
           "name": "Apply request admission",
           "kind": "simulation",
           "explanation": "A small admission queue exposes overload instead of unlimited buffering.",
-          "diagramPath": "/data/system-diagram/solutions/pagination/step-6.json"
+          "diagramPath": "/data/system-diagram/solutions/pagination/step-5.json"
         },
         {
           "name": "Lose and retry a page",
           "kind": "simulation",
           "explanation": "Page retries must preserve the cursor and snapshot contract.",
+          "diagramPath": "/data/system-diagram/solutions/pagination/step-6.json"
+        },
+        {
+          "name": "Separate committed work from a lost reply",
+          "kind": "simulation",
+          "explanation": "Drop replies briefly after work may have executed. A timeout establishes an uncertain acknowledgement, not proof that an effect did not occur. Inspect attempts and retained state; retries must preserve their operation identity.",
           "diagramPath": "/data/system-diagram/solutions/pagination/step-7.json"
         },
         {
@@ -174,45 +174,45 @@
       "boundary": "One bounded two-member room with actor sessions, presence expiry, parallel best-effort delivery and one ordered history authority. Fixed membership; no live WebSockets, authentication provider, cross-shard ordering or production durability. Failed push delivery is recovered through an authorized history cursor.",
       "steps": [
         {
-          "name": "Define delivery and room boundaries",
-          "kind": "design",
-          "explanation": "Choose per-room ordering and distinguish receipt from durable acceptance.",
-          "diagramPath": "/data/system-diagram/solutions/chat/step-1.json"
-        },
-        {
           "name": "Commit and expose ambiguous acknowledgement",
           "kind": "simulation",
           "explanation": "Alice and Bob append three messages to one conversation sequence. The first acknowledgement is lost after commit. Inspect the failed client command and retained m1: a timeout cannot establish that a write failed. Retrying m1 manually preserves its original sequence. Membership rejects an outsider sync.",
-          "diagramPath": "/data/system-diagram/solutions/chat/step-2.json"
+          "diagramPath": "/data/system-diagram/solutions/chat/step-1.json"
         },
         {
           "name": "Retry the stable message identity",
           "kind": "simulation",
           "explanation": "Put a bounded retry policy before the mailbox. Lost acknowledgements now retry the same message ID and content. The log returns the prior sequence rather than appending a duplicate. Inspect attempts and duplicate counters: retries recover availability while consuming additional service and link work.",
-          "diagramPath": "/data/system-diagram/solutions/chat/step-3.json"
+          "diagramPath": "/data/system-diagram/solutions/chat/step-2.json"
         },
         {
           "name": "Separate connections and presence",
           "kind": "simulation",
           "explanation": "Actor sessions forward requests to ordered history and expire after idle time. Heartbeats update a separate presence directory. Committed messages fan out to both room devices; transport delivery is best-effort, while history owns the order.",
-          "diagramPath": "/data/system-diagram/solutions/chat/step-4.json"
+          "diagramPath": "/data/system-diagram/solutions/chat/step-3.json"
         },
         {
           "name": "Compare history throughput with delivery",
           "kind": "simulation",
           "explanation": "Reduce history service time under the same trace. Connection sessions, presence heartbeats and both device deliveries remain separate work; faster history does not establish unlimited fan-out capacity.",
-          "diagramPath": "/data/system-diagram/solutions/chat/step-5.json"
+          "diagramPath": "/data/system-diagram/solutions/chat/step-4.json"
         },
         {
           "name": "Bound connection and fan-out admission",
           "kind": "simulation",
           "explanation": "Retain only two actor sessions and bound the fan-out queue. Room membership remains enforced by history. Inspect rejected arrivals and stored messages separately from push attempts.",
-          "diagramPath": "/data/system-diagram/solutions/chat/step-6.json"
+          "diagramPath": "/data/system-diagram/solutions/chat/step-5.json"
         },
         {
           "name": "Disconnect a device and interrupt history",
           "kind": "simulation",
           "explanation": "Bob’s device is unavailable during m3 delivery, and history briefly crashes. The committed message remains in history even when push cannot arrive. Later commands and cursor reads exercise repair; inspect failed pushes rather than treating acknowledgement as delivery.",
+          "diagramPath": "/data/system-diagram/solutions/chat/step-6.json"
+        },
+        {
+          "name": "Separate committed work from a lost reply",
+          "kind": "simulation",
+          "explanation": "Drop replies briefly after work may have executed. A timeout establishes an uncertain acknowledgement, not proof that an effect did not occur. Inspect attempts and retained state; retries must preserve their operation identity.",
           "diagramPath": "/data/system-diagram/solutions/chat/step-7.json"
         },
         {
@@ -229,45 +229,45 @@
       "boundary": "Authored replication protocol built on fixed leader/follower nodes and actual network messages; does not rely on the opaque quorum-db kernel. Per-key sequence versions, bounded retained outbox and duplicate suppression execute; one designated writer avoids conflicts by construction. No consensus, automatic failover, durable physical WAL, active-active merge, cross-key transaction or real data-center capacity is proven. Crash recovery preserves simulated state; it is not a disk durability experiment. These are Stage 1 simulations; deployment and operation remain design obligations.",
       "steps": [
         {
-          "name": "Define consistency and failure assumptions",
-          "kind": "design",
-          "explanation": "Declare ordering, acknowledgements and the assumed single leader.",
-          "diagramPath": "/data/system-diagram/solutions/replication/step-1.json"
-        },
-        {
           "name": "Accept locally during a remote partition",
           "kind": "simulation",
           "explanation": "Keep region A as the sole accepted writer and reply after its local commit. Partition the drawn inter-region link for 0.5 seconds. All four callers can complete while region B lacks their data; the two-attempt replication budget for the earliest write exhausts and the early-write outbox remains visible. A successful API response therefore means a local effect, not remote durability. Invariant: one logical effect per write; unacknowledged copies remain attributable in pending replication.",
-          "diagramPath": "/data/system-diagram/solutions/replication/step-2.json"
+          "diagramPath": "/data/system-diagram/solutions/replication/step-1.json"
         },
         {
           "name": "Make remote durability part of acceptance",
           "kind": "simulation",
           "explanation": "Change only the acknowledgement count to two. With the same partition and finite retry budget, local writes still exist but the earliest caller fails when its remote receipt cannot arrive; later callers can succeed after the link heals. This makes the availability/durability tradeoff observable instead of hiding a network partition behind a replica icon. Invariant: no successful caller without a follower receipt; the failed calls do not roll back already committed local rows.",
-          "diagramPath": "/data/system-diagram/solutions/replication/step-3.json"
+          "diagramPath": "/data/system-diagram/solutions/replication/step-2.json"
         },
         {
           "name": "Separate apply delay from acknowledgement",
           "kind": "simulation",
           "explanation": "Write acceptance does not imply that every replica applied the record.",
-          "diagramPath": "/data/system-diagram/solutions/replication/step-4.json"
+          "diagramPath": "/data/system-diagram/solutions/replication/step-3.json"
         },
         {
           "name": "Expose follower lag",
           "kind": "simulation",
           "explanation": "Lag can make a follower read stale.",
-          "diagramPath": "/data/system-diagram/solutions/replication/step-5.json"
+          "diagramPath": "/data/system-diagram/solutions/replication/step-4.json"
         },
         {
           "name": "Bound concurrent replication",
           "kind": "simulation",
           "explanation": "Replication competes for bounded node and network capacity.",
-          "diagramPath": "/data/system-diagram/solutions/replication/step-6.json"
+          "diagramPath": "/data/system-diagram/solutions/replication/step-5.json"
         },
         {
           "name": "Partition and restore the leader path",
           "kind": "simulation",
           "explanation": "Observe follower loss, a partition and leader recovery.",
+          "diagramPath": "/data/system-diagram/solutions/replication/step-6.json"
+        },
+        {
+          "name": "Separate committed work from a lost reply",
+          "kind": "simulation",
+          "explanation": "Drop replies briefly after work may have executed. A timeout establishes an uncertain acknowledgement, not proof that an effect did not occur. Inspect attempts and retained state; retries must preserve their operation identity.",
           "diagramPath": "/data/system-diagram/solutions/replication/step-7.json"
         },
         {
@@ -284,45 +284,45 @@
       "boundary": "Finite new listings and exact lowercase title-token matching against already saved searches. One matching station scans bounded terms; no inverted index, retroactive search, unsubscribe, SMTP, external scheduler or real provider. Days 1 and 2 are explicit synthetic clock tokens, not wall-clock days. Simulated mailbox idempotency is a required endpoint contract and does not prove exactly-once real email. Every stage is evolution Stage 1 simulation, independent of diagram detail levels.",
       "steps": [
         {
-          "name": "Define search and notification identities",
-          "kind": "design",
-          "explanation": "Define a listing identity and a notification identity before scheduling work.",
-          "diagramPath": "/data/system-diagram/solutions/saved-search/step-1.json"
-        },
-        {
           "name": "Match new listings and retain failed digests",
           "kind": "simulation",
           "explanation": "Save alice/distributed and bob/database before listings arrive. A title with both terms produces one match for each recipient; an unrelated gardening title produces none. Repeating b1 cannot add another match. Daily commands snapshot pending matches into immutable recipient/day digests. Delivery is deliberately unconnected, so digest requests fail and the outbox remains pending.",
-          "diagramPath": "/data/system-diagram/solutions/saved-search/step-2.json"
+          "diagramPath": "/data/system-diagram/solutions/saved-search/step-1.json"
         },
         {
           "name": "Deliver immutable recipient/day digests",
           "kind": "simulation",
           "explanation": "Connect the retained outbox to a separately inspectable synthetic email mailbox. One day-1 email goes to each shopper; only Bob receives the new database listing on day 2. Repeating the daily command cannot resend acknowledged digests. The matcher marks delivered only after the actual drawn delivery call returns successfully.",
-          "diagramPath": "/data/system-diagram/solutions/saved-search/step-3.json"
+          "diagramPath": "/data/system-diagram/solutions/saved-search/step-2.json"
         },
         {
           "name": "Deduplicate ingestion and delivery",
           "kind": "simulation",
           "explanation": "Repeated listings and repeated runs must not duplicate a notification.",
-          "diagramPath": "/data/system-diagram/solutions/saved-search/step-4.json"
+          "diagramPath": "/data/system-diagram/solutions/saved-search/step-3.json"
         },
         {
           "name": "Bound concurrent matching",
           "kind": "simulation",
           "explanation": "Measure matching service delay separately from the daily schedule.",
-          "diagramPath": "/data/system-diagram/solutions/saved-search/step-5.json"
+          "diagramPath": "/data/system-diagram/solutions/saved-search/step-4.json"
         },
         {
           "name": "Bound the digest backlog",
           "kind": "simulation",
           "explanation": "A finite receipt ledger makes retention and backfill policy explicit.",
-          "diagramPath": "/data/system-diagram/solutions/saved-search/step-6.json"
+          "diagramPath": "/data/system-diagram/solutions/saved-search/step-5.json"
         },
         {
           "name": "Retry an interrupted digest",
           "kind": "simulation",
           "explanation": "An unavailable worker can be retried with stable notification identities.",
+          "diagramPath": "/data/system-diagram/solutions/saved-search/step-6.json"
+        },
+        {
+          "name": "Separate committed work from a lost reply",
+          "kind": "simulation",
+          "explanation": "Drop replies briefly after work may have executed. A timeout establishes an uncertain acknowledgement, not proof that an effect did not occur. Inspect attempts and retained state; retries must preserve their operation identity.",
           "diagramPath": "/data/system-diagram/solutions/saved-search/step-7.json"
         },
         {
@@ -339,45 +339,45 @@
       "boundary": "Authored answer to the cited candidate-reported exercise. Read-only bounded requests and two identical synthetic backends; no production capacity, active health-check daemon, discovery or cross-process shared routing state. Time-based ejection and request-driven circuit probes are distinct policies.",
       "steps": [
         {
-          "name": "Define routing and retry safety",
-          "kind": "design",
-          "explanation": "Choose the retry safety contract and how backend health is learned.",
-          "diagramPath": "/data/system-diagram/solutions/load-balancer/step-1.json"
-        },
-        {
           "name": "Rotate eligible backends",
           "kind": "simulation",
           "explanation": "Route equal-cost reads cyclically. Backend A returns errors from second 1 through second 5, so a fair rotation still sends work to a failing server. Inspect per-backend sent/failed counts before choosing recovery.",
-          "diagramPath": "/data/system-diagram/solutions/load-balancer/step-2.json"
+          "diagramPath": "/data/system-diagram/solutions/load-balancer/step-1.json"
         },
         {
           "name": "Retry once and temporarily eject",
           "kind": "simulation",
           "explanation": "A dependency error retries on the other backend, never the same edge in that request. Two consecutive errors eject A for two seconds; traffic later readmits it by timer. A remains faulty until second 5, exposing the cost of blind readmission.",
-          "diagramPath": "/data/system-diagram/solutions/load-balancer/step-3.json"
+          "diagramPath": "/data/system-diagram/solutions/load-balancer/step-2.json"
         },
         {
           "name": "Bound in-flight work",
           "kind": "simulation",
           "explanation": "Concurrency bounds determine how many requests wait.",
-          "diagramPath": "/data/system-diagram/solutions/load-balancer/step-4.json"
+          "diagramPath": "/data/system-diagram/solutions/load-balancer/step-3.json"
         },
         {
           "name": "Compare backend service times",
           "kind": "simulation",
           "explanation": "A slow backend can dominate latency even with equal request counts.",
-          "diagramPath": "/data/system-diagram/solutions/load-balancer/step-5.json"
+          "diagramPath": "/data/system-diagram/solutions/load-balancer/step-4.json"
         },
         {
           "name": "Bound the admission queue",
           "kind": "simulation",
           "explanation": "Queue limits expose overload instead of promising unlimited capacity.",
-          "diagramPath": "/data/system-diagram/solutions/load-balancer/step-6.json"
+          "diagramPath": "/data/system-diagram/solutions/load-balancer/step-5.json"
         },
         {
           "name": "Remove and restore a backend",
           "kind": "simulation",
           "explanation": "A timed outage tests failure handling and restoration.",
+          "diagramPath": "/data/system-diagram/solutions/load-balancer/step-6.json"
+        },
+        {
+          "name": "Separate committed work from a lost reply",
+          "kind": "simulation",
+          "explanation": "Drop replies briefly after work may have executed. A timeout establishes an uncertain acknowledgement, not proof that an effect did not occur. Inspect attempts and retained state; retries must preserve their operation identity.",
           "diagramPath": "/data/system-diagram/solutions/load-balancer/step-7.json"
         },
         {
@@ -394,45 +394,45 @@
       "boundary": "Simulation stage 1 only, architecture detail level 2. One synthetic subscription and finite card/bank charge records, each worth 10 model units. Models lifecycle versions, event identity and reconciliation, not money movement, PCI compliance, provider webhooks, real credentials or multi-region transactions.",
       "steps": [
         {
-          "name": "Define subscription and payment boundaries",
-          "kind": "design",
-          "explanation": "The model records payment intent; it never moves money or contacts a provider.",
-          "diagramPath": "/data/system-diagram/solutions/subscriptions/step-1.json"
-        },
-        {
           "name": "Observe repeated payment effects",
           "kind": "simulation",
           "explanation": "Signup is repeated with the same event identity before a bank renewal, cancellation and stale renewal. Without event suppression the provider records two signup charges. Inspect the charge ledger rather than equating successful responses with one economic effect.",
-          "diagramPath": "/data/system-diagram/solutions/subscriptions/step-2.json"
+          "diagramPath": "/data/system-diagram/solutions/subscriptions/step-1.json"
         },
         {
           "name": "Bind event identity to lifecycle versions",
           "kind": "simulation",
           "explanation": "Both provider and service suppress repeated event identities. Signup charges once, renewal advances version 2, cancellation advances version 3, and stale version 2 cannot reactivate it or create another payment. The same command trace now produces exactly two charges.",
-          "diagramPath": "/data/system-diagram/solutions/subscriptions/step-3.json"
+          "diagramPath": "/data/system-diagram/solutions/subscriptions/step-2.json"
         },
         {
           "name": "Make retry identities durable",
           "kind": "simulation",
           "explanation": "A duplicate charge request must reuse the first receipt.",
-          "diagramPath": "/data/system-diagram/solutions/subscriptions/step-4.json"
+          "diagramPath": "/data/system-diagram/solutions/subscriptions/step-3.json"
         },
         {
           "name": "Serialize lifecycle transitions",
           "kind": "simulation",
           "explanation": "Cancellation and renewal require an explicit serialized state transition.",
-          "diagramPath": "/data/system-diagram/solutions/subscriptions/step-5.json"
+          "diagramPath": "/data/system-diagram/solutions/subscriptions/step-4.json"
         },
         {
           "name": "Bound receipt retention",
           "kind": "simulation",
           "explanation": "Receipt retention has a capacity and cannot silently forget retry identities.",
-          "diagramPath": "/data/system-diagram/solutions/subscriptions/step-6.json"
+          "diagramPath": "/data/system-diagram/solutions/subscriptions/step-5.json"
         },
         {
           "name": "Interrupt and retry billing",
           "kind": "simulation",
           "explanation": "A lost reply must not create a second charge on retry.",
+          "diagramPath": "/data/system-diagram/solutions/subscriptions/step-6.json"
+        },
+        {
+          "name": "Separate committed work from a lost reply",
+          "kind": "simulation",
+          "explanation": "Drop replies briefly after work may have executed. A timeout establishes an uncertain acknowledgement, not proof that an effect did not occur. Inspect attempts and retained state; retries must preserve their operation identity.",
           "diagramPath": "/data/system-diagram/solutions/subscriptions/step-7.json"
         },
         {
@@ -449,45 +449,45 @@
       "boundary": "Synthetic bounded comment tree and score ordering; no Reddit production ranking or actual WebSocket connection.",
       "steps": [
         {
-          "name": "Define the success contract",
-          "kind": "design",
-          "explanation": "Design a discussion platform supporting deeply nested comment trees and live upvote/downvote tallies.",
-          "diagramPath": "/data/system-diagram/solutions/reddit-comments/step-1.json"
-        },
-        {
           "name": "Save replies",
           "kind": "simulation",
           "explanation": "Each reply names its parent. Repeating a comment does not create another copy.",
-          "diagramPath": "/data/system-diagram/solutions/reddit-comments/step-2.json"
+          "diagramPath": "/data/system-diagram/solutions/reddit-comments/step-1.json"
         },
         {
           "name": "Count votes",
           "kind": "simulation",
           "explanation": "A user has one vote per comment. Repeating the same vote leaves the score unchanged.",
-          "diagramPath": "/data/system-diagram/solutions/reddit-comments/step-3.json"
+          "diagramPath": "/data/system-diagram/solutions/reddit-comments/step-2.json"
         },
         {
           "name": "Order concurrent mutations",
           "kind": "simulation",
           "explanation": "Order concurrent mutations. Inspect the named component, its request records and the resulting delays or rejections.",
-          "diagramPath": "/data/system-diagram/solutions/reddit-comments/step-4.json"
+          "diagramPath": "/data/system-diagram/solutions/reddit-comments/step-3.json"
         },
         {
           "name": "Read comment state",
           "kind": "simulation",
           "explanation": "Read comment state. Inspect the named component, its request records and the resulting delays or rejections.",
-          "diagramPath": "/data/system-diagram/solutions/reddit-comments/step-5.json"
+          "diagramPath": "/data/system-diagram/solutions/reddit-comments/step-4.json"
         },
         {
           "name": "Bound comment retention",
           "kind": "simulation",
           "explanation": "Bound comment retention. Inspect the named component, its request records and the resulting delays or rejections.",
-          "diagramPath": "/data/system-diagram/solutions/reddit-comments/step-6.json"
+          "diagramPath": "/data/system-diagram/solutions/reddit-comments/step-5.json"
         },
         {
           "name": "Interrupt comment writes",
           "kind": "simulation",
           "explanation": "Interrupt comment writes. Inspect the named component, its request records and the resulting delays or rejections.",
+          "diagramPath": "/data/system-diagram/solutions/reddit-comments/step-6.json"
+        },
+        {
+          "name": "Bound transport capacity across subsystem contracts",
+          "kind": "simulation",
+          "explanation": "Reduce the entry-link bandwidth while preserving the subsystem implementation. Compare transfer waiting, request deadlines and completed state; the link models transport capacity, not a provider benchmark.",
           "diagramPath": "/data/system-diagram/solutions/reddit-comments/step-7.json"
         },
         {
@@ -504,45 +504,45 @@
       "boundary": "Synthetic segmented delivery with two advertised rendition sizes and a transfer-time adaptation rule; manifests stand in for pre-encoded assets. No actual encoding, DRM, codecs or Netflix production implementation.",
       "steps": [
         {
-          "name": "Define the success contract",
-          "kind": "design",
-          "explanation": "Design an adaptive bitrate video streaming service delivering high-throughput playback globally.",
-          "diagramPath": "/data/system-diagram/solutions/netflix-streaming/step-1.json"
-        },
-        {
           "name": "Read a manifest",
           "kind": "simulation",
           "explanation": "Players read the asset manifest before asking a regional cache for numbered video segments.",
-          "diagramPath": "/data/system-diagram/solutions/netflix-streaming/step-2.json"
+          "diagramPath": "/data/system-diagram/solutions/netflix-streaming/step-1.json"
         },
         {
           "name": "Share cached segments",
           "kind": "simulation",
           "explanation": "Two regions share an origin shield. A cached segment avoids another origin download.",
-          "diagramPath": "/data/system-diagram/solutions/netflix-streaming/step-3.json"
+          "diagramPath": "/data/system-diagram/solutions/netflix-streaming/step-2.json"
         },
         {
           "name": "Bound origin concurrency",
           "kind": "simulation",
           "explanation": "Bound origin concurrency. Inspect the named component, its request records and the resulting delays or rejections.",
-          "diagramPath": "/data/system-diagram/solutions/netflix-streaming/step-4.json"
+          "diagramPath": "/data/system-diagram/solutions/netflix-streaming/step-3.json"
         },
         {
           "name": "Constrain the edge segment cache",
           "kind": "simulation",
           "explanation": "A two-segment cache changes retained segments and origin demand under the unchanged viewer workload. Inspect hits, misses and origin transfers rather than claiming a network-performance guarantee.",
-          "diagramPath": "/data/system-diagram/solutions/netflix-streaming/step-5.json"
+          "diagramPath": "/data/system-diagram/solutions/netflix-streaming/step-4.json"
         },
         {
           "name": "Protect origin admission",
           "kind": "simulation",
           "explanation": "Protect origin admission. Inspect the named component, its request records and the resulting delays or rejections.",
-          "diagramPath": "/data/system-diagram/solutions/netflix-streaming/step-6.json"
+          "diagramPath": "/data/system-diagram/solutions/netflix-streaming/step-5.json"
         },
         {
           "name": "Interrupt the origin",
           "kind": "simulation",
           "explanation": "Interrupt the origin. Inspect the named component, its request records and the resulting delays or rejections.",
+          "diagramPath": "/data/system-diagram/solutions/netflix-streaming/step-6.json"
+        },
+        {
+          "name": "Separate committed work from a lost reply",
+          "kind": "simulation",
+          "explanation": "Drop replies briefly after work may have executed. A timeout establishes an uncertain acknowledgement, not proof that an effect did not occur. Inspect attempts and retained state; retries must preserve their operation identity.",
           "diagramPath": "/data/system-diagram/solutions/netflix-streaming/step-7.json"
         },
         {
@@ -559,45 +559,45 @@
       "boundary": "Finite users and explicit follow relationships, bounded timeline retention and synthetic reads. No X production ranking or real WebSocket delivery.",
       "steps": [
         {
-          "name": "Define the success contract",
-          "kind": "design",
-          "explanation": "Design a real-time social timeline where users follow accounts and receive fresh home feeds.",
-          "diagramPath": "/data/system-diagram/solutions/twitter-timeline/step-1.json"
-        },
-        {
           "name": "Publish and fan out",
           "kind": "simulation",
           "explanation": "Store each post, look up its real followers, and queue one delivery path for their timelines.",
-          "diagramPath": "/data/system-diagram/solutions/twitter-timeline/step-2.json"
+          "diagramPath": "/data/system-diagram/solutions/twitter-timeline/step-1.json"
         },
         {
           "name": "Handle large audiences",
           "kind": "simulation",
           "explanation": "Switch to hybrid fanout: large audiences read from the post store while smaller audiences receive timeline writes.",
-          "diagramPath": "/data/system-diagram/solutions/twitter-timeline/step-3.json"
+          "diagramPath": "/data/system-diagram/solutions/twitter-timeline/step-2.json"
         },
         {
           "name": "Serialize timeline batches",
           "kind": "simulation",
           "explanation": "Serialize timeline batches. Inspect the named component, its request records and the resulting delays or rejections.",
-          "diagramPath": "/data/system-diagram/solutions/twitter-timeline/step-4.json"
+          "diagramPath": "/data/system-diagram/solutions/twitter-timeline/step-3.json"
         },
         {
           "name": "Reduce timeline write delay",
           "kind": "simulation",
           "explanation": "Reduce timeline write delay. Inspect the named component, its request records and the resulting delays or rejections.",
-          "diagramPath": "/data/system-diagram/solutions/twitter-timeline/step-5.json"
+          "diagramPath": "/data/system-diagram/solutions/twitter-timeline/step-4.json"
         },
         {
           "name": "Bound timeline admission",
           "kind": "simulation",
           "explanation": "Bound timeline admission. Inspect the named component, its request records and the resulting delays or rejections.",
-          "diagramPath": "/data/system-diagram/solutions/twitter-timeline/step-6.json"
+          "diagramPath": "/data/system-diagram/solutions/twitter-timeline/step-5.json"
         },
         {
           "name": "Interrupt timeline writes",
           "kind": "simulation",
           "explanation": "Interrupt timeline writes. Inspect the named component, its request records and the resulting delays or rejections.",
+          "diagramPath": "/data/system-diagram/solutions/twitter-timeline/step-6.json"
+        },
+        {
+          "name": "Separate committed work from a lost reply",
+          "kind": "simulation",
+          "explanation": "Drop replies briefly after work may have executed. A timeout establishes an uncertain acknowledgement, not proof that an effect did not occur. Inspect attempts and retained state; retries must preserve their operation identity.",
           "diagramPath": "/data/system-diagram/solutions/twitter-timeline/step-7.json"
         },
         {
@@ -614,45 +614,45 @@
       "boundary": "Six simulated seconds stand in for the product lifetime. Models metadata visibility and view state; processing is a service-time model, not codecs, physical media erasure or a production privacy graph.",
       "steps": [
         {
-          "name": "Define the success contract",
-          "kind": "design",
-          "explanation": "Design ephemeral photo and video stories that replicate to friends and expire in 24 hours.",
-          "diagramPath": "/data/system-diagram/solutions/meta-stories/step-1.json"
-        },
-        {
           "name": "Publish media",
           "kind": "simulation",
           "explanation": "Process an upload, then create its visibility record and expiration time.",
-          "diagramPath": "/data/system-diagram/solutions/meta-stories/step-2.json"
+          "diagramPath": "/data/system-diagram/solutions/meta-stories/step-1.json"
         },
         {
           "name": "Check the audience",
           "kind": "simulation",
           "explanation": "Allowed viewers can read the story. A viewer outside its audience is rejected.",
-          "diagramPath": "/data/system-diagram/solutions/meta-stories/step-3.json"
+          "diagramPath": "/data/system-diagram/solutions/meta-stories/step-2.json"
         },
         {
           "name": "Serialize visibility updates",
           "kind": "simulation",
           "explanation": "Serialize visibility updates. Inspect the named component, its request records and the resulting delays or rejections.",
-          "diagramPath": "/data/system-diagram/solutions/meta-stories/step-4.json"
+          "diagramPath": "/data/system-diagram/solutions/meta-stories/step-3.json"
         },
         {
           "name": "Compare a shorter story lifetime",
           "kind": "simulation",
           "explanation": "A two-second visibility lifetime expires stories during the same viewer trace. Inspect denied late reads and expiry records; the modeled time is not a real twenty-four-hour scheduler.",
-          "diagramPath": "/data/system-diagram/solutions/meta-stories/step-5.json"
+          "diagramPath": "/data/system-diagram/solutions/meta-stories/step-4.json"
         },
         {
           "name": "Bound the story ledger",
           "kind": "simulation",
           "explanation": "Bound the story ledger. Inspect the named component, its request records and the resulting delays or rejections.",
-          "diagramPath": "/data/system-diagram/solutions/meta-stories/step-6.json"
+          "diagramPath": "/data/system-diagram/solutions/meta-stories/step-5.json"
         },
         {
           "name": "Interrupt story access",
           "kind": "simulation",
           "explanation": "Interrupt story access. Inspect the named component, its request records and the resulting delays or rejections.",
+          "diagramPath": "/data/system-diagram/solutions/meta-stories/step-6.json"
+        },
+        {
+          "name": "Bound transport capacity across subsystem contracts",
+          "kind": "simulation",
+          "explanation": "Reduce the entry-link bandwidth while preserving the subsystem implementation. Compare transfer waiting, request deadlines and completed state; the link models transport capacity, not a provider benchmark.",
           "diagramPath": "/data/system-diagram/solutions/meta-stories/step-7.json"
         },
         {
@@ -669,45 +669,45 @@
       "boundary": "One synthetic stock authority; no real payments, distributed transaction consensus or multi-region locking.",
       "steps": [
         {
-          "name": "Define the success contract",
-          "kind": "design",
-          "explanation": "Design an e-commerce checkout system handling high-concurrency item reservation without double-selling.",
-          "diagramPath": "/data/system-diagram/solutions/amazon-flash-sale/step-1.json"
-        },
-        {
           "name": "Reserve stock",
           "kind": "simulation",
           "explanation": "One authority checks available stock and creates a hold. Extra shoppers are rejected instead of overselling.",
-          "diagramPath": "/data/system-diagram/solutions/amazon-flash-sale/step-2.json"
+          "diagramPath": "/data/system-diagram/solutions/amazon-flash-sale/step-1.json"
         },
         {
           "name": "Confirm once",
           "kind": "simulation",
           "explanation": "A payment confirms an existing hold. Duplicate payment callbacks do not sell another item.",
-          "diagramPath": "/data/system-diagram/solutions/amazon-flash-sale/step-3.json"
+          "diagramPath": "/data/system-diagram/solutions/amazon-flash-sale/step-2.json"
         },
         {
           "name": "Serialize competing reservations",
           "kind": "simulation",
           "explanation": "Serialize competing reservations. Inspect the named component, its request records and the resulting delays or rejections.",
-          "diagramPath": "/data/system-diagram/solutions/amazon-flash-sale/step-4.json"
+          "diagramPath": "/data/system-diagram/solutions/amazon-flash-sale/step-3.json"
         },
         {
           "name": "Return expired holds",
           "kind": "simulation",
           "explanation": "Return expired holds. Inspect the named component, its request records and the resulting delays or rejections.",
-          "diagramPath": "/data/system-diagram/solutions/amazon-flash-sale/step-5.json"
+          "diagramPath": "/data/system-diagram/solutions/amazon-flash-sale/step-4.json"
         },
         {
           "name": "Bound reservation storage",
           "kind": "simulation",
           "explanation": "Bound reservation storage. Inspect the named component, its request records and the resulting delays or rejections.",
-          "diagramPath": "/data/system-diagram/solutions/amazon-flash-sale/step-6.json"
+          "diagramPath": "/data/system-diagram/solutions/amazon-flash-sale/step-5.json"
         },
         {
           "name": "Interrupt checkout authority",
           "kind": "simulation",
           "explanation": "Interrupt checkout authority. Inspect the named component, its request records and the resulting delays or rejections.",
+          "diagramPath": "/data/system-diagram/solutions/amazon-flash-sale/step-6.json"
+        },
+        {
+          "name": "Bound transport capacity across subsystem contracts",
+          "kind": "simulation",
+          "explanation": "Reduce the entry-link bandwidth while preserving the subsystem implementation. Compare transfer waiting, request deadlines and completed state; the link models transport capacity, not a provider benchmark.",
           "diagramPath": "/data/system-diagram/solutions/amazon-flash-sale/step-7.json"
         },
         {
@@ -724,45 +724,45 @@
       "boundary": "Synthetic domain counters and duplicate probability; no network scraping, robots.txt parser, DNS cache, real URL fingerprints or production index.",
       "steps": [
         {
-          "name": "Define the success contract",
-          "kind": "design",
-          "explanation": "Design a scalable web crawler that traverses billions of web pages while honoring politeness.",
-          "diagramPath": "/data/system-diagram/solutions/google-crawler/step-1.json"
-        },
-        {
           "name": "Respect each host",
           "kind": "simulation",
           "explanation": "The frontier limits concurrent fetches and waits between requests to the same synthetic domain.",
-          "diagramPath": "/data/system-diagram/solutions/google-crawler/step-2.json"
+          "diagramPath": "/data/system-diagram/solutions/google-crawler/step-1.json"
         },
         {
           "name": "Extract records",
           "kind": "simulation",
           "explanation": "Fetched pages go through processing and structured validation before reaching the record store.",
-          "diagramPath": "/data/system-diagram/solutions/google-crawler/step-3.json"
+          "diagramPath": "/data/system-diagram/solutions/google-crawler/step-2.json"
         },
         {
           "name": "Share finite parser capacity",
           "kind": "simulation",
           "explanation": "Share finite parser capacity. Inspect the named component, its request records and the resulting delays or rejections.",
-          "diagramPath": "/data/system-diagram/solutions/google-crawler/step-4.json"
+          "diagramPath": "/data/system-diagram/solutions/google-crawler/step-3.json"
         },
         {
           "name": "Validate extraction output",
           "kind": "simulation",
           "explanation": "Validate extraction output. Inspect the named component, its request records and the resulting delays or rejections.",
-          "diagramPath": "/data/system-diagram/solutions/google-crawler/step-5.json"
+          "diagramPath": "/data/system-diagram/solutions/google-crawler/step-4.json"
         },
         {
           "name": "Bound parser admission",
           "kind": "simulation",
           "explanation": "Bound parser admission. Inspect the named component, its request records and the resulting delays or rejections.",
-          "diagramPath": "/data/system-diagram/solutions/google-crawler/step-6.json"
+          "diagramPath": "/data/system-diagram/solutions/google-crawler/step-5.json"
         },
         {
           "name": "Interrupt crawl processing",
           "kind": "simulation",
           "explanation": "Interrupt crawl processing. Inspect the named component, its request records and the resulting delays or rejections.",
+          "diagramPath": "/data/system-diagram/solutions/google-crawler/step-6.json"
+        },
+        {
+          "name": "Separate committed work from a lost reply",
+          "kind": "simulation",
+          "explanation": "Drop replies briefly after work may have executed. A timeout establishes an uncertain acknowledgement, not proof that an effect did not occur. Inspect attempts and retained state; retries must preserve their operation identity.",
           "diagramPath": "/data/system-diagram/solutions/google-crawler/step-7.json"
         },
         {
@@ -779,45 +779,45 @@
       "boundary": "Bounded single-tenant presence and delivery model; no Microsoft production topology or real client connections.",
       "steps": [
         {
-          "name": "Define the success contract",
-          "kind": "design",
-          "explanation": "Design a real-time presence service broadcasting user availability across enterprise channels.",
-          "diagramPath": "/data/system-diagram/solutions/microsoft-presence/step-1.json"
-        },
-        {
           "name": "Track heartbeats",
           "kind": "simulation",
           "explanation": "Each heartbeat renews a user lease. An old timeout cannot override a newer heartbeat.",
-          "diagramPath": "/data/system-diagram/solutions/microsoft-presence/step-2.json"
+          "diagramPath": "/data/system-diagram/solutions/microsoft-presence/step-1.json"
         },
         {
           "name": "Notify subscribers",
           "kind": "simulation",
           "explanation": "Subscriptions name the user being watched. Changes produce delivery requests only for those subscriptions.",
-          "diagramPath": "/data/system-diagram/solutions/microsoft-presence/step-3.json"
+          "diagramPath": "/data/system-diagram/solutions/microsoft-presence/step-2.json"
         },
         {
           "name": "Order heartbeat revisions",
           "kind": "simulation",
           "explanation": "Order heartbeat revisions. Inspect the named component, its request records and the resulting delays or rejections.",
-          "diagramPath": "/data/system-diagram/solutions/microsoft-presence/step-4.json"
+          "diagramPath": "/data/system-diagram/solutions/microsoft-presence/step-3.json"
         },
         {
           "name": "Distinguish heartbeat delay from offline status",
           "kind": "simulation",
           "explanation": "A one-second heartbeat TTL creates earlier offline transitions under the same heartbeat stream. Inspect revisions, expiry wakes and watcher notifications.",
-          "diagramPath": "/data/system-diagram/solutions/microsoft-presence/step-5.json"
+          "diagramPath": "/data/system-diagram/solutions/microsoft-presence/step-4.json"
         },
         {
           "name": "Bound subscriber storage",
           "kind": "simulation",
           "explanation": "Bound subscriber storage. Inspect the named component, its request records and the resulting delays or rejections.",
-          "diagramPath": "/data/system-diagram/solutions/microsoft-presence/step-6.json"
+          "diagramPath": "/data/system-diagram/solutions/microsoft-presence/step-5.json"
         },
         {
           "name": "Interrupt presence delivery",
           "kind": "simulation",
           "explanation": "Interrupt presence delivery. Inspect the named component, its request records and the resulting delays or rejections.",
+          "diagramPath": "/data/system-diagram/solutions/microsoft-presence/step-6.json"
+        },
+        {
+          "name": "Bound transport capacity across subsystem contracts",
+          "kind": "simulation",
+          "explanation": "Reduce the entry-link bandwidth while preserving the subsystem implementation. Compare transfer waiting, request deadlines and completed state; the link models transport capacity, not a provider benchmark.",
           "diagramPath": "/data/system-diagram/solutions/microsoft-presence/step-7.json"
         },
         {

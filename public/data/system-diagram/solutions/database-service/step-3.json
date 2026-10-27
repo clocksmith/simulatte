@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.systemDiagram.v4",
-  "id": "database-service-replicate",
-  "name": "Database as a service / Choose replication acknowledgements",
+  "id": "database-service-isolation",
+  "name": "Database as a service / Bound concurrent database work",
   "description": "Authored bounded synthetic model, not production capacity or a deployed service.",
   "seed": 42,
   "run": {
@@ -49,11 +49,11 @@
       "y": 0,
       "params": {
         "writeQuorum": 2,
-        "concurrency": 4,
+        "concurrency": 1,
         "maxRecords": 100,
         "timeoutMs": 80,
         "retryIntervalMs": 100,
-        "maxAttempts": 2
+        "maxAttempts": 10
       }
     },
     {
@@ -68,7 +68,7 @@
         "maxRecords": 100,
         "timeoutMs": 80,
         "retryIntervalMs": 100,
-        "maxAttempts": 2
+        "maxAttempts": 10
       }
     },
     {

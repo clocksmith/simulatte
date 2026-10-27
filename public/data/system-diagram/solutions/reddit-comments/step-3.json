@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.systemDiagram.v4",
   "id": "reddit-comments",
-  "name": "Threaded comments and voting / Count one vote per actor",
+  "name": "Threaded comments and voting / Order concurrent mutations",
   "description": "Parent-linked comments, per-user votes and score-ranked reads.",
   "seed": 42,
   "run": {
@@ -23,24 +23,6 @@
       }
     },
     {
-      "id": "api",
-      "classId": "web-server",
-      "label": "Comment API",
-      "x": 240,
-      "y": 100,
-      "params": {
-        "serviceMs": 30
-      }
-    },
-    {
-      "id": "comments-store",
-      "classId": "comment-tree",
-      "label": "comments-store",
-      "x": 480,
-      "y": 100,
-      "params": {}
-    },
-    {
       "id": "votes",
       "classId": "operation-client",
       "label": "votes",
@@ -56,16 +38,6 @@
       }
     },
     {
-      "id": "updates",
-      "classId": "worker",
-      "label": "Live update delivery",
-      "x": 730,
-      "y": 100,
-      "params": {
-        "serviceMs": 50
-      }
-    },
-    {
       "id": "readers",
       "classId": "operation-client",
       "label": "readers",
@@ -76,6 +48,19 @@
         "count": 4,
         "intervalMs": 400,
         "startSec": 5
+      }
+    },
+    {
+      "id": "subsystem-1",
+      "classId": "subsystem.comment-backend@1",
+      "label": "Comment backend",
+      "x": 240,
+      "y": 100,
+      "params": {},
+      "overrides": {
+        "comments-store": {
+          "concurrency": 1
+        }
       }
     }
   ],
@@ -88,8 +73,8 @@
         "portId": "out"
       },
       "to": {
-        "nodeId": "api",
-        "portId": "in"
+        "nodeId": "subsystem-1",
+        "portId": "port-1"
       },
       "params": {
         "latencyMs": 80,
@@ -104,40 +89,8 @@
         "portId": "out"
       },
       "to": {
-        "nodeId": "api",
-        "portId": "in"
-      },
-      "params": {
-        "latencyMs": 80,
-        "bandwidthMbps": 100
-      }
-    },
-    {
-      "id": "store",
-      "label": "store",
-      "from": {
-        "nodeId": "api",
-        "portId": "calls"
-      },
-      "to": {
-        "nodeId": "comments-store",
-        "portId": "in"
-      },
-      "params": {
-        "latencyMs": 80,
-        "bandwidthMbps": 100
-      }
-    },
-    {
-      "id": "notify",
-      "label": "notify",
-      "from": {
-        "nodeId": "comments-store",
-        "portId": "updates"
-      },
-      "to": {
-        "nodeId": "updates",
-        "portId": "in"
+        "nodeId": "subsystem-1",
+        "portId": "port-1"
       },
       "params": {
         "latencyMs": 80,
@@ -152,8 +105,8 @@
         "portId": "out"
       },
       "to": {
-        "nodeId": "api",
-        "portId": "in"
+        "nodeId": "subsystem-1",
+        "portId": "port-1"
       },
       "params": {
         "latencyMs": 80,
@@ -168,5 +121,188 @@
     "x": 0,
     "y": 0,
     "zoom": 1
-  }
+  },
+  "subsystems": [
+    {
+      "id": "comment-backend",
+      "version": 1,
+      "label": "Comment backend",
+      "nodes": [
+        {
+          "id": "api",
+          "classId": "web-server",
+          "label": "Comment API",
+          "x": 240,
+          "y": 100,
+          "params": {
+            "concurrency": 64,
+            "queueCapacity": 1000,
+            "serviceMs": 30,
+            "serviceDist": "exponential",
+            "serviceCv": 1,
+            "perKbMs": 0,
+            "errorRate": 0,
+            "responseKb": 1,
+            "callMode": "sequential",
+            "blockingCalls": true,
+            "callTimeoutMs": 1000,
+            "retries": 0,
+            "retryBackoffMs": 100,
+            "backoffMultiplier": 2,
+            "retryJitter": true,
+            "memoryPerRequestMiB": 1,
+            "memoryLimitMiB": 1024,
+            "memoryPressureThreshold": 0.8,
+            "memoryThrashFactor": 1,
+            "memoryGarbageFraction": 0,
+            "memoryGcPauseMs": 0,
+            "memoryGcCooldownMs": 1000,
+            "memoryOomRecoveryMs": 1000,
+            "memoryOomPolicy": "reject",
+            "outputPayload": "inherit"
+          }
+        },
+        {
+          "id": "comments-store",
+          "classId": "comment-tree",
+          "label": "comments-store",
+          "x": 480,
+          "y": 100,
+          "params": {
+            "concurrency": 4,
+            "queueCapacity": 100,
+            "serviceMs": 20,
+            "maxRecords": 200
+          }
+        },
+        {
+          "id": "updates",
+          "classId": "worker",
+          "label": "Live update delivery",
+          "x": 730,
+          "y": 100,
+          "params": {
+            "concurrency": 4,
+            "queueCapacity": 1000,
+            "serviceMs": 50,
+            "serviceDist": "exponential",
+            "serviceCv": 1,
+            "perKbMs": 0,
+            "errorRate": 0,
+            "responseKb": 1,
+            "callMode": "sequential",
+            "blockingCalls": true,
+            "callTimeoutMs": 5000,
+            "retries": 0,
+            "retryBackoffMs": 100,
+            "backoffMultiplier": 2,
+            "retryJitter": true,
+            "memoryPerRequestMiB": 1,
+            "memoryLimitMiB": 1024,
+            "memoryPressureThreshold": 0.8,
+            "memoryThrashFactor": 1,
+            "memoryGarbageFraction": 0,
+            "memoryGcPauseMs": 0,
+            "memoryGcCooldownMs": 1000,
+            "memoryOomRecoveryMs": 1000,
+            "memoryOomPolicy": "reject",
+            "outputPayload": "inherit"
+          }
+        }
+      ],
+      "edges": [
+        {
+          "id": "store",
+          "label": "store",
+          "from": {
+            "nodeId": "api",
+            "portId": "calls"
+          },
+          "to": {
+            "nodeId": "comments-store",
+            "portId": "in"
+          },
+          "params": {
+            "latencyMs": 80,
+            "bandwidthMbps": 100
+          }
+        },
+        {
+          "id": "notify",
+          "label": "notify",
+          "from": {
+            "nodeId": "comments-store",
+            "portId": "updates"
+          },
+          "to": {
+            "nodeId": "updates",
+            "portId": "in"
+          },
+          "params": {
+            "latencyMs": 80,
+            "bandwidthMbps": 100
+          }
+        }
+      ],
+      "groups": [],
+      "notes": [],
+      "faults": [],
+      "ports": [
+        {
+          "id": "port-1",
+          "label": "Comment API: Requests",
+          "direction": "in",
+          "target": {
+            "nodeId": "api",
+            "portId": "in"
+          }
+        },
+        {
+          "id": "port-2",
+          "label": "Comment API: Calls",
+          "direction": "out",
+          "target": {
+            "nodeId": "api",
+            "portId": "calls"
+          }
+        },
+        {
+          "id": "port-3",
+          "label": "comments-store: in",
+          "direction": "in",
+          "target": {
+            "nodeId": "comments-store",
+            "portId": "in"
+          }
+        },
+        {
+          "id": "port-4",
+          "label": "comments-store: updates",
+          "direction": "out",
+          "target": {
+            "nodeId": "comments-store",
+            "portId": "updates"
+          }
+        },
+        {
+          "id": "port-5",
+          "label": "Live update delivery: Requests",
+          "direction": "in",
+          "target": {
+            "nodeId": "updates",
+            "portId": "in"
+          }
+        },
+        {
+          "id": "port-6",
+          "label": "Live update delivery: Calls",
+          "direction": "out",
+          "target": {
+            "nodeId": "updates",
+            "portId": "calls"
+          }
+        }
+      ]
+    }
+  ]
 }

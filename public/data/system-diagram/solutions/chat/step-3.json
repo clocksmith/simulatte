@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.systemDiagram.v4",
-  "id": "chat-retry",
-  "name": "Realtime chat / Suppress duplicate sends",
+  "id": "chat-catchup",
+  "name": "Realtime chat / Resume after a cursor",
   "description": "Authored bounded synthetic messaging model.",
   "seed": 42,
   "run": {
@@ -13,18 +13,18 @@
       "id": "users",
       "classId": "messaging-workload",
       "x": 0,
-      "y": 120,
+      "y": 0,
       "params": {
         "scenario": "chat",
         "timeoutMs": 6000
       },
-      "label": "Two conversation members"
+      "label": "Clients"
     },
     {
       "id": "retry",
       "classId": "retry-policy",
-      "x": 240,
-      "y": 120,
+      "x": 250,
+      "y": 0,
       "params": {
         "attemptTimeoutMs": 250,
         "maxAttempts": 3,
@@ -32,15 +32,65 @@
         "backoffMs": 150,
         "retryJitter": false
       },
-      "label": "Bounded command retry"
+      "label": "Retry"
     },
     {
       "id": "mailbox",
       "classId": "chat-mailbox",
+      "x": 750,
+      "y": 0,
+      "params": {
+        "concurrency": 1
+      },
+      "label": "History"
+    },
+    {
+      "id": "connections",
+      "classId": "connection-gateway",
+      "label": "Connections",
       "x": 500,
-      "y": 120,
-      "params": {},
-      "label": "Ordered conversation log"
+      "y": 0,
+      "params": {
+        "idleSec": 1.5,
+        "callTimeoutMs": 200
+      }
+    },
+    {
+      "id": "presence",
+      "classId": "presence-broker",
+      "label": "Presence",
+      "x": 500,
+      "y": 250,
+      "params": {
+        "ttlSec": 1.5
+      }
+    },
+    {
+      "id": "fanout",
+      "classId": "scatter-gather",
+      "label": "Room fan-out",
+      "x": 750,
+      "y": 250,
+      "params": {
+        "outputPayload": "json",
+        "serviceMs": 1
+      }
+    },
+    {
+      "id": "alice-device",
+      "classId": "push-inbox",
+      "label": "Alice device",
+      "x": 1000,
+      "y": 140,
+      "params": {}
+    },
+    {
+      "id": "bob-device",
+      "classId": "push-inbox",
+      "label": "Bob device",
+      "x": 1000,
+      "y": 360,
+      "params": {}
     }
   ],
   "edges": [
@@ -68,30 +118,98 @@
         "portId": "target"
       },
       "to": {
-        "nodeId": "mailbox",
+        "nodeId": "connections",
         "portId": "in"
       },
       "params": {
         "latencyMs": 5,
         "bandwidthMbps": 1000
       }
+    },
+    {
+      "id": "history",
+      "label": "history",
+      "from": {
+        "nodeId": "connections",
+        "portId": "backend"
+      },
+      "to": {
+        "nodeId": "mailbox",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "heartbeat",
+      "label": "heartbeat",
+      "from": {
+        "nodeId": "connections",
+        "portId": "presence"
+      },
+      "to": {
+        "nodeId": "presence",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "committed",
+      "label": "committed",
+      "from": {
+        "nodeId": "mailbox",
+        "portId": "updates"
+      },
+      "to": {
+        "nodeId": "fanout",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "alice-push",
+      "label": "alice-push",
+      "from": {
+        "nodeId": "fanout",
+        "portId": "calls"
+      },
+      "to": {
+        "nodeId": "alice-device",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "bob-push",
+      "label": "bob-push",
+      "from": {
+        "nodeId": "fanout",
+        "portId": "calls"
+      },
+      "to": {
+        "nodeId": "bob-device",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      }
     }
   ],
   "groups": [],
   "notes": [],
-  "faults": [
-    {
-      "id": "ambiguous-send",
-      "atSec": 0,
-      "untilSec": 0.3,
-      "target": {
-        "kind": "node",
-        "id": "mailbox"
-      },
-      "type": "dropReplies",
-      "params": {}
-    }
-  ],
+  "faults": [],
   "view": {
     "x": 0,
     "y": 0,

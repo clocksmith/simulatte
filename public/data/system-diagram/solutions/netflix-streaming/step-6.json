@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.systemDiagram.v4",
   "id": "netflix-streaming",
-  "name": "Global video streaming and CDN / Protect origin admission",
+  "name": "Global video streaming and CDN / Interrupt the origin",
   "description": "Three thousand viewers are split into two independently faultable regions. Playback requires a real manifest receipt; regional caches fetch through one shield and origin. Peer availability and admission are distinct from CDN delivery. Bytes are aggregate unicast, not measured video transport.",
   "seed": 42,
   "run": {
@@ -206,8 +206,7 @@
       "params": {
         "segments": 6,
         "segmentKiB": 64,
-        "lowSegmentKiB": 16,
-        "queueCapacity": 1
+        "lowSegmentKiB": 16
       },
       "groupId": "video-origin"
     }
@@ -495,7 +494,19 @@
     }
   ],
   "notes": [],
-  "faults": [],
+  "faults": [
+    {
+      "id": "study-outage",
+      "atSec": 0.15,
+      "untilSec": 1,
+      "target": {
+        "kind": "node",
+        "id": "origin"
+      },
+      "type": "crash",
+      "params": {}
+    }
+  ],
   "view": {
     "x": 0,
     "y": 0,

@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.systemDiagram.v4",
   "id": "replication-repair",
-  "name": "Data center replication / Separate apply delay from acknowledgement",
+  "name": "Data center replication / Expose follower lag",
   "description": "Authored bounded synthetic model, not production capacity or a deployed service.",
   "seed": 42,
   "run": {
@@ -34,10 +34,11 @@
       "y": 0,
       "params": {
         "writeQuorum": 2,
-        "concurrency": 1,
+        "concurrency": 4,
         "timeoutMs": 80,
         "retryIntervalMs": 100,
-        "maxAttempts": 10
+        "maxAttempts": 10,
+        "applyMs": 1
       }
     },
     {

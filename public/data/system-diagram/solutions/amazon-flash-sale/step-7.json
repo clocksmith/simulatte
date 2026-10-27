@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.systemDiagram.v4",
   "id": "amazon-flash-sale",
-  "name": "Flash sale inventory reservation / Interrupt checkout authority",
+  "name": "Flash sale inventory reservation / Separate committed work from a lost reply",
   "description": "Bounded stock, idempotent payment and reservation expiration.",
   "seed": 42,
   "run": {
@@ -77,7 +77,7 @@
       },
       "params": {
         "latencyMs": 80,
-        "bandwidthMbps": 100
+        "bandwidthMbps": 0.1
       }
     },
     {
@@ -115,19 +115,7 @@
   ],
   "groups": [],
   "notes": [],
-  "faults": [
-    {
-      "id": "study-outage",
-      "atSec": 0.15,
-      "untilSec": 1,
-      "target": {
-        "kind": "edge",
-        "id": "reserve"
-      },
-      "type": "partition",
-      "params": {}
-    }
-  ],
+  "faults": [],
   "view": {
     "x": 0,
     "y": 0,

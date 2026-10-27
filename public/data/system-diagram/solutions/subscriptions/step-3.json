@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.systemDiagram.v4",
   "id": "subscriptions",
-  "name": "Subscription payments / Compare card and wallet receipts",
+  "name": "Subscription payments / Make retry identities durable",
   "description": "Authored finite synthetic API model.",
   "seed": 42,
   "run": {
@@ -33,7 +33,8 @@
         "serviceMs": 10,
         "callTimeoutMs": 200,
         "retries": 0,
-        "idempotent": true
+        "idempotent": true,
+        "concurrency": 1
       }
     },
     {

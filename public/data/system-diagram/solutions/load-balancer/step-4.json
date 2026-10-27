@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.systemDiagram.v4",
   "id": "load-balancer-probes",
-  "name": "Round robin load balancer / Bound in-flight work",
+  "name": "Round robin load balancer / Compare backend service times",
   "description": "Bounded authored synthetic architecture comparison.",
   "seed": 42,
   "run": {
@@ -38,7 +38,7 @@
         "callTimeoutMs": 100,
         "ejectAfterErrors": 2,
         "ejectSec": 2,
-        "concurrency": 1
+        "serviceMs": 1
       }
     },
     {

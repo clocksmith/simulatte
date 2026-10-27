@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.systemDiagram.v4",
   "id": "pagination",
-  "name": "Paginated API / Apply request admission",
+  "name": "Paginated API / Lose and retry a page",
   "description": "Authored finite synthetic API model.",
   "seed": 42,
   "run": {
@@ -32,8 +32,7 @@
         "mode": "snapshot",
         "pageSize": 3,
         "serviceDist": "constant",
-        "serviceMs": 10,
-        "queueCapacity": 1
+        "serviceMs": 10
       }
     }
   ],
@@ -57,7 +56,19 @@
   ],
   "groups": [],
   "notes": [],
-  "faults": [],
+  "faults": [
+    {
+      "id": "study-outage",
+      "atSec": 0.15,
+      "untilSec": 1,
+      "target": {
+        "kind": "node",
+        "id": "results"
+      },
+      "type": "crash",
+      "params": {}
+    }
+  ],
   "view": {
     "x": 0,
     "y": 0,

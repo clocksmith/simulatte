@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.systemDiagram.v4",
   "id": "replication-repair",
-  "name": "Data center replication / Expose follower lag",
+  "name": "Data center replication / Bound concurrent replication",
   "description": "Authored bounded synthetic model, not production capacity or a deployed service.",
   "seed": 42,
   "run": {
@@ -38,7 +38,7 @@
         "timeoutMs": 80,
         "retryIntervalMs": 100,
         "maxAttempts": 10,
-        "applyMs": 1
+        "queueCapacity": 1
       }
     },
     {

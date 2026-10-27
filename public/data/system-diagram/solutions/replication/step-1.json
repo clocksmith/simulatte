@@ -1,35 +1,57 @@
 {
-  "schema": "simulatte.systemDiagram.v5",
-  "id": "diagram",
-  "name": "Data center replication / Define consistency and failure assumptions",
-  "description": "",
-  "seed": 1,
+  "schema": "simulatte.systemDiagram.v4",
+  "id": "replication-local",
+  "name": "Data center replication / Acknowledge one replicated write",
+  "description": "Authored bounded synthetic model, not production capacity or a deployed service.",
+  "seed": 42,
   "run": {
-    "horizonSec": 120
+    "horizonSec": 6
   },
   "classes": [],
   "nodes": [
     {
       "id": "writes",
-      "classId": "concept.writes-context",
-      "label": "Users and requests",
+      "classId": "burst-producer",
+      "label": "Four writes to region A",
       "x": 0,
-      "y": 80,
-      "params": {}
+      "y": 0,
+      "params": {
+        "burstCount": 4,
+        "burstAtSec": 0,
+        "burstSpacingMs": 300,
+        "requestKb": 1,
+        "readFraction": 0,
+        "keySpace": 2,
+        "retries": 0,
+        "timeoutMs": 4000
+      }
     },
     {
       "id": "leader",
-      "classId": "concept.leader-context",
-      "label": "System responsibility",
-      "x": 320,
-      "y": 80,
+      "classId": "database-leader",
+      "label": "Region A designated writer",
+      "x": 280,
+      "y": 0,
+      "params": {
+        "writeQuorum": 1,
+        "concurrency": 4,
+        "timeoutMs": 80,
+        "retryIntervalMs": 100,
+        "maxAttempts": 2
+      }
+    },
+    {
+      "id": "follower",
+      "classId": "database-replica",
+      "label": "Region B local copy",
+      "x": 600,
+      "y": 0,
       "params": {}
     }
   ],
   "edges": [
     {
-      "id": "context-request",
-      "label": "request / outcome contract",
+      "id": "write-path",
       "from": {
         "nodeId": "writes",
         "portId": "out"
@@ -38,52 +60,45 @@
         "nodeId": "leader",
         "portId": "in"
       },
-      "params": {}
+      "params": {
+        "latencyMs": 5,
+        "bandwidthMbps": 100
+      }
+    },
+    {
+      "id": "cross-region",
+      "from": {
+        "nodeId": "leader",
+        "portId": "replicate"
+      },
+      "to": {
+        "nodeId": "follower",
+        "portId": "replica"
+      },
+      "params": {
+        "latencyMs": 5,
+        "bandwidthMbps": 100
+      }
     }
   ],
   "groups": [],
   "notes": [],
-  "faults": [],
+  "faults": [
+    {
+      "id": "inter-region-partition",
+      "atSec": 0,
+      "untilSec": 0.5,
+      "target": {
+        "kind": "edge",
+        "id": "cross-region"
+      },
+      "type": "partition",
+      "params": {}
+    }
+  ],
   "view": {
     "x": 0,
     "y": 0,
     "zoom": 1
-  },
-  "intent": {
-    "outcome": "Design replication between data centers without relying entirely on a database’s built-in replication.",
-    "users": "Callers, state owners and operators named by the problem.",
-    "constraints": "Make ordering, durability, capacity and retry assumptions explicit. Authored replication protocol built on fixed leader/follower nodes and actual network messages; does not rely on the opaque quorum-db kernel. Per-key sequence versions, bounded retained outbox and duplicate suppression execute; one designated writer avoids conflicts by construction. No consensus, automatic failover, durable physical WAL, active-active merge, cross-key transaction or real data-center capacity is proven. Crash recovery preserves simulated state; it is not a disk durability experiment. These are Stage 1 simulations; deployment and operation remain design obligations.",
-    "success": "An observable request path, bounded waiting, visible failures and a justified recovery policy."
-  },
-  "concepts": [
-    {
-      "id": "writes-context",
-      "label": "Users and requests",
-      "responsibility": "Who issues requests, and which identities or deadlines travel with them?",
-      "ports": [
-        {
-          "id": "out",
-          "direction": "out",
-          "payloadType": "json"
-        }
-      ]
-    },
-    {
-      "id": "leader-context",
-      "label": "System responsibility",
-      "responsibility": "Design replication between data centers without relying entirely on a database’s built-in replication.",
-      "ports": [
-        {
-          "id": "in",
-          "direction": "in",
-          "payloadType": "json"
-        },
-        {
-          "id": "out",
-          "direction": "out",
-          "payloadType": "json"
-        }
-      ]
-    }
-  ]
+  }
 }

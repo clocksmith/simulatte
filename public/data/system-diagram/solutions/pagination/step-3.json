@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.systemDiagram.v4",
   "id": "pagination",
-  "name": "Paginated API / Expose offset drift",
+  "name": "Paginated API / Freeze a read snapshot",
   "description": "Authored finite synthetic API model.",
   "seed": 42,
   "run": {
@@ -29,10 +29,11 @@
       "x": 320,
       "y": 0,
       "params": {
-        "mode": "keyset",
+        "mode": "snapshot",
         "pageSize": 3,
         "serviceDist": "constant",
-        "serviceMs": 10
+        "serviceMs": 10,
+        "concurrency": 1
       }
     }
   ],

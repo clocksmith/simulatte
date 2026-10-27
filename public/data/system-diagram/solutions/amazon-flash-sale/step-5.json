@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.systemDiagram.v4",
   "id": "amazon-flash-sale",
-  "name": "Flash sale inventory reservation / Return expired holds",
+  "name": "Flash sale inventory reservation / Bound reservation storage",
   "description": "Bounded stock, idempotent payment and reservation expiration.",
   "seed": 42,
   "run": {
@@ -62,7 +62,7 @@
       "params": {},
       "overrides": {
         "inventory": {
-          "serviceMs": 10
+          "queueCapacity": 1
         }
       }
     }
