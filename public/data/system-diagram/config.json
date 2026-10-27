@@ -181,5 +181,6 @@
   "claimBoundary": "Synthetic discrete-event model of the drawn architecture. Service times, latencies, failure rates and token costs are user assumptions, not measurements of real systems, providers or hardware.",
   "interviewJourneysPath": "/data/system-diagram/interview-journeys.json",
   "interviewProblemsPath": "/data/system-diagram/interview-problems.json",
-  "interviewSolutionsPath": "/data/system-diagram/interview-solutions.json"
+  "interviewSolutionsPath": "/data/system-diagram/interview-solutions.json",
+  "problemsPath": "/data/system-diagram/problems.json"
 }

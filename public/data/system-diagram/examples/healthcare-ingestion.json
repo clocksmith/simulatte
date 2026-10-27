@@ -1,5 +1,5 @@
 {
-  "schema": "simulatte.systemDiagram.v1",
+  "schema": "simulatte.systemDiagram.v4",
   "id": "healthcare-ingestion",
   "name": "Synthetic ingestion, identity and approval",
   "description": "Deidentified synthetic event records exercise schema quarantine, delayed authored approval, entity ordering, deduplication and idempotent commits. No patient records, clinical rules or clinical decisions are modeled.",

@@ -42,15 +42,19 @@ test('solution is opt-in, stages preserve edits, final action simulates and retu
  const simulate=ui.all().find(e=>e.textContent==='Simulate');assert.ok(simulate);simulate.events.click();await Promise.resolve();await Promise.resolve();assert.equal(simulated(),1);
  stepper.leaveReference();assert.deepEqual(model.diagram,personal);
 }));
-test('edits made during a pending stage load cannot be overwritten by its fetch result',()=>setup(async({model,stepper,intercept})=>{
- stepper.setScenario('reddit-comments');await stepper.showSolution();let release;
- intercept(file=>file.endsWith('/reddit-comments/step-2.json')?new Promise(resolve=>release=()=>resolve({ok:true,json:async()=>JSON.parse(fs.readFileSync(path.join(__dirname,'../public',file),'utf8'))})):null);
- const pending=stepper.goToStep(1);model.apply({type:'setNodeLabel',id:'api',label:'Newer edit'});release();
+test('edits made during a pending stage load cannot be overwritten by its stage result',()=>setup(async({model,stepper,intercept})=>{
+ stepper.setScenario('reddit-comments');await stepper.showSolution();
+ const pending=stepper.goToStep(1);model.apply({type:'setNodeLabel',id:'api',label:'Newer edit'});
  await assert.rejects(pending,/Kept your newer diagram edits/);assert.equal(model.diagram.nodes.find(n=>n.id==='api').label,'Newer edit');
 }));
 test('switching problems invalidates an in-flight solution load',()=>setup(async({model,stepper,intercept})=>{
- stepper.setScenario('reddit-comments');let release;
- intercept(file=>file.endsWith('/reddit-comments/step-1.json')?new Promise(resolve=>release=()=>resolve({ok:true,json:async()=>JSON.parse(fs.readFileSync(path.join(__dirname,'../public',file),'utf8'))})):null);
- const pending=stepper.showSolution();stepper.setScenario('google-crawler');release();await pending;
+ stepper.setScenario('reddit-comments');
+ const pending=stepper.showSolution();stepper.setScenario('google-crawler');await pending;
  assert.equal(stepper.getScenario().id,'google-crawler');assert.equal(model.diagram.nodes.length,0);
+}));
+test('multiple approaches keep independent edits and saved public study sessions retain branch identity',()=>setup(async({model,stepper})=>{
+ stepper.setScenario('social-feed');await stepper.showSolution('progressive-design');const id=model.diagram.nodes[0].id;model.apply({type:'setNodeLabel',id,label:'My progressive branch'});await stepper.showSolution('fanout-on-read');assert.notEqual(model.diagram.nodes.find(n=>n.id===id).label,'My progressive branch');model.apply({type:'setNodeLabel',id,label:'My read-time branch'});await stepper.showSolution('progressive-design');assert.equal(model.diagram.nodes.find(n=>n.id===id).label,'My progressive branch');const session=stepper.publicState(),diagram=structuredClone(model.diagram);stepper.reset();model.replace(diagram);stepper.restorePublicState(session);assert.equal(stepper.getSelection().solutionId,'progressive-design');await stepper.showSolution('fanout-on-read');assert.equal(model.diagram.nodes.find(n=>n.id===id).label,'My read-time branch');
+}));
+test('locking unregisters private problems, current diagrams, editable histories, references and branch snapshots',()=>setup(async({model,stepper})=>{
+ const data={schema:'simulatte.lucydProblems.v2',problems:[{id:'private-fixture',title:'Private fixture',description:'A sensitive practice prompt.',provenance:{kind:'authored-practice'},followups:[],solutions:[{id:'reference',title:'Private answer',boundary:'Synthetic fixture',stages:[{id:'stage',title:'Private stage',explanation:'Private explanation',diagram:require('../public/data/system-diagram/solutions/reddit-comments/step-1.json')}]}]}]};stepper.registerPrivate(data);stepper.setScenario('private:private-fixture');await stepper.showSolution('reference');const id=model.diagram.nodes[0].id;model.apply({type:'setNodeLabel',id,label:'Sensitive annotation'});assert.ok(stepper.privateState().branches.length);stepper.unregisterPrivate();assert.equal(stepper.getSelection(),null);assert.equal(model.diagram.nodes.length,0);assert.equal(model.canUndo(),false);assert.deepEqual(stepper.privateState().branches,[]);assert.deepEqual(stepper.privateState().own,[]);assert.throws(()=>stepper.setScenario('private:private-fixture'),/Unknown problem/);assert.ok(!JSON.stringify(stepper.publicState()).includes('Sensitive annotation'));
 }));

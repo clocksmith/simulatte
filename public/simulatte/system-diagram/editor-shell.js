@@ -6,22 +6,35 @@
     const palette = {panel: doc.querySelector('.palette-panel'), toggle: doc.getElementById('palette-toggle')};
     const properties = {panel: doc.querySelector('.properties-panel'), toggle: doc.getElementById('properties-toggle')};
     const menu = doc.getElementById('workspace-menu'), compact = win.matchMedia('(max-width: 700px)');
-    let expanded = false;
+    const layout = doc.querySelector('.editor-layout'), storageKey = 'simulatte.lucyd.componentRail.v1';
+    let expanded = !compact.matches, width = 208;
+    try { const saved=JSON.parse(win.localStorage.getItem(storageKey));if(saved){expanded=Boolean(saved.expanded);if(Number.isFinite(saved.width))width=saved.width;} } catch {}
+    const dragger=doc.createElement('div');dragger.className='lucyd-rail-resizer';dragger.tabIndex=0;dragger.setAttribute('role','separator');dragger.setAttribute('aria-label','Resize component library');dragger.setAttribute('aria-orientation','vertical');layout.append(dragger);
+    const maxWidth=()=>Math.min(280,Math.max(160,win.innerWidth-96));
+    function save(){try{win.localStorage.setItem(storageKey,JSON.stringify({expanded,width}));}catch{}}
+    function size(value){width=Math.max(160,Math.min(maxWidth(),value));syncPalette();updateInsets();save();}
+    on(dragger,'pointerdown',event=>{if(!expanded)return;event.preventDefault();dragger.setPointerCapture(event.pointerId);size(event.clientX);});
+    on(dragger,'pointermove',event=>{if(dragger.hasPointerCapture(event.pointerId))size(event.clientX);});
+    on(dragger,'pointerup',event=>{if(dragger.hasPointerCapture(event.pointerId))dragger.releasePointerCapture(event.pointerId);});
+    on(dragger,'keydown',event=>{if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;event.preventDefault();size(event.key==='Home'?160:event.key==='End'?280:width+(event.key==='ArrowRight'?10:-10));});
     function syncPalette() {
       palette.panel.inert = false; palette.panel.dataset.open = 'true';
-      doc.body.dataset.paletteExpanded = String(compact.matches && expanded);
-      palette.toggle.setAttribute('aria-expanded', String(!compact.matches || expanded));
+      doc.body.dataset.paletteExpanded = String(expanded);
+      layout.style.setProperty('--lucyd-rail-width',`${expanded?Math.max(160,Math.min(maxWidth(),width)):56}px`);
+      dragger.hidden=!expanded;dragger.setAttribute('aria-valuemin','160');dragger.setAttribute('aria-valuemax',String(maxWidth()));dragger.setAttribute('aria-valuenow',String(Math.min(maxWidth(),width)));
+      palette.toggle.textContent=expanded?'‹':'›';
+      palette.toggle.setAttribute('aria-expanded', String(expanded));
       palette.toggle.setAttribute('aria-label', expanded ? 'Collapse component library' : 'Expand component library');
     }
     function close({focus = false} = {}) {
       const active = properties.toggle.getAttribute('aria-expanded') === 'true';
       properties.panel.inert = true; properties.panel.dataset.open = 'false';
       properties.toggle.setAttribute('aria-expanded', 'false');
-      expanded = false; syncPalette(); menu.open = false; updateInsets();
+      syncPalette(); menu.open = false; updateInsets();
       if (focus && active) properties.toggle.focus({preventScroll: true});
     }
-    on(palette.toggle, 'click', () => { const open = !expanded; close(); expanded = open; syncPalette(); updateInsets(); });
-    on(palette.panel.querySelector('[data-close-drawer]'), 'click', () => { expanded = false; syncPalette(); updateInsets(); palette.toggle.focus({preventScroll: true}); });
+    on(palette.toggle, 'click', () => { const open = !expanded; close(); expanded = open; syncPalette(); updateInsets();save(); });
+    on(palette.panel.querySelector('[data-close-drawer]'), 'click', () => { expanded = false; syncPalette(); updateInsets();save(); palette.toggle.focus({preventScroll: true}); });
     on(properties.toggle, 'click', () => {
       const open = properties.toggle.getAttribute('aria-expanded') !== 'true';
       close();
@@ -29,10 +42,10 @@
       updateInsets();
     });
     on(properties.panel.querySelector('[data-close-drawer]'), 'click', () => close({focus: true}));
-    on(doc.getElementById('palette'), 'click', event => {if (compact.matches && event.target.closest('.palette-item')) close();});
+
     on(menu, 'click', event => {if (event.target.closest('#document-actions button,#edit-actions button,#view-actions button')) menu.open = false;});
     on(doc.getElementById('preset'), 'change', () => {menu.open = false;});
-    on(menu, 'toggle', () => {if (menu.open) {expanded = false; syncPalette(); properties.panel.inert = true; properties.panel.dataset.open = 'false'; properties.toggle.setAttribute('aria-expanded', 'false'); updateInsets();}});
+    on(menu, 'toggle', () => {if (menu.open) {syncPalette(); properties.panel.inert = true; properties.panel.dataset.open = 'false'; properties.toggle.setAttribute('aria-expanded', 'false'); updateInsets();}});
     on(doc.getElementById('diagram'), 'pointerdown', event => {
       if (!event.target.closest('.sd-node,.sd-group,.sd-edge,.sd-note,.sd-port')) close();
     }, {capture: true});
@@ -61,10 +74,10 @@
     }
     const mutation = new win.MutationObserver(observe);
     mutation.observe(doc.querySelector('.canvas-panel'), {childList: true});
-    on(compact, 'change', () => {expanded = false; syncPalette(); updateInsets();});
-    on(win, 'resize', updateInsets);
+    on(compact, 'change', () => {syncPalette(); updateInsets();});
+    on(win, 'resize', () => {syncPalette();updateInsets();});
     close(); observe();
-    return Object.freeze({close, updateInsets, dispose() {events.abort(); resize.disconnect(); mutation.disconnect(); delete doc.body.dataset.paletteExpanded;}});
+    return Object.freeze({close, updateInsets, setExpanded(value){expanded=Boolean(value);syncPalette();updateInsets();save();}, getRailState:()=>({expanded,width:expanded?Math.min(maxWidth(),width):56}), dispose() {events.abort(); resize.disconnect(); mutation.disconnect(); delete doc.body.dataset.paletteExpanded;dragger.remove();}});
   }
   root.SimulatteSystemDiagramShell = Object.freeze({create});
 })(globalThis);

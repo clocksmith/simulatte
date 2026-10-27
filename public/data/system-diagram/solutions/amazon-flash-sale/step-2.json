@@ -58,6 +58,21 @@
       "params": {
         "serviceMs": 30
       }
+    },
+    {
+      "id": "new-shoppers",
+      "classId": "operation-client",
+      "label": "new shoppers",
+      "x": 0,
+      "y": 500,
+      "params": {
+        "operation": "reserve",
+        "count": 4,
+        "intervalMs": 400,
+        "startSec": 10,
+        "keySpace": 1,
+        "actorOffset": 20
+      }
     }
   ],
   "edges": [
@@ -102,6 +117,22 @@
       },
       "to": {
         "nodeId": "updates",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 80,
+        "bandwidthMbps": 100
+      }
+    },
+    {
+      "id": "reuse-stock",
+      "label": "reuse-stock",
+      "from": {
+        "nodeId": "new-shoppers",
+        "portId": "out"
+      },
+      "to": {
+        "nodeId": "inventory",
         "portId": "in"
       },
       "params": {

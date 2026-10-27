@@ -4,14 +4,15 @@ Parent: [World](../CATSCAN.md)
 
 ## Target
 
-Start blank, edit architectures with a persistent component rail, practice sourced interview prompts, and execute deterministic synthetic workloads at `/system-diagram`.
+Evolve intent and conceptual responsibilities into executable architecture; study sourced problems through editable approaches and seeded workloads at `/system-diagram`.
 
 ## Authority
 
-- Owns documents, lowering, classes, kernels, editing and observations.
-- Shared coordinator owns rounds, checkpoints and replay; World UI owns controls.
-- Owns encrypted notes and practice diagrams; 256one retains career source records.
-- Does not own Create compilation or live infrastructure.
+- Owns documents, refinement, lowering, classes, kernels, study, editing and observations.
+- Coordinator owns rounds/checkpoints/replay; World UI owns controls.
+- Owns encrypted practice; 256one retains career records.
+- Does not own Create compilation or implicit cloud provisioning.
+- [Deployment child](deployment/CATSCAN.md) owns optional implementation bindings/exports, not implicit provisioning.
 
 ## Scope
 
@@ -19,33 +20,31 @@ Start blank, edit architectures with a persistent component rail, practice sourc
 
 ## Contracts
 
-- Input: [goals](../../../GOALS.md), [catalog](../../simulation-routes.js), [class library](../../data/system-diagram/class-library.json), [configuration](../../data/system-diagram/config.json) and [coordinator](../../shared/core/simulation/multirate-coordinator.js).
-- Output: [contracts](../../../docs/simulatte/system-diagram.md), [document validator](diagram.js) and [library validator](class-library.js).
+- Input: [goals](../../../GOALS.md), [library](../../data/system-diagram/class-library.json), [configuration](../../data/system-diagram/config.json).
+- Output: [contracts](../../../docs/simulatte/system-diagram.md), [validator](diagram.js), [study model](problem-model.js).
 
 ## Invariants
 
-- Validated documents alone determine execution; layout never changes results.
-- Parameters resolve kernel, built-in class, user classes, then instance; unknown or invalid values refuse.
-- Kernels require registered behaviour; subsystems lower version-pinned graphs.
-- Typed external ports and bounded nesting required; recursion, invalid bindings and overrides refuse.
-- Publishing preserves pins; upgrades require acceptance; accepted runs never mutate.
-- Portable dependencies persist; folding changes presentation only.
-- Distinguish requests, attempts and effects; show rejections, timeouts and dead letters.
-- Diagram, seed and controls reproduce execution; previews equal coordinator state.
-- Synthetic assumptions cannot establish production capacity, provider behaviour or physical validity.
-- Deploy authenticated ciphertext only. Never publish keys/passwords. Encrypt saves, backups and exports; locking clears plaintext and editor history.
-- Distinguish published interviews, candidate reports and authored practice; examples never replace user work implicitly.
-- Explicit solution steps preserve user work; playback shows accepted execution records.
+- Intent/concept/simulation/implementation/deployment/operation are design levels, not compiler phases.
+- Strict v4 remains compatible. v5 refinement preserves identity/external contracts; unbound behavior refuses execution/deployment.
+- Canonical problems share public/private code paths; compatibility registries are generated.
+- Approaches/stages retain independent edits and personal diagrams; replay configured sources/seed without claiming matched closed-loop arrivals.
+- Rail is collapsed/expanded; expanded resizing caps at 280px and viewport bounds.
+- Parameters resolve kernel/class/instance; unknown values refuse. Layout cannot affect results.
+- Subsystems pin typed, bounded, acyclic definitions; publishing preserves accepted runs.
+- Requests, attempts/effects, rejections/timeouts remain distinguishable. Seed/controls reproduce coordinator execution.
+- Synthetic assumptions establish neither production capacity nor provider truth.
+- Deploy ciphertext only for private material; encrypt persistence/exports. Lock clears keys, chooser, snapshots, histories, dialogs and playback.
+- Attribute published exercises, candidate reports and authored practice distinctly.
 
 ## Acceptance
 
-- Evidence: [document tests](../../../tests/system-diagram-document.test.cjs), [session tests](../../../tests/system-diagram-session.test.cjs), [engine tests](../../../tests/system-diagram-engine.test.cjs), [kernel tests](../../../tests/system-diagram-kernels.test.cjs) and [browser journey](../../../tools/simulatte/audit-system-diagram-editor.mjs).
-- Desktop/mobile journeys cover authoring, persistence, nesting, upgrades and execution.
-- Nested chat tests verify topology-dependent outcomes and replay.
+- Evidence: [Document tests](../../../tests/system-diagram-document.test.cjs), [study execution](../../../tests/lucyd-problem-model.test.cjs), [refinement](../../../tests/lucyd-predesign.test.cjs), [navigation/privacy](../../../tests/system-diagram-solution-navigation.test.cjs).
+- Desktop/mobile journeys verify authoring, persistence, resizing and execution separately from human comprehension.
 
 ## Non-goals
 
-Real outages, scraping, inference, consensus proofs, deployment or universal simulation.
+Implicit provisioning, arbitrary-kernel deployment, scraping, inference, consensus proofs or universal simulation.
 
 ## Freedom
 

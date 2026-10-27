@@ -51,7 +51,7 @@
         if (!raw) return {state: 'missing'};
         const value = JSON.parse(raw);
         const record = value?.schema === DRAFT_SCHEMA && value.diagram && typeof value.diagram === 'object'
-          ? {diagram: value.diagram, subsystemDraft: value.subsystemDraft || null}
+          ? {diagram: value.diagram, subsystemDraft: value.subsystemDraft || null, ...(value.studyState ? {studyState:value.studyState} : {})}
           : value && Array.isArray(value.nodes) ? {diagram: value, subsystemDraft: null} : null;
         if (!record) throw Error('Stored value is not a diagram document.');
         return {state: 'ready', record};
@@ -61,11 +61,12 @@
       key,
       backupKey,
       readStatus,
-      save(doc, subsystemDraft = null) {
+      save(doc, subsystemDraft = null, studyState = null) {
         if (!storage) return false;
         try {
           const payload = { schema: DRAFT_SCHEMA, diagram: doc };
           if (subsystemDraft) payload.subsystemDraft = subsystemDraft;
+          if (studyState) payload.studyState=studyState;
           storage.setItem(key, JSON.stringify(payload));
           return true;
         } catch { return false; }

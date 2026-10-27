@@ -1,6 +1,7 @@
 {
   "schema": "simulatte.lucydProblems.v1",
-  "version": "1.1.0",
+  "version": "1.2.0",
+  "generatedFrom": "problems.json; node tools/simulatte/build-lucyd-compat.cjs",
   "followupAttribution": "Lucyd-authored practice followups, not interview transcripts. Prompts paraphrase the linked sources. Candidate accounts are not company verification. Company-inspired exercises and their solutions are authored practice based on technical references, not verified interview questions or company architectures.",
   "sources": {
     "cockroach": {
@@ -100,7 +101,7 @@
       "company": "N26",
       "sourceId": "vora",
       "sourceKind": "candidate-reported",
-      "problemStatement": "Design a website\u2019s paginated results API and its database access.",
+      "problemStatement": "Design a website’s paginated results API and its database access.",
       "steps": [
         {
           "name": "Contract",
@@ -144,7 +145,7 @@
       "company": "Agoda",
       "sourceId": "vora",
       "sourceKind": "candidate-reported",
-      "problemStatement": "Design replication between data centers without relying entirely on a database\u2019s built-in replication.",
+      "problemStatement": "Design replication between data centers without relying entirely on a database’s built-in replication.",
       "steps": [
         {
           "name": "Writes",

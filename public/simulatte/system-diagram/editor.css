@@ -242,35 +242,32 @@ textarea.sd-inline-edit { min-height: 96px; resize: vertical; }
 .lucyd-custom-task label { justify-self: stretch; display: grid; gap: 8px; font: 400 13px var(--wui-font); }
 .notice-line { display: none; }
 .notice-line:has(#editor-status[data-error='true']) { display: block; top: 112px; bottom: auto; left: calc(var(--lucyd-rail-width) + 12px); background: var(--wui-paper); }
-@media (max-width: 700px) {
-  .editor-layout { --lucyd-rail-width: 56px; }
-  .palette-panel { padding: 48px 6px 8px; }
-  #palette-toggle { display: block; position: fixed; top: 60px; left: 8px; writing-mode: horizontal-tb; width: 40px; height: 32px; }
-  .palette-panel .panel-heading, .palette-panel .palette-search, .palette-panel:has(#palette-category) > label, .palette-category-title, .palette-copy, .lucyd-subsystem-tools { display: none; }
-  .palette-panel .palette-item { width: 42px; height: 40px; padding: 6px; }
-  .palette-panel .component-icon { flex: none; }
-  .palette-panel .palette-group > .palette-category-title { display: list-item; font-size: 0; padding: 6px 0; }
-  .palette-panel .palette-group > .palette-category-title::after { content: '+'; font-size: 16px; }
-  .palette-panel .palette-group[open] > .palette-category-title::after { content: '−'; }
-  .palette-panel .palette-kind-title, .palette-panel #capability-count, .palette-panel .palette-empty, .palette-panel .palette-inspect, .palette-panel .palette-manage { display: none; }
-  body[data-palette-expanded='true'] .palette-panel { width: 240px; padding: 12px 12px 12px 56px; }
-  body[data-palette-expanded='true'] .palette-panel .panel-heading,
-  body[data-palette-expanded='true'] .palette-panel .palette-search,
-  body[data-palette-expanded='true'] .palette-panel:has(#palette-category) > label,
-  body[data-palette-expanded='true'] .palette-panel .palette-copy { display: flex; }
-  body[data-palette-expanded='true'] .lucyd-subsystem-tools { display: block; }
-  body[data-palette-expanded='true'] .palette-panel .palette-item { width: 100%; }
-  body[data-palette-expanded='true'] .palette-panel .palette-group > .palette-category-title { font-size: 11px; }
-  body[data-palette-expanded='true'] .palette-panel .palette-group > .palette-category-title::after { content: none; }
-  body[data-palette-expanded='true'] .palette-panel .palette-kind-title,
-  body[data-palette-expanded='true'] .palette-panel #capability-count,
-  body[data-palette-expanded='true'] .palette-panel .palette-empty,
-  body[data-palette-expanded='true'] .palette-panel .palette-inspect,
-  body[data-palette-expanded='true'] .palette-panel .palette-manage { display: block; }
-  .lucyd-task-bar { grid-template-columns: auto 1fr; gap: 6px; }
-  .lucyd-task-prompt { grid-column: 1/-1; font-size: 12px; }
-  .interview-stepper { gap: 4px; }
-  .interview-stepper-title { max-width: 110px; overflow: hidden; text-overflow: ellipsis; }
+/* The component rail has exactly two persistent states on every viewport. */
+#palette-toggle { display:block;position:fixed;top:60px;left:8px;writing-mode:horizontal-tb;width:40px;height:32px; }
+.palette-panel { padding-top:48px; }
+.lucyd-rail-resizer { position:fixed;top:var(--lucyd-header-height);bottom:0;left:calc(var(--lucyd-rail-width) - 5px);width:10px;cursor:ew-resize;touch-action:none;z-index:46; }
+.lucyd-rail-resizer:hover,.lucyd-rail-resizer:focus-visible { background:var(--wui-active-bg);outline:1px solid var(--wui-active); }
+body[data-palette-expanded='false'] .palette-panel { padding:48px 6px 8px; }
+body[data-palette-expanded='false'] .palette-panel .panel-heading,
+body[data-palette-expanded='false'] .palette-panel .palette-search,
+body[data-palette-expanded='false'] .palette-panel:has(#palette-category) > label,
+body[data-palette-expanded='false'] .palette-copy,
+body[data-palette-expanded='false'] .lucyd-subsystem-tools,
+body[data-palette-expanded='false'] .palette-kind-title,
+body[data-palette-expanded='false'] #capability-count,
+body[data-palette-expanded='false'] .palette-empty,
+body[data-palette-expanded='false'] .palette-inspect,
+body[data-palette-expanded='false'] .palette-manage { display:none; }
+body[data-palette-expanded='false'] .palette-item { width:42px;height:40px;padding:6px; }
+body[data-palette-expanded='false'] .component-icon { flex:none; }
+body[data-palette-expanded='false'] .palette-group > .palette-category-title { display:list-item;font-size:0;padding:6px 0; }
+
+
+@media (max-width:700px) {
+ .lucyd-task-bar {grid-template-columns:auto 1fr;gap:6px;}
+ .lucyd-task-prompt {grid-column:1/-1;font-size:12px;}
+ .interview-stepper {gap:4px;}
+ .interview-stepper-title {max-width:110px;overflow:hidden;text-overflow:ellipsis;}
 }
 
 /* One explanation at a time; playback and walkthrough navigation occupy separate rows. */
@@ -288,3 +285,35 @@ textarea.sd-inline-edit { min-height: 96px; resize: vertical; }
   .sd-run-dock .sd-run-more { display: none; }
   .interview-stepper { max-width: calc(100% - 16px); }
 }
+
+.lucyd-solution-choice {font-size:12px;display:flex;align-items:center;gap:6px;min-width:0;}
+.lucyd-solution-input {min-width:0;max-width:220px;}
+
+.sd-node[data-binding='unbound'] .sd-node-body {stroke-dasharray:6 4;}
+.lucyd-add-responsibility {width:100%;margin-top:12px;white-space:normal;}
+body[data-palette-expanded='false'] .lucyd-add-responsibility {padding:6px;}
+
+
+.lucyd-sketch-icon,.palette-heading-icon {display:none;}
+body[data-palette-expanded='false'] .lucyd-sketch-label,
+body[data-palette-expanded='false'] .palette-heading-label {display:none;}
+body[data-palette-expanded='false'] .lucyd-sketch-icon {display:inline;}
+.lucyd-task-bar {display:flex;flex-wrap:wrap;}
+.lucyd-task-prompt {flex-basis:100%;margin:0;}
+.lucyd-solution-choice {flex:1;}
+.lucyd-solution-input {flex:1;}
+.sd-run-dock {box-sizing:border-box;}
+@media (max-width:700px){
+ .lucyd-task-bar {gap:5px;}
+ .lucyd-task-bar .lucyd-solution-choice {flex-basis:100%;}
+ .lucyd-task-bar .lucyd-solution-input {max-width:none;}
+ .lucyd-task-bar .lucyd-task-prompt {display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
+ .sd-run-dock {width:calc(100% - 16px);max-width:calc(100% - 16px);}
+ .sd-run-dock .sd-run-more {display:block;}
+ .sd-run-clock {display:none;}
+}
+
+.palette-heading-icon {font-size:16px;}
+/* Fixed-position shared menus require a dock without a transformed containing block. */
+.sd-run-dock {transform:none;left:12px;right:12px;margin-inline:auto;}
+@media(max-width:700px){.sd-run-dock {left:8px;right:8px;}}

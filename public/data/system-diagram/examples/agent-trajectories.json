@@ -1,62 +1,628 @@
 {
-  "schema": "simulatte.systemDiagram.v3",
+  "schema": "simulatte.systemDiagram.v4",
   "id": "agent-trajectories",
   "name": "Multi-agent task trajectories and recovery",
   "description": "An authored task DAG separates planning, source research, constraint inspection, synthesis, review and publication. Tool writes and journal delivery execute through drawn dependencies. A crash after research effect reconciles identity instead of duplicating work. Status is not private reasoning.",
   "seed": 42,
-  "run": {"horizonSec": 20},
+  "run": {
+    "horizonSec": 20
+  },
   "classes": [],
   "nodes": [
-    {"id": "requests", "classId": "web-client", "label": "Workflow request", "x": 0, "y": 120, "params": {"pattern": "constant", "ratePerSec": 1, "maxRequests": 1, "payload": "task", "startSec": 0.05, "retries": 0, "timeoutMs": 20000, "deadlineMs": 20000}},
-    {"id": "plan", "classId": "agent-task", "label": "Plan task", "x": 280, "y": 100, "params": {"serviceMs": 20, "ackDelayMs": 0, "callTimeoutMs": 8000, "retries": 5, "retryBackoffMs": 200}, "groupId": "agent-planning"},
-    {"id": "research", "classId": "agent-task", "label": "Gather source evidence", "x": 570, "y": 100, "params": {"serviceMs": 30, "ackDelayMs": 200, "callTimeoutMs": 8000, "retries": 5, "retryBackoffMs": 200}, "groupId": "agent-planning"},
-    {"id": "inspect", "classId": "agent-task", "label": "Inspect constraints", "x": 570, "y": 380, "params": {"serviceMs": 100, "ackDelayMs": 0, "callTimeoutMs": 8000, "retries": 5, "retryBackoffMs": 200}, "groupId": "agent-planning"},
-    {"id": "verify-sources", "classId": "agent-task", "label": "Verify source agreement", "x": 940, "y": 100, "params": {"serviceMs": 40, "ackDelayMs": 0, "callTimeoutMs": 8000, "retries": 5, "retryBackoffMs": 200}, "groupId": "agent-review"},
-    {"id": "synthesize", "classId": "agent-task", "label": "Join evidence and constraints", "x": 1230, "y": 100, "params": {"serviceMs": 60, "ackDelayMs": 0, "callTimeoutMs": 8000, "retries": 5, "retryBackoffMs": 200}, "groupId": "agent-review"},
-    {"id": "review", "classId": "agent-task", "label": "Check assembled result", "x": 1230, "y": 380, "params": {"serviceMs": 60, "ackDelayMs": 0, "callTimeoutMs": 8000, "retries": 5, "retryBackoffMs": 200}, "groupId": "agent-review"},
-    {"id": "publish", "classId": "agent-task", "label": "Publish approved result", "x": 1510, "y": 380, "params": {"serviceMs": 40, "ackDelayMs": 0, "callTimeoutMs": 8000, "retries": 5, "retryBackoffMs": 200}, "groupId": "agent-review"},
-    {"id": "tool", "classId": "idempotent-store", "label": "Research evidence records", "x": 0, "y": 830, "params": {"writeMs": 10, "serviceDist": "constant", "idempotentWrites": true}, "groupId": "agent-tools"},
-    {"id": "constraint-tool", "classId": "idempotent-store", "label": "Constraint report records", "x": 280, "y": 830, "params": {"writeMs": 10, "serviceDist": "constant", "idempotentWrites": true}, "groupId": "agent-tools"},
-    {"id": "synthesis-tool", "classId": "idempotent-store", "label": "Draft artifact records", "x": 570, "y": 830, "params": {"writeMs": 10, "serviceDist": "constant", "idempotentWrites": true}, "groupId": "agent-tools"},
-    {"id": "publication-tool", "classId": "idempotent-store", "label": "Published result records", "x": 860, "y": 830, "params": {"writeMs": 10, "serviceDist": "constant", "idempotentWrites": true}, "groupId": "agent-tools"},
-    {"id": "status-retry", "classId": "retry-policy", "label": "Status delivery retry", "x": 1240, "y": 830, "params": {"attemptTimeoutMs": 5000, "maxAttempts": 3, "retryBudget": 2, "backoffMs": 40, "retryJitter": false}, "groupId": "agent-status"},
-    {"id": "dashboard", "classId": "task-status-journal", "label": "Durable task event dashboard", "x": 1530, "y": 830, "params": {}, "groupId": "agent-status"},
-    {"id": "tool-admission", "classId": "bulkhead", "label": "Bounded research tool slots", "x": 280, "y": 380, "params": {"serviceDist": "constant", "serviceMs": 2, "callTimeoutMs": 8000, "concurrency": 8}, "groupId": "agent-planning"}
+    {
+      "id": "requests",
+      "classId": "web-client",
+      "label": "Workflow request",
+      "x": 0,
+      "y": 120,
+      "params": {
+        "pattern": "constant",
+        "ratePerSec": 1,
+        "maxRequests": 1,
+        "payload": "task",
+        "startSec": 0.05,
+        "retries": 0,
+        "timeoutMs": 20000,
+        "deadlineMs": 20000
+      }
+    },
+    {
+      "id": "plan",
+      "classId": "agent-task",
+      "label": "Plan task",
+      "x": 280,
+      "y": 100,
+      "params": {
+        "serviceMs": 20,
+        "ackDelayMs": 0,
+        "callTimeoutMs": 8000,
+        "retries": 5,
+        "retryBackoffMs": 200
+      },
+      "groupId": "agent-planning"
+    },
+    {
+      "id": "research",
+      "classId": "agent-task",
+      "label": "Gather source evidence",
+      "x": 570,
+      "y": 100,
+      "params": {
+        "serviceMs": 30,
+        "ackDelayMs": 200,
+        "callTimeoutMs": 8000,
+        "retries": 5,
+        "retryBackoffMs": 200
+      },
+      "groupId": "agent-planning"
+    },
+    {
+      "id": "inspect",
+      "classId": "agent-task",
+      "label": "Inspect constraints",
+      "x": 570,
+      "y": 380,
+      "params": {
+        "serviceMs": 100,
+        "ackDelayMs": 0,
+        "callTimeoutMs": 8000,
+        "retries": 5,
+        "retryBackoffMs": 200
+      },
+      "groupId": "agent-planning"
+    },
+    {
+      "id": "verify-sources",
+      "classId": "agent-task",
+      "label": "Verify source agreement",
+      "x": 940,
+      "y": 100,
+      "params": {
+        "serviceMs": 40,
+        "ackDelayMs": 0,
+        "callTimeoutMs": 8000,
+        "retries": 5,
+        "retryBackoffMs": 200
+      },
+      "groupId": "agent-review"
+    },
+    {
+      "id": "synthesize",
+      "classId": "agent-task",
+      "label": "Join evidence and constraints",
+      "x": 1230,
+      "y": 100,
+      "params": {
+        "serviceMs": 60,
+        "ackDelayMs": 0,
+        "callTimeoutMs": 8000,
+        "retries": 5,
+        "retryBackoffMs": 200
+      },
+      "groupId": "agent-review"
+    },
+    {
+      "id": "review",
+      "classId": "agent-task",
+      "label": "Check assembled result",
+      "x": 1230,
+      "y": 380,
+      "params": {
+        "serviceMs": 60,
+        "ackDelayMs": 0,
+        "callTimeoutMs": 8000,
+        "retries": 5,
+        "retryBackoffMs": 200
+      },
+      "groupId": "agent-review"
+    },
+    {
+      "id": "publish",
+      "classId": "agent-task",
+      "label": "Publish approved result",
+      "x": 1510,
+      "y": 380,
+      "params": {
+        "serviceMs": 40,
+        "ackDelayMs": 0,
+        "callTimeoutMs": 8000,
+        "retries": 5,
+        "retryBackoffMs": 200
+      },
+      "groupId": "agent-review"
+    },
+    {
+      "id": "tool",
+      "classId": "idempotent-store",
+      "label": "Research evidence records",
+      "x": 0,
+      "y": 830,
+      "params": {
+        "writeMs": 10,
+        "serviceDist": "constant",
+        "idempotentWrites": true
+      },
+      "groupId": "agent-tools"
+    },
+    {
+      "id": "constraint-tool",
+      "classId": "idempotent-store",
+      "label": "Constraint report records",
+      "x": 280,
+      "y": 830,
+      "params": {
+        "writeMs": 10,
+        "serviceDist": "constant",
+        "idempotentWrites": true
+      },
+      "groupId": "agent-tools"
+    },
+    {
+      "id": "synthesis-tool",
+      "classId": "idempotent-store",
+      "label": "Draft artifact records",
+      "x": 570,
+      "y": 830,
+      "params": {
+        "writeMs": 10,
+        "serviceDist": "constant",
+        "idempotentWrites": true
+      },
+      "groupId": "agent-tools"
+    },
+    {
+      "id": "publication-tool",
+      "classId": "idempotent-store",
+      "label": "Published result records",
+      "x": 860,
+      "y": 830,
+      "params": {
+        "writeMs": 10,
+        "serviceDist": "constant",
+        "idempotentWrites": true
+      },
+      "groupId": "agent-tools"
+    },
+    {
+      "id": "status-retry",
+      "classId": "retry-policy",
+      "label": "Status delivery retry",
+      "x": 1240,
+      "y": 830,
+      "params": {
+        "attemptTimeoutMs": 5000,
+        "maxAttempts": 3,
+        "retryBudget": 2,
+        "backoffMs": 40,
+        "retryJitter": false
+      },
+      "groupId": "agent-status"
+    },
+    {
+      "id": "dashboard",
+      "classId": "task-status-journal",
+      "label": "Durable task event dashboard",
+      "x": 1530,
+      "y": 830,
+      "params": {},
+      "groupId": "agent-status"
+    },
+    {
+      "id": "tool-admission",
+      "classId": "bulkhead",
+      "label": "Bounded research tool slots",
+      "x": 280,
+      "y": 380,
+      "params": {
+        "serviceDist": "constant",
+        "serviceMs": 2,
+        "callTimeoutMs": 8000,
+        "concurrency": 8
+      },
+      "groupId": "agent-planning"
+    }
   ],
   "edges": [
-    {"id": "request-plan", "label": "request plan", "from": {"nodeId": "requests", "portId": "out"}, "to": {"nodeId": "plan", "portId": "in"}, "params": {"latencyMs": 2, "bandwidthMbps": 1000}},
-    {"id": "plan-research", "label": "plan research", "from": {"nodeId": "plan", "portId": "next"}, "to": {"nodeId": "research", "portId": "in"}, "params": {"latencyMs": 2, "bandwidthMbps": 1000}},
-    {"id": "plan-inspect", "label": "plan inspect", "from": {"nodeId": "plan", "portId": "next"}, "to": {"nodeId": "inspect", "portId": "in"}, "params": {"latencyMs": 2, "bandwidthMbps": 1000}},
-    {"id": "research-verify-sources", "label": "research verify sources", "from": {"nodeId": "research", "portId": "next"}, "to": {"nodeId": "verify-sources", "portId": "in"}, "params": {"latencyMs": 2, "bandwidthMbps": 1000}},
-    {"id": "verify-sources-synthesize", "label": "verify sources synthesize", "from": {"nodeId": "verify-sources", "portId": "next"}, "to": {"nodeId": "synthesize", "portId": "in"}, "params": {"latencyMs": 2, "bandwidthMbps": 1000}},
-    {"id": "inspect-synthesize", "label": "inspect synthesize", "from": {"nodeId": "inspect", "portId": "next"}, "to": {"nodeId": "synthesize", "portId": "in"}, "params": {"latencyMs": 2, "bandwidthMbps": 1000}},
-    {"id": "synthesize-review", "label": "synthesize review", "from": {"nodeId": "synthesize", "portId": "next"}, "to": {"nodeId": "review", "portId": "in"}, "params": {"latencyMs": 2, "bandwidthMbps": 1000}},
-    {"id": "review-publish", "label": "review publish", "from": {"nodeId": "review", "portId": "next"}, "to": {"nodeId": "publish", "portId": "in"}, "params": {"latencyMs": 2, "bandwidthMbps": 1000}},
-    {"id": "research-tool", "label": "research tool", "from": {"nodeId": "research", "portId": "tools"}, "to": {"nodeId": "tool-admission", "portId": "in"}, "params": {"latencyMs": 2, "bandwidthMbps": 1000}},
-    {"id": "inspect-tool", "label": "inspect tool", "from": {"nodeId": "inspect", "portId": "tools"}, "to": {"nodeId": "constraint-tool", "portId": "in"}, "params": {"latencyMs": 2, "bandwidthMbps": 1000}},
-    {"id": "synthesize-tool", "label": "synthesize tool", "from": {"nodeId": "synthesize", "portId": "tools"}, "to": {"nodeId": "synthesis-tool", "portId": "in"}, "params": {"latencyMs": 2, "bandwidthMbps": 1000}},
-    {"id": "publish-tool", "label": "publish tool", "from": {"nodeId": "publish", "portId": "tools"}, "to": {"nodeId": "publication-tool", "portId": "in"}, "params": {"latencyMs": 2, "bandwidthMbps": 1000}},
-    {"id": "research-tool-work", "label": "research tool work", "from": {"nodeId": "tool-admission", "portId": "calls"}, "to": {"nodeId": "tool", "portId": "in"}, "params": {"latencyMs": 2, "bandwidthMbps": 1000}},
-    {"id": "plan-status", "label": "plan status", "from": {"nodeId": "plan", "portId": "status"}, "to": {"nodeId": "status-retry", "portId": "in"}, "params": {"latencyMs": 2, "bandwidthMbps": 1000}},
-    {"id": "research-status", "label": "research status", "from": {"nodeId": "research", "portId": "status"}, "to": {"nodeId": "status-retry", "portId": "in"}, "params": {"latencyMs": 2, "bandwidthMbps": 1000}},
-    {"id": "inspect-status", "label": "inspect status", "from": {"nodeId": "inspect", "portId": "status"}, "to": {"nodeId": "status-retry", "portId": "in"}, "params": {"latencyMs": 2, "bandwidthMbps": 1000}},
-    {"id": "verify-sources-status", "label": "verify sources status", "from": {"nodeId": "verify-sources", "portId": "status"}, "to": {"nodeId": "status-retry", "portId": "in"}, "params": {"latencyMs": 2, "bandwidthMbps": 1000}},
-    {"id": "synthesize-status", "label": "synthesize status", "from": {"nodeId": "synthesize", "portId": "status"}, "to": {"nodeId": "status-retry", "portId": "in"}, "params": {"latencyMs": 2, "bandwidthMbps": 1000}},
-    {"id": "review-status", "label": "review status", "from": {"nodeId": "review", "portId": "status"}, "to": {"nodeId": "status-retry", "portId": "in"}, "params": {"latencyMs": 2, "bandwidthMbps": 1000}},
-    {"id": "publish-status", "label": "publish status", "from": {"nodeId": "publish", "portId": "status"}, "to": {"nodeId": "status-retry", "portId": "in"}, "params": {"latencyMs": 2, "bandwidthMbps": 1000}},
-    {"id": "status-persist", "label": "status persist", "from": {"nodeId": "status-retry", "portId": "target"}, "to": {"nodeId": "dashboard", "portId": "in"}, "params": {"latencyMs": 2, "bandwidthMbps": 1000}}
+    {
+      "id": "request-plan",
+      "label": "request plan",
+      "from": {
+        "nodeId": "requests",
+        "portId": "out"
+      },
+      "to": {
+        "nodeId": "plan",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "plan-research",
+      "label": "plan research",
+      "from": {
+        "nodeId": "plan",
+        "portId": "next"
+      },
+      "to": {
+        "nodeId": "research",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "plan-inspect",
+      "label": "plan inspect",
+      "from": {
+        "nodeId": "plan",
+        "portId": "next"
+      },
+      "to": {
+        "nodeId": "inspect",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "research-verify-sources",
+      "label": "research verify sources",
+      "from": {
+        "nodeId": "research",
+        "portId": "next"
+      },
+      "to": {
+        "nodeId": "verify-sources",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "verify-sources-synthesize",
+      "label": "verify sources synthesize",
+      "from": {
+        "nodeId": "verify-sources",
+        "portId": "next"
+      },
+      "to": {
+        "nodeId": "synthesize",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "inspect-synthesize",
+      "label": "inspect synthesize",
+      "from": {
+        "nodeId": "inspect",
+        "portId": "next"
+      },
+      "to": {
+        "nodeId": "synthesize",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "synthesize-review",
+      "label": "synthesize review",
+      "from": {
+        "nodeId": "synthesize",
+        "portId": "next"
+      },
+      "to": {
+        "nodeId": "review",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "review-publish",
+      "label": "review publish",
+      "from": {
+        "nodeId": "review",
+        "portId": "next"
+      },
+      "to": {
+        "nodeId": "publish",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "research-tool",
+      "label": "research tool",
+      "from": {
+        "nodeId": "research",
+        "portId": "tools"
+      },
+      "to": {
+        "nodeId": "tool-admission",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "inspect-tool",
+      "label": "inspect tool",
+      "from": {
+        "nodeId": "inspect",
+        "portId": "tools"
+      },
+      "to": {
+        "nodeId": "constraint-tool",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "synthesize-tool",
+      "label": "synthesize tool",
+      "from": {
+        "nodeId": "synthesize",
+        "portId": "tools"
+      },
+      "to": {
+        "nodeId": "synthesis-tool",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "publish-tool",
+      "label": "publish tool",
+      "from": {
+        "nodeId": "publish",
+        "portId": "tools"
+      },
+      "to": {
+        "nodeId": "publication-tool",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "research-tool-work",
+      "label": "research tool work",
+      "from": {
+        "nodeId": "tool-admission",
+        "portId": "calls"
+      },
+      "to": {
+        "nodeId": "tool",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "plan-status",
+      "label": "plan status",
+      "from": {
+        "nodeId": "plan",
+        "portId": "status"
+      },
+      "to": {
+        "nodeId": "status-retry",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "research-status",
+      "label": "research status",
+      "from": {
+        "nodeId": "research",
+        "portId": "status"
+      },
+      "to": {
+        "nodeId": "status-retry",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "inspect-status",
+      "label": "inspect status",
+      "from": {
+        "nodeId": "inspect",
+        "portId": "status"
+      },
+      "to": {
+        "nodeId": "status-retry",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "verify-sources-status",
+      "label": "verify sources status",
+      "from": {
+        "nodeId": "verify-sources",
+        "portId": "status"
+      },
+      "to": {
+        "nodeId": "status-retry",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "synthesize-status",
+      "label": "synthesize status",
+      "from": {
+        "nodeId": "synthesize",
+        "portId": "status"
+      },
+      "to": {
+        "nodeId": "status-retry",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "review-status",
+      "label": "review status",
+      "from": {
+        "nodeId": "review",
+        "portId": "status"
+      },
+      "to": {
+        "nodeId": "status-retry",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "publish-status",
+      "label": "publish status",
+      "from": {
+        "nodeId": "publish",
+        "portId": "status"
+      },
+      "to": {
+        "nodeId": "status-retry",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "status-persist",
+      "label": "status persist",
+      "from": {
+        "nodeId": "status-retry",
+        "portId": "target"
+      },
+      "to": {
+        "nodeId": "dashboard",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      }
+    }
   ],
   "groups": [
-    {"id": "agent-planning", "label": "Planning and evidence", "kind": "boundary", "x": -40, "y": 0, "w": 880, "h": 660},
-    {"id": "agent-review", "label": "Synthesis and review", "kind": "boundary", "x": 900, "y": 0, "w": 880, "h": 660},
-    {"id": "agent-tools", "label": "Task tool effects", "kind": "boundary", "x": -40, "y": 740, "w": 1180, "h": 350},
-    {"id": "agent-status", "label": "Durable progress delivery", "kind": "boundary", "x": 1200, "y": 740, "w": 580, "h": 350}
+    {
+      "id": "agent-planning",
+      "label": "Planning and evidence",
+      "kind": "boundary",
+      "x": -40,
+      "y": 0,
+      "w": 880,
+      "h": 660
+    },
+    {
+      "id": "agent-review",
+      "label": "Synthesis and review",
+      "kind": "boundary",
+      "x": 900,
+      "y": 0,
+      "w": 880,
+      "h": 660
+    },
+    {
+      "id": "agent-tools",
+      "label": "Task tool effects",
+      "kind": "boundary",
+      "x": -40,
+      "y": 740,
+      "w": 1180,
+      "h": 350
+    },
+    {
+      "id": "agent-status",
+      "label": "Durable progress delivery",
+      "kind": "boundary",
+      "x": 1200,
+      "y": 740,
+      "w": 580,
+      "h": 350
+    }
   ],
   "notes": [
-    {"id": "agent-trajectories-notes", "text": "The seven named stages execute independent task identities and four idempotent tool effects. Synthesis requires verified research plus inspected constraints; publication follows review. Each stage reports queued/running/waiting/retry/complete events. Crash research after its effect and inspect reconciliation, not imagined hidden model reasoning.", "x": 0, "y": -140, "w": 1000}
+    {
+      "id": "agent-trajectories-notes",
+      "text": "The seven named stages execute independent task identities and four idempotent tool effects. Synthesis requires verified research plus inspected constraints; publication follows review. Each stage reports queued/running/waiting/retry/complete events. Crash research after its effect and inspect reconciliation, not imagined hidden model reasoning.",
+      "x": 0,
+      "y": -140,
+      "w": 1000
+    }
   ],
   "faults": [
-    {"id": "research-crash", "atSec": 0.16, "untilSec": 0.6, "target": {"kind": "node", "id": "research"}, "type": "crash", "params": {}}
+    {
+      "id": "research-crash",
+      "atSec": 0.16,
+      "untilSec": 0.6,
+      "target": {
+        "kind": "node",
+        "id": "research"
+      },
+      "type": "crash",
+      "params": {}
+    }
   ],
-  "view": {"x": 0, "y": 0, "zoom": 1}
+  "view": {
+    "x": 0,
+    "y": 0,
+    "zoom": 1
+  }
 }

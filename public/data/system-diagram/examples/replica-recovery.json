@@ -1,5 +1,5 @@
 {
-  "schema": "simulatte.systemDiagram.v1",
+  "schema": "simulatte.systemDiagram.v4",
   "id": "replica-recovery",
   "name": "Replica lag, partition and leader recovery",
   "description": "Three modeled replica slots with quorum acknowledgements, catch-up delay and a single authoritative simulated leader. Client link partition and leader failure are scheduled; no split-brain or consensus proof.",

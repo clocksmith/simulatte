@@ -7,10 +7,11 @@ Execute governed profiles and domain simulations with deterministic controls, dy
 
 ## Authority
 
-- Owns previews, simulation catalog, chooser, data workbench, and profile lifecycle.
-- Owns chartered domain WorldSpec applications, including Motorcycle Noise.
-- Owns cross-plugin WorldSpec compositions, including the Earth/Virginia datacenter reference world.
+- Owns previews, catalog, chooser, data workbench and profile lifecycle.
+- Owns chartered domain WorldSpec applications.
+- Owns cross-plugin WorldSpec compositions.
 - Owns spatial residency: addressed render payloads, atomic replacement, prefetch, pinning, and eviction independent of simulation residency.
+- Owns Lucyd authoring, study and optional deployment; provider claims require evidence.
 - Does not own Create compilation or plugin-private logic.
 
 ## Scope

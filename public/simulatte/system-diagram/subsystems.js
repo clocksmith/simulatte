@@ -27,7 +27,7 @@
     for (const key of Object.keys(value)) if (![...required, ...optional].includes(key)) fail(`${path}.${key} is not supported`);
   }
   function graphDocument(doc, def) {
-    const result = { ...doc, schema: SCHEMA };
+    const result = { ...doc, schema: SCHEMA };delete result.intent;delete result.concepts;
     for (const key of collections) result[key] = def[key];
     return result;
   }
@@ -71,7 +71,7 @@
       if (doc.nodes?.some(n => isComposite(n.classId))) fail('subsystems registry is required');
       return;
     }
-    if (doc.schema !== SCHEMA || !Array.isArray(doc.subsystems) || doc.subsystems.length > MAX_DEFINITIONS) fail(`v4 subsystems must be an array of at most ${MAX_DEFINITIONS} definitions`);
+    if (![SCHEMA,'simulatte.systemDiagram.v5'].includes(doc.schema) || !Array.isArray(doc.subsystems) || doc.subsystems.length > MAX_DEFINITIONS) fail(`v4 subsystems must be an array of at most ${MAX_DEFINITIONS} definitions`);
     const seen = new Set();
     for (const def of doc.subsystems) {
       keys(def, ['id', 'version', 'label', ...collections, 'ports'], [], 'definition');

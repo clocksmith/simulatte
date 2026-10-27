@@ -44,7 +44,7 @@
 
   const files = globalThis.SimulatteSystemDiagramFiles;
   const fileStore = files ? files.autosave(config) : null;
-  let privateCollection = null;
+  let privateCollection = null, deploymentPanel = null, suspendedStudy = null;
 
   function documentSignature(doc) {
     if (!doc) return '';
@@ -56,7 +56,7 @@
   let initialDocSig = documentSignature(model.diagram);
   let savedStorageSig = null;
   let savedDraftSig = null;
-  let pendingReplacement = null;
+  let pendingReplacement = null, replacementEpoch = 0;
   const loadGuard = globalThis.SimulatteSystemDiagramEditorModel.createLoadGuard(model);
   let loading = false, activePreset = 'blank';
   const buttons = {};
@@ -125,6 +125,8 @@
     onStepChange: () => render(),
     onSimulate: () => playback.play(),
     onMessage: message,
+    onPrivacyChange: value => privateCollection?.setActive(value),
+    canNavigate: () => !subsystemEditor?.session?.active,
   });
 
   function select() { return model.selection; }
@@ -150,6 +152,22 @@
     if (g) apply({ type: 'setGroupCollapsed', id, collapsed: !g.collapsed });
   }
 
+  const designDialog = document.createElement('dialog');designDialog.className='lucyd-dialog';designDialog.setAttribute('aria-label','Design intent');
+  document.body.append(designDialog);
+  function editIntent(){
+    designDialog.replaceChildren(el('h2','','What should this system achieve?'));
+    const inputs={};
+    for(const [key,label]of Object.entries({outcome:'Outcome',users:'Users and external actors',constraints:'Constraints',success:'How will you know it works?'}))inputs[key]=field(designDialog,label,model.diagram.intent?.[key]||'',{id:'intent-'+key});
+    const actions=el('div','properties-actions');designDialog.append(actions);
+    button(actions,'Save intent',()=>{apply({type:'setIntent',patch:Object.fromEntries(Object.entries(inputs).map(([k,input])=>[k,input.value]))});designDialog.close();},'primary');
+    button(actions,'Close',()=>designDialog.close());designDialog.showModal();
+  }
+  button('document-actions','Design intent',editIntent);
+  const sketchButton = button(document.querySelector('.palette-panel'),'Add responsibility',()=>{const center=canvas.viewportCenter();apply({type:'addConcept',label:'Responsibility',x:center.x-config.editor.nodeWidth/2,y:center.y-config.editor.nodeHeight/2});},'primary','Add conceptual responsibility without choosing executable behavior');
+  sketchButton.element.classList.add('lucyd-add-responsibility');
+  sketchButton.element.replaceChildren(el('span','lucyd-sketch-label','Add responsibility'),el('span','lucyd-sketch-icon','◇'));
+  document.querySelector('.palette-panel').insertBefore(sketchButton.element,document.querySelector('.palette-search'));
+
   // Edit toolbar actions
   buttons.undo = button('edit-actions', 'Undo', () => { model.undo(); message('Undid edit.'); });
   buttons.redo = button('edit-actions', 'Redo', () => { model.redo(); message('Redid edit.'); });
@@ -171,6 +189,12 @@
   button('view-actions', '+', () => canvas.zoomBy(1.25), 'quiet', 'Zoom in');
   button('view-actions', 'Fit', () => canvas.fit(), 'quiet');
 
+  function studyStateForSave(){
+    const isPrivate=Boolean(privateCollection?.active);
+    if(subsystemEditor?.session?.active&&suspendedStudy){if(suspendedStudy.privateDocument!==isPrivate)throw Error('Study privacy changed during definition editing');return clone(suspendedStudy.value);}
+    return isPrivate?interviewStepper.privateState():interviewStepper.publicState();
+  }
+
   // Document file actions
   async function saveLocal() {
     canvas.flush();
@@ -180,9 +204,9 @@
 
     let ok = false;
     if (privateCollection?.active) {
-      try { ok = await privateCollection.saveRecord({diagram: rootDoc, subsystemDraft: draft}); } catch { ok = false; }
+      try { ok = await privateCollection.saveRecord({diagram: rootDoc, subsystemDraft: draft, studyState: studyStateForSave()}); } catch { ok = false; }
     } else if (fileStore) {
-      ok = fileStore.save(rootDoc, draft);
+      ok = fileStore.save(rootDoc, draft, studyStateForSave());
     } else {
       try {
         localStorage.setItem(config.editor.autosaveKey, JSON.stringify({
@@ -216,7 +240,7 @@
     }
     const record = fileStore ? fileStore.loadRecord() : null;
     if (record) {
-      loadDocumentRecord(record.diagram, record.subsystemDraft);
+      loadDocumentRecord(record.diagram, record.subsystemDraft, false, record.studyState);
       return true;
     }
     try {
@@ -233,11 +257,12 @@
     return false;
   }
 
-  function loadDocumentRecord(diagramData, subsystemDraft, privateDocument = false) {
+  function loadDocumentRecord(diagramData, subsystemDraft, privateDocument = false, studyState = null) {
     const diagram = documents.validate(diagramData, library, config);
+    suspendedStudy=null;interviewStepper?.onDocumentLoaded(diagram);
+    privateCollection?.setActive(privateDocument);
     const loaded = model.replace(diagram);
     if (!loaded.ok) throw Error(loaded.error);
-    privateCollection?.setActive(privateDocument);
 
     activePreset = config.examples.some(e => e.id === diagram.id) ? diagram.id : diagram.nodes.length ? 'custom' : 'blank';
     $('preset').value = activePreset;
@@ -247,6 +272,7 @@
     savedDraftSig = null;
 
     if (subsystemDraft) {
+      suspendedStudy={value:clone(studyState),privateDocument};
       subsystemEditor.restoreDraft(subsystemDraft);
       savedDraftSig = documentSignature(subsystemDraft.diagram);
       message(`Recovered parent diagram and subsystem draft: ${subsystemDraft.label || subsystemDraft.classId}`);
@@ -255,13 +281,13 @@
       canvas.setView(diagram.view, {restore: true});
       canvas.flush();
       render();
-      interviewStepper?.onDocumentLoaded(diagram);
+      const expected=model.diagram;interviewStepper.ready.then(()=>{if(model.diagram!==expected)return;if(privateDocument)interviewStepper.restorePrivateState(studyState);else interviewStepper.restorePublicState(studyState);}).catch(error=>message(error.message,true));
       message(`Loaded saved diagram: ${diagram.name || diagram.id || 'Custom architecture'}`);
     }
   }
 
   async function exportJson() {
-    if (privateCollection?.active) return privateCollection.exportRecord({diagram: model.diagram});
+    if (privateCollection?.active) return privateCollection.exportRecord({diagram: model.diagram, studyState: studyStateForSave()});
     canvas.flush();
     const text = JSON.stringify(model.diagram, null, 2);
     const elDoc = $('document');
@@ -286,6 +312,7 @@
   }
 
   async function promptUnsavedChanges(onProceed, onCancel) {
+    const token = replacementEpoch;
     if (subsystemEditor?.session?.active) {
       message('Publish or cancel subsystem definition edits before replacing the diagram.', true);
       onCancel?.();
@@ -297,7 +324,7 @@
     }
     // Automatically preserve a recoverable snapshot before replacement
     try {
-      if (privateCollection?.active) await privateCollection.saveRecord({diagram: model.diagram}, true);
+      if (privateCollection?.active) await privateCollection.saveRecord({diagram: model.diagram, studyState: studyStateForSave()}, true);
       else if (fileStore) fileStore.saveBackup(model.diagram);
       else {
         localStorage.setItem(`${config.editor.autosaveKey}.backup`, JSON.stringify({
@@ -308,6 +335,7 @@
       }
     } catch {}
 
+    if(token!==replacementEpoch){onCancel?.();return;}
     const dialog = $('unsaved-dialog');
     if (!dialog) {
       const saveChoice = window.confirm('You have unsaved changes. Save before continuing?');
@@ -397,9 +425,9 @@
     if (subsystemEditor?.session?.active) throw Error('Publish or cancel definition edits before loading another document');
     const docData = v?.schema?.startsWith?.('simulatte.systemDiagram') ? (v.diagram || v) : v;
     const diagram = documents.validate(docData, library, config);
+    privateCollection?.setActive(privateDocument);
     const loaded = model.replace(diagram);
     if (!loaded.ok) throw Error(loaded.error);
-    privateCollection?.setActive(privateDocument);
     activePreset = config.examples.some(e => e.id === diagram.id) ? diagram.id : diagram.nodes.length ? 'custom' : 'blank';
     $('preset').value = activePreset;
     initialDocSig = documentSignature(model.diagram);
@@ -459,7 +487,7 @@
           if (f.size > 5e6) throw Error('File exceeds 5 MB');
           const value = JSON.parse(await f.text());
           return value.schema === globalThis.SimulattePrivateCrypto.SCHEMA ? {privateRecord: await privateCollection.decodeFile(value)} : value;
-        }, value => value.privateRecord ? loadDocumentRecord(value.privateRecord.diagram, value.privateRecord.subsystemDraft, true) : loadPending(value));
+        }, value => value.privateRecord ? loadDocumentRecord(value.privateRecord.diagram, value.privateRecord.subsystemDraft, true, value.privateRecord.studyState) : loadPending(value));
       },
       () => {
         message('File import cancelled.');
@@ -549,7 +577,8 @@
   subsystemTools.id = 'subsystem-tools'; subsystemTools.append(el('summary', '', 'Subsystem tools'), subsystemHost);
   $('palette').after(subsystemTools);
   const subsystemEditor = globalThis.SimulatteSystemDiagramSubsystemEditor.create({
-    model, library, config, host: subsystemHost, el, field, button, apply, canvas, message, onOpen: () => {},
+    model, library, config, host: subsystemHost, el, field, button, apply, canvas, message,
+    onOpen: () => {if(!subsystemEditor.session.active){if(!suspendedStudy)suspendedStudy={value:studyStateForSave(),privateDocument:Boolean(privateCollection?.active)};interviewStepper.reset();}},
     onSaveDraft: () => saveLocal(),
   });
 
@@ -634,7 +663,22 @@
     const group = doc.groups.find(g => g.id === id);
     const note = doc.notes.find(n => n.id === id);
 
-    if (node && documents.resolveClass(node.classId, doc, library, config).kernel === 'subsystem') {
+    if(node && documents.isConcept(node.classId)){
+      const concept=doc.concepts.find(c=>'concept.'+c.id===node.classId),resolved=documents.resolveClass(node.classId,doc,library,config);
+      $('selection-kind').textContent=concept.binding?'Refined responsibility':'Unbound responsibility';
+      const name=field(host,'Responsibility',node.label,{id:'concept-label'});name.addEventListener('change',()=>perform(()=>apply({type:'setNodeLabel',id,label:name.value})));
+      const responsibility=field(host,'What it does',concept.responsibility,{id:'concept-responsibility'});responsibility.addEventListener('change',()=>perform(()=>apply({type:'updateConcept',id:concept.id,patch:{responsibility:responsibility.value}})));
+      host.append(el('p','properties-note',concept.binding?'The same component and external port identities are retained.':'Unbound: sketch and connect this responsibility now. Refine it before simulating or deploying.'));
+      const choices=[{id:'',label:'Choose executable behavior'},...library.classOrder.map(classId=>({id:classId,label:library.classes[classId].label})),...(doc.subsystems||[]).map(def=>({id:`subsystem.${def.id}@${def.version}`,label:`${def.label} (subsystem v${def.version})`}))];
+      const target=field(host,'Refine to',concept.binding?.classId||'',{id:'concept-binding',choices}),mapping=el('div','concept-port-mapping');host.append(mapping);let portInputs={};
+      function ports(){mapping.replaceChildren();portInputs={};if(!target.value)return;const klass=documents.resolveClass(target.value,doc,library,config),ports=klass.ports||library.kernels[klass.kernel].ports;for(const port of concept.ports)portInputs[port.id]=field(mapping,`${port.id} (${port.direction}, ${port.payloadType})`,concept.binding?.ports[port.id]||'',{id:'concept-port-'+port.id,choices:[{id:'',label:'Map external contract'},...ports.filter(p=>p.direction===port.direction).map(p=>({id:p.id,label:p.id}))]});}
+      target.addEventListener('change',ports);ports();
+      const actions=el('div','properties-actions');host.append(actions);button(actions,'Refine responsibility',()=>{if(!target.value)throw Error('Choose executable behavior first');apply({type:'refineConcept',id,binding:{classId:target.value,ports:Object.fromEntries(Object.entries(portInputs).map(([key,input])=>[key,input.value]))}});},'primary');
+      if(concept.binding && resolved.kernel!=='subsystem'){
+        const kernel=library.kernels[resolved.kernel],fields=paramsForm(host,kernel.params,node.params,{inherited:resolved.defaults,sources:documents.resolveNodeParams(node,doc,library,config).sources});
+        button(host,'Apply simulation parameters',()=>apply({type:'setNodeParams',id,params:readParams(fields,kernel.params,true),replace:true}));
+      }
+    } else if (node && documents.resolveClass(node.classId, doc, library, config).kernel === 'subsystem') {
       // Subsystem node (modular expandable component)
       $('selection-kind').textContent = 'Nested Subsystem';
       subsystemEditor.inspect(host, node);
@@ -810,6 +854,7 @@
   }
 
   model.subscribe(event => {
+    if(event.command?.type==='resumeDefinition'&&!subsystemEditor.session.active&&suspendedStudy){const resume=suspendedStudy;suspendedStudy=null;if(resume.privateDocument===Boolean(privateCollection?.active)){if(resume.privateDocument)interviewStepper.restorePrivateState(resume.value);else interviewStepper.restorePublicState(resume.value);}}
     if (event.kind !== 'view') {
       subsystemEditor.render();
       render();
@@ -828,7 +873,7 @@
   let recoveryError = stored && !['ready', 'missing'].includes(stored.state) ? `Saved diagram could not be read: ${stored.error} Stored data was retained.` : '';
   const storedRecord = stored?.record;
   if (storedRecord && location.search.includes('recover=true')) {
-    try { loadDocumentRecord(storedRecord.diagram, storedRecord.subsystemDraft); }
+    try { loadDocumentRecord(storedRecord.diagram, storedRecord.subsystemDraft, false, storedRecord.studyState); }
     catch (error) { recoveryError = `Saved diagram could not be restored: ${error.message}. The stored copy was retained.`; }
   } else canvas.fit({ readable: true });
   canvas.flush();
@@ -837,10 +882,13 @@
   interviewStepper?.onDocumentLoaded(model.diagram);
 
   privateCollection = globalThis.SimulattePrivateCollection.create({
-    document, sourcePath: config.privateCollectionPath,
-    onLoad: (record, isPrivate) => loadDocumentRecord(record.diagram, record.subsystemDraft, isPrivate),
+    document, sourcePath: config.privateCollectionPath, library, config,
+    onRegister: data => interviewStepper.registerPrivate(data),
+    onUnregister: () => { if(suspendedStudy?.privateDocument)suspendedStudy=null;replacementEpoch++;pendingReplacement?.onCancel?.();pendingReplacement=null;closeUnsavedDialog();designDialog.close();designDialog.replaceChildren(); deploymentPanel?.dispose(); deploymentPanel = null; playback.clear(); interviewStepper.unregisterPrivate(); },
+    onSelect: key => interviewStepper.setScenario(key),
+    onLoad: (record, isPrivate) => { loadDocumentRecord(record.diagram, record.subsystemDraft, isPrivate, record.studyState); },
     requestLoad: action => new Promise(resolve => promptUnsavedChanges(() => { action(); resolve(true); }, () => resolve(false))),
-    getRecord: () => ({diagram: subsystemEditor?.session?.active ? subsystemEditor.session.rootDiagram : model.diagram, subsystemDraft: subsystemEditor?.getDraft?.() || null}),
+    getRecord: () => ({diagram: subsystemEditor?.session?.active ? subsystemEditor.session.rootDiagram : model.diagram, subsystemDraft: subsystemEditor?.getDraft?.() || null, studyState: studyStateForSave()}),
     onClear: () => {
       while (subsystemEditor?.session?.active) subsystemEditor.session.cancel();
       loadPending(documents.emptyDiagram(config)); $('document').value = '';
@@ -848,6 +896,13 @@
     onMessage: message,
   });
   button('document-actions', 'Private collection (Databricks IC6)', () => privateCollection.open());
+  button('document-actions', 'Deployment', async () => {
+    if (!deploymentPanel) {
+      const module = await import('./deployment/panel.js');
+      deploymentPanel = module.create({host: document.body, getDiagram: () => clone(model.diagram), getSelection: () => interviewStepper.getSelection(), getDependencies: () => ({documentApi: documents, library, config}), getIsPrivate: () => Boolean(privateCollection?.active), onMessage: message});
+    }
+    deploymentPanel.open();
+  });
 
   globalThis.SimulatteSystemDiagramEditor = Object.freeze({
     document: () => clone(model.diagram),

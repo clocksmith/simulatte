@@ -1,57 +1,531 @@
 {
-  "schema": "simulatte.systemDiagram.v3",
+  "schema": "simulatte.systemDiagram.v4",
   "id": "social-feed",
   "name": "Social posts, followers and feed fanout",
   "description": "Users and follower relations live in an independent social graph. Committed posts resolve their real audience before queueing fanout; feed reads join graph-selected posts with follower timelines. Bound admission, retries and delayed writes are separate executable components.",
   "seed": 42,
-  "run": {"horizonSec": 12},
+  "run": {
+    "horizonSec": 12
+  },
   "classes": [],
   "nodes": [
-    {"id": "users", "classId": "social-workload", "label": "Users, follows and posts", "x": 0, "y": 100, "params": {"userCount": 16, "celebrityFollowers": 15, "followsPerUser": 2, "postCount": 12, "readCount": 90, "readIntervalMs": 100, "readStartMs": 50, "callTimeoutMs": 8000}},
-    {"id": "write-admission", "classId": "rate-limiter", "label": "Publication rate budget", "x": 280, "y": 100, "params": {"ratePerSec": 1000, "burst": 100, "overflow": "queue", "callTimeoutMs": 8000}, "groupId": "social-write"},
-    {"id": "posts", "classId": "social-post-store", "label": "Committed posts and fanout policy", "x": 570, "y": 100, "params": {"fanoutMode": "push", "graphMode": "external"}, "groupId": "social-write"},
-    {"id": "graph-retry", "classId": "retry-policy", "label": "Graph authority lookup retry", "x": 940, "y": 100, "params": {"attemptTimeoutMs": 5000, "maxAttempts": 3, "retryBudget": 2, "backoffMs": 40, "retryJitter": false}, "groupId": "social-graph"},
-    {"id": "graph", "classId": "social-graph-store", "label": "Users and follower relations", "x": 1230, "y": 100, "params": {}, "groupId": "social-graph"},
-    {"id": "queue", "classId": "task-queue", "label": "Durable fanout queue", "x": 0, "y": 620, "params": {"prefetch": 2, "visibilityTimeoutMs": 1000, "retryDelayMs": 150, "maxReceives": 12}, "groupId": "social-fanout"},
-    {"id": "fanout", "classId": "social-fanout-worker", "label": "Recipient expansion worker", "x": 280, "y": 620, "params": {"batchSize": 4}, "groupId": "social-fanout"},
-    {"id": "timeline-retry", "classId": "retry-policy", "label": "Recipient write retry", "x": 570, "y": 620, "params": {"attemptTimeoutMs": 5000, "maxAttempts": 3, "retryBudget": 2, "backoffMs": 40, "retryJitter": false}, "groupId": "social-fanout"},
-    {"id": "deadletters", "classId": "dead-letter-queue", "label": "Exhausted fanout work", "x": 280, "y": 850, "params": {}, "groupId": "social-fanout"},
-    {"id": "timelines", "classId": "social-timeline-store", "label": "Follower timeline entries", "x": 1230, "y": 850, "params": {"serviceMs": 30, "concurrency": 2}, "groupId": "social-read"},
-    {"id": "timeline-admission", "classId": "bulkhead", "label": "Timeline write concurrency", "x": 940, "y": 850, "params": {"serviceDist": "constant", "serviceMs": 2, "callTimeoutMs": 8000, "concurrency": 8}, "groupId": "social-read"},
-    {"id": "feed", "classId": "social-feed-reader", "label": "Chronological feed merge", "x": 1230, "y": 620, "params": {}, "groupId": "social-read"},
-    {"id": "read-admission", "classId": "rate-limiter", "label": "Feed read budget", "x": 940, "y": 620, "params": {"ratePerSec": 1000, "burst": 100, "overflow": "queue", "callTimeoutMs": 8000}, "groupId": "social-read"},
-    {"id": "post-read-retry", "classId": "retry-policy", "label": "Followed post snapshot retry", "x": 1510, "y": 620, "params": {"attemptTimeoutMs": 5000, "maxAttempts": 3, "retryBudget": 2, "backoffMs": 40, "retryJitter": false}, "groupId": "social-read"},
-    {"id": "timeline-read-retry", "classId": "retry-policy", "label": "Timeline snapshot retry", "x": 1510, "y": 850, "params": {"attemptTimeoutMs": 5000, "maxAttempts": 3, "retryBudget": 2, "backoffMs": 40, "retryJitter": false}, "groupId": "social-read"}
+    {
+      "id": "users",
+      "classId": "social-workload",
+      "label": "Users, follows and posts",
+      "x": 0,
+      "y": 100,
+      "params": {
+        "userCount": 16,
+        "celebrityFollowers": 15,
+        "followsPerUser": 2,
+        "postCount": 12,
+        "readCount": 90,
+        "readIntervalMs": 100,
+        "readStartMs": 50,
+        "callTimeoutMs": 8000
+      }
+    },
+    {
+      "id": "write-admission",
+      "classId": "rate-limiter",
+      "label": "Publication rate budget",
+      "x": 280,
+      "y": 100,
+      "params": {
+        "ratePerSec": 1000,
+        "burst": 100,
+        "overflow": "queue",
+        "callTimeoutMs": 8000
+      },
+      "groupId": "social-write"
+    },
+    {
+      "id": "posts",
+      "classId": "social-post-store",
+      "label": "Committed posts and fanout policy",
+      "x": 570,
+      "y": 100,
+      "params": {
+        "fanoutMode": "push",
+        "graphMode": "external"
+      },
+      "groupId": "social-write"
+    },
+    {
+      "id": "graph-retry",
+      "classId": "retry-policy",
+      "label": "Graph authority lookup retry",
+      "x": 940,
+      "y": 100,
+      "params": {
+        "attemptTimeoutMs": 5000,
+        "maxAttempts": 3,
+        "retryBudget": 2,
+        "backoffMs": 40,
+        "retryJitter": false
+      },
+      "groupId": "social-graph"
+    },
+    {
+      "id": "graph",
+      "classId": "social-graph-store",
+      "label": "Users and follower relations",
+      "x": 1230,
+      "y": 100,
+      "params": {},
+      "groupId": "social-graph"
+    },
+    {
+      "id": "queue",
+      "classId": "task-queue",
+      "label": "Durable fanout queue",
+      "x": 0,
+      "y": 620,
+      "params": {
+        "prefetch": 2,
+        "visibilityTimeoutMs": 1000,
+        "retryDelayMs": 150,
+        "maxReceives": 12
+      },
+      "groupId": "social-fanout"
+    },
+    {
+      "id": "fanout",
+      "classId": "social-fanout-worker",
+      "label": "Recipient expansion worker",
+      "x": 280,
+      "y": 620,
+      "params": {
+        "batchSize": 4
+      },
+      "groupId": "social-fanout"
+    },
+    {
+      "id": "timeline-retry",
+      "classId": "retry-policy",
+      "label": "Recipient write retry",
+      "x": 570,
+      "y": 620,
+      "params": {
+        "attemptTimeoutMs": 5000,
+        "maxAttempts": 3,
+        "retryBudget": 2,
+        "backoffMs": 40,
+        "retryJitter": false
+      },
+      "groupId": "social-fanout"
+    },
+    {
+      "id": "deadletters",
+      "classId": "dead-letter-queue",
+      "label": "Exhausted fanout work",
+      "x": 280,
+      "y": 850,
+      "params": {},
+      "groupId": "social-fanout"
+    },
+    {
+      "id": "timelines",
+      "classId": "social-timeline-store",
+      "label": "Follower timeline entries",
+      "x": 1230,
+      "y": 850,
+      "params": {
+        "serviceMs": 30,
+        "concurrency": 2
+      },
+      "groupId": "social-read"
+    },
+    {
+      "id": "timeline-admission",
+      "classId": "bulkhead",
+      "label": "Timeline write concurrency",
+      "x": 940,
+      "y": 850,
+      "params": {
+        "serviceDist": "constant",
+        "serviceMs": 2,
+        "callTimeoutMs": 8000,
+        "concurrency": 8
+      },
+      "groupId": "social-read"
+    },
+    {
+      "id": "feed",
+      "classId": "social-feed-reader",
+      "label": "Chronological feed merge",
+      "x": 1230,
+      "y": 620,
+      "params": {},
+      "groupId": "social-read"
+    },
+    {
+      "id": "read-admission",
+      "classId": "rate-limiter",
+      "label": "Feed read budget",
+      "x": 940,
+      "y": 620,
+      "params": {
+        "ratePerSec": 1000,
+        "burst": 100,
+        "overflow": "queue",
+        "callTimeoutMs": 8000
+      },
+      "groupId": "social-read"
+    },
+    {
+      "id": "post-read-retry",
+      "classId": "retry-policy",
+      "label": "Followed post snapshot retry",
+      "x": 1510,
+      "y": 620,
+      "params": {
+        "attemptTimeoutMs": 5000,
+        "maxAttempts": 3,
+        "retryBudget": 2,
+        "backoffMs": 40,
+        "retryJitter": false
+      },
+      "groupId": "social-read"
+    },
+    {
+      "id": "timeline-read-retry",
+      "classId": "retry-policy",
+      "label": "Timeline snapshot retry",
+      "x": 1510,
+      "y": 850,
+      "params": {
+        "attemptTimeoutMs": 5000,
+        "maxAttempts": 3,
+        "retryBudget": 2,
+        "backoffMs": 40,
+        "retryJitter": false
+      },
+      "groupId": "social-read"
+    }
   ],
   "edges": [
-    {"id": "publish-post", "label": "publish post", "from": {"nodeId": "users", "portId": "write"}, "to": {"nodeId": "write-admission", "portId": "in"}, "params": {"latencyMs": 2, "bandwidthMbps": 1000}},
-    {"id": "publish-admitted", "label": "publish admitted", "from": {"nodeId": "write-admission", "portId": "out"}, "to": {"nodeId": "posts", "portId": "in"}, "params": {"latencyMs": 2, "bandwidthMbps": 1000}},
-    {"id": "graph-query", "label": "graph query", "from": {"nodeId": "posts", "portId": "graph"}, "to": {"nodeId": "graph-retry", "portId": "in"}, "params": {"latencyMs": 2, "bandwidthMbps": 1000}},
-    {"id": "graph-authority", "label": "graph authority", "from": {"nodeId": "graph-retry", "portId": "target"}, "to": {"nodeId": "graph", "portId": "in"}, "params": {"latencyMs": 2, "bandwidthMbps": 1000}},
-    {"id": "enqueue-post", "label": "enqueue post", "from": {"nodeId": "posts", "portId": "fanout"}, "to": {"nodeId": "queue", "portId": "in"}, "params": {"latencyMs": 2, "bandwidthMbps": 1000}},
-    {"id": "consume-post", "label": "consume post", "from": {"nodeId": "queue", "portId": "consumers"}, "to": {"nodeId": "fanout", "portId": "in"}, "params": {"latencyMs": 2, "bandwidthMbps": 1000}},
-    {"id": "write-timeline", "label": "write timeline", "from": {"nodeId": "fanout", "portId": "timeline"}, "to": {"nodeId": "timeline-retry", "portId": "in"}, "params": {"latencyMs": 2, "bandwidthMbps": 1000}},
-    {"id": "retry-recipient", "label": "retry recipient", "from": {"nodeId": "timeline-retry", "portId": "target"}, "to": {"nodeId": "timeline-admission", "portId": "in"}, "params": {"latencyMs": 2, "bandwidthMbps": 1000}},
-    {"id": "commit-recipient", "label": "commit recipient", "from": {"nodeId": "timeline-admission", "portId": "calls"}, "to": {"nodeId": "timelines", "portId": "in"}, "params": {"latencyMs": 2, "bandwidthMbps": 1000}},
-    {"id": "read-feed", "label": "read feed", "from": {"nodeId": "users", "portId": "read"}, "to": {"nodeId": "read-admission", "portId": "in"}, "params": {"latencyMs": 2, "bandwidthMbps": 1000}},
-    {"id": "read-admitted", "label": "read admitted", "from": {"nodeId": "read-admission", "portId": "out"}, "to": {"nodeId": "feed", "portId": "in"}, "params": {"latencyMs": 2, "bandwidthMbps": 1000}},
-    {"id": "load-followed-posts", "label": "load followed posts", "from": {"nodeId": "feed", "portId": "posts"}, "to": {"nodeId": "post-read-retry", "portId": "in"}, "params": {"latencyMs": 2, "bandwidthMbps": 1000}},
-    {"id": "read-post-snapshot", "label": "read post snapshot", "from": {"nodeId": "post-read-retry", "portId": "target"}, "to": {"nodeId": "posts", "portId": "in"}, "params": {"latencyMs": 2, "bandwidthMbps": 1000}},
-    {"id": "load-timeline", "label": "load timeline", "from": {"nodeId": "feed", "portId": "timeline"}, "to": {"nodeId": "timeline-read-retry", "portId": "in"}, "params": {"latencyMs": 2, "bandwidthMbps": 1000}},
-    {"id": "read-timeline-snapshot", "label": "read timeline snapshot", "from": {"nodeId": "timeline-read-retry", "portId": "target"}, "to": {"nodeId": "timelines", "portId": "in"}, "params": {"latencyMs": 2, "bandwidthMbps": 1000}},
-    {"id": "deadletter-post", "label": "deadletter post", "from": {"nodeId": "queue", "portId": "dlq"}, "to": {"nodeId": "deadletters", "portId": "in"}, "params": {"latencyMs": 2, "bandwidthMbps": 1000}}
+    {
+      "id": "publish-post",
+      "label": "publish post",
+      "from": {
+        "nodeId": "users",
+        "portId": "write"
+      },
+      "to": {
+        "nodeId": "write-admission",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "publish-admitted",
+      "label": "publish admitted",
+      "from": {
+        "nodeId": "write-admission",
+        "portId": "out"
+      },
+      "to": {
+        "nodeId": "posts",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "graph-query",
+      "label": "graph query",
+      "from": {
+        "nodeId": "posts",
+        "portId": "graph"
+      },
+      "to": {
+        "nodeId": "graph-retry",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "graph-authority",
+      "label": "graph authority",
+      "from": {
+        "nodeId": "graph-retry",
+        "portId": "target"
+      },
+      "to": {
+        "nodeId": "graph",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "enqueue-post",
+      "label": "enqueue post",
+      "from": {
+        "nodeId": "posts",
+        "portId": "fanout"
+      },
+      "to": {
+        "nodeId": "queue",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "consume-post",
+      "label": "consume post",
+      "from": {
+        "nodeId": "queue",
+        "portId": "consumers"
+      },
+      "to": {
+        "nodeId": "fanout",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "write-timeline",
+      "label": "write timeline",
+      "from": {
+        "nodeId": "fanout",
+        "portId": "timeline"
+      },
+      "to": {
+        "nodeId": "timeline-retry",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "retry-recipient",
+      "label": "retry recipient",
+      "from": {
+        "nodeId": "timeline-retry",
+        "portId": "target"
+      },
+      "to": {
+        "nodeId": "timeline-admission",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "commit-recipient",
+      "label": "commit recipient",
+      "from": {
+        "nodeId": "timeline-admission",
+        "portId": "calls"
+      },
+      "to": {
+        "nodeId": "timelines",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "read-feed",
+      "label": "read feed",
+      "from": {
+        "nodeId": "users",
+        "portId": "read"
+      },
+      "to": {
+        "nodeId": "read-admission",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "read-admitted",
+      "label": "read admitted",
+      "from": {
+        "nodeId": "read-admission",
+        "portId": "out"
+      },
+      "to": {
+        "nodeId": "feed",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "load-followed-posts",
+      "label": "load followed posts",
+      "from": {
+        "nodeId": "feed",
+        "portId": "posts"
+      },
+      "to": {
+        "nodeId": "post-read-retry",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "read-post-snapshot",
+      "label": "read post snapshot",
+      "from": {
+        "nodeId": "post-read-retry",
+        "portId": "target"
+      },
+      "to": {
+        "nodeId": "posts",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "load-timeline",
+      "label": "load timeline",
+      "from": {
+        "nodeId": "feed",
+        "portId": "timeline"
+      },
+      "to": {
+        "nodeId": "timeline-read-retry",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "read-timeline-snapshot",
+      "label": "read timeline snapshot",
+      "from": {
+        "nodeId": "timeline-read-retry",
+        "portId": "target"
+      },
+      "to": {
+        "nodeId": "timelines",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "deadletter-post",
+      "label": "deadletter post",
+      "from": {
+        "nodeId": "queue",
+        "portId": "dlq"
+      },
+      "to": {
+        "nodeId": "deadletters",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      }
+    }
   ],
   "groups": [
-    {"id": "social-write", "label": "Publication API and posts", "kind": "boundary", "x": -40, "y": 0, "w": 880, "h": 450},
-    {"id": "social-graph", "label": "User and follow authority", "kind": "boundary", "x": 900, "y": 0, "w": 600, "h": 450},
-    {"id": "social-fanout", "label": "Leased recipient delivery", "kind": "boundary", "x": -40, "y": 530, "w": 880, "h": 450},
-    {"id": "social-read", "label": "Timeline and feed reads", "kind": "boundary", "x": 900, "y": 530, "w": 880, "h": 450}
+    {
+      "id": "social-write",
+      "label": "Publication API and posts",
+      "kind": "boundary",
+      "x": -40,
+      "y": 0,
+      "w": 880,
+      "h": 450
+    },
+    {
+      "id": "social-graph",
+      "label": "User and follow authority",
+      "kind": "boundary",
+      "x": 900,
+      "y": 0,
+      "w": 600,
+      "h": 450
+    },
+    {
+      "id": "social-fanout",
+      "label": "Leased recipient delivery",
+      "kind": "boundary",
+      "x": -40,
+      "y": 530,
+      "w": 880,
+      "h": 450
+    },
+    {
+      "id": "social-read",
+      "label": "Timeline and feed reads",
+      "kind": "boundary",
+      "x": 900,
+      "y": 530,
+      "w": 880,
+      "h": 450
+    }
   ],
   "notes": [
-    {"id": "social-feed-notes", "text": "Expand publication, graph, fanout and feed subsystems. Graph outages fail lookup, not fabricate empty audiences. Queue retries preserve post identity and timeline writes deduplicate recipient/post pairs. Early successful feed reads can still be stale. Change push/pull/hybrid on the post store to compare actual write amplification.", "x": 0, "y": -140, "w": 1000}
+    {
+      "id": "social-feed-notes",
+      "text": "Expand publication, graph, fanout and feed subsystems. Graph outages fail lookup, not fabricate empty audiences. Queue retries preserve post identity and timeline writes deduplicate recipient/post pairs. Early successful feed reads can still be stale. Change push/pull/hybrid on the post store to compare actual write amplification.",
+      "x": 0,
+      "y": -140,
+      "w": 1000
+    }
   ],
   "faults": [
-    {"id": "consumer-delay", "atSec": 0, "untilSec": 1.8, "target": {"kind": "node", "id": "fanout"}, "type": "crash", "params": {}}
+    {
+      "id": "consumer-delay",
+      "atSec": 0,
+      "untilSec": 1.8,
+      "target": {
+        "kind": "node",
+        "id": "fanout"
+      },
+      "type": "crash",
+      "params": {}
+    }
   ],
-  "view": {"x": 0, "y": 0, "zoom": 1}
+  "view": {
+    "x": 0,
+    "y": 0,
+    "zoom": 1
+  }
 }

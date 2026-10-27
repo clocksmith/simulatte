@@ -196,7 +196,8 @@
           item.sig = sig;
           Glyphs.fill(item.glyph, info.glyph, GLYPH_SIZE);
           fitText(item.label, n.label || info.label, W - TEXT_X - 10);
-          fitText(item.klass, info.label, W - TEXT_X - 10);
+          fitText(item.klass, info.unbound?'Unbound responsibility':info.concept?'Refined · '+info.label:info.label, W - TEXT_X - 10);
+          item.el.dataset.binding=info.unbound?'unbound':'executable';
           item.el.setAttribute('aria-label', `${n.label || info.label}, ${info.label}`);
           item.el.setAttribute('aria-description', info.description);
           item.title.textContent = `${n.label || info.label} · ${info.label}\n${info.description}`;

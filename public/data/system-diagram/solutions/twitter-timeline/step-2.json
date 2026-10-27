@@ -1,5 +1,5 @@
 {
-  "schema": "simulatte.systemDiagram.v3",
+  "schema": "simulatte.systemDiagram.v4",
   "id": "twitter-timeline",
   "name": "Social timeline fanout",
   "description": "Users and follower relations live in an independent social graph. Committed posts resolve their real audience before queueing fanout; feed reads join graph-selected posts with follower timelines. Bound admission, retries and delayed writes are separate executable components.",

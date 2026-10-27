@@ -5,6 +5,9 @@
 })(globalThis, function (libraryApi, S) {
   'use strict';
   const SCHEMA = 'simulatte.systemDiagram.v4';
+  const DESIGN_SCHEMA = 'simulatte.systemDiagram.v5';
+  const modern = schema => [SCHEMA, DESIGN_SCHEMA].includes(schema);
+  const isConcept = classId => typeof classId === 'string' && classId.startsWith('concept.');
   const GROUP_SCHEMA = 'simulatte.systemDiagram.v3';
   let helpers;
   const ANNOTATED_SCHEMA = 'simulatte.systemDiagram.v2';
@@ -44,6 +47,15 @@
   }
 
   function resolveClass(classId, doc, library, config) {
+    if (isConcept(classId)) {
+      const concept=(doc.concepts||[]).find(c=>'concept.'+c.id===classId);
+      if(!concept)fail(`class ${classId}`,'declared conceptual responsibility',classId);
+      if(!concept.binding)return {id:classId,label:concept.label,category:'application',glyph:'service',description:concept.responsibility,builtin:false,builtinId:null,kernel:null,chain:[classId],defaults:{},sources:{},ports:concept.ports.map(p=>({id:p.id,label:p.id,direction:p.direction,multiple:true,required:false,...(p.direction==='in'?{accepts:[p.payloadType]}:{emits:[p.payloadType==='any'?'inherit':p.payloadType]})})),unbound:true};
+      if(isConcept(concept.binding.classId))fail(`class ${classId}.binding`,'concrete class or pinned subsystem',concept.binding.classId);
+      const bound=resolveClass(concept.binding.classId,doc,library,config),ports=bound.ports||library.kernels[bound.kernel].ports;
+      const renamed=concept.ports.map(p=>{const target=ports.find(port=>port.id===concept.binding.ports[p.id]);if(!target||target.direction!==p.direction)fail(`concept ${concept.id}.${p.id}`,'binding preserving port direction',concept.binding.ports[p.id]);const types=target.accepts||emittedPayloads(target,bound.defaults);if(p.payloadType!=='any'&&!types.includes('any')&&!types.includes('inherit')&&!types.includes(p.payloadType))fail(`concept ${concept.id}.${p.id}`,'binding preserving payload contract',p.payloadType);return {...target,id:p.id,label:p.id};});
+      return {...bound,id:classId,label:concept.label,description:concept.responsibility,ports:renamed,concept:true};
+    }
     if (S.isComposite(classId)) return S.resolveClass(classId, doc, library, config, helpers);
     const table = classTable(doc, library), chain = [], seen = new Set();
     const maxDepth = config?.bounds?.maxClassDepth ?? 8;
@@ -98,9 +110,15 @@
 
   function validate(input, library, config, internal = false) {
     const b = config.bounds;
-    exactKeys(C, 'diagram', input, ['schema', 'id', 'name', 'seed', 'run', 'classes', 'nodes', 'edges', 'groups', 'notes', 'faults', 'view'], ['description', ...(input?.schema === SCHEMA ? ['subsystems'] : [])]);
-    if (![SCHEMA, GROUP_SCHEMA, ANNOTATED_SCHEMA, LEGACY_SCHEMA].includes(input.schema)) fail('diagram.schema', `${SCHEMA}, ${ANNOTATED_SCHEMA} or ${LEGACY_SCHEMA}`, input.schema);
+    exactKeys(C, 'diagram', input, ['schema', 'id', 'name', 'seed', 'run', 'classes', 'nodes', 'edges', 'groups', 'notes', 'faults', 'view'], ['description', ...(modern(input?.schema) ? ['subsystems'] : []), ...(input?.schema === DESIGN_SCHEMA ? ['intent','concepts'] : [])]);
+    if (![DESIGN_SCHEMA, SCHEMA, GROUP_SCHEMA, ANNOTATED_SCHEMA, LEGACY_SCHEMA].includes(input.schema)) fail('diagram.schema', `${SCHEMA}, ${ANNOTATED_SCHEMA} or ${LEGACY_SCHEMA}`, input.schema);
     const doc = clone(input);
+    if (doc.schema === DESIGN_SCHEMA) {
+      if(Object.hasOwn(doc,'intent')){exactKeys(C,'diagram.intent',doc.intent,['outcome','users','constraints','success']);for(const [key,value]of Object.entries(doc.intent))label('diagram.intent.'+key,value,b.maxNoteLength);}
+      if(!Array.isArray(doc.concepts)||doc.concepts.length>b.maxNodes)fail('diagram.concepts','bounded conceptual responsibilities',doc.concepts);
+      const conceptIds=new Set();
+      for(const c of doc.concepts){exactKeys(C,'concept',c,['id','label','responsibility','ports'],['binding']);if(!NODE_ID.test(c.id)||conceptIds.has(c.id))fail('concept.id','unique identifier',c.id);conceptIds.add(c.id);label('concept.label',c.label,b.maxLabelLength);label('concept.responsibility',c.responsibility,b.maxNoteLength);if(!Array.isArray(c.ports)||c.ports.length>b.maxEdges)fail('concept.ports','bounded external contracts',c.ports);const ports=new Set();for(const p of c.ports){exactKeys(C,'concept.port',p,['id','direction','payloadType']);if(!NODE_ID.test(p.id)||ports.has(p.id)||!['in','out'].includes(p.direction)||!['any',...library.payloadTypes.map(t=>t.id)].includes(p.payloadType))fail('concept.port','unique directed payload contract',p);ports.add(p.id);}if(c.binding){exactKeys(C,'concept.binding',c.binding,['classId','ports']);exactKeys(C,'concept.binding.ports',c.binding.ports,[...ports]);if(new Set(Object.values(c.binding.ports)).size!==ports.size)fail('concept.binding.ports','one distinct target per external contract',c.binding.ports);}}
+    }
     if (!internal) S.validateDefinitions(doc, library, config, helpers);
     if (typeof doc.id !== 'string' || !NODE_ID.test(doc.id)) fail('diagram.id', 'identifier', doc.id);
     label('diagram.name', doc.name, b.maxLabelLength);
@@ -134,7 +152,7 @@
     const seen = new Set(), nodes = new Map(), groups = new Map();
     doc.groups.forEach((group, i) => {
       const path = `diagram.groups[${i}]`;
-      exactKeys(C, path, group, ['id', 'label', 'kind', 'x', 'y', 'w', 'h'], [...(group.kind === 'resource' ? ['capacity'] : []), ...([SCHEMA, GROUP_SCHEMA].includes(doc.schema) ? ['collapsed'] : [])]);
+      exactKeys(C, path, group, ['id', 'label', 'kind', 'x', 'y', 'w', 'h'], [...(group.kind === 'resource' ? ['capacity'] : []), ...([DESIGN_SCHEMA, SCHEMA, GROUP_SCHEMA].includes(doc.schema) ? ['collapsed'] : [])]);
       if (Object.hasOwn(group, 'collapsed') && typeof group.collapsed !== 'boolean') fail(`${path}.collapsed`, 'boolean presentation state', group.collapsed);
       if (group.kind === 'resource' && (!Number.isInteger(group.capacity) || group.capacity < 1 || group.capacity > 64)) fail(`${path}.capacity`, 'shared resource capacity integer in [1, 64]', group.capacity);
       id(`${path}.id`, group.id, seen); label(`${path}.label`, group.label, b.maxLabelLength);
@@ -144,12 +162,12 @@
     });
     doc.nodes.forEach((n, i) => {
       const path = `diagram.nodes[${i}]`;
-      exactKeys(C, path, n, ['id', 'classId', 'label', 'x', 'y', 'params'], ['groupId', ...(doc.schema === SCHEMA ? ['overrides'] : [])]);
+      exactKeys(C, path, n, ['id', 'classId', 'label', 'x', 'y', 'params'], ['groupId', ...(modern(doc.schema) ? ['overrides'] : [])]);
       id(`${path}.id`, n.id, seen); label(`${path}.label`, n.label, b.maxLabelLength);
       coord(`${path}.x`, n.x); coord(`${path}.y`, n.y);
       const klass = resolveClass(n.classId, doc, library, config);
-      doc.nodes[i].params = validateParams(`${path}.params`, n.params, klass.kernel === 'subsystem' ? {} : library.kernels[klass.kernel].params);
-      if (klass.kernel === 'subsystem') S.validateOverrides(n, doc, library, config, helpers);
+      doc.nodes[i].params = validateParams(`${path}.params`, n.params, klass.kernel === 'subsystem' || klass.unbound ? {} : library.kernels[klass.kernel].params);
+      if (klass.kernel === 'subsystem') S.validateOverrides(isConcept(n.classId)?{...n,classId:doc.concepts.find(c=>'concept.'+c.id===n.classId).binding.classId}:n, doc, library, config, helpers);
       else if (Object.hasOwn(n, 'overrides')) fail(`${path}.overrides`, 'overrides only on subsystem instances', n.overrides);
       if (Object.hasOwn(n, 'groupId') && n.groupId !== null && !groups.has(n.groupId)) fail(`${path}.groupId`, 'existing group or null', n.groupId);
       nodes.set(n.id, { node: n, kernel: klass.kernel, ports: klass.ports || library.kernels[klass.kernel].ports });
@@ -197,7 +215,7 @@
         const target = nodes.get(fault.target.id);
         if (!target) fail(`${path}.target.id`, 'existing node', fault.target.id);
         if (target.kernel === 'subsystem') fail(`${path}.target.id`, 'primitive node target; author internal subsystem faults in the definition', fault.target.id);
-        if (!library.kernels[target.kernel].faults.includes(fault.type)) fail(`${path}.type`, `fault supported by ${target.kernel}`, fault.type);
+        if (!library.kernels[target.kernel]?.faults.includes(fault.type)) fail(`${path}.type`, `fault supported by ${target.kernel}`, fault.type);
       } else if (fault.target.kind === 'edge') { if (!edgeIds.has(fault.target.id)) fail(`${path}.target.id`, 'existing edge', fault.target.id); }
       else if (fault.target.kind === 'group') {
         const group = groups.get(fault.target.id);
@@ -207,7 +225,7 @@
       if (fault.untilSec !== null && (!Number.isFinite(fault.untilSec) || fault.untilSec <= fault.atSec)) fail(`${path}.untilSec`, 'null or seconds after atSec', fault.untilSec);
       doc.faults[i].params = validateParams(`${path}.params`, fault.params, type.params);
     });
-    if (!internal && (doc.subsystems?.length || doc.nodes.some(n => S.isComposite(n.classId)))) validate(S.lower(doc, library, config, helpers), library, config, true);
+    if (!internal && doc.schema !== DESIGN_SCHEMA && (doc.subsystems?.length || doc.nodes.some(n => S.isComposite(n.classId)))) validate(S.lower(doc, library, config, helpers), library, config, true);
     return doc;
   }
 
@@ -225,13 +243,14 @@
     const byId = new Map(doc.nodes.map(n => [n.id, n]));
     for (const n of doc.nodes) {
       const { klass, values } = resolveNodeParams(n, doc, library, config);
-      for (const port of library.kernels[klass.kernel].ports) if (port.required && !used.has(`${n.id}.${port.id}`)) warnings.push({ kind: 'unconnected-port', nodeId: n.id, portId: port.id, message: `${n.label || n.id}: ${port.label} is not connected` });
+      if(klass.unbound)warnings.push({kind:'unbound-component',nodeId:n.id,message:`${n.label || n.id}: conceptual responsibility is not bound to executable behavior`});
+      for (const port of (klass.ports || library.kernels[klass.kernel].ports)) if (port.required && !used.has(`${n.id}.${port.id}`)) warnings.push({ kind: 'unconnected-port', nodeId: n.id, portId: port.id, message: `${n.label || n.id}: ${port.label} is not connected` });
       void values;
     }
     for (const edge of doc.edges) {
       const from = byId.get(edge.from.nodeId), to = byId.get(edge.to.nodeId);
       const fromRes = resolveNodeParams(from, doc, library, config), toKernel = resolveClass(to.classId, doc, library, config).kernel;
-      const out = portSpec(library, fromRes.klass.kernel, edge.from.portId), inp = portSpec(library, toKernel, edge.to.portId);
+      const out = portsForNode(from,doc,library,config).find(p=>p.id===edge.from.portId), inp = portsForNode(to,doc,library,config).find(p=>p.id===edge.to.portId);
       const emitted = emittedPayloads(out, fromRes.values);
       if (!inp.accepts.includes('any') && !emitted.includes('inherit') && !emitted.some(p => inp.accepts.includes(p))) warnings.push({ kind: 'payload-mismatch', edgeId: edge.id, message: `${from.label || from.id} sends ${emitted.join('/')} but ${to.label || to.id} expects ${inp.accepts.join('/')}` });
     }
@@ -262,6 +281,7 @@
     const doc = clone(input), n = doc.nodes.find(item => item.id === nodeId);
     if (!n) fail('deriveClass.nodeId', 'existing node', nodeId);
     const parent = resolveClass(n.classId, doc, library, config);
+    if(isConcept(n.classId))throw Error('Refine the responsibility through its explicit contract instead of deriving a class');
     const classId = requested || newClassId(doc, library, name || `${parent.label} custom`);
     doc.classes.push({ id: classId, label: name || `${parent.label} (custom)`, extends: n.classId, defaults: { ...n.params } });
     n.classId = classId; n.params = {};
@@ -272,6 +292,7 @@
   function changeClass(input, nodeId, classId, library, config) {
     const doc = clone(input), n = doc.nodes.find(item => item.id === nodeId);
     if (!n) fail('changeClass.nodeId', 'existing node', nodeId);
+    if(isConcept(n.classId))throw Error('Use Refine responsibility to preserve its external contract');
     const kernel = library.kernels[resolveClass(classId, doc, library, config).kernel];
     const kept = {}, dropped = [];
     for (const [key, value] of Object.entries(n.params)) {
@@ -286,7 +307,7 @@
   }
 
   function compile(input, library, config) {
-    const authored = validate(input, library, config);
+    const authored = executable(input, library, config);
     const doc = S.lower(authored, library, config, helpers);
     const outByNode = new Map(), inByNode = new Map();
     const edges = doc.edges.map(edge => ({ id: edge.id, from: edge.from.nodeId, fromPort: edge.from.portId, to: edge.to.nodeId, toPort: edge.to.portId, params: resolveEdgeParams(edge, library).values }));
@@ -311,6 +332,26 @@
     return deepFreeze({ schema: COMPILED_SCHEMA, diagramId: doc.id, name: doc.name, seed: doc.seed, horizonSec: doc.run.horizonSec, libraryVersion: library.version, nodes, edges, groups, faults, ...(doc.composition ? { composition: doc.composition } : {}) });
   }
 
+  // v5 authoring retains conceptual identity and external contracts. Only fully bound graphs lower to v4.
+  function executable(input,library,config){
+    const doc=validate(input,library,config);if(doc.schema!==DESIGN_SCHEMA)return doc;
+    const unbound=doc.nodes.filter(n=>isConcept(n.classId)&&!(doc.concepts.find(c=>'concept.'+c.id===n.classId)?.binding));
+    if(unbound.length)throw Error('Unbound responsibilities cannot simulate or deploy: '+unbound.map(n=>n.label||n.id).join(', '));
+    for(const node of doc.nodes){if(!isConcept(node.classId))continue;const concept=doc.concepts.find(c=>'concept.'+c.id===node.classId);for(const edge of doc.edges)for(const side of ['from','to'])if(edge[side].nodeId===node.id)edge[side].portId=concept.binding.ports[edge[side].portId];node.classId=concept.binding.classId;}
+    doc.schema=SCHEMA;delete doc.concepts;delete doc.intent;return validate(doc,library,config);
+  }
+  function addConcept(input,options,library,config){
+    const doc=validate(input,library,config),nodeId=options.id||newId(doc,'responsibility');doc.schema=DESIGN_SCHEMA;doc.concepts||=[];
+    const classId=options.conceptId||nodeId;if(doc.concepts.some(c=>c.id===classId))throw Error('Concept ID already exists');
+    doc.concepts.push({id:classId,label:options.label||'Responsibility',responsibility:options.responsibility||'',ports:clone(options.ports||[{id:'in',direction:'in',payloadType:'any'},{id:'out',direction:'out',payloadType:'any'}])});
+    doc.nodes.push({id:nodeId,classId:'concept.'+classId,label:options.label||'Responsibility',x:options.x,y:options.y,params:{}});
+    return {diagram:validate(doc,library,config),id:nodeId};
+  }
+  function refineConcept(input,nodeId,binding,library,config){
+    const doc=validate(input,library,config),node=doc.nodes.find(n=>n.id===nodeId),concept=doc.concepts?.find(c=>'concept.'+c.id===node?.classId);
+    if(!concept)throw Error('Select a conceptual responsibility');concept.binding=clone(binding);return validate(doc,library,config);
+  }
+
   function deepFreeze(value) {
     if (value && typeof value === 'object' && !Object.isFrozen(value)) { Object.values(value).forEach(deepFreeze); Object.freeze(value); }
     return value;
@@ -318,5 +359,5 @@
 
   helpers = { validate, resolveClass, resolveNodeParams, portsForNode, validateParams, clone, newId, fail, label };
   const subsystems = Object.freeze(Object.fromEntries(['capture', 'insert', 'publish', 'upgrade', 'lower'].map(name => [name, (...args) => S[name](...args, helpers)]).concat([['definition', S.definition], ['isComposite', S.isComposite]])));
-  return Object.freeze({ subsystems, portsForNode, GROUP_SCHEMA, SCHEMA, ANNOTATED_SCHEMA, LEGACY_SCHEMA, COMPILED_SCHEMA, GROUP_KINDS, FAILURE_DOMAIN_KINDS, emptyDiagram, validate, issues, compile, resolveClass, resolveNodeParams, resolveEdgeParams, portSpec, emittedPayloads, canConnect, newId, newClassId, deriveClass, changeClass, clone });
+  return Object.freeze({ DESIGN_SCHEMA, isConcept, executable, addConcept, refineConcept, subsystems, portsForNode, GROUP_SCHEMA, SCHEMA, ANNOTATED_SCHEMA, LEGACY_SCHEMA, COMPILED_SCHEMA, GROUP_KINDS, FAILURE_DOMAIN_KINDS, emptyDiagram, validate, issues, compile, resolveClass, resolveNodeParams, resolveEdgeParams, portSpec, emittedPayloads, canConnect, newId, newClassId, deriveClass, changeClass, clone });
 });

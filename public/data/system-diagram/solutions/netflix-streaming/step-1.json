@@ -1,5 +1,5 @@
 {
-  "schema": "simulatte.systemDiagram.v3",
+  "schema": "simulatte.systemDiagram.v4",
   "id": "netflix-streaming",
   "name": "Video delivery and adaptation",
   "description": "Three thousand viewers are split into two independently faultable regions. Playback requires a real manifest receipt; regional caches fetch through one shield and origin. Peer availability and admission are distinct from CDN delivery. Bytes are aggregate unicast, not measured video transport.",
@@ -111,6 +111,27 @@
         "segments": 6,
         "segmentKiB": 64,
         "lowSegmentKiB": 16
+      }
+    },
+    {
+      "id": "viewers-east",
+      "classId": "video-viewers",
+      "label": "1,500 viewers / 6 cohorts",
+      "x": 0,
+      "y": 720,
+      "params": {
+        "viewers": 8,
+        "cohorts": 2,
+        "startSpreadSec": 0.5,
+        "startSec": 0.15,
+        "requiresManifest": true,
+        "segments": 6,
+        "segmentKiB": 64,
+        "lowSegmentKiB": 16,
+        "segmentDurationSec": 1,
+        "adaptiveBitrate": true,
+        "peerAssistance": false,
+        "timeoutMs": 10000
       }
     }
   ],
@@ -229,6 +250,39 @@
       "params": {
         "latencyMs": 25,
         "bandwidthMbps": 500
+      }
+    },
+    {
+      "id": "viewers-cdn-east",
+      "label": "viewers cdn east",
+      "from": {
+        "nodeId": "viewers-east",
+        "portId": "cdn"
+      },
+      "to": {
+        "nodeId": "quota",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 8,
+        "bandwidthMbps": 2000,
+        "bandwidthSharing": "fair"
+      }
+    },
+    {
+      "id": "playback-manifest-east",
+      "label": "playback manifest east",
+      "from": {
+        "nodeId": "viewers-east",
+        "portId": "manifest"
+      },
+      "to": {
+        "nodeId": "manifest",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
       }
     }
   ],

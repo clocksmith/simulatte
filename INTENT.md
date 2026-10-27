@@ -10,6 +10,12 @@ Creators need focused browser simulation products that share reliable execution 
 
 Keep World and Blank/Create independently useful, with a small browser-native core for explicit contracts, bounded execution, cancellation, and replay.
 
+Lucyd evolves one design from intent and conceptual responsibilities through
+executable simulation, optional implementation contracts, deployment and observed
+operation. Unresolved responsibilities stay editable but cannot execute. Preserve
+identity and external contracts while refining the same component. Optional cloud
+bindings remain separate from browser simulation and require their own evidence.
+
 ## Invariants
 
 Preserve the hexagon entrypoint and optional data tools in source. Expose catalog-driven SVG illustrations for every simulation in the original motorcycle line-art style with three previews per desktop view, manual paging, mobile scrolling, and a full catalog. Keep other workflows dormant on the landing page. Shared code owns no page lifecycle. Use documented core entrypoints and injected adapters. Prompt compilation follows exactly eight phases and declared predecessor inputs. Preserve user edits through the append-only authoring graph. Supported free local execution needs no account, network, or model download.

@@ -33,6 +33,36 @@
         "stock": 4,
         "ttlSec": 5
       }
+    },
+    {
+      "id": "payments",
+      "classId": "operation-client",
+      "label": "payments",
+      "x": 0,
+      "y": 250,
+      "params": {
+        "operation": "pay",
+        "count": 2,
+        "intervalMs": 400,
+        "startSec": 3,
+        "keySpace": 1,
+        "duplicateEvery": 1
+      }
+    },
+    {
+      "id": "new-shoppers",
+      "classId": "operation-client",
+      "label": "new shoppers",
+      "x": 0,
+      "y": 500,
+      "params": {
+        "operation": "reserve",
+        "count": 4,
+        "intervalMs": 400,
+        "startSec": 10,
+        "keySpace": 1,
+        "actorOffset": 20
+      }
     }
   ],
   "edges": [
@@ -41,6 +71,38 @@
       "label": "reserve",
       "from": {
         "nodeId": "shoppers",
+        "portId": "out"
+      },
+      "to": {
+        "nodeId": "inventory",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 80,
+        "bandwidthMbps": 100
+      }
+    },
+    {
+      "id": "pay",
+      "label": "pay",
+      "from": {
+        "nodeId": "payments",
+        "portId": "out"
+      },
+      "to": {
+        "nodeId": "inventory",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 80,
+        "bandwidthMbps": 100
+      }
+    },
+    {
+      "id": "reuse-stock",
+      "label": "reuse-stock",
+      "from": {
+        "nodeId": "new-shoppers",
         "portId": "out"
       },
       "to": {

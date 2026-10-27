@@ -42,6 +42,35 @@
         "ttlSec": 6,
         "audienceSize": 2
       }
+    },
+    {
+      "id": "viewers",
+      "classId": "operation-client",
+      "label": "viewers",
+      "x": 0,
+      "y": 240,
+      "params": {
+        "operation": "readStory",
+        "count": 8,
+        "intervalMs": 400,
+        "startSec": 2,
+        "keySpace": 3,
+        "actorSpace": 4
+      }
+    },
+    {
+      "id": "late-viewers",
+      "classId": "operation-client",
+      "label": "late viewers",
+      "x": 0,
+      "y": 460,
+      "params": {
+        "operation": "readStory",
+        "count": 3,
+        "intervalMs": 400,
+        "startSec": 10,
+        "keySpace": 3
+      }
     }
   ],
   "edges": [
@@ -67,6 +96,38 @@
       "from": {
         "nodeId": "processing",
         "portId": "calls"
+      },
+      "to": {
+        "nodeId": "stories",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 80,
+        "bandwidthMbps": 100
+      }
+    },
+    {
+      "id": "view",
+      "label": "view",
+      "from": {
+        "nodeId": "viewers",
+        "portId": "out"
+      },
+      "to": {
+        "nodeId": "stories",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 80,
+        "bandwidthMbps": 100
+      }
+    },
+    {
+      "id": "late-view",
+      "label": "late-view",
+      "from": {
+        "nodeId": "late-viewers",
+        "portId": "out"
       },
       "to": {
         "nodeId": "stories",

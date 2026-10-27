@@ -1,5 +1,5 @@
 {
-  "schema": "simulatte.systemDiagram.v1",
+  "schema": "simulatte.systemDiagram.v4",
   "id": "rag-assistant",
   "name": "Synthetic RAG application",
   "description": "Synthetic RAG application with CPU/GPU stages, batched embedding, vector-index queries, reranking and structured model output. A document feed shares the same embedding/index services through a bounded chunker; no actual inference or semantic retrieval occurs.",

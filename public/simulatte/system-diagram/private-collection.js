@@ -2,7 +2,7 @@
   'use strict';
   const RECORD_SCHEMA = 'simulatte.privateDiagram.v1';
   const STORAGE_KEY = 'simulatte.systemDiagram.privatePractice.v1';
-  function create({document: doc, sourcePath, onLoad, requestLoad, getRecord, onClear, onMessage}) {
+  function create({document: doc, sourcePath, onLoad, requestLoad, getRecord, onClear, onMessage, library, config, onRegister, onUnregister, onSelect}) {
     const crypto = root.SimulattePrivateCrypto;
     const dialog = doc.createElement('dialog'); dialog.className = 'wui-sheet private-collection'; dialog.setAttribute('aria-label', 'Private collection · Databricks Staff IC6 Interview Bank');
     const heading = doc.createElement('div'); heading.className = 'panel-heading';
@@ -10,7 +10,8 @@
     const close = button('Close', () => dialog.close()); heading.append(title, close);
     const status = doc.createElement('p'); status.setAttribute('role', 'status');
     const content = doc.createElement('div'); dialog.append(heading, status, content); doc.body.append(dialog);
-    let session = null, active = false, epoch = 0;
+    let session = null, collection = null, active = false, epoch = 0;
+    function setActive(value) { active = Boolean(value); doc.body.dataset.privateDocument = String(active); }
     function element(tag, text) { const el = doc.createElement(tag); if (text !== undefined) el.textContent = text; return el; }
     function button(label, fn) {
       const b = root.SimulatteWorldUI.SimButton({document: doc, label, onAction: fn, onError: e => { status.textContent = e.message; }}).element;
@@ -25,12 +26,14 @@
       dialog.close();
       await requestLoad(() => {
         if (!session || token !== epoch) return;
-        onLoad(record(value), true); active = true;
+        setActive(true); onLoad(record(value), true);
       });
     }
     async function saveRecord(value, backup = false) {
       if (!session) throw Error('Unlock the private collection before saving.');
-      const envelope = await session.seal({schema: RECORD_SCHEMA, ...value});
+      const token = epoch, current = session;
+      const envelope = await current.seal({schema: RECORD_SCHEMA, ...value});
+      if (token !== epoch || current !== session) throw Error('Collection locked while saving.');
       localStorage.setItem(STORAGE_KEY + (backup ? '.backup' : ''), JSON.stringify(envelope));
       return true;
     }
@@ -38,17 +41,22 @@
       if (!session) { open(); throw Error('Unlock the private collection before loading a private diagram.'); }
       const saved = localStorage.getItem(STORAGE_KEY);
       if (!saved) throw Error('No encrypted practice diagram is saved in this browser.');
-      const value = await session.open(JSON.parse(saved));
+      const token = epoch, current = session;
+      const value = await current.open(JSON.parse(saved));
+      if (token !== epoch || current !== session) throw Error('Collection was locked while restoring.');
       await loadProtected(value); return true;
     }
     async function exportRecord(value) {
       if (!session) throw Error('Collection is locked.');
-      const envelope = await session.seal({schema: RECORD_SCHEMA, ...value});
+      const token = epoch, current = session;
+      const envelope = await current.seal({schema: RECORD_SCHEMA, ...value});
+      if (token !== epoch || current !== session) throw Error('Collection locked while exporting.');
       root.SimulatteSystemDiagramFiles.downloadJson('private-diagram.enc.json', envelope);
     }
     function clear() {
-      epoch++; session?.lock(); session = null;
-      if (active) { active = false; onClear(); }
+      epoch++; const wasActive = active; session?.lock(); session = null; collection = null; setActive(false);
+      onUnregister?.();
+      if (wasActive) onClear();
       status.textContent = 'Locked'; renderLocked();
     }
     async function lock() {
@@ -74,11 +82,12 @@
           next = await crypto.unlock(await response.json(), password.value);
           password.value = '';
           if (token !== epoch) { next.lock(); return; }
-          if (next.value?.schema !== 'simulatte.privatePracticeCollection.v1' || !Array.isArray(next.value.exercises) || typeof next.value.notesMarkdown !== 'string') throw Error('Unsupported private collection.');
+          collection = root.SimulatteLucydProblems.normalizePrivate(next.value, library, config);
+          onRegister?.(collection);
           session = next; status.textContent = 'Unlocked for this session'; renderUnlocked();
         } catch (error) {
           next?.lock(); password.value = '';
-          if (token === epoch) status.textContent = error.message;
+          if (token === epoch) { collection=null;onUnregister?.();status.textContent = error.message; }
         } finally { unlock.disabled = false; }
       });
     }
@@ -92,18 +101,18 @@
       return article;
     }
     function renderUnlocked() {
-      const data = session.value, actions = element('div'); actions.className = 'properties-actions';
+      const data = collection, actions = element('div'); actions.className = 'properties-actions';
       const lockButton = button('Lock collection', lock); lockButton.id = 'private-lock';
       const saved = button('Load saved practice', restoreSaved); saved.id = 'private-restore';
       actions.append(saved, lockButton);
       const exercises = element('div'); exercises.className = 'private-exercises';
-      for (const exercise of data.exercises) {
+      for (const exercise of data.problems) {
         const section = element('details'), summary = element('summary', exercise.title);
-        const prompt = element('p', exercise.prompt);
-        const start = button('Open practice diagram', () => loadProtected({schema: RECORD_SCHEMA, diagram: structuredClone(exercise.diagram)})); start.dataset.privateExercise = exercise.id;
-        section.append(summary, prompt, element('p', exercise.boundary), start); exercises.append(section);
+        const prompt = element('p', exercise.description);
+        const start = button('Start problem', async () => { const token = epoch; dialog.close(); await requestLoad(() => { if (token !== epoch || !session) return; onSelect?.('private:' + exercise.id); }); }); start.dataset.privateExercise = exercise.id;
+        section.append(summary, prompt, element('p', exercise.solutions.length + ' solution approaches'), start); exercises.append(section);
       }
-      const notes = element('details'); notes.id = 'private-notes'; notes.append(element('summary', 'Interview notes'), renderNotes(data.notesMarkdown));
+      const notes = element('details'); notes.id = 'private-notes'; notes.append(element('summary', 'Interview notes'), renderNotes(data.notesMarkdown || ''));
       content.replaceChildren(element('h3', data.title), element('p', data.provenanceNote), actions, element('h3', 'Practice diagrams'), exercises, notes);
       root.SimulatteWorldUI.adoptTree(content);
     }
@@ -116,7 +125,7 @@
     renderLocked();
     return Object.freeze({open, lock, saveRecord, restoreSaved, exportRecord,
       get active() { return active; },
-      setActive(value) { active = Boolean(value); doc.body.dataset.privateDocument = String(active); },
+      setActive,
       async decodeFile(envelope) {
         if (!session) { open(); throw Error('Unlock this collection, then import the encrypted file again.'); }
         const token = epoch;

@@ -57,6 +57,19 @@
       "params": {
         "serviceMs": 50
       }
+    },
+    {
+      "id": "sync",
+      "classId": "operation-client",
+      "label": "sync",
+      "x": 0,
+      "y": 440,
+      "params": {
+        "operation": "readPresence",
+        "count": 12,
+        "intervalMs": 1000,
+        "startSec": 2
+      }
     }
   ],
   "edges": [
@@ -101,6 +114,22 @@
       },
       "to": {
         "nodeId": "notifications",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 80,
+        "bandwidthMbps": 100
+      }
+    },
+    {
+      "id": "bulk-sync",
+      "label": "bulk-sync",
+      "from": {
+        "nodeId": "sync",
+        "portId": "out"
+      },
+      "to": {
+        "nodeId": "broker",
         "portId": "in"
       },
       "params": {

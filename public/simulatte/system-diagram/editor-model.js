@@ -102,6 +102,10 @@
 
     // Each handler mutates a draft clone; the result is validated before it replaces the document.
     const handlers = {
+      addConcept(draft,cmd){const result=D.addConcept(draft,cmd,library,config);return {kind:'structure',replace:result.diagram,id:result.id,select:[result.id]};},
+      updateConcept(draft,cmd){const concept=draft.concepts?.find(c=>c.id===cmd.id);if(!concept)refuse('Unknown responsibility');Object.assign(concept,pick(cmd.patch,['label','responsibility'],'updateConcept'));return {kind:'meta'};},
+      refineConcept(draft,cmd){return {kind:'structure',replace:D.refineConcept(draft,cmd.id,cmd.binding,library,config),id:cmd.id};},
+      setIntent(draft,cmd){draft.schema=D.DESIGN_SCHEMA;draft.concepts||=[];draft.intent={outcome:'',users:'',constraints:'',success:'',...(draft.intent||{}),...pick(cmd.patch,['outcome','users','constraints','success'],'setIntent')};return {kind:'meta'};},
       importSubsystemLibrary(draft, cmd) {
         if (!isRecord(cmd.library) || !Array.isArray(cmd.library.classes) || !Array.isArray(cmd.library.subsystems)) refuse('Import requires classes and subsystems arrays');
         const merge = (old, rows, key) => {

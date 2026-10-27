@@ -40,6 +40,44 @@ Keep the three established featured experiences understandable through interacti
 
 ## Authorized World system diagram editor
 
+The long-term Lucyd outcome is a system diagram that keeps evolving into more
+complex system diagrams until it becomes the system itself. Use six distinct
+levels in the same evolving design: 0 Intent (outcome, users, constraints and
+success), 1 Conceptual architecture (responsibilities and interactions),
+2 Executable simulation, 3 Implementation contracts, 4 Deployment, and
+5 Operation. Observations can inform every level. These are design abstraction
+levels, not extra phases in Simulatte's fixed eight-phase compiler.
+
+Let people sketch a responsibility before choosing executable behavior. Keep its
+stable identity and external port contracts when refining it into an existing
+class or version-pinned subsystem; keep mixed-depth designs editable. Unbound
+responsibilities must remain visibly unresolved and refuse simulation and
+export to a deployment plan. Existing v4 documents stay strict and executable;
+versioned v5 authoring adds optional intent and conceptual bindings. This goal
+alone establishes no production implementation or empirical accuracy.
+
+Use one problem model for public and unlocked private study content, with optional
+attribution and classified provenance, explicit authored-solution gaps, multiple
+solution approaches and ordered exact runnable stages. Preserve independent
+edits and personal diagrams. Replay the same configured source workload, seed
+and horizon on fresh architectures; distinguish closed-loop response-dependent
+arrivals from actually matched arrival traces. Generate retained compatibility
+registries from the canonical collection. Locking removes private selection,
+branch snapshots, histories, observations and plaintext UI as well as keys.
+
+The component rail has exactly two persistent states, collapsed and expanded.
+Expanded width is draggable and keyboard-adjustable up to 280 pixels, bounded by
+the viewport; it does not become a third overlay state on phones.
+
+Keep real implementation bindings and deployment generation optional behind a
+lazy-loaded child component. Simulation and study require no cloud setup.
+Deployment consumes validated executable documents read-only, explicit versioned
+implementation and secret references, and refuses unsupported components. Start
+with one qualified inventory contract and one cloud target; real operations and
+measured feedback require their own evidence and never follow from simulation
+parameters alone. Provisioning cloud resources requires a separate explicit
+operation, not selecting or simulating a study stage.
+
 Lucyd at `/system-diagram` is a system architecture creator whose connections
 execute a synthetic distributed workload. Start with an empty canvas and a compact
 task chooser. Keep a persistent component rail on the left and a contextual

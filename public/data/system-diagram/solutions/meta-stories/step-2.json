@@ -67,6 +67,20 @@
       "params": {
         "serviceMs": 30
       }
+    },
+    {
+      "id": "late-viewers",
+      "classId": "operation-client",
+      "label": "late viewers",
+      "x": 0,
+      "y": 460,
+      "params": {
+        "operation": "readStory",
+        "count": 3,
+        "intervalMs": 400,
+        "startSec": 10,
+        "keySpace": 3
+      }
     }
   ],
   "edges": [
@@ -127,6 +141,22 @@
       },
       "to": {
         "nodeId": "updates",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 80,
+        "bandwidthMbps": 100
+      }
+    },
+    {
+      "id": "late-view",
+      "label": "late-view",
+      "from": {
+        "nodeId": "late-viewers",
+        "portId": "out"
+      },
+      "to": {
+        "nodeId": "stories",
         "portId": "in"
       },
       "params": {

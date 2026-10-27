@@ -1,5 +1,5 @@
 {
-  "schema": "simulatte.systemDiagram.v1",
+  "schema": "simulatte.systemDiagram.v4",
   "id": "crawler-pipeline",
   "name": "Synthetic collection and scheduled ingestion",
   "description": "An autonomous bounded crawler models per-origin delay, deduplication and provenance. Cron adds scheduled tasks to a shared CPU parser and database; no real scraping or content extraction occurs.",

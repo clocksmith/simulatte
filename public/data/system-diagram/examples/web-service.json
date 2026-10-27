@@ -1,5 +1,5 @@
 {
-  "schema": "simulatte.systemDiagram.v1",
+  "schema": "simulatte.systemDiagram.v4",
   "id": "web-service",
   "name": "Web service, cache and background tasks",
   "description": "Synthetic requests call an API, a TTL cache with asynchronous replica origin, and a leased task queue with an idempotent result store. Cache/replica timing is an authored approximation.",

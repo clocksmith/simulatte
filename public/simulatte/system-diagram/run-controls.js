@@ -148,6 +148,7 @@
     update();
     return {
       element: dock,
+      addAction(element){moreContent.append(element);},
       update,
       handleKey,
       dispose() { speedMenu.dispose(); more.dispose(); dock.remove(); },

@@ -39,6 +39,34 @@
       "x": 480,
       "y": 100,
       "params": {}
+    },
+    {
+      "id": "votes",
+      "classId": "operation-client",
+      "label": "votes",
+      "x": 0,
+      "y": 230,
+      "params": {
+        "operation": "vote",
+        "count": 16,
+        "intervalMs": 400,
+        "startSec": 4,
+        "actorSpace": 4,
+        "keySpace": 8
+      }
+    },
+    {
+      "id": "readers",
+      "classId": "operation-client",
+      "label": "readers",
+      "x": 0,
+      "y": 460,
+      "params": {
+        "operation": "readComments",
+        "count": 4,
+        "intervalMs": 400,
+        "startSec": 5
+      }
     }
   ],
   "edges": [
@@ -67,6 +95,38 @@
       },
       "to": {
         "nodeId": "comments-store",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 80,
+        "bandwidthMbps": 100
+      }
+    },
+    {
+      "id": "vote",
+      "label": "vote",
+      "from": {
+        "nodeId": "votes",
+        "portId": "out"
+      },
+      "to": {
+        "nodeId": "api",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 80,
+        "bandwidthMbps": 100
+      }
+    },
+    {
+      "id": "read",
+      "label": "read",
+      "from": {
+        "nodeId": "readers",
+        "portId": "out"
+      },
+      "to": {
+        "nodeId": "api",
         "portId": "in"
       },
       "params": {

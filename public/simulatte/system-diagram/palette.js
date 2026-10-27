@@ -279,7 +279,7 @@
         group.dataset.category = cat.id;
         group.open = search.trim() ? true : expanded.get(cat.id) !== false;
         group.addEventListener('toggle', () => { if (!search.trim() && group.isConnected) expanded.set(cat.id, group.open); });
-        group.append(el('summary', 'palette-category-title', `${cat.label} (${classes.length})`));
+        const summary=el('summary','palette-category-title');summary.setAttribute('aria-label',`${cat.label} (${classes.length})`);summary.append(el('span','palette-heading-label',`${cat.label} (${classes.length})`),el('span','palette-heading-icon','+'));group.append(summary);
         const section = el('div', 'palette-category');
         group.append(section); $('palette').append(group);
         if (isSubsystem) {

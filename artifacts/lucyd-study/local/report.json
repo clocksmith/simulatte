@@ -1,0 +1,296 @@
+{
+  "source": {
+    "head": "fb1322ecbcd1a4c65963ae3aabcce947c38a7e52",
+    "capturedAt": "2026-10-27T02:17:23.391Z",
+    "modifiedSources": {
+      "public/data/system-diagram/config.json": {
+        "sha256": "0c98682b821c96219c5d28d7d82358fa860e83183935b4d18b7c39544939665e",
+        "modifiedAt": "2026-10-27T01:48:21.213Z"
+      },
+      "public/data/system-diagram/examples/agent-recovery.json": {
+        "sha256": "81579a42b1f11751330d7179fb5e237fcf6d731555bf1691c041c89c577bb73b",
+        "modifiedAt": "2026-10-27T02:05:18.729Z"
+      },
+      "public/data/system-diagram/examples/agent-trajectories.json": {
+        "sha256": "424c40bd10c6694021fa688debf9153dd307a5d0c085205bb79aa3006e2c41ed",
+        "modifiedAt": "2026-10-27T02:05:18.727Z"
+      },
+      "public/data/system-diagram/examples/chat-application.json": {
+        "sha256": "3bdcd61cafdab5025dc9614bb702d6d59444ab5297fbc38a1af1ec7731e0940d",
+        "modifiedAt": "2026-10-27T02:05:18.726Z"
+      },
+      "public/data/system-diagram/examples/crawler-pipeline.json": {
+        "sha256": "a2ea6d7327b8a665f21a17b05455656dce1a9c720e93573bf86120a02ac38856",
+        "modifiedAt": "2026-10-27T02:05:18.727Z"
+      },
+      "public/data/system-diagram/examples/finance-reconciliation.json": {
+        "sha256": "6ab059e48238e37b9be1bb908938c4c313525946501cc12415da27a259e9a3da",
+        "modifiedAt": "2026-10-27T02:05:18.729Z"
+      },
+      "public/data/system-diagram/examples/healthcare-ingestion.json": {
+        "sha256": "28fc9ea8a548b88bab38d4c6f302804a868f93ef3a0aae03ef0e6e7c37e92923",
+        "modifiedAt": "2026-10-27T02:05:18.729Z"
+      },
+      "public/data/system-diagram/examples/lakehouse-late-data.json": {
+        "sha256": "a124820faa965789420c0af9fb6eb13e789db952aa5f6fe5cdcf3d73b5a5b489",
+        "modifiedAt": "2026-10-27T02:05:18.730Z"
+      },
+      "public/data/system-diagram/examples/netflix-streaming.json": {
+        "sha256": "87847b8b5578f0d01aadaefb500293b9f0241cb65ede4f10aa1b6e789d8b1b1e",
+        "modifiedAt": "2026-10-27T02:05:18.721Z"
+      },
+      "public/data/system-diagram/examples/rag-assistant.json": {
+        "sha256": "ee2e88705796026906ac5716303ac9618cd0dc6c5cf111846445fd960dbb8f1e",
+        "modifiedAt": "2026-10-27T02:05:18.726Z"
+      },
+      "public/data/system-diagram/examples/replica-recovery.json": {
+        "sha256": "0460170c0d8e8bb79534ebc9419ff2d405a9bdcc14489fbedd67a592341d6eac",
+        "modifiedAt": "2026-10-27T02:05:18.728Z"
+      },
+      "public/data/system-diagram/examples/social-feed.json": {
+        "sha256": "71e8ceab0c9c75963a3cafad3267647d537c156bbac2c7ecb6a433a0d294f6cf",
+        "modifiedAt": "2026-10-27T02:05:18.726Z"
+      },
+      "public/data/system-diagram/examples/spark-job.json": {
+        "sha256": "86c5be7f090b592d3138a0bc87c949e9edb022f096bc96d6b2e97495eed0c241",
+        "modifiedAt": "2026-10-27T02:05:18.727Z"
+      },
+      "public/data/system-diagram/examples/streaming-burst.json": {
+        "sha256": "dddaaab5920b7c8a80af33f86b42ba7e979070abc1d3bc80b0064819f0f29fae",
+        "modifiedAt": "2026-10-27T02:05:18.728Z"
+      },
+      "public/data/system-diagram/examples/twitter-timeline.json": {
+        "sha256": "687bd0a799bd867fa6dd771c2bfbfc4396be62b6a097d81e5e8fad18fb5daa46",
+        "modifiedAt": "2026-10-27T02:05:18.723Z"
+      },
+      "public/data/system-diagram/examples/video-distribution.json": {
+        "sha256": "6f5280c9c82fb1d12b30a8657ca042b96f9149c7dcb003a61462bdb031a61e76",
+        "modifiedAt": "2026-10-27T02:05:18.726Z"
+      },
+      "public/data/system-diagram/examples/web-service.json": {
+        "sha256": "93daac058e8037ee885f8044a195e5c2451d8a446833559f1f151299effae417",
+        "modifiedAt": "2026-10-27T02:05:18.725Z"
+      },
+      "public/data/system-diagram/examples/workspace-access.json": {
+        "sha256": "06fee65a6fc5b7a0a1948e799ebbfc3bcb6d641f849c958a8a1d2331e03568f6",
+        "modifiedAt": "2026-10-27T02:05:18.727Z"
+      },
+      "public/data/system-diagram/interview-journeys.json": {
+        "sha256": "5a66434acdca3dbfef8eb969fa4b22d4fed321ddd6990831a8e9d90537d30905",
+        "modifiedAt": "2026-10-27T02:05:18.731Z"
+      },
+      "public/data/system-diagram/interview-problems.json": {
+        "sha256": "9ac5251dc1d1d8a0bf981646a77dacac329cf5042bfca0c17ab57cd90381ccac",
+        "modifiedAt": "2026-10-27T01:55:01.801Z"
+      },
+      "public/data/system-diagram/interview-solutions.json": {
+        "sha256": "a44757dd67ec320009ef569df0638656dd18d66c4f578b344f9843196feb131c",
+        "modifiedAt": "2026-10-27T01:55:01.802Z"
+      },
+      "public/data/system-diagram/private-collection.enc.json": {
+        "sha256": "6e413a740f2728cc7f9923226dcbd39f51e82c6cc85fa243bfbfb61d2be0af1e",
+        "modifiedAt": "2026-10-27T02:05:26.357Z"
+      },
+      "public/data/system-diagram/problems.json": {
+        "sha256": "e650861f689157c0e90e7b0a509ba523a8775ce04ec38c8f58eae6a79d97cab4",
+        "modifiedAt": "2026-10-27T02:05:18.632Z"
+      },
+      "public/data/system-diagram/solutions/amazon-flash-sale/step-1.json": {
+        "sha256": "3a2c752a15020b11d556030200f08349f9d380fd4d1de34a6bf2e0a0a936434e",
+        "modifiedAt": "2026-10-27T01:55:01.796Z"
+      },
+      "public/data/system-diagram/solutions/amazon-flash-sale/step-2.json": {
+        "sha256": "b23b8e3acf23ea297c1d4dcaa4b7837a6c4a0f37427754a972afc4d042411bf6",
+        "modifiedAt": "2026-10-27T01:55:01.796Z"
+      },
+      "public/data/system-diagram/solutions/google-crawler/step-1.json": {
+        "sha256": "91ca472a63b434e00df7a682ce92b9d900ec2bdd015807be4f633666c34308ac",
+        "modifiedAt": "2026-10-27T02:05:18.724Z"
+      },
+      "public/data/system-diagram/solutions/google-crawler/step-2.json": {
+        "sha256": "8e76ee818a0492bb5a6e38f3eed6c2895d460b30512057a380ae2804b45a8cfc",
+        "modifiedAt": "2026-10-27T02:05:18.724Z"
+      },
+      "public/data/system-diagram/solutions/meta-stories/step-1.json": {
+        "sha256": "5837997bd706b6b1d2096d031578a287b1b5cca37e6872d69dd9b0b62c5d19ee",
+        "modifiedAt": "2026-10-27T01:55:01.795Z"
+      },
+      "public/data/system-diagram/solutions/meta-stories/step-2.json": {
+        "sha256": "b17b492aa70b4a87bc330fe0b36cc4bce909933d2c1ee8e5bccd764ab29bfbdf",
+        "modifiedAt": "2026-10-27T01:55:01.795Z"
+      },
+      "public/data/system-diagram/solutions/microsoft-presence/step-1.json": {
+        "sha256": "0ed12e4df4bfd035f00137c0c932526a802dd0969ac31510fe33ed639ee54622",
+        "modifiedAt": "2026-10-27T01:55:01.796Z"
+      },
+      "public/data/system-diagram/solutions/microsoft-presence/step-2.json": {
+        "sha256": "72bca44439e93120150a5ddc87c4601ec2899da8f0f8852cfd72215dbabe0d26",
+        "modifiedAt": "2026-10-27T01:55:01.797Z"
+      },
+      "public/data/system-diagram/solutions/netflix-streaming/step-1.json": {
+        "sha256": "08fda7b0b7d891872d78dc9205e08673dc0ac145fc4da7ba0bc0471f7eeb4f2c",
+        "modifiedAt": "2026-10-27T02:05:18.720Z"
+      },
+      "public/data/system-diagram/solutions/netflix-streaming/step-2.json": {
+        "sha256": "1b8a0e55a0a1ef20e56a76be56598a6460287ce365249c0a113f5b210c947b7b",
+        "modifiedAt": "2026-10-27T02:05:18.720Z"
+      },
+      "public/data/system-diagram/solutions/netflix-streaming/step-3.json": {
+        "sha256": "87847b8b5578f0d01aadaefb500293b9f0241cb65ede4f10aa1b6e789d8b1b1e",
+        "modifiedAt": "2026-10-27T02:05:18.721Z"
+      },
+      "public/data/system-diagram/solutions/reddit-comments/step-1.json": {
+        "sha256": "d661d48136ac45344f1c2881756230ddbe2c385dd42165b41f6e636e5259f27b",
+        "modifiedAt": "2026-10-27T01:55:01.792Z"
+      },
+      "public/data/system-diagram/solutions/reddit-comments/step-2.json": {
+        "sha256": "cd203f9c6a121503b1fb763bb83de5f6bb0afb78a3996f4434dbb734b4f1e30f",
+        "modifiedAt": "2026-10-27T01:55:01.793Z"
+      },
+      "public/data/system-diagram/solutions/twitter-timeline/step-1.json": {
+        "sha256": "45541b9659437d89f30c193c471a317f04ab35249d4e030d9a4cee0558a865ed",
+        "modifiedAt": "2026-10-27T02:05:18.722Z"
+      },
+      "public/data/system-diagram/solutions/twitter-timeline/step-2.json": {
+        "sha256": "0d8093bf112edb7d204792321b60322cc514fb289d84eb31c2e23e73dc2af3ff",
+        "modifiedAt": "2026-10-27T02:05:18.722Z"
+      },
+      "public/data/system-diagram/solutions/twitter-timeline/step-3.json": {
+        "sha256": "687bd0a799bd867fa6dd771c2bfbfc4396be62b6a097d81e5e8fad18fb5daa46",
+        "modifiedAt": "2026-10-27T02:05:18.723Z"
+      },
+      "public/simulatte/CATSCAN.md": {
+        "sha256": "f266d1d33c75fff4ca4d36293e830aff34fc5aa4d172ece9385678c0c6fb81ea",
+        "modifiedAt": "2026-10-27T02:02:27.179Z"
+      },
+      "public/simulatte/system-diagram/CATSCAN.md": {
+        "sha256": "ed83cbf89e310ed2c26d79343962dd3a31908193bfaad4095ce2bc9e08d830ef",
+        "modifiedAt": "2026-10-27T02:02:27.179Z"
+      },
+      "public/simulatte/system-diagram/deployment/registry.json": {
+        "sha256": "2726e60178a37f9af767fb0c89decdb513b0ffe9b031d26964a7b4819b7c8e19",
+        "modifiedAt": "2026-10-27T02:06:57.954Z"
+      },
+      "public/simulatte/system-diagram/diagram.js": {
+        "sha256": "dc645df14fa520f9720ec550d4bd05da60db57cd17ce616948b36befd5438888",
+        "modifiedAt": "2026-10-27T02:06:57.882Z"
+      },
+      "public/simulatte/system-diagram/editor-canvas-render.js": {
+        "sha256": "c2fa1c7d729e41e4a53ea708db78540a6de93e02460dba388e711ac1554b201f",
+        "modifiedAt": "2026-10-27T01:51:14.991Z"
+      },
+      "public/simulatte/system-diagram/editor-model.js": {
+        "sha256": "0fa7447fdd54971f985f9c996892a88c28a92cb32b0c5042da3abc82a5dc0ecc",
+        "modifiedAt": "2026-10-27T01:51:48.535Z"
+      },
+      "public/simulatte/system-diagram/editor-shell.js": {
+        "sha256": "c89c302de5a363a34e7319ec8e32e445b2039039f987ede6b2637811450d434c",
+        "modifiedAt": "2026-10-27T02:09:27.131Z"
+      },
+      "public/simulatte/system-diagram/editor.css": {
+        "sha256": "6c865171ef60b49f38a9585df5abea7345f3e1605d5d92acb2616d64bf37d28d",
+        "modifiedAt": "2026-10-27T02:09:27.131Z"
+      },
+      "public/simulatte/system-diagram/file-io.js": {
+        "sha256": "271c619724bd30bb58612dd9c192cb1015108a6d28bb6fb709d0efc6a1a59752",
+        "modifiedAt": "2026-10-27T02:00:19.981Z"
+      },
+      "public/simulatte/system-diagram/index.html": {
+        "sha256": "289ee665c0e61597e9d1a3caeaee37fb2e907a766fd8c110cd5ff1249a9a459e",
+        "modifiedAt": "2026-10-27T01:48:25.948Z"
+      },
+      "public/simulatte/system-diagram/interview-stepper.js": {
+        "sha256": "fb1e2fd38767c2e38c2efda2824dca20cce938c7f132ff515d930dadd24297f9",
+        "modifiedAt": "2026-10-27T02:15:16.285Z"
+      },
+      "public/simulatte/system-diagram/page.js": {
+        "sha256": "7474fdc19c34333594d779e50d5e2e4c364737744e8334a300d9d4b3321b38c7",
+        "modifiedAt": "2026-10-27T02:16:23.965Z"
+      },
+      "public/simulatte/system-diagram/palette.js": {
+        "sha256": "7ad12ccc0a710d2775806c4fc1a017ff34e2790b42fab201e7e55fe7442a040b",
+        "modifiedAt": "2026-10-27T01:58:22.620Z"
+      },
+      "public/simulatte/system-diagram/playback.js": {
+        "sha256": "23103cab43d6333e15042a1e8357c53dc6306d3d2d6a33b6b9200e6cdee0c585",
+        "modifiedAt": "2026-10-27T01:58:22.620Z"
+      },
+      "public/simulatte/system-diagram/private-collection.js": {
+        "sha256": "02e5c98427f0f26ce4355bc990ffd0ecfe105ca722392c7a86f3f4fc57f1b2cd",
+        "modifiedAt": "2026-10-27T02:11:51.046Z"
+      },
+      "public/simulatte/system-diagram/problem-model.js": {
+        "sha256": "40d81c240608fa69c6a08491c033931725a26f7ac7f2aca256ca31f728c84766",
+        "modifiedAt": "2026-10-27T02:09:27.131Z"
+      },
+      "public/simulatte/system-diagram/run-controls.js": {
+        "sha256": "53241431d28fd8d70580ddcb811c9e67b95bf9c251edfa456a1cb68eeb84b70a",
+        "modifiedAt": "2026-10-27T01:58:22.620Z"
+      },
+      "public/simulatte/system-diagram/subsystems.js": {
+        "sha256": "af7e3b25e8ef30ab435512cd9880ce145379d1ae42fd70d94d1919569e9b93d9",
+        "modifiedAt": "2026-10-27T01:51:14.991Z"
+      }
+    },
+    "boundary": "Local served public output with this working-tree delta; not a deployed release or physical GPU/acoustic validation."
+  },
+  "url": "http://127.0.0.1:60709/system-diagram",
+  "browser": "143.0.7499.4",
+  "privateChecks": true,
+  "cases": [
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "checks": {
+        "railTwoStatesAnd280Cap": true,
+        "problemStartsBlank": true,
+        "unboundRefusesSimulation": true,
+        "refinementKeepsIdentity": true,
+        "branchAndReturn": true,
+        "savedDesignRestored": true,
+        "faultRepairReplay": true,
+        "viewportNoPageOverflow": true,
+        "encryptedSaveAndLockCleanup": true,
+        "encryptedV5DraftRestoration": true,
+        "privateSubsystemDraftCannotContaminatePublicStudy": true
+      },
+      "errors": [],
+      "build": "c97d9e241af94fcb966e331c7a0e4f45c8222c98-97d58cf24bb3",
+      "catalogue": {
+        "problems": 31,
+        "solutions": 24,
+        "stages": 48,
+        "unauthored": 8
+      }
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "checks": {
+        "railTwoStatesAnd280Cap": true,
+        "problemStartsBlank": true,
+        "unboundRefusesSimulation": true,
+        "refinementKeepsIdentity": true,
+        "branchAndReturn": true,
+        "savedDesignRestored": true,
+        "faultRepairReplay": true,
+        "viewportNoPageOverflow": true,
+        "encryptedSaveAndLockCleanup": true,
+        "encryptedV5DraftRestoration": true,
+        "privateSubsystemDraftCannotContaminatePublicStudy": true
+      },
+      "errors": [],
+      "build": "c97d9e241af94fcb966e331c7a0e4f45c8222c98-97d58cf24bb3",
+      "catalogue": {
+        "problems": 31,
+        "solutions": 24,
+        "stages": 48,
+        "unauthored": 8
+      }
+    }
+  ]
+}

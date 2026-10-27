@@ -1,5 +1,5 @@
 {
-  "schema": "simulatte.systemDiagram.v1",
+  "schema": "simulatte.systemDiagram.v4",
   "id": "lakehouse-late-data",
   "name": "Event-time windows, schema evolution and spill",
   "description": "Finite synthetic events include late timestamps and a declared schema-version transition. The graph validates both versions, maintains tumbling sums/counts with a watermark, quarantines excessively late records and models partition FIFO transfer, bounded buffers and spill I/O delay.",

@@ -1,65 +1,641 @@
 {
-  "schema": "simulatte.systemDiagram.v3",
+  "schema": "simulatte.systemDiagram.v4",
   "id": "spark-job",
   "name": "Spark-style partitioned URL count and recovery",
   "description": "A separate input dataset feeds a driver, three map CPUs and three reduce CPUs. Three independent shuffle stores own actual keyed blocks and spill. Lost shuffle storage triggers lineage recomputation; CPU loss alone does not erase separately owned storage.",
   "seed": 42,
-  "run": {"horizonSec": 30},
+  "run": {
+    "horizonSec": 30
+  },
   "classes": [],
   "nodes": [
-    {"id": "input", "classId": "spark-input-data", "label": "Partitioned URL dataset", "x": 0, "y": 100, "params": {}, "groupId": "spark-input"},
-    {"id": "input-retry", "classId": "retry-policy", "label": "Dataset read retry", "x": 280, "y": 100, "params": {"attemptTimeoutMs": 5000, "maxAttempts": 3, "retryBudget": 2, "backoffMs": 40, "retryJitter": false}, "groupId": "spark-input"},
-    {"id": "driver", "classId": "spark-driver", "label": "DAG schedule and lineage", "x": 280, "y": 400, "params": {"inputMode": "external"}, "groupId": "spark-input"},
-    {"id": "executor-a", "classId": "spark-executor", "label": "Map CPU A", "x": 660, "y": 100, "params": {"taskRole": "map", "shuffleMode": "external"}, "groupId": "spark-map"},
-    {"id": "shuffle-a", "classId": "spark-shuffle-store", "label": "Shuffle store A", "x": 1020, "y": 100, "params": {}, "groupId": "spark-shuffle"},
-    {"id": "reduce-a", "classId": "spark-executor", "label": "Reduce CPU A", "x": 1380, "y": 100, "params": {"taskRole": "reduce"}, "groupId": "spark-reduce"},
-    {"id": "executor-b", "classId": "spark-executor", "label": "Map CPU B", "x": 660, "y": 340, "params": {"taskRole": "map", "shuffleMode": "external"}, "groupId": "spark-map"},
-    {"id": "shuffle-b", "classId": "spark-shuffle-store", "label": "Shuffle store B", "x": 1020, "y": 340, "params": {}, "groupId": "spark-shuffle"},
-    {"id": "reduce-b", "classId": "spark-executor", "label": "Reduce CPU B", "x": 1380, "y": 340, "params": {"taskRole": "reduce"}, "groupId": "spark-reduce"},
-    {"id": "executor-c", "classId": "spark-executor", "label": "Map CPU C", "x": 660, "y": 580, "params": {"taskRole": "map", "shuffleMode": "external"}, "groupId": "spark-map"},
-    {"id": "shuffle-c", "classId": "spark-shuffle-store", "label": "Shuffle store C", "x": 1020, "y": 580, "params": {}, "groupId": "spark-shuffle"},
-    {"id": "reduce-c", "classId": "spark-executor", "label": "Reduce CPU C", "x": 1380, "y": 580, "params": {"taskRole": "reduce"}, "groupId": "spark-reduce"},
-    {"id": "output-retry", "classId": "retry-policy", "label": "Result acknowledgement retry", "x": 1750, "y": 100, "params": {"attemptTimeoutMs": 5000, "maxAttempts": 3, "retryBudget": 2, "backoffMs": 40, "retryJitter": false}, "groupId": "spark-output"},
-    {"id": "output-admission", "classId": "bulkhead", "label": "Bounded result commit worker", "x": 1750, "y": 340, "params": {"serviceDist": "constant", "serviceMs": 2, "callTimeoutMs": 8000, "concurrency": 8}, "groupId": "spark-output"},
-    {"id": "results", "classId": "idempotent-store", "label": "Reduced URL counts", "x": 1750, "y": 580, "params": {"writeMs": 2, "serviceDist": "constant"}, "groupId": "spark-output"}
+    {
+      "id": "input",
+      "classId": "spark-input-data",
+      "label": "Partitioned URL dataset",
+      "x": 0,
+      "y": 100,
+      "params": {},
+      "groupId": "spark-input"
+    },
+    {
+      "id": "input-retry",
+      "classId": "retry-policy",
+      "label": "Dataset read retry",
+      "x": 280,
+      "y": 100,
+      "params": {
+        "attemptTimeoutMs": 5000,
+        "maxAttempts": 3,
+        "retryBudget": 2,
+        "backoffMs": 40,
+        "retryJitter": false
+      },
+      "groupId": "spark-input"
+    },
+    {
+      "id": "driver",
+      "classId": "spark-driver",
+      "label": "DAG schedule and lineage",
+      "x": 280,
+      "y": 400,
+      "params": {
+        "inputMode": "external"
+      },
+      "groupId": "spark-input"
+    },
+    {
+      "id": "executor-a",
+      "classId": "spark-executor",
+      "label": "Map CPU A",
+      "x": 660,
+      "y": 100,
+      "params": {
+        "taskRole": "map",
+        "shuffleMode": "external"
+      },
+      "groupId": "spark-map"
+    },
+    {
+      "id": "shuffle-a",
+      "classId": "spark-shuffle-store",
+      "label": "Shuffle store A",
+      "x": 1020,
+      "y": 100,
+      "params": {},
+      "groupId": "spark-shuffle"
+    },
+    {
+      "id": "reduce-a",
+      "classId": "spark-executor",
+      "label": "Reduce CPU A",
+      "x": 1380,
+      "y": 100,
+      "params": {
+        "taskRole": "reduce"
+      },
+      "groupId": "spark-reduce"
+    },
+    {
+      "id": "executor-b",
+      "classId": "spark-executor",
+      "label": "Map CPU B",
+      "x": 660,
+      "y": 340,
+      "params": {
+        "taskRole": "map",
+        "shuffleMode": "external"
+      },
+      "groupId": "spark-map"
+    },
+    {
+      "id": "shuffle-b",
+      "classId": "spark-shuffle-store",
+      "label": "Shuffle store B",
+      "x": 1020,
+      "y": 340,
+      "params": {},
+      "groupId": "spark-shuffle"
+    },
+    {
+      "id": "reduce-b",
+      "classId": "spark-executor",
+      "label": "Reduce CPU B",
+      "x": 1380,
+      "y": 340,
+      "params": {
+        "taskRole": "reduce"
+      },
+      "groupId": "spark-reduce"
+    },
+    {
+      "id": "executor-c",
+      "classId": "spark-executor",
+      "label": "Map CPU C",
+      "x": 660,
+      "y": 580,
+      "params": {
+        "taskRole": "map",
+        "shuffleMode": "external"
+      },
+      "groupId": "spark-map"
+    },
+    {
+      "id": "shuffle-c",
+      "classId": "spark-shuffle-store",
+      "label": "Shuffle store C",
+      "x": 1020,
+      "y": 580,
+      "params": {},
+      "groupId": "spark-shuffle"
+    },
+    {
+      "id": "reduce-c",
+      "classId": "spark-executor",
+      "label": "Reduce CPU C",
+      "x": 1380,
+      "y": 580,
+      "params": {
+        "taskRole": "reduce"
+      },
+      "groupId": "spark-reduce"
+    },
+    {
+      "id": "output-retry",
+      "classId": "retry-policy",
+      "label": "Result acknowledgement retry",
+      "x": 1750,
+      "y": 100,
+      "params": {
+        "attemptTimeoutMs": 5000,
+        "maxAttempts": 3,
+        "retryBudget": 2,
+        "backoffMs": 40,
+        "retryJitter": false
+      },
+      "groupId": "spark-output"
+    },
+    {
+      "id": "output-admission",
+      "classId": "bulkhead",
+      "label": "Bounded result commit worker",
+      "x": 1750,
+      "y": 340,
+      "params": {
+        "serviceDist": "constant",
+        "serviceMs": 2,
+        "callTimeoutMs": 8000,
+        "concurrency": 8
+      },
+      "groupId": "spark-output"
+    },
+    {
+      "id": "results",
+      "classId": "idempotent-store",
+      "label": "Reduced URL counts",
+      "x": 1750,
+      "y": 580,
+      "params": {
+        "writeMs": 2,
+        "serviceDist": "constant"
+      },
+      "groupId": "spark-output"
+    }
   ],
   "edges": [
-    {"id": "input-request", "label": "input request", "from": {"nodeId": "driver", "portId": "input"}, "to": {"nodeId": "input-retry", "portId": "in"}, "params": {"latencyMs": 2, "bandwidthMbps": 1000}},
-    {"id": "dataset-read", "label": "dataset read", "from": {"nodeId": "input-retry", "portId": "target"}, "to": {"nodeId": "input", "portId": "in"}, "params": {"latencyMs": 2, "bandwidthMbps": 1000}},
-    {"id": "driver-a", "label": "driver a", "from": {"nodeId": "driver", "portId": "maps"}, "to": {"nodeId": "executor-a", "portId": "tasks"}, "params": {"latencyMs": 2, "bandwidthMbps": 1000}},
-    {"id": "driver-reduce-a", "label": "driver reduce a", "from": {"nodeId": "driver", "portId": "reduces"}, "to": {"nodeId": "reduce-a", "portId": "tasks"}, "params": {"latencyMs": 2, "bandwidthMbps": 1000}},
-    {"id": "map-storage-a", "label": "map storage a", "from": {"nodeId": "executor-a", "portId": "storage"}, "to": {"nodeId": "shuffle-a", "portId": "blocks"}, "params": {"latencyMs": 2, "bandwidthMbps": 200, "bandwidthSharing": "fair"}},
-    {"id": "shuffle-a-a", "label": "shuffle a a", "from": {"nodeId": "reduce-a", "portId": "shuffle"}, "to": {"nodeId": "shuffle-a", "portId": "blocks"}, "params": {"latencyMs": 5, "bandwidthMbps": 100, "bandwidthSharing": "fair"}},
-    {"id": "shuffle-a-b", "label": "shuffle a b", "from": {"nodeId": "reduce-a", "portId": "shuffle"}, "to": {"nodeId": "shuffle-b", "portId": "blocks"}, "params": {"latencyMs": 5, "bandwidthMbps": 100, "bandwidthSharing": "fair"}},
-    {"id": "shuffle-a-c", "label": "shuffle a c", "from": {"nodeId": "reduce-a", "portId": "shuffle"}, "to": {"nodeId": "shuffle-c", "portId": "blocks"}, "params": {"latencyMs": 5, "bandwidthMbps": 100, "bandwidthSharing": "fair"}},
-    {"id": "driver-b", "label": "driver b", "from": {"nodeId": "driver", "portId": "maps"}, "to": {"nodeId": "executor-b", "portId": "tasks"}, "params": {"latencyMs": 2, "bandwidthMbps": 1000}},
-    {"id": "driver-reduce-b", "label": "driver reduce b", "from": {"nodeId": "driver", "portId": "reduces"}, "to": {"nodeId": "reduce-b", "portId": "tasks"}, "params": {"latencyMs": 2, "bandwidthMbps": 1000}},
-    {"id": "map-storage-b", "label": "map storage b", "from": {"nodeId": "executor-b", "portId": "storage"}, "to": {"nodeId": "shuffle-b", "portId": "blocks"}, "params": {"latencyMs": 2, "bandwidthMbps": 200, "bandwidthSharing": "fair"}},
-    {"id": "shuffle-b-a", "label": "shuffle b a", "from": {"nodeId": "reduce-b", "portId": "shuffle"}, "to": {"nodeId": "shuffle-a", "portId": "blocks"}, "params": {"latencyMs": 5, "bandwidthMbps": 100, "bandwidthSharing": "fair"}},
-    {"id": "shuffle-b-b", "label": "shuffle b b", "from": {"nodeId": "reduce-b", "portId": "shuffle"}, "to": {"nodeId": "shuffle-b", "portId": "blocks"}, "params": {"latencyMs": 5, "bandwidthMbps": 100, "bandwidthSharing": "fair"}},
-    {"id": "shuffle-b-c", "label": "shuffle b c", "from": {"nodeId": "reduce-b", "portId": "shuffle"}, "to": {"nodeId": "shuffle-c", "portId": "blocks"}, "params": {"latencyMs": 5, "bandwidthMbps": 100, "bandwidthSharing": "fair"}},
-    {"id": "driver-c", "label": "driver c", "from": {"nodeId": "driver", "portId": "maps"}, "to": {"nodeId": "executor-c", "portId": "tasks"}, "params": {"latencyMs": 2, "bandwidthMbps": 1000}},
-    {"id": "driver-reduce-c", "label": "driver reduce c", "from": {"nodeId": "driver", "portId": "reduces"}, "to": {"nodeId": "reduce-c", "portId": "tasks"}, "params": {"latencyMs": 2, "bandwidthMbps": 1000}},
-    {"id": "map-storage-c", "label": "map storage c", "from": {"nodeId": "executor-c", "portId": "storage"}, "to": {"nodeId": "shuffle-c", "portId": "blocks"}, "params": {"latencyMs": 2, "bandwidthMbps": 200, "bandwidthSharing": "fair"}},
-    {"id": "shuffle-c-a", "label": "shuffle c a", "from": {"nodeId": "reduce-c", "portId": "shuffle"}, "to": {"nodeId": "shuffle-a", "portId": "blocks"}, "params": {"latencyMs": 5, "bandwidthMbps": 100, "bandwidthSharing": "fair"}},
-    {"id": "shuffle-c-b", "label": "shuffle c b", "from": {"nodeId": "reduce-c", "portId": "shuffle"}, "to": {"nodeId": "shuffle-b", "portId": "blocks"}, "params": {"latencyMs": 5, "bandwidthMbps": 100, "bandwidthSharing": "fair"}},
-    {"id": "shuffle-c-c", "label": "shuffle c c", "from": {"nodeId": "reduce-c", "portId": "shuffle"}, "to": {"nodeId": "shuffle-c", "portId": "blocks"}, "params": {"latencyMs": 5, "bandwidthMbps": 100, "bandwidthSharing": "fair"}},
-    {"id": "job-output", "label": "job output", "from": {"nodeId": "driver", "portId": "output"}, "to": {"nodeId": "output-retry", "portId": "in"}, "params": {"latencyMs": 2, "bandwidthMbps": 1000}},
-    {"id": "output-retry-link", "label": "output retry link", "from": {"nodeId": "output-retry", "portId": "target"}, "to": {"nodeId": "output-admission", "portId": "in"}, "params": {"latencyMs": 2, "bandwidthMbps": 1000}},
-    {"id": "output-commit", "label": "output commit", "from": {"nodeId": "output-admission", "portId": "calls"}, "to": {"nodeId": "results", "portId": "in"}, "params": {"latencyMs": 2, "bandwidthMbps": 1000}}
+    {
+      "id": "input-request",
+      "label": "input request",
+      "from": {
+        "nodeId": "driver",
+        "portId": "input"
+      },
+      "to": {
+        "nodeId": "input-retry",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "dataset-read",
+      "label": "dataset read",
+      "from": {
+        "nodeId": "input-retry",
+        "portId": "target"
+      },
+      "to": {
+        "nodeId": "input",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "driver-a",
+      "label": "driver a",
+      "from": {
+        "nodeId": "driver",
+        "portId": "maps"
+      },
+      "to": {
+        "nodeId": "executor-a",
+        "portId": "tasks"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "driver-reduce-a",
+      "label": "driver reduce a",
+      "from": {
+        "nodeId": "driver",
+        "portId": "reduces"
+      },
+      "to": {
+        "nodeId": "reduce-a",
+        "portId": "tasks"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "map-storage-a",
+      "label": "map storage a",
+      "from": {
+        "nodeId": "executor-a",
+        "portId": "storage"
+      },
+      "to": {
+        "nodeId": "shuffle-a",
+        "portId": "blocks"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 200,
+        "bandwidthSharing": "fair"
+      }
+    },
+    {
+      "id": "shuffle-a-a",
+      "label": "shuffle a a",
+      "from": {
+        "nodeId": "reduce-a",
+        "portId": "shuffle"
+      },
+      "to": {
+        "nodeId": "shuffle-a",
+        "portId": "blocks"
+      },
+      "params": {
+        "latencyMs": 5,
+        "bandwidthMbps": 100,
+        "bandwidthSharing": "fair"
+      }
+    },
+    {
+      "id": "shuffle-a-b",
+      "label": "shuffle a b",
+      "from": {
+        "nodeId": "reduce-a",
+        "portId": "shuffle"
+      },
+      "to": {
+        "nodeId": "shuffle-b",
+        "portId": "blocks"
+      },
+      "params": {
+        "latencyMs": 5,
+        "bandwidthMbps": 100,
+        "bandwidthSharing": "fair"
+      }
+    },
+    {
+      "id": "shuffle-a-c",
+      "label": "shuffle a c",
+      "from": {
+        "nodeId": "reduce-a",
+        "portId": "shuffle"
+      },
+      "to": {
+        "nodeId": "shuffle-c",
+        "portId": "blocks"
+      },
+      "params": {
+        "latencyMs": 5,
+        "bandwidthMbps": 100,
+        "bandwidthSharing": "fair"
+      }
+    },
+    {
+      "id": "driver-b",
+      "label": "driver b",
+      "from": {
+        "nodeId": "driver",
+        "portId": "maps"
+      },
+      "to": {
+        "nodeId": "executor-b",
+        "portId": "tasks"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "driver-reduce-b",
+      "label": "driver reduce b",
+      "from": {
+        "nodeId": "driver",
+        "portId": "reduces"
+      },
+      "to": {
+        "nodeId": "reduce-b",
+        "portId": "tasks"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "map-storage-b",
+      "label": "map storage b",
+      "from": {
+        "nodeId": "executor-b",
+        "portId": "storage"
+      },
+      "to": {
+        "nodeId": "shuffle-b",
+        "portId": "blocks"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 200,
+        "bandwidthSharing": "fair"
+      }
+    },
+    {
+      "id": "shuffle-b-a",
+      "label": "shuffle b a",
+      "from": {
+        "nodeId": "reduce-b",
+        "portId": "shuffle"
+      },
+      "to": {
+        "nodeId": "shuffle-a",
+        "portId": "blocks"
+      },
+      "params": {
+        "latencyMs": 5,
+        "bandwidthMbps": 100,
+        "bandwidthSharing": "fair"
+      }
+    },
+    {
+      "id": "shuffle-b-b",
+      "label": "shuffle b b",
+      "from": {
+        "nodeId": "reduce-b",
+        "portId": "shuffle"
+      },
+      "to": {
+        "nodeId": "shuffle-b",
+        "portId": "blocks"
+      },
+      "params": {
+        "latencyMs": 5,
+        "bandwidthMbps": 100,
+        "bandwidthSharing": "fair"
+      }
+    },
+    {
+      "id": "shuffle-b-c",
+      "label": "shuffle b c",
+      "from": {
+        "nodeId": "reduce-b",
+        "portId": "shuffle"
+      },
+      "to": {
+        "nodeId": "shuffle-c",
+        "portId": "blocks"
+      },
+      "params": {
+        "latencyMs": 5,
+        "bandwidthMbps": 100,
+        "bandwidthSharing": "fair"
+      }
+    },
+    {
+      "id": "driver-c",
+      "label": "driver c",
+      "from": {
+        "nodeId": "driver",
+        "portId": "maps"
+      },
+      "to": {
+        "nodeId": "executor-c",
+        "portId": "tasks"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "driver-reduce-c",
+      "label": "driver reduce c",
+      "from": {
+        "nodeId": "driver",
+        "portId": "reduces"
+      },
+      "to": {
+        "nodeId": "reduce-c",
+        "portId": "tasks"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "map-storage-c",
+      "label": "map storage c",
+      "from": {
+        "nodeId": "executor-c",
+        "portId": "storage"
+      },
+      "to": {
+        "nodeId": "shuffle-c",
+        "portId": "blocks"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 200,
+        "bandwidthSharing": "fair"
+      }
+    },
+    {
+      "id": "shuffle-c-a",
+      "label": "shuffle c a",
+      "from": {
+        "nodeId": "reduce-c",
+        "portId": "shuffle"
+      },
+      "to": {
+        "nodeId": "shuffle-a",
+        "portId": "blocks"
+      },
+      "params": {
+        "latencyMs": 5,
+        "bandwidthMbps": 100,
+        "bandwidthSharing": "fair"
+      }
+    },
+    {
+      "id": "shuffle-c-b",
+      "label": "shuffle c b",
+      "from": {
+        "nodeId": "reduce-c",
+        "portId": "shuffle"
+      },
+      "to": {
+        "nodeId": "shuffle-b",
+        "portId": "blocks"
+      },
+      "params": {
+        "latencyMs": 5,
+        "bandwidthMbps": 100,
+        "bandwidthSharing": "fair"
+      }
+    },
+    {
+      "id": "shuffle-c-c",
+      "label": "shuffle c c",
+      "from": {
+        "nodeId": "reduce-c",
+        "portId": "shuffle"
+      },
+      "to": {
+        "nodeId": "shuffle-c",
+        "portId": "blocks"
+      },
+      "params": {
+        "latencyMs": 5,
+        "bandwidthMbps": 100,
+        "bandwidthSharing": "fair"
+      }
+    },
+    {
+      "id": "job-output",
+      "label": "job output",
+      "from": {
+        "nodeId": "driver",
+        "portId": "output"
+      },
+      "to": {
+        "nodeId": "output-retry",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "output-retry-link",
+      "label": "output retry link",
+      "from": {
+        "nodeId": "output-retry",
+        "portId": "target"
+      },
+      "to": {
+        "nodeId": "output-admission",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "output-commit",
+      "label": "output commit",
+      "from": {
+        "nodeId": "output-admission",
+        "portId": "calls"
+      },
+      "to": {
+        "nodeId": "results",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      }
+    }
   ],
   "groups": [
-    {"id": "spark-input", "label": "Input and scheduling", "kind": "boundary", "x": -40, "y": 0, "w": 600, "h": 650},
-    {"id": "spark-map", "label": "Map CPU pool", "kind": "boundary", "x": 620, "y": 0, "w": 310, "h": 820},
-    {"id": "spark-shuffle", "label": "Shuffle block storage", "kind": "boundary", "x": 980, "y": 0, "w": 310, "h": 820},
-    {"id": "spark-reduce", "label": "Reduce CPU pool", "kind": "boundary", "x": 1340, "y": 0, "w": 310, "h": 820},
-    {"id": "spark-output", "label": "Output commit", "kind": "boundary", "x": 1710, "y": 0, "w": 310, "h": 820}
+    {
+      "id": "spark-input",
+      "label": "Input and scheduling",
+      "kind": "boundary",
+      "x": -40,
+      "y": 0,
+      "w": 600,
+      "h": 650
+    },
+    {
+      "id": "spark-map",
+      "label": "Map CPU pool",
+      "kind": "boundary",
+      "x": 620,
+      "y": 0,
+      "w": 310,
+      "h": 820
+    },
+    {
+      "id": "spark-shuffle",
+      "label": "Shuffle block storage",
+      "kind": "boundary",
+      "x": 980,
+      "y": 0,
+      "w": 310,
+      "h": 820
+    },
+    {
+      "id": "spark-reduce",
+      "label": "Reduce CPU pool",
+      "kind": "boundary",
+      "x": 1340,
+      "y": 0,
+      "w": 310,
+      "h": 820
+    },
+    {
+      "id": "spark-output",
+      "label": "Output commit",
+      "kind": "boundary",
+      "x": 1710,
+      "y": 0,
+      "w": 310,
+      "h": 820
+    }
   ],
   "notes": [
-    {"id": "spark-job-notes", "text": "Expand each stage to fault actual CPU or storage owners. Map CPUs send real keyed row blocks to independent shuffle stores; reducers fetch exact descriptors over all nine drawn block links. Crashing shuffle A loses blocks and causes map recomputation. CPU and shuffle storage are not secretly coupled. URL count output and byte/spill accounting are synthetic but computed from actual bounded input rows.", "x": 0, "y": -140, "w": 1000}
+    {
+      "id": "spark-job-notes",
+      "text": "Expand each stage to fault actual CPU or storage owners. Map CPUs send real keyed row blocks to independent shuffle stores; reducers fetch exact descriptors over all nine drawn block links. Crashing shuffle A loses blocks and causes map recomputation. CPU and shuffle storage are not secretly coupled. URL count output and byte/spill accounting are synthetic but computed from actual bounded input rows.",
+      "x": 0,
+      "y": -140,
+      "w": 1000
+    }
   ],
   "faults": [
-    {"id": "shuffle-loss", "atSec": 0.5, "untilSec": 1.5, "target": {"kind": "node", "id": "shuffle-a"}, "type": "crash", "params": {}}
+    {
+      "id": "shuffle-loss",
+      "atSec": 0.5,
+      "untilSec": 1.5,
+      "target": {
+        "kind": "node",
+        "id": "shuffle-a"
+      },
+      "type": "crash",
+      "params": {}
+    }
   ],
-  "view": {"x": 0, "y": 0, "zoom": 1}
+  "view": {
+    "x": 0,
+    "y": 0,
+    "zoom": 1
+  }
 }

@@ -64,6 +64,19 @@
       "params": {
         "serviceMs": 50
       }
+    },
+    {
+      "id": "readers",
+      "classId": "operation-client",
+      "label": "readers",
+      "x": 0,
+      "y": 460,
+      "params": {
+        "operation": "readComments",
+        "count": 4,
+        "intervalMs": 400,
+        "startSec": 5
+      }
     }
   ],
   "edges": [
@@ -124,6 +137,22 @@
       },
       "to": {
         "nodeId": "updates",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 80,
+        "bandwidthMbps": 100
+      }
+    },
+    {
+      "id": "read",
+      "label": "read",
+      "from": {
+        "nodeId": "readers",
+        "portId": "out"
+      },
+      "to": {
+        "nodeId": "api",
         "portId": "in"
       },
       "params": {

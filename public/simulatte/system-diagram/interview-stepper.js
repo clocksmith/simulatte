@@ -1,264 +1,55 @@
-(function (root, factory) {
-  const node = typeof module === 'object' && module.exports;
-  const api = factory(node ? require('./diagram.js') : root.SimulatteSystemDiagramDocument);
-  if (node) module.exports = api; else root.SimulatteSystemDiagramInterviewStepper = api;
-})(globalThis, function (documentsApi) {
-  'use strict';
+(function(root,factory){const node=typeof module==='object'&&module.exports;const api=factory(node?require('./diagram.js'):root.SimulatteSystemDiagramDocument,node?require('./problem-model.js'):root.SimulatteLucydProblems);if(node)module.exports=api;else root.SimulatteSystemDiagramInterviewStepper=api;})(globalThis,function(D,P){
+ 'use strict';
+ const clone=v=>structuredClone(v);
+ // Retained projection API for generated v1 compatibility consumers.
+ function buildStepDocument(master,step,library,config){if(step.diagram)return D.validate(clone(step.diagram),library,config);const active=new Set(step.activeNodes),nodes=clone(master.nodes.filter(n=>active.has(n.id))),edges=clone(step.customEdges||master.edges.filter(e=>active.has(e.from.nodeId)&&active.has(e.to.nodeId))),groups=clone((master.groups||[]).filter(g=>nodes.some(n=>n.groupId===g.id)||g.nodeIds?.some(id=>active.has(id))));for(const g of groups)if(g.nodeIds)g.nodeIds=g.nodeIds.filter(id=>active.has(id));for(const n of nodes)if(n.groupId&&!groups.some(g=>g.id===n.groupId))delete n.groupId;return D.validate({...clone(master),name:(master.name+' (Step '+step.stepNumber+')').slice(0,80),nodes,edges,groups,faults:clone((master.faults||[]).filter(f=>f.target.kind==='edge'?edges.some(e=>e.id===f.target.id):f.target.kind==='group'?groups.some(g=>g.id===f.target.id):active.has(f.target.id)))},library,config);}
+ function createProgress(model,config){const snapshots=new Map();let key=null,index=0;const save=()=>{if(key)snapshots.set(`${key}:${index}`,clone(model.diagram));};return {select(id){save();key=id;index=0;const r=model.replace(clone(snapshots.get(`${key}:0`)||D.emptyDiagram(config)));if(!r.ok)throw Error(r.error);},move(next){save();index=next;const prior=snapshots.get(`${key}:${index}`);if(prior){const r=model.replace(clone(prior));if(!r.ok)throw Error(r.error);}},save,clear(){snapshots.clear();key=null;index=0;},get index(){return index;}};}
+ function create({host,model,canvas,library,config,onStepChange,onMessage,onSimulate,onPrivacyChange,canNavigate}){
+  const doc=host.ownerDocument,events=new AbortController(),problems=new Map(),own=new Map(),branches=new Map(),choices=new Map();let currentKey=null,index=0,reference=null,walkthrough=null,generation=0,collection=null;
+  const make=(tag,cls,text)=>{const e=doc.createElement(tag);if(cls)e.className=cls;if(text)e.textContent=text;return e;};
+  const listen=(e,type,fn)=>e.addEventListener(type,fn,{signal:events.signal});
+  const button=(text,label,fn)=>{const e=make('button','wui-btn lucyd-task-action',text);e.type='button';e.setAttribute('aria-label',label);listen(e,'click',()=>Promise.resolve().then(fn).catch(e=>onMessage?.(e.message,true)));return e;};
+  const current=()=>problems.get(currentKey),solution=()=>current()?.solutions.find(s=>s.id===walkthrough?.solutionId),activeStage=()=>solution()?.stages[walkthrough.index];
+  const guardNavigation=()=>{if(canNavigate&&!canNavigate())throw Error('Publish or cancel subsystem definition edits before changing the study stage');};
+  const replace=diagram=>{const r=model.replace(clone(diagram));if(!r.ok)throw Error(r.error);};
+  const bar=make('section','lucyd-task-bar');bar.setAttribute('aria-label','Interview task');const prompt=make('p','lucyd-task-prompt');
+  const choose=button('Choose problem','Choose interview problem or write a task',()=>picker.showModal()),details=button('Details','Problem details and source',()=>{renderDetails();info.showModal();}),play=button('Play solution','Open step-by-step example solution',()=>showSolution());
+  const branchLabel=make('label','lucyd-solution-choice','Approach '),branchSelect=make('select','wui-field lucyd-solution-input');branchSelect.setAttribute('aria-label','Solution approach');branchLabel.append(branchSelect);
+  const back=button('Back to my diagram','Return from reference',()=>leaveReference());bar.append(prompt,choose,details,play,branchLabel,back);host.append(bar);
+  const stepper=make('nav','interview-stepper');stepper.setAttribute('aria-label','Interview stages');const prev=button('Previous','Previous interview stage',()=>goToStep((walkthrough?.index??index)-1)),stageTitle=make('span','interview-stepper-title'),next=button('Next','Next interview stage',()=>walkthrough&&walkthrough.index===solution().stages.length-1?onSimulate?.():goToStep((walkthrough?.index??index)+1));stageTitle.setAttribute('aria-live','polite');stepper.append(prev,stageTitle,next);host.append(stepper);
+  function dialog(title){const e=make('dialog','lucyd-dialog');e.setAttribute('aria-label',title);const heading=make('div','panel-heading');heading.append(make('h2','',title),button('Close',`Close ${title}`,()=>e.close()));e.append(heading);host.append(e);return e;}
+  const picker=dialog('Choose a problem'),select=make('select','wui-field'),preview=make('p','lucyd-picker-preview'),provenance=make('div','lucyd-source');select.setAttribute('aria-label','Interview problem');select.dataset.layout='fill';const start=button('Start problem','Start selected problem',()=>{setScenario(select.value);picker.close();});picker.append(select,preview,provenance,start);
+  const form=make('form','lucyd-custom-task'),custom=make('textarea','wui-field'),label=make('label','','Or write a task');custom.rows=2;custom.maxLength=300;custom.setAttribute('aria-label','Custom task');custom.placeholder='Describe the problem in one or two sentences';label.append(custom);const submit=make('button','wui-btn','Start custom task');submit.type='submit';form.append(label,submit);picker.append(form);
+  const info=dialog('Problem details'),infoBody=make('div','lucyd-details');info.append(infoBody);
+  function sourceElement(p){const box=make('div','lucyd-source'),kind=p.provenance.kind,source=p.provenance.source,labels={'company-published':'Published exercise','candidate-reported':'Candidate report','authored-practice':'Authored practice',custom:'Your task'};const caption=[p.isPrivate?'Private':'',labels[kind],p.attribution?.company].filter(Boolean).join(' · ');if(source){const link=make('a','',caption);link.href=source.url;link.target='_blank';link.rel='noopener noreferrer';box.append(link);}else box.textContent=caption;return box;}
+  function renderPicker(){select.replaceChildren(new Option('Select a problem',''));for(const [kind,name]of [['company-published','Published interview exercises'],['candidate-reported','Firsthand interview reports'],['authored-practice','Authored practice'],['custom','Your tasks'],['private','Unlocked private problems']]){const group=make('optgroup');group.label=name;for(const [key,p]of problems)if(kind==='private'?p.isPrivate:!p.isPrivate&&p.provenance.kind===kind)group.append(new Option(`${p.title}${p.attribution?.company?' · '+p.attribution.company:''}`,key));if(group.children.length)select.append(group);}select.value=currentKey||'';start.disabled=!problems.has(select.value);}
+  listen(select,'change',()=>{const p=problems.get(select.value);start.disabled=!p;preview.textContent=p?.description||'';provenance.replaceChildren();if(p)provenance.append(sourceElement(p));});
+  const startCustom=event=>{event.preventDefault();const text=custom.value.trim();if(!text)return;problems.set('custom',{id:'custom',title:'Custom task',description:text,provenance:{kind:'custom'},followups:[{id:'requirements',title:'Requirements',prompt:'Which requirements and constraints matter first?'},{id:'architecture',title:'Architecture',prompt:'Trace the main request through your design.'},{id:'failures',title:'Failures',prompt:'What happens when a component is unavailable?'}],solutions:[]});setScenario('custom');picker.close();};listen(form,'submit',startCustom);listen(submit,'click',startCustom);
+  function saveBranch(){if(walkthrough?.loaded)branches.set(`${currentKey}:${walkthrough.solutionId}:${walkthrough.index}`,clone(model.diagram));}
+  function render(){const p=current(),s=solution(),st=activeStage();prompt.textContent=st?st.explanation:p?(index?p.followups[index-1].prompt:p.description):'What are you designing?';choose.textContent=p?'Change':'Choose problem';details.hidden=!p;stepper.hidden=!p;prev.disabled=walkthrough?walkthrough.index===0:!p||index===0;next.disabled=walkthrough?false:!p||index>=p.followups.length;next.textContent=walkthrough&&walkthrough.index===s.stages.length-1?'Simulate':'Next';next.setAttribute('aria-label',next.textContent==='Simulate'?'Simulate completed solution':'Next interview stage');stageTitle.textContent=st?`${walkthrough.index+1}/${s.stages.length} · ${st.title}`:p?`${index+1}/${p.followups.length+1} · ${index?p.followups[index-1].title:'Problem'}`:'';play.hidden=!p?.solutions.length||Boolean(reference);back.hidden=!reference;branchLabel.hidden=!p?.solutions.length;branchSelect.replaceChildren(...(p?.solutions||[]).map(s=>new Option(s.title,s.id)));branchSelect.value=walkthrough?.solutionId||choices.get(currentKey)||p?.solutions[0]?.id||'';host.dataset.problemId=p?.id||'';host.dataset.solutionId=walkthrough?.solutionId||'';host.dataset.stageId=st?.id||'';}
+  function refresh(){canvas.render();canvas.flush();render();onStepChange?.(model.diagram,activeStage()||current()?.followups[index-1]||null);}
+  function leaveReference(){guardNavigation();if(!reference)return;saveBranch();replace(reference);generation++;reference=null;walkthrough=null;refresh();canvas.fit({readable:true});}
+  function setScenario(key){guardNavigation();if(!problems.has(key))throw Error(`Unknown problem: ${key}`);generation++;leaveReference();if(currentKey)own.set(`${currentKey}:${index}`,clone(model.diagram));currentKey=key;index=0;onPrivacyChange?.(Boolean(current().isPrivate));replace(own.get(`${key}:0`)||D.emptyDiagram(config));refresh();canvas.fit({readable:true});}
+  async function goToStep(nextIndex){guardNavigation();if(walkthrough)return loadSolutionStep(nextIndex);const p=current();if(!p||!Number.isInteger(nextIndex)||nextIndex<0||nextIndex>p.followups.length)return;generation++;own.set(`${currentKey}:${index}`,clone(model.diagram));index=nextIndex;const prior=own.get(`${currentKey}:${index}`);if(prior)replace(prior);refresh();}
+  async function loadSolutionStep(nextIndex){const owner=walkthrough,s=solution();if(!owner||!Number.isInteger(nextIndex)||nextIndex<0||nextIndex>=s.stages.length)return;saveBranch();const token=++generation,expected=model.diagram;const diagram=D.validate(clone(branches.get(`${currentKey}:${s.id}:${nextIndex}`)||s.stages[nextIndex].diagram),library,config);await Promise.resolve();if(token!==generation||owner!==walkthrough)return;if(model.diagram!==expected)throw Error('Kept your newer diagram edits; select the solution step again when ready.');replace(diagram);owner.index=nextIndex;owner.loaded=true;refresh();canvas.fit({readable:true});}
+  async function showSolution(id=branchSelect.value){guardNavigation();const p=current(),s=p?.solutions.find(s=>s.id===id);if(!s)throw Error('This problem has no authored solution walkthrough');saveBranch();if(!reference)reference=clone(model.diagram);choices.set(currentKey,s.id);walkthrough={solutionId:s.id,index:0,loaded:false};info.close();await loadSolutionStep(0);}
+  listen(branchSelect,'change',()=>{choices.set(currentKey,branchSelect.value);if(walkthrough)showSolution(branchSelect.value).catch(e=>onMessage?.(e.message,true));});
+  function renderDetails(){infoBody.replaceChildren();const p=current();if(!p)return;infoBody.append(make('p','',p.description),sourceElement(p));if(!p.solutions.length)infoBody.append(make('p','','No authored solution is available. Build and simulate your own architecture.'));const st=activeStage();if(st){infoBody.append(make('h3','',st.title),make('p','',st.explanation),make('p','',solution().boundary));if(solution().workload?.comparison)infoBody.append(make('p','',solution().workload.comparison));if(st.challenge)infoBody.append(make('p','',st.challenge));if(st.tradeoffs?.length){const folded=make('details');folded.append(make('summary','','Tradeoffs'));for(const t of st.tradeoffs)folded.append(make('p','',t));infoBody.append(folded);}}else{for(const f of p.followups){const folded=make('details');folded.append(make('summary','',f.title),make('p','',f.prompt));infoBody.append(folded);}}if(collection?.followupAttribution)infoBody.append(make('small','',collection.followupAttribution));}
+  function reset(){generation++;own.clear();branches.clear();choices.clear();currentKey=null;index=0;reference=null;walkthrough=null;problems.delete('custom');picker.close();info.close();custom.value='';preview.textContent='';provenance.replaceChildren();infoBody.replaceChildren();renderPicker();render();}
+  function registerPrivate(value){const data=P.validateCollection(value,library,config);unregisterPrivate();for(const p of data.problems)problems.set('private:'+p.id,{...p,isPrivate:true});renderPicker();return data.problems.map(p=>'private:'+p.id);}
+  function unregisterPrivate(){const active=current()?.isPrivate;generation++;if(active){reference=null;walkthrough=null;currentKey=null;index=0;onPrivacyChange?.(false);replace(D.emptyDiagram(config));}for(const key of [...problems.keys()])if(key.startsWith('private:'))problems.delete(key);for(const map of [own,branches,choices])for(const key of map.keys())if(key.startsWith('private:'))map.delete(key);info.close();infoBody.replaceChildren();preview.textContent='';provenance.replaceChildren();renderPicker();refresh();}
+  function privateState(){saveBranch();if(current()?.isPrivate&&!walkthrough)own.set(`${currentKey}:${index}`,clone(model.diagram));return {problemKey:current()?.isPrivate?currentKey:null,index,walkthrough:current()?.isPrivate?clone(walkthrough):null,reference:current()?.isPrivate&&reference?clone(reference):null,own:[...own].filter(([key])=>key.startsWith('private:')),branches:[...branches].filter(([key])=>key.startsWith('private:'))};}
+  function publicState(){saveBranch();if(current()&&!current().isPrivate&&!walkthrough)own.set(`${currentKey}:${index}`,clone(model.diagram));return {schema:'simulatte.lucydStudySession.v1',problemKey:current()?.isPrivate?null:currentKey,index,walkthrough:current()?.isPrivate?null:clone(walkthrough),reference:current()?.isPrivate?null:clone(reference),own:[...own].filter(([key])=>!key.startsWith('private:')),branches:[...branches].filter(([key])=>!key.startsWith('private:')),choices:[...choices].filter(([key])=>!key.startsWith('private:')),custom:problems.get('custom')||null};}
+  function restorePublicState(state){if(state?.schema!=='simulatte.lucydStudySession.v1')return;if(state.custom){const p=P.validateCollection({schema:P.SCHEMA,problems:[state.custom]},library,config).problems[0];if(p.id==='custom'&&p.provenance.kind==='custom')problems.set('custom',p);}if(!problems.has(state.problemKey)||problems.get(state.problemKey).isPrivate)return;for(const [key,value]of state.own||[])if(!key.startsWith('private:'))own.set(key,D.validate(value,library,config));for(const [key,value]of state.branches||[])if(!key.startsWith('private:'))branches.set(key,D.validate(value,library,config));for(const [key,value]of state.choices||[])if(!key.startsWith('private:'))choices.set(key,value);restoreSession(state,false);}
+  function restoreSession(state,isPrivate){currentKey=state.problemKey;index=Number.isInteger(state.index)?Math.min(Math.max(state.index,0),current().followups.length):0;reference=state.reference?D.validate(state.reference,library,config):null;walkthrough=null;if(reference&&state.walkthrough){const s=current().solutions.find(s=>s.id===state.walkthrough.solutionId);if(s&&Number.isInteger(state.walkthrough.index)&&s.stages[state.walkthrough.index])walkthrough={...clone(state.walkthrough),loaded:true};}onPrivacyChange?.(isPrivate);renderPicker();refresh();}
+  function restorePrivateState(state){if(!state||!problems.has(state.problemKey)||!problems.get(state.problemKey).isPrivate)return;for(const [key,value]of state.own||[])if(key.startsWith('private:'))own.set(key,D.validate(value,library,config));for(const [key,value]of state.branches||[])if(key.startsWith('private:'))branches.set(key,D.validate(value,library,config));restoreSession(state,true);}
 
-  function clone(val) {
-    return structuredClone(val);
-  }
-
-  function buildStepDocument(masterDoc, step, library, config) {
-    const docs = documentsApi || globalThis.SimulatteSystemDiagramDocument;
-    const activeSet = new Set(step.activeNodes);
-    const nodes = masterDoc.nodes.filter(n => activeSet.has(n.id)).map(n => ({ ...n }));
-    const activeGroupIds = new Set(nodes.map(n => n.groupId).filter(Boolean));
-    const groups = (masterDoc.groups || [])
-      .filter(g => activeGroupIds.has(g.id) || g.nodeIds?.some(id => activeSet.has(id)))
-      .map(g => {
-        const copy = { ...g };
-        if (copy.nodeIds) copy.nodeIds = copy.nodeIds.filter(id => activeSet.has(id));
-        return copy;
-      });
-    const keptGroupIds = new Set(groups.map(g => g.id));
-    for (const node of nodes) {
-      if (node.groupId && !keptGroupIds.has(node.groupId)) {
-        delete node.groupId;
-      }
-    }
-    const edges = step.customEdges ? step.customEdges : (masterDoc.edges || []).filter(e => activeSet.has(e.from?.nodeId) && activeSet.has(e.to?.nodeId));
-    const faults = (masterDoc.faults || []).filter(f => activeSet.has(f.target?.id));
-    const stepDoc = {
-      ...masterDoc,
-      name: (masterDoc.name + ' (Step ' + step.stepNumber + ')').slice(0, 80),
-      nodes,
-      edges,
-      groups,
-      faults
-    };
-    return docs.validate(stepDoc, library, config);
-  }
-
-  function validateProblems(data) {
-    if (data?.schema !== 'simulatte.lucydProblems.v1' || !Array.isArray(data.problems) || !data.problems.length) throw Error('Interview problem registry is required');
-    const ids = new Set();
-    for (const problem of data.problems) {
-      const source = data.sources?.[problem.sourceId];
-      if (!problem.id || ids.has(problem.id) || !problem.title || !problem.problemStatement?.trim() || problem.problemStatement.length > 300) throw Error('Interview problems need unique IDs and concise statements');
-      if (!source || !/^https:\/\//.test(source.url) || !['company-published', 'candidate-reported', 'authored-practice'].includes(source.kind) || problem.sourceKind !== source.kind) throw Error('Interview problem needs matching source provenance');
-      if (!Array.isArray(problem.steps) || !problem.steps.length || problem.steps.some(step => !step.name || !step.interviewerPrompt)) throw Error('Interview followups are required');
-      ids.add(problem.id);
-    }
-    return clone(data);
-  }
-
-  // Stage snapshots never go to storage; private locking clears this owner too.
-  function createProgress(model, config) {
-    const snapshots = new Map();
-    let problemId = null, index = 0;
-    function save() { if (problemId) snapshots.set(`${problemId}:${index}`, clone(model.diagram)); }
-    function restore(doc) { const result = model.replace(clone(doc)); if (!result.ok) throw Error(result.error); }
-    return {
-      select(id) { save(); problemId = id; index = 0; restore(snapshots.get(`${id}:0`) || documentsApi.emptyDiagram(config)); },
-      move(next) { save(); const prior = snapshots.get(`${problemId}:${next}`); index = next; if (prior) restore(prior); },
-      save,
-      clear() { snapshots.clear(); problemId = null; index = 0; },
-      get index() { return index; },
-    };
-  }
-
-  function create({ host, model, canvas, library, config, onStepChange, onMessage, onSimulate }) {
-    const doc = host.ownerDocument, events = new AbortController();
-    const progress = createProgress(model, config), problems = new Map();
-    let sourceData = null, current = null, reference = null, generation = 0, solutions = {}, walkthrough = null;
-    const make = (tag, className, text) => { const el = doc.createElement(tag); if (className) el.className = className; if (text) el.textContent = text; return el; };
-    const listen = (el, type, fn) => el.addEventListener(type, fn, { signal: events.signal });
-    const button = (text, label, action) => {
-      const el = make('button', 'wui-btn lucyd-task-action', text); el.type = 'button'; el.setAttribute('aria-label', label);
-      listen(el, 'click', () => { Promise.resolve().then(action).catch(error => onMessage?.(error.message, true)); });
-      return el;
-    };
-    const bar = make('section', 'lucyd-task-bar'); bar.setAttribute('aria-label', 'Interview task');
-    const prompt = make('p', 'lucyd-task-prompt');
-    const choose = button('Choose problem', 'Choose interview problem or write a task', () => picker.showModal());
-    const details = button('Details', 'Problem details and source', () => { renderDetails(); info.showModal(); });
-    const solutionButton = button('Play solution', 'Open step-by-step example solution', () => showSolution());
-    bar.append(prompt, choose, details, solutionButton); host.append(bar);
-    const stepper = make('nav', 'interview-stepper'); stepper.setAttribute('aria-label', 'Interview stages');
-    const prev = button('Previous', 'Previous interview stage', () => goToStep((walkthrough?.index ?? progress.index) - 1));
-    const stage = make('span', 'interview-stepper-title'); stage.setAttribute('aria-live', 'polite');
-    const next = button('Next', 'Next interview stage', () => walkthrough && walkthrough.index === walkthrough.solution.steps.length - 1 ? onSimulate?.() : goToStep((walkthrough?.index ?? progress.index) + 1));
-    const returnButton = button('Back to my diagram', 'Return from reference', () => leaveReference());
-    stepper.append(prev, stage, next); bar.append(returnButton); host.append(stepper);
-
-    function dialog(title) {
-      const el = make('dialog', 'lucyd-dialog'); el.setAttribute('aria-label', title);
-      const heading = make('div', 'panel-heading'); heading.append(make('h2', '', title), button('Close', `Close ${title}`, () => el.close()));
-      el.append(heading); host.append(el); return el;
-    }
-    const picker = dialog('Choose a problem');
-    const select = make('select', 'wui-field'); select.setAttribute('aria-label', 'Interview problem'); select.dataset.layout = 'fill';
-    const preview = make('p', 'lucyd-picker-preview'), provenance = make('div', 'lucyd-source');
-    const start = button('Start problem', 'Start selected problem', () => { setScenario(select.value); picker.close(); });
-    picker.append(select, preview, provenance, start);
-    const form = make('form', 'lucyd-custom-task'), label = make('label', '', 'Or write a task');
-    const custom = make('textarea', 'wui-field'); custom.dataset.layout = 'fill'; custom.rows = 2; custom.maxLength = 300; custom.placeholder = 'Describe the problem in one or two sentences'; custom.setAttribute('aria-label', 'Custom task');
-    label.append(custom); const submit = make('button', 'wui-btn', 'Start custom task'); submit.type = 'submit'; form.append(label, submit); picker.append(form);
-    const info = dialog('Problem details');
-    const infoBody = make('div', 'lucyd-details'); info.append(infoBody);
-
-    function sourceElement(problem) {
-      const el = make('div', 'lucyd-source');
-      if (problem.sourceKind === 'practice') { el.textContent = 'Lucyd practice scenario'; return el; }
-      if (problem.sourceKind === 'custom') { el.textContent = 'Your task'; return el; }
-      const source = sourceData.sources[problem.sourceId];
-      const label = problem.sourceKind === 'authored-practice' ? 'Authored practice · technical reference' : problem.sourceKind === 'company-published' ? 'Published exercise' : 'Candidate report';
-      const link = make('a', '', `${label} · ${problem.company}`);
-      link.href = source.url; link.target = '_blank'; link.rel = 'noopener noreferrer'; el.append(link); return el;
-    }
-    function renderPicker() {
-      select.replaceChildren(new Option('Select a problem', ''));
-      for (const [kind, name] of [['company-published', 'Published interview exercises'], ['candidate-reported', 'Firsthand interview reports'], ['authored-practice', 'Company-inspired practice'], ['practice', 'Practice examples']]) {
-        const group = make('optgroup'); group.label = name;
-        for (const p of problems.values()) if (p.sourceKind === kind) group.append(new Option(`${p.title}${p.company ? ` · ${p.company}` : ''}`, p.id));
-        select.append(group);
-      }
-      start.disabled = true;
-    }
-    listen(select, 'change', () => {
-      const p = problems.get(select.value); start.disabled = !p;
-      preview.textContent = p?.problemStatement || ''; provenance.replaceChildren();
-      if (p) provenance.append(sourceElement(p));
-    });
-    const startCustom = event => {
-      event.preventDefault(); const text = custom.value.trim(); if (!text) return;
-      problems.set('custom', {id: 'custom', title: 'Custom task', sourceKind: 'custom', problemStatement: text, steps: [
-        {name: 'Requirements', interviewerPrompt: 'Which requirements and constraints matter first?'},
-        {name: 'Architecture', interviewerPrompt: 'Trace the main request through your design.'},
-        {name: 'Failures', interviewerPrompt: 'What happens when one component is unavailable?'},
-      ]});
-      setScenario('custom'); picker.close();
-    };
-    listen(form, 'submit', startCustom); listen(submit, 'click', startCustom);
-
-    function render() {
-      const activeStep = walkthrough?.solution.steps[walkthrough.index];
-      prompt.textContent = activeStep ? activeStep.explanation : current ? (progress.index ? current.steps[progress.index - 1].interviewerPrompt : current.problemStatement) : 'What are you designing?';
-      choose.textContent = current ? 'Change' : 'Choose problem';
-      details.hidden = !current; stepper.hidden = !current;
-      prev.disabled = walkthrough ? walkthrough.index === 0 : !current || progress.index === 0 || !!reference;
-      next.disabled = walkthrough ? false : !current || progress.index >= current.steps.length || !!reference;
-      next.textContent = walkthrough && walkthrough.index === walkthrough.solution.steps.length - 1 ? 'Simulate' : 'Next';
-      next.setAttribute('aria-label', next.textContent === 'Simulate' ? 'Simulate completed solution' : 'Next interview stage');
-      stage.textContent = activeStep ? `${walkthrough.index + 1}/${walkthrough.solution.steps.length} · ${activeStep.name}` : reference ? 'Example architecture' : current ? `${progress.index + 1}/${current.steps.length + 1} · ${progress.index ? current.steps[progress.index - 1].name : 'Problem'}` : '';
-      solutionButton.hidden = !current || !solutions[current.solutionId] || Boolean(reference);
-      returnButton.hidden = !reference;
-    }
-    function refresh() { canvas.render(); canvas.flush(); render(); onStepChange?.(model.diagram, current?.steps[progress.index - 1] || null); }
-    function leaveReference() {
-      if (!reference) return;
-      const result = model.replace(reference); if (!result.ok) throw Error(result.error);
-      generation++; reference = null; walkthrough = null; refresh(); canvas.fit({readable: true});
-    }
-    function setScenario(id) {
-      const p = problems.get(id); if (!p) throw Error(`Unknown problem: ${id}`);
-      generation++; leaveReference(); progress.select(id); current = p;
-      refresh(); canvas.fit({readable: true});
-    }
-    async function goToStep(index) {
-      if (walkthrough) return loadSolutionStep(index);
-      if (!current || !Number.isInteger(index) || index < 0 || index > current.steps.length) return;
-      generation++; leaveReference(); progress.move(index); refresh();
-    }
-    async function loadSolutionStep(index) {
-      const owner = walkthrough;
-      if (!owner || !Number.isInteger(index) || index < 0 || index >= owner.solution.steps.length) return;
-      if (owner.loaded) owner.snapshots.set(owner.index, clone(model.diagram));
-      const token = ++generation, step = owner.solution.steps[index], expected = model.diagram;
-      let diagram = owner.snapshots.get(index);
-      if (!diagram) {
-        const response = await fetch(step.diagramPath); if (!response.ok) throw Error('Solution stage is unavailable');
-        diagram = documentsApi.validate(await response.json(), library, config);
-      }
-      if (token !== generation || owner !== walkthrough) return;
-      if (model.diagram !== expected) throw Error('Kept your newer diagram edits; select the solution step again when ready.');
-      const result = model.replace(diagram); if (!result.ok) throw Error(result.error);
-      owner.index = index; owner.loaded = true; refresh(); canvas.fit({readable:true});
-    }
-    async function showSolution() {
-      const solution = solutions[current?.solutionId]; if (!solution) throw Error('This problem has no solution walkthrough');
-      if (reference) leaveReference();
-      const expected = model.diagram;
-      reference = clone(model.diagram); walkthrough = {solution, index:0, loaded:false, snapshots:new Map()};
-      try { await loadSolutionStep(0); }
-      catch (error) { if(model.diagram === expected) leaveReference(); else {reference=null;walkthrough=null;render();} throw error; }
-    }
-    async function showFull() {
-      if (!current?.referenceExampleId) return;
-      const token = ++generation, example = config.examples.find(e => e.id === current.referenceExampleId);
-      const response = await fetch(example.path); if (!response.ok) throw Error('Example architecture is unavailable');
-      const diagram = documentsApi.validate(await response.json(), library, config);
-      if (token !== generation) return;
-      if (!reference) reference = clone(model.diagram);
-      const result = model.replace(diagram); if (!result.ok) throw Error(result.error);
-      info.close(); refresh(); canvas.fit({readable: true});
-    }
-    function renderDetails() {
-      infoBody.replaceChildren(); if (!current) return;
-      infoBody.append(make('p', '', current.problemStatement), sourceElement(current));
-      if (walkthrough) infoBody.append(make('p', '', walkthrough.solution.boundary));
-      const step = current.steps[progress.index - 1];
-      if (step) {
-        infoBody.append(make('h3', '', step.name), make('p', '', step.interviewerPrompt));
-        if (step.solution || step.tradeoffs?.length) {
-          const hint = make('details'); hint.append(make('summary', '', 'Practice notes'));
-          if (step.solution) hint.append(make('p', '', step.solution));
-          if (step.tradeoffs?.length) { const list = make('ul'); for (const text of step.tradeoffs) list.append(make('li', '', text)); hint.append(list); }
-          infoBody.append(hint);
-        }
-      }
-      if (current.sourceKind !== 'practice' && current.sourceKind !== 'custom') infoBody.append(make('small', '', sourceData.followupAttribution));
-      if (current.referenceExampleId) infoBody.append(button('Open example', 'Open optional example architecture', showFull));
-    }
-    function reset() {
-      generation++; progress.clear(); current = null; reference = null; walkthrough = null; problems.delete('custom');
-      picker.close(); info.close(); custom.value = ''; preview.textContent = ''; provenance.replaceChildren(); infoBody.replaceChildren();
-      select.value = ''; render();
-    }
-    const keydown = event => {
-      if (event.target.closest('input,textarea,select,[contenteditable=true]') || doc.querySelector('dialog[open]')) return;
-      if (event.key === '[' || event.key === ']') { event.preventDefault(); goToStep(progress.index + (event.key === '[' ? -1 : 1)); }
-    };
-    listen(doc, 'keydown', keydown);
-    choose.disabled = true; render();
-    const ready = Promise.all([config.interviewProblemsPath, config.interviewJourneysPath, config.interviewSolutionsPath].map(async path => {
-      if (!path) throw Error('Interview data path is required');
-      const response = await fetch(path); if (!response.ok) throw Error(`Interview data unavailable: ${path}`); return response.json();
-    })).then(([data, journeys, solutionData]) => {
-      if (journeys?.schema !== 'simulatte.systemDiagramInterview.v1' || !journeys.scenarios) throw Error('Interview practice journeys are required');
-      sourceData = validateProblems(data);
-      solutions = validateSolutions(solutionData, sourceData, config);
-      for (const p of sourceData.problems) problems.set(p.id, p);
-      for (const [id, p] of Object.entries(journeys.scenarios || {})) problems.set(id, {...p, id, sourceKind: 'practice', referenceExampleId: id});
-      renderPicker(); choose.disabled = false; render();
-    }).catch(error => { onMessage?.(error.message, true); throw error; });
-    // The page reports a failed load while callers can also await readiness.
-    ready.catch(() => {});
-    return Object.freeze({ready, setScenario, goToStep, showFull, showSolution, leaveReference, reset, onDocumentLoaded: reset,
-      toggleDrawer() { if (info.open) info.close(); else if (current) { renderDetails(); info.showModal(); } },
-      getScenario: () => current, getStepIndex: () => progress.index, isExpanded: () => info.open,
-      dispose() { generation++; progress.clear(); events.abort(); bar.remove(); stepper.remove(); picker.remove(); info.remove(); },
-    });
-  }
-  function validateSolutions(data, problems, config) {
-    if (data?.schema !== 'simulatte.interviewSolutions.v1' || !data.solutions || Array.isArray(data.solutions)) throw Error('Solution registry is required');
-    for (const [id, solution] of Object.entries(data.solutions)) {
-      if (solution.id !== id || !solution.title || !solution.boundary || !Array.isArray(solution.steps) || !solution.steps.length || solution.steps.some(s=>!s.name || !s.explanation || !/^\/data\/system-diagram\/solutions\/[a-z0-9-]+\/step-[1-9][0-9]*\.json$/.test(s.diagramPath))) throw Error(`Invalid solution: ${id}`);
-      if (!config.examples.some(e=>e.id===id)) throw Error(`Solution ${id} needs an example architecture`);
-    }
-    for (const problem of problems.problems) if (problem.solutionId && !data.solutions[problem.solutionId]) throw Error(`Missing solution for ${problem.id}`);
-    return clone(data.solutions);
-  }
-  return Object.freeze({create, buildStepDocument, validateProblems, validateSolutions, createProgress});
+  listen(doc,'keydown',event=>{if(event.target.closest('input,textarea,select,[contenteditable=true]')||doc.querySelector('dialog[open]'))return;if(event.key==='['||event.key===']'){event.preventDefault();goToStep((walkthrough?.index??index)+(event.key==='['?-1:1)).catch(e=>onMessage?.(e.message,true));}});
+  choose.disabled=true;render();const ready=(async()=>{const token=generation,response=await fetch(config.problemsPath);if(!response.ok)throw Error('Problem collection is unavailable');collection=P.validateCollection(await response.json(),library,config);for(const p of collection.problems)problems.set(p.id,p);renderPicker();choose.disabled=false;if(token===generation)render();})().catch(e=>{onMessage?.(e.message,true);throw e;});ready.catch(()=>{});
+  return Object.freeze({ready,setScenario,goToStep,showSolution,showFull:showSolution,leaveReference,reset,onDocumentLoaded:reset,registerPrivate,unregisterPrivate,privateState,restorePrivateState,publicState,restorePublicState,getSelection:()=>current()?{problemId:current().id,solutionId:walkthrough?.solutionId||null,stageId:activeStage()?.id||null,isPrivate:Boolean(current().isPrivate)}:null,getScenario:current,getStepIndex:()=>walkthrough?.index??index,isExpanded:()=>info.open,toggleDrawer(){if(info.open)info.close();else if(current()){renderDetails();info.showModal();}},dispose(){generation++;reset();events.abort();bar.remove();stepper.remove();picker.remove();info.remove();}});
+ }
+ // Legacy validators remain for compatibility exports and older third-party callers.
+ function validateProblems(data){if(data?.schema!=='simulatte.lucydProblems.v1'||!Array.isArray(data.problems))throw Error('Interview problem registry is required');const seen=new Set();for(const p of data.problems){if(!p.id||seen.has(p.id))throw Error('Interview problems need unique IDs');seen.add(p.id);const source=data.sources?.[p.sourceId];if(!source||!/^https:\/\//.test(source.url)||source.kind!==p.sourceKind)throw Error('Interview problem needs matching source provenance');}return clone(data);}
+ function validateSolutions(data,problems,config){if(data?.schema!=='simulatte.interviewSolutions.v1'||!data.solutions)throw Error('Solution registry is required');for(const [id,s]of Object.entries(data.solutions)){if(id!==s.id||!s.title||!s.boundary||!s.steps?.length||s.steps.some(st=>!st.name||!st.explanation||!/^\/data\/system-diagram\/solutions\/[a-z0-9-]+\/step-[1-9][0-9]*\.json$/.test(st.diagramPath)))throw Error(`Invalid solution: ${id}`);}for(const p of problems.problems)if(p.solutionId&&!data.solutions[p.solutionId])throw Error(`Missing solution for ${p.id}`);return clone(data.solutions);}
+ return Object.freeze({create,createProgress,buildStepDocument,validateProblems,validateSolutions});
 });
