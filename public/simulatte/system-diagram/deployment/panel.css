@@ -1,0 +1,9 @@
+.lucyd-deployment { width: min(48rem, calc(100vw - 2rem)); max-height: calc(100dvh - 2rem); overflow: auto; }
+.lucyd-deployment .panel-heading { position: sticky; top: 0; background: var(--wui-paper); z-index: 1; padding-block: .5rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.lucyd-deployment h2 { font-size: 1.05rem; margin: 0; }
+.lucyd-deployment p { font-size: .875rem; }
+.lucyd-deployment-bindings { white-space: pre-wrap; overflow-wrap: anywhere; font-size: .8rem; }
+.lucyd-deployment details { margin-block: 1rem; }
+.lucyd-deployment label { display: block; margin-block: .75rem; font-size: .875rem; }
+.lucyd-deployment textarea { box-sizing: border-box; width: 100%; resize: vertical; font-family: monospace; font-size: .8rem; }
+.lucyd-deployment-actions { display: flex; flex-wrap: wrap; gap: .5rem; }

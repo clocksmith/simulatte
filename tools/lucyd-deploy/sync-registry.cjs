@@ -1,0 +1,11 @@
+#!/usr/bin/env node
+'use strict';
+const fs=require('node:fs'),path=require('node:path'),{createHash}=require('node:crypto');
+const root=path.resolve(__dirname,'../..'),file=path.join(root,'public/simulatte/system-diagram/deployment/registry.json');
+const sourceFiles=['public/simulatte/system-diagram/deployment/compiler.js','public/simulatte/system-diagram/diagram.js','public/simulatte/system-diagram/subsystems.js','public/simulatte/system-diagram/class-library.js','public/simulatte/system-diagram/kernels-core.js','public/simulatte/system-diagram/kernels-interview.js','public/data/system-diagram/class-library.json','public/data/system-diagram/classes/interview.json','public/data/system-diagram/config.json'];
+const implementationFiles=['tools/lucyd-deploy/package.json','tools/lucyd-deploy/app/store.cjs','tools/lucyd-deploy/app/server.cjs','tools/lucyd-deploy/app/main.cjs','tools/lucyd-deploy/app/traffic.cjs','tools/lucyd-deploy/Dockerfile','tools/lucyd-deploy/package-lock.json'];
+const hashes=files=>Object.fromEntries(files.map(name=>[name,createHash('sha256').update(fs.readFileSync(path.join(root,name))).digest('hex')]));
+const sorted=value=>Array.isArray(value)?value.map(sorted):value&&typeof value==='object'?Object.fromEntries(Object.keys(value).sort().map(key=>[key,sorted(value[key])])):value;
+function update({check=false}={}){const registry=JSON.parse(fs.readFileSync(file));registry.generatedBy='tools/lucyd-deploy/sync-registry.cjs';registry.libraryVersion=JSON.parse(fs.readFileSync(path.join(root,'public/data/system-diagram/class-library.json'))).version;registry.sourceHashes=hashes(sourceFiles);registry.implementationSourceHashes=hashes(implementationFiles);const output=JSON.stringify(sorted(registry),null,2)+'\n';if(check){if(output!==fs.readFileSync(file,'utf8'))throw Error('Lucyd deployment source pins are stale; inspect the contract changes before running sync-registry.cjs');}else fs.writeFileSync(file,output);return registry;}
+if(require.main===module){try{update({check:process.argv.includes('--check')});console.log('Lucyd deployment source pins '+(process.argv.includes('--check')?'verified':'updated'));}catch(error){console.error(error.message);process.exitCode=1;}}
+module.exports={update};

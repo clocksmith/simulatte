@@ -1,0 +1,25 @@
+{
+  "schema": "simulatte.lucydDeploymentConfig.v1",
+  "target": "gke-kubernetes",
+  "name": "lucyd-inventory",
+  "namespace": "lucyd-inventory",
+  "sku": "item-0",
+  "bindings": {},
+  "images": {
+    "application": "REPLACE_WITH_PUBLISHED_APPLICATION_IMAGE_AT_SHA256_DIGEST",
+    "postgres": "REPLACE_WITH_VERIFIED_POSTGRES_17_ALPINE_IMAGE_AT_SHA256_DIGEST"
+  },
+  "databaseSecret": {"name": "inventory-database", "key": "DATABASE_URL"},
+  "postgresPasswordSecret": {"name": "inventory-database", "key": "POSTGRES_PASSWORD"},
+  "apiTokenSecret": {"name": "inventory-api", "key": "API_TOKEN"},
+  "resources": {
+    "api": {"requests": {"cpu": "100m", "memory": "128Mi"}, "limits": {"cpu": "500m", "memory": "256Mi"}},
+    "worker": {"requests": {"cpu": "100m", "memory": "128Mi"}, "limits": {"cpu": "500m", "memory": "256Mi"}},
+    "postgres": {"requests": {"cpu": "250m", "memory": "256Mi"}, "limits": {"cpu": "1000m", "memory": "512Mi"}},
+    "traffic": {"requests": {"cpu": "100m", "memory": "128Mi"}, "limits": {"cpu": "500m", "memory": "256Mi"}}
+  },
+  "replicas": {"api": 2, "worker": 2},
+  "storage": {"size": "2Gi", "className": "standard-rwo"},
+  "expiry": {"leaseMs": 5000, "pollMs": 250, "batchSize": 100},
+  "faultHandling": "record-only"
+}

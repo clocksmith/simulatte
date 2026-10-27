@@ -1,0 +1,16 @@
+{
+  "name": "lucyd-deployment-pilot",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Explicit Lucyd inventory implementation and read-only deployment compiler",
+  "scripts": {
+    "test": "node --test tests/*.test.cjs",
+    "test:postgres": "node --test tests/postgres.integration.cjs",
+    "inspect": "node cli.cjs inspect",
+    "compile": "node cli.cjs compile",
+    "test:container": "node --test tests/container.integration.cjs"
+  },
+  "dependencies": {
+    "pg": "8.16.3"
+  }
+}

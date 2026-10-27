@@ -1,0 +1,94 @@
+{
+  "boundaries": [
+    "One inventory authority and SKU; no payment provider or distributed consensus.",
+    "Timing, queues and fault schedules remain simulation assumptions; real measurements are independent.",
+    "Compilation creates no cloud resources; image availability and deployment qualification are separate gates."
+  ],
+  "documentSchema": "simulatte.systemDiagram.v4",
+  "generatedBy": "tools/lucyd-deploy/sync-registry.cjs",
+  "implementationSourceHashes": {
+    "tools/lucyd-deploy/Dockerfile": "db08f669cf493f8ab29497b0ed6ed387fa6e886a51efb09c7c9deb842283e529",
+    "tools/lucyd-deploy/app/main.cjs": "bfe03e8e4ebf7b9bb5df93dccbb5a0f7e728e66125d76b8124a65766ed018196",
+    "tools/lucyd-deploy/app/server.cjs": "f3123e3d85faefdc608cde97190aa5f3ceae2e902b80cb0e6fcf8f63e4809a0c",
+    "tools/lucyd-deploy/app/store.cjs": "4826fb5299c88ed9597f7becd761f9195fbcb75e6936ec14112a0769a144537c",
+    "tools/lucyd-deploy/app/traffic.cjs": "b3eb7759e3bdd3adbd539a09354c95f5468a1213d7d6a1a4a49359bc5ac99ee9",
+    "tools/lucyd-deploy/package-lock.json": "a4a733552efbe590cd9e74b470da4eef68fd0982f5fd4b1d7ac3b5fdb56a0055",
+    "tools/lucyd-deploy/package.json": "228bdbb697c25450db5d1aa279661eb7c73207ccb6c65cee7884fad9e662f074"
+  },
+  "implementations": [
+    {
+      "builtinId": "inventory-reservations",
+      "businessParameters": [
+        "stock",
+        "ttlSec",
+        "maxRecords"
+      ],
+      "contracts": [
+        "inventory-http-v1",
+        "stock-conservation-v1"
+      ],
+      "id": "inventory-postgres@1",
+      "kernel": "inventoryReservations",
+      "role": "inventory-api"
+    },
+    {
+      "builtinId": "operation-client",
+      "businessParameters": [
+        "operation",
+        "count",
+        "intervalMs",
+        "startSec",
+        "keySpace",
+        "actorSpace",
+        "duplicateEvery",
+        "actorOffset"
+      ],
+      "contracts": [
+        "inventory-http-v1"
+      ],
+      "id": "inventory-traffic@1",
+      "kernel": "operationSource",
+      "role": "traffic-generator"
+    },
+    {
+      "builtinId": "worker",
+      "businessParameters": [],
+      "contracts": [
+        "inventory-events-v1"
+      ],
+      "id": "inventory-events@1",
+      "kernel": "service",
+      "role": "receipt-sink"
+    }
+  ],
+  "libraryVersion": "1.3.0",
+  "schema": "simulatte.lucydDeploymentRegistry.v1",
+  "sourceHashes": {
+    "public/data/system-diagram/class-library.json": "37f3c869990f218e91866c2e4453e086f9795cf1f24286e231d855065f3abf94",
+    "public/data/system-diagram/classes/interview.json": "0a3210a423418f2fe94a1792246730b2a7572f1ea33baa2f2888a0338742f69c",
+    "public/data/system-diagram/config.json": "0c98682b821c96219c5d28d7d82358fa860e83183935b4d18b7c39544939665e",
+    "public/simulatte/system-diagram/class-library.js": "b63650a2c9c4e66f4bd2c4df6dc97461b27da17334d09751e20ab550983ed005",
+    "public/simulatte/system-diagram/deployment/compiler.js": "b7834a0ee556e1443b8779e3889a3b1bbf9785eb1ea2e8eabc335ed6306b3e08",
+    "public/simulatte/system-diagram/diagram.js": "21e03f818066b1650be1e1b1d5be837fdd99e93f1e8960638830d6a9d5dd7526",
+    "public/simulatte/system-diagram/kernels-core.js": "30b5447ead9136c35a85538153079357cb82054609650b6d57ebc83fb946ad64",
+    "public/simulatte/system-diagram/kernels-interview.js": "0ac584c4143f9aef49f4022280eca75684b42a1d46e690e56e603ad041713c5a",
+    "public/simulatte/system-diagram/subsystems.js": "af7e3b25e8ef30ab435512cd9880ce145379d1ae42fd70d94d1919569e9b93d9"
+  },
+  "supportedEdges": [
+    {
+      "contract": "inventory-http-v1",
+      "from": "operationSource",
+      "fromPort": "out",
+      "to": "inventoryReservations",
+      "toPort": "in"
+    },
+    {
+      "contract": "inventory-events-v1",
+      "from": "inventoryReservations",
+      "fromPort": "updates",
+      "to": "service",
+      "toPort": "in"
+    }
+  ],
+  "version": "inventory-postgres-v1"
+}
