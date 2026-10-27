@@ -1,0 +1,27 @@
+{
+  "url": "https://simulatte.world/system-diagram",
+  "build": {
+    "build": "c0a9fe5268caed39a81469c2ec856c46b22d8f16-ac0875b017e4"
+  },
+  "publicProblems": 46,
+  "approaches": 92,
+  "stages": 736,
+  "cases": [
+    {
+      "width": 1440,
+      "allProblemsSelectable": true,
+      "cachedFileSolutionWithoutUnlock": true,
+      "privateOptions": 0,
+      "localRequests": 0,
+      "errors": []
+    },
+    {
+      "width": 390,
+      "allProblemsSelectable": true,
+      "cachedFileSolutionWithoutUnlock": true,
+      "privateOptions": 0,
+      "localRequests": 0,
+      "errors": []
+    }
+  ]
+}
