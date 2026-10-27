@@ -1,0 +1,21 @@
+{
+  "url": "https://simulatte.world/system-diagram?problem=L035",
+  "cases": [
+    {
+      "width": 1440,
+      "cachedFileLink": true,
+      "displayedReference": true,
+      "queueSelectionByReference": true,
+      "urlTracksSelection": true,
+      "errors": []
+    },
+    {
+      "width": 390,
+      "cachedFileLink": true,
+      "displayedReference": true,
+      "queueSelectionByReference": true,
+      "urlTracksSelection": true,
+      "errors": []
+    }
+  ]
+}
