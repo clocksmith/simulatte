@@ -1,7 +1,7 @@
 'use strict';
 // Authoring helpers only. These graphs are interview designs, not simulation implementations.
 const clone=value=>structuredClone(value);
-const SCHEMA='simulatte.composableStudy.v1';
+const SCHEMA='simulatte.composableStudy.v2';
 const LIBRARY='simulatte.studyComponents.v1';
 const TYPES=['client','service','module','store','log','queue','worker','cache','directory','external'];
 const library={schema:LIBRARY,version:1,components:TYPES.map(kind=>({id:'core.'+kind,version:1,kind,description:'Logical '+kind+' responsibility. Deployment and execution require an explicit implementation binding.'}))};

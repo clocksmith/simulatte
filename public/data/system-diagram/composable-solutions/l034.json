@@ -593,7 +593,7 @@
       "url": "https://spec.matrix.org/latest/client-server-api/"
     }
   ],
-  "schema": "simulatte.composableStudy.v1",
+  "schema": "simulatte.composableStudy.v2",
   "solutions": [
     {
       "acceptanceCases": [

@@ -1,0 +1,86 @@
+'use strict';
+const g=(question,given,when)=>({question,given,when});
+const guides={
+ L004:{
+  coarse:g('What are the send, history and device receipt contracts?','Two authorized members share a conversation.','Send a client-identified message and request subsequent history.'),
+  'split-storage':g('Where do message ownership and durable acknowledgement live?','A message is accepted through a stateless API.','Restart the API after the storage commit and read history again.'),
+  optimistic:g('How does a pending message become confirmed without appearing twice?','The client has one pending clientMsgId and an unreliable connection.','Retry that send and deliver its acknowledgement or matching server event.'),
+  'identity-order':g('How are message identity and conversation order committed atomically?','Several senders submit messages and one repeats its operation identity.','Assign conversation sequences in durable transactions and replay the repeated request.'),
+  'live-delivery':g('How does committed history reach an online device?','A durable message exists and connected gateways subscribe to its conversation.','Deliver live notifications in duplicate and out of sequence.'),
+  acks:g('What do delivered and read cursors actually acknowledge?','A device has applied a contiguous prefix and buffered a later message.','Send repeated and regressing delivery/read acknowledgements.'),
+  reconnect:g('How do live delivery and replay close gaps after reconnect?','The device retained sequence 2 while several later messages committed.','Replay history while duplicate live messages arrive.'),
+  reconciler:g('Which component owns pending confirmation and sequence application?','Live and replay paths can deliver the same own message.','Apply both through one reconciler and confirm the outbox entry.'),
+  scale:g('How do conversation placement and offline notices preserve the delivery contract?','Conversation history spans versioned shards and one recipient is offline.','Route by the conversation placement map and issue a nonauthoritative wake-up notice.'),
+  log:g('How does one ordered log make retries and multiple devices consistent?','Concurrent submissions include repeated clientMsgIds.','Append transactionally, recover receipts and compare device history.'),
+  inboxes:g('How do devices discover changes across all their conversations?','A committed conversation message has multiple authorized recipients.','Append idempotent per-user inbox entries and replay the fan-out job.'),
+  'sync-token':g('What happens when a sync reply is lost?','A device holds a valid inbox position token.','Repeat sync at that token and apply returned entries by conversation and sequence.'),
+  'long-poll':g('How does a sync wait avoid both lost wakeups and excessive polling?','The server can park a bounded request and the inbox may change while parking.','Check the durable position, register notification, recheck, and return on change or deadline.'),
+  'sync-engine':g('How does the sender reconcile send receipts with its own inbox?','An own send commits but its direct reply is lost.','Retry or sync and pass all resulting evidence through the unified client state owner.'),
+  'big-groups':g('When should a room avoid per-member write amplification?','A room exceeds the configured fan-out threshold.','Queue bounded fan-out for small rooms and expose a replayable large-room log cursor.'),
+  retention:g('What explicit reset follows an expired inbox token?','A device presents a position older than retained inbox history.','Return reset-required and rehydrate authoritative conversation state rather than skipping silently.')
+ },
+ L003:{
+  contract:g('What identifies the next page and its query scope?','An authenticated reader has a filter and allowed ordering.','Fetch one page and use only the returned opaque continuation token.'),
+  storage:g('What goes wrong when an offset is reused against a changing table?','The first offset page has been returned.','Insert a new row before the first page and fetch the next offset page.'),
+  keyset:g('Which immutable tuple defines a stable seek boundary?','Rows have immutable ordering keys, including a unique tie breaker.','Insert and delete rows between page requests while continuing below the previous tuple.'),
+  opaque:g('How does cursor validation bind owner, query and expiry?','A valid cursor authenticates its normalized query and owner scope.','Modify it or replay it against a different filter, sort or principal.'),
+  'client-loader':g('How are duplicate scrolls and obsolete responses rejected?','One page request is in flight when another scroll or filter change occurs.','Issue another load, resolve the newer generation first and then the obsolete response.'),
+  'hot-pages':g('What does a cached first page promise about freshness and continuation?','A first-page cache entry has a timestamp and query scope.','Serve the cached page, mutate data, then continue using its immutable seek tuple.'),
+  totals:g('Can an approximate count avoid a synchronous full-table scan?','Page reads need a bounded latency budget and only an approximate total.','Update the count asynchronously and return its as-of/version separately from exact page membership.'),
+  summary:g('Which version joins a cached first page to its approximate total?','Page data and estimates are computed at different times.','Publish one versioned summary object atomically and expose its estimate age.'),
+  shards:g('How do per-shard pages combine under one global key?','Several shards partition one globally ordered dataset.','Read n+1 below the same tuple on each shard and merge before choosing the next cursor.'),
+  ranking:g('Why is a mutable relevance score not a stable live keyset?','Documents can change rank while the reader pages.','Change the score of an unfetched document and compare live re-ranking with a fixed view.'),
+  sessions:g('What exactly is frozen by a result session?','A point-in-time search view owns a ranked membership/order snapshot.','Re-rank live documents after page one and continue the session against that fixed view.'),
+  hydrate:g('Are row values frozen or only ranked IDs?','The result session fixes IDs/order but row hydration uses current authorized data.','Update and delete rows before fetching their later page.'),
+  expiry:g('How does a bounded session restart without silently reusing its old offset?','A session expires before its next page is requested.','Return an explicit expiration and restart the query with a new generation and documented identity merging.'),
+  'index-shards':g('How is one ranked snapshot maintained across shards?','A coordinated PIT fixes participating shard generations.','Query each pinned shard using a total rank tuple and merge its candidates.')
+ },
+ L009:{
+  contract:g('Which operations belong to the thread API and user-specific overlay?','A thread has comments and an authenticated reader may vote.','Read the public tree, reply to a parent and set a personal vote.'),
+  adjacency:g('How are same-post ancestry and depth bounded?','Comments have parent references and the client requests a deep thread.','Validate parent membership, traverse with explicit limits and expose continuations.'),
+  paths:g('How does the path encode an indexed subtree without prefix collisions?','Paths use segment-delimited immutable components.','Read a subtree including descendants while excluding a sibling with a similar prefix.'),
+  'thread-cache':g('What can a shared ranked thread cache safely contain?','Many users request one post with different personal votes.','Serve ranked bounded public nodes and merge each user’s vote overlay outside the shared cache.'),
+  votes:g('How does setting a vote produce one authoritative current value?','A voter changes, clears or retries a vote on a comment.','Serialize that vote row, commit the new value and derive the old-to-new delta.'),
+  optimistic:g('How do rapid clicks retain the last desired vote?','The UI displays a confirmed vote while a request is in flight.','Click repeatedly, then acknowledge or reject the pending request.'),
+  'vote-storm':g('How can counter batching remain correct after a consumer crash?','The durable vote outbox contains repeated event deliveries.','Apply each event once with the counter/checkpoint transaction and recover after restart.'),
+  ranking:g('How do top, best and new differ, including zero votes and ties?','Comments have different up/down distributions and equal ranking keys.','Compute the declared ranking and apply a deterministic tie breaker.'),
+  live:g('How are stale score updates and a missed stream interval handled?','A client has a score version and can lose or reorder stream events.','Deliver newer, older and duplicate versions; resnapshot after a detected history gap.'),
+  pipeline:g('Who owns count, rank and publication versions for one post?','One partition’s aggregation and ranking can race after recovery.','Serialize its count/checkpoint writes and publish versioned ranking changes through durable intents.'),
+  snapshots:g('What is the freshness contract of a ranked snapshot?','Votes change while a cached thread view remains valid.','Return its version/as-of and retain personal overlays until the view acknowledges them.'),
+  builder:g('How are concurrent cache misses coalesced and failed builds retried?','Several readers miss or observe one stale snapshot.','Run one rebuild per cache key, serve according to staleness policy and clear failed in-flight state.'),
+  polling:g('What does an ETag prove about an unchanged public snapshot?','The client holds the current snapshot ETag.','Poll with If-None-Match, then repeat after a newly published version.'),
+  partition:g('How can comments and votes share a consistent post snapshot?','The builder needs comment topology and vote rows for the same post.','Read them from one partition snapshot while votes continue to commit.')
+ },
+ L011:{
+  contract:g('What constitutes an authoritative post and a home-feed page?','An authenticated user posts with a client operation ID.','Repeat the same post submission and request the first home page.'),
+  storage:g('Who owns tweets and the changing follow graph?','Posts and follow relationships live durably.','Merge authorized recent posts for the current followed-author set.'),
+  fanout:g('How is one committed post delivered to follower timeline lists?','A post’s durable publication event can be delivered more than once.','Enumerate bounded follower batches and upsert each timeline identity idempotently.'),
+  hydrate:g('How do cached IDs respect deletions and visibility changes?','A cached list still references a deleted or newly forbidden tweet.','Hydrate its IDs under current visibility rules and omit unavailable rows.'),
+  bounded:g('How are capped or evicted timelines recovered?','An inactive reader’s bounded home list has been trimmed or evicted.','Rebuild from authoritative follows and posts using the same visibility/order rules.'),
+  celebrities:g('When does a high-follower author switch from fan-out to pull?','One followed author exceeds the fan-out policy threshold.','Skip per-follower writes and merge that author’s posts at read under one total order.'),
+  'client-feed':g('How do live posts avoid moving an ongoing page and duplicating own posts?','An own post is pending and live results overlap fetched pages.','Reconcile client IDs, buffer new posts above the anchored list and deduplicate by tweet ID.'),
+  live:g('How does live publication survive a commit/publish crash?','A post and its publication intent commit atomically.','Crash before delivery, restart the outbox dispatcher and resume bounded live replay.'),
+  builder:g('Which shared rules make fan-out and rebuild equivalent?','A home list can be produced incrementally or rebuilt.','Apply the same graph, visibility, ordering and deduplication rules to both paths.'),
+  mixer:g('What is the cost of merging followed authors on each read?','A user follows several authors with stable timestamp/ID order.','Fetch bounded candidates and merge under a signed global continuation key.'),
+  'author-cache':g('What happens when the author cache cannot cover a deep cursor?','Only the newest bounded author IDs are cached.','Continue below the cursor using indexed durable posts rather than truncating history.'),
+  'first-page':g('How stale may a shared first page be?','A first-page entry has a bounded TTL and graph/authorization scope.','Refresh within its policy and keep continuation anchored to the returned key.'),
+  streams:g('When is an author stream durable enough to resume?','The gateway presents an ID inside or outside stream retention.','Replay within retention or explicitly resnapshot; never claim arbitrary reconnects are lossless.')
+ },
+ L013:{
+  contract:g('What is accepted versus held, paid or refunded?','A buyer submits a uniquely identified checkout operation.','Reserve and retry while distinguishing an accepted command from a stock decision.'),
+  storage:g('Why does read-check-write oversell?','Many buyers read the same positive stock value.','Interleave their decisions before any write completes.'),
+  atomic:g('Which transaction protects stock, buyer limits and reservation receipts?','Buyers compete for fixed stock and repeat operation IDs.','Atomically check/decrement, create the hold and persist a payload-bound receipt.'),
+  'checkout-client':g('How does the client recover a lost checkout reply?','A reserve commits but the mobile client receives no acknowledgement.','Retry the same operation ID and poll its authoritative status.'),
+  payments:g('How are provider calls and duplicate webhooks reconciled?','A durable hold exists before a provider call using its stable payment key.','Deliver duplicate, delayed and contradictory provider outcomes after signature verification.'),
+  expiry:g('Which reservation states can safely return stock?','An unpaid held reservation reaches its deadline while payment may race.','Apply the ordered/conditional expiry transition and handle a later success explicitly.'),
+  reconcile:g('What happens when the provider outcome remains unknown?','The provider may have charged but its request timed out.','Query using the same payment key; retain uncertainty and alert instead of assuming failure.'),
+  'waiting-room':g('How do admission limits remain bounded and non-bypassable?','The waiting population exceeds stock-processing capacity.','Issue and redeem signed one-use admissions under per-tick/global budgets.'),
+  buckets:g('Can a bucket decrement and reservation insert fail independently?','Stock is split among buckets within one transactional database.','Reserve from a nonempty bucket and insert its receipt in the same transaction; retry if it rolls back.'),
+  outcomes:g('Which state machine applies both pushed and polled payment answers?','One provider answer is observed through webhook and reconciliation.','Apply its conditional transition once and issue compensation intents durably if required.'),
+  log:g('What makes a per-SKU command order durable?','Commands for one SKU are appended to a partition.','Acknowledge acceptance after durable append and replay the partition under a fenced owner.'),
+  actor:g('Can two actor owners commit competing stock decisions?','A SKU partition has an exclusive fenced owner.','Apply commands sequentially, deduplicate outcomes and reject stale-owner writes.'),
+  snapshots:g('What is included at a checkpoint boundary?','The actor has applied a durable prefix with operation receipts.','Checkpoint stock, reservations, receipts and offset atomically, then replay only the suffix.'),
+  state:g('How do restored outcomes stay consistent with restored stock?','An actor restarts from a checkpoint while clients poll prior commands.','Restore outcomes and dedupe state at the same offset as inventory before serving decisions.')
+ }
+};
+module.exports={guides};

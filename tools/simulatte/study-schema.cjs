@@ -14,7 +14,8 @@ const operations=[
  object({op:constant('connect'),edge:namedRef('edge')}),
  object({op:constant('disconnect'),edgeId:s}),
  object({op:constant('reconnect'),edgeId:s,edge:namedRef('edge'),reason:s}),
- object({op:constant('replace'),nodeId:s,definitionId:s,migration:s}),
+ object({op:constant('rebind'),nodeId:s,subsystemId:s,reason:s}),
+ object({op:constant('replace'),nodeId:s,definitionId:s,migration:s,label:s},['op','nodeId','definitionId','migration']),
  object({op:constant('expand'),nodeId:s,subsystemId:s,nodes:list(namedRef('node')),edges:list(namedRef('edge'))}),
  object({op:constant('merge'),nodeIds:{...strs,minItems:2,uniqueItems:true},node:namedRef('node'),reason:s})
 ];
@@ -25,9 +26,9 @@ const port=object({id:s,direction:{enum:['in','out']},contractId:s});
 const exposed=object({...port.properties,target:endpoint});
 const schema={
  $schema:'https://json-schema.org/draft/2020-12/schema',
- title:'Lucyd composable interview study problem, version 1',
+ title:'Lucyd composable interview study problem, version 2',
  description:'Conceptual architecture progression. It does not claim kernel execution or production deployment. Foreign runtime or editor state belongs in a separate workspace envelope, not this authored document.',
- ...object({schema:constant('simulatte.composableStudy.v1'),version:constant(1),problem:object({referenceId:{type:'string',pattern:'^L[0-9]{3}$'},studyLabel:s,scope:s,requirements:list(object({id:s,text:s}))}),execution:object({kind:constant('conceptual-design'),implementation:{type:'null'}}),provenance:object({kind:constant('authored-practice'),note:s}),references:list(object({id:s,title:s,url:{type:'string',pattern:'^https://'},scope:constant('background'),supports:s})),contracts:list(object({id:s,version:constant(1),request:shape,response:shape})),components:list(object({id:s,version:constant(1),extends:object({id:s,version:positive}),label:s,responsibility:s,stateOwnership:strs,ports:list(port)})),subsystems:list(object({id:s,version:constant(1),definitionId:s,ports:list(exposed)})),solutions:{...list(solution),minItems:2}}),
+ ...object({schema:constant('simulatte.composableStudy.v2'),version:constant(1),problem:object({referenceId:{type:'string',pattern:'^L[0-9]{3}$'},studyLabel:s,scope:s,requirements:list(object({id:s,text:s}))}),execution:object({kind:constant('conceptual-design'),implementation:{type:'null'}}),provenance:object({kind:constant('authored-practice'),note:s}),references:list(object({id:s,title:s,url:{type:'string',pattern:'^https://'},scope:constant('background'),supports:s})),contracts:list(object({id:s,version:constant(1),request:shape,response:shape})),components:list(object({id:s,version:constant(1),extends:object({id:s,version:positive}),label:s,responsibility:s,stateOwnership:strs,ports:list(port)})),subsystems:list(object({id:s,version:constant(1),definitionId:s,ports:list(exposed)})),solutions:{...list(solution),minItems:2}}),
  $defs:{node,edge,graph}
 };
 module.exports={schema};

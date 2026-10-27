@@ -512,7 +512,7 @@
       "url": "https://openconnect.netflix.com/en/"
     }
   ],
-  "schema": "simulatte.composableStudy.v1",
+  "schema": "simulatte.composableStudy.v2",
   "solutions": [
     {
       "acceptanceCases": [

@@ -394,7 +394,7 @@
       "type": "array"
     },
     "schema": {
-      "const": "simulatte.composableStudy.v1"
+      "const": "simulatte.composableStudy.v2"
     },
     "solutions": {
       "items": {
@@ -723,7 +723,38 @@
                       {
                         "additionalProperties": false,
                         "properties": {
+                          "nodeId": {
+                            "minLength": 1,
+                            "type": "string"
+                          },
+                          "op": {
+                            "const": "rebind"
+                          },
+                          "reason": {
+                            "minLength": 1,
+                            "type": "string"
+                          },
+                          "subsystemId": {
+                            "minLength": 1,
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "op",
+                          "nodeId",
+                          "subsystemId",
+                          "reason"
+                        ],
+                        "type": "object"
+                      },
+                      {
+                        "additionalProperties": false,
+                        "properties": {
                           "definitionId": {
+                            "minLength": 1,
+                            "type": "string"
+                          },
+                          "label": {
                             "minLength": 1,
                             "type": "string"
                           },
@@ -967,6 +998,6 @@
     "subsystems",
     "solutions"
   ],
-  "title": "Lucyd composable interview study problem, version 1",
+  "title": "Lucyd composable interview study problem, version 2",
   "type": "object"
 }

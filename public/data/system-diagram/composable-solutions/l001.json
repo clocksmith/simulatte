@@ -483,7 +483,7 @@
       "url": "https://www.postgresql.org/docs/current/explicit-locking.html"
     }
   ],
-  "schema": "simulatte.composableStudy.v1",
+  "schema": "simulatte.composableStudy.v2",
   "solutions": [
     {
       "acceptanceCases": [

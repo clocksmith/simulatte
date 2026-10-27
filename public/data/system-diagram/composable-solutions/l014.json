@@ -578,7 +578,7 @@
       "url": "https://kubernetes.io/docs/concepts/architecture/controller/"
     }
   ],
-  "schema": "simulatte.composableStudy.v1",
+  "schema": "simulatte.composableStudy.v2",
   "solutions": [
     {
       "acceptanceCases": [

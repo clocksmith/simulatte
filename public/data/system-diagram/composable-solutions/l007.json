@@ -454,7 +454,7 @@
       "url": "https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/http/http_routing.html"
     }
   ],
-  "schema": "simulatte.composableStudy.v1",
+  "schema": "simulatte.composableStudy.v2",
   "solutions": [
     {
       "acceptanceCases": [

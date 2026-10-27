@@ -444,7 +444,7 @@
       "url": "https://graphql.org/learn/pagination/"
     }
   ],
-  "schema": "simulatte.composableStudy.v1",
+  "schema": "simulatte.composableStudy.v2",
   "solutions": [
     {
       "acceptanceCases": [

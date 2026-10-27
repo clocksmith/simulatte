@@ -491,7 +491,7 @@
       "url": "https://raft.github.io/raft.pdf"
     }
   ],
-  "schema": "simulatte.composableStudy.v1",
+  "schema": "simulatte.composableStudy.v2",
   "solutions": [
     {
       "acceptanceCases": [

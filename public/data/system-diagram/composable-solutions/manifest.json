@@ -6,22 +6,38 @@
   "executionKind": "conceptual-design",
   "problemSchema": {
     "path": "problem.schema.json",
-    "sha256": "186f63f508e8757ec7c5481f56f044fd8e345a9231d398391fd5611e2bbca7f0"
+    "sha256": "047263766fd45c839127478aeb7731d11703eb180ac15106e8d5256a05b9223e"
   },
   "problems": [
     {
       "path": "l001.json",
       "problemId": "database-service",
       "referenceId": "L001",
-      "sha256": "ef4aba626a98429ad80694abba82e3e29eae9f91633f3d9ddde8d5ab74f883f5",
+      "sha256": "45a66bf07630dec2dde2c01a9922c2aa6afb421eae1314ecc7dab18cf5833388",
       "solutions": 2,
       "stages": 16
+    },
+    {
+      "path": "l003.json",
+      "problemId": "pagination",
+      "referenceId": "L003",
+      "sha256": "cf320c30ad113cd7418e74dd684b5eb56ca78393b797159cc6abd612009ee442",
+      "solutions": 2,
+      "stages": 18
+    },
+    {
+      "path": "l004.json",
+      "problemId": "chat",
+      "referenceId": "L004",
+      "sha256": "ef593c594002438a439f41a2ec0ea7432feb283177f982c883e9b750718bd011",
+      "solutions": 2,
+      "stages": 18
     },
     {
       "path": "l005.json",
       "problemId": "replication",
       "referenceId": "L005",
-      "sha256": "05c667f6249b4ce4580326944a01f59d7159705977ed3fde01982aa30db7238e",
+      "sha256": "a2614c5522cfc9dc5ccea2a92f7368bdfa46fc5e8a9277f32cfc569814019662",
       "solutions": 2,
       "stages": 16
     },
@@ -29,23 +45,47 @@
       "path": "l007.json",
       "problemId": "load-balancer",
       "referenceId": "L007",
-      "sha256": "38934d031aea122632dba081e9d66415c822384e795f0e84a9d856737e2deb54",
+      "sha256": "19af8de64416ec45a8ef89ed4cf28821f58e7c2126a7be3e8f5cfe0a46a503d4",
       "solutions": 2,
       "stages": 16
+    },
+    {
+      "path": "l009.json",
+      "problemId": "reddit-comments",
+      "referenceId": "L009",
+      "sha256": "655cbc43d026272842defa604417ccc5024064735fdd261ba4fb9b342f2132be",
+      "solutions": 2,
+      "stages": 18
     },
     {
       "path": "l010.json",
       "problemId": "netflix-streaming",
       "referenceId": "L010",
-      "sha256": "09d2610d9a74a2ccb29f031dd73ca88c09b9cb328ae52181a7ccbfd989d0e1da",
+      "sha256": "4003bcb5fc9188cb364b2c7b3cb0b904d02c31f76841e2b8331d72a5d74923b0",
       "solutions": 2,
       "stages": 16
+    },
+    {
+      "path": "l011.json",
+      "problemId": "twitter-timeline",
+      "referenceId": "L011",
+      "sha256": "e7558d23b14018797e66e7ff7097ee5a70e2fe05fccc719843754afde8c416a8",
+      "solutions": 2,
+      "stages": 18
+    },
+    {
+      "path": "l013.json",
+      "problemId": "amazon-flash-sale",
+      "referenceId": "L013",
+      "sha256": "95997e1695a3342bd8872fdbe1b89a1b5d8feaa8ab64984d8944b80729c070d7",
+      "solutions": 2,
+      "stages": 19
     },
     {
       "path": "l014.json",
       "problemId": "google-crawler",
       "referenceId": "L014",
-      "sha256": "9a09891675aa60ec2672ab7d6c28efca8f22045084fa2e824e90733485a18840",
+      "sha256": "21e92de63ea3bd7bbc90ba2001da51a9164d69b1c3394b34dba6b5a81698a2ee",
       "solutions": 2,
       "stages": 16
     },
@@ -53,7 +93,7 @@
       "path": "l032.json",
       "problemId": "private-practice-1",
       "referenceId": "L032",
-      "sha256": "4a53986972921bbe944546876610ecafa9e34e546e16a5ed40002f5b8167209d",
+      "sha256": "1f1f821062c81d7127fdc3a7536a7eb786f0629278fae79510c10e719115993c",
       "solutions": 2,
       "stages": 16
     },
@@ -61,7 +101,7 @@
       "path": "l034.json",
       "problemId": "private-practice-3",
       "referenceId": "L034",
-      "sha256": "837b346f7f3dec5243dbf7e5bf2130ea4c58b9369d932d4f88776649c650022b",
+      "sha256": "ec53551f59ad7435a8ab1049652655d0e909ecb7faa4eec6da7f65138042999c",
       "solutions": 2,
       "stages": 16
     }
