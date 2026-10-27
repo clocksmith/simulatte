@@ -49,7 +49,7 @@
  registry.register({id:'paginationStore',station:STATION,immutableParams:['mode','pageSize'],init:()=>({rows:Array.from({length:8},(_,i)=>i+1),snapshots:{},pages:[],scanned:0,mutations:0}),onRequest(ctx,job){ctx.admit(job);
   },
     onServed(ctx,job){const c=job.msg.fields.apiCommand;
-  if(c?.action==='mutate'){ctx.k.rows=[0,...ctx.k.rows.filter(id=>id!==8)];
+  if(c?.action==='mutate'){ctx.k.rows=[0,...ctx.k.rows.filter(id=>id!==8&&id!==0)];
   ctx.k.mutations++;
   reply(ctx,job,{inserted:0,deleted:8});
   return;
@@ -117,12 +117,12 @@
   return;
   }if(!c||!['signup','renew','cancel'].includes(c.action)||!Number.isInteger(c.version)||c.version<1||c.version>10000||typeof c.eventId!=='string'||!(/^[a-zA-Z0-9][a-zA-Z0-9._-]{0,95}$/).test(c.eventId)){reply(ctx,job,{reason:'Invalid lifecycle event'},'invalid');
   return;
-  }if(k.applied[c.eventId]&&ctx.p.idempotent){if(k.applied[c.eventId]!==fingerprint(c)){reply(ctx,job,{reason:'Conflicting event identity'},'invalid');
+  }if(Object.hasOwn(k.applied,c.eventId)&&ctx.p.idempotent){if(k.applied[c.eventId]!==fingerprint(c)){reply(ctx,job,{reason:'Conflicting event identity'},'invalid');
   return;
   }k.duplicates++;
   reply(ctx,job,{status:k.status,version:k.version,duplicate:true});
   return;
-  }if(Object.keys(k.applied).length>=200&&!k.applied[c.eventId]){reply(ctx,job,{reason:'Lifecycle capacity'},'rejected');
+  }if(Object.keys(k.applied).length>=200&&!Object.hasOwn(k.applied,c.eventId)){reply(ctx,job,{reason:'Lifecycle capacity'},'rejected');
   return;
   }if(c.version<k.version||c.version===k.version&&ctx.p.idempotent){k.stale++;
   reply(ctx,job,{reason:'Stale version'},'rejected');
@@ -143,7 +143,7 @@
         if(!authority||value?.providerNodeId!==authority||!Array.isArray(charges)||charges.length>200||charges.some(c=>!validCharge(c))){reply(ctx,job,{reason:'Invalid provider ledger acknowledgement'},'invalid');return;}
         const events=new Map();
         for(const charge of charges){
-          const prior=events.get(charge.eventId),committed=k.applied[charge.eventId];
+          const prior=events.get(charge.eventId),committed=Object.hasOwn(k.applied,charge.eventId)?k.applied[charge.eventId]:undefined;
           if(prior&&prior!==fingerprint(charge)||committed&&committed!==fingerprint(charge)){reply(ctx,job,{reason:'Conflicting provider event identity'},'invalid');return;}
           events.set(charge.eventId,fingerprint(charge));
         }
@@ -159,9 +159,10 @@
       if(!result.ok){reply(ctx,job,{reason:'Charge outcome requires reconciliation'},result.err);return;}
       const authority=providerId(ctx),charge=value?.charge;
       if(!c||!authority||value?.providerNodeId!==authority||!validCharge(charge)||charge.eventId!==c.eventId||fingerprint(charge)!==fingerprint(c)){reply(ctx,job,{reason:'Invalid provider charge acknowledgement'},'invalid');return;}
-      if(c.version>=k.version){k.version=c.version;k.status='active';k.applied[c.eventId]=fingerprint(c);}
+      if(c.version>k.version){k.version=c.version;k.status='active';k.applied[c.eventId]=fingerprint(c);}
       reply(ctx,job,{status:k.status,version:k.version});
     },
+    onFault(ctx,fault,active){if(active&&fault.type==='crash')ctx.k.pending={};},
     observe:ctx=>({detail:{Status:ctx.k.status,Version:ctx.k.version,Reconciled:ctx.k.reconciled,Duplicates:ctx.k.duplicates,Stale:ctx.k.stale},records:{applied:Object.keys(ctx.k.applied).map(eventId=>({eventId}))}})});
 
 });

@@ -59,7 +59,7 @@ node --check public/simulatte/system-diagram/kernels-messaging.js
 git diff --check
 ```
 
-The focused run passes 73 tests. It validates every public exact stage, source
+The focused run passes 76 tests. It validates every public exact stage, source
 contracts and deterministic engine state; all 24 new stages additionally pass
 coordinator playback verification and midpoint JSON checkpoint continuation.
 Domain regressions assert cursor boundaries, charge identity and reconciliation,
@@ -81,3 +81,56 @@ checks without a terminal suite result. Two legacy-schema expectations in
 The new class glyph failure found during that run was fixed; its focused editor
 suite passes. The unrelated legacy failures remain unresolved; no full repository
 or deployed regression claim is made.
+
+## Follow-up shared-kernel and lifecycle review
+
+The repeat/interruption review added regressions and corrected three API cases:
+repeated mutation preserves unique sorted keys; an old charge acknowledgement
+cannot undo a same-version cancellation; crash clears orphan pending calls while
+retaining committed lifecycle identity. Event-ledger lookup uses own keys so
+prototype member names cannot masquerade as committed events. The focused run
+passes 76/76 tests after those fixes. Each new stage still passes coordinator
+verification and checkpoint continuation.
+
+The assertions exercise outputs and counterfactuals, not only acceptance:
+
+| Domain | Behavioral evidence |
+| --- | --- |
+| Pagination | Offset repeats key 3; keyset excludes inserted prefix/deleted key; snapshot yields initial 1 through 8 once; final cursor is null |
+| Subscriptions | Three charge effects become two with idempotency; local/provider divergence is observed before reconciliation; cancellation rejects stale renewal |
+| Chat | Lost ACK has a committed message; retry changes ACK outcome without duplicating message identity; cursor catchup returns sequences 2 and 3; outsider is denied |
+| Saved search | Exact token matches exclude gardening; recipient/day groups have expected book IDs; missing/generic delivery cannot claim an email effect |
+| Replication | Receipt policy changes completed writes; retry repair drains retained outbox; duplicate copies do not advance follower twice |
+| Tenant databases | Tenant A outage leaves B available; repaired follower versions converge |
+| Routing | Round robin exposes 16 errors; retries recover all 80 requests; failed probes reopen before eventual circuit closure |
+| Project review | Caller timeout does not erase committed effects; leased replay suppresses duplicate results; removing commit edge produces zero effects |
+
+A bounded additional lane used:
+
+```sh
+node --test --test-timeout=15000 tests/system-diagram-engine.test.cjs tests/system-diagram-kernels.test.cjs tests/system-diagram-kernels-c1.test.cjs tests/system-diagram-kernels-c2.test.cjs tests/system-diagram-routing.test.cjs tests/system-diagram-protocol-routing.test.cjs tests/system-diagram-playback.test.cjs tests/system-diagram-runtime-scripts.test.cjs tests/system-diagram-session.test.cjs tests/system-diagram-component-rail.test.cjs
+```
+
+It reports 75 passing checks and one cancelled engine-file check at the 15-second
+limit. The same `node --test --test-timeout=15000
+tests/system-diagram-engine.test.cjs` command also times out on unchanged
+`eac338a0`. This bounds the check, not an engine qualification claim.
+
+The exact two pre-existing failures are both from
+`node --test tests/system-diagram-editor-clarity.test.cjs`:
+
+- `legacy diagrams retain their exact schema for accepted replay identities`,
+  declared at line 14, failing assertion line 16.
+- `edge labels are validated authoring metadata and do not change execution`,
+  declared at line 23, failing assertion line 34.
+
+Both expect `simulatte.systemDiagram.v1` while the existing web-service fixture
+is `simulatte.systemDiagram.v4`; both reproduce on unchanged `eac338a0`.
+
+Additional local browser lifecycle evidence: pausing subscription recovery froze
+0.1 seconds while opening and closing source details; single-step advanced to
+0.6 seconds; Restart reset to 0.0. Repeated final-stage execution followed by
+returning from the running reference restored the personal blank diagram at
+0.0/120 seconds. Closing and reopening the tab reached READY at 0.0/120 seconds.
+No warning/error logs were captured in those browser checks. Temporary tabs and
+server were closed; no private content was loaded.

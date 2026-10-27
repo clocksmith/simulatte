@@ -72,3 +72,25 @@ test('reconciliation validates every ledger row and rejects identity conflicts a
   assert.equal(ctx.k.status,'none');assert.equal(ctx.k.version,0);assert.deepEqual(ctx.k.applied,{});assert.equal(replies.at(-1).err,'invalid');
  }
 });
+test('repeated mutations preserve unique sorted keys and delayed charge replies cannot undo same-version cancellation',()=>{
+ const pager=K.get('paginationStore'),pageCtx={k:pager.init(),reply(){}};
+ const mutation={msg:{fields:{apiCommand:{action:'mutate'}}}};pager.onServed(pageCtx,mutation);pager.onServed(pageCtx,mutation);
+ assert.deepEqual(pageCtx.k.rows,[0,1,2,3,4,5,6,7]);
+ const service=K.get('subscriptionService'),command={action:'signup',eventId:'signup-1',version:1,method:'card'};
+ const ctx={p:{idempotent:true},k:{...service.init(),pending:{j:command}},edges:()=>[{to:'provider'}],reply(){}};
+ service.onServed(ctx,{msg:{fields:{apiCommand:{action:'cancel',eventId:'cancel-1',version:1}}}});
+ service.onResult(ctx,{id:'j'},'charge',{ok:true,msg:{fields:{apiResult:{providerNodeId:'provider',charge:{...command,amount:10}}}}});
+ assert.equal(ctx.k.status,'cancelled');assert.equal(ctx.k.version,1);
+});
+test('subscription crash discards orphan call state while retaining committed lifecycle identity',()=>{
+ const service=K.get('subscriptionService'),ctx={k:{...service.init(),status:'active',version:1,pending:{orphan:{action:'renew'}},applied:{'signup-1':'committed'}}};
+ service.onFault?.(ctx,{type:'crash'},true);
+ assert.deepEqual(ctx.k.pending,{});assert.equal(ctx.k.status,'active');assert.deepEqual(ctx.k.applied,{'signup-1':'committed'});
+});
+test('lifecycle event identities do not collide with object prototype members',()=>{
+ const service=K.get('subscriptionService'),command={action:'signup',eventId:'constructor',version:1,method:'card'},replies=[],calls=[];
+ const ctx={p:{idempotent:true,retries:0,callTimeoutMs:100},k:service.init(),edges:()=>[{id:'charge',to:'provider'}],reply(job,value){replies.push(value);},call(...args){calls.push(args);}};
+ service.onServed(ctx,{id:'j',msg:{fields:{apiCommand:command}}});assert.equal(calls.length,1);assert.equal(replies.length,0);
+ service.onResult(ctx,{id:'j'},'charge',{ok:true,msg:{fields:{apiResult:{providerNodeId:'provider',charge:{...command,amount:10}}}}});
+ assert.equal(ctx.k.status,'active');assert.equal(Object.hasOwn(ctx.k.applied,'constructor'),true);
+});
