@@ -237,5 +237,137 @@
     };
   }
 
-  return Object.freeze({ create, matchesClass });
+  function railClasses(doc, library, config) {
+    const singles = [...library.classOrder, ...doc.classes.map(c => c.id)].map(id => D.resolveClass(id, doc, library, config));
+    const subsystems = (doc.subsystems || []).map(def => ({
+      ...D.resolveClass(`subsystem.${def.id}@${def.version}`, doc, library, config),
+      version: def.version, componentCount: def.nodes.length,
+    }));
+    return [...singles, ...subsystems];
+  }
+
+  function createRail({ host, library, model, canvas, config, ui, el, field, message, onInspect, onManage }) {
+    const document = host.ownerDocument, $ = id => document.getElementById(id);
+    const expanded = new Map();
+    const paletteCategory = field(host, 'Category', '', {
+      id: 'palette-category', choices: [{ id: '', label: 'All categories' }, ...library.categories]
+    });
+    $('capability-count').before(paletteCategory.parentElement);
+
+    let paletteKey = '';
+    function render() {
+      const search = $('palette-search').value, category = paletteCategory.value, doc = model.diagram;
+      const key = JSON.stringify([search, category, doc.classes, doc.subsystems]);
+      if (key === paletteKey) return;
+      paletteKey = key;
+
+      const available = railClasses(doc, library, config);
+      const labels = new Map(library.categories.map(c => [c.id, c.label]));
+      const visible = available.filter(c => (c.kernel === 'subsystem' || !category || c.category === category) && matchesClass(c, search, labels.get(c.category)));
+
+      const composite = available.filter(c => c.kernel === 'subsystem');
+      $('capability-count').textContent = `${available.length - composite.length} single nodes · ${composite.length} expandable subsystems`;
+      $('palette').replaceChildren();
+      const groups = [{id: 'subsystems', label: 'Expandable subsystems'}, ...library.categories];
+      const primitives = el('h3', 'palette-kind-title', 'Single nodes');
+      for (const cat of groups) {
+        const isSubsystem = cat.id === 'subsystems';
+        const classes = visible.filter(c => isSubsystem ? c.kernel === 'subsystem' : c.kernel !== 'subsystem' && c.category === cat.id);
+        if (!isSubsystem && !classes.length) continue;
+        if (!isSubsystem && !primitives.isConnected) $('palette').append(primitives);
+        const group = el('details', 'palette-group');
+        group.dataset.category = cat.id;
+        group.open = search.trim() ? true : expanded.get(cat.id) !== false;
+        group.addEventListener('toggle', () => { if (!search.trim() && group.isConnected) expanded.set(cat.id, group.open); });
+        group.append(el('summary', 'palette-category-title', `${cat.label} (${classes.length})`));
+        const section = el('div', 'palette-category');
+        group.append(section); $('palette').append(group);
+        if (isSubsystem) {
+          const manage = ui.SimButton({label: 'Create / import', variant: 'quiet', onAction: onManage}).element;
+          manage.classList.add('palette-manage'); section.append(manage);
+        }
+        if (isSubsystem && !classes.length) section.append(el('p', 'palette-empty', composite.length ? 'No matching subsystems.' : 'Save connected nodes as a subsystem, or import a subsystem library.'));
+
+
+        for (const c of classes) {
+          let start = null, ghost = null, moved = false, suppressClick = false;
+          const id = c.id;
+          const b = ui.SimButton({
+            label: c.label, variant: 'quiet',
+            onAction: () => {
+              if (suppressClick) { suppressClick = false; return; }
+              const r = $('diagram').getBoundingClientRect();
+              canvas.dropClassAt(id, r.left + r.width / 2, r.top + r.height / 2);
+            },
+            ariaLabel: `Add ${c.label}`
+          }).element;
+
+          b.classList.add('palette-item');
+          b.dataset.classId = id;
+          b.dataset.type = c.kernel;
+          b.setAttribute('aria-description', c.description || '');
+          b.title = c.kernel === 'subsystem' ? `${c.label}: expandable subsystem` : c.description || c.label;
+
+          const text = el('span', 'palette-copy');
+          text.append(el('span', 'palette-label', c.label), el('span', 'palette-item-kind', c.kernel === 'subsystem' ? `${c.componentCount} components · expandable · v${c.version}` : 'Single node'));
+          const icon = el('span', 'component-icon');
+          icon.append(Glyphs.create(document, c.glyph, 18));
+          b.replaceChildren(icon, text);
+
+          b.addEventListener('pointerdown', e => {
+            if (e.button !== 0) return;
+            start = { x: e.clientX, y: e.clientY };
+            moved = false;
+            b.setPointerCapture(e.pointerId);
+          });
+
+          b.addEventListener('pointermove', e => {
+            if (!start) return;
+            if (Math.hypot(e.clientX - start.x, e.clientY - start.y) > 7) moved = true;
+            if (!moved) return;
+            if (!ghost) {
+              ghost = el('div', 'drop-preview', c.label);
+              document.body.append(ghost);
+            }
+            ghost.style.left = `${e.clientX + 12}px`;
+            ghost.style.top = `${e.clientY - 16}px`;
+          });
+
+          b.addEventListener('pointerup', e => {
+            if (!start) return;
+            const r = $('diagram').getBoundingClientRect();
+            if (moved) {
+              suppressClick = true;
+              if (e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom) {
+                canvas.dropClassAt(id, e.clientX, e.clientY);
+              } else {
+                message('Drop inside the canvas.');
+              }
+              setTimeout(() => { suppressClick = false; }, 0);
+            }
+            start = null;
+            ghost?.remove();
+            ghost = null;
+          });
+
+          b.addEventListener('pointercancel', () => { start = null; ghost?.remove(); ghost = null; });
+          const row = el('div', 'palette-entry'); row.append(b);
+          if (c.kernel === 'subsystem') {
+            const inspect = ui.SimButton({ label: 'Inspect', variant: 'quiet', ariaLabel: `Inspect ${c.label} subsystem`, onAction: () => onInspect(c.id) }).element;
+            inspect.classList.add('palette-inspect'); row.append(inspect);
+          }
+          section.append(row);
+        }
+      }
+    }
+
+    $('palette-search').addEventListener('input', render);
+    $('palette-search').addEventListener('keydown', e => { if (e.key === 'Escape') { e.stopPropagation(); $('palette-search').value = ''; render(); } });
+    paletteCategory.addEventListener('change', render);
+
+
+    return { render };
+  }
+
+  return Object.freeze({ create, matchesClass, createRail, railClasses });
 });

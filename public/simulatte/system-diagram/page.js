@@ -535,109 +535,11 @@
     return input;
   }
 
-  // Component Library Palette
-  const paletteCategory = field(document.querySelector('.palette-search').parentElement, 'Category', '', {
-    id: 'palette-category', choices: [{ id: '', label: 'All categories' }, ...library.categories]
+  const rail = paletteApi.createRail({ host: $('palette-drawer'), library, model, canvas, config, ui, el, field, message,
+    onManage: () => { subsystemTools.open = true; subsystemTools.scrollIntoView({block: 'nearest'}); },
+    onInspect: classId => perform(() => subsystemEditor.session.active ? message('Publish or cancel the current definition first.', true) : subsystemEditor.open(classId)),
   });
-  $('capability-count').before(paletteCategory.parentElement);
-
-  let paletteKey = '';
-  function palette() {
-    const search = $('palette-search').value, category = paletteCategory.value, doc = model.diagram;
-    const all = [...library.classOrder, ...doc.classes.map(c => c.id)];
-    const key = JSON.stringify([search, category, doc.classes]);
-    if (key === paletteKey) return;
-    paletteKey = key;
-
-    const available = all.map(id => documents.resolveClass(id, doc, library, config));
-    const labels = new Map(library.categories.map(c => [c.id, c.label]));
-    const visible = available.filter(c => (!category || c.category === category) && paletteApi.matchesClass(c, search, labels.get(c.category)));
-
-    $('capability-count').textContent = `${visible.length} components available`;
-    $('palette').replaceChildren();
-    if (!visible.length) {
-      $('palette').append(el('p', 'properties-note', 'No components match your search.'));
-      return;
-    }
-
-    for (const cat of library.categories) {
-      const classes = visible.filter(c => c.category === cat.id);
-      if (!classes.length) continue;
-      const section = el('section', 'palette-category');
-      section.dataset.category = cat.id;
-      section.append(el('h3', 'palette-category-title', cat.label));
-      $('palette').append(section);
-
-      for (const c of classes) {
-        let start = null, ghost = null, moved = false, suppressClick = false;
-        const id = c.id;
-        const b = ui.SimButton({
-          label: c.label, variant: 'quiet',
-          onAction: () => {
-            if (suppressClick) { suppressClick = false; return; }
-            const r = $('diagram').getBoundingClientRect();
-            canvas.dropClassAt(id, r.left + r.width / 2, r.top + r.height / 2);
-          },
-          ariaLabel: `Add ${c.label}`
-        }).element;
-
-        b.classList.add('palette-item');
-        b.dataset.classId = id;
-        b.dataset.type = c.kernel;
-        b.setAttribute('aria-description', c.description || '');
-        b.title = c.description || c.label;
-
-        const text = el('span', 'palette-copy');
-        text.append(el('span', 'palette-label', c.label), el('span', 'palette-description', c.description || ''));
-        const icon = el('span', 'component-icon');
-        icon.append(globalThis.SimulatteSystemDiagramGlyphs.create(document, c.glyph, 18));
-        b.replaceChildren(icon, text);
-
-        b.addEventListener('pointerdown', e => {
-          if (e.button !== 0) return;
-          start = { x: e.clientX, y: e.clientY };
-          moved = false;
-          b.setPointerCapture(e.pointerId);
-        });
-
-        b.addEventListener('pointermove', e => {
-          if (!start) return;
-          if (Math.hypot(e.clientX - start.x, e.clientY - start.y) > 7) moved = true;
-          if (!moved) return;
-          if (!ghost) {
-            ghost = el('div', 'drop-preview', c.label);
-            document.body.append(ghost);
-          }
-          ghost.style.left = `${e.clientX + 12}px`;
-          ghost.style.top = `${e.clientY - 16}px`;
-        });
-
-        b.addEventListener('pointerup', e => {
-          if (!start) return;
-          const r = $('diagram').getBoundingClientRect();
-          if (moved) {
-            suppressClick = true;
-            if (e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom) {
-              canvas.dropClassAt(id, e.clientX, e.clientY);
-            } else {
-              message('Drop inside the canvas.');
-            }
-            setTimeout(() => { suppressClick = false; }, 0);
-          }
-          start = null;
-          ghost?.remove();
-          ghost = null;
-        });
-
-        b.addEventListener('pointercancel', () => { start = null; ghost?.remove(); ghost = null; });
-        section.append(b);
-      }
-    }
-  }
-
-  $('palette-search').addEventListener('input', palette);
-  $('palette-search').addEventListener('keydown', e => { if (e.key === 'Escape') { e.stopPropagation(); $('palette-search').value = ''; palette(); } });
-  paletteCategory.addEventListener('change', palette);
+  function palette() { rail.render(); }
 
   // Subsystem modularity & nested editing
   const subsystemHost = el('section', 'subsystem-library wui-control-stack');

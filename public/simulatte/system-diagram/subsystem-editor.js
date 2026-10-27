@@ -170,7 +170,7 @@
       button(actions, 'Apply subsystem overrides', () => apply({ type: 'setSubsystemOverrides', id: node.id, overrides: JSON.parse(overrides.value) }));
       host.append(el('p', 'properties-note', 'Ports: ' + D.portsForNode(node, model.diagram, library, config).map(p => `${p.id} (${p.direction}: ${(p.accepts || p.emits).join(', ')})`).join(' · ')));
     }
-    return { session, render, inspect, getDraft, restoreDraft, readPorts };
+    return { session, render, inspect, open, getDraft, restoreDraft, readPorts };
   }
   return Object.freeze({ createSession, create, projectState });
 });
