@@ -10,7 +10,7 @@
     const close = button('Close', () => dialog.close()); heading.append(title, close);
     const status = doc.createElement('p'); status.setAttribute('role', 'status');
     const content = doc.createElement('div'); dialog.append(heading, status, content); doc.body.append(dialog);
-    let session = null, collection = null, active = false, epoch = 0;
+    let session = null, collection = null, active = false, epoch = 0, localStudy = false;
     function setActive(value) { active = Boolean(value); doc.body.dataset.privateDocument = String(active); }
     function element(tag, text) { const el = doc.createElement(tag); if (text !== undefined) el.textContent = text; return el; }
     function button(label, fn) {
@@ -54,7 +54,8 @@
       root.SimulatteSystemDiagramFiles.downloadJson('private-diagram.enc.json', envelope);
     }
     function clear() {
-      epoch++; const wasActive = active; session?.lock(); session = null; collection = null; setActive(false);
+      epoch++; const wasActive = active; session?.lock(); session = null; collection = null; localStudy = false; setActive(false);
+      if (doc.body.dataset.localStudyCollection === 'ready') doc.body.dataset.localStudyCollection = 'locked';
       onUnregister?.();
       if (wasActive) onClear();
       status.textContent = 'Locked'; renderLocked();
@@ -108,7 +109,7 @@
       const exercises = element('div'); exercises.className = 'private-exercises';
       for (const exercise of data.problems) {
         const section = element('details'), summary = element('summary', exercise.title);
-        const prompt = element('p', exercise.description);
+        const prompt = root.SimulatteLucydProblems.Details.render(doc, exercise);
         const start = button('Start problem', async () => { const token = epoch; dialog.close(); await requestLoad(() => { if (token !== epoch || !session) return; onSelect?.('private:' + exercise.id); }); }); start.dataset.privateExercise = exercise.id;
         section.append(summary, prompt, element('p', exercise.solutions.length + ' solution approaches'), start); exercises.append(section);
       }
@@ -123,7 +124,39 @@
     }
     root.addEventListener('pagehide', clear);
     renderLocked();
-    return Object.freeze({open, lock, saveRecord, restoreSaved, exportRecord,
+    async function loadLocalCollection() {
+      if (!['localhost', '127.0.0.1', '[::1]'].includes(root.location?.hostname) || !['http:', 'https:'].includes(root.location?.protocol)) return false;
+      const token = ++epoch;
+      let next;
+      try {
+        const response = await fetch('/__lucyd-local__/session', {cache: 'no-store', credentials: 'same-origin', headers: {'X-Lucyd-Local': '1'}});
+        if (response.status === 404) return false;
+        if (!response.ok) throw Error('Local study collection could not be loaded.');
+        const {envelope, key} = await response.json();
+        if (token !== epoch) return false;
+        next = await crypto.unlockWithKey(envelope, key);
+        if (token !== epoch) { next.lock(); return false; }
+        collection = root.SimulatteLucydProblems.normalizePrivate(next.value, library, config);
+        onRegister?.(collection);
+        session = next; localStudy = true;
+        title.textContent = 'Local study collection';
+        status.textContent = 'All problems available locally. Saves remain encrypted.';
+        doc.body.dataset.localStudyCollection = 'ready';
+        renderUnlocked(); return true;
+      } catch (error) {
+        next?.lock();
+        if (token === epoch) {
+          collection = null; onUnregister?.();
+          status.textContent = error.message;
+          doc.body.dataset.localStudyCollection = 'unavailable';
+          onMessage(error.message);
+        }
+        return false;
+      }
+    }
+    const ready = loadLocalCollection();
+    return Object.freeze({open, lock, saveRecord, restoreSaved, exportRecord, ready,
+      get localStudy() { return localStudy; },
       get active() { return active; },
       setActive,
       async decodeFile(envelope) {

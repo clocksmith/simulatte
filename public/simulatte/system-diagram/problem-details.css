@@ -1,0 +1,8 @@
+.lucyd-problem-brief { min-width: 0; line-height: 1.5; }
+.lucyd-problem-brief pre { max-width: 100%; padding: 12px; overflow-x: auto; border: 1px solid var(--wui-line); border-radius: 6px; white-space: pre; }
+.lucyd-problem-brief pre code { font: 13px/1.5 monospace; }
+.lucyd-problem-brief li { margin-block: 8px; }
+.lucyd-problem-brief p, .lucyd-problem-brief a { overflow-wrap: anywhere; }
+.lucyd-problem-sources { margin-top: 20px; border-top: 1px solid var(--wui-line); }
+.lucyd-exercise-type { display: block; font-size: 12px; font-weight: 600; }
+.lucyd-exercise-type[hidden] { display: none; }

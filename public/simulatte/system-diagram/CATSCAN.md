@@ -35,7 +35,7 @@ Evolve intent into executable architecture; study sourced problems with editable
 - Subsystems pin typed, bounded, acyclic definitions; publishing preserves accepted runs.
 - Requests, attempts/effects, rejections/timeouts remain distinguishable. Seed/controls reproduce coordinator execution.
 - Synthetic assumptions establish neither production capacity nor provider truth.
-- Deploy ciphertext only for private material; encrypt persistence/exports. Lock clears keys, chooser, snapshots, histories, dialogs and playback.
+- Deploy ciphertext only; encrypt saves/exports. Unshipped credentials unlock loopback. Lock clears keys, chooser, snapshots, histories, dialogs, playback.
 - Attribute published exercises, candidate reports and authored practice distinctly.
 
 ## Acceptance

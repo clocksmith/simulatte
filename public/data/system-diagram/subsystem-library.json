@@ -1,0 +1,1437 @@
+{
+  "schema": "simulatte.subsystemLibrary.v1",
+  "generatedFrom": "problems.json; node tools/simulatte/build-lucyd-compat.cjs",
+  "classes": [],
+  "subsystems": [
+    {
+      "id": "comment-backend",
+      "version": 1,
+      "label": "Comment backend",
+      "nodes": [
+        {
+          "id": "api",
+          "classId": "web-server",
+          "label": "Comment API",
+          "x": 240,
+          "y": 100,
+          "params": {
+            "concurrency": 64,
+            "queueCapacity": 1000,
+            "serviceMs": 30,
+            "serviceDist": "exponential",
+            "serviceCv": 1,
+            "perKbMs": 0,
+            "errorRate": 0,
+            "responseKb": 1,
+            "callMode": "sequential",
+            "blockingCalls": true,
+            "callTimeoutMs": 1000,
+            "retries": 0,
+            "retryBackoffMs": 100,
+            "backoffMultiplier": 2,
+            "retryJitter": true,
+            "memoryPerRequestMiB": 1,
+            "memoryLimitMiB": 1024,
+            "memoryPressureThreshold": 0.8,
+            "memoryThrashFactor": 1,
+            "memoryGarbageFraction": 0,
+            "memoryGcPauseMs": 0,
+            "memoryGcCooldownMs": 1000,
+            "memoryOomRecoveryMs": 1000,
+            "memoryOomPolicy": "reject",
+            "outputPayload": "inherit"
+          }
+        },
+        {
+          "id": "comments-store",
+          "classId": "comment-tree",
+          "label": "comments-store",
+          "x": 480,
+          "y": 100,
+          "params": {
+            "concurrency": 4,
+            "queueCapacity": 100,
+            "serviceMs": 20,
+            "maxRecords": 200
+          }
+        },
+        {
+          "id": "updates",
+          "classId": "worker",
+          "label": "Live update delivery",
+          "x": 730,
+          "y": 100,
+          "params": {
+            "concurrency": 4,
+            "queueCapacity": 1000,
+            "serviceMs": 50,
+            "serviceDist": "exponential",
+            "serviceCv": 1,
+            "perKbMs": 0,
+            "errorRate": 0,
+            "responseKb": 1,
+            "callMode": "sequential",
+            "blockingCalls": true,
+            "callTimeoutMs": 5000,
+            "retries": 0,
+            "retryBackoffMs": 100,
+            "backoffMultiplier": 2,
+            "retryJitter": true,
+            "memoryPerRequestMiB": 1,
+            "memoryLimitMiB": 1024,
+            "memoryPressureThreshold": 0.8,
+            "memoryThrashFactor": 1,
+            "memoryGarbageFraction": 0,
+            "memoryGcPauseMs": 0,
+            "memoryGcCooldownMs": 1000,
+            "memoryOomRecoveryMs": 1000,
+            "memoryOomPolicy": "reject",
+            "outputPayload": "inherit"
+          }
+        }
+      ],
+      "edges": [
+        {
+          "id": "store",
+          "label": "store",
+          "from": {
+            "nodeId": "api",
+            "portId": "calls"
+          },
+          "to": {
+            "nodeId": "comments-store",
+            "portId": "in"
+          },
+          "params": {
+            "latencyMs": 80,
+            "bandwidthMbps": 100
+          }
+        },
+        {
+          "id": "notify",
+          "label": "notify",
+          "from": {
+            "nodeId": "comments-store",
+            "portId": "updates"
+          },
+          "to": {
+            "nodeId": "updates",
+            "portId": "in"
+          },
+          "params": {
+            "latencyMs": 80,
+            "bandwidthMbps": 100
+          }
+        }
+      ],
+      "groups": [],
+      "notes": [],
+      "faults": [],
+      "ports": [
+        {
+          "id": "port-1",
+          "label": "Comment API: Requests",
+          "direction": "in",
+          "target": {
+            "nodeId": "api",
+            "portId": "in"
+          }
+        },
+        {
+          "id": "port-2",
+          "label": "Comment API: Calls",
+          "direction": "out",
+          "target": {
+            "nodeId": "api",
+            "portId": "calls"
+          }
+        },
+        {
+          "id": "port-3",
+          "label": "comments-store: in",
+          "direction": "in",
+          "target": {
+            "nodeId": "comments-store",
+            "portId": "in"
+          }
+        },
+        {
+          "id": "port-4",
+          "label": "comments-store: updates",
+          "direction": "out",
+          "target": {
+            "nodeId": "comments-store",
+            "portId": "updates"
+          }
+        },
+        {
+          "id": "port-5",
+          "label": "Live update delivery: Requests",
+          "direction": "in",
+          "target": {
+            "nodeId": "updates",
+            "portId": "in"
+          }
+        },
+        {
+          "id": "port-6",
+          "label": "Live update delivery: Calls",
+          "direction": "out",
+          "target": {
+            "nodeId": "updates",
+            "portId": "calls"
+          }
+        }
+      ]
+    },
+    {
+      "id": "story-publishing",
+      "version": 1,
+      "label": "Story publishing",
+      "nodes": [
+        {
+          "id": "processing",
+          "classId": "worker",
+          "label": "Media processing",
+          "x": 240,
+          "y": 0,
+          "params": {
+            "concurrency": 4,
+            "queueCapacity": 1000,
+            "serviceMs": 100,
+            "serviceDist": "exponential",
+            "serviceCv": 1,
+            "perKbMs": 0,
+            "errorRate": 0,
+            "responseKb": 1,
+            "callMode": "sequential",
+            "blockingCalls": true,
+            "callTimeoutMs": 5000,
+            "retries": 0,
+            "retryBackoffMs": 100,
+            "backoffMultiplier": 2,
+            "retryJitter": true,
+            "memoryPerRequestMiB": 1,
+            "memoryLimitMiB": 1024,
+            "memoryPressureThreshold": 0.8,
+            "memoryThrashFactor": 1,
+            "memoryGarbageFraction": 0,
+            "memoryGcPauseMs": 0,
+            "memoryGcCooldownMs": 1000,
+            "memoryOomRecoveryMs": 1000,
+            "memoryOomPolicy": "reject",
+            "outputPayload": "inherit"
+          }
+        },
+        {
+          "id": "stories",
+          "classId": "story-store",
+          "label": "Story visibility",
+          "x": 480,
+          "y": 0,
+          "params": {
+            "concurrency": 4,
+            "queueCapacity": 100,
+            "serviceMs": 20,
+            "maxRecords": 200,
+            "ttlSec": 6,
+            "audienceSize": 2
+          }
+        },
+        {
+          "id": "updates",
+          "classId": "worker",
+          "label": "Audience updates",
+          "x": 730,
+          "y": 0,
+          "params": {
+            "concurrency": 4,
+            "queueCapacity": 1000,
+            "serviceMs": 30,
+            "serviceDist": "exponential",
+            "serviceCv": 1,
+            "perKbMs": 0,
+            "errorRate": 0,
+            "responseKb": 1,
+            "callMode": "sequential",
+            "blockingCalls": true,
+            "callTimeoutMs": 5000,
+            "retries": 0,
+            "retryBackoffMs": 100,
+            "backoffMultiplier": 2,
+            "retryJitter": true,
+            "memoryPerRequestMiB": 1,
+            "memoryLimitMiB": 1024,
+            "memoryPressureThreshold": 0.8,
+            "memoryThrashFactor": 1,
+            "memoryGarbageFraction": 0,
+            "memoryGcPauseMs": 0,
+            "memoryGcCooldownMs": 1000,
+            "memoryOomRecoveryMs": 1000,
+            "memoryOomPolicy": "reject",
+            "outputPayload": "inherit"
+          }
+        }
+      ],
+      "edges": [
+        {
+          "id": "publish",
+          "label": "publish",
+          "from": {
+            "nodeId": "processing",
+            "portId": "calls"
+          },
+          "to": {
+            "nodeId": "stories",
+            "portId": "in"
+          },
+          "params": {
+            "latencyMs": 80,
+            "bandwidthMbps": 100
+          }
+        },
+        {
+          "id": "story-updates",
+          "label": "story-updates",
+          "from": {
+            "nodeId": "stories",
+            "portId": "updates"
+          },
+          "to": {
+            "nodeId": "updates",
+            "portId": "in"
+          },
+          "params": {
+            "latencyMs": 80,
+            "bandwidthMbps": 100
+          }
+        }
+      ],
+      "groups": [],
+      "notes": [],
+      "faults": [],
+      "ports": [
+        {
+          "id": "port-1",
+          "label": "Media processing: Requests",
+          "direction": "in",
+          "target": {
+            "nodeId": "processing",
+            "portId": "in"
+          }
+        },
+        {
+          "id": "port-2",
+          "label": "Media processing: Calls",
+          "direction": "out",
+          "target": {
+            "nodeId": "processing",
+            "portId": "calls"
+          }
+        },
+        {
+          "id": "port-3",
+          "label": "Story visibility: in",
+          "direction": "in",
+          "target": {
+            "nodeId": "stories",
+            "portId": "in"
+          }
+        },
+        {
+          "id": "port-4",
+          "label": "Story visibility: updates",
+          "direction": "out",
+          "target": {
+            "nodeId": "stories",
+            "portId": "updates"
+          }
+        },
+        {
+          "id": "port-5",
+          "label": "Audience updates: Requests",
+          "direction": "in",
+          "target": {
+            "nodeId": "updates",
+            "portId": "in"
+          }
+        },
+        {
+          "id": "port-6",
+          "label": "Audience updates: Calls",
+          "direction": "out",
+          "target": {
+            "nodeId": "updates",
+            "portId": "calls"
+          }
+        }
+      ]
+    },
+    {
+      "id": "checkout-authority",
+      "version": 1,
+      "label": "Checkout authority",
+      "nodes": [
+        {
+          "id": "inventory",
+          "classId": "inventory-reservations",
+          "label": "Inventory authority",
+          "x": 350,
+          "y": 130,
+          "params": {
+            "concurrency": 4,
+            "queueCapacity": 100,
+            "serviceMs": 20,
+            "maxRecords": 200,
+            "stock": 4,
+            "ttlSec": 5
+          }
+        },
+        {
+          "id": "updates",
+          "classId": "worker",
+          "label": "Receipt and release events",
+          "x": 650,
+          "y": 130,
+          "params": {
+            "concurrency": 4,
+            "queueCapacity": 1000,
+            "serviceMs": 30,
+            "serviceDist": "exponential",
+            "serviceCv": 1,
+            "perKbMs": 0,
+            "errorRate": 0,
+            "responseKb": 1,
+            "callMode": "sequential",
+            "blockingCalls": true,
+            "callTimeoutMs": 5000,
+            "retries": 0,
+            "retryBackoffMs": 100,
+            "backoffMultiplier": 2,
+            "retryJitter": true,
+            "memoryPerRequestMiB": 1,
+            "memoryLimitMiB": 1024,
+            "memoryPressureThreshold": 0.8,
+            "memoryThrashFactor": 1,
+            "memoryGarbageFraction": 0,
+            "memoryGcPauseMs": 0,
+            "memoryGcCooldownMs": 1000,
+            "memoryOomRecoveryMs": 1000,
+            "memoryOomPolicy": "reject",
+            "outputPayload": "inherit"
+          }
+        }
+      ],
+      "edges": [
+        {
+          "id": "receipts",
+          "label": "receipts",
+          "from": {
+            "nodeId": "inventory",
+            "portId": "updates"
+          },
+          "to": {
+            "nodeId": "updates",
+            "portId": "in"
+          },
+          "params": {
+            "latencyMs": 80,
+            "bandwidthMbps": 100
+          }
+        }
+      ],
+      "groups": [],
+      "notes": [],
+      "faults": [],
+      "ports": [
+        {
+          "id": "port-1",
+          "label": "Inventory authority: in",
+          "direction": "in",
+          "target": {
+            "nodeId": "inventory",
+            "portId": "in"
+          }
+        },
+        {
+          "id": "port-2",
+          "label": "Inventory authority: updates",
+          "direction": "out",
+          "target": {
+            "nodeId": "inventory",
+            "portId": "updates"
+          }
+        },
+        {
+          "id": "port-3",
+          "label": "Receipt and release events: Requests",
+          "direction": "in",
+          "target": {
+            "nodeId": "updates",
+            "portId": "in"
+          }
+        },
+        {
+          "id": "port-4",
+          "label": "Receipt and release events: Calls",
+          "direction": "out",
+          "target": {
+            "nodeId": "updates",
+            "portId": "calls"
+          }
+        }
+      ]
+    },
+    {
+      "id": "crawl-processing",
+      "version": 1,
+      "label": "Crawl processing",
+      "nodes": [
+        {
+          "id": "parser",
+          "classId": "worker",
+          "label": "CPU synthetic parser",
+          "x": 480,
+          "y": 80,
+          "params": {
+            "concurrency": 4,
+            "queueCapacity": 1000,
+            "serviceMs": 5,
+            "serviceDist": "constant",
+            "serviceCv": 1,
+            "perKbMs": 0,
+            "errorRate": 0,
+            "responseKb": 1,
+            "callMode": "sequential",
+            "blockingCalls": true,
+            "callTimeoutMs": 2000,
+            "retries": 0,
+            "retryBackoffMs": 100,
+            "backoffMultiplier": 2,
+            "retryJitter": true,
+            "memoryPerRequestMiB": 1,
+            "memoryLimitMiB": 1024,
+            "memoryPressureThreshold": 0.8,
+            "memoryThrashFactor": 1,
+            "memoryGarbageFraction": 0,
+            "memoryGcPauseMs": 0,
+            "memoryGcCooldownMs": 1000,
+            "memoryOomRecoveryMs": 1000,
+            "memoryOomPolicy": "reject",
+            "outputPayload": "json"
+          }
+        },
+        {
+          "id": "validator",
+          "classId": "structured-response",
+          "label": "Structured validator",
+          "x": 720,
+          "y": 0,
+          "params": {
+            "memoryPerRequestMiB": 1,
+            "memoryLimitMiB": 1024,
+            "memoryPressureThreshold": 0.8,
+            "memoryThrashFactor": 1,
+            "memoryGarbageFraction": 0,
+            "memoryGcPauseMs": 0,
+            "memoryGcCooldownMs": 1000,
+            "memoryOomRecoveryMs": 1000,
+            "memoryOomPolicy": "reject",
+            "validateMs": 1,
+            "maxRepairs": 0,
+            "parseFailureRate": 0,
+            "concurrency": 64,
+            "queueCapacity": 1000,
+            "callTimeoutMs": 30000,
+            "responseKb": 2
+          }
+        },
+        {
+          "id": "records",
+          "classId": "idempotent-store",
+          "label": "Structured records",
+          "x": 720,
+          "y": 220,
+          "params": {
+            "readMs": 2,
+            "writeMs": 3,
+            "serviceDist": "constant",
+            "serviceCv": 1,
+            "connections": 50,
+            "queueCapacity": 1000,
+            "perKbMs": 0,
+            "errorRate": 0,
+            "responseKb": 1,
+            "idempotentWrites": true,
+            "idempotencyWindowSec": 300
+          }
+        },
+        {
+          "id": "archive",
+          "classId": "object-store",
+          "label": "Synthetic object archive",
+          "x": 960,
+          "y": 220,
+          "params": {
+            "memoryPerRequestMiB": 1,
+            "memoryLimitMiB": 1024,
+            "memoryPressureThreshold": 0.8,
+            "memoryThrashFactor": 1,
+            "memoryGarbageFraction": 0,
+            "memoryGcPauseMs": 0,
+            "memoryGcCooldownMs": 1000,
+            "memoryOomRecoveryMs": 1000,
+            "memoryOomPolicy": "reject",
+            "baseMs": 5,
+            "throughputMBps": 10,
+            "serviceDist": "constant",
+            "serviceCv": 0.5,
+            "concurrency": 1000,
+            "queueCapacity": 10000,
+            "errorRate": 0
+          }
+        }
+      ],
+      "edges": [
+        {
+          "id": "validate",
+          "from": {
+            "nodeId": "parser",
+            "portId": "calls"
+          },
+          "to": {
+            "nodeId": "validator",
+            "portId": "in"
+          },
+          "params": {
+            "latencyMs": 2,
+            "bandwidthMbps": 1000
+          }
+        },
+        {
+          "id": "persist",
+          "from": {
+            "nodeId": "parser",
+            "portId": "calls"
+          },
+          "to": {
+            "nodeId": "records",
+            "portId": "in"
+          },
+          "params": {
+            "latencyMs": 2,
+            "bandwidthMbps": 1000,
+            "op": "write",
+            "order": 1
+          }
+        },
+        {
+          "id": "archive-copy",
+          "from": {
+            "nodeId": "parser",
+            "portId": "calls"
+          },
+          "to": {
+            "nodeId": "archive",
+            "portId": "in"
+          },
+          "params": {
+            "latencyMs": 2,
+            "bandwidthMbps": 1000,
+            "op": "write",
+            "mode": "async",
+            "order": 2
+          }
+        }
+      ],
+      "groups": [],
+      "notes": [],
+      "faults": [],
+      "ports": [
+        {
+          "id": "port-1",
+          "label": "CPU synthetic parser: Requests",
+          "direction": "in",
+          "target": {
+            "nodeId": "parser",
+            "portId": "in"
+          }
+        },
+        {
+          "id": "port-2",
+          "label": "CPU synthetic parser: Calls",
+          "direction": "out",
+          "target": {
+            "nodeId": "parser",
+            "portId": "calls"
+          }
+        },
+        {
+          "id": "port-3",
+          "label": "Structured validator: Input",
+          "direction": "in",
+          "target": {
+            "nodeId": "validator",
+            "portId": "in"
+          }
+        },
+        {
+          "id": "port-4",
+          "label": "Structured validator: Generator",
+          "direction": "out",
+          "target": {
+            "nodeId": "validator",
+            "portId": "generate"
+          }
+        },
+        {
+          "id": "port-5",
+          "label": "Structured records: Queries",
+          "direction": "in",
+          "target": {
+            "nodeId": "records",
+            "portId": "in"
+          }
+        },
+        {
+          "id": "port-6",
+          "label": "Synthetic object archive: Objects",
+          "direction": "in",
+          "target": {
+            "nodeId": "archive",
+            "portId": "in"
+          }
+        }
+      ]
+    },
+    {
+      "id": "presence-service",
+      "version": 1,
+      "label": "Presence service",
+      "nodes": [
+        {
+          "id": "broker",
+          "classId": "presence-broker",
+          "label": "broker",
+          "x": 350,
+          "y": 200,
+          "params": {
+            "concurrency": 4,
+            "queueCapacity": 100,
+            "serviceMs": 20,
+            "maxRecords": 200,
+            "ttlSec": 4
+          }
+        },
+        {
+          "id": "notifications",
+          "classId": "worker",
+          "label": "Subscriber delivery",
+          "x": 650,
+          "y": 200,
+          "params": {
+            "concurrency": 4,
+            "queueCapacity": 1000,
+            "serviceMs": 50,
+            "serviceDist": "exponential",
+            "serviceCv": 1,
+            "perKbMs": 0,
+            "errorRate": 0,
+            "responseKb": 1,
+            "callMode": "sequential",
+            "blockingCalls": true,
+            "callTimeoutMs": 5000,
+            "retries": 0,
+            "retryBackoffMs": 100,
+            "backoffMultiplier": 2,
+            "retryJitter": true,
+            "memoryPerRequestMiB": 1,
+            "memoryLimitMiB": 1024,
+            "memoryPressureThreshold": 0.8,
+            "memoryThrashFactor": 1,
+            "memoryGarbageFraction": 0,
+            "memoryGcPauseMs": 0,
+            "memoryGcCooldownMs": 1000,
+            "memoryOomRecoveryMs": 1000,
+            "memoryOomPolicy": "reject",
+            "outputPayload": "inherit"
+          }
+        }
+      ],
+      "edges": [
+        {
+          "id": "notify",
+          "label": "notify",
+          "from": {
+            "nodeId": "broker",
+            "portId": "updates"
+          },
+          "to": {
+            "nodeId": "notifications",
+            "portId": "in"
+          },
+          "params": {
+            "latencyMs": 80,
+            "bandwidthMbps": 100
+          }
+        }
+      ],
+      "groups": [],
+      "notes": [],
+      "faults": [],
+      "ports": [
+        {
+          "id": "port-1",
+          "label": "broker: in",
+          "direction": "in",
+          "target": {
+            "nodeId": "broker",
+            "portId": "in"
+          }
+        },
+        {
+          "id": "port-2",
+          "label": "broker: updates",
+          "direction": "out",
+          "target": {
+            "nodeId": "broker",
+            "portId": "updates"
+          }
+        },
+        {
+          "id": "port-3",
+          "label": "Subscriber delivery: Requests",
+          "direction": "in",
+          "target": {
+            "nodeId": "notifications",
+            "portId": "in"
+          }
+        },
+        {
+          "id": "port-4",
+          "label": "Subscriber delivery: Calls",
+          "direction": "out",
+          "target": {
+            "nodeId": "notifications",
+            "portId": "calls"
+          }
+        }
+      ]
+    },
+    {
+      "id": "generation-capacity",
+      "version": 1,
+      "label": "Generation capacity",
+      "nodes": [
+        {
+          "id": "model-admission",
+          "classId": "rate-limiter",
+          "label": "Generation request quota",
+          "x": 940,
+          "y": 610,
+          "params": {
+            "ratePerSec": 1000,
+            "burst": 100,
+            "overflow": "queue",
+            "queueCapacity": 100,
+            "callTimeoutMs": 8000
+          },
+          "groupId": "chat-model"
+        },
+        {
+          "id": "model-router",
+          "classId": "load-balancer",
+          "label": "Generation replica routing",
+          "x": 1210,
+          "y": 610,
+          "params": {
+            "strategy": "round-robin",
+            "serviceMs": 0.2,
+            "concurrency": 10000,
+            "queueCapacity": 0,
+            "healthChecks": true,
+            "ejectAfterErrors": 5,
+            "ejectSec": 10,
+            "callTimeoutMs": 5000,
+            "retries": 1,
+            "rateLimitPerSec": 0,
+            "rateBurst": 100
+          },
+          "groupId": "chat-model"
+        },
+        {
+          "id": "generation",
+          "classId": "synthetic-stream",
+          "label": "Generation replica A",
+          "x": 1500,
+          "y": 560,
+          "params": {
+            "chunkCharacters": 12,
+            "chunkDelayMs": 120,
+            "failAfterChunks": 0,
+            "concurrency": 8,
+            "queueCapacity": 100
+          },
+          "groupId": "chat-model"
+        },
+        {
+          "id": "generation-b",
+          "classId": "synthetic-stream",
+          "label": "Generation replica B",
+          "x": 1500,
+          "y": 790,
+          "params": {
+            "chunkCharacters": 12,
+            "chunkDelayMs": 120,
+            "failAfterChunks": 0,
+            "concurrency": 8,
+            "queueCapacity": 100
+          },
+          "groupId": "chat-model"
+        }
+      ],
+      "edges": [
+        {
+          "id": "generation-quota",
+          "label": "generation quota",
+          "from": {
+            "nodeId": "model-admission",
+            "portId": "out"
+          },
+          "to": {
+            "nodeId": "model-router",
+            "portId": "in"
+          },
+          "params": {
+            "latencyMs": 2,
+            "bandwidthMbps": 1000
+          }
+        },
+        {
+          "id": "generation-a",
+          "label": "generation a",
+          "from": {
+            "nodeId": "model-router",
+            "portId": "backends"
+          },
+          "to": {
+            "nodeId": "generation",
+            "portId": "in"
+          },
+          "params": {
+            "latencyMs": 2,
+            "bandwidthMbps": 1000
+          }
+        },
+        {
+          "id": "generation-b-link",
+          "label": "generation b link",
+          "from": {
+            "nodeId": "model-router",
+            "portId": "backends"
+          },
+          "to": {
+            "nodeId": "generation-b",
+            "portId": "in"
+          },
+          "params": {
+            "latencyMs": 2,
+            "bandwidthMbps": 1000
+          }
+        }
+      ],
+      "groups": [
+        {
+          "id": "chat-model",
+          "label": "Generation capacity",
+          "kind": "boundary",
+          "x": 900,
+          "y": 500,
+          "w": 850,
+          "h": 430
+        }
+      ],
+      "notes": [],
+      "faults": [],
+      "ports": [
+        {
+          "id": "requests",
+          "label": "Generation requests",
+          "direction": "in",
+          "target": {
+            "nodeId": "model-admission",
+            "portId": "in"
+          }
+        }
+      ]
+    },
+    {
+      "id": "chat-backend",
+      "version": 1,
+      "label": "Reusable chat backend",
+      "nodes": [
+        {
+          "id": "ingress",
+          "classId": "rate-limiter",
+          "label": "Request admission quota",
+          "x": 280,
+          "y": 100,
+          "params": {
+            "ratePerSec": 1000,
+            "burst": 100,
+            "overflow": "queue",
+            "queueCapacity": 100,
+            "callTimeoutMs": 8000
+          }
+        },
+        {
+          "id": "identity",
+          "classId": "conversation-access",
+          "label": "Users and conversation membership",
+          "x": 640,
+          "y": 280,
+          "params": {
+            "concurrency": 8,
+            "queueCapacity": 1000,
+            "serviceMs": 2,
+            "serviceDist": "constant",
+            "serviceCv": 1,
+            "perKbMs": 0,
+            "errorRate": 0,
+            "responseKb": 1,
+            "memoryPerRequestMiB": 1,
+            "memoryLimitMiB": 1024,
+            "memoryPressureThreshold": 0.8,
+            "memoryThrashFactor": 1,
+            "memoryGarbageFraction": 0,
+            "memoryGcPauseMs": 0,
+            "memoryGcCooldownMs": 1000,
+            "memoryOomRecoveryMs": 1000,
+            "memoryOomPolicy": "reject"
+          },
+          "groupId": "chat-api"
+        },
+        {
+          "id": "chat",
+          "classId": "chat-application",
+          "label": "Access, history and prompt writes",
+          "x": 920,
+          "y": 100,
+          "params": {
+            "callTimeoutMs": 2000,
+            "retries": 1,
+            "retryBackoffMs": 100,
+            "maxOutstanding": 32
+          },
+          "groupId": "chat-api"
+        },
+        {
+          "id": "history-retry",
+          "classId": "retry-policy",
+          "label": "History and prompt retry",
+          "x": 1190,
+          "y": 100,
+          "params": {
+            "maxAttempts": 3,
+            "attemptTimeoutMs": 5000,
+            "backoffMs": 40,
+            "backoffMultiplier": 2,
+            "retryJitter": false,
+            "retryBudget": 2,
+            "budgetWindowSec": 10
+          },
+          "groupId": "chat-api"
+        },
+        {
+          "id": "store-admission",
+          "classId": "bulkhead",
+          "label": "Durable write concurrency",
+          "x": 1190,
+          "y": 280,
+          "params": {
+            "concurrency": 8,
+            "queueCapacity": 0,
+            "serviceMs": 2,
+            "serviceDist": "constant",
+            "serviceCv": 1,
+            "perKbMs": 0,
+            "errorRate": 0,
+            "responseKb": 1,
+            "callMode": "sequential",
+            "blockingCalls": true,
+            "callTimeoutMs": 8000,
+            "retries": 0,
+            "retryBackoffMs": 100,
+            "backoffMultiplier": 2,
+            "retryJitter": true,
+            "memoryPerRequestMiB": 1,
+            "memoryLimitMiB": 1024,
+            "memoryPressureThreshold": 0.8,
+            "memoryThrashFactor": 1,
+            "memoryGarbageFraction": 0,
+            "memoryGcPauseMs": 0,
+            "memoryGcCooldownMs": 1000,
+            "memoryOomRecoveryMs": 1000,
+            "memoryOomPolicy": "reject",
+            "outputPayload": "inherit"
+          },
+          "groupId": "chat-api"
+        },
+        {
+          "id": "conversations",
+          "classId": "conversation-store",
+          "label": "Durable conversation records",
+          "x": 1510,
+          "y": 180,
+          "params": {
+            "concurrency": 8,
+            "queueCapacity": 1000,
+            "serviceMs": 5,
+            "serviceDist": "constant",
+            "serviceCv": 1,
+            "perKbMs": 0,
+            "errorRate": 0,
+            "responseKb": 1,
+            "maxRecords": 128,
+            "callTimeoutMs": 2000,
+            "retries": 1,
+            "retryBackoffMs": 100,
+            "requireExternalAuthority": true
+          }
+        },
+        {
+          "id": "stream-admission",
+          "classId": "bulkhead",
+          "label": "Active stream slots",
+          "x": 0,
+          "y": 610,
+          "params": {
+            "concurrency": 8,
+            "queueCapacity": 0,
+            "serviceMs": 2,
+            "serviceDist": "constant",
+            "serviceCv": 1,
+            "perKbMs": 0,
+            "errorRate": 0,
+            "responseKb": 1,
+            "callMode": "sequential",
+            "blockingCalls": true,
+            "callTimeoutMs": 8000,
+            "retries": 0,
+            "retryBackoffMs": 100,
+            "backoffMultiplier": 2,
+            "retryJitter": true,
+            "memoryPerRequestMiB": 1,
+            "memoryLimitMiB": 1024,
+            "memoryPressureThreshold": 0.8,
+            "memoryThrashFactor": 1,
+            "memoryGarbageFraction": 0,
+            "memoryGcPauseMs": 0,
+            "memoryGcCooldownMs": 1000,
+            "memoryOomRecoveryMs": 1000,
+            "memoryOomPolicy": "reject",
+            "outputPayload": "inherit"
+          },
+          "groupId": "chat-stream"
+        },
+        {
+          "id": "stream",
+          "classId": "chat-stream-session",
+          "label": "Cursor, delivery and assistant commit",
+          "x": 290,
+          "y": 610,
+          "params": {
+            "callTimeoutMs": 2000,
+            "retries": 1,
+            "retryBackoffMs": 100,
+            "maxOutstanding": 32
+          },
+          "groupId": "chat-stream"
+        },
+        {
+          "id": "stream-store-retry",
+          "classId": "retry-policy",
+          "label": "Assistant commit retry",
+          "x": 570,
+          "y": 780,
+          "params": {
+            "maxAttempts": 3,
+            "attemptTimeoutMs": 5000,
+            "backoffMs": 40,
+            "backoffMultiplier": 2,
+            "retryJitter": false,
+            "retryBudget": 2,
+            "budgetWindowSec": 10
+          },
+          "groupId": "chat-stream"
+        },
+        {
+          "id": "delivery",
+          "classId": "api-gateway",
+          "label": "Client connection delivery",
+          "x": 570,
+          "y": 560,
+          "params": {
+            "strategy": "round-robin",
+            "serviceMs": 1,
+            "concurrency": 10000,
+            "queueCapacity": 0,
+            "healthChecks": true,
+            "ejectAfterErrors": 5,
+            "ejectSec": 10,
+            "callTimeoutMs": 8000,
+            "retries": 0,
+            "rateLimitPerSec": 500,
+            "rateBurst": 200
+          },
+          "groupId": "chat-stream"
+        },
+        {
+          "id": "generation-capacity",
+          "classId": "subsystem.generation-capacity@1",
+          "label": "Generation capacity",
+          "x": 940,
+          "y": 560,
+          "params": {},
+          "overrides": {}
+        }
+      ],
+      "edges": [
+        {
+          "id": "admitted-chat",
+          "label": "admitted chat",
+          "from": {
+            "nodeId": "ingress",
+            "portId": "out"
+          },
+          "to": {
+            "nodeId": "chat",
+            "portId": "in"
+          },
+          "params": {
+            "latencyMs": 2,
+            "bandwidthMbps": 1000
+          }
+        },
+        {
+          "id": "conversation-operations",
+          "label": "conversation operations",
+          "from": {
+            "nodeId": "chat",
+            "portId": "store"
+          },
+          "to": {
+            "nodeId": "history-retry",
+            "portId": "in"
+          },
+          "params": {
+            "latencyMs": 2,
+            "bandwidthMbps": 1000
+          }
+        },
+        {
+          "id": "history-commit-admission",
+          "label": "history commit admission",
+          "from": {
+            "nodeId": "history-retry",
+            "portId": "target"
+          },
+          "to": {
+            "nodeId": "store-admission",
+            "portId": "in"
+          },
+          "params": {
+            "latencyMs": 2,
+            "bandwidthMbps": 1000
+          }
+        },
+        {
+          "id": "record-commit",
+          "label": "record commit",
+          "from": {
+            "nodeId": "store-admission",
+            "portId": "calls"
+          },
+          "to": {
+            "nodeId": "conversations",
+            "portId": "in"
+          },
+          "params": {
+            "latencyMs": 2,
+            "bandwidthMbps": 1000
+          }
+        },
+        {
+          "id": "start-stream",
+          "label": "start stream",
+          "from": {
+            "nodeId": "chat",
+            "portId": "stream"
+          },
+          "to": {
+            "nodeId": "stream-admission",
+            "portId": "in"
+          },
+          "params": {
+            "latencyMs": 2,
+            "bandwidthMbps": 1000
+          }
+        },
+        {
+          "id": "stream-session",
+          "label": "stream session",
+          "from": {
+            "nodeId": "stream-admission",
+            "portId": "calls"
+          },
+          "to": {
+            "nodeId": "stream",
+            "portId": "in"
+          },
+          "params": {
+            "latencyMs": 2,
+            "bandwidthMbps": 1000
+          }
+        },
+        {
+          "id": "stream-save",
+          "label": "stream save",
+          "from": {
+            "nodeId": "stream",
+            "portId": "store"
+          },
+          "to": {
+            "nodeId": "stream-store-retry",
+            "portId": "in"
+          },
+          "params": {
+            "latencyMs": 2,
+            "bandwidthMbps": 1000
+          }
+        },
+        {
+          "id": "assistant-commit",
+          "label": "assistant commit",
+          "from": {
+            "nodeId": "stream-store-retry",
+            "portId": "target"
+          },
+          "to": {
+            "nodeId": "store-admission",
+            "portId": "in"
+          },
+          "params": {
+            "latencyMs": 2,
+            "bandwidthMbps": 1000
+          }
+        },
+        {
+          "id": "generation-chunks",
+          "label": "generation chunks",
+          "from": {
+            "nodeId": "stream",
+            "portId": "generate"
+          },
+          "to": {
+            "nodeId": "generation-capacity",
+            "portId": "requests"
+          },
+          "params": {
+            "latencyMs": 2,
+            "bandwidthMbps": 1000
+          }
+        },
+        {
+          "id": "live-chunks",
+          "label": "live chunks",
+          "from": {
+            "nodeId": "stream",
+            "portId": "chunks"
+          },
+          "to": {
+            "nodeId": "delivery",
+            "portId": "in"
+          },
+          "params": {
+            "latencyMs": 2,
+            "bandwidthMbps": 1000
+          }
+        },
+        {
+          "id": "conversation-access-check",
+          "label": "Authoritative membership check",
+          "from": {
+            "nodeId": "chat",
+            "portId": "access"
+          },
+          "to": {
+            "nodeId": "identity",
+            "portId": "in"
+          },
+          "params": {
+            "latencyMs": 2,
+            "bandwidthMbps": 1000
+          }
+        },
+        {
+          "id": "storage-access-check",
+          "label": "Authoritative membership check",
+          "from": {
+            "nodeId": "conversations",
+            "portId": "authority"
+          },
+          "to": {
+            "nodeId": "identity",
+            "portId": "in"
+          },
+          "params": {
+            "latencyMs": 2,
+            "bandwidthMbps": 1000
+          }
+        }
+      ],
+      "groups": [
+        {
+          "id": "chat-api",
+          "label": "Conversation operations",
+          "kind": "boundary",
+          "x": 600,
+          "y": 0,
+          "w": 860,
+          "h": 400
+        },
+        {
+          "id": "chat-stream",
+          "label": "Streaming sessions",
+          "kind": "boundary",
+          "x": -40,
+          "y": 500,
+          "w": 890,
+          "h": 430
+        }
+      ],
+      "notes": [],
+      "faults": [],
+      "ports": [
+        {
+          "id": "requests",
+          "label": "Generation requests",
+          "direction": "in",
+          "target": {
+            "nodeId": "ingress",
+            "portId": "in"
+          }
+        },
+        {
+          "id": "delivery",
+          "label": "Delivered chunks",
+          "direction": "out",
+          "target": {
+            "nodeId": "delivery",
+            "portId": "backends"
+          }
+        }
+      ]
+    }
+  ]
+}

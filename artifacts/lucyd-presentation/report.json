@@ -1,0 +1,33 @@
+{
+  "boundary": "Local browser execution; hosted-origin behavior is simulated, not a deployment check.",
+  "cases": [
+    {
+      "width": 1440,
+      "availableProblems": 46,
+      "structuredPrivateProblems": 15,
+      "subsystems": 7,
+      "addExpandReturn": true,
+      "typedBrief": true,
+      "citations": true,
+      "encryptedSaveReload": true,
+      "errors": []
+    },
+    {
+      "width": 390,
+      "availableProblems": 46,
+      "structuredPrivateProblems": 15,
+      "subsystems": 7,
+      "addExpandReturn": true,
+      "typedBrief": true,
+      "citations": true,
+      "encryptedSaveReload": true,
+      "errors": []
+    }
+  ],
+  "hostedOrigin": {
+    "simulated": true,
+    "privateProblems": 0,
+    "localRequests": 0,
+    "passwordRequired": true
+  }
+}

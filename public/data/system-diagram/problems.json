@@ -1,6 +1,6 @@
 {
-  "schema": "simulatte.lucydProblems.v4",
-  "version": "4.0.0",
+  "schema": "simulatte.lucydProblems.v5",
+  "version": "5.0.0",
   "followupAttribution": "Lucyd-authored practice followups, not interview transcripts. Prompts paraphrase the linked sources. Candidate accounts are not company verification. Company-inspired exercises and their solutions are authored practice based on technical references, not verified interview questions or company architectures.",
   "problems": [
     {
@@ -3113,6 +3113,14 @@
       ],
       "compatibility": {
         "registry": "interview-problems"
+      },
+      "details": {
+        "schema": "simulatte.problemDetails.v1",
+        "exerciseType": "system-design",
+        "interfaces": [],
+        "requirements": [],
+        "hints": [],
+        "references": []
       }
     },
     {
@@ -6498,6 +6506,14 @@
       ],
       "compatibility": {
         "registry": "interview-problems"
+      },
+      "details": {
+        "schema": "simulatte.problemDetails.v1",
+        "exerciseType": "architecture-review",
+        "interfaces": [],
+        "requirements": [],
+        "hints": [],
+        "references": []
       }
     },
     {
@@ -8584,6 +8600,14 @@
       ],
       "compatibility": {
         "registry": "interview-problems"
+      },
+      "details": {
+        "schema": "simulatte.problemDetails.v1",
+        "exerciseType": "full-stack-design",
+        "interfaces": [],
+        "requirements": [],
+        "hints": [],
+        "references": []
       }
     },
     {
@@ -12075,6 +12099,14 @@
       ],
       "compatibility": {
         "registry": "interview-problems"
+      },
+      "details": {
+        "schema": "simulatte.problemDetails.v1",
+        "exerciseType": "full-stack-design",
+        "interfaces": [],
+        "requirements": [],
+        "hints": [],
+        "references": []
       }
     },
     {
@@ -14377,6 +14409,14 @@
       ],
       "compatibility": {
         "registry": "interview-problems"
+      },
+      "details": {
+        "schema": "simulatte.problemDetails.v1",
+        "exerciseType": "system-design",
+        "interfaces": [],
+        "requirements": [],
+        "hints": [],
+        "references": []
       }
     },
     {
@@ -16799,6 +16839,14 @@
       ],
       "compatibility": {
         "registry": "interview-problems"
+      },
+      "details": {
+        "schema": "simulatte.problemDetails.v1",
+        "exerciseType": "system-design",
+        "interfaces": [],
+        "requirements": [],
+        "hints": [],
+        "references": []
       }
     },
     {
@@ -20430,6 +20478,14 @@
       ],
       "compatibility": {
         "registry": "interview-problems"
+      },
+      "details": {
+        "schema": "simulatte.problemDetails.v1",
+        "exerciseType": "systems-coding",
+        "interfaces": [],
+        "requirements": [],
+        "hints": [],
+        "references": []
       }
     },
     {
@@ -23029,6 +23085,14 @@
       ],
       "compatibility": {
         "registry": "interview-problems"
+      },
+      "details": {
+        "schema": "simulatte.problemDetails.v1",
+        "exerciseType": "system-design",
+        "interfaces": [],
+        "requirements": [],
+        "hints": [],
+        "references": []
       }
     },
     {
@@ -27430,6 +27494,14 @@
         "registry": "interview-problems",
         "solutionId": "reddit-comments",
         "examplePath": "/data/system-diagram/examples/reddit-comments.json"
+      },
+      "details": {
+        "schema": "simulatte.problemDetails.v1",
+        "exerciseType": "system-design",
+        "interfaces": [],
+        "requirements": [],
+        "hints": [],
+        "references": []
       }
     },
     {
@@ -35266,6 +35338,14 @@
         "registry": "interview-problems",
         "solutionId": "netflix-streaming",
         "examplePath": "/data/system-diagram/examples/netflix-streaming.json"
+      },
+      "details": {
+        "schema": "simulatte.problemDetails.v1",
+        "exerciseType": "system-design",
+        "interfaces": [],
+        "requirements": [],
+        "hints": [],
+        "references": []
       }
     },
     {
@@ -43022,6 +43102,14 @@
         "registry": "interview-problems",
         "solutionId": "twitter-timeline",
         "examplePath": "/data/system-diagram/examples/twitter-timeline.json"
+      },
+      "details": {
+        "schema": "simulatte.problemDetails.v1",
+        "exerciseType": "system-design",
+        "interfaces": [],
+        "requirements": [],
+        "hints": [],
+        "references": []
       }
     },
     {
@@ -47624,6 +47712,14 @@
         "registry": "interview-problems",
         "solutionId": "meta-stories",
         "examplePath": "/data/system-diagram/examples/meta-stories.json"
+      },
+      "details": {
+        "schema": "simulatte.problemDetails.v1",
+        "exerciseType": "system-design",
+        "interfaces": [],
+        "requirements": [],
+        "hints": [],
+        "references": []
       }
     },
     {
@@ -51681,6 +51777,14 @@
         "registry": "interview-problems",
         "solutionId": "amazon-flash-sale",
         "examplePath": "/data/system-diagram/examples/amazon-flash-sale.json"
+      },
+      "details": {
+        "schema": "simulatte.problemDetails.v1",
+        "exerciseType": "system-design",
+        "interfaces": [],
+        "requirements": [],
+        "hints": [],
+        "references": []
       }
     },
     {
@@ -56264,6 +56368,14 @@
         "registry": "interview-problems",
         "solutionId": "google-crawler",
         "examplePath": "/data/system-diagram/examples/google-crawler.json"
+      },
+      "details": {
+        "schema": "simulatte.problemDetails.v1",
+        "exerciseType": "system-design",
+        "interfaces": [],
+        "requirements": [],
+        "hints": [],
+        "references": []
       }
     },
     {
@@ -60038,6 +60150,14 @@
         "registry": "interview-problems",
         "solutionId": "microsoft-presence",
         "examplePath": "/data/system-diagram/examples/microsoft-presence.json"
+      },
+      "details": {
+        "schema": "simulatte.problemDetails.v1",
+        "exerciseType": "system-design",
+        "interfaces": [],
+        "requirements": [],
+        "hints": [],
+        "references": []
       }
     },
     {
@@ -64364,6 +64484,14 @@
             "zoom": 1
           }
         }
+      },
+      "details": {
+        "schema": "simulatte.problemDetails.v1",
+        "exerciseType": "system-design",
+        "interfaces": [],
+        "requirements": [],
+        "hints": [],
+        "references": []
       }
     },
     {
@@ -73026,6 +73154,14 @@
             "zoom": 1
           }
         }
+      },
+      "details": {
+        "schema": "simulatte.problemDetails.v1",
+        "exerciseType": "full-stack-design",
+        "interfaces": [],
+        "requirements": [],
+        "hints": [],
+        "references": []
       }
     },
     {
@@ -79944,6 +80080,14 @@
             "zoom": 1
           }
         }
+      },
+      "details": {
+        "schema": "simulatte.problemDetails.v1",
+        "exerciseType": "system-design",
+        "interfaces": [],
+        "requirements": [],
+        "hints": [],
+        "references": []
       }
     },
     {
@@ -87892,6 +88036,14 @@
             "zoom": 1
           }
         }
+      },
+      "details": {
+        "schema": "simulatte.problemDetails.v1",
+        "exerciseType": "system-design",
+        "interfaces": [],
+        "requirements": [],
+        "hints": [],
+        "references": []
       }
     },
     {
@@ -96422,6 +96574,14 @@
             "zoom": 1
           }
         }
+      },
+      "details": {
+        "schema": "simulatte.problemDetails.v1",
+        "exerciseType": "system-design",
+        "interfaces": [],
+        "requirements": [],
+        "hints": [],
+        "references": []
       }
     },
     {
@@ -106662,6 +106822,14 @@
       "compatibility": {
         "registry": "examples",
         "examplePath": "/data/system-diagram/examples/agent-trajectories.json"
+      },
+      "details": {
+        "schema": "simulatte.problemDetails.v1",
+        "exerciseType": "system-design",
+        "interfaces": [],
+        "requirements": [],
+        "hints": [],
+        "references": []
       }
     },
     {
@@ -116184,6 +116352,14 @@
       "compatibility": {
         "registry": "examples",
         "examplePath": "/data/system-diagram/examples/spark-job.json"
+      },
+      "details": {
+        "schema": "simulatte.problemDetails.v1",
+        "exerciseType": "system-design",
+        "interfaces": [],
+        "requirements": [],
+        "hints": [],
+        "references": []
       }
     },
     {
@@ -125044,6 +125220,14 @@
       "compatibility": {
         "registry": "examples",
         "examplePath": "/data/system-diagram/examples/workspace-access.json"
+      },
+      "details": {
+        "schema": "simulatte.problemDetails.v1",
+        "exerciseType": "system-design",
+        "interfaces": [],
+        "requirements": [],
+        "hints": [],
+        "references": []
       }
     },
     {
@@ -129666,6 +129850,14 @@
       "compatibility": {
         "registry": "examples",
         "examplePath": "/data/system-diagram/examples/crawler-pipeline.json"
+      },
+      "details": {
+        "schema": "simulatte.problemDetails.v1",
+        "exerciseType": "system-design",
+        "interfaces": [],
+        "requirements": [],
+        "hints": [],
+        "references": []
       }
     },
     {
@@ -133166,6 +133358,14 @@
       "compatibility": {
         "registry": "examples",
         "examplePath": "/data/system-diagram/examples/streaming-burst.json"
+      },
+      "details": {
+        "schema": "simulatte.problemDetails.v1",
+        "exerciseType": "system-design",
+        "interfaces": [],
+        "requirements": [],
+        "hints": [],
+        "references": []
       }
     },
     {
@@ -135439,6 +135639,14 @@
       "compatibility": {
         "registry": "examples",
         "examplePath": "/data/system-diagram/examples/replica-recovery.json"
+      },
+      "details": {
+        "schema": "simulatte.problemDetails.v1",
+        "exerciseType": "system-design",
+        "interfaces": [],
+        "requirements": [],
+        "hints": [],
+        "references": []
       }
     },
     {
@@ -143195,6 +143403,14 @@
       "compatibility": {
         "registry": "examples",
         "examplePath": "/data/system-diagram/examples/agent-recovery.json"
+      },
+      "details": {
+        "schema": "simulatte.problemDetails.v1",
+        "exerciseType": "system-design",
+        "interfaces": [],
+        "requirements": [],
+        "hints": [],
+        "references": []
       }
     },
     {
@@ -147417,6 +147633,14 @@
       "compatibility": {
         "registry": "examples",
         "examplePath": "/data/system-diagram/examples/healthcare-ingestion.json"
+      },
+      "details": {
+        "schema": "simulatte.problemDetails.v1",
+        "exerciseType": "system-design",
+        "interfaces": [],
+        "requirements": [],
+        "hints": [],
+        "references": []
       }
     },
     {
@@ -150957,6 +151181,14 @@
       "compatibility": {
         "registry": "examples",
         "examplePath": "/data/system-diagram/examples/finance-reconciliation.json"
+      },
+      "details": {
+        "schema": "simulatte.problemDetails.v1",
+        "exerciseType": "system-design",
+        "interfaces": [],
+        "requirements": [],
+        "hints": [],
+        "references": []
       }
     },
     {
@@ -155389,6 +155621,14 @@
       "compatibility": {
         "registry": "examples",
         "examplePath": "/data/system-diagram/examples/lakehouse-late-data.json"
+      },
+      "details": {
+        "schema": "simulatte.problemDetails.v1",
+        "exerciseType": "system-design",
+        "interfaces": [],
+        "requirements": [],
+        "hints": [],
+        "references": []
       }
     },
     {
@@ -164975,6 +165215,14 @@
       "compatibility": {
         "registry": "examples",
         "examplePath": "/data/system-diagram/examples/nested-chat.json"
+      },
+      "details": {
+        "schema": "simulatte.problemDetails.v1",
+        "exerciseType": "system-design",
+        "interfaces": [],
+        "requirements": [],
+        "hints": [],
+        "references": []
       }
     }
   ],

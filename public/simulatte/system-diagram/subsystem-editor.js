@@ -161,7 +161,7 @@
       const name = field(host, 'Instance name', node.label, { id: 'instance-name' });
       name.addEventListener('change', () => apply({ type: 'setNodeLabel', id: node.id, label: name.value }));
       const actions = el('div', 'properties-actions'); host.append(actions);
-      button(actions, 'Inspect / edit subsystem', () => open(node.classId));
+      button(actions, 'Expand subsystem', () => open(node.classId));
       const versions = model.diagram.subsystems.filter(d => d.id === definition.id);
       const version = field(host, 'Pinned version', definition.version, { id: 'subsystem-version', choices: versions.map(d => ({ id: String(d.version), label: `v${d.version} · ${d.label}` })) });
       button(actions, 'Upgrade instance', () => apply({ type: 'upgradeSubsystem', id: node.id, version: Number(version.value) }));

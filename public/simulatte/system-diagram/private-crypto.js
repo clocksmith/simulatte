@@ -54,9 +54,9 @@
     const salt = provider().getRandomValues(new Uint8Array(16));
     return seal(value, await derive(password, salt), salt);
   }
-  async function unlock(envelope, password) {
+  async function sessionFor(envelope, initialKey) {
     const {salt} = validate(envelope);
-    let key = await derive(password, salt);
+    let key = initialKey;
     let contents = await open(envelope, key);
     return Object.freeze({
       get value() { return contents; },
@@ -69,5 +69,16 @@
       lock() { key = null; contents = null; },
     });
   }
-  return Object.freeze({SCHEMA, ITERATIONS, encrypt, unlock, validate});
+  async function unlock(envelope, password) {
+    return sessionFor(envelope, await derive(password, validate(envelope).salt));
+  }
+  async function unlockWithKey(envelope, encodedKey) {
+    validate(envelope);
+    const bytes = decode(encodedKey);
+    if (bytes.length !== 32) throw Error('Invalid local collection key.');
+    const key = await provider().subtle.importKey('raw', bytes, {name: 'AES-GCM'}, false, ['encrypt', 'decrypt']);
+    bytes.fill(0);
+    return sessionFor(envelope, key);
+  }
+  return Object.freeze({SCHEMA, ITERATIONS, encrypt, unlock, unlockWithKey, validate});
 });

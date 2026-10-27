@@ -115,7 +115,7 @@
             if (!match) old.push(D.clone(row));
           }
         };
-        draft.schema = D.SCHEMA; draft.subsystems ||= [];
+        if (draft.schema !== D.DESIGN_SCHEMA) draft.schema = D.SCHEMA; draft.subsystems ||= [];
         merge(draft.classes, cmd.library.classes, row => row.id);
         merge(draft.subsystems, cmd.library.subsystems, row => `${row.id}@${row.version}`);
         return { kind: 'structure' };
@@ -125,6 +125,7 @@
         return { kind: 'structure', replace: result.diagram, id: result.instanceId, select: [result.instanceId] };
       },
       insertSubsystem(draft, cmd) {
+        if (cmd.library) handlers.importSubsystemLibrary(draft, cmd);
         const result = D.subsystems.insert(draft, cmd.definitionId, cmd.version, { x: cmd.x, y: cmd.y, label: cmd.label }, library, config);
         return { kind: 'structure', replace: result.diagram, id: result.instanceId, select: [result.instanceId] };
       },

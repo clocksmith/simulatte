@@ -166,9 +166,9 @@
     button(actions,'Close',()=>designDialog.close());designDialog.showModal();
   }
   button('document-actions','Design intent',editIntent);
-  const sketchButton = button(document.querySelector('.palette-panel'),'Add responsibility',()=>{const center=canvas.viewportCenter();apply({type:'addConcept',label:'Responsibility',x:center.x-config.editor.nodeWidth/2,y:center.y-config.editor.nodeHeight/2});},'primary','Add conceptual responsibility without choosing executable behavior');
+  const sketchButton = button(document.querySelector('.palette-panel'),'Sketch a responsibility',()=>{const center=canvas.viewportCenter();apply({type:'addConcept',label:'Responsibility',x:center.x-config.editor.nodeWidth/2,y:center.y-config.editor.nodeHeight/2});},'primary','Add conceptual responsibility without choosing executable behavior');
   sketchButton.element.classList.add('lucyd-add-responsibility');
-  sketchButton.element.replaceChildren(el('span','lucyd-sketch-label','Add responsibility'),el('span','lucyd-sketch-icon','◇'));
+  sketchButton.element.replaceChildren(el('span','lucyd-sketch-label','Sketch a responsibility'),el('span','lucyd-sketch-icon','◇'));
   document.querySelector('.palette-panel').insertBefore(sketchButton.element,document.querySelector('.palette-search'));
 
   // Edit toolbar actions
@@ -576,7 +576,7 @@
 
   const rail = paletteApi.createRail({ host: $('palette-drawer'), library, model, canvas, config, ui, el, field, message,
     onManage: () => { subsystemTools.open = true; subsystemTools.scrollIntoView({block: 'nearest'}); },
-    onInspect: classId => perform(() => subsystemEditor.session.active ? message('Publish or cancel the current definition first.', true) : subsystemEditor.open(classId)),
+    onInspect: classId => perform(() => {if(subsystemEditor.session.active){message('Publish or cancel the current definition first.', true);return;}subsystemEditor.open(classId);subsystemTools.scrollIntoView({block:'nearest'});}),
   });
   function palette() { rail.render(); }
 
@@ -587,7 +587,7 @@
   $('palette').after(subsystemTools);
   const subsystemEditor = globalThis.SimulatteSystemDiagramSubsystemEditor.create({
     model, library, config, host: subsystemHost, el, field, button, apply, canvas, message,
-    onOpen: () => {if(!subsystemEditor.session.active){if(!suspendedStudy)suspendedStudy={value:studyStateForSave(),privateDocument:Boolean(privateCollection?.active)};interviewStepper.reset();}},
+    onOpen: () => {subsystemTools.open=true;if(!subsystemEditor.session.active){if(!suspendedStudy)suspendedStudy={value:studyStateForSave(),privateDocument:Boolean(privateCollection?.active)};interviewStepper.reset();}},
     onSaveDraft: () => saveLocal(),
   });
 

@@ -65,6 +65,14 @@ arrivals from actually matched arrival traces. Generate retained compatibility
 registries from the canonical collection. Locking removes private selection,
 branch snapshots, histories, observations and plaintext UI as well as keys.
 
+Label each study exercise as coding, systems coding, full-stack design, system
+design or architecture review. Keep the brief concise; put interfaces,
+requirements, optional hints and scoped references in structured fields. Distinguish
+published exercises, candidate reports and authored practice. A background or
+interview-format reference never establishes that a particular question was asked.
+Offer reusable connected subsystems from the component library on a blank canvas;
+inserting one preserves its version, dependencies, existing edits and undo history.
+
 The component rail has exactly two persistent states, collapsed and expanded.
 Expanded width is draggable and keyboard-adjustable up to 280 pixels, bounded by
 the viewport; it does not become a third overlay state on phones.
@@ -85,7 +93,11 @@ property drawer on the right; the canvas fills the remaining viewport. Show only
 the current interview question, with details and example architectures available
 on request. Previous and Next retain editable stage snapshots; selecting a task
 never fills in its solution. Attribute published interview exercises, firsthand
-candidate reports and synthetic practice scenarios distinctly. Keep Databricks interview preparation exclusively in the password-protected collection. Choose connection sides
+candidate reports and synthetic practice scenarios distinctly. Local development
+opens the full study collection without password entry through an explicitly
+configured loopback server. Deployed Databricks preparation remains exclusively
+password-protected; credentials and plaintext never enter hosting assets. Keep
+local saves encrypted and compatible with the existing collection password. Choose connection sides
 from component geometry and route rounded orthogonal links around node bodies,
 minimizing distance and unnecessary bends. Keep pan and zoom bounded,
 provide Fit to View, attach typed connections at port boundaries, and restore

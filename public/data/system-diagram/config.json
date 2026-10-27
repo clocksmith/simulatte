@@ -4,6 +4,7 @@
   "privateCollectionPath": "/data/system-diagram/private-collection.enc.json",
   "model": "system-diagram/v1",
   "classLibraryPath": "/data/system-diagram/class-library.json",
+  "subsystemLibraryPath": "/data/system-diagram/subsystem-library.json",
   "engine": {
     "authoritativeCadenceSec": 0.5,
     "maxInFlight": 50000,

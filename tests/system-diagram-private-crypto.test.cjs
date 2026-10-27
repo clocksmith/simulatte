@@ -5,6 +5,23 @@ const C = require('../public/simulatte/system-diagram/private-crypto.js');
 const fixture = {schema:'simulatte.privatePracticeCollection.v1',title:'Private fixture',notesMarkdown:'Secret notes: <script>never execute</script>',exercises:[{id:'practice',diagram:{nodes:[]}}]};
 const password = 'only-a-synthetic-test-password';
 
+test('local session keys preserve password-compatible encrypted saves and lock cleanup', async () => {
+  const {pbkdf2Sync} = require('node:crypto');
+  const envelope = await C.encrypt(fixture, password);
+  const raw = pbkdf2Sync(password, Buffer.from(envelope.kdf.salt, 'base64'), C.ITERATIONS, 32, 'sha256');
+  const local = await C.unlockWithKey(envelope, raw.toString('base64'));
+  assert.deepEqual(local.value, fixture);
+  const saved = await local.seal({diagram: {name: 'Locally edited fixture'}});
+  assert.equal(saved.kdf.salt, envelope.kdf.salt);
+  const hosted = await C.unlock(saved, password);
+  assert.equal(hosted.value.diagram.name, 'Locally edited fixture');
+  hosted.lock(); local.lock();
+  assert.equal(local.value, null);
+  await assert.rejects(local.seal({}), /locked/);
+  await assert.rejects(C.unlockWithKey(envelope, Buffer.alloc(32).toString('base64')), /Incorrect password/);
+  await assert.rejects(C.unlockWithKey(envelope, 'AAAA'), /Invalid local collection key/);
+});
+
 test('password encryption round trips, uses fresh salts/IVs, and exposes no plaintext metadata', async () => {
   const a = await C.encrypt(fixture,password), b = await C.encrypt(fixture,password);
   assert.notEqual(a.kdf.salt,b.kdf.salt); assert.notEqual(a.iv,b.iv);

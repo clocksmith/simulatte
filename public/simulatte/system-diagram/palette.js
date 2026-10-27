@@ -237,11 +237,33 @@
     };
   }
 
-  function railClasses(doc, library, config) {
+  function subsystemBundle(catalogue, definition) {
+    const included = new Map();
+    function visit(def) {
+      const key = `${def.id}@${def.version}`; if (included.has(key)) return;
+      included.set(key, def);
+      for (const node of def.nodes) if (node.classId.startsWith('subsystem.')) {
+        const child = D.subsystems.definition(catalogue, node.classId);
+        if (!child) throw Error('Missing reusable subsystem dependency: ' + node.classId);
+        visit(child);
+      }
+    }
+    visit(definition);
+    return {classes: catalogue.classes, subsystems: [...included.values()]};
+  }
+
+  function railClasses(doc, library, config, catalogue = {classes: [], subsystems: []}) {
     const singles = [...library.classOrder, ...doc.classes.map(c => c.id)].map(id => D.resolveClass(id, doc, library, config));
-    const subsystems = (doc.subsystems || []).map(def => ({
-      ...D.resolveClass(`subsystem.${def.id}@${def.version}`, doc, library, config),
-      version: def.version, componentCount: def.nodes.length,
+    const definitions = [...(doc.subsystems || [])];
+    const fromCatalogue = new Set();
+    for (const def of catalogue.subsystems) if (!definitions.some(d => d.id === def.id && d.version === def.version)) {
+      definitions.push(def); fromCatalogue.add(`${def.id}@${def.version}`);
+    }
+    const lookup = {...doc, subsystems: definitions, classes: [...doc.classes, ...catalogue.classes.filter(c => !doc.classes.some(d => d.id === c.id))]};
+    const subsystems = definitions.map(def => ({
+      ...D.resolveClass(`subsystem.${def.id}@${def.version}`, lookup, library, config),
+      version: def.version, componentCount: def.nodes.length, connectionCount: def.edges.length,
+      starterLibrary: fromCatalogue.has(`${def.id}@${def.version}`) ? subsystemBundle(catalogue, def) : null,
     }));
     return [...singles, ...subsystems];
   }
@@ -249,6 +271,7 @@
   function createRail({ host, library, model, canvas, config, ui, el, field, message, onInspect, onManage }) {
     const document = host.ownerDocument, $ = id => document.getElementById(id);
     const expanded = new Map();
+    let catalogue = {classes: [], subsystems: []};
     const paletteCategory = field(host, 'Category', '', {
       id: 'palette-category', choices: [{ id: '', label: 'All categories' }, ...library.categories]
     });
@@ -261,15 +284,15 @@
       if (key === paletteKey) return;
       paletteKey = key;
 
-      const available = railClasses(doc, library, config);
+      const available = railClasses(doc, library, config, catalogue);
       const labels = new Map(library.categories.map(c => [c.id, c.label]));
       const visible = available.filter(c => (c.kernel === 'subsystem' || !category || c.category === category) && matchesClass(c, search, labels.get(c.category)));
 
       const composite = available.filter(c => c.kernel === 'subsystem');
-      $('capability-count').textContent = `${available.length - composite.length} single nodes · ${composite.length} expandable subsystems`;
+      $('capability-count').textContent = `${available.length - composite.length} components · ${composite.length} expandable subsystems`;
       $('palette').replaceChildren();
       const groups = [{id: 'subsystems', label: 'Expandable subsystems'}, ...library.categories];
-      const primitives = el('h3', 'palette-kind-title', 'Single nodes');
+      const primitives = el('h3', 'palette-kind-title', 'Individual components');
       for (const cat of groups) {
         const isSubsystem = cat.id === 'subsystems';
         const classes = visible.filter(c => isSubsystem ? c.kernel === 'subsystem' : c.kernel !== 'subsystem' && c.category === cat.id);
@@ -283,6 +306,7 @@
         const section = el('div', 'palette-category');
         group.append(section); $('palette').append(group);
         if (isSubsystem) {
+          section.append(el('p', 'palette-empty', 'Connected components inside one node. Add one, then choose Expand to view its internals.'));
           const manage = ui.SimButton({label: 'Create / import', variant: 'quiet', onAction: onManage}).element;
           manage.classList.add('palette-manage'); section.append(manage);
         }
@@ -292,12 +316,20 @@
         for (const c of classes) {
           let start = null, ghost = null, moved = false, suppressClick = false;
           const id = c.id;
+          function drop(x, y) {
+            if (c.starterLibrary) {
+              const point = canvas.screenToWorld({x, y});
+              const r = model.apply({type: 'insertSubsystem', definitionId: id.slice(10, id.lastIndexOf('@')), version: c.version, library: c.starterLibrary, x: canvas.snap(point.x), y: canvas.snap(point.y)});
+              if (!r.ok) throw Error(r.error);
+              canvas.fit({readable: true});
+            } else canvas.dropClassAt(id, x, y);
+          }
           const b = ui.SimButton({
             label: c.label, variant: 'quiet',
             onAction: () => {
               if (suppressClick) { suppressClick = false; return; }
               const r = $('diagram').getBoundingClientRect();
-              canvas.dropClassAt(id, r.left + r.width / 2, r.top + r.height / 2);
+              drop(r.left + r.width / 2, r.top + r.height / 2);
             },
             ariaLabel: `Add ${c.label}`
           }).element;
@@ -309,7 +341,8 @@
           b.title = c.kernel === 'subsystem' ? `${c.label}: expandable subsystem` : c.description || c.label;
 
           const text = el('span', 'palette-copy');
-          text.append(el('span', 'palette-label', c.label), el('span', 'palette-item-kind', c.kernel === 'subsystem' ? `${c.componentCount} components · expandable · v${c.version}` : 'Single node'));
+          text.append(el('span', 'palette-label', c.label));
+          if (c.kernel === 'subsystem') text.append(el('span', 'palette-item-kind', `${c.componentCount} components · ${c.connectionCount} connections · v${c.version}`));
           const icon = el('span', 'component-icon');
           icon.append(Glyphs.create(document, c.glyph, 18));
           b.replaceChildren(icon, text);
@@ -339,7 +372,7 @@
             if (moved) {
               suppressClick = true;
               if (e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom) {
-                canvas.dropClassAt(id, e.clientX, e.clientY);
+                drop(e.clientX, e.clientY);
               } else {
                 message('Drop inside the canvas.');
               }
@@ -352,8 +385,8 @@
 
           b.addEventListener('pointercancel', () => { start = null; ghost?.remove(); ghost = null; });
           const row = el('div', 'palette-entry'); row.append(b);
-          if (c.kernel === 'subsystem') {
-            const inspect = ui.SimButton({ label: 'Inspect', variant: 'quiet', ariaLabel: `Inspect ${c.label} subsystem`, onAction: () => onInspect(c.id) }).element;
+          if (c.kernel === 'subsystem' && !c.starterLibrary) {
+            const inspect = ui.SimButton({ label: 'Expand', variant: 'quiet', ariaLabel: `Expand ${c.label} subsystem`, onAction: () => onInspect(c.id) }).element;
             inspect.classList.add('palette-inspect'); row.append(inspect);
           }
           section.append(row);
@@ -367,8 +400,17 @@
     paletteCategory.addEventListener('change', render);
 
 
-    return { render };
+    const ready = config.subsystemLibraryPath ? (async () => {
+      const response = await fetch(config.subsystemLibraryPath, {cache: 'no-cache'});
+      if (!response.ok) throw Error('Reusable subsystem library could not be loaded.');
+      const data = await response.json();
+      if (data.schema !== 'simulatte.subsystemLibrary.v1') throw Error('Invalid reusable subsystem library.');
+      const probe = D.emptyDiagram(config);
+      probe.classes = data.classes; probe.subsystems = data.subsystems; D.validate(probe, library, config);
+      catalogue = data; paletteKey = ''; render();
+    })().catch(error => message(error.message, true)) : Promise.resolve();
+    return { render, ready };
   }
 
-  return Object.freeze({ create, matchesClass, createRail, railClasses });
+  return Object.freeze({ create, matchesClass, createRail, railClasses, subsystemBundle });
 });

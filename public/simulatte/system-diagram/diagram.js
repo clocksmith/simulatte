@@ -357,7 +357,7 @@
     return value;
   }
 
-  helpers = { validate, resolveClass, resolveNodeParams, portsForNode, validateParams, clone, newId, fail, label };
+  helpers = { DESIGN_SCHEMA, validate, resolveClass, resolveNodeParams, portsForNode, validateParams, clone, newId, fail, label };
   const subsystems = Object.freeze(Object.fromEntries(['capture', 'insert', 'publish', 'upgrade', 'lower'].map(name => [name, (...args) => S[name](...args, helpers)]).concat([['definition', S.definition], ['isComposite', S.isComposite]])));
   return Object.freeze({ DESIGN_SCHEMA, isConcept, executable, addConcept, refineConcept, subsystems, portsForNode, GROUP_SCHEMA, SCHEMA, ANNOTATED_SCHEMA, LEGACY_SCHEMA, COMPILED_SCHEMA, GROUP_KINDS, FAILURE_DOMAIN_KINDS, emptyDiagram, validate, issues, compile, resolveClass, resolveNodeParams, resolveEdgeParams, portSpec, emittedPayloads, canConnect, newId, newClassId, deriveClass, changeClass, clone });
 });

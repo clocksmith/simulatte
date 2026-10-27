@@ -241,7 +241,7 @@
   }
   function insert(input, id, version, options, library, config, D) {
     const doc = clone(input), def = definition(doc, `subsystem.${id}@${version}`), instanceId = D.newId(doc, 'subsystem');
-    doc.schema = SCHEMA;
+    if (doc.schema !== D.DESIGN_SCHEMA) doc.schema = SCHEMA;
     doc.nodes.push({ id: instanceId, classId: ref(def), label: options.label ?? def.label, x: options.x, y: options.y, params: {}, overrides: {} });
     return { diagram: D.validate(doc, library, config), instanceId };
   }

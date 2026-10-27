@@ -20,5 +20,10 @@ for(const p of data.problems){const c=p.compatibility;if(!c)continue;
  if(c.examplePath){const s=p.solutions[0],diagram=c.masterDiagram||s.stages.at(-1).diagram;files.set(c.examplePath.replace('/data/system-diagram/',''),diagram);}
 }
 files.set('interview-problems.json',old);files.set('interview-journeys.json',journeys);files.set('interview-solutions.json',solutions);
+const shared={schema:'simulatte.subsystemLibrary.v1',generatedFrom,classes:[],subsystems:[]};
+for(const problem of data.problems){const diagram=problem.solutions[0]?.stages.at(-1)?.diagram;if(!diagram)continue;
+ for(const [key,id]of [['classes',r=>r.id],['subsystems',r=>`${r.id}@${r.version}`]])for(const row of diagram[key]||[]){const prior=shared[key].find(r=>id(r)===id(row));if(prior&&JSON.stringify(prior)!==JSON.stringify(row))throw Error('Conflicting reusable subsystem definition: '+id(row));if(!prior)shared[key].push(row);}
+}
+files.set('subsystem-library.json',shared);
 let changed=0;for(const [relative,value]of files){const dest=path.join(base,relative),text=JSON.stringify(value,null,2)+'\n';if(fs.existsSync(dest)&&fs.readFileSync(dest,'utf8')===text)continue;changed++;if(process.argv.includes('--check'))throw Error(`Stale Lucyd compatibility export: ${relative}`);fs.mkdirSync(path.dirname(dest),{recursive:true});fs.writeFileSync(dest,text);}
 console.log(`Lucyd compatibility exports ${process.argv.includes('--check')?'verified':'generated'}: ${files.size} files, ${changed} changed`);
