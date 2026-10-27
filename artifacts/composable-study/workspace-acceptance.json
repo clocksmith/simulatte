@@ -1,6 +1,6 @@
 {
   "schema": "simulatte.studyWorkspaceAcceptance.v1",
-  "started": "2026-10-27T19:28:24.423Z",
+  "started": "2026-10-27T19:52:41.699Z",
   "url": "http://127.0.0.1:4173/simulatte/system-diagram/study/",
   "browser": "chromium 143.0.7499.4",
   "viewports": {
@@ -9,8 +9,8 @@
   },
   "scope": "Scripted browser interaction on one machine. Emulated touch is not a physical device; visual quality is judged separately.",
   "summary": {
-    "checks": 87,
-    "passed": 86,
+    "checks": 88,
+    "passed": 87,
     "failed": 1
   },
   "pageProblems": [],
@@ -287,8 +287,8 @@
       "check": "marquee selects enclosed elements",
       "action": "drag a box around two rectangles",
       "observed": [
-        "5jiOtlxQxOAcbC3aF96XB",
-        "_DXF9uk1Q5atE17gjCd5c"
+        "YhDZVM8z5LN3TvZDy7--3",
+        "N374aE3DDne6N2MYkmbgN"
       ],
       "result": "pass"
     },
@@ -299,7 +299,7 @@
       "observed": {
         "plainClickSelects": 2,
         "deepSelect": [
-          "5jiOtlxQxOAcbC3aF96XB"
+          "YhDZVM8z5LN3TvZDy7--3"
         ]
       },
       "result": "pass"
@@ -558,8 +558,8 @@
       "action": "zoom twice, reselect, compare the drawing seed",
       "observed": {
         "seed": [
-          1383534084,
-          1383534084
+          94870631,
+          94870631
         ]
       },
       "result": "pass"
@@ -590,8 +590,8 @@
       "check": "dragging an endpoint reroutes the connector",
       "action": "drag the arrow end onto a third rectangle",
       "observed": {
-        "end": "fgqrl5eb_ue_uQ9Gg8rYR",
-        "expected": "fgqrl5eb_ue_uQ9Gg8rYR"
+        "end": "Ik-ZIIXvjbNj1ooHnNwYz",
+        "expected": "Ik-ZIIXvjbNj1ooHnNwYz"
       },
       "result": "pass"
     },
@@ -623,7 +623,7 @@
           "toNodeId": "client-state",
           "toPortId": "in-nb.request",
           "mode": "request-response",
-          "labelId": "OqBLggTa6M3MNa9Wt9dx7:contract"
+          "labelId": "Xv7um7Et4R7UdlAq9MExo:contract"
         },
         "savedInStageOverlay": true
       },
@@ -819,6 +819,16 @@
       "result": "pass"
     },
     {
+      "area": "study progression",
+      "check": "rapid Next clicks advance one stage each",
+      "action": "click Next four times at one spot without waiting",
+      "observed": {
+        "reachedStage": 5,
+        "expected": 5
+      },
+      "result": "pass"
+    },
+    {
       "area": "import/export",
       "check": "an edit stays with its stage only",
       "action": "move a component on stage 2, visit stage 3, return",
@@ -860,7 +870,7 @@
       "check": "autosave reports status and restores after reload",
       "action": "read the save status, reload the page",
       "observed": {
-        "status": "Saved in this browser at 03:29:57 PM",
+        "status": "Saved in this browser at 03:54:17 PM",
         "restoredOverlays": true
       },
       "result": "pass"
@@ -948,10 +958,10 @@
       "check": "a stage with 2,000 learner elements stays usable",
       "action": "import a workspace with 2,000 rectangles on one stage, step away and back, drag a component",
       "observed": {
-        "importMs": 98,
-        "stepAwayMs": 56,
-        "stepBackMs": 112,
-        "dragMs": 850,
+        "importMs": 93,
+        "stepAwayMs": 55,
+        "stepBackMs": 108,
+        "dragMs": 852,
         "moved": true
       },
       "result": "pass"

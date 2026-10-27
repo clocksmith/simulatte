@@ -251,7 +251,13 @@
     const editedStages = ws ? Object.values(ws.overlays).reduce((n, stages) => n + Object.keys(stages).length, 0) : 0;
     const entry = catalogue.find(c => c.referenceId === ws?.document.problem.referenceId);
     const followups = useMemo(() => new Map((entry?.followups || []).map(f => [f.id, f])), [entry]);
-    const stepper = solution && h(P.Stepper, {stageIndex, minIndex, count: solution.stages.length, title: stageTitle, edited, onStep: i => navigate({stageIndex: i}), onReset: resetStage});
+    // Steps are relative to the latest workspace, not the last render, so quick repeated clicks never re-request a stage.
+    const step = delta => {
+      const current = wsRef.current, sol = solutionOf(current); if (!sol) return;
+      const lowest = sol.initialGraph.nodes.length ? -1 : 0, target = Math.max(lowest, Math.min(sol.stages.length - 1, current.view.stageIndex + delta));
+      if (target !== current.view.stageIndex) navigate({stageIndex: target});
+    };
+    const stepper = solution && h(P.Stepper, {stageIndex, minIndex, count: solution.stages.length, title: stageTitle, edited, onStep: step, onReset: resetStage});
     const pickers = h(P.Pickers, {catalogue, referenceId: ws?.document.problem.referenceId, solutions: ws?.document.solutions, solutionId: ws?.view.solutionId,
       onProblem: ref => openProblem(ref), onSolution: id => navigate({solutionId: id, stageIndex: 0}, {fit: true})});
     const trigger = h(Sidebar.Trigger, {name: SIDEBAR, tab: 'stage', title: 'Study notes', className: 'sw-trigger'}, 'Study');

@@ -4,7 +4,16 @@ const fs = require('node:fs');
 const {boot, record, near} = require('./audit-study-workspace.cjs');
 const NEXT = '.sw-footer .sw-stepper button[aria-label="Next stage"]';
 const view = h => h.page.evaluate(() => SimulatteStudyInspector.workspace().view);
-const until = (h, predicate, arg) => h.page.waitForFunction(predicate, arg, {timeout: 10000});
+// On a timeout, report what the page showed (view and any open dialog) instead of only the wait that failed.
+const until = async (h, predicate, arg) => {
+  try { return await h.page.waitForFunction(predicate, arg, {timeout: 15000}); }
+  catch (error) {
+    const seen = await h.page.evaluate(() => ({view: SimulatteStudyInspector.workspace()?.view, problem: SimulatteStudyInspector.workspace()?.document.problem.referenceId, dialogs: [...document.querySelectorAll('dialog[open]')].map(d => d.innerText.slice(0, 160)),
+      next: (() => { const b = document.querySelector('.sw-footer .sw-stepper button[aria-label="Next stage"]'), r = b?.getBoundingClientRect(); return b && {disabled: b.disabled, x: Math.round(r.x + r.width / 2), y: Math.round(r.y + r.height / 2), top: document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2)?.className}; })()})).catch(() => null);
+    if (process.env.STUDY_AUDIT_SHOTS) await h.page.screenshot({path: `${process.env.STUDY_AUDIT_SHOTS}/wait-timeout-${Date.now()}.png`}).catch(() => {});
+    throw Error(`${error.message.split('\n')[0]} | page: ${JSON.stringify(seen)}`);
+  }
+};
 
 async function progression(context) {
   const h = await boot(context, ''), page = h.page;
@@ -18,7 +27,9 @@ async function progression(context) {
     const solutions = await page.evaluate(() => SimulatteStudyInspector.workspace().document.solutions.map(s => ({id: s.id, stages: s.stages.length})));
     for (const solution of solutions) {
       await page.selectOption('select[aria-label="Approach"]', solution.id);
-      await until(h, id => SimulatteStudyInspector.workspace().view.solutionId === id && SimulatteStudyInspector.workspace().view.stageIndex === 0, solution.id);
+      await until(h, id => SimulatteStudyInspector.workspace().view.solutionId === id, solution.id);
+      // Re-selecting the current approach keeps its stage, so step back with the real control to stage 1.
+      while ((await view(h)).stageIndex > 0) { const at = (await view(h)).stageIndex; await page.click('.sw-footer .sw-stepper button[aria-label="Previous stage"]'); await until(h, n => SimulatteStudyInspector.workspace().view.stageIndex === n, at - 1); }
       let previous = null;
       for (let i = 0; i < solution.stages; i++) {
         if (i) { await page.click(NEXT); await until(h, n => SimulatteStudyInspector.workspace().view.stageIndex === n, i); }
@@ -58,6 +69,13 @@ async function progression(context) {
   record('study progression', 'a subsystem collapses to its boundary and expands to its internals', 'select the boundary, Inspect, Collapse, then Expand', {collapsedHasBox: collapsed.includes('study:n:system'), collapsedHidesChildren: !collapsed.includes('study:n:api'), expandedShowsChildren: expanded.includes('study:n:api') && expanded.includes('study:b:system')},
     collapsed.includes('study:n:system') && !collapsed.includes('study:n:api') && expanded.includes('study:n:api'));
   await h2.page.close(); await page.close();
+  // Quick repeated clicks: each lands on the same fixed button and advances exactly one stage.
+  const h3 = await boot(context, '?problem=L001&approach=dedicated&stage=1');
+  const at = await h3.page.$eval(NEXT, el => { const r = el.getBoundingClientRect(); return [r.x + r.width / 2, r.y + r.height / 2]; });
+  for (let i = 0; i < 4; i++) await h3.page.mouse.click(...at);
+  await h3.page.waitForTimeout(600); const reached = (await view(h3)).stageIndex + 1;
+  record('study progression', 'rapid Next clicks advance one stage each', 'click Next four times at one spot without waiting', {reachedStage: reached, expected: 5}, reached === 5);
+  await h3.page.close();
 }
 
 async function files(context) {

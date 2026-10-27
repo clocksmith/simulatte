@@ -1,7 +1,7 @@
 'use strict';
 // Drives the study workspace in Chromium with mouse, keyboard and emulated touch, and records each
 // acceptance check from docs/simulatte/study-workspace-acceptance.md as action, observation and result.
-// Usage: LUCYD_PLAYWRIGHT_MODULE=/path/to/playwright node tools/simulatte/audit-study-workspace.cjs [--url URL]
+// Usage: LUCYD_PLAYWRIGHT_MODULE=/path/to/playwright node tools/simulatte/audit-study-workspace.cjs [--url URL] [--out FILE] [--suites a,b]
 const fs = require('node:fs');
 const path = require('node:path');
 const {chromium, devices} = require(process.env.LUCYD_PLAYWRIGHT_MODULE || '@playwright/test');
@@ -9,7 +9,8 @@ const {chromium, devices} = require(process.env.LUCYD_PLAYWRIGHT_MODULE || '@pla
 const ROOT = path.resolve(__dirname, '../..');
 const urlFlag = process.argv.indexOf('--url');
 const BASE = urlFlag > 0 ? process.argv[urlFlag + 1] : 'http://127.0.0.1:4173/simulatte/system-diagram/study/';
-const OUT = path.join(ROOT, 'artifacts/composable-study/workspace-acceptance.json');
+const outFlag = process.argv.indexOf('--out');
+const OUT = path.resolve(ROOT, outFlag > 0 ? process.argv[outFlag + 1] : 'artifacts/composable-study/workspace-acceptance.json');
 const META = process.platform === 'darwin' ? 'Meta' : 'Control';
 const rows = [], problems = [];
 const record = (area, check, action, observed, pass) => { rows.push({area, check, action, observed, result: pass ? 'pass' : 'fail'}); console.log(`${pass ? 'PASS' : 'FAIL'}  ${area} · ${check}`); };
@@ -80,8 +81,10 @@ async function boot(context, query = '', {keep = false} = {}) {
   page.on('pageerror', e => problems.push(`pageerror: ${e.message}`));
   page.on('console', m => { if (m.type() === 'error') problems.push(`console: ${m.text().slice(0, 200)}`); });
   page.on('response', r => { if (r.status() >= 400) problems.push(`HTTP ${r.status()} ${r.url()}`); });
-  await page.goto(BASE + query, {waitUntil: 'networkidle'});
-  if (!keep) { await page.evaluate(() => localStorage.clear()); await page.reload({waitUntil: 'networkidle'}); }
+  // Network errors while loading a remote host are retried and reported; they are not product results.
+  const load = async step => { for (let attempt = 1; ; attempt++) { try { return await step(); } catch (error) { if (attempt === 3 || !/net::|Timeout/.test(error.message)) throw error; problems.push(`retried navigation: ${error.message.split('\n')[0]}`); await page.waitForTimeout(3000 * attempt); } } };
+  await load(() => page.goto(BASE + query, {waitUntil: 'networkidle'}));
+  if (!keep) { await page.evaluate(() => localStorage.clear()); await load(() => page.reload({waitUntil: 'networkidle'})); }
   await page.waitForFunction(() => globalThis.SimulatteStudyInspector?.ready(), null, {timeout: 20000});
   await page.waitForTimeout(400);
   return harness(page);
@@ -95,11 +98,13 @@ if (require.main === module) {
     try {
       const desktop = await browser.newContext({viewport: {width: 1440, height: 900}, acceptDownloads: true, permissions: ['clipboard-read', 'clipboard-write']});
       const gestures = require('./audit-study-workspace-gestures.cjs'), study = require('./audit-study-workspace-study.cjs');
-      for (const suite of [gestures.layout, gestures.drawing, gestures.focus, gestures.selection, gestures.transforms, gestures.camera, gestures.text, gestures.connections, gestures.editing, study.progression, study.files]) {
+      const only = process.argv.includes('--suites') ? process.argv[process.argv.indexOf('--suites') + 1].split(',') : null;
+      const pick = suites => suites.filter(suite => !only || only.includes(suite.name));
+      for (const suite of pick([gestures.layout, gestures.drawing, gestures.focus, gestures.selection, gestures.transforms, gestures.camera, gestures.text, gestures.connections, gestures.editing, study.progression, study.files])) {
         try { await suite(desktop); } catch (error) { record(suite.name, 'suite completed', 'run the suite', error.stack.split('\n').slice(0, 3).join(' | '), false); }
       }
       const phone = await browser.newContext({...devices['iPhone 13'], acceptDownloads: true});
-      try { await study.touch(phone); } catch (error) { record('touch', 'suite completed', 'run the suite', error.stack.split('\n').slice(0, 3).join(' | '), false); }
+      if (pick([study.touch]).length) try { await study.touch(phone); } catch (error) { record('touch', 'suite completed', 'run the suite', error.stack.split('\n').slice(0, 3).join(' | '), false); }
     } catch (error) { record('harness', 'audit completed', 'run every suite', error.stack.split('\n').slice(0, 3).join(' | '), false); }
     const version = browser.version(); await browser.close();
     const summary = {checks: rows.length, passed: rows.filter(r => r.result === 'pass').length, failed: rows.filter(r => r.result === 'fail').length};

@@ -113,11 +113,12 @@
         h('button', {className: 'sw-button', onClick: onUsePublished}, 'Discard edits and load the published version')));
   }
 
+  // Arrows come first so they never move when the stage title changes length.
   function Stepper({stageIndex, minIndex, count, title, edited, onStep, onReset}) {
     return h('div', {className: 'sw-stepper', role: 'group', 'aria-label': 'Stage'},
-      h('button', {className: 'sw-icon', disabled: stageIndex <= minIndex, onClick: () => onStep(stageIndex - 1), 'aria-label': 'Previous stage', title: 'Previous stage'}, '‹'),
+      h('button', {className: 'sw-icon', disabled: stageIndex <= minIndex, onClick: () => onStep(-1), 'aria-label': 'Previous stage', title: 'Previous stage'}, '‹'),
+      h('button', {className: 'sw-icon', disabled: stageIndex >= count - 1, onClick: () => onStep(1), 'aria-label': 'Next stage', title: 'Next stage'}, '›'),
       h('span', {className: 'sw-stage-title'}, h('b', null, stageIndex < 0 ? 'Start' : `${stageIndex + 1}/${count}`), ' ', title),
-      h('button', {className: 'sw-icon', disabled: stageIndex >= count - 1, onClick: () => onStep(stageIndex + 1), 'aria-label': 'Next stage', title: 'Next stage'}, '›'),
       edited && h('button', {className: 'sw-pill', onClick: onReset, title: 'Reset this stage to the authored layout'}, 'Edited · reset'));
   }
 
