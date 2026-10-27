@@ -24,24 +24,31 @@ The browser reports at that commit build two architectures from blank: a client/
 The new authoring plans in `tests/fixtures/system-diagram-blank-journeys.json`
 and `system-diagram-rich-journeys.json` have independently derived numerical
 expectations. The browser audit consumes them as palette, port, property and fault
-inputs, never as a document injected into the editor. The following table is
-model-qualified; its new desktop/touch browser execution is **pending** because
-automatic approval review denied the browser/server audit before execution.
+inputs, never as a document injected into the editor. At commit `c4da6684` the
+[journey receipt](../../artifacts/system-diagram-journeys/browser.json) passes all six
+families on desktop (1440) and touch-emulated mobile (390), plus the 22-check blank
+authoring journey on each, with no page errors or failed requests.
 
 | Family | Architecture and failure/repair | Independently expected completed/failed baseline → repair | New desktop/touch browser status |
 | --- | --- | --- | --- |
-| Streaming | GPU batch → bounded fan-out → slow consumer and CDN/origin; cache outage; increase queue budget and enable declared origin bypass | 1/3 → 4/0; batch of four, cache flush/fill/hit and origin-call counts asserted | Pending / pending |
-| Replication | Client → designated leader → separately authored follower link; link partition and leader crash/recovery; increase finite replication attempts | 1/2 → 2/1; first partitioned write repaired, request during leader outage still fails, post-recovery request succeeds | Pending / pending |
-| Agents/RAG/collection | Crawler → chunker → shared embedding/index; natural-language requests → RAG → structured output → agent/tool; dependency outage; bounded tool retry | 2/1 → 3/0; separate malformed-output and stale-publication probes assert bounded invalid/unavailable failures | Pending / pending |
-| Healthcare ingestion | Event source → version validator → approval gate → identity ledger → store; quarantine unsupported version; admit declared version 2 | 2/2 → 4/0; schema/quarantine/approval/commit counts asserted | Pending / pending |
-| Finance reconciliation | Paired synthetic events → reconciliation ledger → store/quarantine; scalar mismatch; change explicit acceptance tolerance | 3/1 → 4/0; reconciled pairs 1 → 2 and retained pending pair 1 → 0; tolerance is policy, not financial correctness | Pending / pending |
-| Lakehouse | Event source → event-time window → shuffle/spill → store/quarantine; late events; increase lateness allowance | 2/2 → 4/0; accepted sum 200 → 400, spill and logical checkpoint counts asserted | Pending / pending |
+| Streaming | GPU batch → bounded fan-out → slow consumer and CDN/origin; cache outage; increase queue budget and enable declared origin bypass | 1/3 → 4/0; batch of four, cache flush/fill/hit and origin-call counts asserted | Pass / pass |
+| Replication | Client → designated leader → separately authored follower link; link partition and leader crash/recovery; increase finite replication attempts | 1/2 → 2/1; first partitioned write repaired, request during leader outage still fails, post-recovery request succeeds | Pass / pass |
+| Agents/RAG/collection | Crawler → chunker → shared embedding/index; natural-language requests → RAG → structured output → agent/tool; dependency outage; bounded tool retry | 2/1 → 3/0; separate malformed-output and stale-publication probes assert bounded invalid/unavailable failures | Pass / pass |
+| Healthcare ingestion | Event source → version validator → approval gate → identity ledger → store; quarantine unsupported version; admit declared version 2 | 2/2 → 4/0; schema/quarantine/approval/commit counts asserted | Pass / pass |
+| Finance reconciliation | Paired synthetic events → reconciliation ledger → store/quarantine; scalar mismatch; change explicit acceptance tolerance | 3/1 → 4/0; reconciled pairs 1 → 2 and retained pending pair 1 → 0; tolerance is policy, not financial correctness | Pass / pass |
+| Lakehouse | Event source → event-time window → shuffle/spill → store/quarantine; late events; increase lateness allowance | 2/2 → 4/0; accepted sum 200 → 400, spill and logical checkpoint counts asserted | Pass / pass |
 
-Each planned browser journey authors its graph from blank, configures fault or
-invalid-workload inputs, takes a fractional interrupted checkpoint, executes to
-its declared horizon, inspects a failed/retained causal request, restores and
-save/loads accepted execution, compares identical demand/faults, and executes
-the repair. These are audit assertions awaiting execution, not completed evidence.
+Each browser journey authors its graph from blank by palette drag, port drag and
+property edits, sets seed and horizon in Run settings, schedules faults in Failures,
+captures a baseline, advances to the fractional checkpoint time, checkpoints, executes
+to its declared horizon against the independent expectations, inspects a failed or
+retained request, verifies replay, restores the checkpoint, saves, reloads and replays
+the saved document to the identical interrupted state, compares the repair with
+identical demand and faults, and executes the repair. Saved documents do not store
+accepted execution, and an architecture edit clears the accepted run, so these
+journeys check replay reproduction rather than a restored stored run. The request
+detail shows delivery attempts and status; retained background blockers are no
+longer asserted in the browser. Touch is Chrome emulation, not a physical device.
 
 The continuation adds individually authored replica nodes using the existing
 network and event engine. A stateless topology hook rejects unsupported replica

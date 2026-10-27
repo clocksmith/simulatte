@@ -1,69 +1,65 @@
 {
   "source": {
-    "head": "9fc2a1d60066837cf6faa46a64aaf89ef6b7c345",
-    "capturedAt": "2026-10-26T19:22:23.475Z",
-    "modifiedSources": {
-      "public/data/system-diagram/config.json": {
-        "sha256": "d101887e1fa1a460511e8b3d6e06fbc00629f2271f1d7287412eac4bba0359a7",
-        "modifiedAt": "2026-10-26T19:08:42.285Z"
-      },
-      "public/data/system-diagram/interview-problems.json": {
-        "sha256": "a1bf03a421446820c01e49993d0e9c4f3ffc34846e90c56988a7e594dce5462a",
-        "modifiedAt": "2026-10-26T19:19:13.970Z"
-      },
-      "public/data/system-diagram/private-collection.enc.json": {
-        "sha256": "862e9f8e323b1da1fb0f7cf3ba4415d44ad1aaf0daf5b1a5dd101f9485ab56f4",
-        "modifiedAt": "2026-10-26T19:19:13.970Z"
-      },
-      "public/simulatte/system-diagram/CATSCAN.md": {
-        "sha256": "8fe58abeec73e3779d1eec4de4aa4213ba5b7d9eca9d004dbb7f3777cceb8fbf",
-        "modifiedAt": "2026-10-26T19:13:59.160Z"
-      },
-      "public/simulatte/system-diagram/editor-canvas.js": {
-        "sha256": "c74921925c2d47c05e65c5f08de8fd1229d96538d0f1513f4d82c0104a421939",
-        "modifiedAt": "2026-10-26T19:22:19.614Z"
-      },
-      "public/simulatte/system-diagram/editor-model.js": {
-        "sha256": "ee06c02014b5ed48d4b70b5557e4e05a5c337ecd92e66ea25ca1a41b21a0a3fe",
-        "modifiedAt": "2026-10-26T19:20:42.585Z"
-      },
-      "public/simulatte/system-diagram/editor-shell.js": {
-        "sha256": "bd2e348ddc413886f943de6141b0e777aa54557ef1667149839ca738bd1f9ab9",
-        "modifiedAt": "2026-10-26T19:21:49.393Z"
-      },
-      "public/simulatte/system-diagram/editor.css": {
-        "sha256": "160a4824eb08d827282587b8e1414ebffe3eeaf0c066e68c1bac41d34b9df4ff",
-        "modifiedAt": "2026-10-26T19:16:28.183Z"
-      },
-      "public/simulatte/system-diagram/index.html": {
-        "sha256": "9933aa17df525d4828cb1a6dd3c6064e4d5f6478bbd681c130e28badb0940b3d",
-        "modifiedAt": "2026-10-26T19:16:28.183Z"
-      },
-      "public/simulatte/system-diagram/interview-stepper.js": {
-        "sha256": "7e3cc87b781212b950a36402f505290d40df8c78c798250a8901c680f5d9c17a",
-        "modifiedAt": "2026-10-26T19:16:28.183Z"
-      },
-      "public/simulatte/system-diagram/page.js": {
-        "sha256": "8513cee6e21be12e4602e504f32e63542ab9baa79a7aeb3391d4fabd7a5f0cae",
-        "modifiedAt": "2026-10-26T19:22:19.614Z"
-      },
-      "public/simulatte/system-diagram/private-collection.js": {
-        "sha256": "1e2cff4dc134169ef705c99cf683bd32c22ad2d0e5db88555585bd9d68e5e4d7",
-        "modifiedAt": "2026-10-26T19:18:42.376Z"
-      },
-      "public/simulatte/system-diagram/style.css": {
-        "sha256": "e9d46f2e7a67b2cc576c5b0b0d06a94512871cd010d530c522a768e3c7311115",
-        "modifiedAt": "2026-10-26T19:16:28.183Z"
-      },
-      "public/simulatte/system-diagram/subsystem-editor.js": {
-        "sha256": "4deae52e3caa3052962b1eeb6f2d4e2b79328433405b8343a900251860f7ea1c",
-        "modifiedAt": "2026-10-26T19:22:20.175Z"
-      }
-    },
+    "head": "c4da668406232f7260b378ad3419ba746487e933",
+    "capturedAt": "2026-10-27T14:41:37.218Z",
+    "modifiedSources": {},
     "boundary": "Local served public output with this working-tree delta; not a deployed release or physical GPU/acoustic validation."
   },
   "boundary": "Local isolated Chrome browser editing journey verification for System Diagram Editor: Preset -> edit -> connect -> group -> collapse -> expand -> edit subsystem -> publish -> explicitly upgrade instance -> undo/redo -> save -> reload -> export/import.",
   "cases": [
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "checks": {
+        "titleAndReady": true,
+        "blankCanvasAndPersistentRail": true,
+        "drawerDismissalAndStableCamera": true,
+        "presetLoaded": true,
+        "obstacleAwareRouting": {
+          "edges": 7,
+          "blocked": 0,
+          "intersections": 0
+        },
+        "nodeEditAndCoordinates": true,
+        "exactConnectionEndpoints": true,
+        "portBoundaryAttachments": true,
+        "groupClustered": true,
+        "groupCollapsed": true,
+        "foldedPortBoundaryAttachments": true,
+        "groupExpandedAndCoordinatesPreserved": true,
+        "detachedSubsystemEditorOpened": true,
+        "publishedVersionPinned": true,
+        "explicitInstanceUpgrade": true,
+        "undoRedoIntegrity": true,
+        "savedToStorage": true,
+        "reloadRecovery": true,
+        "jsonExportImport": true
+      },
+      "errors": [],
+      "networkFailures": [],
+      "blockedExternal": [],
+      "screenshots": [
+        "1440-00-component-rail.png",
+        "1440-00-properties-drawer.png",
+        "1440-01-preset.png",
+        "1440-02-edited.png",
+        "1440-03-grouped.png",
+        "1440-04-collapsed.png",
+        "1440-05-expanded.png",
+        "1440-06-subsystem-draft.png",
+        "1440-07-upgraded.png",
+        "1440-08-saved.png",
+        "1440-09-reloaded.png",
+        "1440-10-exported.png"
+      ],
+      "build": "9abaff205e4a234fcb798f352a6df0f414e7b5d3-2f7e7e78be3b",
+      "lastAction": {
+        "button": "Import JSON"
+      },
+      "pass": true
+    },
     {
       "viewport": {
         "width": 390,
@@ -111,7 +107,7 @@
         "390-09-reloaded.png",
         "390-10-exported.png"
       ],
-      "build": "c97d9e241af94fcb966e331c7a0e4f45c8222c98-97d58cf24bb3",
+      "build": "9abaff205e4a234fcb798f352a6df0f414e7b5d3-2f7e7e78be3b",
       "lastAction": {
         "button": "Import JSON"
       },

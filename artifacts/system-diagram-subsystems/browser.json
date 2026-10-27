@@ -1,0 +1,69 @@
+{
+  "source": {
+    "head": "c4da668406232f7260b378ad3419ba746487e933",
+    "capturedAt": "2026-10-27T14:41:55.700Z",
+    "modifiedSources": {},
+    "boundary": "Local served public output with this working-tree delta; not a deployed release or physical GPU/acoustic validation."
+  },
+  "boundary": "Local browser interaction and screenshot evidence for versioned subsystem composition. Synthetic simulation only; not deployment, production capacity or human visual acceptance.",
+  "cases": [
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "checks": {
+        "drawNamedConnection": true,
+        "captureRewiresBoundary": true,
+        "captureUndoRedo": true,
+        "reusePinnedDefinition": true,
+        "publishPreservesPinnedInstances": true,
+        "explicitUpgrade": true,
+        "cancelDetachedDraft": true,
+        "instanceOverrides": true,
+        "nesting": true,
+        "nestedRunReplay": true,
+        "conflictingImportIsAtomic": true,
+        "crossDiagramLibraryReuse": true
+      },
+      "errors": [],
+      "networkFailures": [],
+      "screenshots": [
+        "1440-definition-draft.png",
+        "1440-nested-architecture.png",
+        "1440-portable-library.png"
+      ],
+      "lastAction": "Fit",
+      "pass": true
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "checks": {
+        "drawNamedConnection": true,
+        "captureRewiresBoundary": true,
+        "captureUndoRedo": true,
+        "reusePinnedDefinition": true,
+        "publishPreservesPinnedInstances": true,
+        "explicitUpgrade": true,
+        "cancelDetachedDraft": true,
+        "instanceOverrides": true,
+        "nesting": true,
+        "nestedRunReplay": true,
+        "conflictingImportIsAtomic": true,
+        "crossDiagramLibraryReuse": true
+      },
+      "errors": [],
+      "networkFailures": [],
+      "screenshots": [
+        "390-definition-draft.png",
+        "390-nested-architecture.png",
+        "390-portable-library.png"
+      ],
+      "lastAction": "Fit",
+      "pass": true
+    }
+  ]
+}
