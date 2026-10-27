@@ -191,6 +191,7 @@
   button('view-actions', '+', () => canvas.zoomBy(1.25), 'quiet', 'Zoom in');
   button('view-actions', 'Fit', () => canvas.fit(), 'quiet');
 
+  let pendingStudyRestore = Promise.resolve();
   function studyStateForSave(){
     const isPrivate=Boolean(privateCollection?.active);
     if(subsystemEditor?.session?.active&&suspendedStudy){if(suspendedStudy.privateDocument!==isPrivate)throw Error('Study privacy changed during definition editing');return clone(suspendedStudy.value);}
@@ -199,6 +200,7 @@
 
   // Document file actions
   async function saveLocal() {
+    await pendingStudyRestore;
     canvas.flush();
     const isSubsystem = Boolean(subsystemEditor?.session?.active);
     const rootDoc = isSubsystem ? subsystemEditor.session.rootDiagram : model.diagram;
@@ -234,7 +236,7 @@
     return true;
   }
 
-  function loadLocal() {
+  async function loadLocal() {
     if (privateCollection?.active) return privateCollection.restoreSaved();
     if (subsystemEditor?.session?.active) {
       message('Publish or cancel subsystem definition edits before loading another document.', true);
@@ -242,7 +244,7 @@
     }
     const record = fileStore ? fileStore.loadRecord() : null;
     if (record) {
-      loadDocumentRecord(record.diagram, record.subsystemDraft, false, record.studyState);
+      await loadDocumentRecord(record.diagram, record.subsystemDraft, false, record.studyState);
       return true;
     }
     try {
@@ -251,7 +253,7 @@
         const parsed = JSON.parse(raw);
         const doc = parsed?.schema === 'simulatte.systemDiagramDraft.v1' ? parsed.diagram : parsed;
         const draft = parsed?.subsystemDraft || null;
-        loadDocumentRecord(doc, draft);
+        await loadDocumentRecord(doc, draft);
         return true;
       }
     } catch {}
@@ -261,6 +263,7 @@
 
   function loadDocumentRecord(diagramData, subsystemDraft, privateDocument = false, studyState = null) {
     const diagram = documents.validate(diagramData, library, config);
+    pendingStudyRestore = Promise.resolve();
     suspendedStudy=null;interviewStepper?.onDocumentLoaded(diagram);
     privateCollection?.setActive(privateDocument);
     const loaded = model.replace(diagram);
@@ -283,9 +286,12 @@
       canvas.setView(diagram.view, {restore: true});
       canvas.flush();
       render();
-      const expected=model.diagram;interviewStepper.ready.then(()=>{if(model.diagram!==expected)return;if(privateDocument)interviewStepper.restorePrivateState(studyState);else interviewStepper.restorePublicState(studyState);}).catch(error=>message(error.message,true));
+      const expected=model.diagram,needsCatalogue=!privateDocument&&studyState?.problemKey&&studyState.problemKey!=='custom';
+      pendingStudyRestore=(needsCatalogue?interviewStepper.ready:Promise.resolve()).then(()=>{if(model.diagram!==expected)return;if(privateDocument)interviewStepper.restorePrivateState(studyState);else interviewStepper.restorePublicState(studyState);});
+      pendingStudyRestore.catch(error=>message(error.message,true));
       message(`Loaded saved diagram: ${diagram.name || diagram.id || 'Custom architecture'}`);
     }
+    return pendingStudyRestore;
   }
 
   async function exportJson() {

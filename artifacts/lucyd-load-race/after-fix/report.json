@@ -1,0 +1,81 @@
+{
+  "cases": [
+    {
+      "name": "load waits for held catalogue",
+      "passed": true,
+      "preserved": [
+        "problem",
+        "approach",
+        "stageId",
+        "edited stage",
+        "personal reference"
+      ],
+      "returnedSelection": {
+        "problemId": "social-feed",
+        "solutionId": "fanout-on-read",
+        "stageId": "study-5",
+        "isPrivate": false
+      }
+    },
+    {
+      "name": "independent draft saves while catalogue is held",
+      "passed": true,
+      "preserved": [
+        "edited personal draft"
+      ],
+      "unrelatedCatalogueDoesNotBlockSave": true
+    },
+    {
+      "name": "load then save queued before catalogue",
+      "passed": true,
+      "savedProblem": "social-feed",
+      "savedStage": "study-5"
+    },
+    {
+      "name": "independent draft saves with unavailable catalogue",
+      "passed": true,
+      "catalogueFailure": "Problem collection is unavailable",
+      "preserved": [
+        "edited personal draft"
+      ]
+    }
+  ],
+  "errors": [],
+  "source": {
+    "head": "93c8309980645afc98292a3d4864215e248d43e6",
+    "capturedAt": "2026-10-27T13:40:33.361Z",
+    "modifiedSources": {
+      "public/index.html": {
+        "sha256": "598dae5a4d5f9f081ea4c07399a2bfc0b25faf15e4c6c688f8f78465b0442e8a",
+        "modifiedAt": "2026-10-27T13:33:53.855Z"
+      },
+      "public/simulatte/distributed-repair/index.html": {
+        "sha256": "db4efee76e72c7641e6fed08e29d661bd6f856c0048a48670b2ee749c2729c26",
+        "modifiedAt": "2026-10-27T13:33:53.856Z"
+      },
+      "public/simulatte/distributed-repair/repair.html": {
+        "sha256": "076e42819feed1537f9bd26bbb2a183c66dc592283100fa252199621384191b3",
+        "modifiedAt": "2026-10-27T13:33:53.857Z"
+      },
+      "public/simulatte/field-experiments/index.html": {
+        "sha256": "738fa1b8cc1437b1058b5b4870fccb2f53bd287e7c55d88663a1a1dee668ccb2",
+        "modifiedAt": "2026-10-27T13:33:53.856Z"
+      },
+      "public/simulatte/system-diagram/index.html": {
+        "sha256": "31f7475c6ed7c15a1b82fb4c8bd34bfb91313cd8365fd33dee1930986290e1bf",
+        "modifiedAt": "2026-10-27T13:33:53.857Z"
+      },
+      "public/simulatte/system-diagram/page.js": {
+        "sha256": "b55429b7a99f9943db37ebb0512a0917dc8dd1a8af0665226e17e35f38fd3c26",
+        "modifiedAt": "2026-10-27T13:39:58.861Z"
+      },
+      "public/version.json": {
+        "sha256": "14140577a013a4e1516c879245ef93a90c4be2e16e0530a40f5e3d20e102ac86",
+        "modifiedAt": "2026-10-27T13:33:53.858Z"
+      }
+    },
+    "boundary": "Local served public output with this working-tree delta; not a deployed release or physical GPU/acoustic validation."
+  },
+  "url": "http://127.0.0.1:59326/system-diagram",
+  "browser": "143.0.7499.4"
+}

@@ -195,3 +195,9 @@ capacity, distributed-consensus or human-comprehension qualification.
 The v4 development verification run passes193 focused checks; all736 stages
 execute and resume serialized state, and all92 final architectures verify through
 the coordinator. Optional sketches are excluded from the736 runnable-stage count.
+
+A live slow-catalogue check exposed saved-study restoration returning before its
+problem/approach metadata was ready. Load now awaits that restoration; a queued
+Save waits for it too. Independent drafts remain savable with the catalogue delayed
+or unavailable. [Four deterministic browser cases](../../artifacts/lucyd-load-race/after-fix/report.json)
+cover those boundaries without relying on timing-only sleeps.
