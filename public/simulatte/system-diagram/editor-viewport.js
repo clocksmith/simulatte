@@ -42,5 +42,13 @@
     const zoom = clamp(Math.min(Math.max(1, a.width - 2 * PADDING) / Math.max(1, box.w), Math.max(1, a.height - 2 * PADDING) / Math.max(1, box.h), 1.25), minimumZoom(content, rect, editor, insets), editor.maxZoom);
     return {zoom, x: box.x + box.w / 2 - (a.left + a.width / 2) / zoom, y: box.y + box.h / 2 - (a.top + a.height / 2) / zoom};
   }
-  return Object.freeze({area, board, minimumZoom, constrain, fit});
+  function readable(content, rect, editor, insets) {
+    const overview = fit(content, rect, editor, insets);
+    if (!content || overview.zoom >= 1) return overview;
+    const a = area(rect, insets), first = content.anchors?.[0] || content;
+    const zoom = Math.min(1, editor.maxZoom);
+    return {zoom, x: first.x - (a.left + PADDING) / zoom,
+      y: first.y + first.h / 2 - (a.top + a.height / 2) / zoom};
+  }
+  return Object.freeze({area, board, minimumZoom, constrain, fit, readable});
 });

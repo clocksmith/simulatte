@@ -133,10 +133,10 @@
       setView({ zoom, x: before.x - (client.x - r.left) / zoom, y: before.y - (client.y - r.top) / zoom });
     }
     function zoomBy(factor) { const r = rect(); zoomAt({ x: r.left + r.width / 2, y: r.top + r.height / 2 }, factor); return { ...view }; }
-    function fit() {
+    function fit({readable = false} = {}) {
       const r = rect();
       if (!r.width || !r.height) return { ...view };
-      return setView(V.fit(contentBounds(), r, E, insets), {fitted:true});
+      return setView(V[readable ? 'readable' : 'fit'](contentBounds(), r, E, insets), {fitted:readable ? 'readable' : true});
     }
 
     // Pointer moves are batched per animation frame; drags commit through one coalesced history entry.
@@ -704,7 +704,7 @@
     let size = rect();
     const resize = typeof win.ResizeObserver === 'function' ? new win.ResizeObserver(() => {
       const next = rect();
-      if(fittedView)fit();else setView({x: view.x + (size.width - next.width) / (2 * view.zoom), y: view.y + (size.height - next.height) / (2 * view.zoom)});
+      if(fittedView)fit({readable:fittedView==='readable'});else setView({x: view.x + (size.width - next.width) / (2 * view.zoom), y: view.y + (size.height - next.height) / (2 * view.zoom)});
       size = next;
     }) : null;
     resize?.observe(host);
@@ -724,7 +724,7 @@
       },
       setMultiSelect(value) { explicitMultiSelect = Boolean(value); host.dataset.multiSelect = String(explicitMultiSelect); },
       setState(value, options = {}) { runView = value; runPending = Boolean(options.pending); paintState(); },
-      flush: flushNow, setInsets(value) {const changed=JSON.stringify(insets)!==JSON.stringify(value);insets={...value};if(changed&&fittedView)fit();}, getInsets:()=>({...insets}),
+      flush: flushNow, setInsets(value) {const changed=JSON.stringify(insets)!==JSON.stringify(value);insets={...value};if(changed&&fittedView)fit({readable:fittedView==='readable'});}, getInsets:()=>({...insets}),
       fit, zoomBy, getView: () => ({ ...view }), setView: (v, options) => setView(v, options),
       screenToWorld, worldToScreen, viewportCenter, groupAt, snap,
       startConnect: (nodeId, portId) => { const n = findNode(nodeId), port = n && classInfo(n.classId).ports.find(p => p.id === portId); if (port) startPending({ nodeId, portId, dir: port.direction }); },

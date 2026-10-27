@@ -55,3 +55,13 @@ test('corrupt or blocked browser storage is distinguishable from no saved docume
   assert.equal(Files.autosave(config,null).readStatus().state,'unavailable');
   values.delete('diagram'); assert.equal(store.readStatus().state,'missing');
 });
+test('walkthrough readable view keeps natural text scale and the entry component visible on desktop and phone',()=>{
+ const first={x:400,y:800,w:176,h:72},content={x:0,y:0,w:6000,h:2400,anchors:[first]};
+ for(const rect of [{width:1280,height:720},{width:390,height:844}]){
+  const insets={left:64,right:16,top:180,bottom:110},v=V.readable(content,rect,editor,insets);
+  assert.equal(v.zoom,1);assert.ok((first.x-v.x)*v.zoom>=insets.left);
+  assert.ok((first.x+first.w-v.x)*v.zoom<=rect.width-insets.right);
+  assert.ok((first.y-v.y)*v.zoom>=insets.top);assert.ok((first.y+first.h-v.y)*v.zoom<=rect.height-insets.bottom);
+  assert.ok(V.fit(content,rect,editor,insets).zoom<1);
+ }
+});
