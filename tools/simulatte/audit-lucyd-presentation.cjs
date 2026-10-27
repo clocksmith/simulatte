@@ -31,12 +31,13 @@ async function openRail(page){if(await page.locator('body').getAttribute('data-p
         return keys.length;
       });assert.equal(privateCount,15);
       await page.evaluate(()=>SimulatteSystemDiagramEditor.interviewStepper.setScenario('private-practice-4'));
-      assert.equal(await page.locator('.lucyd-exercise-type').innerText(),'Systems coding');
+      assert.equal(await page.locator('.lucyd-exercise-type').innerText(),'L035 · Systems coding');
       await page.getByRole('button',{name:'Problem details and source',exact:true}).click();
       const brief=page.locator('.lucyd-details .lucyd-problem-brief');
       assert.equal(await brief.locator('pre code').count(),1);assert.equal(await brief.locator('li').count(),4);
       assert.ok((await brief.innerText()).includes('provenance is unverified'));
       assert.equal(await brief.getByRole('link',{name:'Java LinkedHashMap',exact:true}).count(),1);
+      assert.equal(await brief.getByRole('link',{name:'Open problem L035',exact:true}).getAttribute('href'),'?problem=L035');
       assert.ok(!(await brief.innerText()).includes('[Databricks Staff IC6]'));
       assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
       await page.keyboard.press('Escape');
@@ -44,6 +45,7 @@ async function openRail(page){if(await page.locator('body').getAttribute('data-p
       assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('simulatte.systemDiagram.draft.v1')).diagram.schema),'simulatte.systemDiagram.v4');
       await page.reload();await page.waitForFunction(()=>document.body.dataset.editorReady==='true');
       await page.evaluate(()=>SimulatteSystemDiagramEditor.interviewStepper.ready);
+      assert.equal(await page.evaluate(()=>SimulatteSystemDiagramEditor.interviewStepper.getSelection()?.problemId),'private-practice-4');
       await page.evaluate(async()=>{SimulatteSystemDiagramEditor.interviewStepper.setScenario('private-practice-4');await SimulatteSystemDiagramEditor.loadLocal();});
       assert.equal(await page.evaluate(()=>SimulatteSystemDiagramEditor.interviewStepper.getSelection().problemId),'private-practice-4');
       assert.deepEqual(errors,[]);

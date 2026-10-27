@@ -44,6 +44,7 @@
     const data=problem.details||migrate(problem.description).details;
     const make=(tag,text)=>{const e=document.createElement(tag);if(text!==undefined)e.textContent=text;return e;};
     const root=make('section');root.className='lucyd-problem-brief';
+    if(problem.referenceId){const identity=make('a',problem.referenceId+' · '+problem.title);identity.href='?problem='+encodeURIComponent(problem.referenceId);identity.setAttribute('aria-label','Open problem '+problem.referenceId);root.append(identity);}
     root.append(make('p',TYPES[data.exerciseType]),make('h3','Problem'),make('p',problem.details?problem.description:migrate(problem.description).description));
     for(const i of data.interfaces){const pre=make('pre'),code=make('code',i.code);pre.append(code);root.append(make('h3','Given interface · '+i.language),pre);}
     if(data.requirements.length){const list=make('ul');for(const r of data.requirements)list.append(make('li',r));root.append(make('h3','Requirements'),list);}

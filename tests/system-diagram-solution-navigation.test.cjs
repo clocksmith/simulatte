@@ -32,6 +32,12 @@ async function setup(run){
  finally{stepper.dispose();global.fetch=oldFetch;global.Option=oldOption;}
 }
 
+test('short references resolve to the same public problem and render in its chooser',()=>setup(async({ui,stepper})=>{
+ stepper.setScenario('L035');assert.equal(stepper.getScenario().id,'private-practice-4');assert.equal(stepper.getSelection().isPrivate,false);
+ assert.ok(ui.all().some(e=>e.tagName==='option'&&e.value==='private-practice-4'&&e.textContent.startsWith('L035 · ')));
+ stepper.setScenario('l040');assert.equal(stepper.getScenario().title,'Thread-Safe Bounded Blocking Queue');
+}));
+
 test('published practice is public while older encrypted edits restore through a hidden private alias',()=>setup(async({ui,model,stepper})=>{
  const problem=require('../public/data/system-diagram/problems.json').problems.find(p=>p.id==='private-practice-4');
  stepper.setScenario(problem.id);assert.equal(stepper.getSelection().isPrivate,false);await stepper.showSolution(problem.solutions[0].id);

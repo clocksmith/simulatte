@@ -1,6 +1,6 @@
 {
-  "schema": "simulatte.lucydProblems.v5",
-  "version": "5.1.0",
+  "schema": "simulatte.lucydProblems.v6",
+  "version": "6.0.0",
   "followupAttribution": "Lucyd-authored practice followups, not interview transcripts. Prompts paraphrase the linked sources. Candidate accounts are not company verification. Company-inspired exercises and their solutions are authored practice based on technical references, not verified interview questions or company architectures.",
   "problems": [
     {
@@ -3121,7 +3121,8 @@
         "requirements": [],
         "hints": [],
         "references": []
-      }
+      },
+      "referenceId": "L001"
     },
     {
       "id": "project-review",
@@ -6514,7 +6515,8 @@
         "requirements": [],
         "hints": [],
         "references": []
-      }
+      },
+      "referenceId": "L002"
     },
     {
       "id": "pagination",
@@ -8608,7 +8610,8 @@
         "requirements": [],
         "hints": [],
         "references": []
-      }
+      },
+      "referenceId": "L003"
     },
     {
       "id": "chat",
@@ -12107,7 +12110,8 @@
         "requirements": [],
         "hints": [],
         "references": []
-      }
+      },
+      "referenceId": "L004"
     },
     {
       "id": "replication",
@@ -14417,7 +14421,8 @@
         "requirements": [],
         "hints": [],
         "references": []
-      }
+      },
+      "referenceId": "L005"
     },
     {
       "id": "saved-search",
@@ -16847,7 +16852,8 @@
         "requirements": [],
         "hints": [],
         "references": []
-      }
+      },
+      "referenceId": "L006"
     },
     {
       "id": "load-balancer",
@@ -20486,7 +20492,8 @@
         "requirements": [],
         "hints": [],
         "references": []
-      }
+      },
+      "referenceId": "L007"
     },
     {
       "id": "subscriptions",
@@ -23093,7 +23100,8 @@
         "requirements": [],
         "hints": [],
         "references": []
-      }
+      },
+      "referenceId": "L008"
     },
     {
       "id": "reddit-comments",
@@ -27502,7 +27510,8 @@
         "requirements": [],
         "hints": [],
         "references": []
-      }
+      },
+      "referenceId": "L009"
     },
     {
       "id": "netflix-streaming",
@@ -35346,7 +35355,8 @@
         "requirements": [],
         "hints": [],
         "references": []
-      }
+      },
+      "referenceId": "L010"
     },
     {
       "id": "twitter-timeline",
@@ -43110,7 +43120,8 @@
         "requirements": [],
         "hints": [],
         "references": []
-      }
+      },
+      "referenceId": "L011"
     },
     {
       "id": "meta-stories",
@@ -47720,7 +47731,8 @@
         "requirements": [],
         "hints": [],
         "references": []
-      }
+      },
+      "referenceId": "L012"
     },
     {
       "id": "amazon-flash-sale",
@@ -51785,7 +51797,8 @@
         "requirements": [],
         "hints": [],
         "references": []
-      }
+      },
+      "referenceId": "L013"
     },
     {
       "id": "google-crawler",
@@ -56376,7 +56389,8 @@
         "requirements": [],
         "hints": [],
         "references": []
-      }
+      },
+      "referenceId": "L014"
     },
     {
       "id": "microsoft-presence",
@@ -60158,7 +60172,8 @@
         "requirements": [],
         "hints": [],
         "references": []
-      }
+      },
+      "referenceId": "L015"
     },
     {
       "id": "web-service",
@@ -64492,7 +64507,8 @@
         "requirements": [],
         "hints": [],
         "references": []
-      }
+      },
+      "referenceId": "L016"
     },
     {
       "id": "chat-application",
@@ -73162,7 +73178,8 @@
         "requirements": [],
         "hints": [],
         "references": []
-      }
+      },
+      "referenceId": "L017"
     },
     {
       "id": "rag-assistant",
@@ -80088,7 +80105,8 @@
         "requirements": [],
         "hints": [],
         "references": []
-      }
+      },
+      "referenceId": "L018"
     },
     {
       "id": "video-distribution",
@@ -88044,7 +88062,8 @@
         "requirements": [],
         "hints": [],
         "references": []
-      }
+      },
+      "referenceId": "L019"
     },
     {
       "id": "social-feed",
@@ -96582,7 +96601,8 @@
         "requirements": [],
         "hints": [],
         "references": []
-      }
+      },
+      "referenceId": "L020"
     },
     {
       "id": "agent-trajectories",
@@ -106830,7 +106850,8 @@
         "requirements": [],
         "hints": [],
         "references": []
-      }
+      },
+      "referenceId": "L021"
     },
     {
       "id": "spark-job",
@@ -116360,7 +116381,8 @@
         "requirements": [],
         "hints": [],
         "references": []
-      }
+      },
+      "referenceId": "L022"
     },
     {
       "id": "workspace-access",
@@ -125228,7 +125250,8 @@
         "requirements": [],
         "hints": [],
         "references": []
-      }
+      },
+      "referenceId": "L023"
     },
     {
       "id": "crawler-pipeline",
@@ -129858,7 +129881,8 @@
         "requirements": [],
         "hints": [],
         "references": []
-      }
+      },
+      "referenceId": "L024"
     },
     {
       "id": "streaming-burst",
@@ -133366,7 +133390,8 @@
         "requirements": [],
         "hints": [],
         "references": []
-      }
+      },
+      "referenceId": "L025"
     },
     {
       "id": "replica-recovery",
@@ -135647,7 +135672,8 @@
         "requirements": [],
         "hints": [],
         "references": []
-      }
+      },
+      "referenceId": "L026"
     },
     {
       "id": "agent-recovery",
@@ -143411,7 +143437,8 @@
         "requirements": [],
         "hints": [],
         "references": []
-      }
+      },
+      "referenceId": "L027"
     },
     {
       "id": "healthcare-ingestion",
@@ -147641,7 +147668,8 @@
         "requirements": [],
         "hints": [],
         "references": []
-      }
+      },
+      "referenceId": "L028"
     },
     {
       "id": "finance-reconciliation",
@@ -151189,7 +151217,8 @@
         "requirements": [],
         "hints": [],
         "references": []
-      }
+      },
+      "referenceId": "L029"
     },
     {
       "id": "lakehouse-late-data",
@@ -155629,7 +155658,8 @@
         "requirements": [],
         "hints": [],
         "references": []
-      }
+      },
+      "referenceId": "L030"
     },
     {
       "id": "nested-chat",
@@ -165223,7 +165253,8 @@
         "requirements": [],
         "hints": [],
         "references": []
-      }
+      },
+      "referenceId": "L031"
     },
     {
       "id": "private-practice-1",
@@ -167033,7 +167064,8 @@
             "note": "Documents cancellation of asynchronous operations; query revision checks remain an authored exercise requirement."
           }
         ]
-      }
+      },
+      "referenceId": "L032"
     },
     {
       "id": "private-practice-2",
@@ -168867,7 +168899,8 @@
             "note": "Explains rendering a window of a large list; not a Databricks question report."
           }
         ]
-      }
+      },
+      "referenceId": "L033"
     },
     {
       "id": "private-practice-3",
@@ -170692,7 +170725,8 @@
             "note": "Explains shared state for collaborative applications; no claim that Databricks uses this solution."
           }
         ]
-      }
+      },
+      "referenceId": "L034"
     },
     {
       "id": "private-practice-4",
@@ -172522,7 +172556,8 @@
             "note": "Documents futures usable to share a pending result; does not establish the prompt or mandate a particular cache design."
           }
         ]
-      }
+      },
+      "referenceId": "L035"
     },
     {
       "id": "private-practice-5",
@@ -174344,7 +174379,8 @@
             "note": "Explains lazy intermediate and terminal operations; the LazyArray interface here is authored practice."
           }
         ]
-      }
+      },
+      "referenceId": "L036"
     },
     {
       "id": "private-practice-6",
@@ -176151,7 +176187,8 @@
             "note": "An implementation reference for segmented editable text and indexed operations; not a source for this exact exercise."
           }
         ]
-      }
+      },
+      "referenceId": "L037"
     },
     {
       "id": "private-practice-7",
@@ -177977,7 +178014,8 @@
             "note": "Explains address prefixes. This exercise uses first matching rule priority, which differs from longest-prefix routing."
           }
         ]
-      }
+      },
+      "referenceId": "L038"
     },
     {
       "id": "private-practice-8",
@@ -179768,7 +179806,8 @@
             "note": "Documents SQL comment delimiters; this exercise additionally asks for code comments and string-literal handling."
           }
         ]
-      }
+      },
+      "referenceId": "L039"
     },
     {
       "id": "private-practice-9",
@@ -181648,7 +181687,8 @@
             "note": "Explains lock-associated condition waits and bounded-buffer coordination; not interview-question provenance."
           }
         ]
-      }
+      },
+      "referenceId": "L040"
     },
     {
       "id": "private-practice-10",
@@ -183451,7 +183491,8 @@
             "note": "Documents replaceable clocks for deterministic tests; does not define the authored sliding-window policy."
           }
         ]
-      }
+      },
+      "referenceId": "L041"
     },
     {
       "id": "private-practice-11",
@@ -185253,7 +185294,8 @@
             "note": "Documents access-order maps and external synchronization; not interview-question provenance."
           }
         ]
-      }
+      },
+      "referenceId": "L042"
     },
     {
       "id": "private-practice-12",
@@ -187073,7 +187115,8 @@
             "note": "Explains snapshots, append-only persistence and durability tradeoffs; not a Databricks interview question."
           }
         ]
-      }
+      },
+      "referenceId": "L043"
     },
     {
       "id": "private-practice-13",
@@ -188905,7 +188948,8 @@
             "note": "S3 supports conditional object writes. Choose coordination based on actual backend capabilities, not an assumption that object stores lack conditional writes."
           }
         ]
-      }
+      },
+      "referenceId": "L044"
     },
     {
       "id": "private-practice-14",
@@ -190706,7 +190750,8 @@
             "note": "Explains scheduling applications and jobs; the simplified simulator is not an implementation of Spark."
           }
         ]
-      }
+      },
+      "referenceId": "L045"
     },
     {
       "id": "private-practice-15",
@@ -192520,7 +192565,8 @@
             "note": "Documents resource quota enforcement. Fairness and scheduling policy still require separate design decisions."
           }
         ]
-      }
+      },
+      "referenceId": "L046"
     }
   ],
   "curriculum": {
@@ -192528,5 +192574,6 @@
     "minimumRunnableStages": 8,
     "minimumApproaches": 2,
     "complete": true
-  }
+  },
+  "nextProblemNumber": 47
 }

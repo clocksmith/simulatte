@@ -1,6 +1,13 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict');
 const B=require('../public/simulatte/system-diagram/problem-details.js');
+test('problem references survive reorder and deletion, and new problems receive fresh numbers',()=>{
+  const {assign}=require('../tools/simulatte/assign-lucyd-problem-ids.cjs');
+  const first=assign({problems:[{id:'a'},{id:'b'}]});assert.deepEqual(first.problems.map(p=>p.referenceId),['L001','L002']);
+  const reversed=assign({...first,problems:[first.problems[1],first.problems[0]]});assert.deepEqual(reversed.problems.map(p=>p.referenceId),['L002','L001']);
+  const next=assign({...first,problems:[first.problems[0],{id:'c'}]});assert.equal(next.problems[1].referenceId,'L003');assert.equal(next.nextProblemNumber,4);
+  assert.throws(()=>assign({problems:[{id:'a',referenceId:'L001'},{id:'b',referenceId:'L001'}]}),/duplicate/);
+});
 test('legacy notes become a brief, indented interface, requirements and followups without duplicating the prompt',()=>{
   const input='* **Prompt:** Implement a cache.\n  ```java\n  interface Storage {\n      void fetch();\n  }\n  ```\n* **Key Requirements:**\n  1. **Concurrency:** Share pending fetches.\n\nAdditional practice prompt (not verified):\n[Company IC6] Implement a cache again.\nRace handling: What happens when a fetch fails?';
   const r=B.migrate(input,'systems-coding');

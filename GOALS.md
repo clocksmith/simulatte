@@ -72,6 +72,8 @@ published exercises, candidate reports and authored practice. A background or
 interview-format reference never establishes that a particular question was asked.
 Offer reusable connected subsystems from the component library on a blank canvas;
 inserting one preserves its version, dependencies, existing edits and undo history.
+Give authored problems permanent L-number references in the chooser, brief and
+shareable URL. Reordering or removing problems never renumbers or reuses IDs.
 
 The component rail on the left and the properties rail on the right use one rail
 component with exactly two persistent states, collapsed and expanded. Expanded

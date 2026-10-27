@@ -932,6 +932,8 @@
   });
 
   document.body.dataset.simulationProfile = profile.id;
+  const requestedProblem = new URL(location.href).searchParams.get('problem');
+  if (requestedProblem) { const expected = model.diagram; interviewStepper.ready.then(() => { if (model.diagram === expected && !hasUnsavedChanges()) interviewStepper.setScenario(requestedProblem); }).catch(error => message(error.message, true)); }
   document.body.dataset.editorReady = 'true';
   message(recoveryError || 'Lucyd ready.', Boolean(recoveryError));
 })().catch(e => {

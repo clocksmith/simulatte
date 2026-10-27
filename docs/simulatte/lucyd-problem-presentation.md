@@ -5,7 +5,7 @@ Owners: [problem model](../../public/simulatte/system-diagram/problem-model.js),
 [palette](../../public/simulatte/system-diagram/palette.js), and
 [compatibility generator](../../tools/simulatte/build-lucyd-compat.cjs).
 
-Collection v5 retains v4's approaches, stages and runnable acceptance thresholds.
+Collection v6 retains v4/v5's approaches, stages and runnable acceptance thresholds.
 Published problems add `details` using `simulatte.problemDetails.v1`:
 
 ```json
@@ -28,7 +28,7 @@ Published problems add `details` using `simulatte.problemDetails.v1`:
 `description` remains the canonical brief. `followups` contains ordered interviewer
 questions. Code belongs in interfaces, not in prose strings. The chooser and task
 bar show the exercise type; Details renders the full brief, interface, requirements,
-collapsed hints and sources. Existing v2, v3 and v4 collections remain importable.
+collapsed hints and sources. Existing v2, v3, v4 and v5 collections remain importable.
 
 `provenance.source` retains question provenance for company-published exercises
 and candidate reports. References scoped `background` or `interview-format` do
@@ -51,3 +51,16 @@ and inserts the instance in one undoable command; conflicts refuse atomically.
 Expand opens the connected internal graph. Cancel definition edits returns to the
 parent; Publish creates a new version. This is navigation into a definition, not
 an inline flattening of the parent architecture.
+
+## Short problem references
+
+Each published problem owns a stable `referenceId` such as `L035`. The existing
+`id` remains the internal identity for saves and branches. The chooser, task bar
+and brief expose the reference, and `/system-diagram?problem=L035` opens it.
+Numbers never come from the current display order.
+
+Run `node tools/simulatte/assign-lucyd-problem-ids.cjs` after adding authored
+problems. It preserves allocated references and assigns from the canonical
+collection's monotonically increasing `nextProblemNumber`, so deleting the
+highest-numbered problem does not free that number for reuse. `--check` refuses
+unallocated or conflicting references.
