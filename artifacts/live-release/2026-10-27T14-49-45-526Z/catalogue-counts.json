@@ -1,0 +1,129 @@
+{
+  "url": "https://simulatte-world.web.app/data/system-diagram/problems.json",
+  "problems": 31,
+  "paths": 62,
+  "stages": 496,
+  "missing": [],
+  "added": [
+    {
+      "id": "database-service",
+      "paths": [
+        {
+          "id": "isolated-tenant-service",
+          "stages": 8,
+          "executable": true
+        },
+        {
+          "id": "shared-tenant-namespaces",
+          "stages": 8,
+          "executable": true
+        }
+      ]
+    },
+    {
+      "id": "project-review",
+      "paths": [
+        {
+          "id": "worked-project-review",
+          "stages": 8,
+          "executable": true
+        },
+        {
+          "id": "synchronous-results",
+          "stages": 8,
+          "executable": true
+        }
+      ]
+    },
+    {
+      "id": "pagination",
+      "paths": [
+        {
+          "id": "stable-cursors",
+          "stages": 8,
+          "executable": true
+        },
+        {
+          "id": "materialized-page-session",
+          "stages": 8,
+          "executable": true
+        }
+      ]
+    },
+    {
+      "id": "chat",
+      "paths": [
+        {
+          "id": "durable-mailbox",
+          "stages": 8,
+          "executable": true
+        },
+        {
+          "id": "cursor-pull-mailbox",
+          "stages": 8,
+          "executable": true
+        }
+      ]
+    },
+    {
+      "id": "replication",
+      "paths": [
+        {
+          "id": "explicit-replication-outbox",
+          "stages": 8,
+          "executable": true
+        },
+        {
+          "id": "internal-quorum-cluster",
+          "stages": 8,
+          "executable": true
+        }
+      ]
+    },
+    {
+      "id": "saved-search",
+      "paths": [
+        {
+          "id": "match-outbox-digest",
+          "stages": 8,
+          "executable": true
+        },
+        {
+          "id": "digest-time-scan",
+          "stages": 8,
+          "executable": true
+        }
+      ]
+    },
+    {
+      "id": "load-balancer",
+      "paths": [
+        {
+          "id": "round-robin-recovery",
+          "stages": 8,
+          "executable": true
+        },
+        {
+          "id": "client-side-selection",
+          "stages": 8,
+          "executable": true
+        }
+      ]
+    },
+    {
+      "id": "subscriptions",
+      "paths": [
+        {
+          "id": "versioned-payment-reconciliation",
+          "stages": 8,
+          "executable": true
+        },
+        {
+          "id": "asynchronous-invoice-outbox",
+          "stages": 8,
+          "executable": true
+        }
+      ]
+    }
+  ]
+}
