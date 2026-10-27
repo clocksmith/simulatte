@@ -10,7 +10,7 @@ Study authored system-design solutions stage by stage on an open Excalidraw canv
 
 - Owns the workspace page, stage projection onto the canvas, per-stage learner overlays, typed-connection choices, browser autosave and workspace import/export.
 - Does not own authored solutions; the composable study contract and its content owners do.
-- Does not own Excalidraw behavior; the vendored 0.17.6 build does.
+- Keeps Excalidraw's native drawing UI and gestures; the pinned 0.17.6 build owns behavior, with reproducible compatibility patches recorded in `vendor/versions.json`.
 
 ## Scope
 

@@ -1,18 +1,19 @@
 {
   "@excalidraw/excalidraw": "0.17.6",
+  "compatibilityPatches": [
+    {
+      "asset": "excalidraw.production.min.js",
+      "id": "layer-shortcut-modifier-priority",
+      "reason": "One-step layer actions must reject Alt/Option so their higher priority cannot shadow the Help-listed front/back shortcuts.",
+      "resultSha256": "b04b59419214d1e949a3fce3521cc3f6058f1645b85ddbb2483420eedb2e34fa",
+      "sourceSha256": "27b133f845543f091aa518924b5b2fdd7eb52a9e490de100b9bc3bfd2ae2f314",
+      "tool": "tools/simulatte/patch-study-excalidraw.cjs",
+      "upstreamSource": "https://raw.githubusercontent.com/excalidraw/excalidraw/v0.17.6/src/actions/actionZindex.tsx"
+    }
+  ],
+  "license": "MIT (EXCALIDRAW-LICENSE, REACT-LICENSE)",
   "react": "18.2.0",
   "react-dom": "18.2.0",
-  "source": {
-    "@excalidraw/excalidraw": "https://registry.npmjs.org/@excalidraw/excalidraw/-/excalidraw-0.17.6.tgz dist/excalidraw.production.min.js and dist/excalidraw-assets/",
-    "react": "https://registry.npmjs.org/react/-/react-18.2.0.tgz umd/react.production.min.js",
-    "react-dom": "https://registry.npmjs.org/react-dom/-/react-dom-18.2.0.tgz umd/react-dom.production.min.js"
-  },
-  "tarballSha256": {
-    "excalidraw-0.17.6.tgz": "480dd1ea12156d84acd8af0605fcec894326c07f152f7ed2212145b9864ed4e7",
-    "react-18.2.0.tgz": "a151f7caec911760e42b7a6f6f1dfcaba141fd11ff49e2af901a2eee0366297c",
-    "react-dom-18.2.0.tgz": "20a71e86b691f860c781f3732a85c7b3c63c4d3d9a803dca9dfe6ed0eb30e2ef"
-  },
-  "license": "MIT (EXCALIDRAW-LICENSE, REACT-LICENSE)",
   "scope": "Study workspace canvas only. Fonts and locales load from excalidraw-assets via window.EXCALIDRAW_ASSET_PATH; nothing is fetched from a CDN.",
   "sha256": {
     "excalidraw-assets/Assistant-Bold.woff2": "e0cdd332ce039770e93ec44336b6db65f931940f42b0342aad35a06e7f991d29",
@@ -76,9 +77,19 @@
     "excalidraw-assets/locales/zh-TW-json-5a3fa7cacfa83c411d89.js": "275f2a50329552d14e60addce308ab55d73cf20a21c46ae61de25e2c0c300cf9",
     "excalidraw-assets/vendor-677e88ca78c86bddf13d.js": "8e496e2d4d71d85c73c114ed5473d34c27c83a2344b6f036327b955e5ab0f260",
     "excalidraw-assets/vendor-677e88ca78c86bddf13d.js.LICENSE.txt": "3078cf9d0ec3d74a5b12ac96733ae6295c824e140eb1a5a36774a09b38523a10",
-    "excalidraw.production.min.js": "27b133f845543f091aa518924b5b2fdd7eb52a9e490de100b9bc3bfd2ae2f314",
+    "excalidraw.production.min.js": "b04b59419214d1e949a3fce3521cc3f6058f1645b85ddbb2483420eedb2e34fa",
     "excalidraw.production.min.js.LICENSE.txt": "04747400c12afff7134dea61f0b417976d7ec3d1453425923acb697255fde548",
     "react-dom.production.min.js": "21758ed084cd0e37e735722ee4f3957ea960628a29dfa6c3ce1a1d47a2d6e4f7",
     "react.production.min.js": "4b4969fa4ef3594324da2c6d78ce8766fbbc2fd121fff395aedf997db0a99a06"
+  },
+  "source": {
+    "@excalidraw/excalidraw": "https://registry.npmjs.org/@excalidraw/excalidraw/-/excalidraw-0.17.6.tgz dist/excalidraw.production.min.js and dist/excalidraw-assets/",
+    "react": "https://registry.npmjs.org/react/-/react-18.2.0.tgz umd/react.production.min.js",
+    "react-dom": "https://registry.npmjs.org/react-dom/-/react-dom-18.2.0.tgz umd/react-dom.production.min.js"
+  },
+  "tarballSha256": {
+    "excalidraw-0.17.6.tgz": "480dd1ea12156d84acd8af0605fcec894326c07f152f7ed2212145b9864ed4e7",
+    "react-18.2.0.tgz": "a151f7caec911760e42b7a6f6f1dfcaba141fd11ff49e2af901a2eee0366297c",
+    "react-dom-18.2.0.tgz": "20a71e86b691f860c781f3732a85c7b3c63c4d3d9a803dca9dfe6ed0eb30e2ef"
   }
 }

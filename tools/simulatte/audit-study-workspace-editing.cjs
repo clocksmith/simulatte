@@ -122,6 +122,8 @@ async function editing(context) {
   record('editing', 'layer order: bring to front and send to back', 'right-click → Bring to front, then Send to back', {front: atFront, back: atBack}, atFront && atBack);
   await h.blank(); await page.mouse.click(lx + 1, ly + 20); const before3 = await index(A.id); await h.key(`${META}+Alt+]`);
   record('editing', 'Help-listed Cmd+Option+] brings to front', 'press Cmd/Ctrl+Option+] with the rectangle selected', {indexBefore: before3, indexAfter: await index(A.id), last: (await h.elements()).length - 1}, (await index(A.id)) === (await h.elements()).length - 1);
+  await h.key(`${META}+Alt+[`);
+  record('editing', 'Help-listed Cmd+Option+[ sends to back', 'press Cmd/Ctrl+Option+[ with the same rectangle selected', {indexAfter: await index(A.id)}, (await index(A.id)) === 0);
   // Grouping authored components is a drawing convenience: the authored document and subsystems stay unchanged.
   const h2 = await boot(context, STAGE), published = JSON.stringify((await h2.workspace()).document);
   const nodes = (await h2.elements()).filter(e => e.role === 'node').slice(0, 2);

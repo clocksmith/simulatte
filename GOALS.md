@@ -72,6 +72,9 @@ published exercises, candidate reports and authored practice. A background or
 interview-format reference never establishes that a particular question was asked.
 Offer reusable connected subsystems from the component library on a blank canvas;
 inserting one preserves its version, dependencies, existing edits and undo history.
+The study workspace retains Excalidraw-native drawing controls, gestures and shortcut
+display, with Lucyd branding and compact study controls. Keep drawing changes to
+verified compatibility fixes rather than rebuilding the canvas experience.
 Give authored problems permanent L-number references in the chooser, brief and
 shareable URL. Reordering or removing problems never renumbers or reuses IDs.
 
