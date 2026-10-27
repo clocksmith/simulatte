@@ -4,7 +4,7 @@ const test=require('node:test'),assert=require('node:assert/strict'),path=requir
 const base=path.resolve(__dirname,'../public/data/system-diagram'),data=require('../public/data/system-diagram/problems.json');
 const D=require('../public/simulatte/system-diagram/diagram.js'),E=require('../public/simulatte/system-diagram/engine.js');
 const deps={library:require('../public/simulatte/system-diagram/class-library.js').loadSync(base),config:require('../public/data/system-diagram/config.json'),kernels:require('../public/simulatte/system-diagram/kernels-all.js')};
-const stages=id=>data.problems.find(p=>p.id===id).solutions[0].stages;
+const stages=id=>data.problems.find(p=>p.id===id).solutions[0].stages.filter(st=>Number.isInteger(st.legacyIndex)).sort((a,b)=>a.legacyIndex-b.legacyIndex);
 function run(d){const c=D.compile(d,deps.library,deps.config),s=E.initialize(c,deps);E.advance(c,s,c.horizonSec,deps);return {s,v:E.observe(c,s,deps)};}
 test('round robin exposes errors; alternate retries recover and request-driven probes close after recovery',()=>{
  const [a,b,c]=stages('load-balancer').map(st=>run(st.diagram));
@@ -24,7 +24,7 @@ test('report queue acknowledges admission separately from result effects and sup
 test('all newly authored stages verify against coordinator playback and midpoint checkpoint continuation',async()=>{
  const Runner=require('../public/simulatte/system-diagram/runner.js');
  const added=new Set(['database-service','project-review','pagination','chat','replication','saved-search','load-balancer','subscriptions']);
- for(const p of data.problems.filter(p=>added.has(p.id)))for(const solution of p.solutions)for(const stage of solution.stages){
+ for(const p of data.problems.filter(p=>added.has(p.id)))for(const solution of p.solutions)for(const stage of solution.stages.filter(st=>st.kind!=='design')){
   const runner=await Runner.create({diagram:stage.diagram,...deps});
   try{runner.advanceTo(stage.diagram.run.horizonSec);const proof=await runner.verify();assert.equal(proof.status,'match',p.id+'/'+stage.id);}finally{await runner.dispose();}
   const compiled=D.compile(stage.diagram,deps.library,deps.config),a=E.initialize(compiled,deps);E.advance(compiled,a,compiled.horizonSec/2,deps);const b=JSON.parse(JSON.stringify(a));E.advance(compiled,a,compiled.horizonSec,deps);E.advance(compiled,b,compiled.horizonSec,deps);assert.deepEqual(a,b,p.id+'/'+stage.id+' checkpoint continuation');

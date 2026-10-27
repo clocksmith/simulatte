@@ -1,0 +1,100 @@
+{
+  "schema": "simulatte.systemDiagram.v4",
+  "id": "chat-retry",
+  "name": "Realtime chat / Suppress duplicate sends",
+  "description": "Authored bounded synthetic messaging model.",
+  "seed": 42,
+  "run": {
+    "horizonSec": 15
+  },
+  "classes": [],
+  "nodes": [
+    {
+      "id": "users",
+      "classId": "messaging-workload",
+      "x": 0,
+      "y": 120,
+      "params": {
+        "scenario": "chat",
+        "timeoutMs": 6000
+      },
+      "label": "Two conversation members"
+    },
+    {
+      "id": "retry",
+      "classId": "retry-policy",
+      "x": 240,
+      "y": 120,
+      "params": {
+        "attemptTimeoutMs": 250,
+        "maxAttempts": 3,
+        "retryBudget": 2,
+        "backoffMs": 150,
+        "retryJitter": false
+      },
+      "label": "Bounded command retry"
+    },
+    {
+      "id": "mailbox",
+      "classId": "chat-mailbox",
+      "x": 500,
+      "y": 120,
+      "params": {},
+      "label": "Ordered conversation log"
+    }
+  ],
+  "edges": [
+    {
+      "id": "commands",
+      "label": "commands",
+      "from": {
+        "nodeId": "users",
+        "portId": "out"
+      },
+      "to": {
+        "nodeId": "retry",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 5,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "retry-command",
+      "label": "retry-command",
+      "from": {
+        "nodeId": "retry",
+        "portId": "target"
+      },
+      "to": {
+        "nodeId": "mailbox",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 5,
+        "bandwidthMbps": 1000
+      }
+    }
+  ],
+  "groups": [],
+  "notes": [],
+  "faults": [
+    {
+      "id": "ambiguous-send",
+      "atSec": 0,
+      "untilSec": 0.3,
+      "target": {
+        "kind": "node",
+        "id": "mailbox"
+      },
+      "type": "dropReplies",
+      "params": {}
+    }
+  ],
+  "view": {
+    "x": 0,
+    "y": 0,
+    "zoom": 1
+  }
+}

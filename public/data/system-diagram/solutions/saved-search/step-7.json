@@ -1,0 +1,98 @@
+{
+  "schema": "simulatte.systemDiagram.v4",
+  "id": "saved-search-recovery",
+  "name": "Saved search emails / Retry an interrupted digest",
+  "description": "Authored bounded synthetic messaging model.",
+  "seed": 42,
+  "run": {
+    "horizonSec": 15
+  },
+  "classes": [],
+  "nodes": [
+    {
+      "id": "users",
+      "classId": "messaging-workload",
+      "x": 0,
+      "y": 120,
+      "params": {
+        "scenario": "saved-search",
+        "timeoutMs": 6000
+      },
+      "label": "Shoppers, listings and daily clock"
+    },
+    {
+      "id": "matcher",
+      "classId": "saved-search-matcher",
+      "x": 500,
+      "y": 120,
+      "params": {
+        "callTimeoutMs": 200,
+        "retries": 2,
+        "retryBackoffMs": 100
+      },
+      "label": "Matching and digest outbox"
+    },
+    {
+      "id": "email",
+      "classId": "digest-mailbox",
+      "x": 800,
+      "y": 120,
+      "params": {},
+      "label": "Synthetic provider idempotency boundary"
+    }
+  ],
+  "edges": [
+    {
+      "id": "commands",
+      "label": "commands",
+      "from": {
+        "nodeId": "users",
+        "portId": "out"
+      },
+      "to": {
+        "nodeId": "matcher",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 5,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "digest-delivery",
+      "label": "digest-delivery",
+      "from": {
+        "nodeId": "matcher",
+        "portId": "delivery"
+      },
+      "to": {
+        "nodeId": "email",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 5,
+        "bandwidthMbps": 1000
+      }
+    }
+  ],
+  "groups": [],
+  "notes": [],
+  "faults": [
+    {
+      "id": "study-outage",
+      "atSec": 0.15,
+      "untilSec": 1,
+      "target": {
+        "kind": "node",
+        "id": "matcher"
+      },
+      "type": "crash",
+      "params": {}
+    }
+  ],
+  "view": {
+    "x": 0,
+    "y": 0,
+    "zoom": 1
+  }
+}

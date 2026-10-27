@@ -71,7 +71,8 @@
           "name": "Isolation",
           "interviewerPrompt": "How will tenants, access permissions and backups remain isolated?"
         }
-      ]
+      ],
+      "solutionId": "isolated-tenant-service"
     },
     {
       "id": "project-review",
@@ -93,7 +94,8 @@
           "name": "Tradeoffs",
           "interviewerPrompt": "Which design choice would you change at ten times the original load?"
         }
-      ]
+      ],
+      "solutionId": "worked-project-review"
     },
     {
       "id": "pagination",
@@ -115,7 +117,8 @@
           "name": "Scale",
           "interviewerPrompt": "How will the design avoid scanning and returning the entire dataset?"
         }
-      ]
+      ],
+      "solutionId": "stable-cursors"
     },
     {
       "id": "chat",
@@ -137,7 +140,8 @@
           "name": "Reliability",
           "interviewerPrompt": "How will retries affect ordering and duplicate delivery?"
         }
-      ]
+      ],
+      "solutionId": "durable-mailbox"
     },
     {
       "id": "replication",
@@ -159,7 +163,8 @@
           "name": "Recovery",
           "interviewerPrompt": "How will replicas catch up and resolve conflicting changes?"
         }
-      ]
+      ],
+      "solutionId": "explicit-replication-outbox"
     },
     {
       "id": "saved-search",
@@ -181,7 +186,8 @@
           "name": "Retries",
           "interviewerPrompt": "How will a failed delivery retry without sending the same digest twice?"
         }
-      ]
+      ],
+      "solutionId": "match-outbox-digest"
     },
     {
       "id": "load-balancer",
@@ -203,7 +209,8 @@
           "name": "Recovery",
           "interviewerPrompt": "How does an unavailable server safely rejoin traffic?"
         }
-      ]
+      ],
+      "solutionId": "round-robin-recovery"
     },
     {
       "id": "subscriptions",
@@ -225,7 +232,8 @@
           "name": "Reconciliation",
           "interviewerPrompt": "How will you recover when payment succeeds but local state was not updated?"
         }
-      ]
+      ],
+      "solutionId": "versioned-payment-reconciliation"
     },
     {
       "id": "reddit-comments",

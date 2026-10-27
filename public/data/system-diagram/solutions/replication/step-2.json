@@ -1,0 +1,104 @@
+{
+  "schema": "simulatte.systemDiagram.v4",
+  "id": "replication-local",
+  "name": "Data center replication / Acknowledge one replicated write",
+  "description": "Authored bounded synthetic model, not production capacity or a deployed service.",
+  "seed": 42,
+  "run": {
+    "horizonSec": 6
+  },
+  "classes": [],
+  "nodes": [
+    {
+      "id": "writes",
+      "classId": "burst-producer",
+      "label": "Four writes to region A",
+      "x": 0,
+      "y": 0,
+      "params": {
+        "burstCount": 4,
+        "burstAtSec": 0,
+        "burstSpacingMs": 300,
+        "requestKb": 1,
+        "readFraction": 0,
+        "keySpace": 2,
+        "retries": 0,
+        "timeoutMs": 4000
+      }
+    },
+    {
+      "id": "leader",
+      "classId": "database-leader",
+      "label": "Region A designated writer",
+      "x": 280,
+      "y": 0,
+      "params": {
+        "writeQuorum": 1,
+        "concurrency": 4,
+        "timeoutMs": 80,
+        "retryIntervalMs": 100,
+        "maxAttempts": 2
+      }
+    },
+    {
+      "id": "follower",
+      "classId": "database-replica",
+      "label": "Region B local copy",
+      "x": 600,
+      "y": 0,
+      "params": {}
+    }
+  ],
+  "edges": [
+    {
+      "id": "write-path",
+      "from": {
+        "nodeId": "writes",
+        "portId": "out"
+      },
+      "to": {
+        "nodeId": "leader",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 5,
+        "bandwidthMbps": 100
+      }
+    },
+    {
+      "id": "cross-region",
+      "from": {
+        "nodeId": "leader",
+        "portId": "replicate"
+      },
+      "to": {
+        "nodeId": "follower",
+        "portId": "replica"
+      },
+      "params": {
+        "latencyMs": 5,
+        "bandwidthMbps": 100
+      }
+    }
+  ],
+  "groups": [],
+  "notes": [],
+  "faults": [
+    {
+      "id": "inter-region-partition",
+      "atSec": 0,
+      "untilSec": 0.5,
+      "target": {
+        "kind": "edge",
+        "id": "cross-region"
+      },
+      "type": "partition",
+      "params": {}
+    }
+  ],
+  "view": {
+    "x": 0,
+    "y": 0,
+    "zoom": 1
+  }
+}

@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.systemDiagram.v4",
   "id": "streaming-burst",
-  "name": "Streaming burst with a slow subscriber",
+  "name": "Streaming burst with a slow subscriber / Verify slow-subscriber backpressure",
   "description": "Finite synthetic video chunks: GPU batching, bounded acknowledged fan-out, coalescing CDN cache and a slow consumer. Backpressure is held acknowledgement slots and bounded waiting; rejects stay visible. No codec or player model.",
   "seed": 42,
   "run": {

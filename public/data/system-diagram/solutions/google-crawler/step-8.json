@@ -1,0 +1,319 @@
+{
+  "schema": "simulatte.systemDiagram.v4",
+  "id": "google-crawler",
+  "name": "Distributed web crawler / Verify retained provenance",
+  "description": "An autonomous bounded crawler models per-origin delay, deduplication and provenance. Cron adds scheduled tasks to a shared CPU parser and database; no real scraping or content extraction occurs.",
+  "seed": 42,
+  "run": {
+    "horizonSec": 30
+  },
+  "classes": [],
+  "nodes": [
+    {
+      "id": "crawler",
+      "classId": "crawler",
+      "label": "Synthetic crawler",
+      "x": 0,
+      "y": 0,
+      "params": {
+        "seedUrls": 3,
+        "domains": 2,
+        "fetchConcurrency": 2,
+        "politenessMs": 100,
+        "linksPerPage": 1,
+        "duplicateRate": 0.5,
+        "maxPages": 8,
+        "pageKbMean": 2,
+        "timeoutMs": 3000,
+        "retries": 1,
+        "stopSec": 10
+      }
+    },
+    {
+      "id": "website",
+      "classId": "website",
+      "label": "Synthetic website",
+      "x": 240,
+      "y": -120,
+      "params": {
+        "serviceMs": 20,
+        "serviceDist": "constant",
+        "rateLimitPerSec": 20,
+        "responseKb": 2
+      }
+    },
+    {
+      "id": "subsystem-1",
+      "classId": "subsystem.crawl-processing@1",
+      "label": "Crawl processing",
+      "x": 480,
+      "y": 0,
+      "params": {},
+      "overrides": {}
+    }
+  ],
+  "edges": [
+    {
+      "id": "fetch",
+      "from": {
+        "nodeId": "crawler",
+        "portId": "fetch"
+      },
+      "to": {
+        "nodeId": "website",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "documents",
+      "from": {
+        "nodeId": "crawler",
+        "portId": "documents"
+      },
+      "to": {
+        "nodeId": "subsystem-1",
+        "portId": "port-1"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      }
+    }
+  ],
+  "groups": [],
+  "notes": [],
+  "faults": [],
+  "view": {
+    "x": 0,
+    "y": 0,
+    "zoom": 1
+  },
+  "subsystems": [
+    {
+      "id": "crawl-processing",
+      "version": 1,
+      "label": "Crawl processing",
+      "nodes": [
+        {
+          "id": "parser",
+          "classId": "worker",
+          "label": "CPU synthetic parser",
+          "x": 480,
+          "y": 80,
+          "params": {
+            "concurrency": 4,
+            "queueCapacity": 1000,
+            "serviceMs": 5,
+            "serviceDist": "constant",
+            "serviceCv": 1,
+            "perKbMs": 0,
+            "errorRate": 0,
+            "responseKb": 1,
+            "callMode": "sequential",
+            "blockingCalls": true,
+            "callTimeoutMs": 2000,
+            "retries": 0,
+            "retryBackoffMs": 100,
+            "backoffMultiplier": 2,
+            "retryJitter": true,
+            "memoryPerRequestMiB": 1,
+            "memoryLimitMiB": 1024,
+            "memoryPressureThreshold": 0.8,
+            "memoryThrashFactor": 1,
+            "memoryGarbageFraction": 0,
+            "memoryGcPauseMs": 0,
+            "memoryGcCooldownMs": 1000,
+            "memoryOomRecoveryMs": 1000,
+            "memoryOomPolicy": "reject",
+            "outputPayload": "json"
+          }
+        },
+        {
+          "id": "validator",
+          "classId": "structured-response",
+          "label": "Structured validator",
+          "x": 720,
+          "y": 0,
+          "params": {
+            "memoryPerRequestMiB": 1,
+            "memoryLimitMiB": 1024,
+            "memoryPressureThreshold": 0.8,
+            "memoryThrashFactor": 1,
+            "memoryGarbageFraction": 0,
+            "memoryGcPauseMs": 0,
+            "memoryGcCooldownMs": 1000,
+            "memoryOomRecoveryMs": 1000,
+            "memoryOomPolicy": "reject",
+            "validateMs": 1,
+            "maxRepairs": 0,
+            "parseFailureRate": 0,
+            "concurrency": 64,
+            "queueCapacity": 1000,
+            "callTimeoutMs": 30000,
+            "responseKb": 2
+          }
+        },
+        {
+          "id": "records",
+          "classId": "idempotent-store",
+          "label": "Structured records",
+          "x": 720,
+          "y": 220,
+          "params": {
+            "readMs": 2,
+            "writeMs": 3,
+            "serviceDist": "constant",
+            "serviceCv": 1,
+            "connections": 50,
+            "queueCapacity": 1000,
+            "perKbMs": 0,
+            "errorRate": 0,
+            "responseKb": 1,
+            "idempotentWrites": true,
+            "idempotencyWindowSec": 300
+          }
+        },
+        {
+          "id": "archive",
+          "classId": "object-store",
+          "label": "Synthetic object archive",
+          "x": 960,
+          "y": 220,
+          "params": {
+            "memoryPerRequestMiB": 1,
+            "memoryLimitMiB": 1024,
+            "memoryPressureThreshold": 0.8,
+            "memoryThrashFactor": 1,
+            "memoryGarbageFraction": 0,
+            "memoryGcPauseMs": 0,
+            "memoryGcCooldownMs": 1000,
+            "memoryOomRecoveryMs": 1000,
+            "memoryOomPolicy": "reject",
+            "baseMs": 5,
+            "throughputMBps": 10,
+            "serviceDist": "constant",
+            "serviceCv": 0.5,
+            "concurrency": 1000,
+            "queueCapacity": 10000,
+            "errorRate": 0
+          }
+        }
+      ],
+      "edges": [
+        {
+          "id": "validate",
+          "from": {
+            "nodeId": "parser",
+            "portId": "calls"
+          },
+          "to": {
+            "nodeId": "validator",
+            "portId": "in"
+          },
+          "params": {
+            "latencyMs": 2,
+            "bandwidthMbps": 1000
+          }
+        },
+        {
+          "id": "persist",
+          "from": {
+            "nodeId": "parser",
+            "portId": "calls"
+          },
+          "to": {
+            "nodeId": "records",
+            "portId": "in"
+          },
+          "params": {
+            "latencyMs": 2,
+            "bandwidthMbps": 1000,
+            "op": "write",
+            "order": 1
+          }
+        },
+        {
+          "id": "archive-copy",
+          "from": {
+            "nodeId": "parser",
+            "portId": "calls"
+          },
+          "to": {
+            "nodeId": "archive",
+            "portId": "in"
+          },
+          "params": {
+            "latencyMs": 2,
+            "bandwidthMbps": 1000,
+            "op": "write",
+            "mode": "async",
+            "order": 2
+          }
+        }
+      ],
+      "groups": [],
+      "notes": [],
+      "faults": [],
+      "ports": [
+        {
+          "id": "port-1",
+          "label": "CPU synthetic parser: Requests",
+          "direction": "in",
+          "target": {
+            "nodeId": "parser",
+            "portId": "in"
+          }
+        },
+        {
+          "id": "port-2",
+          "label": "CPU synthetic parser: Calls",
+          "direction": "out",
+          "target": {
+            "nodeId": "parser",
+            "portId": "calls"
+          }
+        },
+        {
+          "id": "port-3",
+          "label": "Structured validator: Input",
+          "direction": "in",
+          "target": {
+            "nodeId": "validator",
+            "portId": "in"
+          }
+        },
+        {
+          "id": "port-4",
+          "label": "Structured validator: Generator",
+          "direction": "out",
+          "target": {
+            "nodeId": "validator",
+            "portId": "generate"
+          }
+        },
+        {
+          "id": "port-5",
+          "label": "Structured records: Queries",
+          "direction": "in",
+          "target": {
+            "nodeId": "records",
+            "portId": "in"
+          }
+        },
+        {
+          "id": "port-6",
+          "label": "Synthetic object archive: Objects",
+          "direction": "in",
+          "target": {
+            "nodeId": "archive",
+            "portId": "in"
+          }
+        }
+      ]
+    }
+  ]
+}

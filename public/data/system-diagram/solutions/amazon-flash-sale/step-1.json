@@ -1,118 +1,44 @@
 {
-  "schema": "simulatte.systemDiagram.v4",
-  "id": "amazon-flash-sale",
-  "name": "Flash sale reservations",
-  "description": "Bounded stock, idempotent payment and reservation expiration.",
-  "seed": 42,
+  "schema": "simulatte.systemDiagram.v5",
+  "id": "diagram",
+  "name": "Flash sale inventory reservation / Define the success contract",
+  "description": "",
+  "seed": 1,
   "run": {
-    "horizonSec": 20
+    "horizonSec": 120
   },
   "classes": [],
   "nodes": [
     {
       "id": "shoppers",
-      "classId": "operation-client",
-      "label": "shoppers",
+      "classId": "concept.shoppers-context",
+      "label": "Users and requests",
       "x": 0,
-      "y": 0,
-      "params": {
-        "operation": "reserve",
-        "count": 8,
-        "intervalMs": 400,
-        "keySpace": 1,
-        "duplicateEvery": 2
-      }
+      "y": 80,
+      "params": {}
     },
     {
-      "id": "inventory",
-      "classId": "inventory-reservations",
-      "label": "Inventory authority",
-      "x": 350,
-      "y": 130,
-      "params": {
-        "stock": 4,
-        "ttlSec": 5
-      }
-    },
-    {
-      "id": "payments",
-      "classId": "operation-client",
-      "label": "payments",
-      "x": 0,
-      "y": 250,
-      "params": {
-        "operation": "pay",
-        "count": 2,
-        "intervalMs": 400,
-        "startSec": 3,
-        "keySpace": 1,
-        "duplicateEvery": 1
-      }
-    },
-    {
-      "id": "new-shoppers",
-      "classId": "operation-client",
-      "label": "new shoppers",
-      "x": 0,
-      "y": 500,
-      "params": {
-        "operation": "reserve",
-        "count": 4,
-        "intervalMs": 400,
-        "startSec": 10,
-        "keySpace": 1,
-        "actorOffset": 20
-      }
+      "id": "subsystem-1",
+      "classId": "concept.subsystem-1-context",
+      "label": "System responsibility",
+      "x": 320,
+      "y": 80,
+      "params": {}
     }
   ],
   "edges": [
     {
-      "id": "reserve",
-      "label": "reserve",
+      "id": "context-request",
+      "label": "request / outcome contract",
       "from": {
         "nodeId": "shoppers",
         "portId": "out"
       },
       "to": {
-        "nodeId": "inventory",
+        "nodeId": "subsystem-1",
         "portId": "in"
       },
-      "params": {
-        "latencyMs": 80,
-        "bandwidthMbps": 100
-      }
-    },
-    {
-      "id": "pay",
-      "label": "pay",
-      "from": {
-        "nodeId": "payments",
-        "portId": "out"
-      },
-      "to": {
-        "nodeId": "inventory",
-        "portId": "in"
-      },
-      "params": {
-        "latencyMs": 80,
-        "bandwidthMbps": 100
-      }
-    },
-    {
-      "id": "reuse-stock",
-      "label": "reuse-stock",
-      "from": {
-        "nodeId": "new-shoppers",
-        "portId": "out"
-      },
-      "to": {
-        "nodeId": "inventory",
-        "portId": "in"
-      },
-      "params": {
-        "latencyMs": 80,
-        "bandwidthMbps": 100
-      }
+      "params": {}
     }
   ],
   "groups": [],
@@ -122,5 +48,42 @@
     "x": 0,
     "y": 0,
     "zoom": 1
-  }
+  },
+  "intent": {
+    "outcome": "Design an e-commerce checkout system handling high-concurrency item reservation without double-selling.",
+    "users": "Callers, state owners and operators named by the problem.",
+    "constraints": "Make ordering, durability, capacity and retry assumptions explicit. One synthetic stock authority; no real payments, distributed transaction consensus or multi-region locking.",
+    "success": "An observable request path, bounded waiting, visible failures and a justified recovery policy."
+  },
+  "concepts": [
+    {
+      "id": "shoppers-context",
+      "label": "Users and requests",
+      "responsibility": "Who issues requests, and which identities or deadlines travel with them?",
+      "ports": [
+        {
+          "id": "out",
+          "direction": "out",
+          "payloadType": "json"
+        }
+      ]
+    },
+    {
+      "id": "subsystem-1-context",
+      "label": "System responsibility",
+      "responsibility": "Design an e-commerce checkout system handling high-concurrency item reservation without double-selling.",
+      "ports": [
+        {
+          "id": "in",
+          "direction": "in",
+          "payloadType": "json"
+        },
+        {
+          "id": "out",
+          "direction": "out",
+          "payloadType": "json"
+        }
+      ]
+    }
+  ]
 }

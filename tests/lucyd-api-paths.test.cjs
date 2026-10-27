@@ -9,10 +9,11 @@ if(!manifest.packs.includes('classes/api-practice.json'))manifest.packs.push('cl
 const library=C.build(manifest,manifest.packs.map(file=>require(path.join(base,file)))),deps={library,config,kernels:K};
 const registry=require('../public/data/system-diagram/problems.json');
 const solution=id=>registry.problems.find(p=>p.id===id).solutions[0];
+const retained=id=>solution(id).stages.filter(st=>Number.isInteger(st.legacyIndex)).sort((a,b)=>a.legacyIndex-b.legacyIndex);
 function run(diagram,until=20){const c=D.compile(diagram,library,config),s=E.initialize(c,deps);E.advance(c,s,until,deps);assert.equal(E.observe(c,s,deps).error,null);return s;}
 const items=k=>k.results.pages.flatMap(page=>page.items);
 test('offset drift, keyset exclusion and snapshot visibility are different observable contracts',()=>{
- const stages=solution('pagination').stages.map(st=>run(st.diagram).kernel);
+ const stages=retained('pagination').map(st=>run(st.diagram).kernel);
  assert.deepEqual(items(stages[0]),[1,2,3,3,4,5,6,7]);
  assert.deepEqual(items(stages[1]),[1,2,3,4,5,6,7]);
  assert.deepEqual(items(stages[2]),[1,2,3,4,5,6,7,8]);
@@ -21,21 +22,21 @@ test('offset drift, keyset exclusion and snapshot visibility are different obser
  for(const k of stages){assert.equal(k.readers.results.at(-1).error,'invalid');assert.equal(k.readers.failed,1);}
 });
 test('idempotency changes payment effects; stale renewal cannot undo cancellation',()=>{
- const stages=solution('subscriptions').stages.map(st=>run(st.diagram).kernel);
+ const stages=retained('subscriptions').map(st=>run(st.diagram).kernel);
  assert.equal(stages[0].provider.charges.length,3);
  for(const k of stages.slice(1)){assert.equal(k.provider.charges.length,2);assert.deepEqual(k.provider.charges.map(c=>c.method),['card','bank']);assert.equal(k.subscriptions.status,'cancelled');assert.equal(k.subscriptions.version,3);assert.equal(k.subscriptions.stale,1);}
  assert.equal(stages[2].subscribers.results.find(r=>r.command.action==='renew').error,'timeout');
  assert.equal(stages[2].subscriptions.reconciled,1);
 });
 test('lost payment reply leaves a real provider/local divergence until reconciliation',()=>{
- const d=solution('subscriptions').stages[2].diagram;
+ const d=retained('subscriptions')[2].diagram;
  const before=run(d,2.2).kernel;
  assert.equal(before.provider.charges.length,2);assert.equal(before.subscriptions.version,1);
  const after=run(d,3.5).kernel;assert.equal(after.subscriptions.version,2);assert.equal(after.subscriptions.reconciled,1);
 });
 test('all API stages reproduce kernel state and severing the payment path refuses compilation',()=>{
- for(const id of ['pagination','subscriptions'])for(const st of solution(id).stages)assert.deepEqual(run(st.diagram),run(st.diagram));
- const d=structuredClone(solution('subscriptions').stages[2].diagram);d.edges=d.edges.filter(e=>e.id!=='charge-request');assert.throws(()=>run(d),/paymentProvider authority/);
+ for(const id of ['pagination','subscriptions'])for(const st of solution(id).stages.filter(st=>st.kind!=='design'))assert.deepEqual(run(st.diagram),run(st.diagram));
+ const d=structuredClone(retained('subscriptions')[2].diagram);d.edges=d.edges.filter(e=>e.id!=='charge-request');assert.throws(()=>run(d),/paymentProvider authority/);
 });
 test('provider repeats one payment identity without a second charge and refuses identity conflicts',()=>{
  const provider=K.get('paymentProvider'),replies=[],ctx={p:{idempotent:true},k:provider.init(),effect(){},reply(job,value){replies.push(value);}};
@@ -46,7 +47,7 @@ test('provider repeats one payment identity without a second charge and refuses 
  assert.equal(ctx.k.charges.length,1);assert.equal(ctx.k.duplicates,1);assert.equal(replies.at(-1).ok,false);assert.equal(replies.at(-1).err,'invalid');
 });
 test('exhausted and empty pages return no cursor; an exhausted client never restarts implicitly',()=>{
- for(const st of solution('pagination').stages){const k=run(st.diagram).kernel;assert.equal(k.results.pages.at(-1).nextCursor,null);}
+ for(const st of retained('pagination')){const k=run(st.diagram).kernel;assert.equal(k.results.pages.at(-1).nextCursor,null);}
  const pager=K.get('paginationStore'),responses=[];
  const ctx={p:{mode:'keyset',pageSize:3},k:{...pager.init(),rows:[]},reply(job,value){responses.push(value);}};
  pager.onServed(ctx,{msg:{fields:{apiCommand:{action:'page',cursor:null}}}});

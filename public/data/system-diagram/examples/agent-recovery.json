@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.systemDiagram.v4",
   "id": "agent-recovery",
-  "name": "Agent tools, stale retrieval and repair",
+  "name": "Agent tools, stale retrieval and repair / Verify tool retries and recovery",
   "description": "Synthetic natural-language requests retrieve changing documents and invoke a fallible tool. Inspect delayed index publication, malformed model outputs, finite repair/tool retries, per-origin crawler budgets and recorded recovery. No live scraping, reasoning or API calls.",
   "seed": 42,
   "run": {

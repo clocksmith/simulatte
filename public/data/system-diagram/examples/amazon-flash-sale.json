@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.systemDiagram.v4",
   "id": "amazon-flash-sale",
-  "name": "Flash sale reservations",
+  "name": "Flash sale inventory reservation / Verify stock conservation",
   "description": "Bounded stock, idempotent payment and reservation expiration.",
   "seed": 42,
   "run": {

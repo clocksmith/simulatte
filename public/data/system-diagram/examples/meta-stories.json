@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.systemDiagram.v4",
   "id": "meta-stories",
-  "name": "Ephemeral stories",
+  "name": "Ephemeral stories media pipeline / Verify expiry and denials",
   "description": "Synthetic audience checks and expiration of story visibility.",
   "seed": 42,
   "run": {

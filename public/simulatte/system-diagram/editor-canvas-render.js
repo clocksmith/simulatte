@@ -16,6 +16,7 @@
   const NOTE_WIDTH = 200;
   const NOTE_LINE = 16;
   const NOTE_CHAR = 6.6;
+  const NODE_LINE = 14;
   const FOLDED_WIDTH = 240;
   const FOLDED_HEADER = 96;
   const PROXY_SPACING = 22;
@@ -81,6 +82,12 @@
     return lines;
   }
 
+  function wrapLabel(text,width,charWidth=7){
+    const limit=Math.max(1,Math.floor(width/charWidth)),lines=[];let line='';
+    for(const raw of String(text).trim().split(/\s+/)){let word=raw;if(!word)continue;if(line&&line.length+word.length+1>limit){lines.push(line);line='';}while(word.length>limit){if(line){lines.push(line);line='';}lines.push(word.slice(0,limit));word=word.slice(limit);}if(word)line=line?line+' '+word:word;}
+    if(line||!lines.length)lines.push(line);return lines;
+  }
+
   function create({ doc, model, library, config, layers, arrowId, arrowSelectedId }) {
     const E = config.editor, W = E.nodeWidth, H = E.nodeHeight;
     const items = { nodes: new Map(), edges: new Map(), groups: new Map(), notes: new Map() };
@@ -91,7 +98,7 @@
       return projection;
     }
     function classInfo(classId) {
-      const key = JSON.stringify([model.diagram.classes, model.diagram.subsystems]);
+      const key = JSON.stringify([model.diagram.classes, model.diagram.subsystems, model.diagram.concepts]);
       if (key !== classKey) { classCache.clear(); classKey = key; }
       if (!classCache.has(classId)) {
         const klass = D.resolveClass(classId, model.diagram, library, config);
@@ -103,7 +110,7 @@
     function geometryForDocument() {
       if (geometryDoc === model.diagram) return geometry;
       const visible = presentation(), entities = new Map(), peers = new Map(), ports = new Map();
-      for (const n of visible.nodes) entities.set(n.id, {box: {x: n.x, y: n.y, w: W, h: H}, ports: classInfo(n.classId).ports.map(p => ({...p, nodeId: n.id, portId: p.id}))});
+      for (const n of visible.nodes) entities.set(n.id, {box: nodeBox(n.id), ports: classInfo(n.classId).ports.map(p => ({...p, nodeId: n.id, portId: p.id}))});
       for (const entry of visible.groups.values()) if (entry.group.collapsed) entities.set(entry.group.id, {box: entry.box, ports: entry.ports.map(p => ({...p, id: `${p.nodeId}.${p.portId}`}))});
       const owner = end => visible.hidden.get(end.nodeId)?.group.id || end.nodeId;
       for (const edge of visible.edges) for (const [end, other] of [[edge.from, edge.to], [edge.to, edge.from]]) {
@@ -128,7 +135,8 @@
       const p = geometryForDocument().ports.get(`${nodeId}.${portId}`);
       return p ? {x: p.x, y: p.y, nx: p.nx, ny: p.ny, side: p.side} : null;
     }
-    function nodeBox(id) { const n = findNode(id); return n && !presentation().hidden.has(id) ? { x: n.x, y: n.y, w: W, h: H } : null; }
+    function nodeShape(node){const lines=wrapLabel(node.label||classInfo(node.classId).label,W-TEXT_X-10);return {lines,height:Math.max(H,lines.length*NODE_LINE+12+STATUS_HEIGHT+10)};}
+    function nodeBox(id) { const n = findNode(id); return n && !presentation().hidden.has(id) ? { x: n.x, y: n.y, w: W, h: nodeShape(n).height } : null; }
     function groupBox(id) { return presentation().groups.get(id)?.box || null; }
     function visiblePorts() {
       return [...geometryForDocument().ports.values()].map(s => ({...s, nodeId: s.port.nodeId, portId: s.port.portId, direction: s.port.direction}));
@@ -191,11 +199,14 @@
         const item = items.nodes.get(n.id) || createNode(n.id);
         items.nodes.set(n.id, item);
         const info = classInfo(n.classId);
-        const sig = `${n.label}\u0000${info.label}\u0000${info.glyph}\u0000${info.description}`;
+        const sig = `${n.label}\u0000${info.label}\u0000${info.glyph}\u0000${info.description}\u0000${info.unbound}\u0000${info.kernel}`;
         if (item.sig !== sig) {
           item.sig = sig;
           Glyphs.fill(item.glyph, info.glyph, GLYPH_SIZE);
-          fitText(item.label, n.label || info.label, W - TEXT_X - 10);
+          const shape=nodeShape(n),start=Math.max(15,(shape.height-STATUS_HEIGHT-(shape.lines.length*NODE_LINE+12))/2+12);
+          item.body.setAttribute('height',shape.height);item.rule.setAttribute('y1',shape.height-STATUS_HEIGHT);item.rule.setAttribute('y2',shape.height-STATUS_HEIGHT);
+          item.status.setAttribute('transform',`translate(0 ${shape.height-STATUS_HEIGHT})`);item.glyph.setAttribute('transform',`translate(14 ${(shape.height-STATUS_HEIGHT-GLYPH_SIZE)/2})`);
+          item.label.replaceChildren(...shape.lines.map((line,i)=>el(doc,'tspan',{x:TEXT_X,y:start+i*NODE_LINE},line+(i<shape.lines.length-1?' ':''))));item.klass.setAttribute('y',start+shape.lines.length*NODE_LINE);item.el.dataset.renderHeight=String(shape.height);
           fitText(item.klass, info.unbound?'Unbound responsibility':info.concept?'Refined · '+info.label:info.label, W - TEXT_X - 10);
           item.el.dataset.binding=info.unbound?'unbound':'executable';
           item.el.setAttribute('aria-label', `${n.label || info.label}, ${info.label}`);
@@ -212,7 +223,7 @@
       for (const [id, item] of items.nodes) if (!seen.has(id)) { item.el.remove(); items.nodes.delete(id); }
     }
     function syncEdges(d) {
-      const seen = new Set();
+      const seen = new Set(),labelBoxes=[];
       for (const edge of presentation().edges) {
         seen.add(edge.id);
         let item = items.edges.get(edge.id);
@@ -229,16 +240,10 @@
         item.el.dataset.routeBlocked = String(route.blocked);
         item.el.dataset.routePoints = JSON.stringify(route.points);
         if (item.d !== path) { item.d = path; item.hit.setAttribute('d', path); item.path.setAttribute('d', path); }
-        const a = portPosition(edge.from.nodeId, edge.from.portId), b = portPosition(edge.to.nodeId, edge.to.portId);
-        const labelSig = `${path}\u0000${edge.label || ''}`;
-        if (item.labelSig !== labelSig) {
-          item.labelSig = labelSig;
-          if (a && b) {
-            const pos = Routing.label(route.points);
-            item.label.setAttribute('x', pos.x); item.label.setAttribute('y', pos.y);
-          }
-          fitText(item.label, edge.label || '', 180);
-        }
+        const lines=wrapLabel(edge.label||'',180,6),width=Math.min(180,Math.max(...lines.map(line=>line.length*6))+8),height=lines.length*12;
+        const pos=Routing.label(route.points,{width,height,obstacles:geometryForDocument().obstacles,labels:labelBoxes});
+        item.label.replaceChildren(...lines.map((line,i)=>el(doc,'tspan',{x:pos.x,y:pos.y+i*12},line+(i<lines.length-1?' ':''))));
+        item.label.setAttribute('display',edge.label&&!pos.hidden?'':'none');if(edge.label&&!pos.hidden)labelBoxes.push(pos.box);
         item.el.classList.toggle('is-async', edge.params.mode === 'async');
       }
       for (const [id, item] of items.edges) if (!seen.has(id)) { item.el.remove(); items.edges.delete(id); }
@@ -350,5 +355,5 @@
     return { items, classInfo, findNode, portLayout, portPosition, nodeBox, groupBox, noteBox, visiblePorts, portElement, portElements, presentation, curve, render, invalidateText };
   }
 
-  return Object.freeze({ create, groupPresentation, el, STATUS_HEIGHT, PORT_DOT });
+  return Object.freeze({ create, groupPresentation, wrapLabel, el, STATUS_HEIGHT, PORT_DOT });
 });

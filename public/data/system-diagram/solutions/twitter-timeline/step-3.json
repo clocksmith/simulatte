@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.systemDiagram.v4",
   "id": "twitter-timeline",
-  "name": "Social timeline fanout",
+  "name": "Realtime social timeline / Handle a large audience",
   "description": "Users and follower relations live in an independent social graph. Committed posts resolve their real audience before queueing fanout; feed reads join graph-selected posts with follower timelines. Bound admission, retries and delayed writes are separate executable components.",
   "seed": 42,
   "run": {
@@ -502,19 +502,7 @@
     }
   ],
   "notes": [],
-  "faults": [
-    {
-      "id": "delivery-outage",
-      "atSec": 0,
-      "untilSec": 1.8,
-      "target": {
-        "kind": "node",
-        "id": "fanout"
-      },
-      "type": "crash",
-      "params": {}
-    }
-  ],
+  "faults": [],
   "view": {
     "x": 0,
     "y": 0,

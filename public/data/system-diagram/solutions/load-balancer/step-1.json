@@ -1,0 +1,89 @@
+{
+  "schema": "simulatte.systemDiagram.v5",
+  "id": "diagram",
+  "name": "Round robin load balancer / Define routing and retry safety",
+  "description": "",
+  "seed": 1,
+  "run": {
+    "horizonSec": 120
+  },
+  "classes": [],
+  "nodes": [
+    {
+      "id": "clients",
+      "classId": "concept.clients-context",
+      "label": "Users and requests",
+      "x": 0,
+      "y": 80,
+      "params": {}
+    },
+    {
+      "id": "router",
+      "classId": "concept.router-context",
+      "label": "System responsibility",
+      "x": 320,
+      "y": 80,
+      "params": {}
+    }
+  ],
+  "edges": [
+    {
+      "id": "context-request",
+      "label": "request / outcome contract",
+      "from": {
+        "nodeId": "clients",
+        "portId": "out"
+      },
+      "to": {
+        "nodeId": "router",
+        "portId": "in"
+      },
+      "params": {}
+    }
+  ],
+  "groups": [],
+  "notes": [],
+  "faults": [],
+  "view": {
+    "x": 0,
+    "y": 0,
+    "zoom": 1
+  },
+  "intent": {
+    "outcome": "Build a round robin load balancer with retries, health tracking and circuit breaking.",
+    "users": "Callers, state owners and operators named by the problem.",
+    "constraints": "Make ordering, durability, capacity and retry assumptions explicit. Authored answer to the cited candidate-reported exercise. Read-only bounded requests and two identical synthetic backends; no production capacity, active health-check daemon, discovery or cross-process shared routing state. Time-based ejection and request-driven circuit probes are distinct policies.",
+    "success": "An observable request path, bounded waiting, visible failures and a justified recovery policy."
+  },
+  "concepts": [
+    {
+      "id": "clients-context",
+      "label": "Users and requests",
+      "responsibility": "Who issues requests, and which identities or deadlines travel with them?",
+      "ports": [
+        {
+          "id": "out",
+          "direction": "out",
+          "payloadType": "json"
+        }
+      ]
+    },
+    {
+      "id": "router-context",
+      "label": "System responsibility",
+      "responsibility": "Build a round robin load balancer with retries, health tracking and circuit breaking.",
+      "ports": [
+        {
+          "id": "in",
+          "direction": "in",
+          "payloadType": "json"
+        },
+        {
+          "id": "out",
+          "direction": "out",
+          "payloadType": "json"
+        }
+      ]
+    }
+  ]
+}

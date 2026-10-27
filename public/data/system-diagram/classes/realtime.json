@@ -1,0 +1,140 @@
+{
+  "schema": "simulatte.systemDiagramClassPack.v1",
+  "id": "realtime",
+  "version": "1.0.0",
+  "kernels": [
+    {
+      "id": "connectionGateway",
+      "label": "Connections",
+      "description": "Bounded actor sessions expire after idle time, emit presence heartbeats and forward commands to the conversation authority. Synthetic connections, not WebSockets or authentication.",
+      "paramSets": [
+        "station",
+        "memory",
+        "calls"
+      ],
+      "params": {
+        "maxRecords": {
+          "type": "integer",
+          "label": "Retained records",
+          "default": 100,
+          "min": 1,
+          "max": 20000,
+          "group": "basic"
+        },
+        "idleSec": {
+          "type": "number",
+          "label": "Idle timeout",
+          "default": 1.5,
+          "min": 0.01,
+          "max": 3600,
+          "group": "basic"
+        }
+      },
+      "ports": [
+        {
+          "id": "in",
+          "label": "Requests",
+          "direction": "in",
+          "multiple": true,
+          "required": true,
+          "accepts": [
+            "json"
+          ]
+        },
+        {
+          "id": "backend",
+          "label": "History",
+          "direction": "out",
+          "multiple": false,
+          "required": true,
+          "emits": [
+            "json"
+          ]
+        },
+        {
+          "id": "presence",
+          "label": "Heartbeat",
+          "direction": "out",
+          "multiple": false,
+          "required": false,
+          "emits": [
+            "json"
+          ]
+        }
+      ],
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "blackhole",
+        "dropReplies"
+      ]
+    },
+    {
+      "id": "pushInbox",
+      "label": "Device inbox",
+      "description": "Bounded best-effort pushed deliveries deduplicate stable message identities. Missed messages require cursor catchup from conversation history.",
+      "paramSets": [
+        "station",
+        "memory"
+      ],
+      "params": {
+        "maxRecords": {
+          "type": "integer",
+          "label": "Retained records",
+          "default": 100,
+          "min": 1,
+          "max": 20000,
+          "group": "basic"
+        }
+      },
+      "ports": [
+        {
+          "id": "in",
+          "label": "Requests",
+          "direction": "in",
+          "multiple": true,
+          "required": true,
+          "accepts": [
+            "json"
+          ]
+        }
+      ],
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "blackhole",
+        "dropReplies"
+      ]
+    }
+  ],
+  "classes": [
+    {
+      "id": "connection-gateway",
+      "label": "Connections",
+      "description": "Bounded actor sessions expire after idle time, emit presence heartbeats and forward commands to the conversation authority. Synthetic connections, not WebSockets or authentication.",
+      "category": "edge",
+      "kernel": "connectionGateway",
+      "glyph": "server",
+      "defaults": {
+        "serviceMs": 2,
+        "serviceDist": "constant",
+        "concurrency": 8
+      }
+    },
+    {
+      "id": "push-inbox",
+      "label": "Device inbox",
+      "description": "Bounded best-effort pushed deliveries deduplicate stable message identities. Missed messages require cursor catchup from conversation history.",
+      "category": "clients",
+      "kernel": "pushInbox",
+      "glyph": "users",
+      "defaults": {
+        "serviceMs": 2,
+        "serviceDist": "constant",
+        "concurrency": 8
+      }
+    }
+  ]
+}

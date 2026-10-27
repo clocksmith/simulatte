@@ -3,9 +3,10 @@ const test=require('node:test'),assert=require('node:assert/strict'),path=requir
 const base=path.resolve(__dirname,'../public/data/system-diagram'),C=require('../public/data/system-diagram/config.json'),L=require('../public/simulatte/system-diagram/class-library.js').loadSync(base),D=require('../public/simulatte/system-diagram/diagram.js'),E=require('../public/simulatte/system-diagram/engine.js'),K=require('../public/simulatte/system-diagram/kernels-all.js');
 const data=require('../public/data/system-diagram/problems.json'),deps={library:L,config:C,kernels:K};
 const solution=id=>data.problems.find(p=>p.id===id).solutions[0];
+const retained=id=>solution(id).stages.filter(st=>Number.isInteger(st.legacyIndex)).sort((a,b)=>a.legacyIndex-b.legacyIndex);
 function run(diagram,until=6){const c=D.compile(diagram,L,C),s=E.initialize(c,deps);E.advance(c,s,until,deps);return {c,s,v:E.observe(c,s,deps)};}
 test('cross-region acknowledgement policy exposes uncertain writes and finite retries repair retained outbox',()=>{
- const stages=solution('replication').stages.map(s=>s.diagram),local=run(stages[0]),remote=run(stages[1]),repair=run(stages[2]);
+ const stages=retained('replication').map(s=>s.diagram),local=run(stages[0]),remote=run(stages[1]),repair=run(stages[2]);
  assert.equal(local.v.global.completed,4);assert.equal(remote.v.global.completed,2);assert.equal(remote.v.global.failed,2);
  for(const r of [local,remote]){assert.equal(r.s.kernel.leader.writes,4);assert.equal(r.v.nodes.leader.detail['Exhausted outbox'],2);assert.ok(r.v.global.memoryMiB>0);}
  assert.equal(repair.v.global.completed,4);assert.equal(repair.v.global.failed,0);assert.ok(repair.s.kernel.follower.duplicates>0);assert.ok(repair.s.kernel.follower.applied<=4);assert.deepEqual(repair.s.kernel.follower.versions,repair.s.kernel.leader.versions);assert.equal(repair.v.nodes.leader.detail['Pending replication'],0);

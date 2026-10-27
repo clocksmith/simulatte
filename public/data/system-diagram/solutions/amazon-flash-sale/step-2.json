@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.systemDiagram.v4",
   "id": "amazon-flash-sale",
-  "name": "Flash sale reservations",
+  "name": "Flash sale inventory reservation / Reserve finite stock",
   "description": "Bounded stock, idempotent payment and reservation expiration.",
   "seed": 42,
   "run": {
@@ -50,16 +50,6 @@
       }
     },
     {
-      "id": "updates",
-      "classId": "worker",
-      "label": "Receipt and release events",
-      "x": 650,
-      "y": 130,
-      "params": {
-        "serviceMs": 30
-      }
-    },
-    {
       "id": "new-shoppers",
       "classId": "operation-client",
       "label": "new shoppers",
@@ -101,22 +91,6 @@
       },
       "to": {
         "nodeId": "inventory",
-        "portId": "in"
-      },
-      "params": {
-        "latencyMs": 80,
-        "bandwidthMbps": 100
-      }
-    },
-    {
-      "id": "receipts",
-      "label": "receipts",
-      "from": {
-        "nodeId": "inventory",
-        "portId": "updates"
-      },
-      "to": {
-        "nodeId": "updates",
         "portId": "in"
       },
       "params": {

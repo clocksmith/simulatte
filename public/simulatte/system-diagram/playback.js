@@ -4,9 +4,24 @@
   if (node) module.exports = api; else root.SimulatteSystemDiagramPlayback = api;
 })(globalThis, function (D) {
   'use strict';
-  function createController({getDiagram, createRunner, config, onView = ()=>{}, onState = ()=>{}}) {
+  function operationOf(request){
+    const fields=request.input?.fields||{},command=Object.values(fields).find(value=>value&&typeof value==='object'&&(typeof value.action==='string'||typeof value.op==='string'));
+    return command?.action||command?.op||request.input?.op||request.payloadType;
+  }
+  function requestRoute(request,view,compiled){
+    const attempts=(view.attempts||[]).filter(a=>a.requestId===request.id).sort((a,b)=>a.startedAt-b.startedAt||a.id.localeCompare(b.id)),first=attempts.find(a=>a.callerNodeId===request.sourceId)||attempts[0];
+    const name=id=>compiled?.nodes.find(n=>n.id===id)?.label||id;
+    return {from:name(request.sourceId),to:first?name(first.nodeId):'No delivery recorded'};
+  }
+  function structuredResults(request,view){
+    const fields=request.input?.fields||{},command=Object.values(fields).find(value=>value&&typeof value==='object'&&(value.commandId!==undefined||value.action!==undefined||value.op!==undefined));
+    const index=Number.isInteger(fields.operation?.index)?fields.operation.index:/:([0-9]+)$/.test(request.input?.idem||'')?Number(request.input.idem.match(/:([0-9]+)$/)[1]):null;
+    const rows=Object.entries(view.nodes?.[request.sourceId]?.records||{}).flatMap(([collection,rows])=>rows.map(value=>({collection,value})));
+    return rows.filter(({value})=>value.requestId===request.id||(command?.commandId!==undefined&&(value.command?.commandId===command.commandId||value.commandId===command.commandId))||(index!==null&&value.index===index&&('result' in value||'fields' in value||'value' in value)));
+  }
+  function createController({getDiagram, createRunner, config, onView = ()=>{}, onState = ()=>{}, canSimulate = ()=>true}) {
     let runner = null, generation = 0, running = false, busy = false, speed = config.playback.defaultSpeed;
-    const state = () => ({running, busy, speed, time:runner?.time() || 0, horizon:runner?.horizon || getDiagram().run.horizonSec, done:Boolean(runner && runner.time() >= runner.horizon)});
+    const state = () => ({running, busy, speed, executable:canSimulate()!==false, time:runner?.time() || 0, horizon:runner?.horizon || getDiagram().run.horizonSec, done:Boolean(runner && runner.time() >= runner.horizon)});
     const notify = () => onState(state());
     function pause() { running = false; notify(); }
     function paint() { const view = runner?.view() || null; onView(view, runner?.compiled || null); notify(); if (view?.error) { pause(); throw Error(view.error); } }
@@ -15,6 +30,7 @@
       if (prior) await prior.dispose();
     }
     async function accept() {
+      if(canSimulate()===false)throw Error('This is a requirements/design stage. Advance to an executable stage before simulating.');
       if (runner) return true;
       const token = ++generation, snapshot = D.clone(getDiagram()); busy = true; notify();
       try {
@@ -40,14 +56,14 @@
       async verify() { if(!runner)throw Error('Simulate an architecture first');pause();return runner.verify(); },
     };
   }
-  function create({host, model, canvas, library, config, message}) {
+  function create({host, model, canvas, library, config, message, canSimulate}) {
     const root = globalThis, doc = host.ownerDocument;
     let controls, controller, compiledGraph = null, lastRecordsTime = -Infinity;
     const make = (tag,text='')=>{const element=doc.createElement(tag);element.textContent=text;return element;};
     const records=make('dialog');records.className='lucyd-dialog simulation-records';records.setAttribute('aria-label','Simulation requests');
     const recordSummary=make('p'),recordList=make('div'),recordDetail=make('div');recordList.className='simulation-records-list';
     const close=root.SimulatteWorldUI.SimButton({document:doc,label:'Close',onAction:()=>records.close()}).element;
-    records.append(make('h2','Simulation requests'),recordSummary,recordList,recordDetail,close);host.append(records);
+    const recordHeading=make('div');recordHeading.className='panel-heading';recordHeading.append(make('h2','Simulation requests'),close);records.append(recordHeading,recordSummary,recordDetail,recordList);host.append(records);
     let requestId=null;
     function renderRecords(view) {
       if(!view){requestId=null;recordSummary.textContent='Simulate an architecture to observe requests.';recordList.replaceChildren();recordDetail.replaceChildren();return;}
@@ -55,13 +71,21 @@
       recordSummary.textContent=`${view.global.completed} completed · ${view.global.failed} failed · ${view.global.inFlight} in flight`;
       recordList.replaceChildren();
       for(const request of view.requests.slice(-25)){
-        const label=`${request.id} · ${request.input.fields?.operation?.action || request.payloadType} · ${request.status}${request.err ? ` (${request.err})` : ''}`;
-        const action=root.SimulatteWorldUI.SimButton({document:doc,label,variant:'quiet',onAction:()=>{requestId=request.id;renderRecords(controller.view());}}).element;
-        recordList.append(action);
+        const route=requestRoute(request,view,compiledGraph),label=`${request.id} · ${operationOf(request)} · ${request.status}${request.err ? ` (${request.err})` : ''}`;
+        const action=root.SimulatteWorldUI.SimButton({document:doc,label,variant:'quiet',onAction:()=>{requestId=request.id;renderRecords(controller.view());records.scrollTop=0;}}).element;
+        action.classList.add('simulation-request-row');action.dataset.requestId=request.id;const name=make('span',label),path=make('span',`From ${route.from} → ${route.to}`);name.className='simulation-request-operation';path.className='simulation-request-route';action.replaceChildren(name,path);action.setAttribute('aria-label',label+`. From ${route.from} to ${route.to}`);recordList.append(action);
       }
       recordDetail.replaceChildren();
-      if(requestId){const trace=controller.inspect(requestId);if(trace){recordDetail.append(make('h3',`Request ${requestId}`));for(const attempt of trace.attempts){const node=compiledGraph?.nodes.find(n=>n.id===attempt.nodeId);recordDetail.append(make('p',`${attempt.startedAt.toFixed(2)}s · ${node?.label || attempt.nodeId} · ${attempt.status}${attempt.err ? `: ${attempt.err}` : ''}`));}}}
+      if(requestId){const trace=controller.inspect(requestId);if(trace){
+        recordDetail.append(make('h3',`Request ${requestId} · ${operationOf(trace.request)}`));
+        function data(title,value){const disclosure=make('details'),pre=make('pre',JSON.stringify(value,null,2));pre.className='simulation-request-data';disclosure.append(make('summary',title),pre);recordDetail.append(disclosure);}
+        data('Input',trace.request.input);const results=structuredResults(trace.request,view);if(results.length)data('Structured results',results);else recordDetail.append(make('p','No structured response record was retained for this request.'));
+        const attempts=make('details');attempts.append(make('summary','Delivery attempts'));const name=id=>compiledGraph?.nodes.find(n=>n.id===id)?.label||id;
+        for(const attempt of trace.attempts)attempts.append(make('p',`${attempt.startedAt.toFixed(2)}s · ${name(attempt.callerNodeId)} → ${name(attempt.nodeId)} · ${attempt.status}${attempt.err?': '+attempt.err:''}`));recordDetail.append(attempts);
+        if(trace.effects.length)data('Effects',trace.effects);root.SimulatteWorldUI.adoptTree(recordDetail);
+      }}
     }
+
     function renderNodeRecords(projection) {
       const selected=model.selection.nodes[0],info=selected && projection?.nodes[selected],inspector=doc.getElementById('properties');
       if(!inspector)return;
@@ -74,7 +98,7 @@
       const sources=members.length ? members.map(row=>({label:row.path.slice(1).join(' / '),state:controller.view()?.nodes[row.id]})) : [{label:'',state:info}];
       for(const source of sources)for(const [name,rows] of Object.entries(source.state?.records || {})){
         body.append(make('h4',`${source.label ? source.label+' · ' : ''}${name}: ${rows.length}`));
-        for(const row of rows.slice(0,20))body.append(make('p',Object.entries(row).map(([k,v])=>`${k}: ${Array.isArray(v) ? `${v.length} entries` : v && typeof v==='object' ? 'record' : v}`).join(' · ')));
+        for(const [index,row]of rows.slice(0,20).entries()){const record=make('details');record.append(make('summary','Record '+(index+1)),make('pre',JSON.stringify(row,null,2)));body.append(record);}
       }
     }
     const publish = view => {
@@ -91,8 +115,8 @@
       if(!view || view.t-lastRecordsTime>=.2 || !controller.state().running){lastRecordsTime=view?.t || 0;renderNodeRecords(projection);renderRecords(view);}
     };
     let acceptedComposition = null, faultDialog = null, faultBody = null;
-    controller = createController({getDiagram:()=>model.diagram, config,
-      createRunner:diagram=>root.SimulatteSystemDiagramRunner.create({diagram,library,config,kernels:root.SimulatteSystemDiagramKernels}),
+    controller = createController({getDiagram:()=>model.diagram, config, canSimulate,
+      createRunner:diagram=>{if(canSimulate?.()===false)throw Error('This is a requirements/design stage. Advance to an executable stage before simulating.');return root.SimulatteSystemDiagramRunner.create({diagram,library,config,kernels:root.SimulatteSystemDiagramKernels});},
       onView:(view,compiled)=>{compiledGraph=compiled;acceptedComposition=compiled?.composition || null;publish(view);},
       onState:state=>controls?.update(state),
     });
@@ -102,7 +126,7 @@
       onVerify:act(async()=>{const proof=await controller.verify();message(`Replay ${proof.status}` ,proof.status!=='match');}),
     });
     controls.update(controller.state());
-    const requests=root.SimulatteWorldUI.SimButton({document:doc,label:'Requests',variant:'quiet',onAction:()=>{renderRecords(controller.view());records.showModal();renderRecords(controller.view());}}).element;
+    const requests=root.SimulatteWorldUI.SimButton({document:doc,label:'Requests',variant:'quiet',onAction:()=>{controller.pause();renderRecords(controller.view());records.showModal();renderRecords(controller.view());}}).element;
     controls.addAction(requests);
     faultDialog=make('dialog');faultDialog.className='lucyd-dialog';faultDialog.setAttribute('aria-label','Inject a failure');faultBody=make('div');
     const faultClose=root.SimulatteWorldUI.SimButton({document:doc,label:'Close',onAction:()=>faultDialog.close()}).element;
@@ -142,8 +166,8 @@
     const keydown=event=>{if(!doc.querySelector('dialog[open]'))controls.handleKey(event);};
     doc.addEventListener('keydown',keydown);
     const hide=()=>{act(controller.clear)();};root.addEventListener('pagehide',hide);
-    return {play:act(controller.play),pause:controller.pause,view:controller.view,controller,clear:controller.clear,refresh:()=>{lastRecordsTime=-Infinity;publish(controller.view());},
+    return {play:act(controller.play),pause:controller.pause,view:controller.view,controller,clear:controller.clear,refresh:()=>{lastRecordsTime=-Infinity;publish(controller.view());controls.update(controller.state());},
       dispose(){root.cancelAnimationFrame(frame);unsubscribe();doc.removeEventListener('keydown',keydown);root.removeEventListener('pagehide',hide);controls.dispose();records.remove();faultDialog.remove();return controller.clear();}};
   }
-  return Object.freeze({create,createController});
+  return Object.freeze({create,createController,operationOf,requestRoute,structuredResults});
 });

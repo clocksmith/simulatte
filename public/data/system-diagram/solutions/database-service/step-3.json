@@ -1,0 +1,161 @@
+{
+  "schema": "simulatte.systemDiagram.v4",
+  "id": "database-service-replicate",
+  "name": "Database as a service / Choose replication acknowledgements",
+  "description": "Authored bounded synthetic model, not production capacity or a deployed service.",
+  "seed": 42,
+  "run": {
+    "horizonSec": 6
+  },
+  "classes": [],
+  "nodes": [
+    {
+      "id": "tenant-a",
+      "classId": "burst-producer",
+      "label": "tenant-a assigned tenant writes",
+      "x": 0,
+      "y": 0,
+      "params": {
+        "burstCount": 4,
+        "burstAtSec": 0,
+        "requestKb": 1,
+        "readFraction": 0,
+        "keySpace": 2,
+        "retries": 0,
+        "timeoutMs": 4000
+      }
+    },
+    {
+      "id": "tenant-b",
+      "classId": "burst-producer",
+      "label": "tenant-b assigned tenant writes",
+      "x": 0,
+      "y": 350,
+      "params": {
+        "burstCount": 4,
+        "burstAtSec": 0,
+        "requestKb": 1,
+        "readFraction": 0,
+        "keySpace": 2,
+        "retries": 0,
+        "timeoutMs": 4000
+      }
+    },
+    {
+      "id": "db-a",
+      "classId": "database-leader",
+      "label": "Tenant A database authority",
+      "x": 300,
+      "y": 0,
+      "params": {
+        "writeQuorum": 2,
+        "concurrency": 4,
+        "maxRecords": 100,
+        "timeoutMs": 80,
+        "retryIntervalMs": 100,
+        "maxAttempts": 2
+      }
+    },
+    {
+      "id": "db-b",
+      "classId": "database-leader",
+      "label": "Tenant B database authority",
+      "x": 300,
+      "y": 350,
+      "params": {
+        "writeQuorum": 2,
+        "concurrency": 4,
+        "maxRecords": 100,
+        "timeoutMs": 80,
+        "retryIntervalMs": 100,
+        "maxAttempts": 2
+      }
+    },
+    {
+      "id": "backup-a",
+      "classId": "database-replica",
+      "label": "Tenant A follower",
+      "x": 600,
+      "y": 0,
+      "params": {}
+    },
+    {
+      "id": "backup-b",
+      "classId": "database-replica",
+      "label": "Tenant B follower",
+      "x": 600,
+      "y": 350,
+      "params": {}
+    }
+  ],
+  "edges": [
+    {
+      "id": "a-query",
+      "from": {
+        "nodeId": "tenant-a",
+        "portId": "out"
+      },
+      "to": {
+        "nodeId": "db-a",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 5,
+        "bandwidthMbps": 100
+      }
+    },
+    {
+      "id": "b-query",
+      "from": {
+        "nodeId": "tenant-b",
+        "portId": "out"
+      },
+      "to": {
+        "nodeId": "db-b",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 5,
+        "bandwidthMbps": 100
+      }
+    },
+    {
+      "id": "a-replication",
+      "from": {
+        "nodeId": "db-a",
+        "portId": "replicate"
+      },
+      "to": {
+        "nodeId": "backup-a",
+        "portId": "replica"
+      },
+      "params": {
+        "latencyMs": 5,
+        "bandwidthMbps": 100
+      }
+    },
+    {
+      "id": "b-replication",
+      "from": {
+        "nodeId": "db-b",
+        "portId": "replicate"
+      },
+      "to": {
+        "nodeId": "backup-b",
+        "portId": "replica"
+      },
+      "params": {
+        "latencyMs": 5,
+        "bandwidthMbps": 100
+      }
+    }
+  ],
+  "groups": [],
+  "notes": [],
+  "faults": [],
+  "view": {
+    "x": 0,
+    "y": 0,
+    "zoom": 1
+  }
+}

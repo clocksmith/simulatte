@@ -67,7 +67,7 @@
     }
     const seen = new WeakSet(), resize = new win.ResizeObserver(updateInsets);
     function observe() {
-      for (const el of [doc.querySelector('.app-header'), palette.panel, doc.querySelector('.lucyd-task-bar'), doc.querySelector('.interview-stepper'), doc.querySelector('.sd-run-dock')].filter(Boolean)) {
+      for (const el of [doc.querySelector('.app-header'), palette.panel, properties.panel, doc.querySelector('.lucyd-task-bar'), doc.querySelector('.interview-stepper'), doc.querySelector('.sd-run-dock')].filter(Boolean)) {
         if (!seen.has(el)) {seen.add(el); resize.observe(el);}
       }
       updateInsets();

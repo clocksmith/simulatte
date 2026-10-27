@@ -115,14 +115,16 @@
   });
 
   const shell = globalThis.SimulatteSystemDiagramShell.create({canvas});
-  const playback = globalThis.SimulatteSystemDiagramPlayback.create({host:document.querySelector('.canvas-panel'), model,canvas,library,config,message});
+  let activeStudyKind = null;
+  const playback = globalThis.SimulatteSystemDiagramPlayback.create({host:document.querySelector('.canvas-panel'), model,canvas,library,config,message,canSimulate:()=>activeStudyKind!=='design'});
   const interviewStepper = globalThis.SimulatteSystemDiagramInterviewStepper?.create({
     host: document.querySelector('.canvas-panel') || document.body,
     model,
     canvas,
     library,
     config,
-    onStepChange: () => render(),
+    onStepChange: (_,stage) => {activeStudyKind=stage?.kind||null;render();shell.updateInsets();},
+    getObservation: () => playback.view(),
     onSimulate: () => playback.play(),
     onMessage: message,
     onPrivacyChange: value => privateCollection?.setActive(value),
@@ -895,7 +897,7 @@
     },
     onMessage: message,
   });
-  button('document-actions', 'Private collection (Databricks IC6)', () => privateCollection.open());
+  button('document-actions', 'Private collection', () => privateCollection.open());
   button('document-actions', 'Deployment', async () => {
     if (!deploymentPanel) {
       const module = await import('./deployment/panel.js');

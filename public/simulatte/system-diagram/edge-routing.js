@@ -125,11 +125,20 @@
     }
     return d + `L${points.at(-1).x} ${points.at(-1).y}`;
   }
-  function label(points) {
-    const total = points.slice(1).reduce((n, p, i) => n + length(points[i], p), 0); let left = total / 2;
-    for (let i = 1; i < points.length; i++) {const a = points[i - 1], b = points[i], size = length(a, b);
-      if (left <= size) {const t = size ? left / size : 0; return {x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t - 8};} left -= size;}
-    return {x: points[0]?.x || 0, y: points[0]?.y || 0};
+  function label(points,{width=0,height=12,obstacles=[],labels=[]}={}) {
+    const candidates=[];
+    for(let i=1;i<points.length;i++){
+      const a=points[i-1],b=points[i],size=length(a,b),horizontal=a.y===b.y;
+      for(const fraction of [.5,.35,.65])for(const side of [-1,1]){
+        const x=a.x+(b.x-a.x)*fraction+(horizontal?0:side*(width/2+10)),y=a.y+(b.y-a.y)*fraction+(horizontal?(side<0?-8:height+8):0);
+        const box={x:x-width/2-3,y:y-10,w:width+6,h:height+4};
+        const intersects=r=>box.x<r.x+r.w+4&&box.x+box.w>r.x-4&&box.y<r.y+r.h+4&&box.y+box.h>r.y-4;
+        if(![...obstacles,...labels].some(intersects))candidates.push({x,y,box,score:size+(horizontal?80:0)-(fraction===.5?0:12)-(side<0?0:4)});
+      }
+    }
+    candidates.sort((a,b)=>b.score-a.score||a.x-b.x||a.y-b.y);
+    return candidates[0]||{x:points[0]?.x||0,y:points[0]?.y||0,hidden:true};
   }
+
   return Object.freeze({layoutPorts, route, path, label, clearSegment, NORMALS});
 });

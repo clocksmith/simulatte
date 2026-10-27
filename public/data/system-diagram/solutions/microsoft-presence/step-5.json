@@ -1,0 +1,243 @@
+{
+  "schema": "simulatte.systemDiagram.v4",
+  "id": "microsoft-presence",
+  "name": "Distributed presence broker / Distinguish heartbeat delay from offline status",
+  "description": "Heartbeat leases, subscribed status changes and bulk snapshots.",
+  "seed": 42,
+  "run": {
+    "horizonSec": 20
+  },
+  "classes": [],
+  "nodes": [
+    {
+      "id": "heartbeats",
+      "classId": "operation-client",
+      "label": "heartbeats",
+      "x": 0,
+      "y": 0,
+      "params": {
+        "operation": "heartbeat",
+        "count": 8,
+        "intervalMs": 400,
+        "keySpace": 2,
+        "actorSpace": 2,
+        "startSec": 1
+      }
+    },
+    {
+      "id": "subscriptions",
+      "classId": "operation-client",
+      "label": "subscriptions",
+      "x": 0,
+      "y": 220,
+      "params": {
+        "operation": "subscribe",
+        "count": 4,
+        "intervalMs": 100,
+        "keySpace": 2,
+        "actorSpace": 4
+      }
+    },
+    {
+      "id": "sync",
+      "classId": "operation-client",
+      "label": "sync",
+      "x": 0,
+      "y": 440,
+      "params": {
+        "operation": "readPresence",
+        "count": 12,
+        "intervalMs": 1000,
+        "startSec": 2
+      }
+    },
+    {
+      "id": "subsystem-1",
+      "classId": "subsystem.presence-service@1",
+      "label": "Presence service",
+      "x": 350,
+      "y": 200,
+      "params": {},
+      "overrides": {
+        "broker": {
+          "serviceMs": 10,
+          "ttlSec": 1
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "heartbeat",
+      "label": "heartbeat",
+      "from": {
+        "nodeId": "heartbeats",
+        "portId": "out"
+      },
+      "to": {
+        "nodeId": "subsystem-1",
+        "portId": "port-1"
+      },
+      "params": {
+        "latencyMs": 80,
+        "bandwidthMbps": 100
+      }
+    },
+    {
+      "id": "subscribe",
+      "label": "subscribe",
+      "from": {
+        "nodeId": "subscriptions",
+        "portId": "out"
+      },
+      "to": {
+        "nodeId": "subsystem-1",
+        "portId": "port-1"
+      },
+      "params": {
+        "latencyMs": 80,
+        "bandwidthMbps": 100
+      }
+    },
+    {
+      "id": "bulk-sync",
+      "label": "bulk-sync",
+      "from": {
+        "nodeId": "sync",
+        "portId": "out"
+      },
+      "to": {
+        "nodeId": "subsystem-1",
+        "portId": "port-1"
+      },
+      "params": {
+        "latencyMs": 80,
+        "bandwidthMbps": 100
+      }
+    }
+  ],
+  "groups": [],
+  "notes": [],
+  "faults": [],
+  "view": {
+    "x": 0,
+    "y": 0,
+    "zoom": 1
+  },
+  "subsystems": [
+    {
+      "id": "presence-service",
+      "version": 1,
+      "label": "Presence service",
+      "nodes": [
+        {
+          "id": "broker",
+          "classId": "presence-broker",
+          "label": "broker",
+          "x": 350,
+          "y": 200,
+          "params": {
+            "concurrency": 4,
+            "queueCapacity": 100,
+            "serviceMs": 20,
+            "maxRecords": 200,
+            "ttlSec": 4
+          }
+        },
+        {
+          "id": "notifications",
+          "classId": "worker",
+          "label": "Subscriber delivery",
+          "x": 650,
+          "y": 200,
+          "params": {
+            "concurrency": 4,
+            "queueCapacity": 1000,
+            "serviceMs": 50,
+            "serviceDist": "exponential",
+            "serviceCv": 1,
+            "perKbMs": 0,
+            "errorRate": 0,
+            "responseKb": 1,
+            "callMode": "sequential",
+            "blockingCalls": true,
+            "callTimeoutMs": 5000,
+            "retries": 0,
+            "retryBackoffMs": 100,
+            "backoffMultiplier": 2,
+            "retryJitter": true,
+            "memoryPerRequestMiB": 1,
+            "memoryLimitMiB": 1024,
+            "memoryPressureThreshold": 0.8,
+            "memoryThrashFactor": 1,
+            "memoryGarbageFraction": 0,
+            "memoryGcPauseMs": 0,
+            "memoryGcCooldownMs": 1000,
+            "memoryOomRecoveryMs": 1000,
+            "memoryOomPolicy": "reject",
+            "outputPayload": "inherit"
+          }
+        }
+      ],
+      "edges": [
+        {
+          "id": "notify",
+          "label": "notify",
+          "from": {
+            "nodeId": "broker",
+            "portId": "updates"
+          },
+          "to": {
+            "nodeId": "notifications",
+            "portId": "in"
+          },
+          "params": {
+            "latencyMs": 80,
+            "bandwidthMbps": 100
+          }
+        }
+      ],
+      "groups": [],
+      "notes": [],
+      "faults": [],
+      "ports": [
+        {
+          "id": "port-1",
+          "label": "broker: in",
+          "direction": "in",
+          "target": {
+            "nodeId": "broker",
+            "portId": "in"
+          }
+        },
+        {
+          "id": "port-2",
+          "label": "broker: updates",
+          "direction": "out",
+          "target": {
+            "nodeId": "broker",
+            "portId": "updates"
+          }
+        },
+        {
+          "id": "port-3",
+          "label": "Subscriber delivery: Requests",
+          "direction": "in",
+          "target": {
+            "nodeId": "notifications",
+            "portId": "in"
+          }
+        },
+        {
+          "id": "port-4",
+          "label": "Subscriber delivery: Calls",
+          "direction": "out",
+          "target": {
+            "nodeId": "notifications",
+            "portId": "calls"
+          }
+        }
+      ]
+    }
+  ]
+}

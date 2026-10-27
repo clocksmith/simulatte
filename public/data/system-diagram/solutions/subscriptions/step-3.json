@@ -1,0 +1,94 @@
+{
+  "schema": "simulatte.systemDiagram.v4",
+  "id": "subscriptions",
+  "name": "Subscription payments / Compare card and wallet receipts",
+  "description": "Authored finite synthetic API model.",
+  "seed": 42,
+  "run": {
+    "horizonSec": 20
+  },
+  "classes": [],
+  "nodes": [
+    {
+      "id": "subscribers",
+      "classId": "api-practice-client",
+      "label": "subscribers",
+      "x": 0,
+      "y": 0,
+      "params": {
+        "scenario": "subscriptions",
+        "intervalMs": 800,
+        "timeoutMs": 600,
+        "retries": 0
+      }
+    },
+    {
+      "id": "subscriptions",
+      "classId": "subscription-service",
+      "label": "subscriptions",
+      "x": 300,
+      "y": 0,
+      "params": {
+        "serviceDist": "constant",
+        "serviceMs": 10,
+        "callTimeoutMs": 200,
+        "retries": 0,
+        "idempotent": true
+      }
+    },
+    {
+      "id": "provider",
+      "classId": "payment-provider",
+      "label": "provider",
+      "x": 600,
+      "y": 0,
+      "params": {
+        "serviceDist": "constant",
+        "serviceMs": 10,
+        "idempotent": true
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "subscription-request",
+      "label": "subscription-request",
+      "from": {
+        "nodeId": "subscribers",
+        "portId": "out"
+      },
+      "to": {
+        "nodeId": "subscriptions",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 10,
+        "bandwidthMbps": 100
+      }
+    },
+    {
+      "id": "charge-request",
+      "label": "charge-request",
+      "from": {
+        "nodeId": "subscriptions",
+        "portId": "provider"
+      },
+      "to": {
+        "nodeId": "provider",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 10,
+        "bandwidthMbps": 100
+      }
+    }
+  ],
+  "groups": [],
+  "notes": [],
+  "faults": [],
+  "view": {
+    "x": 0,
+    "y": 0,
+    "zoom": 1
+  }
+}

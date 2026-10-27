@@ -1,138 +1,44 @@
 {
-  "schema": "simulatte.systemDiagram.v4",
-  "id": "reddit-comments",
-  "name": "Threaded comments and voting",
-  "description": "Parent-linked comments, per-user votes and score-ranked reads.",
-  "seed": 42,
+  "schema": "simulatte.systemDiagram.v5",
+  "id": "diagram",
+  "name": "Threaded comments and voting / Define the success contract",
+  "description": "",
+  "seed": 1,
   "run": {
-    "horizonSec": 20
+    "horizonSec": 120
   },
   "classes": [],
   "nodes": [
     {
       "id": "comments",
-      "classId": "operation-client",
-      "label": "comments",
+      "classId": "concept.comments-context",
+      "label": "Users and requests",
       "x": 0,
-      "y": 0,
-      "params": {
-        "operation": "comment",
-        "count": 8,
-        "intervalMs": 400,
-        "duplicateEvery": 3
-      }
-    },
-    {
-      "id": "api",
-      "classId": "web-server",
-      "label": "Comment API",
-      "x": 240,
-      "y": 100,
-      "params": {
-        "serviceMs": 30
-      }
-    },
-    {
-      "id": "comments-store",
-      "classId": "comment-tree",
-      "label": "comments-store",
-      "x": 480,
-      "y": 100,
+      "y": 80,
       "params": {}
     },
     {
-      "id": "votes",
-      "classId": "operation-client",
-      "label": "votes",
-      "x": 0,
-      "y": 230,
-      "params": {
-        "operation": "vote",
-        "count": 16,
-        "intervalMs": 400,
-        "startSec": 4,
-        "actorSpace": 4,
-        "keySpace": 8
-      }
-    },
-    {
-      "id": "readers",
-      "classId": "operation-client",
-      "label": "readers",
-      "x": 0,
-      "y": 460,
-      "params": {
-        "operation": "readComments",
-        "count": 4,
-        "intervalMs": 400,
-        "startSec": 5
-      }
+      "id": "subsystem-1",
+      "classId": "concept.subsystem-1-context",
+      "label": "System responsibility",
+      "x": 320,
+      "y": 80,
+      "params": {}
     }
   ],
   "edges": [
     {
-      "id": "post",
-      "label": "post",
+      "id": "context-request",
+      "label": "request / outcome contract",
       "from": {
         "nodeId": "comments",
         "portId": "out"
       },
       "to": {
-        "nodeId": "api",
+        "nodeId": "subsystem-1",
         "portId": "in"
       },
-      "params": {
-        "latencyMs": 80,
-        "bandwidthMbps": 100
-      }
-    },
-    {
-      "id": "store",
-      "label": "store",
-      "from": {
-        "nodeId": "api",
-        "portId": "calls"
-      },
-      "to": {
-        "nodeId": "comments-store",
-        "portId": "in"
-      },
-      "params": {
-        "latencyMs": 80,
-        "bandwidthMbps": 100
-      }
-    },
-    {
-      "id": "vote",
-      "label": "vote",
-      "from": {
-        "nodeId": "votes",
-        "portId": "out"
-      },
-      "to": {
-        "nodeId": "api",
-        "portId": "in"
-      },
-      "params": {
-        "latencyMs": 80,
-        "bandwidthMbps": 100
-      }
-    },
-    {
-      "id": "read",
-      "label": "read",
-      "from": {
-        "nodeId": "readers",
-        "portId": "out"
-      },
-      "to": {
-        "nodeId": "api",
-        "portId": "in"
-      },
-      "params": {
-        "latencyMs": 80,
-        "bandwidthMbps": 100
-      }
+      "params": {}
     }
   ],
   "groups": [],
@@ -142,5 +48,42 @@
     "x": 0,
     "y": 0,
     "zoom": 1
-  }
+  },
+  "intent": {
+    "outcome": "Design a discussion platform supporting deeply nested comment trees and live upvote/downvote tallies.",
+    "users": "Callers, state owners and operators named by the problem.",
+    "constraints": "Make ordering, durability, capacity and retry assumptions explicit. Synthetic bounded comment tree and score ordering; no Reddit production ranking or actual WebSocket connection.",
+    "success": "An observable request path, bounded waiting, visible failures and a justified recovery policy."
+  },
+  "concepts": [
+    {
+      "id": "comments-context",
+      "label": "Users and requests",
+      "responsibility": "Who issues requests, and which identities or deadlines travel with them?",
+      "ports": [
+        {
+          "id": "out",
+          "direction": "out",
+          "payloadType": "json"
+        }
+      ]
+    },
+    {
+      "id": "subsystem-1-context",
+      "label": "System responsibility",
+      "responsibility": "Design a discussion platform supporting deeply nested comment trees and live upvote/downvote tallies.",
+      "ports": [
+        {
+          "id": "in",
+          "direction": "in",
+          "payloadType": "json"
+        },
+        {
+          "id": "out",
+          "direction": "out",
+          "payloadType": "json"
+        }
+      ]
+    }
+  ]
 }

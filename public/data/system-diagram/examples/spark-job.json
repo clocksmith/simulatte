@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.systemDiagram.v4",
   "id": "spark-job",
-  "name": "Spark-style partitioned URL count and recovery",
+  "name": "Spark-style partitioned URL count and recovery / Verify lineage and output count",
   "description": "A separate input dataset feeds a driver, three map CPUs and three reduce CPUs. Three independent shuffle stores own actual keyed blocks and spill. Lost shuffle storage triggers lineage recomputation; CPU loss alone does not erase separately owned storage.",
   "seed": 42,
   "run": {

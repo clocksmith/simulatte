@@ -1,0 +1,319 @@
+{
+  "schema": "simulatte.systemDiagram.v4",
+  "id": "meta-stories",
+  "name": "Ephemeral stories media pipeline / Interrupt story access",
+  "description": "Synthetic audience checks and expiration of story visibility.",
+  "seed": 42,
+  "run": {
+    "horizonSec": 20
+  },
+  "classes": [],
+  "nodes": [
+    {
+      "id": "uploads",
+      "classId": "operation-client",
+      "label": "uploads",
+      "x": 0,
+      "y": 0,
+      "params": {
+        "operation": "publishStory",
+        "count": 3,
+        "intervalMs": 400,
+        "actorSpace": 1
+      }
+    },
+    {
+      "id": "viewers",
+      "classId": "operation-client",
+      "label": "viewers",
+      "x": 0,
+      "y": 240,
+      "params": {
+        "operation": "readStory",
+        "count": 8,
+        "intervalMs": 400,
+        "startSec": 2,
+        "keySpace": 3,
+        "actorSpace": 4
+      }
+    },
+    {
+      "id": "late-viewers",
+      "classId": "operation-client",
+      "label": "late viewers",
+      "x": 0,
+      "y": 460,
+      "params": {
+        "operation": "readStory",
+        "count": 3,
+        "intervalMs": 400,
+        "startSec": 10,
+        "keySpace": 3
+      }
+    },
+    {
+      "id": "subsystem-1",
+      "classId": "subsystem.story-publishing@1",
+      "label": "Story publishing",
+      "x": 240,
+      "y": 0,
+      "params": {},
+      "overrides": {}
+    }
+  ],
+  "edges": [
+    {
+      "id": "upload",
+      "label": "upload",
+      "from": {
+        "nodeId": "uploads",
+        "portId": "out"
+      },
+      "to": {
+        "nodeId": "subsystem-1",
+        "portId": "port-1"
+      },
+      "params": {
+        "latencyMs": 80,
+        "bandwidthMbps": 100
+      }
+    },
+    {
+      "id": "view",
+      "label": "view",
+      "from": {
+        "nodeId": "viewers",
+        "portId": "out"
+      },
+      "to": {
+        "nodeId": "subsystem-1",
+        "portId": "port-3"
+      },
+      "params": {
+        "latencyMs": 80,
+        "bandwidthMbps": 100
+      }
+    },
+    {
+      "id": "late-view",
+      "label": "late-view",
+      "from": {
+        "nodeId": "late-viewers",
+        "portId": "out"
+      },
+      "to": {
+        "nodeId": "subsystem-1",
+        "portId": "port-3"
+      },
+      "params": {
+        "latencyMs": 80,
+        "bandwidthMbps": 100
+      }
+    }
+  ],
+  "groups": [],
+  "notes": [],
+  "faults": [
+    {
+      "id": "study-outage",
+      "atSec": 0.15,
+      "untilSec": 1,
+      "target": {
+        "kind": "edge",
+        "id": "upload"
+      },
+      "type": "partition",
+      "params": {}
+    }
+  ],
+  "view": {
+    "x": 0,
+    "y": 0,
+    "zoom": 1
+  },
+  "subsystems": [
+    {
+      "id": "story-publishing",
+      "version": 1,
+      "label": "Story publishing",
+      "nodes": [
+        {
+          "id": "processing",
+          "classId": "worker",
+          "label": "Media processing",
+          "x": 240,
+          "y": 0,
+          "params": {
+            "concurrency": 4,
+            "queueCapacity": 1000,
+            "serviceMs": 100,
+            "serviceDist": "exponential",
+            "serviceCv": 1,
+            "perKbMs": 0,
+            "errorRate": 0,
+            "responseKb": 1,
+            "callMode": "sequential",
+            "blockingCalls": true,
+            "callTimeoutMs": 5000,
+            "retries": 0,
+            "retryBackoffMs": 100,
+            "backoffMultiplier": 2,
+            "retryJitter": true,
+            "memoryPerRequestMiB": 1,
+            "memoryLimitMiB": 1024,
+            "memoryPressureThreshold": 0.8,
+            "memoryThrashFactor": 1,
+            "memoryGarbageFraction": 0,
+            "memoryGcPauseMs": 0,
+            "memoryGcCooldownMs": 1000,
+            "memoryOomRecoveryMs": 1000,
+            "memoryOomPolicy": "reject",
+            "outputPayload": "inherit"
+          }
+        },
+        {
+          "id": "stories",
+          "classId": "story-store",
+          "label": "Story visibility",
+          "x": 480,
+          "y": 0,
+          "params": {
+            "concurrency": 4,
+            "queueCapacity": 100,
+            "serviceMs": 20,
+            "maxRecords": 200,
+            "ttlSec": 6,
+            "audienceSize": 2
+          }
+        },
+        {
+          "id": "updates",
+          "classId": "worker",
+          "label": "Audience updates",
+          "x": 730,
+          "y": 0,
+          "params": {
+            "concurrency": 4,
+            "queueCapacity": 1000,
+            "serviceMs": 30,
+            "serviceDist": "exponential",
+            "serviceCv": 1,
+            "perKbMs": 0,
+            "errorRate": 0,
+            "responseKb": 1,
+            "callMode": "sequential",
+            "blockingCalls": true,
+            "callTimeoutMs": 5000,
+            "retries": 0,
+            "retryBackoffMs": 100,
+            "backoffMultiplier": 2,
+            "retryJitter": true,
+            "memoryPerRequestMiB": 1,
+            "memoryLimitMiB": 1024,
+            "memoryPressureThreshold": 0.8,
+            "memoryThrashFactor": 1,
+            "memoryGarbageFraction": 0,
+            "memoryGcPauseMs": 0,
+            "memoryGcCooldownMs": 1000,
+            "memoryOomRecoveryMs": 1000,
+            "memoryOomPolicy": "reject",
+            "outputPayload": "inherit"
+          }
+        }
+      ],
+      "edges": [
+        {
+          "id": "publish",
+          "label": "publish",
+          "from": {
+            "nodeId": "processing",
+            "portId": "calls"
+          },
+          "to": {
+            "nodeId": "stories",
+            "portId": "in"
+          },
+          "params": {
+            "latencyMs": 80,
+            "bandwidthMbps": 100
+          }
+        },
+        {
+          "id": "story-updates",
+          "label": "story-updates",
+          "from": {
+            "nodeId": "stories",
+            "portId": "updates"
+          },
+          "to": {
+            "nodeId": "updates",
+            "portId": "in"
+          },
+          "params": {
+            "latencyMs": 80,
+            "bandwidthMbps": 100
+          }
+        }
+      ],
+      "groups": [],
+      "notes": [],
+      "faults": [],
+      "ports": [
+        {
+          "id": "port-1",
+          "label": "Media processing: Requests",
+          "direction": "in",
+          "target": {
+            "nodeId": "processing",
+            "portId": "in"
+          }
+        },
+        {
+          "id": "port-2",
+          "label": "Media processing: Calls",
+          "direction": "out",
+          "target": {
+            "nodeId": "processing",
+            "portId": "calls"
+          }
+        },
+        {
+          "id": "port-3",
+          "label": "Story visibility: in",
+          "direction": "in",
+          "target": {
+            "nodeId": "stories",
+            "portId": "in"
+          }
+        },
+        {
+          "id": "port-4",
+          "label": "Story visibility: updates",
+          "direction": "out",
+          "target": {
+            "nodeId": "stories",
+            "portId": "updates"
+          }
+        },
+        {
+          "id": "port-5",
+          "label": "Audience updates: Requests",
+          "direction": "in",
+          "target": {
+            "nodeId": "updates",
+            "portId": "in"
+          }
+        },
+        {
+          "id": "port-6",
+          "label": "Audience updates: Calls",
+          "direction": "out",
+          "target": {
+            "nodeId": "updates",
+            "portId": "calls"
+          }
+        }
+      ]
+    }
+  ]
+}

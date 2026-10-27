@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.systemDiagram.v4",
   "id": "finance-reconciliation",
-  "name": "Synthetic paired-record reconciliation",
+  "name": "Synthetic paired-record reconciliation / Verify matched and exceptional pairs",
   "description": "Two explicit left/right scalar records share an entity key. Matching pairs commit once, duplicates are suppressed, mismatched or missing counterparts remain visible. This is an event-pipeline pattern, not real transactions, settlement, accounting or compliance.",
   "seed": 42,
   "run": {

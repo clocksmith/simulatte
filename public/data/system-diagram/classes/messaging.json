@@ -76,6 +76,16 @@
           "accepts": [
             "json"
           ]
+        },
+        {
+          "id": "updates",
+          "label": "Committed updates",
+          "direction": "out",
+          "multiple": true,
+          "required": false,
+          "emits": [
+            "json"
+          ]
         }
       ],
       "faults": [

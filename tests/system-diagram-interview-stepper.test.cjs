@@ -33,7 +33,7 @@ test('interview journeys definition exists and conforms to schema', () => {
     assert.ok(scenario.subtitle, `scenario ${presetId} must have subtitle`);
     assert.ok(scenario.targetQps, `scenario ${presetId} must have targetQps`);
     assert.ok(scenario.problemStatement && typeof scenario.problemStatement === 'string' && scenario.problemStatement.length > 20, `scenario ${presetId} must have problemStatement`);
-    assert.ok(Array.isArray(scenario.steps) && scenario.steps.length >= 3, `scenario ${presetId} must have at least 3 steps`);
+    assert.ok(Array.isArray(scenario.steps) && scenario.steps.length >= 8, `scenario ${presetId} must have at least 8 steps`);
   }
 });
 
@@ -76,7 +76,8 @@ test('every scenario step derives a valid, schema-compliant sub-diagram', () => 
       // buildStepDocument must produce a valid document
       const stepDoc = stepperApi.buildStepDocument(masterDoc, step, library, config);
       assert.ok(stepDoc, `Derived step doc must exist for ${presetId} step ${step.stepNumber}`);
-      assert.equal(stepDoc.schema, masterDoc.schema);
+      assert.equal(stepDoc.schema,step.kind==='design'?docApi.DESIGN_SCHEMA:masterDoc.schema);
+      if(step.diagram)assert.deepEqual(stepDoc,step.diagram);
       assert.equal(stepDoc.nodes.length, step.activeNodes.length);
       assert.ok(stepDoc.name.length <= 80, `Step doc name must be <= 80 chars (got ${stepDoc.name.length})`);
 

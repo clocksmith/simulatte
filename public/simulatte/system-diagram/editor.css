@@ -42,7 +42,7 @@
   font: 400 10px var(--wui-mono); fill: var(--wui-muted); opacity: 0; pointer-events: none;
   paint-order: stroke; stroke: var(--wui-paper); stroke-width: 3px; stroke-linejoin: round;
 }
-.sd-node:hover .sd-port-label, .sd-node:focus-visible .sd-port-label, .sd-port.is-source .sd-port-label,
+.sd-port:hover .sd-port-label, .sd-port:focus-within .sd-port-label, .sd-port.is-source .sd-port-label,
 .sd-canvas.is-connecting .sd-port.is-valid .sd-port-label, .sd-port.is-target .sd-port-label { opacity: 1; }
 .sd-canvas.is-connecting .sd-port.is-valid .sd-port-dot, .sd-canvas.is-connecting .sd-port.is-candidate .sd-port-dot { stroke: var(--wui-active); stroke-width: 2px; fill: var(--wui-active-bg); }
 .sd-canvas.is-connecting .sd-port.is-warning .sd-port-dot { stroke-dasharray: 2 1.5; }
@@ -307,7 +307,7 @@ body[data-palette-expanded='false'] .lucyd-sketch-icon {display:inline;}
  .lucyd-task-bar {gap:5px;}
  .lucyd-task-bar .lucyd-solution-choice {flex-basis:100%;}
  .lucyd-task-bar .lucyd-solution-input {max-width:none;}
- .lucyd-task-bar .lucyd-task-prompt {display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
+ .lucyd-task-bar .lucyd-task-prompt {display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
  .sd-run-dock {width:calc(100% - 16px);max-width:calc(100% - 16px);}
  .sd-run-dock .sd-run-more {display:block;}
  .sd-run-clock {display:none;}
@@ -317,3 +317,34 @@ body[data-palette-expanded='false'] .lucyd-sketch-icon {display:inline;}
 /* Fixed-position shared menus require a dock without a transformed containing block. */
 .sd-run-dock {transform:none;left:12px;right:12px;margin-inline:auto;}
 @media(max-width:700px){.sd-run-dock {left:8px;right:8px;}}
+
+.simulation-node-records pre { max-width: 100%; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; }
+
+/* Keep context compact; secondary study choices live in Details. */
+.app-header {padding-right:126px;}
+.properties-toggle {top:4px;right:8px;writing-mode:horizontal-tb;max-height:none;}
+.lucyd-task-bar {gap:6px;}
+.lucyd-task-prompt {display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.lucyd-details-controls {display:flex;gap:8px;margin-block:14px;}
+.lucyd-details-controls .lucyd-solution-choice {flex:1;}
+.lucyd-details-controls .lucyd-solution-input {max-width:none;}
+.interview-stepper-title {white-space:normal;min-width:0;overflow-wrap:anywhere;line-height:1.3;}
+.interview-stepper {width:max-content;max-width:calc(100% - 24px);}
+@media(max-width:700px){
+ .lucyd-task-bar {padding:6px;}
+ .lucyd-task-prompt {font-size:12px;line-height:1.35;}
+ .interview-stepper {left:8px;right:8px;transform:none;width:auto;max-width:none;justify-content:space-between;}
+ .interview-stepper-title {flex:1;max-width:none;text-align:center;font-size:11px;}
+ .interview-stepper .lucyd-task-action {min-width:0;}
+}
+.simulation-request-route {display:block;color:var(--wui-muted);font-size:12px;line-height:1.5;}
+.simulation-request-operation {display:block;}
+.simulation-request-data {white-space:pre-wrap;overflow-wrap:anywhere;max-height:360px;overflow:auto;}
+
+/* A port exposes its name on demand; connection captions yield during wiring. */
+.sd-canvas:has(.sd-port:hover) .sd-edge-label,
+.sd-canvas:has(.sd-port:focus-within) .sd-edge-label,
+.sd-canvas.is-connecting .sd-edge-label {opacity:0;}
+.simulation-request-row {flex-direction:column;align-items:flex-start;}
+
+.simulation-request-operation,.simulation-request-route {white-space:normal;overflow-wrap:anywhere;text-align:left;max-width:100%;}

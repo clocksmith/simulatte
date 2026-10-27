@@ -1,0 +1,192 @@
+{
+  "schema": "simulatte.systemDiagram.v4",
+  "id": "project-review-recovery",
+  "name": "Your project architecture / Rehearse an incident and repair",
+  "description": "Bounded authored synthetic architecture comparison.",
+  "seed": 42,
+  "run": {
+    "horizonSec": 16
+  },
+  "classes": [],
+  "nodes": [
+    {
+      "id": "clients",
+      "classId": "web-client",
+      "label": "clients",
+      "x": 0,
+      "y": 100,
+      "params": {
+        "pattern": "constant",
+        "ratePerSec": 6,
+        "maxRequests": 36,
+        "stopSec": 6,
+        "retries": 0,
+        "timeoutMs": 500,
+        "readFraction": 0,
+        "keySpace": 36
+      }
+    },
+    {
+      "id": "api",
+      "classId": "web-server",
+      "label": "api",
+      "x": 220,
+      "y": 100,
+      "params": {
+        "serviceMs": 5,
+        "serviceDist": "constant",
+        "concurrency": 2,
+        "queueCapacity": 8,
+        "callTimeoutMs": 2000
+      }
+    },
+    {
+      "id": "worker",
+      "classId": "worker",
+      "label": "worker",
+      "x": 680,
+      "y": 100,
+      "params": {
+        "serviceMs": 400,
+        "serviceDist": "constant",
+        "concurrency": 2,
+        "queueCapacity": 8,
+        "callTimeoutMs": 200,
+        "retries": 0
+      }
+    },
+    {
+      "id": "results",
+      "classId": "idempotent-store",
+      "label": "results",
+      "x": 930,
+      "y": 100,
+      "params": {
+        "writeMs": 3,
+        "serviceDist": "constant"
+      }
+    },
+    {
+      "id": "queue",
+      "classId": "task-queue",
+      "label": "queue",
+      "x": 450,
+      "y": 100,
+      "params": {
+        "capacity": 40,
+        "prefetch": 2,
+        "visibilityTimeoutMs": 1500,
+        "maxReceives": 4,
+        "retryDelayMs": 100
+      }
+    },
+    {
+      "id": "deadletters",
+      "classId": "dead-letter-queue",
+      "label": "deadletters",
+      "x": 450,
+      "y": 330,
+      "params": {}
+    }
+  ],
+  "edges": [
+    {
+      "id": "requests",
+      "from": {
+        "nodeId": "clients",
+        "portId": "out"
+      },
+      "to": {
+        "nodeId": "api",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 100
+      }
+    },
+    {
+      "id": "commit",
+      "from": {
+        "nodeId": "worker",
+        "portId": "calls"
+      },
+      "to": {
+        "nodeId": "results",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 100,
+        "op": "write"
+      }
+    },
+    {
+      "id": "enqueue",
+      "from": {
+        "nodeId": "api",
+        "portId": "calls"
+      },
+      "to": {
+        "nodeId": "queue",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 100,
+        "op": "write"
+      }
+    },
+    {
+      "id": "consume",
+      "from": {
+        "nodeId": "queue",
+        "portId": "consumers"
+      },
+      "to": {
+        "nodeId": "worker",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 100,
+        "op": "write"
+      }
+    },
+    {
+      "id": "dead",
+      "from": {
+        "nodeId": "queue",
+        "portId": "dlq"
+      },
+      "to": {
+        "nodeId": "deadletters",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 100
+      }
+    }
+  ],
+  "groups": [],
+  "notes": [],
+  "faults": [
+    {
+      "id": "study-outage",
+      "atSec": 0.15,
+      "untilSec": 1,
+      "target": {
+        "kind": "node",
+        "id": "api"
+      },
+      "type": "crash",
+      "params": {}
+    }
+  ],
+  "view": {
+    "x": 0,
+    "y": 0,
+    "zoom": 1
+  }
+}

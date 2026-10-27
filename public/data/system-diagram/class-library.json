@@ -1,6 +1,6 @@
 {
   "schema": "simulatte.systemDiagramClassLibrary.v1",
-  "version": "1.3.0",
+  "version": "1.5.0",
   "payloadTypes": [
     {
       "id": "http",
@@ -79,6 +79,10 @@
     {
       "id": "external",
       "label": "External"
+    },
+    {
+      "id": "algorithms",
+      "label": "Algorithms and data structures"
     }
   ],
   "paramSets": {
@@ -784,6 +788,8 @@
     "classes/social-graph.json",
     "classes/interview.json",
     "classes/messaging.json",
-    "classes/api-practice.json"
+    "classes/api-practice.json",
+    "classes/study.json",
+    "classes/realtime.json"
   ]
 }

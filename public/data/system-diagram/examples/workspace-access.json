@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.systemDiagram.v4",
   "id": "workspace-access",
-  "name": "Workspaces, projects and permissions",
+  "name": "Workspaces, projects and permissions / Verify revocation and activity delivery",
   "description": "Workspace authorization and atomic mutations are independent from cached decisions and leased activity publication. Queued does not mean journaled; every service boundary is editable and faultable. No production authentication.",
   "seed": 42,
   "run": {

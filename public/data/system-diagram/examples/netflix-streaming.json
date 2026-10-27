@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.systemDiagram.v4",
   "id": "netflix-streaming",
-  "name": "Video delivery and adaptation",
+  "name": "Global video streaming and CDN / Verify adaptive playback",
   "description": "Three thousand viewers are split into two independently faultable regions. Playback requires a real manifest receipt; regional caches fetch through one shield and origin. Peer availability and admission are distinct from CDN delivery. Bytes are aggregate unicast, not measured video transport.",
   "seed": 42,
   "run": {

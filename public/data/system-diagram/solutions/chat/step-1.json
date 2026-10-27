@@ -1,0 +1,89 @@
+{
+  "schema": "simulatte.systemDiagram.v5",
+  "id": "diagram",
+  "name": "Realtime chat / Define delivery and room boundaries",
+  "description": "",
+  "seed": 1,
+  "run": {
+    "horizonSec": 120
+  },
+  "classes": [],
+  "nodes": [
+    {
+      "id": "users",
+      "classId": "concept.users-context",
+      "label": "Users and requests",
+      "x": 0,
+      "y": 80,
+      "params": {}
+    },
+    {
+      "id": "mailbox",
+      "classId": "concept.mailbox-context",
+      "label": "System responsibility",
+      "x": 320,
+      "y": 80,
+      "params": {}
+    }
+  ],
+  "edges": [
+    {
+      "id": "context-request",
+      "label": "request / outcome contract",
+      "from": {
+        "nodeId": "users",
+        "portId": "out"
+      },
+      "to": {
+        "nodeId": "mailbox",
+        "portId": "in"
+      },
+      "params": {}
+    }
+  ],
+  "groups": [],
+  "notes": [],
+  "faults": [],
+  "view": {
+    "x": 0,
+    "y": 0,
+    "zoom": 1
+  },
+  "intent": {
+    "outcome": "Design scalable realtime messaging between users.",
+    "users": "Callers, state owners and operators named by the problem.",
+    "constraints": "Make ordering, durability, capacity and retry assumptions explicit. One bounded two-member conversation, fixed membership and a single sequence authority. State survives simulated node faults and checkpoints only. No live sockets, real authentication, cross-shard order, group messaging or production durability. All stages execute evolution Stage 1 simulation; none implements specification, deployment, operation or system stages. Detail levels describe inspection depth independently.",
+    "success": "An observable request path, bounded waiting, visible failures and a justified recovery policy."
+  },
+  "concepts": [
+    {
+      "id": "users-context",
+      "label": "Users and requests",
+      "responsibility": "Who issues requests, and which identities or deadlines travel with them?",
+      "ports": [
+        {
+          "id": "out",
+          "direction": "out",
+          "payloadType": "json"
+        }
+      ]
+    },
+    {
+      "id": "mailbox-context",
+      "label": "System responsibility",
+      "responsibility": "Design scalable realtime messaging between users.",
+      "ports": [
+        {
+          "id": "in",
+          "direction": "in",
+          "payloadType": "json"
+        },
+        {
+          "id": "out",
+          "direction": "out",
+          "payloadType": "json"
+        }
+      ]
+    }
+  ]
+}

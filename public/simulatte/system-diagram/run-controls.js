@@ -109,17 +109,17 @@
       state = { ...state, ...next };
       const speed = nearestSpeed(speeds, Number.isFinite(state.speed) ? state.speed : speeds[0]);
       const label = state.done ? 'Replay' : state.running ? 'Pause' : options.idleLabel || 'Play';
-      const key = `${label}|${speed}|${state.busy}|${state.done}`;
+      const key = `${label}|${speed}|${state.busy}|${state.done}|${state.executable}`;
       if (key !== rendered) {
         rendered = key;
         play.element.textContent = label;
         play.element.dataset.runState = state.done ? 'done' : state.running ? 'running' : 'paused';
         play.element.setAttribute('aria-pressed', 'false');
-        play.setState({ disabled: Boolean(state.busy) });
-        step.setState({ disabled: Boolean(state.busy || state.done) });
-        restart.setState({ disabled: Boolean(state.busy) });
-        replay.setState({ disabled: Boolean(state.busy) });
-        verify.setState({ disabled: Boolean(state.busy) });
+        play.setState({ disabled: Boolean(state.busy || state.executable===false) });
+        step.setState({ disabled: Boolean(state.busy || state.done || state.executable===false) });
+        restart.setState({ disabled: Boolean(state.busy || state.executable===false) });
+        replay.setState({ disabled: Boolean(state.busy || state.executable===false) });
+        verify.setState({ disabled: Boolean(state.busy || state.executable===false) });
         speedMenu.trigger.textContent = formatSpeed(speed);
         speedMenu.trigger.setAttribute('aria-label', `Speed: ${formatSpeed(speed)}`);
         speedButtons.forEach((b, i) => b.setAttribute('aria-checked', String(speeds[i] === speed)));
@@ -137,7 +137,7 @@
 
     // The page owns document-level listeners; it forwards keydown here and stops if true is returned.
     function handleKey(event) {
-      if (!shouldToggleOnKey(event) || state.busy) return false;
+      if (!shouldToggleOnKey(event) || state.busy || state.executable===false) return false;
       event.preventDefault();
       if (state.done) options.onReplay?.();
       else if (state.running) options.onPause?.();

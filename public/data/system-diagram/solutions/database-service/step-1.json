@@ -1,0 +1,89 @@
+{
+  "schema": "simulatte.systemDiagram.v5",
+  "id": "diagram",
+  "name": "Database as a service / Define tenant and operator responsibilities",
+  "description": "",
+  "seed": 1,
+  "run": {
+    "horizonSec": 120
+  },
+  "classes": [],
+  "nodes": [
+    {
+      "id": "tenant-a",
+      "classId": "concept.tenant-a-context",
+      "label": "Users and requests",
+      "x": 0,
+      "y": 80,
+      "params": {}
+    },
+    {
+      "id": "db-a",
+      "classId": "concept.db-a-context",
+      "label": "System responsibility",
+      "x": 320,
+      "y": 80,
+      "params": {}
+    }
+  ],
+  "edges": [
+    {
+      "id": "context-request",
+      "label": "request / outcome contract",
+      "from": {
+        "nodeId": "tenant-a",
+        "portId": "out"
+      },
+      "to": {
+        "nodeId": "db-a",
+        "portId": "in"
+      },
+      "params": {}
+    }
+  ],
+  "groups": [],
+  "notes": [],
+  "faults": [],
+  "view": {
+    "x": 0,
+    "y": 0,
+    "zoom": 1
+  },
+  "intent": {
+    "outcome": "Design a hosted CockroachDB service. Explain how customers deploy it and how operators secure, monitor and recover it.",
+    "users": "Callers, state owners and operators named by the problem.",
+    "constraints": "Make ordering, durability, capacity and retry assumptions explicit. Stage 1 simulation of statically assigned tenant data paths, linked copies and recovery. Conceptual control plane: authorize the caller and assign an opaque tenant ID; durably record a provisioning request and reconcile it to a ready endpoint, expose credentials only after health checks, meter per-tenant capacity, and audit destructive operations. Real provisioning, IAM/TLS, SQL, CockroachDB consensus, backup/restore and alert delivery are specification obligations, not executable capabilities of this engine. Separate instances demonstrate structural isolation, not security proof. Synthetic service times establish no production capacity.",
+    "success": "An observable request path, bounded waiting, visible failures and a justified recovery policy."
+  },
+  "concepts": [
+    {
+      "id": "tenant-a-context",
+      "label": "Users and requests",
+      "responsibility": "Who issues requests, and which identities or deadlines travel with them?",
+      "ports": [
+        {
+          "id": "out",
+          "direction": "out",
+          "payloadType": "json"
+        }
+      ]
+    },
+    {
+      "id": "db-a-context",
+      "label": "System responsibility",
+      "responsibility": "Design a hosted CockroachDB service. Explain how customers deploy it and how operators secure, monitor and recover it.",
+      "ports": [
+        {
+          "id": "in",
+          "direction": "in",
+          "payloadType": "json"
+        },
+        {
+          "id": "out",
+          "direction": "out",
+          "payloadType": "json"
+        }
+      ]
+    }
+  ]
+}

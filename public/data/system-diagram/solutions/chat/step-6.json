@@ -1,0 +1,221 @@
+{
+  "schema": "simulatte.systemDiagram.v4",
+  "id": "chat-catchup",
+  "name": "Realtime chat / Bound retained room history",
+  "description": "Authored bounded synthetic messaging model.",
+  "seed": 42,
+  "run": {
+    "horizonSec": 15
+  },
+  "classes": [],
+  "nodes": [
+    {
+      "id": "users",
+      "classId": "messaging-workload",
+      "x": 0,
+      "y": 0,
+      "params": {
+        "scenario": "chat",
+        "timeoutMs": 6000
+      },
+      "label": "Clients"
+    },
+    {
+      "id": "retry",
+      "classId": "retry-policy",
+      "x": 250,
+      "y": 0,
+      "params": {
+        "attemptTimeoutMs": 250,
+        "maxAttempts": 3,
+        "retryBudget": 2,
+        "backoffMs": 150,
+        "retryJitter": false
+      },
+      "label": "Retry"
+    },
+    {
+      "id": "mailbox",
+      "classId": "chat-mailbox",
+      "x": 750,
+      "y": 0,
+      "params": {
+        "queueCapacity": 1
+      },
+      "label": "History"
+    },
+    {
+      "id": "connections",
+      "classId": "connection-gateway",
+      "label": "Connections",
+      "x": 500,
+      "y": 0,
+      "params": {
+        "idleSec": 1.5,
+        "callTimeoutMs": 200,
+        "maxRecords": 2,
+        "queueCapacity": 1
+      }
+    },
+    {
+      "id": "presence",
+      "classId": "presence-broker",
+      "label": "Presence",
+      "x": 500,
+      "y": 250,
+      "params": {
+        "ttlSec": 1.5
+      }
+    },
+    {
+      "id": "fanout",
+      "classId": "scatter-gather",
+      "label": "Room fan-out",
+      "x": 750,
+      "y": 250,
+      "params": {
+        "outputPayload": "json",
+        "serviceMs": 1,
+        "queueCapacity": 1
+      }
+    },
+    {
+      "id": "alice-device",
+      "classId": "push-inbox",
+      "label": "Alice device",
+      "x": 1000,
+      "y": 140,
+      "params": {}
+    },
+    {
+      "id": "bob-device",
+      "classId": "push-inbox",
+      "label": "Bob device",
+      "x": 1000,
+      "y": 360,
+      "params": {}
+    }
+  ],
+  "edges": [
+    {
+      "id": "commands",
+      "label": "commands",
+      "from": {
+        "nodeId": "users",
+        "portId": "out"
+      },
+      "to": {
+        "nodeId": "retry",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 5,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "retry-command",
+      "label": "retry-command",
+      "from": {
+        "nodeId": "retry",
+        "portId": "target"
+      },
+      "to": {
+        "nodeId": "connections",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 5,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "history",
+      "label": "history",
+      "from": {
+        "nodeId": "connections",
+        "portId": "backend"
+      },
+      "to": {
+        "nodeId": "mailbox",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "heartbeat",
+      "label": "heartbeat",
+      "from": {
+        "nodeId": "connections",
+        "portId": "presence"
+      },
+      "to": {
+        "nodeId": "presence",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "committed",
+      "label": "committed",
+      "from": {
+        "nodeId": "mailbox",
+        "portId": "updates"
+      },
+      "to": {
+        "nodeId": "fanout",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "alice-push",
+      "label": "alice-push",
+      "from": {
+        "nodeId": "fanout",
+        "portId": "calls"
+      },
+      "to": {
+        "nodeId": "alice-device",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "bob-push",
+      "label": "bob-push",
+      "from": {
+        "nodeId": "fanout",
+        "portId": "calls"
+      },
+      "to": {
+        "nodeId": "bob-device",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      }
+    }
+  ],
+  "groups": [],
+  "notes": [],
+  "faults": [],
+  "view": {
+    "x": 0,
+    "y": 0,
+    "zoom": 1
+  }
+}

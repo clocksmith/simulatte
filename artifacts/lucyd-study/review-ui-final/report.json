@@ -1,0 +1,772 @@
+{
+  "source": {
+    "head": "a5bfe5a65971e7f7f742025d2a84c17f14debd0e",
+    "capturedAt": "2026-10-27T12:43:00.012Z",
+    "modifiedSources": {
+      "public/data/system-diagram/class-library.json": {
+        "sha256": "730a2c6e06f4c805a439b969565fb435c0e0eedeb3ab78ad0cee6776bce42f11",
+        "modifiedAt": "2026-10-27T12:36:59.253Z"
+      },
+      "public/data/system-diagram/classes/messaging.json": {
+        "sha256": "3a944e49f39f5530795ff6c42ee373d14e3c501c7d84ccea83c86c21bc752287",
+        "modifiedAt": "2026-10-27T12:36:59.253Z"
+      },
+      "public/data/system-diagram/classes/realtime.json": {
+        "sha256": "a1ff19a5933d3292d7263e8c30f9174bce61ea646eef15412a2f8052cef61d8c",
+        "modifiedAt": "2026-10-27T12:36:59.253Z"
+      },
+      "public/data/system-diagram/classes/study.json": {
+        "sha256": "021b3502d6c4e6348fbd05ca5e66824ad9216ffd0fb5edd2348f126b59a08e24",
+        "modifiedAt": "2026-10-27T12:30:16.461Z"
+      },
+      "public/data/system-diagram/examples/agent-recovery.json": {
+        "sha256": "6cdb6bd3830ccab2c88b628dc1af69c407ffe1db52e99a5238263307b7e912e6",
+        "modifiedAt": "2026-10-27T12:17:06.298Z"
+      },
+      "public/data/system-diagram/examples/agent-trajectories.json": {
+        "sha256": "b26b8a197bcef2e1a371ba7faff300dc85bcb4e3c5d3a3dd5c208e6625c5472b",
+        "modifiedAt": "2026-10-27T12:17:06.296Z"
+      },
+      "public/data/system-diagram/examples/amazon-flash-sale.json": {
+        "sha256": "d9ed77a63ffe5678ec9b8c213c8e80509bf12d7e13b1679ee4ba234424e811fc",
+        "modifiedAt": "2026-10-27T12:17:06.289Z"
+      },
+      "public/data/system-diagram/examples/crawler-pipeline.json": {
+        "sha256": "5422271873198979f9aaabe73286b72c9c9cfc5b4093521d175b1823d26adc77",
+        "modifiedAt": "2026-10-27T12:17:06.297Z"
+      },
+      "public/data/system-diagram/examples/finance-reconciliation.json": {
+        "sha256": "e165e222b8bb9c6260500549c015c6e5705ddeff757073c9b5b70e4e312926c6",
+        "modifiedAt": "2026-10-27T12:17:06.298Z"
+      },
+      "public/data/system-diagram/examples/google-crawler.json": {
+        "sha256": "02b1a5c3cf3f552a3e17891c7d1b69d8e4e412b42f6d05af6c65016ccc8e7b47",
+        "modifiedAt": "2026-10-27T12:17:06.292Z"
+      },
+      "public/data/system-diagram/examples/healthcare-ingestion.json": {
+        "sha256": "58d7406f2bfeb083af74a35318d78f087d1109b280e2f823b1c8ab8cf63fd9cd",
+        "modifiedAt": "2026-10-27T12:17:06.298Z"
+      },
+      "public/data/system-diagram/examples/lakehouse-late-data.json": {
+        "sha256": "557cf38d1f0d3ca81e2cdd60e14a288cf4767c123a78d7beedabaf49b3799f8b",
+        "modifiedAt": "2026-10-27T12:17:06.298Z"
+      },
+      "public/data/system-diagram/examples/meta-stories.json": {
+        "sha256": "89b0427a1399eb9a683d6cce5db32982252d50d071d53c49d13af613228b0c63",
+        "modifiedAt": "2026-10-27T12:17:06.286Z"
+      },
+      "public/data/system-diagram/examples/microsoft-presence.json": {
+        "sha256": "eb43ba4931cb36efe6835fabb1af5c9a155af39937f198119b84b65b621b406d",
+        "modifiedAt": "2026-10-27T12:17:06.295Z"
+      },
+      "public/data/system-diagram/examples/nested-chat.json": {
+        "sha256": "d5db3587d2024a130ab3d9c8d03cf1abcc6b4e90dd62ed92760b2034931c48e0",
+        "modifiedAt": "2026-10-27T12:17:06.299Z"
+      },
+      "public/data/system-diagram/examples/netflix-streaming.json": {
+        "sha256": "e6e76c11c8fe91e74ea5dfa5ab09cf19240a085f3a5875c0592ccbc2664727f3",
+        "modifiedAt": "2026-10-27T12:17:06.282Z"
+      },
+      "public/data/system-diagram/examples/reddit-comments.json": {
+        "sha256": "9ea884c08e4b753a97cb67f0445aaecb4386913357da3962b7ed3ffbc76d0564",
+        "modifiedAt": "2026-10-27T12:17:06.280Z"
+      },
+      "public/data/system-diagram/examples/replica-recovery.json": {
+        "sha256": "937ca7f9735527b5fdebd2ad610ffe68d932a6873af169e1284fb7459e3948c3",
+        "modifiedAt": "2026-10-27T12:17:06.297Z"
+      },
+      "public/data/system-diagram/examples/spark-job.json": {
+        "sha256": "7d7f1d2e244ff70b925dee6c8e9bc0efae94a0556071cbfc1848ff4b93439668",
+        "modifiedAt": "2026-10-27T12:17:06.296Z"
+      },
+      "public/data/system-diagram/examples/streaming-burst.json": {
+        "sha256": "f1d4d342628089f33ab18faec35e17daac558a3fd11e6345473b7e570bedb070",
+        "modifiedAt": "2026-10-27T12:17:06.297Z"
+      },
+      "public/data/system-diagram/examples/twitter-timeline.json": {
+        "sha256": "c9b50b1c51a3bbedf2b1c2791d60888b88c6974ae413669a1745cd8c9a55313e",
+        "modifiedAt": "2026-10-27T12:17:06.284Z"
+      },
+      "public/data/system-diagram/examples/workspace-access.json": {
+        "sha256": "7b412cc78e35ec96e3d40636a21c909fb04d114cf118a3fe9fe97ec6b9d423f5",
+        "modifiedAt": "2026-10-27T12:17:06.296Z"
+      },
+      "public/data/system-diagram/interview-journeys.json": {
+        "sha256": "fabd83a89ee5ee38110a6c4cd71e743ac589648b7d2264543df4101cb163aa14",
+        "modifiedAt": "2026-10-27T12:37:26.955Z"
+      },
+      "public/data/system-diagram/interview-problems.json": {
+        "sha256": "5e1fff69ad9a732a6d3f92f97934ef84d7df9ce273bdf368004385b5227233cf",
+        "modifiedAt": "2026-10-27T12:23:10.128Z"
+      },
+      "public/data/system-diagram/interview-solutions.json": {
+        "sha256": "85824cd91a7779635a58a074964771d135ac63f76581129a231fa77df1d23385",
+        "modifiedAt": "2026-10-27T12:37:26.955Z"
+      },
+      "public/data/system-diagram/private-collection.enc.json": {
+        "sha256": "ce9b41251caf34fc1688a9556340ed1f854207d0240e163d3ec069bd69039a69",
+        "modifiedAt": "2026-10-27T12:30:16.976Z"
+      },
+      "public/data/system-diagram/problems.json": {
+        "sha256": "4ea437fd87612b0f2432d6214838aa367023b5bb3fe78049ca6681c9f9d267f8",
+        "modifiedAt": "2026-10-27T12:38:14.166Z"
+      },
+      "public/data/system-diagram/solutions/amazon-flash-sale/step-1.json": {
+        "sha256": "7ff0cda5aa370d96f8468b67ad3287fb82c270db3500992c3298e015c58588ea",
+        "modifiedAt": "2026-10-27T12:37:26.949Z"
+      },
+      "public/data/system-diagram/solutions/amazon-flash-sale/step-2.json": {
+        "sha256": "6ef25a2db92b9a9ce09e5997d86e783493e3b95ba7a310866334f8366b042274",
+        "modifiedAt": "2026-10-27T12:17:06.287Z"
+      },
+      "public/data/system-diagram/solutions/amazon-flash-sale/step-3.json": {
+        "sha256": "3f2b140a2a59d31769939777d304e9d6813249c0da6ff3441738956c5774efaa",
+        "modifiedAt": "2026-10-27T12:17:06.287Z"
+      },
+      "public/data/system-diagram/solutions/amazon-flash-sale/step-4.json": {
+        "sha256": "b05f17b99f24f8f23a813f6cc8edc17627df866f02da241afa6bb9d938da9ab1",
+        "modifiedAt": "2026-10-27T12:17:06.288Z"
+      },
+      "public/data/system-diagram/solutions/amazon-flash-sale/step-5.json": {
+        "sha256": "e469fe0b94fd9158182cf90f0c19823c2677007463384a04e88516acade6c37a",
+        "modifiedAt": "2026-10-27T12:17:06.288Z"
+      },
+      "public/data/system-diagram/solutions/amazon-flash-sale/step-6.json": {
+        "sha256": "5625e5ba7f3f488b9f94ada2b85bbd745f17ff37848d2de90f649b1a97a18edb",
+        "modifiedAt": "2026-10-27T12:17:06.288Z"
+      },
+      "public/data/system-diagram/solutions/amazon-flash-sale/step-7.json": {
+        "sha256": "6a2b13fa49dac9f2952dd6ca9a8457bfb4cce82c1fcc92c346d6d5fea56fe8c8",
+        "modifiedAt": "2026-10-27T12:17:06.288Z"
+      },
+      "public/data/system-diagram/solutions/amazon-flash-sale/step-8.json": {
+        "sha256": "d9ed77a63ffe5678ec9b8c213c8e80509bf12d7e13b1679ee4ba234424e811fc",
+        "modifiedAt": "2026-10-27T12:17:06.289Z"
+      },
+      "public/data/system-diagram/solutions/chat/step-1.json": {
+        "sha256": "8ff699d38c464c996115798b62638e17b9d8225fa3c68e8462f4df0ffc953c40",
+        "modifiedAt": "2026-10-27T12:37:26.946Z"
+      },
+      "public/data/system-diagram/solutions/chat/step-2.json": {
+        "sha256": "97b01fc42472bb014ba0a5f16f2f3c7fd6f063959b53bf08c8e93b7b53ecd896",
+        "modifiedAt": "2026-10-27T12:23:10.114Z"
+      },
+      "public/data/system-diagram/solutions/chat/step-3.json": {
+        "sha256": "d6c8c20105010fac8bd27e651747295f1ca9d6eec4f03591b661c4a06df85ef9",
+        "modifiedAt": "2026-10-27T12:23:10.114Z"
+      },
+      "public/data/system-diagram/solutions/chat/step-4.json": {
+        "sha256": "f270b79de9aa69080dd063f8f29ac5cf2d0485ee71c468270a8b4abdc48c20d8",
+        "modifiedAt": "2026-10-27T12:37:26.946Z"
+      },
+      "public/data/system-diagram/solutions/chat/step-5.json": {
+        "sha256": "1fadaf0cef4de1523f4b53bf5f57c6eddb465e15aae4993d254c033576b97629",
+        "modifiedAt": "2026-10-27T12:37:26.946Z"
+      },
+      "public/data/system-diagram/solutions/chat/step-6.json": {
+        "sha256": "2bda3dfd12f1c70a5fb37135b782413fc9c3bb02d697da9a1fb45e7ab3b9050b",
+        "modifiedAt": "2026-10-27T12:37:26.946Z"
+      },
+      "public/data/system-diagram/solutions/chat/step-7.json": {
+        "sha256": "246e1f9a76033e528967a111303b7e4c1cd174cbab59debcc8a81e5c7996bd5a",
+        "modifiedAt": "2026-10-27T12:37:26.947Z"
+      },
+      "public/data/system-diagram/solutions/chat/step-8.json": {
+        "sha256": "c38aaa9fd0ab9fcfcbc829540a88d5661d44f3b01be01c4861114745ebf4f8ab",
+        "modifiedAt": "2026-10-27T12:37:26.947Z"
+      },
+      "public/data/system-diagram/solutions/database-service/step-1.json": {
+        "sha256": "02f02adea11262c86d379479d10de1e1f683cea6822c0939f23c7dd97f3647c0",
+        "modifiedAt": "2026-10-27T12:37:26.945Z"
+      },
+      "public/data/system-diagram/solutions/database-service/step-2.json": {
+        "sha256": "8ef3b831fbe1174c7da93675fe3e55d6610465c8a575979b8c06173bf7737de8",
+        "modifiedAt": "2026-10-27T12:23:10.112Z"
+      },
+      "public/data/system-diagram/solutions/database-service/step-3.json": {
+        "sha256": "90db03dc43bf188217ec4acb5d9199e44f9fe09cd83c3289619b85b4ab0fae8f",
+        "modifiedAt": "2026-10-27T12:23:10.112Z"
+      },
+      "public/data/system-diagram/solutions/database-service/step-4.json": {
+        "sha256": "d3971702c84d994467128591e0c4e4e643ba217c60a2482c179b1bc73f4b5569",
+        "modifiedAt": "2026-10-27T12:23:10.112Z"
+      },
+      "public/data/system-diagram/solutions/database-service/step-5.json": {
+        "sha256": "7c69b826d8ef417b3356b3fc359599c1ab01a698a9e85e320ae6d8dfe1c9af07",
+        "modifiedAt": "2026-10-27T12:23:10.112Z"
+      },
+      "public/data/system-diagram/solutions/database-service/step-6.json": {
+        "sha256": "312e4b2b67f0c92726d3340e53f72b9e60011055cafc350a20a2771748ea1ada",
+        "modifiedAt": "2026-10-27T12:23:10.112Z"
+      },
+      "public/data/system-diagram/solutions/database-service/step-7.json": {
+        "sha256": "86db40f428a9b8aac85fdd15c22249c805a14fc6102ab17d69f7a064a663f1a7",
+        "modifiedAt": "2026-10-27T12:23:10.112Z"
+      },
+      "public/data/system-diagram/solutions/database-service/step-8.json": {
+        "sha256": "57fdb1fb2fa30f35da0666a96af60b58311e3a7cf1b124b303727188e1250b0b",
+        "modifiedAt": "2026-10-27T12:23:10.112Z"
+      },
+      "public/data/system-diagram/solutions/google-crawler/step-1.json": {
+        "sha256": "75dcb176003e55df06bc2ea3a490d2f4b6c4f51206bab049fa477e825377beb3",
+        "modifiedAt": "2026-10-27T12:37:26.950Z"
+      },
+      "public/data/system-diagram/solutions/google-crawler/step-2.json": {
+        "sha256": "8faa23eb4a630b31c0f51e13555baa3edc7d39835cef9ee981b514384c769474",
+        "modifiedAt": "2026-10-27T12:17:06.289Z"
+      },
+      "public/data/system-diagram/solutions/google-crawler/step-3.json": {
+        "sha256": "3f0dc18bfea8d1733ffe46029fad3b8bcf10fed0c66684e7a0fd811031751df2",
+        "modifiedAt": "2026-10-27T12:17:06.290Z"
+      },
+      "public/data/system-diagram/solutions/google-crawler/step-4.json": {
+        "sha256": "8613dc7e2e1ca33a5ad40e5695c8d7b78c26170558c7195c6a3652aaeb75278a",
+        "modifiedAt": "2026-10-27T12:17:06.290Z"
+      },
+      "public/data/system-diagram/solutions/google-crawler/step-5.json": {
+        "sha256": "a06a0c11fcb659d87c4ad560067dcc14d926743addd4f9b2cbeff92bca6bc485",
+        "modifiedAt": "2026-10-27T12:17:06.291Z"
+      },
+      "public/data/system-diagram/solutions/google-crawler/step-6.json": {
+        "sha256": "fe7f5f9388117b8bde2747840abdb95d1ff49a4d05f3407b5b42f49803f674a1",
+        "modifiedAt": "2026-10-27T12:17:06.291Z"
+      },
+      "public/data/system-diagram/solutions/google-crawler/step-7.json": {
+        "sha256": "6cbf20d1d198b1fe013e6227f295ee2dde63388264ef0a5f6e93c91f7e94c0b1",
+        "modifiedAt": "2026-10-27T12:17:06.292Z"
+      },
+      "public/data/system-diagram/solutions/google-crawler/step-8.json": {
+        "sha256": "02b1a5c3cf3f552a3e17891c7d1b69d8e4e412b42f6d05af6c65016ccc8e7b47",
+        "modifiedAt": "2026-10-27T12:17:06.292Z"
+      },
+      "public/data/system-diagram/solutions/load-balancer/step-1.json": {
+        "sha256": "ae96128b74a3c112e1f8eba225ff9a18ca313398c6a21338258ac1e236f14932",
+        "modifiedAt": "2026-10-27T12:37:26.947Z"
+      },
+      "public/data/system-diagram/solutions/load-balancer/step-2.json": {
+        "sha256": "06cae5d0367680197049136d95fd7ae3a4b36f03eb9c415081e2bee57a000bf0",
+        "modifiedAt": "2026-10-27T12:23:10.115Z"
+      },
+      "public/data/system-diagram/solutions/load-balancer/step-3.json": {
+        "sha256": "01129d122c55d219556dce0e8f98cd0e831475b7182f094b21601e7dace9d796",
+        "modifiedAt": "2026-10-27T12:23:10.115Z"
+      },
+      "public/data/system-diagram/solutions/load-balancer/step-4.json": {
+        "sha256": "5fa231e4146a2350fa755e46fd3c67687cb12011a6499aaaace514b6c3e1db9b",
+        "modifiedAt": "2026-10-27T12:23:10.115Z"
+      },
+      "public/data/system-diagram/solutions/load-balancer/step-5.json": {
+        "sha256": "f3ee23452cc6d62c6b91f767b5e303b740f7c511912d66275b229da7f565fb74",
+        "modifiedAt": "2026-10-27T12:23:10.115Z"
+      },
+      "public/data/system-diagram/solutions/load-balancer/step-6.json": {
+        "sha256": "a5d12509e0285b1efcc8cee6bcf11408fd4c99a1692b434bc39666d15bd7402f",
+        "modifiedAt": "2026-10-27T12:23:10.115Z"
+      },
+      "public/data/system-diagram/solutions/load-balancer/step-7.json": {
+        "sha256": "bf94a1c37558e5015821f402364eb014d720e1ca03346f9121568e0210548b2c",
+        "modifiedAt": "2026-10-27T12:23:10.115Z"
+      },
+      "public/data/system-diagram/solutions/load-balancer/step-8.json": {
+        "sha256": "525b68896964b1392c0c3d01d92eab2e9cc10bc218ceb2ecf5a7c3e65075ece4",
+        "modifiedAt": "2026-10-27T12:23:10.115Z"
+      },
+      "public/data/system-diagram/solutions/meta-stories/step-1.json": {
+        "sha256": "39dff13ba5a0c6c7517367944548b697e2cee98435f35bddcdbc78e36b649880",
+        "modifiedAt": "2026-10-27T12:37:26.949Z"
+      },
+      "public/data/system-diagram/solutions/meta-stories/step-2.json": {
+        "sha256": "4a0e0c2cdc7d768f2d39c9ad8da7a9cedec085ba8bbb3e1fb73c4c7b71cad940",
+        "modifiedAt": "2026-10-27T12:17:06.284Z"
+      },
+      "public/data/system-diagram/solutions/meta-stories/step-3.json": {
+        "sha256": "44c0fe6bf776e5cf6afdf4037bacd950c0e372f3b08060bcc579f479149f96c3",
+        "modifiedAt": "2026-10-27T12:17:06.285Z"
+      },
+      "public/data/system-diagram/solutions/meta-stories/step-4.json": {
+        "sha256": "5553d04ff1561b325610f30036d5ce85b9276e5b2627ed112e029bffb907e535",
+        "modifiedAt": "2026-10-27T12:17:06.285Z"
+      },
+      "public/data/system-diagram/solutions/meta-stories/step-5.json": {
+        "sha256": "ad71805d2ae2d1c93d43d8b9ea66d0fe9ab43ba4f6058495efa77eb5dfa4ce23",
+        "modifiedAt": "2026-10-27T12:37:26.949Z"
+      },
+      "public/data/system-diagram/solutions/meta-stories/step-6.json": {
+        "sha256": "0c1d12e0769323daee9c681de236c7efa5eb98f97ce47303cc6943f477d10bb9",
+        "modifiedAt": "2026-10-27T12:17:06.286Z"
+      },
+      "public/data/system-diagram/solutions/meta-stories/step-7.json": {
+        "sha256": "6d32f251ec71fdb7a15767c68bd50c00c6a5191eec95351de8c900179d288c94",
+        "modifiedAt": "2026-10-27T12:17:06.286Z"
+      },
+      "public/data/system-diagram/solutions/meta-stories/step-8.json": {
+        "sha256": "89b0427a1399eb9a683d6cce5db32982252d50d071d53c49d13af613228b0c63",
+        "modifiedAt": "2026-10-27T12:17:06.286Z"
+      },
+      "public/data/system-diagram/solutions/microsoft-presence/step-1.json": {
+        "sha256": "29981e3ef2bb408bf760d872795d8a2576020f184dcd9c5c559763da74b11e38",
+        "modifiedAt": "2026-10-27T12:37:26.950Z"
+      },
+      "public/data/system-diagram/solutions/microsoft-presence/step-2.json": {
+        "sha256": "0e20c0ae9bbfd5902fe8ce49721005330abfd40cd326487d57e71a36fbf2840b",
+        "modifiedAt": "2026-10-27T12:17:06.293Z"
+      },
+      "public/data/system-diagram/solutions/microsoft-presence/step-3.json": {
+        "sha256": "61cc1bcd3a6b89620ee79a845e3f2fe26e178b2b03f3f0bfd5ed25a485fc6839",
+        "modifiedAt": "2026-10-27T12:17:06.293Z"
+      },
+      "public/data/system-diagram/solutions/microsoft-presence/step-4.json": {
+        "sha256": "46cfe9d00dd1ff039940eb783bd9f5bbcab76c51db9588fe4df971da27764f37",
+        "modifiedAt": "2026-10-27T12:17:06.293Z"
+      },
+      "public/data/system-diagram/solutions/microsoft-presence/step-5.json": {
+        "sha256": "ce8fbfa68ab53398e730dc6baad7111cb3fb406367aa41c529bb73d697dd6265",
+        "modifiedAt": "2026-10-27T12:37:26.950Z"
+      },
+      "public/data/system-diagram/solutions/microsoft-presence/step-6.json": {
+        "sha256": "7247a23dbb1b748d49f6e32e7ced9ad768720aa238fcc9cfdc5b1ee29fe3110f",
+        "modifiedAt": "2026-10-27T12:17:06.294Z"
+      },
+      "public/data/system-diagram/solutions/microsoft-presence/step-7.json": {
+        "sha256": "3a13b12817545e21c83cc9c0114b7c4c4b5a80d8f56ca06314e3ba2e7226ba3e",
+        "modifiedAt": "2026-10-27T12:17:06.294Z"
+      },
+      "public/data/system-diagram/solutions/microsoft-presence/step-8.json": {
+        "sha256": "eb43ba4931cb36efe6835fabb1af5c9a155af39937f198119b84b65b621b406d",
+        "modifiedAt": "2026-10-27T12:17:06.294Z"
+      },
+      "public/data/system-diagram/solutions/netflix-streaming/step-1.json": {
+        "sha256": "52002c2c39931cc322a16db4a2f100988fb19e4a0b92a5e25cd70c8b9ae36ae1",
+        "modifiedAt": "2026-10-27T12:37:26.948Z"
+      },
+      "public/data/system-diagram/solutions/netflix-streaming/step-2.json": {
+        "sha256": "032fd1b43f432dbe68eb836654bde8f03122bc5f6472270e54c0a023e1b768f6",
+        "modifiedAt": "2026-10-27T12:17:06.281Z"
+      },
+      "public/data/system-diagram/solutions/netflix-streaming/step-3.json": {
+        "sha256": "355551ece8c02ba38c246b5aa1ae842f4629b00fb866da51963211e4b554d973",
+        "modifiedAt": "2026-10-27T12:17:06.282Z"
+      },
+      "public/data/system-diagram/solutions/netflix-streaming/step-4.json": {
+        "sha256": "8ea185fabb68ea468ea30653dfb7ef8cb05c2a83f260caa1f9cd014875c1e7f8",
+        "modifiedAt": "2026-10-27T12:17:06.282Z"
+      },
+      "public/data/system-diagram/solutions/netflix-streaming/step-5.json": {
+        "sha256": "7504b27c46741712ff7087d4f22efdfa67d7c344cf082d3935755ded6a99dbc3",
+        "modifiedAt": "2026-10-27T12:37:26.948Z"
+      },
+      "public/data/system-diagram/solutions/netflix-streaming/step-6.json": {
+        "sha256": "6294af8a6e4e96f6ecd06abcd13eaf5209fa362c0b6857ee2edf040aad507bb0",
+        "modifiedAt": "2026-10-27T12:17:06.282Z"
+      },
+      "public/data/system-diagram/solutions/netflix-streaming/step-7.json": {
+        "sha256": "ab8ccbd9820ddb4beda247c766c16a8a19508dbb739f7c9be601f4b3a33b5c4c",
+        "modifiedAt": "2026-10-27T12:17:06.282Z"
+      },
+      "public/data/system-diagram/solutions/netflix-streaming/step-8.json": {
+        "sha256": "e6e76c11c8fe91e74ea5dfa5ab09cf19240a085f3a5875c0592ccbc2664727f3",
+        "modifiedAt": "2026-10-27T12:17:06.282Z"
+      },
+      "public/data/system-diagram/solutions/pagination/step-1.json": {
+        "sha256": "c234b072ba736777dc8f4c1b069596a3a0e06373f25ebacdac904fd62a564941",
+        "modifiedAt": "2026-10-27T12:37:26.946Z"
+      },
+      "public/data/system-diagram/solutions/pagination/step-2.json": {
+        "sha256": "4ce836ca7051c2750b6db8511f2bd650ecccd1656c86549a20d00859a2320343",
+        "modifiedAt": "2026-10-27T12:23:10.113Z"
+      },
+      "public/data/system-diagram/solutions/pagination/step-3.json": {
+        "sha256": "9e5b4b0381bd9100a918d432f57fb7cc4544ea08292cc4f3ed8861870eb54cd1",
+        "modifiedAt": "2026-10-27T12:23:10.113Z"
+      },
+      "public/data/system-diagram/solutions/pagination/step-4.json": {
+        "sha256": "1d8346a844132d50c902fe116afaf5e371f800c3a0d8d2449488322864def46d",
+        "modifiedAt": "2026-10-27T12:23:10.113Z"
+      },
+      "public/data/system-diagram/solutions/pagination/step-5.json": {
+        "sha256": "2b49d14974f579f08e51396c338638dc628d76d7f0e8dfce5da196c5ded0709d",
+        "modifiedAt": "2026-10-27T12:23:10.113Z"
+      },
+      "public/data/system-diagram/solutions/pagination/step-6.json": {
+        "sha256": "3baffae3f4df62161788a5a4971daefec889c61059ce9a8c80442c47529d937f",
+        "modifiedAt": "2026-10-27T12:23:10.113Z"
+      },
+      "public/data/system-diagram/solutions/pagination/step-7.json": {
+        "sha256": "648fa3dedfd8b74080fa40123b3e23db81546a8914b26310693b406e43c15df9",
+        "modifiedAt": "2026-10-27T12:23:10.113Z"
+      },
+      "public/data/system-diagram/solutions/pagination/step-8.json": {
+        "sha256": "18587383449f05ceba8f1fcf8b6e78f7919c408784ab5d362a6bec74597e6a16",
+        "modifiedAt": "2026-10-27T12:23:10.113Z"
+      },
+      "public/data/system-diagram/solutions/project-review/step-1.json": {
+        "sha256": "1bfc4434abb37fbfcb997edf1dc48de3ecd789191ee14241230ee3b2c1ae7e39",
+        "modifiedAt": "2026-10-27T12:37:26.946Z"
+      },
+      "public/data/system-diagram/solutions/project-review/step-2.json": {
+        "sha256": "c19b86ae38e66e1c5d5c15dc736bd924806526241eacccdea82a8f5d59c5f2ca",
+        "modifiedAt": "2026-10-27T12:23:10.112Z"
+      },
+      "public/data/system-diagram/solutions/project-review/step-3.json": {
+        "sha256": "a726b150f901594790dd2d3081f6218ae4e9cbd068b9973f30d5b2d19d78f92c",
+        "modifiedAt": "2026-10-27T12:23:10.112Z"
+      },
+      "public/data/system-diagram/solutions/project-review/step-4.json": {
+        "sha256": "04b9a3662767e59cbf683333aff77f6eafab21a6ac757068fcf0b671ae369be7",
+        "modifiedAt": "2026-10-27T12:23:10.113Z"
+      },
+      "public/data/system-diagram/solutions/project-review/step-5.json": {
+        "sha256": "22478c0884a87f5d8fdf9ae5be5161cf602bbfdb1095fd9535e98da55479dea0",
+        "modifiedAt": "2026-10-27T12:23:10.113Z"
+      },
+      "public/data/system-diagram/solutions/project-review/step-6.json": {
+        "sha256": "f46615ab37b1e8d970a3096f3948084e3e00557dc8174bda385c779bb4bcdcd1",
+        "modifiedAt": "2026-10-27T12:23:10.113Z"
+      },
+      "public/data/system-diagram/solutions/project-review/step-7.json": {
+        "sha256": "f80127cde3b20c11f2ca35dabe4cbd2a27598b356f616ba4d17fcd080bcaef22",
+        "modifiedAt": "2026-10-27T12:23:10.113Z"
+      },
+      "public/data/system-diagram/solutions/project-review/step-8.json": {
+        "sha256": "a17ce113ce2c52973f5e50d304c76c84e027cc249cb6cde7ca0e2541528173a1",
+        "modifiedAt": "2026-10-27T12:23:10.113Z"
+      },
+      "public/data/system-diagram/solutions/reddit-comments/step-1.json": {
+        "sha256": "358c641e4f8db2ac6994ea60e8eab3e68c32d29971a734f508748479baaab72f",
+        "modifiedAt": "2026-10-27T12:37:26.948Z"
+      },
+      "public/data/system-diagram/solutions/reddit-comments/step-2.json": {
+        "sha256": "8cce1a2332f4a9041024a81f28b6f2fb0a52b8da604e9122317502f074cec638",
+        "modifiedAt": "2026-10-27T12:17:06.278Z"
+      },
+      "public/data/system-diagram/solutions/reddit-comments/step-3.json": {
+        "sha256": "ab9614047014f7745223350467ff825bdd74635c4fdcd0812c9adb68a5457109",
+        "modifiedAt": "2026-10-27T12:17:06.278Z"
+      },
+      "public/data/system-diagram/solutions/reddit-comments/step-4.json": {
+        "sha256": "3dec9e9af4146d8de6b02fd64ae041e0aa2a51e17a79b4c1cad1aac7176bcdc8",
+        "modifiedAt": "2026-10-27T12:17:06.278Z"
+      },
+      "public/data/system-diagram/solutions/reddit-comments/step-5.json": {
+        "sha256": "ee4b5f1ae4a790922c3ae60a06fd81f5b3f504b4fb723eabfc59ea9961d05eac",
+        "modifiedAt": "2026-10-27T12:17:06.279Z"
+      },
+      "public/data/system-diagram/solutions/reddit-comments/step-6.json": {
+        "sha256": "cf3028cb04be082f888699393f866b71399bd09257e466ebc5e3557e81bb50f1",
+        "modifiedAt": "2026-10-27T12:17:06.279Z"
+      },
+      "public/data/system-diagram/solutions/reddit-comments/step-7.json": {
+        "sha256": "626ba04a59f4387aa83d70db0bf5005478b61264d91b00a6845baef45ca4aa0b",
+        "modifiedAt": "2026-10-27T12:17:06.279Z"
+      },
+      "public/data/system-diagram/solutions/reddit-comments/step-8.json": {
+        "sha256": "9ea884c08e4b753a97cb67f0445aaecb4386913357da3962b7ed3ffbc76d0564",
+        "modifiedAt": "2026-10-27T12:17:06.279Z"
+      },
+      "public/data/system-diagram/solutions/replication/step-1.json": {
+        "sha256": "a73be697b04540eb6ff816264de3335e2016f8aee8cc22a417af4be58c182e50",
+        "modifiedAt": "2026-10-27T12:37:26.947Z"
+      },
+      "public/data/system-diagram/solutions/replication/step-2.json": {
+        "sha256": "084b018c9995cff8fdfc25602859bdda65ec0254c9ca43d700817c7dc6112596",
+        "modifiedAt": "2026-10-27T12:23:10.114Z"
+      },
+      "public/data/system-diagram/solutions/replication/step-3.json": {
+        "sha256": "a9f9e2e4aa7d3d7873e25f796e25e2170611d1e93b21ddc8c6a5a8cf3064fd36",
+        "modifiedAt": "2026-10-27T12:23:10.114Z"
+      },
+      "public/data/system-diagram/solutions/replication/step-4.json": {
+        "sha256": "439a0351504b4e1b0f9f5d551794482882b19153fecae7c1dbd05cef461921e1",
+        "modifiedAt": "2026-10-27T12:23:10.114Z"
+      },
+      "public/data/system-diagram/solutions/replication/step-5.json": {
+        "sha256": "017d32b19865d4cd838e6099f2b454f8af14d63ed3bcde50ad82b18463caa043",
+        "modifiedAt": "2026-10-27T12:23:10.114Z"
+      },
+      "public/data/system-diagram/solutions/replication/step-6.json": {
+        "sha256": "daf638318cb15388768692d4815990891b038e6bb0035ce256ab7f1b55dd9ebd",
+        "modifiedAt": "2026-10-27T12:23:10.114Z"
+      },
+      "public/data/system-diagram/solutions/replication/step-7.json": {
+        "sha256": "f48850e19c5a3ce27d455a0bc6a71d9627548a4901310d8610fac868e24340ad",
+        "modifiedAt": "2026-10-27T12:23:10.114Z"
+      },
+      "public/data/system-diagram/solutions/replication/step-8.json": {
+        "sha256": "10520802d55bd2fdd49ebc2f06a2610aeda5e8dc09759736b6b8bc920cd8c7d9",
+        "modifiedAt": "2026-10-27T12:23:10.114Z"
+      },
+      "public/data/system-diagram/solutions/saved-search/step-1.json": {
+        "sha256": "4fac549d61bf882739ce545b6cd84cd5063b7d5648078bd2fc22e9fa2f515918",
+        "modifiedAt": "2026-10-27T12:37:26.947Z"
+      },
+      "public/data/system-diagram/solutions/saved-search/step-2.json": {
+        "sha256": "841edb1562889052ab76eb83ed3631a21511c2e9eb79d44c0df8f35290b5ee20",
+        "modifiedAt": "2026-10-27T12:23:10.115Z"
+      },
+      "public/data/system-diagram/solutions/saved-search/step-3.json": {
+        "sha256": "e43e5e96a09a6c67cce2b56d67413e0a9a02849d71fbacbed758b13c1dc3c61a",
+        "modifiedAt": "2026-10-27T12:23:10.115Z"
+      },
+      "public/data/system-diagram/solutions/saved-search/step-4.json": {
+        "sha256": "94a102562c17b61044e28354fda8a0716a887b7e4e2e8ad567c886f367a6a6c0",
+        "modifiedAt": "2026-10-27T12:23:10.115Z"
+      },
+      "public/data/system-diagram/solutions/saved-search/step-5.json": {
+        "sha256": "54fcdf3f31a5bb04b1cfcaa7ea08e9e0b5ff1afde0148434b6243d5bc2181167",
+        "modifiedAt": "2026-10-27T12:23:10.115Z"
+      },
+      "public/data/system-diagram/solutions/saved-search/step-6.json": {
+        "sha256": "fa0bcb6deafc7a08dcf28095fc7928ad6a3ae423a31a494b792a178f116e0ded",
+        "modifiedAt": "2026-10-27T12:23:10.115Z"
+      },
+      "public/data/system-diagram/solutions/saved-search/step-7.json": {
+        "sha256": "a878eb570ddd2c00b1fe0e5f74f7579e846b93a5444bba28b2bef7b159c0f503",
+        "modifiedAt": "2026-10-27T12:23:10.115Z"
+      },
+      "public/data/system-diagram/solutions/saved-search/step-8.json": {
+        "sha256": "e3b33b3ad08c8728b0c3e09f00b7a4948f72c56042a6c865d086b76df6f7274a",
+        "modifiedAt": "2026-10-27T12:23:10.115Z"
+      },
+      "public/data/system-diagram/solutions/subscriptions/step-1.json": {
+        "sha256": "e2a4cbe960f9876ce79d2b32bcba67db5663a4834fa354c86f53ce4810c0a206",
+        "modifiedAt": "2026-10-27T12:37:26.947Z"
+      },
+      "public/data/system-diagram/solutions/subscriptions/step-2.json": {
+        "sha256": "a0583e8bae62a54d189c9e46b91a5ef287fbf1e8d836eb83c1b121c7e83d2d3b",
+        "modifiedAt": "2026-10-27T12:23:10.116Z"
+      },
+      "public/data/system-diagram/solutions/subscriptions/step-3.json": {
+        "sha256": "c7fda9002fe40078076af069ac89bfe1b9da177bc251e2a2aa272c3db47aece0",
+        "modifiedAt": "2026-10-27T12:23:10.116Z"
+      },
+      "public/data/system-diagram/solutions/subscriptions/step-4.json": {
+        "sha256": "6ece9b1a1113c048784dc3e7447e51cc552941fcc638d2f637b9a4585372c866",
+        "modifiedAt": "2026-10-27T12:23:10.116Z"
+      },
+      "public/data/system-diagram/solutions/subscriptions/step-5.json": {
+        "sha256": "fe8df8962c4f2dd758eb2e3580e133d07b02bc3b398506e2a91bfa8d2058b5e9",
+        "modifiedAt": "2026-10-27T12:23:10.116Z"
+      },
+      "public/data/system-diagram/solutions/subscriptions/step-6.json": {
+        "sha256": "c2a9eb473baca96affc0ccac1a5f7b579e0e80a75bf654b2a5f21c523934dd21",
+        "modifiedAt": "2026-10-27T12:23:10.116Z"
+      },
+      "public/data/system-diagram/solutions/subscriptions/step-7.json": {
+        "sha256": "a9eb5b3a2995471a85859da8db20d8305d33d707c5a86cd0a259377d0674f853",
+        "modifiedAt": "2026-10-27T12:23:10.116Z"
+      },
+      "public/data/system-diagram/solutions/subscriptions/step-8.json": {
+        "sha256": "33bb0c991d3c040f639ea82742e8dd0c29ec8b0fc36380b4473e752358481fb5",
+        "modifiedAt": "2026-10-27T12:23:10.116Z"
+      },
+      "public/data/system-diagram/solutions/twitter-timeline/step-1.json": {
+        "sha256": "793af5b74a216cb6f43c4c298d43fb573e928e645ed9d785920ff1a6f060c203",
+        "modifiedAt": "2026-10-27T12:37:26.949Z"
+      },
+      "public/data/system-diagram/solutions/twitter-timeline/step-2.json": {
+        "sha256": "24f990f237338e878053efcde048a5c63233b2859d3467112b414c0537ed3e83",
+        "modifiedAt": "2026-10-27T12:17:06.283Z"
+      },
+      "public/data/system-diagram/solutions/twitter-timeline/step-3.json": {
+        "sha256": "d2ee09aa151de1fa5b589cec432989438c840ada4f5d9987ef64528e0d73a589",
+        "modifiedAt": "2026-10-27T12:17:06.283Z"
+      },
+      "public/data/system-diagram/solutions/twitter-timeline/step-4.json": {
+        "sha256": "48e26f88b9a37b527ac86cf9b781c1f29399a18740d0531236a81fa26e4a89d1",
+        "modifiedAt": "2026-10-27T12:17:06.283Z"
+      },
+      "public/data/system-diagram/solutions/twitter-timeline/step-5.json": {
+        "sha256": "0d3149aef5a31ab9cd9fd8c61101cd22472eff648b760fc73dc49a5a406d89e1",
+        "modifiedAt": "2026-10-27T12:17:06.283Z"
+      },
+      "public/data/system-diagram/solutions/twitter-timeline/step-6.json": {
+        "sha256": "16b779f1a766914f7b02e60737dcfe32cda1db10d51a5289dbbceb9cdddb0851",
+        "modifiedAt": "2026-10-27T12:17:06.283Z"
+      },
+      "public/data/system-diagram/solutions/twitter-timeline/step-7.json": {
+        "sha256": "62a9085b6d18f2bea60e9e7c70f5f01021d7ac9736adc8c0ec3483d0936522d2",
+        "modifiedAt": "2026-10-27T12:17:06.284Z"
+      },
+      "public/data/system-diagram/solutions/twitter-timeline/step-8.json": {
+        "sha256": "c9b50b1c51a3bbedf2b1c2791d60888b88c6974ae413669a1745cd8c9a55313e",
+        "modifiedAt": "2026-10-27T12:17:06.284Z"
+      },
+      "public/simulatte/system-diagram/CATSCAN.md": {
+        "sha256": "abad61e0903f1e9314afcf92bd29100e06a1ea2b94a89011925c8e2b7cf518e6",
+        "modifiedAt": "2026-10-27T12:22:57.714Z"
+      },
+      "public/simulatte/system-diagram/deployment/registry.json": {
+        "sha256": "249236b16c28a2327428833bea5da9add9343e027c9a78a042727a565905ba7a",
+        "modifiedAt": "2026-10-27T12:38:14.351Z"
+      },
+      "public/simulatte/system-diagram/edge-routing.js": {
+        "sha256": "c37d68f2ee57769a21b18e6a442ce5b82f1c97f7a2a5720102867f74abe743ad",
+        "modifiedAt": "2026-10-27T12:33:57.627Z"
+      },
+      "public/simulatte/system-diagram/editor-canvas-render.js": {
+        "sha256": "43ee7d42e50ec1a70251993b144b5466decb6fbff40c8bf52711cfede5a6fda7",
+        "modifiedAt": "2026-10-27T12:33:57.627Z"
+      },
+      "public/simulatte/system-diagram/editor-canvas.js": {
+        "sha256": "126a97f50e1afa90119f0c76958f8bb7535caffe6f05990845aa998e2c9d8efc",
+        "modifiedAt": "2026-10-27T12:33:13.554Z"
+      },
+      "public/simulatte/system-diagram/editor-shell.js": {
+        "sha256": "b1f8e88feaed8edf74343185ec55b7387bf9a872262ada81b8249c4602386919",
+        "modifiedAt": "2026-10-27T12:33:13.555Z"
+      },
+      "public/simulatte/system-diagram/editor.css": {
+        "sha256": "30c434817323bd9b7c01577959cf3da8cdf755b6d245e0b3caf000ebc413e1f5",
+        "modifiedAt": "2026-10-27T12:36:12.778Z"
+      },
+      "public/simulatte/system-diagram/index.html": {
+        "sha256": "a254fa33791fc29eb1927cc202cc6f794a1b25b031aefacff850338c7e984342",
+        "modifiedAt": "2026-10-27T12:36:59.253Z"
+      },
+      "public/simulatte/system-diagram/interview-stepper.js": {
+        "sha256": "09c6efb65a9cca0bed531608e709c8103c8bab9d1e67ffbf2b72b609eee8d321",
+        "modifiedAt": "2026-10-27T12:39:40.774Z"
+      },
+      "public/simulatte/system-diagram/kernels-all.js": {
+        "sha256": "5d7754342148b540168fc0f6173cd344291ac078118fd4b8f573dcd4b19b35b0",
+        "modifiedAt": "2026-10-27T12:36:59.253Z"
+      },
+      "public/simulatte/system-diagram/kernels-messaging.js": {
+        "sha256": "3dc792e99e9e565cc0b9f1e6d265e378589978e7e7cf5d78c365810fab948f2f",
+        "modifiedAt": "2026-10-27T12:36:59.253Z"
+      },
+      "public/simulatte/system-diagram/kernels-realtime.js": {
+        "sha256": "a940238f37773206ced19ced2ff6b4bc210a00ce8128ae57dd3d51474863878f",
+        "modifiedAt": "2026-10-27T12:32:36.880Z"
+      },
+      "public/simulatte/system-diagram/kernels-study-algorithms.js": {
+        "sha256": "09b1f2ed3dac02c695669d6ed55b607a79ad88cdd2468404adb27be1f1fd88f8",
+        "modifiedAt": "2026-10-27T12:36:40.454Z"
+      },
+      "public/simulatte/system-diagram/kernels-study-data.js": {
+        "sha256": "308d8578b702cbdda20bea8833efbd02485dc46da87e12cd552c0620e987747c",
+        "modifiedAt": "2026-10-27T12:36:47.287Z"
+      },
+      "public/simulatte/system-diagram/kernels-study-protocols.js": {
+        "sha256": "258c4828013a082be0b8bab0611f1f197b67bd276a74ef07459f7dfd7a05741a",
+        "modifiedAt": "2026-10-27T12:32:36.852Z"
+      },
+      "public/simulatte/system-diagram/page.js": {
+        "sha256": "08cdc35725f918fefe467d8ae7903de16e15209c333a6eb7c82d648b59353ccc",
+        "modifiedAt": "2026-10-27T12:32:14.779Z"
+      },
+      "public/simulatte/system-diagram/playback.js": {
+        "sha256": "846e8c3d56b99e68532dae1fd3be5419fa6c195c064e5a52065aafdb8bc57f58",
+        "modifiedAt": "2026-10-27T12:41:13.786Z"
+      },
+      "public/simulatte/system-diagram/private-collection.js": {
+        "sha256": "85da6dd6052419181cc1c09a795fcc22920d95708bc735c2a19ff21814c0f388",
+        "modifiedAt": "2026-10-27T12:41:11.816Z"
+      },
+      "public/simulatte/system-diagram/problem-model.js": {
+        "sha256": "92bef6e7a57accf31e9c0a17246213b3fcc0e0bb0e37695984dfba29fbc6da58",
+        "modifiedAt": "2026-10-27T12:09:09.650Z"
+      },
+      "public/simulatte/system-diagram/run-controls.js": {
+        "sha256": "7710903dcd3819e326559406b9dd1839cc108fd67f22676d29ef03ead1bc1f84",
+        "modifiedAt": "2026-10-27T12:26:14.483Z"
+      },
+      "public/simulatte/system-diagram/study-commands.js": {
+        "sha256": "7259014ea8942c1d57dbab70f1ad39ee2d9770112bd4927f2b6f63b75988ce92",
+        "modifiedAt": "2026-10-27T12:15:30.220Z"
+      },
+      "public/simulatte/system-diagram/study-contract.js": {
+        "sha256": "a913937e4a4b2a5c6553471b5f0fef59216c62a076c5c6b8ff7f04dfd4b031fc",
+        "modifiedAt": "2026-10-27T11:58:51.227Z"
+      },
+      "public/simulatte/system-diagram/study-runtime.js": {
+        "sha256": "579f49a9f4c41aca2a59b6e3fbc68e769fab3ba921821d3685de7966e8ba8bf9",
+        "modifiedAt": "2026-10-27T12:21:32.176Z"
+      }
+    },
+    "boundary": "Local served public output with this working-tree delta; not a deployed release or physical GPU/acoustic validation."
+  },
+  "url": "http://127.0.0.1:53415/system-diagram",
+  "browser": "143.0.7499.4",
+  "privateChecks": true,
+  "cases": [
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "checks": {
+        "algorithmsSeparatedFromCompute": true,
+        "railTwoStatesAnd280Cap": true,
+        "problemStartsBlank": true,
+        "unboundRefusesSimulation": true,
+        "refinementKeepsIdentity": true,
+        "branchAndReturn": true,
+        "eightStagesAndDesignBoundary": true,
+        "savedDesignRestored": true,
+        "faultRepairReplay": true,
+        "singleExecutionOwner": true,
+        "wholeGraphFitsUsableViewport": true,
+        "secondaryChoicesInDetails": true,
+        "propertiesActionOutsideGraph": true,
+        "requestOperationAndRoute": true,
+        "viewportNoPageOverflow": true,
+        "expandedChatFinalStageFits": true,
+        "fullNodeNamesWrap": true,
+        "requestStructuredResultsOnDemand": true,
+        "encryptedSaveAndLockCleanup": true,
+        "encryptedV5DraftRestoration": true,
+        "privateSubsystemDraftCannotContaminatePublicStudy": true
+      },
+      "errors": [],
+      "build": "ee8883394df94d360e75435fb1323df3d39ae17c-2449a5bdcb2c",
+      "catalogue": {
+        "problems": 31,
+        "solutions": 32,
+        "stages": 256,
+        "unauthored": 0
+      }
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "checks": {
+        "algorithmsSeparatedFromCompute": true,
+        "railTwoStatesAnd280Cap": true,
+        "problemStartsBlank": true,
+        "unboundRefusesSimulation": true,
+        "refinementKeepsIdentity": true,
+        "branchAndReturn": true,
+        "eightStagesAndDesignBoundary": true,
+        "savedDesignRestored": true,
+        "faultRepairReplay": true,
+        "singleExecutionOwner": true,
+        "wholeGraphFitsUsableViewport": true,
+        "secondaryChoicesInDetails": true,
+        "twoLineMobileCaption": true,
+        "propertiesActionOutsideGraph": true,
+        "requestOperationAndRoute": true,
+        "viewportNoPageOverflow": true,
+        "expandedChatFinalStageFits": true,
+        "fullNodeNamesWrap": true,
+        "mobileTouchZoom": true,
+        "mobileTouchPan": true,
+        "mobileTouchableDetailWithinSafeArea": true,
+        "requestStructuredResultsOnDemand": true,
+        "encryptedSaveAndLockCleanup": true,
+        "encryptedV5DraftRestoration": true,
+        "privateSubsystemDraftCannotContaminatePublicStudy": true
+      },
+      "errors": [],
+      "build": "ee8883394df94d360e75435fb1323df3d39ae17c-2449a5bdcb2c",
+      "catalogue": {
+        "problems": 31,
+        "solutions": 32,
+        "stages": 256,
+        "unauthored": 0
+      }
+    }
+  ]
+}

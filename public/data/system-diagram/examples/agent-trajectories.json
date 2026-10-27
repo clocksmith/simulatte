@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.systemDiagram.v4",
   "id": "agent-trajectories",
-  "name": "Multi-agent task trajectories and recovery",
+  "name": "Multi-agent task trajectories and recovery / Verify task journal reconciliation",
   "description": "An authored task DAG separates planning, source research, constraint inspection, synthesis, review and publication. Tool writes and journal delivery execute through drawn dependencies. A crash after research effect reconciles identity instead of duplicating work. Status is not private reasoning.",
   "seed": 42,
   "run": {

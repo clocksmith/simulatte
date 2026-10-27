@@ -1,0 +1,1313 @@
+{
+  "schema": "simulatte.systemDiagramClassPack.v1",
+  "id": "study",
+  "version": "1.0.0",
+  "kernels": [
+    {
+      "id": "studySource",
+      "label": "Study source",
+      "description": "Bounded synthetic study source behavior. Actual command results and state are observable; this is not a production implementation or capacity prediction.",
+      "paramSets": [],
+      "params": {
+        "scenario": {
+          "type": "enum",
+          "label": "Scenario",
+          "default": "search",
+          "group": "basic",
+          "options": [
+            "search",
+            "grid",
+            "notebook",
+            "chunks",
+            "lazy",
+            "rope",
+            "firewall",
+            "lexer",
+            "queue",
+            "rate",
+            "cache",
+            "wal",
+            "transactions",
+            "scheduler",
+            "quotas"
+          ]
+        },
+        "intervalMs": {
+          "type": "number",
+          "label": "Interval ms",
+          "default": 80,
+          "group": "basic",
+          "min": 1,
+          "max": 2000
+        },
+        "startSec": {
+          "type": "number",
+          "label": "Start sec",
+          "default": 0.05,
+          "group": "basic",
+          "min": 0,
+          "max": 60
+        },
+        "timeoutMs": {
+          "type": "number",
+          "label": "Timeout ms",
+          "default": 3000,
+          "group": "basic",
+          "min": 10,
+          "max": 30000
+        },
+        "retries": {
+          "type": "integer",
+          "label": "Retries",
+          "default": 0,
+          "group": "basic",
+          "min": 0,
+          "max": 3
+        },
+        "discardStale": {
+          "type": "boolean",
+          "label": "Discard stale",
+          "default": true,
+          "group": "basic"
+        },
+        "variant": {
+          "type": "integer",
+          "label": "Workload variant",
+          "default": 0,
+          "min": 0,
+          "max": 2,
+          "group": "basic",
+          "help": "0 baseline, 1 boundary inputs, 2 repeated burst. Every variant is an explicit authored experiment."
+        }
+      },
+      "ports": [
+        {
+          "id": "out",
+          "direction": "out",
+          "label": "Commands",
+          "multiple": true,
+          "required": false,
+          "emits": [
+            "json"
+          ]
+        }
+      ],
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "dropReplies"
+      ]
+    },
+    {
+      "id": "searchIndex",
+      "label": "Search index",
+      "description": "Bounded synthetic search index behavior. Actual command results and state are observable; this is not a production implementation or capacity prediction.",
+      "paramSets": [],
+      "params": {
+        "serviceMs": {
+          "type": "number",
+          "label": "Service ms",
+          "default": 5,
+          "group": "basic",
+          "min": 0,
+          "max": 1000
+        },
+        "concurrency": {
+          "type": "integer",
+          "label": "Concurrency",
+          "default": 4,
+          "group": "basic",
+          "min": 1,
+          "max": 64
+        },
+        "queueCapacity": {
+          "type": "integer",
+          "label": "Queue capacity",
+          "default": 64,
+          "group": "basic",
+          "min": 0,
+          "max": 1000
+        },
+        "maxRecords": {
+          "type": "integer",
+          "label": "Max records",
+          "default": 200,
+          "group": "basic",
+          "min": 1,
+          "max": 4096
+        },
+        "capacity": {
+          "type": "integer",
+          "label": "Capacity",
+          "default": 8,
+          "group": "basic",
+          "min": 1,
+          "max": 100
+        },
+        "ttlSec": {
+          "type": "number",
+          "label": "Ttl sec",
+          "default": 1,
+          "group": "basic",
+          "min": 0.001,
+          "max": 60
+        }
+      },
+      "ports": [
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "Command",
+          "multiple": true,
+          "required": false,
+          "accepts": [
+            "json"
+          ]
+        }
+      ],
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "dropReplies"
+      ]
+    },
+    {
+      "id": "cursorTable",
+      "label": "Cursor table",
+      "description": "Bounded synthetic cursor table behavior. Actual command results and state are observable; this is not a production implementation or capacity prediction.",
+      "paramSets": [],
+      "params": {
+        "serviceMs": {
+          "type": "number",
+          "label": "Service ms",
+          "default": 5,
+          "group": "basic",
+          "min": 0,
+          "max": 1000
+        },
+        "concurrency": {
+          "type": "integer",
+          "label": "Concurrency",
+          "default": 4,
+          "group": "basic",
+          "min": 1,
+          "max": 64
+        },
+        "queueCapacity": {
+          "type": "integer",
+          "label": "Queue capacity",
+          "default": 64,
+          "group": "basic",
+          "min": 0,
+          "max": 1000
+        },
+        "maxRecords": {
+          "type": "integer",
+          "label": "Max records",
+          "default": 200,
+          "group": "basic",
+          "min": 1,
+          "max": 4096
+        },
+        "snapshotReads": {
+          "type": "boolean",
+          "label": "Snapshot reads",
+          "default": true,
+          "group": "basic"
+        }
+      },
+      "ports": [
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "Command",
+          "multiple": true,
+          "required": false,
+          "accepts": [
+            "json"
+          ]
+        }
+      ],
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "dropReplies"
+      ]
+    },
+    {
+      "id": "versionedDocument",
+      "label": "Versioned document",
+      "description": "Bounded synthetic versioned document behavior. Actual command results and state are observable; this is not a production implementation or capacity prediction.",
+      "paramSets": [],
+      "params": {
+        "serviceMs": {
+          "type": "number",
+          "label": "Service ms",
+          "default": 5,
+          "group": "basic",
+          "min": 0,
+          "max": 1000
+        },
+        "concurrency": {
+          "type": "integer",
+          "label": "Concurrency",
+          "default": 4,
+          "group": "basic",
+          "min": 1,
+          "max": 64
+        },
+        "queueCapacity": {
+          "type": "integer",
+          "label": "Queue capacity",
+          "default": 64,
+          "group": "basic",
+          "min": 0,
+          "max": 1000
+        },
+        "maxRecords": {
+          "type": "integer",
+          "label": "Max records",
+          "default": 200,
+          "group": "basic",
+          "min": 1,
+          "max": 4096
+        },
+        "checkVersion": {
+          "type": "boolean",
+          "label": "Check version",
+          "default": true,
+          "group": "basic"
+        }
+      },
+      "ports": [
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "Command",
+          "multiple": true,
+          "required": false,
+          "accepts": [
+            "json"
+          ]
+        }
+      ],
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "dropReplies"
+      ]
+    },
+    {
+      "id": "blockCache",
+      "label": "Block cache",
+      "description": "Bounded synthetic block cache behavior. Actual command results and state are observable; this is not a production implementation or capacity prediction.",
+      "paramSets": [],
+      "params": {
+        "serviceMs": {
+          "type": "number",
+          "label": "Service ms",
+          "default": 5,
+          "group": "basic",
+          "min": 0,
+          "max": 1000
+        },
+        "concurrency": {
+          "type": "integer",
+          "label": "Concurrency",
+          "default": 4,
+          "group": "basic",
+          "min": 1,
+          "max": 64
+        },
+        "queueCapacity": {
+          "type": "integer",
+          "label": "Queue capacity",
+          "default": 64,
+          "group": "basic",
+          "min": 0,
+          "max": 1000
+        },
+        "maxRecords": {
+          "type": "integer",
+          "label": "Max records",
+          "default": 200,
+          "group": "basic",
+          "min": 1,
+          "max": 4096
+        },
+        "blockBytes": {
+          "type": "integer",
+          "label": "Block bytes",
+          "default": 8,
+          "group": "basic",
+          "min": 1,
+          "max": 32
+        },
+        "capacity": {
+          "type": "integer",
+          "label": "Capacity",
+          "default": 2,
+          "group": "basic",
+          "min": 1,
+          "max": 64
+        },
+        "coalesce": {
+          "type": "boolean",
+          "label": "Coalesce",
+          "default": true,
+          "group": "basic"
+        }
+      },
+      "ports": [
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "Command",
+          "multiple": true,
+          "required": false,
+          "accepts": [
+            "json"
+          ]
+        }
+      ],
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "dropReplies"
+      ]
+    },
+    {
+      "id": "lazySequence",
+      "label": "Lazy sequence",
+      "description": "Bounded synthetic lazy sequence behavior. Actual command results and state are observable; this is not a production implementation or capacity prediction.",
+      "paramSets": [],
+      "params": {
+        "serviceMs": {
+          "type": "number",
+          "label": "Service ms",
+          "default": 5,
+          "group": "basic",
+          "min": 0,
+          "max": 1000
+        },
+        "concurrency": {
+          "type": "integer",
+          "label": "Concurrency",
+          "default": 4,
+          "group": "basic",
+          "min": 1,
+          "max": 64
+        },
+        "queueCapacity": {
+          "type": "integer",
+          "label": "Queue capacity",
+          "default": 64,
+          "group": "basic",
+          "min": 0,
+          "max": 1000
+        },
+        "maxRecords": {
+          "type": "integer",
+          "label": "Max records",
+          "default": 200,
+          "group": "basic",
+          "min": 1,
+          "max": 4096
+        },
+        "fuse": {
+          "type": "boolean",
+          "label": "Fuse",
+          "default": true,
+          "group": "basic"
+        }
+      },
+      "ports": [
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "Command",
+          "multiple": true,
+          "required": false,
+          "accepts": [
+            "json"
+          ]
+        }
+      ],
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "dropReplies"
+      ]
+    },
+    {
+      "id": "ropeText",
+      "label": "Rope text",
+      "description": "Bounded synthetic rope text behavior. Actual command results and state are observable; this is not a production implementation or capacity prediction.",
+      "paramSets": [],
+      "params": {
+        "serviceMs": {
+          "type": "number",
+          "label": "Service ms",
+          "default": 5,
+          "group": "basic",
+          "min": 0,
+          "max": 1000
+        },
+        "concurrency": {
+          "type": "integer",
+          "label": "Concurrency",
+          "default": 4,
+          "group": "basic",
+          "min": 1,
+          "max": 64
+        },
+        "queueCapacity": {
+          "type": "integer",
+          "label": "Queue capacity",
+          "default": 64,
+          "group": "basic",
+          "min": 0,
+          "max": 1000
+        },
+        "maxRecords": {
+          "type": "integer",
+          "label": "Max records",
+          "default": 200,
+          "group": "basic",
+          "min": 1,
+          "max": 4096
+        }
+      },
+      "ports": [
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "Command",
+          "multiple": true,
+          "required": false,
+          "accepts": [
+            "json"
+          ]
+        }
+      ],
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "dropReplies"
+      ]
+    },
+    {
+      "id": "prefixRules",
+      "label": "Prefix rules",
+      "description": "Bounded synthetic prefix rules behavior. Actual command results and state are observable; this is not a production implementation or capacity prediction.",
+      "paramSets": [],
+      "params": {
+        "serviceMs": {
+          "type": "number",
+          "label": "Service ms",
+          "default": 5,
+          "group": "basic",
+          "min": 0,
+          "max": 1000
+        },
+        "concurrency": {
+          "type": "integer",
+          "label": "Concurrency",
+          "default": 4,
+          "group": "basic",
+          "min": 1,
+          "max": 64
+        },
+        "queueCapacity": {
+          "type": "integer",
+          "label": "Queue capacity",
+          "default": 64,
+          "group": "basic",
+          "min": 0,
+          "max": 1000
+        },
+        "maxRecords": {
+          "type": "integer",
+          "label": "Max records",
+          "default": 200,
+          "group": "basic",
+          "min": 1,
+          "max": 4096
+        },
+        "useTrie": {
+          "type": "boolean",
+          "label": "Use trie",
+          "default": true,
+          "group": "basic"
+        }
+      },
+      "ports": [
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "Command",
+          "multiple": true,
+          "required": false,
+          "accepts": [
+            "json"
+          ]
+        }
+      ],
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "dropReplies"
+      ]
+    },
+    {
+      "id": "commentLexer",
+      "label": "Comment lexer",
+      "description": "Bounded synthetic comment lexer behavior. Actual command results and state are observable; this is not a production implementation or capacity prediction.",
+      "paramSets": [],
+      "params": {
+        "serviceMs": {
+          "type": "number",
+          "label": "Service ms",
+          "default": 5,
+          "group": "basic",
+          "min": 0,
+          "max": 1000
+        },
+        "concurrency": {
+          "type": "integer",
+          "label": "Concurrency",
+          "default": 4,
+          "group": "basic",
+          "min": 1,
+          "max": 64
+        },
+        "queueCapacity": {
+          "type": "integer",
+          "label": "Queue capacity",
+          "default": 64,
+          "group": "basic",
+          "min": 0,
+          "max": 1000
+        },
+        "maxRecords": {
+          "type": "integer",
+          "label": "Max records",
+          "default": 200,
+          "group": "basic",
+          "min": 1,
+          "max": 4096
+        },
+        "sql": {
+          "type": "boolean",
+          "label": "Sql",
+          "default": false,
+          "group": "basic"
+        },
+        "respectQuotes": {
+          "type": "boolean",
+          "label": "Respect quotes",
+          "default": true,
+          "group": "basic"
+        }
+      },
+      "ports": [
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "Command",
+          "multiple": true,
+          "required": false,
+          "accepts": [
+            "json"
+          ]
+        }
+      ],
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "dropReplies"
+      ]
+    },
+    {
+      "id": "blockingQueue",
+      "label": "Blocking queue",
+      "description": "Bounded synthetic blocking queue behavior. Actual command results and state are observable; this is not a production implementation or capacity prediction.",
+      "paramSets": [],
+      "params": {
+        "serviceMs": {
+          "type": "number",
+          "label": "Service ms",
+          "default": 5,
+          "group": "basic",
+          "min": 0,
+          "max": 1000
+        },
+        "concurrency": {
+          "type": "integer",
+          "label": "Concurrency",
+          "default": 4,
+          "group": "basic",
+          "min": 1,
+          "max": 64
+        },
+        "queueCapacity": {
+          "type": "integer",
+          "label": "Queue capacity",
+          "default": 64,
+          "group": "basic",
+          "min": 0,
+          "max": 1000
+        },
+        "maxRecords": {
+          "type": "integer",
+          "label": "Max records",
+          "default": 200,
+          "group": "basic",
+          "min": 1,
+          "max": 4096
+        },
+        "capacity": {
+          "type": "integer",
+          "label": "Capacity",
+          "default": 2,
+          "group": "basic",
+          "min": 1,
+          "max": 64
+        },
+        "waitTimeoutMs": {
+          "type": "number",
+          "label": "Wait timeout ms",
+          "default": 300,
+          "group": "basic",
+          "min": 1,
+          "max": 5000
+        },
+        "durable": {
+          "type": "boolean",
+          "label": "Durable",
+          "default": false,
+          "group": "basic"
+        }
+      },
+      "ports": [
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "Command",
+          "multiple": true,
+          "required": false,
+          "accepts": [
+            "json"
+          ]
+        }
+      ],
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "dropReplies"
+      ]
+    },
+    {
+      "id": "windowCounter",
+      "label": "Window counter",
+      "description": "Bounded synthetic window counter behavior. Actual command results and state are observable; this is not a production implementation or capacity prediction.",
+      "paramSets": [],
+      "params": {
+        "serviceMs": {
+          "type": "number",
+          "label": "Service ms",
+          "default": 5,
+          "group": "basic",
+          "min": 0,
+          "max": 1000
+        },
+        "concurrency": {
+          "type": "integer",
+          "label": "Concurrency",
+          "default": 4,
+          "group": "basic",
+          "min": 1,
+          "max": 64
+        },
+        "queueCapacity": {
+          "type": "integer",
+          "label": "Queue capacity",
+          "default": 64,
+          "group": "basic",
+          "min": 0,
+          "max": 1000
+        },
+        "maxRecords": {
+          "type": "integer",
+          "label": "Max records",
+          "default": 200,
+          "group": "basic",
+          "min": 1,
+          "max": 4096
+        },
+        "capacity": {
+          "type": "integer",
+          "label": "Capacity",
+          "default": 2,
+          "group": "basic",
+          "min": 1,
+          "max": 100
+        },
+        "windowSec": {
+          "type": "number",
+          "label": "Window sec",
+          "default": 0.25,
+          "group": "basic",
+          "min": 0.001,
+          "max": 60
+        }
+      },
+      "ports": [
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "Command",
+          "multiple": true,
+          "required": false,
+          "accepts": [
+            "json"
+          ]
+        }
+      ],
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "dropReplies"
+      ]
+    },
+    {
+      "id": "ttlMap",
+      "label": "Ttl map",
+      "description": "Bounded synthetic ttl map behavior. Actual command results and state are observable; this is not a production implementation or capacity prediction.",
+      "paramSets": [],
+      "params": {
+        "serviceMs": {
+          "type": "number",
+          "label": "Service ms",
+          "default": 5,
+          "group": "basic",
+          "min": 0,
+          "max": 1000
+        },
+        "concurrency": {
+          "type": "integer",
+          "label": "Concurrency",
+          "default": 4,
+          "group": "basic",
+          "min": 1,
+          "max": 64
+        },
+        "queueCapacity": {
+          "type": "integer",
+          "label": "Queue capacity",
+          "default": 64,
+          "group": "basic",
+          "min": 0,
+          "max": 1000
+        },
+        "maxRecords": {
+          "type": "integer",
+          "label": "Max records",
+          "default": 200,
+          "group": "basic",
+          "min": 1,
+          "max": 4096
+        },
+        "capacity": {
+          "type": "integer",
+          "label": "Capacity",
+          "default": 2,
+          "group": "basic",
+          "min": 1,
+          "max": 100
+        },
+        "ttlSec": {
+          "type": "number",
+          "label": "Ttl sec",
+          "default": 0.3,
+          "group": "basic",
+          "min": 0.001,
+          "max": 60
+        },
+        "expire": {
+          "type": "boolean",
+          "label": "Expire",
+          "default": true,
+          "group": "basic"
+        },
+        "evict": {
+          "type": "boolean",
+          "label": "Evict",
+          "default": true,
+          "group": "basic"
+        },
+        "durable": {
+          "type": "boolean",
+          "label": "Durable",
+          "default": false,
+          "group": "basic"
+        }
+      },
+      "ports": [
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "Command",
+          "multiple": true,
+          "required": false,
+          "accepts": [
+            "json"
+          ]
+        }
+      ],
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "dropReplies"
+      ]
+    },
+    {
+      "id": "durableJournal",
+      "label": "Durable journal",
+      "description": "Bounded synthetic durable journal behavior. Actual command results and state are observable; this is not a production implementation or capacity prediction.",
+      "paramSets": [],
+      "params": {
+        "serviceMs": {
+          "type": "number",
+          "label": "Service ms",
+          "default": 5,
+          "group": "basic",
+          "min": 0,
+          "max": 1000
+        },
+        "concurrency": {
+          "type": "integer",
+          "label": "Concurrency",
+          "default": 4,
+          "group": "basic",
+          "min": 1,
+          "max": 64
+        },
+        "queueCapacity": {
+          "type": "integer",
+          "label": "Queue capacity",
+          "default": 64,
+          "group": "basic",
+          "min": 0,
+          "max": 1000
+        },
+        "maxRecords": {
+          "type": "integer",
+          "label": "Max records",
+          "default": 200,
+          "group": "basic",
+          "min": 1,
+          "max": 4096
+        },
+        "syncWrites": {
+          "type": "boolean",
+          "label": "Sync writes",
+          "default": true,
+          "group": "basic"
+        }
+      },
+      "ports": [
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "Command",
+          "multiple": true,
+          "required": false,
+          "accepts": [
+            "json"
+          ]
+        }
+      ],
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "dropReplies"
+      ]
+    },
+    {
+      "id": "optimisticLog",
+      "label": "Optimistic log",
+      "description": "Bounded synthetic optimistic log behavior. Actual command results and state are observable; this is not a production implementation or capacity prediction.",
+      "paramSets": [],
+      "params": {
+        "serviceMs": {
+          "type": "number",
+          "label": "Service ms",
+          "default": 5,
+          "group": "basic",
+          "min": 0,
+          "max": 1000
+        },
+        "concurrency": {
+          "type": "integer",
+          "label": "Concurrency",
+          "default": 4,
+          "group": "basic",
+          "min": 1,
+          "max": 64
+        },
+        "queueCapacity": {
+          "type": "integer",
+          "label": "Queue capacity",
+          "default": 64,
+          "group": "basic",
+          "min": 0,
+          "max": 1000
+        },
+        "maxRecords": {
+          "type": "integer",
+          "label": "Max records",
+          "default": 200,
+          "group": "basic",
+          "min": 1,
+          "max": 4096
+        },
+        "checkVersion": {
+          "type": "boolean",
+          "label": "Check version",
+          "default": true,
+          "group": "basic"
+        }
+      },
+      "ports": [
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "Command",
+          "multiple": true,
+          "required": false,
+          "accepts": [
+            "json"
+          ]
+        }
+      ],
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "dropReplies"
+      ]
+    },
+    {
+      "id": "taskDag",
+      "label": "Task dag",
+      "description": "Bounded synthetic task dag behavior. Actual command results and state are observable; this is not a production implementation or capacity prediction.",
+      "paramSets": [],
+      "params": {
+        "serviceMs": {
+          "type": "number",
+          "label": "Service ms",
+          "default": 5,
+          "group": "basic",
+          "min": 0,
+          "max": 1000
+        },
+        "concurrency": {
+          "type": "integer",
+          "label": "Concurrency",
+          "default": 4,
+          "group": "basic",
+          "min": 1,
+          "max": 64
+        },
+        "queueCapacity": {
+          "type": "integer",
+          "label": "Queue capacity",
+          "default": 64,
+          "group": "basic",
+          "min": 0,
+          "max": 1000
+        },
+        "maxRecords": {
+          "type": "integer",
+          "label": "Max records",
+          "default": 200,
+          "group": "basic",
+          "min": 1,
+          "max": 4096
+        },
+        "retryTasks": {
+          "type": "boolean",
+          "label": "Retry tasks",
+          "default": true,
+          "group": "basic"
+        },
+        "maxAttempts": {
+          "type": "integer",
+          "label": "Max attempts",
+          "default": 2,
+          "group": "basic",
+          "min": 1,
+          "max": 10
+        }
+      },
+      "ports": [
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "Command",
+          "multiple": true,
+          "required": false,
+          "accepts": [
+            "json"
+          ]
+        }
+      ],
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "dropReplies"
+      ]
+    },
+    {
+      "id": "tenantSlots",
+      "label": "Tenant slots",
+      "description": "Bounded synthetic tenant slots behavior. Actual command results and state are observable; this is not a production implementation or capacity prediction.",
+      "paramSets": [],
+      "params": {
+        "serviceMs": {
+          "type": "number",
+          "label": "Service ms",
+          "default": 5,
+          "group": "basic",
+          "min": 0,
+          "max": 1000
+        },
+        "concurrency": {
+          "type": "integer",
+          "label": "Concurrency",
+          "default": 4,
+          "group": "basic",
+          "min": 1,
+          "max": 64
+        },
+        "queueCapacity": {
+          "type": "integer",
+          "label": "Queue capacity",
+          "default": 64,
+          "group": "basic",
+          "min": 0,
+          "max": 1000
+        },
+        "maxRecords": {
+          "type": "integer",
+          "label": "Max records",
+          "default": 200,
+          "group": "basic",
+          "min": 1,
+          "max": 4096
+        },
+        "capacity": {
+          "type": "integer",
+          "label": "Capacity",
+          "default": 3,
+          "group": "basic",
+          "min": 1,
+          "max": 100
+        },
+        "tenantLimit": {
+          "type": "integer",
+          "label": "Tenant limit",
+          "default": 2,
+          "group": "basic",
+          "min": 1,
+          "max": 100
+        },
+        "enforceQuota": {
+          "type": "boolean",
+          "label": "Enforce quota",
+          "default": true,
+          "group": "basic"
+        }
+      },
+      "ports": [
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "Command",
+          "multiple": true,
+          "required": false,
+          "accepts": [
+            "json"
+          ]
+        }
+      ],
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "dropReplies"
+      ]
+    }
+  ],
+  "classes": [
+    {
+      "id": "command-client",
+      "label": "Study source",
+      "description": "Bounded synthetic study source behavior. Actual command results and state are observable; this is not a production implementation or capacity prediction.",
+      "category": "clients",
+      "kernel": "studySource",
+      "glyph": "users",
+      "defaults": {}
+    },
+    {
+      "id": "search-index-model",
+      "label": "Search index",
+      "description": "Bounded synthetic search index behavior. Actual command results and state are observable; this is not a production implementation or capacity prediction.",
+      "category": "algorithms",
+      "kernel": "searchIndex",
+      "glyph": "server",
+      "defaults": {}
+    },
+    {
+      "id": "cursor-table",
+      "label": "Cursor table",
+      "description": "Bounded synthetic cursor table behavior. Actual command results and state are observable; this is not a production implementation or capacity prediction.",
+      "category": "algorithms",
+      "kernel": "cursorTable",
+      "glyph": "server",
+      "defaults": {}
+    },
+    {
+      "id": "versioned-document",
+      "label": "Versioned document",
+      "description": "Bounded synthetic versioned document behavior. Actual command results and state are observable; this is not a production implementation or capacity prediction.",
+      "category": "algorithms",
+      "kernel": "versionedDocument",
+      "glyph": "server",
+      "defaults": {}
+    },
+    {
+      "id": "block-read-cache",
+      "label": "Block cache",
+      "description": "Bounded synthetic block cache behavior. Actual command results and state are observable; this is not a production implementation or capacity prediction.",
+      "category": "algorithms",
+      "kernel": "blockCache",
+      "glyph": "server",
+      "defaults": {}
+    },
+    {
+      "id": "lazy-sequence",
+      "label": "Lazy sequence",
+      "description": "Bounded synthetic lazy sequence behavior. Actual command results and state are observable; this is not a production implementation or capacity prediction.",
+      "category": "algorithms",
+      "kernel": "lazySequence",
+      "glyph": "server",
+      "defaults": {}
+    },
+    {
+      "id": "rope-text",
+      "label": "Rope text",
+      "description": "Bounded synthetic rope text behavior. Actual command results and state are observable; this is not a production implementation or capacity prediction.",
+      "category": "algorithms",
+      "kernel": "ropeText",
+      "glyph": "server",
+      "defaults": {}
+    },
+    {
+      "id": "prefix-rules",
+      "label": "Prefix rules",
+      "description": "Bounded synthetic prefix rules behavior. Actual command results and state are observable; this is not a production implementation or capacity prediction.",
+      "category": "algorithms",
+      "kernel": "prefixRules",
+      "glyph": "server",
+      "defaults": {}
+    },
+    {
+      "id": "comment-lexer",
+      "label": "Comment lexer",
+      "description": "Bounded synthetic comment lexer behavior. Actual command results and state are observable; this is not a production implementation or capacity prediction.",
+      "category": "algorithms",
+      "kernel": "commentLexer",
+      "glyph": "server",
+      "defaults": {}
+    },
+    {
+      "id": "blocking-queue",
+      "label": "Blocking queue",
+      "description": "Bounded synthetic blocking queue behavior. Actual command results and state are observable; this is not a production implementation or capacity prediction.",
+      "category": "algorithms",
+      "kernel": "blockingQueue",
+      "glyph": "server",
+      "defaults": {}
+    },
+    {
+      "id": "sliding-window-counter",
+      "label": "Window counter",
+      "description": "Bounded synthetic window counter behavior. Actual command results and state are observable; this is not a production implementation or capacity prediction.",
+      "category": "algorithms",
+      "kernel": "windowCounter",
+      "glyph": "server",
+      "defaults": {}
+    },
+    {
+      "id": "ttl-map",
+      "label": "Ttl map",
+      "description": "Bounded synthetic ttl map behavior. Actual command results and state are observable; this is not a production implementation or capacity prediction.",
+      "category": "algorithms",
+      "kernel": "ttlMap",
+      "glyph": "server",
+      "defaults": {}
+    },
+    {
+      "id": "durable-journal",
+      "label": "Durable journal",
+      "description": "Bounded synthetic durable journal behavior. Actual command results and state are observable; this is not a production implementation or capacity prediction.",
+      "category": "algorithms",
+      "kernel": "durableJournal",
+      "glyph": "server",
+      "defaults": {}
+    },
+    {
+      "id": "optimistic-log",
+      "label": "Optimistic log",
+      "description": "Bounded synthetic optimistic log behavior. Actual command results and state are observable; this is not a production implementation or capacity prediction.",
+      "category": "algorithms",
+      "kernel": "optimisticLog",
+      "glyph": "server",
+      "defaults": {}
+    },
+    {
+      "id": "task-dag",
+      "label": "Task dag",
+      "description": "Bounded synthetic task dag behavior. Actual command results and state are observable; this is not a production implementation or capacity prediction.",
+      "category": "algorithms",
+      "kernel": "taskDag",
+      "glyph": "server",
+      "defaults": {}
+    },
+    {
+      "id": "tenant-slots",
+      "label": "Tenant slots",
+      "description": "Bounded synthetic tenant slots behavior. Actual command results and state are observable; this is not a production implementation or capacity prediction.",
+      "category": "algorithms",
+      "kernel": "tenantSlots",
+      "glyph": "server",
+      "defaults": {}
+    }
+  ]
+}

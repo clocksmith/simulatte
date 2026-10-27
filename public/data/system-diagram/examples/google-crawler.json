@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.systemDiagram.v4",
   "id": "google-crawler",
-  "name": "Distributed crawler",
+  "name": "Distributed web crawler / Verify retained provenance",
   "description": "An autonomous bounded crawler models per-origin delay, deduplication and provenance. Cron adds scheduled tasks to a shared CPU parser and database; no real scraping or content extraction occurs.",
   "seed": 42,
   "run": {

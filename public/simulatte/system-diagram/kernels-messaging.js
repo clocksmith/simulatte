@@ -45,7 +45,7 @@
    if(c.action==='sync'){if(!Number.isInteger(c.cursor)||c.cursor<0||c.cursor>k.messages.length)return reject(ctx,job);k.syncs++;return reply(ctx,job,{messages:copy(k.messages.filter(m=>m.sequence>c.cursor)),cursor:k.messages.length});}
    if(typeof c.id!=='string'||!c.id||!['alice','bob'].includes(c.recipient)||c.actor===c.recipient||typeof c.text!=='string'||!c.text.length||c.text.length>512)return reject(ctx,job);
    const prior=k.messages.find(m=>m.id===c.id);if(prior){if(prior.actor!==c.actor||prior.recipient!==c.recipient||prior.text!==c.text)return reject(ctx,job);k.duplicates++;return reply(ctx,job,{message:copy(prior),duplicate:true});}
-   if(k.messages.length>=ctx.p.maxRecords)return reject(ctx,job,'rejected');const m={...copy(c),sequence:k.messages.length+1,atSec:ctx.t};delete m.action;k.messages.push(m);ctx.effect(c.id,{idempotent:true});reply(ctx,job,{message:copy(m),duplicate:false});
+   if(k.messages.length>=ctx.p.maxRecords)return reject(ctx,job,'rejected');const m={...copy(c),sequence:k.messages.length+1,atSec:ctx.t};delete m.action;k.messages.push(m);ctx.effect(c.id,{idempotent:true});for(const edge of ctx.edges('updates'))ctx.send(edge.id,ctx.message({ptype:'json',kb:size(m),fields:{delivery:copy(m)}}));reply(ctx,job,{message:copy(m),duplicate:false});
   },
   observe:ctx=>({detail:{Messages:ctx.k.messages.length,Duplicates:ctx.k.duplicates,Syncs:ctx.k.syncs,Denied:ctx.k.denied},records:{messages:copy(ctx.k.messages)}})
  });

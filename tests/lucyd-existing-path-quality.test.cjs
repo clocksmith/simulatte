@@ -5,7 +5,7 @@ const D=require('../public/simulatte/system-diagram/diagram.js'),E=require('../p
 const library=require('../public/simulatte/system-diagram/class-library.js').loadSync(path.resolve(__dirname,'../public/data/system-diagram'));
 const config=require('../public/data/system-diagram/config.json'),kernels=require('../public/simulatte/system-diagram/kernels-all.js');
 const problems=require('../public/data/system-diagram/problems.json').problems,deps={library,config,kernels};
-function diagram(id,index){return structuredClone(problems.find(p=>p.id===id).solutions[0].stages[index].diagram);}
+function diagram(id,index){return structuredClone(problems.find(p=>p.id===id).solutions[0].stages.find(st=>st.legacyIndex===index).diagram);}
 function run(d,checkpoint=false){const c=D.compile(d,library,config);let s=E.initialize(c,deps);if(checkpoint){E.advance(c,s,1,deps);s=JSON.parse(JSON.stringify(s));}E.advance(c,s,d.run.horizonSec,deps);return {s,v:E.observe(c,s,deps)};}
 test('stream recovery stage executes a failure and preserves acknowledged text and durable message identity',()=>{
  const d=diagram('chat-application',2);assert.ok(d.faults.some(f=>f.target.id==='stream'&&f.type==='crash'));

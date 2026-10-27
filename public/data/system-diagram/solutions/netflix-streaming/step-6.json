@@ -1,0 +1,504 @@
+{
+  "schema": "simulatte.systemDiagram.v4",
+  "id": "netflix-streaming",
+  "name": "Global video streaming and CDN / Protect origin admission",
+  "description": "Three thousand viewers are split into two independently faultable regions. Playback requires a real manifest receipt; regional caches fetch through one shield and origin. Peer availability and admission are distinct from CDN delivery. Bytes are aggregate unicast, not measured video transport.",
+  "seed": 42,
+  "run": {
+    "horizonSec": 30
+  },
+  "classes": [],
+  "nodes": [
+    {
+      "id": "viewers",
+      "classId": "video-viewers",
+      "label": "1,500 viewers / 6 cohorts",
+      "x": 0,
+      "y": 100,
+      "params": {
+        "viewers": 8,
+        "cohorts": 2,
+        "startSpreadSec": 0.5,
+        "startSec": 0,
+        "requiresManifest": true,
+        "segments": 6,
+        "segmentKiB": 64,
+        "lowSegmentKiB": 16,
+        "segmentDurationSec": 1,
+        "adaptiveBitrate": true,
+        "peerAssistance": false,
+        "timeoutMs": 10000
+      },
+      "groupId": "video-west"
+    },
+    {
+      "id": "quota",
+      "classId": "rate-limiter",
+      "label": "Regional CDN request quota",
+      "x": 280,
+      "y": 100,
+      "params": {
+        "ratePerSec": 1000,
+        "burst": 100,
+        "overflow": "queue",
+        "callTimeoutMs": 8000
+      },
+      "groupId": "video-west"
+    },
+    {
+      "id": "cdn",
+      "classId": "video-cdn",
+      "label": "Regional edge segment cache",
+      "x": 570,
+      "y": 100,
+      "params": {},
+      "groupId": "video-west"
+    },
+    {
+      "id": "peer-breaker",
+      "classId": "circuit-breaker",
+      "label": "Peer reachability circuit",
+      "x": 280,
+      "y": 350,
+      "params": {
+        "minRequests": 2,
+        "openSec": 0.5,
+        "callTimeoutMs": 200
+      },
+      "groupId": "video-west"
+    },
+    {
+      "id": "peers",
+      "classId": "video-peers",
+      "label": "Regional peer upload pool",
+      "x": 570,
+      "y": 350,
+      "params": {},
+      "groupId": "video-west"
+    },
+    {
+      "id": "viewers-east",
+      "classId": "video-viewers",
+      "label": "1,500 viewers / 6 cohorts",
+      "x": 0,
+      "y": 720,
+      "params": {
+        "viewers": 8,
+        "cohorts": 2,
+        "startSpreadSec": 0.5,
+        "startSec": 0.15,
+        "requiresManifest": true,
+        "segments": 6,
+        "segmentKiB": 64,
+        "lowSegmentKiB": 16,
+        "segmentDurationSec": 1,
+        "adaptiveBitrate": true,
+        "peerAssistance": false,
+        "timeoutMs": 10000
+      },
+      "groupId": "video-east"
+    },
+    {
+      "id": "quota-east",
+      "classId": "rate-limiter",
+      "label": "Regional CDN request quota",
+      "x": 280,
+      "y": 720,
+      "params": {
+        "ratePerSec": 1000,
+        "burst": 100,
+        "overflow": "queue",
+        "callTimeoutMs": 8000
+      },
+      "groupId": "video-east"
+    },
+    {
+      "id": "cdn-east",
+      "classId": "video-cdn",
+      "label": "Regional edge segment cache",
+      "x": 570,
+      "y": 720,
+      "params": {},
+      "groupId": "video-east"
+    },
+    {
+      "id": "peer-breaker-east",
+      "classId": "circuit-breaker",
+      "label": "Peer reachability circuit",
+      "x": 280,
+      "y": 970,
+      "params": {
+        "minRequests": 2,
+        "openSec": 0.5,
+        "callTimeoutMs": 200
+      },
+      "groupId": "video-east"
+    },
+    {
+      "id": "peers-east",
+      "classId": "video-peers",
+      "label": "Regional peer upload pool",
+      "x": 570,
+      "y": 970,
+      "params": {},
+      "groupId": "video-east"
+    },
+    {
+      "id": "manifest",
+      "classId": "video-manifest",
+      "label": "Asset playback manifest",
+      "x": 970,
+      "y": 100,
+      "params": {
+        "segments": 6,
+        "segmentKiB": 64,
+        "lowSegmentKiB": 16,
+        "segmentDurationSec": 1
+      },
+      "groupId": "video-origin"
+    },
+    {
+      "id": "shield-retry",
+      "classId": "retry-policy",
+      "label": "Origin shield fetch retry",
+      "x": 970,
+      "y": 350,
+      "params": {
+        "attemptTimeoutMs": 5000,
+        "maxAttempts": 3,
+        "retryBudget": 2,
+        "backoffMs": 40,
+        "retryJitter": false
+      },
+      "groupId": "video-origin"
+    },
+    {
+      "id": "shield",
+      "classId": "video-cdn",
+      "label": "Shared origin shield cache",
+      "x": 1260,
+      "y": 350,
+      "params": {
+        "egressUsdPerGiB": 0
+      },
+      "groupId": "video-origin"
+    },
+    {
+      "id": "origin-admission",
+      "classId": "rate-limiter",
+      "label": "Origin read admission",
+      "x": 1550,
+      "y": 350,
+      "params": {
+        "ratePerSec": 1000,
+        "burst": 100,
+        "overflow": "queue",
+        "callTimeoutMs": 8000
+      },
+      "groupId": "video-origin"
+    },
+    {
+      "id": "origin",
+      "classId": "video-origin",
+      "label": "Authoritative asset segments",
+      "x": 1550,
+      "y": 100,
+      "params": {
+        "segments": 6,
+        "segmentKiB": 64,
+        "lowSegmentKiB": 16,
+        "queueCapacity": 1
+      },
+      "groupId": "video-origin"
+    }
+  ],
+  "edges": [
+    {
+      "id": "viewers-cdn",
+      "label": "viewers cdn",
+      "from": {
+        "nodeId": "viewers",
+        "portId": "cdn"
+      },
+      "to": {
+        "nodeId": "quota",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 8,
+        "bandwidthMbps": 2000,
+        "bandwidthSharing": "fair"
+      }
+    },
+    {
+      "id": "quota-cdn",
+      "label": "quota cdn",
+      "from": {
+        "nodeId": "quota",
+        "portId": "out"
+      },
+      "to": {
+        "nodeId": "cdn",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 1,
+        "bandwidthMbps": 2000,
+        "bandwidthSharing": "fair"
+      }
+    },
+    {
+      "id": "cdn-origin",
+      "label": "cdn origin",
+      "from": {
+        "nodeId": "cdn",
+        "portId": "origin"
+      },
+      "to": {
+        "nodeId": "shield-retry",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 12,
+        "bandwidthMbps": 800,
+        "bandwidthSharing": "fair"
+      }
+    },
+    {
+      "id": "viewers-peers",
+      "label": "viewers peers",
+      "from": {
+        "nodeId": "viewers",
+        "portId": "peers"
+      },
+      "to": {
+        "nodeId": "peer-breaker",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 2000,
+        "bandwidthSharing": "fair"
+      }
+    },
+    {
+      "id": "peer-delivery",
+      "label": "peer delivery",
+      "from": {
+        "nodeId": "peer-breaker",
+        "portId": "protected"
+      },
+      "to": {
+        "nodeId": "peers",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 2000,
+        "bandwidthSharing": "fair"
+      }
+    },
+    {
+      "id": "playback-manifest",
+      "label": "playback manifest",
+      "from": {
+        "nodeId": "viewers",
+        "portId": "manifest"
+      },
+      "to": {
+        "nodeId": "manifest",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "viewers-cdn-east",
+      "label": "viewers cdn east",
+      "from": {
+        "nodeId": "viewers-east",
+        "portId": "cdn"
+      },
+      "to": {
+        "nodeId": "quota-east",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 8,
+        "bandwidthMbps": 0.8,
+        "bandwidthSharing": "fair"
+      }
+    },
+    {
+      "id": "quota-cdn-east",
+      "label": "quota cdn east",
+      "from": {
+        "nodeId": "quota-east",
+        "portId": "out"
+      },
+      "to": {
+        "nodeId": "cdn-east",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 1,
+        "bandwidthMbps": 2000,
+        "bandwidthSharing": "fair"
+      }
+    },
+    {
+      "id": "cdn-origin-east",
+      "label": "cdn origin east",
+      "from": {
+        "nodeId": "cdn-east",
+        "portId": "origin"
+      },
+      "to": {
+        "nodeId": "shield-retry",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 12,
+        "bandwidthMbps": 800,
+        "bandwidthSharing": "fair"
+      }
+    },
+    {
+      "id": "viewers-peers-east",
+      "label": "viewers peers east",
+      "from": {
+        "nodeId": "viewers-east",
+        "portId": "peers"
+      },
+      "to": {
+        "nodeId": "peer-breaker-east",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 2000,
+        "bandwidthSharing": "fair"
+      }
+    },
+    {
+      "id": "peer-delivery-east",
+      "label": "peer delivery east",
+      "from": {
+        "nodeId": "peer-breaker-east",
+        "portId": "protected"
+      },
+      "to": {
+        "nodeId": "peers-east",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 2000,
+        "bandwidthSharing": "fair"
+      }
+    },
+    {
+      "id": "playback-manifest-east",
+      "label": "playback manifest east",
+      "from": {
+        "nodeId": "viewers-east",
+        "portId": "manifest"
+      },
+      "to": {
+        "nodeId": "manifest",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      }
+    },
+    {
+      "id": "shield-fetch",
+      "label": "shield fetch",
+      "from": {
+        "nodeId": "shield-retry",
+        "portId": "target"
+      },
+      "to": {
+        "nodeId": "shield",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 800,
+        "bandwidthSharing": "fair"
+      }
+    },
+    {
+      "id": "shield-origin",
+      "label": "shield origin",
+      "from": {
+        "nodeId": "shield",
+        "portId": "origin"
+      },
+      "to": {
+        "nodeId": "origin-admission",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 500
+      }
+    },
+    {
+      "id": "origin-read",
+      "label": "origin read",
+      "from": {
+        "nodeId": "origin-admission",
+        "portId": "out"
+      },
+      "to": {
+        "nodeId": "origin",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 25,
+        "bandwidthMbps": 500
+      }
+    }
+  ],
+  "groups": [
+    {
+      "id": "video-west",
+      "label": "West delivery region",
+      "kind": "boundary",
+      "x": -40,
+      "y": 0,
+      "w": 880,
+      "h": 520
+    },
+    {
+      "id": "video-east",
+      "label": "East delivery region",
+      "kind": "boundary",
+      "x": -40,
+      "y": 620,
+      "w": 880,
+      "h": 520
+    },
+    {
+      "id": "video-origin",
+      "label": "Shared content hierarchy",
+      "kind": "boundary",
+      "x": 930,
+      "y": 0,
+      "w": 890,
+      "h": 620
+    }
+  ],
+  "notes": [],
+  "faults": [],
+  "view": {
+    "x": 0,
+    "y": 0,
+    "zoom": 1
+  }
+}

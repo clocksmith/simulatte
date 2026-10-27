@@ -1,0 +1,89 @@
+{
+  "schema": "simulatte.systemDiagram.v5",
+  "id": "diagram",
+  "name": "Paginated API / Define page consistency",
+  "description": "",
+  "seed": 1,
+  "run": {
+    "horizonSec": 120
+  },
+  "classes": [],
+  "nodes": [
+    {
+      "id": "readers",
+      "classId": "concept.readers-context",
+      "label": "Users and requests",
+      "x": 0,
+      "y": 80,
+      "params": {}
+    },
+    {
+      "id": "results",
+      "classId": "concept.results-context",
+      "label": "System responsibility",
+      "x": 320,
+      "y": 80,
+      "params": {}
+    }
+  ],
+  "edges": [
+    {
+      "id": "context-request",
+      "label": "request / outcome contract",
+      "from": {
+        "nodeId": "readers",
+        "portId": "out"
+      },
+      "to": {
+        "nodeId": "results",
+        "portId": "in"
+      },
+      "params": {}
+    }
+  ],
+  "groups": [],
+  "notes": [],
+  "faults": [],
+  "view": {
+    "x": 0,
+    "y": 0,
+    "zoom": 1
+  },
+  "intent": {
+    "outcome": "Design a website’s paginated results API and its database access.",
+    "users": "Callers, state owners and operators named by the problem.",
+    "constraints": "Make ordering, durability, capacity and retry assumptions explicit. Simulation stage 1 only, architecture detail level 2. Eight ordered synthetic records; one insert and one delete between pages. Cursor tokens are model JSON, not authenticated production cursors. Keyset uses binary search over a finite in-memory sorted index; snapshot copies model MVCC visibility, not a production database isolation proof.",
+    "success": "An observable request path, bounded waiting, visible failures and a justified recovery policy."
+  },
+  "concepts": [
+    {
+      "id": "readers-context",
+      "label": "Users and requests",
+      "responsibility": "Who issues requests, and which identities or deadlines travel with them?",
+      "ports": [
+        {
+          "id": "out",
+          "direction": "out",
+          "payloadType": "json"
+        }
+      ]
+    },
+    {
+      "id": "results-context",
+      "label": "System responsibility",
+      "responsibility": "Design a website’s paginated results API and its database access.",
+      "ports": [
+        {
+          "id": "in",
+          "direction": "in",
+          "payloadType": "json"
+        },
+        {
+          "id": "out",
+          "direction": "out",
+          "payloadType": "json"
+        }
+      ]
+    }
+  ]
+}

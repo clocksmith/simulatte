@@ -1,115 +1,44 @@
 {
-  "schema": "simulatte.systemDiagram.v4",
-  "id": "microsoft-presence",
-  "name": "Presence and subscriptions",
-  "description": "Heartbeat leases, subscribed status changes and bulk snapshots.",
-  "seed": 42,
+  "schema": "simulatte.systemDiagram.v5",
+  "id": "diagram",
+  "name": "Distributed presence broker / Define the success contract",
+  "description": "",
+  "seed": 1,
   "run": {
-    "horizonSec": 20
+    "horizonSec": 120
   },
   "classes": [],
   "nodes": [
     {
       "id": "heartbeats",
-      "classId": "operation-client",
-      "label": "heartbeats",
+      "classId": "concept.heartbeats-context",
+      "label": "Users and requests",
       "x": 0,
-      "y": 0,
-      "params": {
-        "operation": "heartbeat",
-        "count": 8,
-        "intervalMs": 400,
-        "keySpace": 2,
-        "actorSpace": 2,
-        "startSec": 1
-      }
+      "y": 80,
+      "params": {}
     },
     {
-      "id": "broker",
-      "classId": "presence-broker",
-      "label": "broker",
-      "x": 350,
-      "y": 200,
-      "params": {
-        "ttlSec": 4
-      }
-    },
-    {
-      "id": "subscriptions",
-      "classId": "operation-client",
-      "label": "subscriptions",
-      "x": 0,
-      "y": 220,
-      "params": {
-        "operation": "subscribe",
-        "count": 4,
-        "intervalMs": 100,
-        "keySpace": 2,
-        "actorSpace": 4
-      }
-    },
-    {
-      "id": "sync",
-      "classId": "operation-client",
-      "label": "sync",
-      "x": 0,
-      "y": 440,
-      "params": {
-        "operation": "readPresence",
-        "count": 12,
-        "intervalMs": 1000,
-        "startSec": 2
-      }
+      "id": "subsystem-1",
+      "classId": "concept.subsystem-1-context",
+      "label": "System responsibility",
+      "x": 320,
+      "y": 80,
+      "params": {}
     }
   ],
   "edges": [
     {
-      "id": "heartbeat",
-      "label": "heartbeat",
+      "id": "context-request",
+      "label": "request / outcome contract",
       "from": {
         "nodeId": "heartbeats",
         "portId": "out"
       },
       "to": {
-        "nodeId": "broker",
+        "nodeId": "subsystem-1",
         "portId": "in"
       },
-      "params": {
-        "latencyMs": 80,
-        "bandwidthMbps": 100
-      }
-    },
-    {
-      "id": "subscribe",
-      "label": "subscribe",
-      "from": {
-        "nodeId": "subscriptions",
-        "portId": "out"
-      },
-      "to": {
-        "nodeId": "broker",
-        "portId": "in"
-      },
-      "params": {
-        "latencyMs": 80,
-        "bandwidthMbps": 100
-      }
-    },
-    {
-      "id": "bulk-sync",
-      "label": "bulk-sync",
-      "from": {
-        "nodeId": "sync",
-        "portId": "out"
-      },
-      "to": {
-        "nodeId": "broker",
-        "portId": "in"
-      },
-      "params": {
-        "latencyMs": 80,
-        "bandwidthMbps": 100
-      }
+      "params": {}
     }
   ],
   "groups": [],
@@ -119,5 +48,42 @@
     "x": 0,
     "y": 0,
     "zoom": 1
-  }
+  },
+  "intent": {
+    "outcome": "Design a real-time presence service broadcasting user availability across enterprise channels.",
+    "users": "Callers, state owners and operators named by the problem.",
+    "constraints": "Make ordering, durability, capacity and retry assumptions explicit. Bounded single-tenant presence and delivery model; no Microsoft production topology or real client connections.",
+    "success": "An observable request path, bounded waiting, visible failures and a justified recovery policy."
+  },
+  "concepts": [
+    {
+      "id": "heartbeats-context",
+      "label": "Users and requests",
+      "responsibility": "Who issues requests, and which identities or deadlines travel with them?",
+      "ports": [
+        {
+          "id": "out",
+          "direction": "out",
+          "payloadType": "json"
+        }
+      ]
+    },
+    {
+      "id": "subsystem-1-context",
+      "label": "System responsibility",
+      "responsibility": "Design a real-time presence service broadcasting user availability across enterprise channels.",
+      "ports": [
+        {
+          "id": "in",
+          "direction": "in",
+          "payloadType": "json"
+        },
+        {
+          "id": "out",
+          "direction": "out",
+          "payloadType": "json"
+        }
+      ]
+    }
+  ]
 }

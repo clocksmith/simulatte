@@ -11,14 +11,15 @@ function run(diagram,until=diagram.run.horizonSec){const compiled=D.compile(diag
 const example=id=>structuredClone(require('../public/data/system-diagram/examples/'+id+'.json'));
 function stateFor(result,kernel){const n=result.compiled.nodes.find(n=>n.kernel===kernel);assert.ok(n, kernel);return result.state.kernel[n.id];}
 
-test('all seven company-inspired problems have attributed, independently loadable executable stages',()=>{
+test('public compatibility exports preserve classified provenance, conceptual stages and independently executable stages',()=>{
  S.validateProblems(registry);S.validateSolutions({schema:'simulatte.interviewSolutions.v1',solutions},registry,config);
- assert.equal(Object.keys(solutions).length,7);
+ assert.equal(Object.keys(solutions).length,15);
  for(const [id,solution] of Object.entries(solutions)){
-  const problem=registry.problems.find(p=>p.id===id);assert.equal(problem.sourceKind,'authored-practice');assert.equal(problem.solutionId,id);
-  assert.equal(solution.steps.length,3);
+  const problem=registry.problems.find(p=>p.solutionId===id);assert.ok(['authored-practice','candidate-reported','company-published'].includes(problem.sourceKind));assert.equal(problem.solutionId,id);
+  assert.equal(solution.steps.length,8);
   for(const step of solution.steps){
    const diagram=JSON.parse(fs.readFileSync(path.join(publicRoot,step.diagramPath),'utf8'));
+   if(step.kind==='design'){assert.equal(diagram.schema,D.DESIGN_SCHEMA);assert.ok(diagram.intent.outcome);assert.ok(diagram.nodes.length>0);continue;}
    const a=run(diagram),b=run(diagram);assert.equal(a.view.error,null,`${id}: ${step.name}`);
    assert.ok(a.view.global.offered>0,`${id}: actual source requests required`);
    assert.ok(a.view.global.completed>0,`${id}: actual successful work required`);

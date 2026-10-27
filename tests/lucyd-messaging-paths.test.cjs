@@ -5,7 +5,7 @@ const base=path.resolve(__dirname,'../public/data/system-diagram'),P=require('..
 const D=require('../public/simulatte/system-diagram/diagram.js'),E=require('../public/simulatte/system-diagram/engine.js');
 const K=require('../public/simulatte/system-diagram/kernels-all.js'),L=require('../public/simulatte/system-diagram/class-library.js').loadSync(base),config=require('../public/data/system-diagram/config.json');
 const deps={library:L,config,kernels:K};
-function stages(id){return P.problems.find(p=>p.id===id).solutions[0].stages;}
+function stages(id){return P.problems.find(p=>p.id===id).solutions[0].stages.filter(st=>Number.isInteger(st.legacyIndex)).sort((a,b)=>a.legacyIndex-b.legacyIndex);}
 function run(diagram,script){const compiled=D.compile(diagram,L,config),state=E.initialize(compiled,deps);if(script)state.kernel.users.script=structuredClone(script);E.advance(compiled,state,diagram.run.horizonSec,deps);assert.equal(E.observe(compiled,state,deps).error,null);return state;}
 test('chat stages distinguish committed effects, lost acknowledgements, retries and cursor recovery',()=>{
  const s=stages('chat'),states=s.map(st=>run(st.diagram));
@@ -31,4 +31,11 @@ test('multiple saved terms for one subscriber cannot duplicate a listing in the 
 });
 test('a generic successful service response cannot acknowledge an email effect',()=>{
  const d=structuredClone(stages('saved-search')[1].diagram);d.nodes.find(n=>n.id==='email').classId='worker';const state=run(d);assert.ok(Object.values(state.kernel.matcher.digests).every(d=>!d.delivered));assert.equal(state.kernel.users.failed,4);
+});
+test('realtime topology separates presence, push loss and authoritative cursor recovery',()=>{
+ const diagram=P.problems.find(p=>p.id==='chat').solutions[0].stages.at(-1).diagram,state=run(diagram),k=state.kernel;
+ assert.equal(diagram.nodes.length,8);assert.equal(k['alice-device'].messages.length,3);assert.deepEqual(k['bob-device'].messages.map(m=>m.id),['m1','m2']);assert.equal(k.mailbox.messages.length,3);
+ assert.deepEqual(k.users.outcomes.find(o=>o.index===6).value.messages.map(m=>m.id),['m2','m3']);assert.equal(Object.keys(k.connections.sessions).length,0);assert.ok(k.connections.expired>0);assert.ok(k.presence.expired>0);
+ const repaired=structuredClone(diagram);repaired.faults=repaired.faults.filter(f=>f.id!=='bob-disconnect');assert.equal(run(repaired).kernel['bob-device'].messages.length,3);
+ const unplugged=structuredClone(diagram);unplugged.edges=unplugged.edges.filter(e=>e.id!=='committed');const isolated=run(unplugged);assert.equal(isolated.kernel['alice-device'].messages.length,0);assert.equal(isolated.kernel.mailbox.messages.length,3);
 });

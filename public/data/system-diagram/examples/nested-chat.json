@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.systemDiagram.v4",
   "id": "nested-chat",
-  "name": "Nested reusable chat backend",
+  "name": "Nested reusable chat backend / Verify portable nested composition",
   "description": "A client calls a version-pinned chat backend containing a reusable generation-capacity subsystem. Inspect definitions and compare generation delay overrides; all messages and timings are synthetic.",
   "seed": 42,
   "run": {

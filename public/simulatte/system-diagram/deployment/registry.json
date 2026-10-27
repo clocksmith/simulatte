@@ -61,10 +61,10 @@
       "role": "receipt-sink"
     }
   ],
-  "libraryVersion": "1.3.0",
+  "libraryVersion": "1.5.0",
   "schema": "simulatte.lucydDeploymentRegistry.v1",
   "sourceHashes": {
-    "public/data/system-diagram/class-library.json": "c4bcce48bd83a9b178e2f8b46c5ece0b1b052b6e93d536c78eeef4893d5ed0d7",
+    "public/data/system-diagram/class-library.json": "730a2c6e06f4c805a439b969565fb435c0e0eedeb3ab78ad0cee6776bce42f11",
     "public/data/system-diagram/classes/interview.json": "0a3210a423418f2fe94a1792246730b2a7572f1ea33baa2f2888a0338742f69c",
     "public/data/system-diagram/config.json": "0c98682b821c96219c5d28d7d82358fa860e83183935b4d18b7c39544939665e",
     "public/simulatte/system-diagram/class-library.js": "b63650a2c9c4e66f4bd2c4df6dc97461b27da17334d09751e20ab550983ed005",

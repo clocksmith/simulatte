@@ -1,0 +1,66 @@
+{
+  "schema": "simulatte.systemDiagram.v4",
+  "id": "pagination",
+  "name": "Paginated API / Apply request admission",
+  "description": "Authored finite synthetic API model.",
+  "seed": 42,
+  "run": {
+    "horizonSec": 20
+  },
+  "classes": [],
+  "nodes": [
+    {
+      "id": "readers",
+      "classId": "api-practice-client",
+      "label": "readers",
+      "x": 0,
+      "y": 0,
+      "params": {
+        "scenario": "pagination",
+        "intervalMs": 800,
+        "timeoutMs": 300,
+        "retries": 0
+      }
+    },
+    {
+      "id": "results",
+      "classId": "pagination-store",
+      "label": "results",
+      "x": 320,
+      "y": 0,
+      "params": {
+        "mode": "snapshot",
+        "pageSize": 3,
+        "serviceDist": "constant",
+        "serviceMs": 10,
+        "queueCapacity": 1
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "page-request",
+      "label": "page-request",
+      "from": {
+        "nodeId": "readers",
+        "portId": "out"
+      },
+      "to": {
+        "nodeId": "results",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 10,
+        "bandwidthMbps": 100
+      }
+    }
+  ],
+  "groups": [],
+  "notes": [],
+  "faults": [],
+  "view": {
+    "x": 0,
+    "y": 0,
+    "zoom": 1
+  }
+}

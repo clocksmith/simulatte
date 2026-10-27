@@ -1,0 +1,89 @@
+{
+  "schema": "simulatte.systemDiagram.v5",
+  "id": "diagram",
+  "name": "Your project architecture / State the project and its success criteria",
+  "description": "",
+  "seed": 1,
+  "run": {
+    "horizonSec": 120
+  },
+  "classes": [],
+  "nodes": [
+    {
+      "id": "clients",
+      "classId": "concept.clients-context",
+      "label": "Users and requests",
+      "x": 0,
+      "y": 80,
+      "params": {}
+    },
+    {
+      "id": "api",
+      "classId": "concept.api-context",
+      "label": "System responsibility",
+      "x": 320,
+      "y": 80,
+      "params": {}
+    }
+  ],
+  "edges": [
+    {
+      "id": "context-request",
+      "label": "request / outcome contract",
+      "from": {
+        "nodeId": "clients",
+        "portId": "out"
+      },
+      "to": {
+        "nodeId": "api",
+        "portId": "in"
+      },
+      "params": {}
+    }
+  ],
+  "groups": [],
+  "notes": [],
+  "faults": [],
+  "view": {
+    "x": 0,
+    "y": 0,
+    "zoom": 1
+  },
+  "intent": {
+    "outcome": "Diagram a project you know deeply. Explain its design choices and the limits you encountered.",
+    "users": "Callers, state owners and operators named by the problem.",
+    "constraints": "Make ordering, durability, capacity and retry assumptions explicit. Authored worked example for the sourced open-ended project prompt, not a claim about the reader's employment or an actual incident. It models admission, worker service, leased delivery and idempotent result keys. Queue ACK means accepted work, not finished report; no HTTP polling endpoint, real report rendering, durable disk, authentication or operational deployment is implemented.",
+    "success": "An observable request path, bounded waiting, visible failures and a justified recovery policy."
+  },
+  "concepts": [
+    {
+      "id": "clients-context",
+      "label": "Users and requests",
+      "responsibility": "Who issues requests, and which identities or deadlines travel with them?",
+      "ports": [
+        {
+          "id": "out",
+          "direction": "out",
+          "payloadType": "json"
+        }
+      ]
+    },
+    {
+      "id": "api-context",
+      "label": "System responsibility",
+      "responsibility": "Diagram a project you know deeply. Explain its design choices and the limits you encountered.",
+      "ports": [
+        {
+          "id": "in",
+          "direction": "in",
+          "payloadType": "json"
+        },
+        {
+          "id": "out",
+          "direction": "out",
+          "payloadType": "json"
+        }
+      ]
+    }
+  ]
+}

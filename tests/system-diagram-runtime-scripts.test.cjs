@@ -3,7 +3,7 @@ const test=require('node:test'),assert=require('node:assert/strict'),fs=require(
 test('HTML loads the complete simulation dependencies in executable browser-global order',async()=>{
  const root=path.resolve(__dirname,'../public/simulatte/system-diagram'),html=fs.readFileSync(path.join(root,'index.html'),'utf8');
  const scripts=[...html.matchAll(/<script defer src="([^"?]+)(?:\?[^" ]*)?"/g)].map(m=>m[1]);
- const selected=scripts.filter(src=>src.includes('/shared/contracts/')||src.includes('multirate-coordinator')||/^\.\/(class-library|subsystems|diagram|protocol-routing|kernel-registry|kernels-[a-z-]+|engine[-a-z]*|runner)\.js$/.test(src));
+ const selected=scripts.filter(src=>src.includes('/shared/contracts/')||src.includes('multirate-coordinator')||/^\.\/(class-library|subsystems|diagram|protocol-routing|kernel-registry|study-runtime|study-commands|kernels-[a-z-]+|engine[-a-z]*|runner)\.js$/.test(src));
  const context=vm.createContext({structuredClone,TextEncoder,TextDecoder,performance,console});
  for(const src of selected)vm.runInContext(fs.readFileSync(path.resolve(root,src),'utf8'),context,{filename:src});
  const L=require('../public/simulatte/system-diagram/class-library.js').loadSync(path.resolve(root,'../../data/system-diagram'));

@@ -1,0 +1,89 @@
+{
+  "schema": "simulatte.systemDiagram.v5",
+  "id": "diagram",
+  "name": "Saved search emails / Define search and notification identities",
+  "description": "",
+  "seed": 1,
+  "run": {
+    "horizonSec": 120
+  },
+  "classes": [],
+  "nodes": [
+    {
+      "id": "users",
+      "classId": "concept.users-context",
+      "label": "Users and requests",
+      "x": 0,
+      "y": 80,
+      "params": {}
+    },
+    {
+      "id": "matcher",
+      "classId": "concept.matcher-context",
+      "label": "System responsibility",
+      "x": 320,
+      "y": 80,
+      "params": {}
+    }
+  ],
+  "edges": [
+    {
+      "id": "context-request",
+      "label": "request / outcome contract",
+      "from": {
+        "nodeId": "users",
+        "portId": "out"
+      },
+      "to": {
+        "nodeId": "matcher",
+        "portId": "in"
+      },
+      "params": {}
+    }
+  ],
+  "groups": [],
+  "notes": [],
+  "faults": [],
+  "view": {
+    "x": 0,
+    "y": 0,
+    "zoom": 1
+  },
+  "intent": {
+    "outcome": "Let book shoppers save search terms and receive a daily email about matching new listings.",
+    "users": "Callers, state owners and operators named by the problem.",
+    "constraints": "Make ordering, durability, capacity and retry assumptions explicit. Finite new listings and exact lowercase title-token matching against already saved searches. One matching station scans bounded terms; no inverted index, retroactive search, unsubscribe, SMTP, external scheduler or real provider. Days 1 and 2 are explicit synthetic clock tokens, not wall-clock days. Simulated mailbox idempotency is a required endpoint contract and does not prove exactly-once real email. Every stage is evolution Stage 1 simulation, independent of diagram detail levels.",
+    "success": "An observable request path, bounded waiting, visible failures and a justified recovery policy."
+  },
+  "concepts": [
+    {
+      "id": "users-context",
+      "label": "Users and requests",
+      "responsibility": "Who issues requests, and which identities or deadlines travel with them?",
+      "ports": [
+        {
+          "id": "out",
+          "direction": "out",
+          "payloadType": "json"
+        }
+      ]
+    },
+    {
+      "id": "matcher-context",
+      "label": "System responsibility",
+      "responsibility": "Let book shoppers save search terms and receive a daily email about matching new listings.",
+      "ports": [
+        {
+          "id": "in",
+          "direction": "in",
+          "payloadType": "json"
+        },
+        {
+          "id": "out",
+          "direction": "out",
+          "payloadType": "json"
+        }
+      ]
+    }
+  ]
+}

@@ -4,14 +4,14 @@ Parent: [World](../CATSCAN.md)
 
 ## Target
 
-Evolve intent and conceptual responsibilities into executable architecture; study sourced problems through editable approaches and seeded workloads at `/system-diagram`.
+Evolve intent into executable architecture; study sourced problems with editable approaches at `/system-diagram`.
 
 ## Authority
 
-- Owns documents, refinement, lowering, classes, kernels, study, editing and observations.
+- Owns documents, refinement, lowering, kernels, study and observations.
 - Coordinator owns rounds/checkpoints/replay; World UI owns controls.
 - Owns encrypted practice; 256one retains career records.
-- Does not own Create compilation or implicit cloud provisioning.
+- Does not own Create or provisioning.
 - [Deployment child](deployment/CATSCAN.md) owns optional implementation bindings/exports, not implicit provisioning.
 
 ## Scope
@@ -25,12 +25,13 @@ Evolve intent and conceptual responsibilities into executable architecture; stud
 
 ## Invariants
 
-- Evolution: 0 Sketch, 1 Simulation, 2 Specification, 3 Deployment, 4 Operation, 5 System. Detail: 0 Context, 1 Capabilities, 2 Architecture, 3 Internals, 4 Implementation. These are separate axes, not compiler phases. Catalogue execution proves simulation only.
+- Evolution layers 0–5: sketch, simulation, specification, deployment, operation, system. Detail levels 0–4: context, capabilities, architecture, internals, implementation. Neither axis changes compiler phases.
 - Strict v4 remains compatible. v5 refinement preserves identity/external contracts; unbound behavior refuses execution/deployment.
 - Canonical problems share public/private code paths; compatibility registries are generated.
-- Approaches/stages retain independent edits and personal diagrams; replay configured sources/seed without claiming matched closed-loop arrivals.
+- Published approaches have eight substantive stages minimum, declared design/executable kinds, challenges and checks.
+- Stages retain edits and personal diagrams; replay configured demand without claiming matched closed-loop arrivals.
 - Rail is collapsed/expanded; expanded resizing caps at 280px and viewport bounds.
-- Parameters resolve kernel/class/instance; unknown values refuse. Layout cannot affect results.
+- Parameters resolve kernel/class/instance. Unknown values refuse; layout cannot affect results.
 - Subsystems pin typed, bounded, acyclic definitions; publishing preserves accepted runs.
 - Requests, attempts/effects, rejections/timeouts remain distinguishable. Seed/controls reproduce coordinator execution.
 - Synthetic assumptions establish neither production capacity nor provider truth.
@@ -40,7 +41,7 @@ Evolve intent and conceptual responsibilities into executable architecture; stud
 ## Acceptance
 
 - Evidence: [Document tests](../../../tests/system-diagram-document.test.cjs), [study execution](../../../tests/lucyd-problem-model.test.cjs), [refinement](../../../tests/lucyd-predesign.test.cjs), [navigation/privacy](../../../tests/system-diagram-solution-navigation.test.cjs).
-- Desktop/mobile journeys verify authoring, persistence, resizing and execution separately from human comprehension.
+- Desktop/mobile journeys verify behavior separately from human comprehension.
 
 ## Non-goals
 

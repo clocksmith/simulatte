@@ -1,0 +1,139 @@
+{
+  "schema": "simulatte.systemDiagram.v4",
+  "id": "load-balancer-baseline",
+  "name": "Round robin load balancer / Route one request path",
+  "description": "Bounded authored synthetic architecture comparison.",
+  "seed": 42,
+  "run": {
+    "horizonSec": 16
+  },
+  "classes": [],
+  "nodes": [
+    {
+      "id": "clients",
+      "classId": "web-client",
+      "label": "clients",
+      "x": 0,
+      "y": 140,
+      "params": {
+        "pattern": "constant",
+        "ratePerSec": 8,
+        "maxRequests": 80,
+        "stopSec": 10,
+        "retries": 0,
+        "timeoutMs": 2000,
+        "readFraction": 1
+      }
+    },
+    {
+      "id": "router",
+      "classId": "load-balancer",
+      "label": "router",
+      "x": 240,
+      "y": 140,
+      "params": {
+        "strategy": "round-robin",
+        "retries": 0,
+        "healthChecks": false,
+        "callTimeoutMs": 100,
+        "ejectAfterErrors": 2,
+        "ejectSec": 2
+      }
+    },
+    {
+      "id": "backend-a",
+      "classId": "web-server",
+      "label": "backend a",
+      "x": 760,
+      "y": 0,
+      "params": {
+        "serviceMs": 15,
+        "serviceDist": "constant",
+        "concurrency": 4,
+        "queueCapacity": 8
+      }
+    },
+    {
+      "id": "backend-b",
+      "classId": "web-server",
+      "label": "backend b",
+      "x": 760,
+      "y": 280,
+      "params": {
+        "serviceMs": 15,
+        "serviceDist": "constant",
+        "concurrency": 4,
+        "queueCapacity": 8
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "requests",
+      "from": {
+        "nodeId": "clients",
+        "portId": "out"
+      },
+      "to": {
+        "nodeId": "router",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 100
+      }
+    },
+    {
+      "id": "route-a",
+      "from": {
+        "nodeId": "router",
+        "portId": "backends"
+      },
+      "to": {
+        "nodeId": "backend-a",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 100
+      }
+    },
+    {
+      "id": "route-b",
+      "from": {
+        "nodeId": "router",
+        "portId": "backends"
+      },
+      "to": {
+        "nodeId": "backend-b",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 100
+      }
+    }
+  ],
+  "groups": [],
+  "notes": [],
+  "faults": [
+    {
+      "id": "backend-errors",
+      "target": {
+        "kind": "node",
+        "id": "backend-a"
+      },
+      "type": "errors",
+      "atSec": 1,
+      "untilSec": 5,
+      "params": {
+        "rate": 1
+      }
+    }
+  ],
+  "view": {
+    "x": 0,
+    "y": 0,
+    "zoom": 1
+  }
+}
