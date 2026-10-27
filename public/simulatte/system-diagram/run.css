@@ -183,3 +183,9 @@
   .sd-insp-live { grid-template-columns: minmax(0, 1fr); }
   .sd-table th, .sd-table td { padding: 4px 6px; }
 }
+
+/* Optional three.js effects layer (?renderer=webgl): drawn beneath the SVG diagram, never takes input. */
+.sd-effects-canvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+#diagram[data-effects='webgl'] .sd-canvas-svg { position: relative; }
+#diagram[data-effects='webgl'] .sd-canvas-board-bg { fill: transparent; }
+#diagram[data-effects='webgl'] .sd-edge-line { opacity: .4; }

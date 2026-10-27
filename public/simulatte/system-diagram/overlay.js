@@ -113,6 +113,21 @@
     void library;
 
     let edgeGroup, dotGroup;
+    // ?renderer=webgl hands traffic and connection flow to the optional three.js layer; SVG keeps status text.
+    // Until it loads, or if WebGL is unavailable or lost, the SVG marks below keep drawing.
+    let effects = null, effectsState = effectsRequested(root) ? 'loading' : 'svg', lastView = null;
+    const host = canvas.host;
+    function setEffectsState(state, reason) { effectsState = state; if (host?.dataset) { host.dataset.effects = state; if (reason) host.dataset.effectsReason = reason; else delete host.dataset.effectsReason; } }
+    if (effectsState === 'loading') {
+      setEffectsState('loading');
+      loadEffects(root, doc).then(module => {
+        if (effectsState !== 'loading') return;
+        effects = module.create({host, svg: canvas.svg, sampleFor: readSample, nodeBox: canvas.nodeBox, getView: canvas.getView, config,
+          onFail: reason => { effects?.dispose(); effects = null; setEffectsState('svg-fallback', reason); if (lastView) render(lastView); }});
+        setEffectsState('webgl');
+        if (lastView) render(lastView);
+      }).catch(error => setEffectsState('svg-fallback', error.message));
+    }
     const samples = new Map(); // edgeId -> { d, sample }
     const edgeMarks = new Map(); // edgeId -> { el, key }
     const dots = []; // pooled circles with last-state cache
@@ -279,15 +294,23 @@
 
     function render(view) {
       if (!view) { clear(); return; }
+      lastView = view;
       ensureGroups();
       frameSamples = new Map();
-      renderEdges(view.edges || {});
-      renderTransit(view.t, view.transit || []);
+      if (effects) {
+        edgeGroup.setAttribute('display', 'none'); dotGroup.setAttribute('display', 'none');
+        effects.render(view);
+      } else {
+        edgeGroup.removeAttribute('display'); dotGroup.removeAttribute('display');
+        renderEdges(view.edges || {});
+        renderTransit(view.t, view.transit || []);
+      }
       renderNodes(view.nodes || {});
       renderGroups(view.nodes || {});
     }
 
     function clear() {
+      lastView = null; effects?.clear();
       for (const entry of statuses.values()) resetStatus(entry);
       statuses.clear();
       for (const entry of groupStatuses.values()) resetStatus(entry);
@@ -297,7 +320,18 @@
       edgeMarks.clear(); samples.clear(); dots.length = 0; visibleDots = 0;
     }
 
-    return { render, clear, dispose: clear };
+    function dispose() { clear(); effectsState = 'svg'; effects?.dispose(); effects = null; }
+    return { render, clear, dispose, effectsState: () => effectsState };
+  }
+
+  function effectsRequested(scope) {
+    try { return new URLSearchParams(scope.location?.search || '').get('renderer') === 'webgl'; } catch { return false; }
+  }
+  // Load beside this script with its build stamp so a deploy never pairs a new overlay with a cached layer.
+  async function loadEffects(scope, doc) {
+    const src = doc.querySelector('script[src*="overlay.js"]')?.src, url = src ? new URL('effects-three.js', src) : null;
+    if (url) url.search = new URL(src).search;
+    return import(url ? url.href : './effects-three.js');
   }
 
   return Object.freeze({ create, groupSummary, FAMILIES, payloadFamily, transitFraction, edgeActivity, counterText, compactNumber, EDGE_ERROR_RATE });

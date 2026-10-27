@@ -658,3 +658,24 @@ and `system-diagram-runtime-scripts.test.cjs`. Control adapters and browser-glob
 script evaluation establish source behavior, not desktop/mobile visual acceptance
 or deployed availability. Private collection ciphertext and lock behavior remain
 separate from public solution data.
+
+## Optional three.js effects layer
+
+`?renderer=webgl` loads `effects-three.js` on demand: a WebGL2 canvas beneath the SVG
+diagram, drawn with vendored three.js 0.186.1 (`vendor/three/`, MIT, checksums in
+`versions.json`). It draws message particles with trails, connection flow whose pulse
+speed follows the observed message rate, queue glow, active-fault pulses and failure
+bursts. `effects-model.js` derives all of them from the run view and simulation time,
+so a paused run stands still and playback speed scales every effect. SVG keeps parts,
+ports, labels, status counters, selection and hit-testing. Without the flag, or when
+WebGL2 is unavailable or its context is lost, the SVG overlay draws everything as
+before; `#diagram[data-effects]` reports `loading`, `webgl` or `svg-fallback`.
+
+`tools/simulatte/benchmark-system-diagram-effects.mjs` compares both renderers on a
+synthetic stress diagram near the 600-message transit limit. On a desktop (Apple M3 GPU
+through ANGLE Metal) both renderers draw a paused busy frame within 60 fps (about
+10–11 ms of JavaScript per frame), but playback runs near 8 fps because the simulation
+step takes about 175 ms per frame. With 4× CPU throttling at 390 px the step takes about
+2.4 s. The WebGL layer adds visual effects; it does not make heavy runs faster. These are
+headless measurements, not physical-phone GPU or human-perception results.
+

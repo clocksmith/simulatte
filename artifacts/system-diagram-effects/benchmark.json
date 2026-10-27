@@ -1,0 +1,161 @@
+{
+  "source": {
+    "head": "743e571f45038361c3959ed61ecaff1065fc627c",
+    "capturedAt": "2026-10-27T16:11:20.465Z",
+    "modifiedSources": {
+      "public/simulatte/system-diagram/editor-canvas.js": {
+        "sha256": "e7022e3177e4a806b5e51e4e8f6e91f60edbe5384d748dc909136e5ff40f36bb",
+        "modifiedAt": "2026-10-27T16:04:10.605Z"
+      },
+      "public/simulatte/system-diagram/effects-model.js": {
+        "sha256": "c28056fe155c2ffdc31bc4d1707aaca6a1f28214febc96756c8e1512aeb80128",
+        "modifiedAt": "2026-10-27T16:07:48.385Z"
+      },
+      "public/simulatte/system-diagram/effects-three.js": {
+        "sha256": "206a9179cafde2782384dacd2f0c024b4827424ad1ba4a4c6a8a4c4251dbf68f",
+        "modifiedAt": "2026-10-27T16:07:48.385Z"
+      },
+      "public/simulatte/system-diagram/overlay.js": {
+        "sha256": "b4d82d99c5ffc1c4e024a73d7553a43bf175d0ca060912ac5540adc338b18976",
+        "modifiedAt": "2026-10-27T16:04:10.605Z"
+      },
+      "public/simulatte/system-diagram/run.css": {
+        "sha256": "cb5311556b58880fdfb240426f8ea5ce5c7a4df3c62f3773ff68b9d1babab670",
+        "modifiedAt": "2026-10-27T16:08:10.201Z"
+      },
+      "public/simulatte/system-diagram/vendor/three/THREE-LICENSE": {
+        "sha256": "8b378ebe60e2fe500158cb0ac71cb5e8b7d92953c2abcc63a0eb90499653b5bc",
+        "modifiedAt": "2026-10-27T16:01:29.315Z"
+      },
+      "public/simulatte/system-diagram/vendor/three/three.core.js": {
+        "sha256": "9edde002b066a9a05676a6127f67735b62baf399bdea529f2f7e31657da769e6",
+        "modifiedAt": "2026-10-27T16:01:29.313Z"
+      },
+      "public/simulatte/system-diagram/vendor/three/three.module.js": {
+        "sha256": "9052042d676cb0fdc1ddfefe193053f34b7ac0513a616fdac4535d49987812ea",
+        "modifiedAt": "2026-10-27T16:01:29.311Z"
+      },
+      "public/simulatte/system-diagram/vendor/three/versions.json": {
+        "sha256": "ce922b1a58d523477842b6a1eea577ff651480e8385f9f86733e0546fc2b31a4",
+        "modifiedAt": "2026-10-27T16:01:29.341Z"
+      }
+    },
+    "boundary": "Local served public output with this working-tree delta; not a deployed release or physical GPU/acoustic validation."
+  },
+  "boundary": "Synthetic stress diagram at the transit render limit; desktop and CPU-throttled 390px emulation in headless Chrome. Frame pacing only, not physical phone GPU performance or human perception.",
+  "sampleMs": 4000,
+  "cases": [
+    {
+      "setting": "desktop",
+      "renderer": "svg",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "cpuThrottle": 1,
+      "errors": [],
+      "nodes": 18,
+      "frames": 34,
+      "fps": 7.9,
+      "p50Ms": 16.7,
+      "p95Ms": 916.6,
+      "maxMs": 1900,
+      "simulateMeanMs": 175.4,
+      "drawMeanMs": 9.75,
+      "drawP95Ms": 11.1,
+      "drawFps": 60,
+      "over33Ms": 9,
+      "meanTransit": 513,
+      "meanParticles": 0,
+      "simTime": 3.87,
+      "effects": "svg",
+      "effectsReason": null,
+      "gl": null,
+      "pass": true
+    },
+    {
+      "setting": "desktop",
+      "renderer": "webgl",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "cpuThrottle": 1,
+      "errors": [],
+      "nodes": 18,
+      "frames": 37,
+      "fps": 7.8,
+      "p50Ms": 16.7,
+      "p95Ms": 1049.9,
+      "maxMs": 2100,
+      "simulateMeanMs": 174.5,
+      "drawMeanMs": 11.24,
+      "drawP95Ms": 12.6,
+      "drawFps": 60,
+      "over33Ms": 7,
+      "meanTransit": 512,
+      "meanParticles": 2739,
+      "simTime": 4.02,
+      "effects": "webgl",
+      "effectsReason": null,
+      "gl": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3, Unspecified Version)",
+      "pass": true
+    },
+    {
+      "setting": "phone-4x-cpu",
+      "renderer": "svg",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "cpuThrottle": 4,
+      "errors": [],
+      "nodes": 18,
+      "frames": 6,
+      "fps": 0.9,
+      "p50Ms": 199.9,
+      "p95Ms": 5799.8,
+      "maxMs": 5799.8,
+      "simulateMeanMs": 2372.4,
+      "drawMeanMs": 30.3,
+      "drawP95Ms": 34.1,
+      "drawFps": 25.8,
+      "over33Ms": 5,
+      "meanTransit": 481,
+      "meanParticles": 0,
+      "simTime": 2.63,
+      "effects": "svg",
+      "effectsReason": null,
+      "gl": null,
+      "pass": true
+    },
+    {
+      "setting": "phone-4x-cpu",
+      "renderer": "webgl",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "cpuThrottle": 4,
+      "errors": [],
+      "nodes": 18,
+      "frames": 7,
+      "fps": 0.7,
+      "p50Ms": 116.6,
+      "p95Ms": 8599.7,
+      "maxMs": 8599.7,
+      "simulateMeanMs": 2469.5,
+      "drawMeanMs": 38.64,
+      "drawP95Ms": 44.7,
+      "drawFps": 22.8,
+      "over33Ms": 6,
+      "meanTransit": 482,
+      "meanParticles": 2629,
+      "simTime": 2.98,
+      "effects": "webgl",
+      "effectsReason": null,
+      "gl": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3, Unspecified Version)",
+      "pass": true
+    }
+  ]
+}

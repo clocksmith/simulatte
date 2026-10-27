@@ -249,7 +249,7 @@
       if (!overlay) {
         const api = globalThis.SimulatteSystemDiagramOverlay;
         if (!api?.create) throw Error('System Diagram overlay script is required for execution state');
-        overlay = api.create({ canvas: { host, layers, nodeElement: id => items.nodes.get(id)?.el || null, edgeElement: id => items.edges.get(id)?.path || null, groupElement, foldedGroups, nodeBox, portPosition }, library, config });
+        overlay = api.create({ canvas: { host, svg, getView: () => ({ ...view }), layers, nodeElement: id => items.nodes.get(id)?.el || null, edgeElement: id => items.edges.get(id)?.path || null, groupElement, foldedGroups, nodeBox, portPosition }, library, config });
       }
       for (const item of items.nodes.values()) item.status.querySelector('.sd-pending-label')?.remove();
       overlay.render(runView);
