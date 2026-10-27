@@ -14,6 +14,8 @@ Latest full baseline: `LUCYD_PLAYWRIGHT_MODULE=… node tools/simulatte/audit-st
 
 Focused layer-shortcut correction: [workspace-shortcuts.json](../../artifacts/composable-study/workspace-shortcuts.json) passes 16/16 editing and keyboard-focus checks, including both Cmd+Option+bracket front/back shortcuts. The pinned upstream one-step actions accepted Option and won priority over the advertised front/back actions. [The reproducible patch](../../tools/simulatte/patch-study-excalidraw.cjs) excludes Option from those two one-step predicates. Native action implementations, Help text, drawing controls, geometry and styling remain unchanged. Three [regression tests](../../tests/study-layer-shortcuts.test.cjs) verify Mac behavior, Windows/Linux Ctrl+Shift behavior, and reconstruction of the exact upstream bytes. This is focused evidence, not a rerun of the full baseline.
 
+The same 16 checks pass on production in [workspace-shortcuts-live.json](../../artifacts/composable-study/workspace-shortcuts-live.json). [Release identity](../../artifacts/live-release/2026-10-27T23-26-34-630Z/report.json) verifies build `fc3da85d0294455d47e4f1010fa60501a729317b-8b43a5af0a02`. The deployed engine SHA-256 matches `vendor/versions.json`; its response uses `Cache-Control: no-cache`.
+
 Live: the same audit with `--url https://simulatte.world/simulatte/system-diagram/study/` against build `cec9b10e` wrote [workspace-acceptance-live.json](../../artifacts/composable-study/workspace-acceptance-live.json): 88 of 89 pass, with the same single failure. Two earlier live runs exposed a real race, a slow problem load overriding later navigation; it is fixed and now has its own check.
 
 ## Required interaction evidence
