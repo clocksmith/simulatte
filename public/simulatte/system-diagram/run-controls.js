@@ -65,7 +65,7 @@
     const call = name => () => options[name]?.();
     let state = { running: false, time: 0, horizon: 0, speed: config.playback.defaultSpeed ?? speeds[0], done: false, busy: false };
 
-    const play = ui.SimButton({ document: doc, label: 'Play', variant: 'primary', onAction: () => (state.done ? options.onReplay?.() : state.running ? options.onPause?.() : options.onPlay?.()) });
+    const play = ui.SimButton({ document: doc, label: options.idleLabel || 'Play', variant: 'primary', onAction: () => (state.done ? options.onReplay?.() : state.running ? options.onPause?.() : options.onPlay?.()) });
     play.element.classList.add('sd-run-play');
     play.element.dataset.runCommand = 'toggle';
 
@@ -108,7 +108,7 @@
     function update(next = {}) {
       state = { ...state, ...next };
       const speed = nearestSpeed(speeds, Number.isFinite(state.speed) ? state.speed : speeds[0]);
-      const label = state.done ? 'Replay' : state.running ? 'Pause' : 'Play';
+      const label = state.done ? 'Replay' : state.running ? 'Pause' : options.idleLabel || 'Play';
       const key = `${label}|${speed}|${state.busy}|${state.done}`;
       if (key !== rendered) {
         rendered = key;

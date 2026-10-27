@@ -1,0 +1,241 @@
+{
+  "schema": "simulatte.systemDiagram.v4",
+  "id": "amazon-flash-sale",
+  "name": "Flash sale reservations",
+  "description": "Bounded stock, idempotent payment and reservation expiration.",
+  "seed": 42,
+  "run": {
+    "horizonSec": 20
+  },
+  "classes": [],
+  "nodes": [
+    {
+      "id": "shoppers",
+      "classId": "operation-client",
+      "label": "shoppers",
+      "x": 0,
+      "y": 0,
+      "params": {
+        "operation": "reserve",
+        "count": 8,
+        "intervalMs": 400,
+        "keySpace": 1,
+        "duplicateEvery": 2
+      }
+    },
+    {
+      "id": "payments",
+      "classId": "operation-client",
+      "label": "payments",
+      "x": 0,
+      "y": 250,
+      "params": {
+        "operation": "pay",
+        "count": 2,
+        "intervalMs": 400,
+        "startSec": 3,
+        "keySpace": 1,
+        "duplicateEvery": 1
+      }
+    },
+    {
+      "id": "new-shoppers",
+      "classId": "operation-client",
+      "label": "new shoppers",
+      "x": 0,
+      "y": 500,
+      "params": {
+        "operation": "reserve",
+        "count": 4,
+        "intervalMs": 400,
+        "startSec": 10,
+        "keySpace": 1,
+        "actorOffset": 20
+      }
+    },
+    {
+      "id": "subsystem-1",
+      "classId": "subsystem.checkout-authority@1",
+      "label": "Checkout authority",
+      "x": 350,
+      "y": 130,
+      "params": {},
+      "overrides": {}
+    }
+  ],
+  "edges": [
+    {
+      "id": "reserve",
+      "label": "reserve",
+      "from": {
+        "nodeId": "shoppers",
+        "portId": "out"
+      },
+      "to": {
+        "nodeId": "subsystem-1",
+        "portId": "port-1"
+      },
+      "params": {
+        "latencyMs": 80,
+        "bandwidthMbps": 100
+      }
+    },
+    {
+      "id": "pay",
+      "label": "pay",
+      "from": {
+        "nodeId": "payments",
+        "portId": "out"
+      },
+      "to": {
+        "nodeId": "subsystem-1",
+        "portId": "port-1"
+      },
+      "params": {
+        "latencyMs": 80,
+        "bandwidthMbps": 100
+      }
+    },
+    {
+      "id": "reuse-stock",
+      "label": "reuse-stock",
+      "from": {
+        "nodeId": "new-shoppers",
+        "portId": "out"
+      },
+      "to": {
+        "nodeId": "subsystem-1",
+        "portId": "port-1"
+      },
+      "params": {
+        "latencyMs": 80,
+        "bandwidthMbps": 100
+      }
+    }
+  ],
+  "groups": [],
+  "notes": [],
+  "faults": [],
+  "view": {
+    "x": 0,
+    "y": 0,
+    "zoom": 1
+  },
+  "subsystems": [
+    {
+      "id": "checkout-authority",
+      "version": 1,
+      "label": "Checkout authority",
+      "nodes": [
+        {
+          "id": "inventory",
+          "classId": "inventory-reservations",
+          "label": "Inventory authority",
+          "x": 350,
+          "y": 130,
+          "params": {
+            "concurrency": 4,
+            "queueCapacity": 100,
+            "serviceMs": 20,
+            "maxRecords": 200,
+            "stock": 4,
+            "ttlSec": 5
+          }
+        },
+        {
+          "id": "updates",
+          "classId": "worker",
+          "label": "Receipt and release events",
+          "x": 650,
+          "y": 130,
+          "params": {
+            "concurrency": 4,
+            "queueCapacity": 1000,
+            "serviceMs": 30,
+            "serviceDist": "exponential",
+            "serviceCv": 1,
+            "perKbMs": 0,
+            "errorRate": 0,
+            "responseKb": 1,
+            "callMode": "sequential",
+            "blockingCalls": true,
+            "callTimeoutMs": 5000,
+            "retries": 0,
+            "retryBackoffMs": 100,
+            "backoffMultiplier": 2,
+            "retryJitter": true,
+            "memoryPerRequestMiB": 1,
+            "memoryLimitMiB": 1024,
+            "memoryPressureThreshold": 0.8,
+            "memoryThrashFactor": 1,
+            "memoryGarbageFraction": 0,
+            "memoryGcPauseMs": 0,
+            "memoryGcCooldownMs": 1000,
+            "memoryOomRecoveryMs": 1000,
+            "memoryOomPolicy": "reject",
+            "outputPayload": "inherit"
+          }
+        }
+      ],
+      "edges": [
+        {
+          "id": "receipts",
+          "label": "receipts",
+          "from": {
+            "nodeId": "inventory",
+            "portId": "updates"
+          },
+          "to": {
+            "nodeId": "updates",
+            "portId": "in"
+          },
+          "params": {
+            "latencyMs": 80,
+            "bandwidthMbps": 100
+          }
+        }
+      ],
+      "groups": [],
+      "notes": [],
+      "faults": [],
+      "ports": [
+        {
+          "id": "port-1",
+          "label": "Inventory authority: in",
+          "direction": "in",
+          "target": {
+            "nodeId": "inventory",
+            "portId": "in"
+          }
+        },
+        {
+          "id": "port-2",
+          "label": "Inventory authority: updates",
+          "direction": "out",
+          "target": {
+            "nodeId": "inventory",
+            "portId": "updates"
+          }
+        },
+        {
+          "id": "port-3",
+          "label": "Receipt and release events: Requests",
+          "direction": "in",
+          "target": {
+            "nodeId": "updates",
+            "portId": "in"
+          }
+        },
+        {
+          "id": "port-4",
+          "label": "Receipt and release events: Calls",
+          "direction": "out",
+          "target": {
+            "nodeId": "updates",
+            "portId": "calls"
+          }
+        }
+      ]
+    }
+  ]
+}

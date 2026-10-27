@@ -47,13 +47,14 @@
       const rect = doc.getElementById('diagram').getBoundingClientRect();
       const task = doc.querySelector('.lucyd-task-bar')?.getBoundingClientRect();
       const step = doc.querySelector('.interview-stepper:not([hidden])')?.getBoundingClientRect();
+      const playback = doc.querySelector('.sd-run-dock')?.getBoundingClientRect();
       const right = properties.panel.dataset.open === 'true' ? properties.panel.getBoundingClientRect().width + 12 : 12;
-      canvas.setInsets({top: Math.max(12, (task?.bottom || rect.top) - rect.top + 12), bottom: step ? rect.bottom - step.top + 12 : 24,
+      canvas.setInsets({top: Math.max(12, (task?.bottom || rect.top) - rect.top + 12), bottom: Math.max(step ? rect.bottom - step.top + 12 : 24, playback ? rect.bottom - playback.top + 12 : 24),
         left: Math.max(12, palette.panel.getBoundingClientRect().right - rect.left + 12), right});
     }
     const seen = new WeakSet(), resize = new win.ResizeObserver(updateInsets);
     function observe() {
-      for (const el of [doc.querySelector('.app-header'), palette.panel, doc.querySelector('.lucyd-task-bar'), doc.querySelector('.interview-stepper')].filter(Boolean)) {
+      for (const el of [doc.querySelector('.app-header'), palette.panel, doc.querySelector('.lucyd-task-bar'), doc.querySelector('.interview-stepper'), doc.querySelector('.sd-run-dock')].filter(Boolean)) {
         if (!seen.has(el)) {seen.add(el); resize.observe(el);}
       }
       updateInsets();

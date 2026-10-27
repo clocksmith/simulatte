@@ -1,0 +1,121 @@
+{
+  "schema": "simulatte.systemDiagram.v4",
+  "id": "amazon-flash-sale",
+  "name": "Flash sale reservations",
+  "description": "Bounded stock, idempotent payment and reservation expiration.",
+  "seed": 42,
+  "run": {
+    "horizonSec": 20
+  },
+  "classes": [],
+  "nodes": [
+    {
+      "id": "shoppers",
+      "classId": "operation-client",
+      "label": "shoppers",
+      "x": 0,
+      "y": 0,
+      "params": {
+        "operation": "reserve",
+        "count": 8,
+        "intervalMs": 400,
+        "keySpace": 1,
+        "duplicateEvery": 2
+      }
+    },
+    {
+      "id": "inventory",
+      "classId": "inventory-reservations",
+      "label": "Inventory authority",
+      "x": 350,
+      "y": 130,
+      "params": {
+        "stock": 4,
+        "ttlSec": 5
+      }
+    },
+    {
+      "id": "payments",
+      "classId": "operation-client",
+      "label": "payments",
+      "x": 0,
+      "y": 250,
+      "params": {
+        "operation": "pay",
+        "count": 2,
+        "intervalMs": 400,
+        "startSec": 3,
+        "keySpace": 1,
+        "duplicateEvery": 1
+      }
+    },
+    {
+      "id": "updates",
+      "classId": "worker",
+      "label": "Receipt and release events",
+      "x": 650,
+      "y": 130,
+      "params": {
+        "serviceMs": 30
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "reserve",
+      "label": "reserve",
+      "from": {
+        "nodeId": "shoppers",
+        "portId": "out"
+      },
+      "to": {
+        "nodeId": "inventory",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 80,
+        "bandwidthMbps": 100
+      }
+    },
+    {
+      "id": "pay",
+      "label": "pay",
+      "from": {
+        "nodeId": "payments",
+        "portId": "out"
+      },
+      "to": {
+        "nodeId": "inventory",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 80,
+        "bandwidthMbps": 100
+      }
+    },
+    {
+      "id": "receipts",
+      "label": "receipts",
+      "from": {
+        "nodeId": "inventory",
+        "portId": "updates"
+      },
+      "to": {
+        "nodeId": "updates",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 80,
+        "bandwidthMbps": 100
+      }
+    }
+  ],
+  "groups": [],
+  "notes": [],
+  "faults": [],
+  "view": {
+    "x": 0,
+    "y": 0,
+    "zoom": 1
+  }
+}

@@ -23,7 +23,9 @@
         "prefetchSegments": {"type": "integer", "label": "Prefetch segments ahead", "min": 1, "max": 100, "default": 2, "group": "basic"},
         "peerAssistance": {"type": "boolean", "label": "Try peer assistance", "default": true, "group": "basic"},
         "peerTimeoutMs": {"type": "number", "label": "Peer attempt timeout", "min": 1, "max": 60000, "default": 300, "group": "basic", "unit": "ms"},
-        "requiresManifest": {"type": "boolean", "label": "Require manifest authority", "default": false, "group": "basic"}
+        "requiresManifest": {"type": "boolean", "label": "Require manifest authority", "default": false, "group": "basic"},
+        "lowSegmentKiB": {"type": "number", "label": "Lower rendition segment", "default": 0, "min": 0, "max": 1000000, "unit": "KiB", "group": "advanced"},
+        "adaptiveBitrate": {"type": "boolean", "label": "Adapt bitrate to transfer time", "default": false, "group": "basic"}
       },
       "ports": [
         {
@@ -73,7 +75,8 @@
         "assetId": {"type": "integer", "label": "Asset identity", "min": 0, "max": 1000000, "default": 1, "group": "basic"},
         "segments": {"type": "integer", "label": "Segments per asset", "min": 1, "max": 200, "default": 8, "group": "basic"},
         "segmentKiB": {"type": "number", "label": "Segment size", "min": 0.001, "max": 100000, "default": 256, "group": "basic", "unit": "KiB"},
-        "egressUsdPerGiB": {"type": "number", "label": "Origin egress assumption", "min": 0, "max": 100, "default": 0.08, "group": "basic", "unit": "USD/GiB"}
+        "egressUsdPerGiB": {"type": "number", "label": "Origin egress assumption", "min": 0, "max": 100, "default": 0.08, "group": "basic", "unit": "USD/GiB"},
+        "lowSegmentKiB": {"type": "number", "label": "Lower rendition segment", "default": 0, "min": 0, "max": 1000000, "unit": "KiB", "group": "advanced"}
       },
       "ports": [
         {
@@ -337,7 +340,8 @@
         "assetId": {"type": "integer", "label": "Asset identity", "min": 0, "max": 1000000, "default": 1, "group": "basic"},
         "segments": {"type": "integer", "label": "Segments per asset", "min": 1, "max": 200, "default": 8, "group": "basic"},
         "segmentKiB": {"type": "number", "label": "Segment size", "min": 0.001, "max": 100000, "default": 256, "group": "basic", "unit": "KiB"},
-        "segmentDurationSec": {"type": "number", "label": "Segment playback duration", "min": 0.001, "max": 600, "default": 2, "group": "basic", "unit": "s", "help": "Fixed playback duration for the accepted asset. Edit the draft and restart to change duration; live changes cannot rewrite elapsed playback."}
+        "segmentDurationSec": {"type": "number", "label": "Segment playback duration", "min": 0.001, "max": 600, "default": 2, "group": "basic", "unit": "s", "help": "Fixed playback duration for the accepted asset. Edit the draft and restart to change duration; live changes cannot rewrite elapsed playback."},
+        "lowSegmentKiB": {"type": "number", "label": "Lower rendition segment", "default": 0, "min": 0, "max": 1000000, "unit": "KiB", "group": "advanced"}
       },
       "ports": [
         {

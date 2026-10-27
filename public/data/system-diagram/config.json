@@ -141,9 +141,45 @@
       "id": "nested-chat",
       "label": "Chat: reusable nested backend and generation capacity",
       "path": "/data/system-diagram/examples/nested-chat.json"
+    },
+    {
+      "id": "reddit-comments",
+      "label": "Threaded comments and voting",
+      "path": "/data/system-diagram/examples/reddit-comments.json"
+    },
+    {
+      "id": "meta-stories",
+      "label": "Ephemeral stories",
+      "path": "/data/system-diagram/examples/meta-stories.json"
+    },
+    {
+      "id": "amazon-flash-sale",
+      "label": "Flash sale reservations",
+      "path": "/data/system-diagram/examples/amazon-flash-sale.json"
+    },
+    {
+      "id": "microsoft-presence",
+      "label": "Presence and subscriptions",
+      "path": "/data/system-diagram/examples/microsoft-presence.json"
+    },
+    {
+      "id": "google-crawler",
+      "label": "Distributed crawler",
+      "path": "/data/system-diagram/examples/google-crawler.json"
+    },
+    {
+      "id": "twitter-timeline",
+      "label": "Social timeline fanout",
+      "path": "/data/system-diagram/examples/twitter-timeline.json"
+    },
+    {
+      "id": "netflix-streaming",
+      "label": "Video delivery and adaptation",
+      "path": "/data/system-diagram/examples/netflix-streaming.json"
     }
   ],
   "claimBoundary": "Synthetic discrete-event model of the drawn architecture. Service times, latencies, failure rates and token costs are user assumptions, not measurements of real systems, providers or hardware.",
   "interviewJourneysPath": "/data/system-diagram/interview-journeys.json",
-  "interviewProblemsPath": "/data/system-diagram/interview-problems.json"
+  "interviewProblemsPath": "/data/system-diagram/interview-problems.json",
+  "interviewSolutionsPath": "/data/system-diagram/interview-solutions.json"
 }

@@ -91,7 +91,7 @@ status recovery; Spark-style stages and executor loss; social posts and follower
 feeds; workspace/project/task relationships and access revocation. Show named
 operations on connections, progressive component settings, actual simulated
 records and causal progress. Examples remain compositions of reusable kernels,
-not a second canned-outcome engine. Separate source/model checks, browser authoring,
+not a second canned-outcome engine. Add authored practice for threaded comments and voting, video delivery, social timelines, ephemeral stories, inventory reservations, crawling, and presence. Explicit solution playback reveals one editable architecture stage and a short explanation at a time; Simulate executes the completed or edited graph and displays actual synthetic requests and outcomes. Selecting a problem still starts blank. Separate source/model checks, browser authoring,
 human comprehension and deployed availability.
 
 Develop challenging workloads as composable packs of typed nodes, ports, resource

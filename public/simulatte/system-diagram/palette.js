@@ -358,6 +358,7 @@
           }
           section.append(row);
         }
+        ui.adoptTree(group);
       }
     }
 

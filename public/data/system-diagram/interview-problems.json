@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.lucydProblems.v1",
-  "version": "1.0.0",
-  "followupAttribution": "Lucyd-authored practice followups, not interview transcripts. Prompts paraphrase the linked sources. Candidate accounts are not company verification.",
+  "version": "1.1.0",
+  "followupAttribution": "Lucyd-authored practice followups, not interview transcripts. Prompts paraphrase the linked sources. Candidate accounts are not company verification. Company-inspired exercises and their solutions are authored practice based on technical references, not verified interview questions or company architectures.",
   "sources": {
     "cockroach": {
       "title": "Cockroach Labs published engineering interview exercises",
@@ -13,35 +13,40 @@
       "url": "https://www.vectorbuilds.dev/notes/raw-every-system-design-question-i-was-asked-in-real-interviews-at-10-companies",
       "kind": "candidate-reported"
     },
-    "bytebytego": {
-      "title": "Alex Xu: System Design Interview reference architectures",
-      "url": "https://bytebytego.com",
-      "kind": "candidate-reported"
+    "reddit-reference": {
+      "title": "Reddit archived comment-tree implementation",
+      "url": "https://github.com/reddit-archive/reddit/blob/master/r2/r2/lib/comment_tree.py",
+      "kind": "authored-practice"
     },
-    "netflix-techblog": {
-      "title": "Netflix Technology Blog: Global Video Delivery",
-      "url": "https://netflixtechblog.com",
-      "kind": "company-published"
+    "netflix-reference": {
+      "title": "Netflix Open Connect technical overview",
+      "url": "https://openconnect.netflix.com/en/",
+      "kind": "authored-practice"
     },
-    "twitter-engineering": {
-      "title": "Twitter Engineering: Timelines at Scale",
-      "url": "https://blog.x.com/engineering",
-      "kind": "company-published"
+    "twitter-reference": {
+      "title": "X timeline API documentation",
+      "url": "https://docs.x.com/x-api/posts/timelines/introduction",
+      "kind": "authored-practice"
     },
-    "meta-engineering": {
-      "title": "Meta Engineering: Real-Time Infrastructure",
-      "url": "https://engineering.fb.com",
-      "kind": "company-published"
+    "meta-reference": {
+      "title": "Meta announcement of Instagram Stories",
+      "url": "https://about.fb.com/ja/news/2016/08/instagram_instagramstories/",
+      "kind": "authored-practice"
     },
-    "amazon-builders": {
-      "title": "Amazon Builders' Library: Distributed Systems and Transactions",
-      "url": "https://aws.amazon.com/builders-library",
-      "kind": "company-published"
+    "amazon-reference": {
+      "title": "AWS conditional inventory updates and multi-region limits",
+      "url": "https://aws.amazon.com/blogs/database/part-2-build-resilient-applications-with-amazon-dynamodb-global-tables/",
+      "kind": "authored-practice"
     },
-    "google-research": {
-      "title": "Google Research: Distributed Systems and Large-Scale Web Search",
-      "url": "https://research.google",
-      "kind": "company-published"
+    "google-reference": {
+      "title": "Google crawl-budget management",
+      "url": "https://developers.google.com/crawling/docs/crawl-budget",
+      "kind": "authored-practice"
+    },
+    "microsoft-reference": {
+      "title": "Microsoft Graph presence change notifications",
+      "url": "https://learn.microsoft.com/en-us/graph/changenotifications-for-presence",
+      "kind": "authored-practice"
     }
   },
   "problems": [
@@ -225,8 +230,8 @@
       "id": "reddit-comments",
       "title": "Threaded comments and voting",
       "company": "Reddit",
-      "sourceId": "bytebytego",
-      "sourceKind": "candidate-reported",
+      "sourceId": "reddit-reference",
+      "sourceKind": "authored-practice",
       "problemStatement": "Design a discussion platform supporting deeply nested comment trees and live upvote/downvote tallies.",
       "steps": [
         {
@@ -241,14 +246,15 @@
           "name": "Ranking Delivery",
           "interviewerPrompt": "How will you compute top and best comment rankings and stream updates to connected clients?"
         }
-      ]
+      ],
+      "solutionId": "reddit-comments"
     },
     {
       "id": "netflix-streaming",
       "title": "Global video streaming and CDN",
       "company": "Netflix",
-      "sourceId": "netflix-techblog",
-      "sourceKind": "company-published",
+      "sourceId": "netflix-reference",
+      "sourceKind": "authored-practice",
       "problemStatement": "Design an adaptive bitrate video streaming service delivering high-throughput playback globally.",
       "steps": [
         {
@@ -263,14 +269,15 @@
           "name": "Manifest Delivery",
           "interviewerPrompt": "How will player clients dynamically adapt bitrate during network degradation?"
         }
-      ]
+      ],
+      "solutionId": "netflix-streaming"
     },
     {
       "id": "twitter-timeline",
       "title": "Realtime social timeline",
       "company": "Twitter/X",
-      "sourceId": "twitter-engineering",
-      "sourceKind": "company-published",
+      "sourceId": "twitter-reference",
+      "sourceKind": "authored-practice",
       "problemStatement": "Design a real-time social timeline where users follow accounts and receive fresh home feeds.",
       "steps": [
         {
@@ -285,14 +292,15 @@
           "name": "Delivery",
           "interviewerPrompt": "How will active connected clients receive new tweets in real time without polling?"
         }
-      ]
+      ],
+      "solutionId": "twitter-timeline"
     },
     {
       "id": "meta-stories",
       "title": "Ephemeral stories media pipeline",
       "company": "Meta",
-      "sourceId": "meta-engineering",
-      "sourceKind": "company-published",
+      "sourceId": "meta-reference",
+      "sourceKind": "authored-practice",
       "problemStatement": "Design ephemeral photo and video stories that replicate to friends and expire in 24 hours.",
       "steps": [
         {
@@ -307,14 +315,15 @@
           "name": "Expiration",
           "interviewerPrompt": "How will media and metadata be automatically purged upon reaching their 24-hour TTL?"
         }
-      ]
+      ],
+      "solutionId": "meta-stories"
     },
     {
       "id": "amazon-flash-sale",
       "title": "Flash sale inventory reservation",
       "company": "Amazon",
-      "sourceId": "amazon-builders",
-      "sourceKind": "company-published",
+      "sourceId": "amazon-reference",
+      "sourceKind": "authored-practice",
       "problemStatement": "Design an e-commerce checkout system handling high-concurrency item reservation without double-selling.",
       "steps": [
         {
@@ -329,14 +338,15 @@
           "name": "Timeout Recovery",
           "interviewerPrompt": "How will uncompleted reservations safely expire and return inventory to available stock?"
         }
-      ]
+      ],
+      "solutionId": "amazon-flash-sale"
     },
     {
       "id": "google-crawler",
       "title": "Distributed web crawler",
       "company": "Google",
-      "sourceId": "google-research",
-      "sourceKind": "company-published",
+      "sourceId": "google-reference",
+      "sourceKind": "authored-practice",
       "problemStatement": "Design a scalable web crawler that traverses billions of web pages while honoring politeness.",
       "steps": [
         {
@@ -351,14 +361,15 @@
           "name": "Index Handoff",
           "interviewerPrompt": "How will crawled document content be parsed, fingerprinted, and handed off to indexing?"
         }
-      ]
+      ],
+      "solutionId": "google-crawler"
     },
     {
       "id": "microsoft-presence",
       "title": "Distributed presence broker",
       "company": "Microsoft",
-      "sourceId": "bytebytego",
-      "sourceKind": "candidate-reported",
+      "sourceId": "microsoft-reference",
+      "sourceKind": "authored-practice",
       "problemStatement": "Design a real-time presence service broadcasting user availability across enterprise channels.",
       "steps": [
         {
@@ -373,7 +384,8 @@
           "name": "Bulk Sync",
           "interviewerPrompt": "How will desktop and mobile clients sync bulk presence states on initial login?"
         }
-      ]
+      ],
+      "solutionId": "microsoft-presence"
     }
   ]
 }

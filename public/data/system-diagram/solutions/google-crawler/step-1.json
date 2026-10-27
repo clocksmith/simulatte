@@ -1,0 +1,71 @@
+{
+  "schema": "simulatte.systemDiagram.v1",
+  "id": "google-crawler",
+  "name": "Distributed crawler",
+  "description": "An autonomous bounded crawler models per-origin delay, deduplication and provenance. Cron adds scheduled tasks to a shared CPU parser and database; no real scraping or content extraction occurs.",
+  "seed": 42,
+  "run": {
+    "horizonSec": 30
+  },
+  "classes": [],
+  "nodes": [
+    {
+      "id": "crawler",
+      "classId": "crawler",
+      "label": "Synthetic crawler",
+      "x": 0,
+      "y": 0,
+      "params": {
+        "seedUrls": 3,
+        "domains": 2,
+        "fetchConcurrency": 2,
+        "politenessMs": 100,
+        "linksPerPage": 1,
+        "duplicateRate": 0.5,
+        "maxPages": 8,
+        "pageKbMean": 2,
+        "timeoutMs": 3000,
+        "retries": 1,
+        "stopSec": 10
+      }
+    },
+    {
+      "id": "website",
+      "classId": "website",
+      "label": "Synthetic website",
+      "x": 240,
+      "y": -120,
+      "params": {
+        "serviceMs": 20,
+        "serviceDist": "constant",
+        "rateLimitPerSec": 20,
+        "responseKb": 2
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "fetch",
+      "from": {
+        "nodeId": "crawler",
+        "portId": "fetch"
+      },
+      "to": {
+        "nodeId": "website",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 2,
+        "bandwidthMbps": 1000
+      }
+    }
+  ],
+  "groups": [],
+  "notes": [],
+  "faults": [],
+  "view": {
+    "x": 0,
+    "y": 0,
+    "zoom": 1
+  }
+}

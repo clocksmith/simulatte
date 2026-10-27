@@ -57,7 +57,7 @@ function railDom() {
   const host = el('aside'); doc.body.append(host);
   for (const id of ['palette-search','capability-count','palette','diagram']) { const e = el('div'); e.id = id; host.append(e); }
   const field = (parent, _label, value, {id}) => { const wrap = el('label'), input = el('select'); input.id = id; input.value = value; wrap.append(input); parent.append(wrap); return input; };
-  const ui = {SimButton: ({label, onAction}) => { const element = el('button', '', label); element.events.click = onAction; return {element}; }};
+  const ui = {adoptTree:()=>{}, SimButton: ({label, onAction}) => { const element = el('button', '', label); element.events.click = onAction; return {element}; }};
   const all = (e = host) => [e, ...e.children.flatMap(child => all(child))];
   return {doc, host, el, field, ui, all};
 }
@@ -67,7 +67,7 @@ test('rail renders grouped controls, searches subsystems, inspects and refreshes
   const model = Editor.create({diagram:structuredClone(require('../public/data/system-diagram/examples/nested-chat.json')), library, config});
   const rail = Palette.createRail({...dom, library, model, config, canvas:{dropClassAt: id => inserted.push(id)}, message:()=>{}, onInspect:id=>inspected.push(id), onManage:()=>managed.push(true)});
   rail.render();
-  assert.match(dom.doc.getElementById('capability-count').textContent, /88 single nodes · 2 expandable subsystems/);
+  assert.equal(dom.doc.getElementById('capability-count').textContent, `${library.classOrder.length} single nodes · 2 expandable subsystems`);
   const groups = dom.all().filter(e => e.tagName === 'details');
   assert.equal(groups[0].dataset.category, 'subsystems');
   groups[1].open = false; groups[1].events.toggle();

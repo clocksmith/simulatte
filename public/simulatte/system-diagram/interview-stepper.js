@@ -46,7 +46,7 @@
     for (const problem of data.problems) {
       const source = data.sources?.[problem.sourceId];
       if (!problem.id || ids.has(problem.id) || !problem.title || !problem.problemStatement?.trim() || problem.problemStatement.length > 300) throw Error('Interview problems need unique IDs and concise statements');
-      if (!source || !/^https:\/\//.test(source.url) || !['company-published', 'candidate-reported'].includes(source.kind) || problem.sourceKind !== source.kind) throw Error('Interview problem needs matching source provenance');
+      if (!source || !/^https:\/\//.test(source.url) || !['company-published', 'candidate-reported', 'authored-practice'].includes(source.kind) || problem.sourceKind !== source.kind) throw Error('Interview problem needs matching source provenance');
       if (!Array.isArray(problem.steps) || !problem.steps.length || problem.steps.some(step => !step.name || !step.interviewerPrompt)) throw Error('Interview followups are required');
       ids.add(problem.id);
     }
@@ -68,14 +68,14 @@
     };
   }
 
-  function create({ host, model, canvas, library, config, onStepChange, onMessage }) {
+  function create({ host, model, canvas, library, config, onStepChange, onMessage, onSimulate }) {
     const doc = host.ownerDocument, events = new AbortController();
     const progress = createProgress(model, config), problems = new Map();
-    let sourceData = null, current = null, reference = null, generation = 0;
+    let sourceData = null, current = null, reference = null, generation = 0, solutions = {}, walkthrough = null;
     const make = (tag, className, text) => { const el = doc.createElement(tag); if (className) el.className = className; if (text) el.textContent = text; return el; };
     const listen = (el, type, fn) => el.addEventListener(type, fn, { signal: events.signal });
     const button = (text, label, action) => {
-      const el = make('button', 'wui-btn', text); el.type = 'button'; el.setAttribute('aria-label', label);
+      const el = make('button', 'wui-btn lucyd-task-action', text); el.type = 'button'; el.setAttribute('aria-label', label);
       listen(el, 'click', () => { Promise.resolve().then(action).catch(error => onMessage?.(error.message, true)); });
       return el;
     };
@@ -83,13 +83,14 @@
     const prompt = make('p', 'lucyd-task-prompt');
     const choose = button('Choose problem', 'Choose interview problem or write a task', () => picker.showModal());
     const details = button('Details', 'Problem details and source', () => { renderDetails(); info.showModal(); });
-    bar.append(prompt, choose, details); host.append(bar);
+    const solutionButton = button('Play solution', 'Open step-by-step example solution', () => showSolution());
+    bar.append(prompt, choose, details, solutionButton); host.append(bar);
     const stepper = make('nav', 'interview-stepper'); stepper.setAttribute('aria-label', 'Interview stages');
-    const prev = button('Previous', 'Previous interview stage', () => goToStep(progress.index - 1));
+    const prev = button('Previous', 'Previous interview stage', () => goToStep((walkthrough?.index ?? progress.index) - 1));
     const stage = make('span', 'interview-stepper-title'); stage.setAttribute('aria-live', 'polite');
-    const next = button('Next', 'Next interview stage', () => goToStep(progress.index + 1));
+    const next = button('Next', 'Next interview stage', () => walkthrough && walkthrough.index === walkthrough.solution.steps.length - 1 ? onSimulate?.() : goToStep((walkthrough?.index ?? progress.index) + 1));
     const returnButton = button('Back to my diagram', 'Return from reference', () => leaveReference());
-    stepper.append(prev, stage, next, returnButton); host.append(stepper);
+    stepper.append(prev, stage, next); bar.append(returnButton); host.append(stepper);
 
     function dialog(title) {
       const el = make('dialog', 'lucyd-dialog'); el.setAttribute('aria-label', title);
@@ -112,12 +113,13 @@
       if (problem.sourceKind === 'practice') { el.textContent = 'Lucyd practice scenario'; return el; }
       if (problem.sourceKind === 'custom') { el.textContent = 'Your task'; return el; }
       const source = sourceData.sources[problem.sourceId];
-      const link = make('a', '', `${problem.sourceKind === 'company-published' ? 'Published exercise' : 'Candidate report'} · ${problem.company}`);
+      const label = problem.sourceKind === 'authored-practice' ? 'Authored practice · technical reference' : problem.sourceKind === 'company-published' ? 'Published exercise' : 'Candidate report';
+      const link = make('a', '', `${label} · ${problem.company}`);
       link.href = source.url; link.target = '_blank'; link.rel = 'noopener noreferrer'; el.append(link); return el;
     }
     function renderPicker() {
       select.replaceChildren(new Option('Select a problem', ''));
-      for (const [kind, name] of [['company-published', 'Published interview exercises'], ['candidate-reported', 'Firsthand interview reports'], ['practice', 'Practice examples']]) {
+      for (const [kind, name] of [['company-published', 'Published interview exercises'], ['candidate-reported', 'Firsthand interview reports'], ['authored-practice', 'Company-inspired practice'], ['practice', 'Practice examples']]) {
         const group = make('optgroup'); group.label = name;
         for (const p of problems.values()) if (p.sourceKind === kind) group.append(new Option(`${p.title}${p.company ? ` · ${p.company}` : ''}`, p.id));
         select.append(group);
@@ -141,28 +143,56 @@
     listen(form, 'submit', startCustom); listen(submit, 'click', startCustom);
 
     function render() {
-      prompt.textContent = current ? (progress.index ? current.steps[progress.index - 1].interviewerPrompt : current.problemStatement) : 'What are you designing?';
+      const activeStep = walkthrough?.solution.steps[walkthrough.index];
+      prompt.textContent = activeStep ? activeStep.explanation : current ? (progress.index ? current.steps[progress.index - 1].interviewerPrompt : current.problemStatement) : 'What are you designing?';
       choose.textContent = current ? 'Change' : 'Choose problem';
       details.hidden = !current; stepper.hidden = !current;
-      prev.disabled = !current || progress.index === 0 || !!reference;
-      next.disabled = !current || progress.index >= current.steps.length || !!reference;
-      stage.textContent = reference ? 'Example architecture' : current ? `${progress.index + 1}/${current.steps.length + 1} · ${progress.index ? current.steps[progress.index - 1].name : 'Problem'}` : '';
+      prev.disabled = walkthrough ? walkthrough.index === 0 : !current || progress.index === 0 || !!reference;
+      next.disabled = walkthrough ? false : !current || progress.index >= current.steps.length || !!reference;
+      next.textContent = walkthrough && walkthrough.index === walkthrough.solution.steps.length - 1 ? 'Simulate' : 'Next';
+      next.setAttribute('aria-label', next.textContent === 'Simulate' ? 'Simulate completed solution' : 'Next interview stage');
+      stage.textContent = activeStep ? `${walkthrough.index + 1}/${walkthrough.solution.steps.length} · ${activeStep.name}` : reference ? 'Example architecture' : current ? `${progress.index + 1}/${current.steps.length + 1} · ${progress.index ? current.steps[progress.index - 1].name : 'Problem'}` : '';
+      solutionButton.hidden = !current || !solutions[current.solutionId] || Boolean(reference);
       returnButton.hidden = !reference;
     }
     function refresh() { canvas.render(); canvas.flush(); render(); onStepChange?.(model.diagram, current?.steps[progress.index - 1] || null); }
     function leaveReference() {
       if (!reference) return;
       const result = model.replace(reference); if (!result.ok) throw Error(result.error);
-      reference = null; refresh(); canvas.fit({readable: true});
+      generation++; reference = null; walkthrough = null; refresh(); canvas.fit({readable: true});
     }
     function setScenario(id) {
       const p = problems.get(id); if (!p) throw Error(`Unknown problem: ${id}`);
       generation++; leaveReference(); progress.select(id); current = p;
       refresh(); canvas.fit({readable: true});
     }
-    function goToStep(index) {
+    async function goToStep(index) {
+      if (walkthrough) return loadSolutionStep(index);
       if (!current || !Number.isInteger(index) || index < 0 || index > current.steps.length) return;
       generation++; leaveReference(); progress.move(index); refresh();
+    }
+    async function loadSolutionStep(index) {
+      const owner = walkthrough;
+      if (!owner || !Number.isInteger(index) || index < 0 || index >= owner.solution.steps.length) return;
+      if (owner.loaded) owner.snapshots.set(owner.index, clone(model.diagram));
+      const token = ++generation, step = owner.solution.steps[index], expected = model.diagram;
+      let diagram = owner.snapshots.get(index);
+      if (!diagram) {
+        const response = await fetch(step.diagramPath); if (!response.ok) throw Error('Solution stage is unavailable');
+        diagram = documentsApi.validate(await response.json(), library, config);
+      }
+      if (token !== generation || owner !== walkthrough) return;
+      if (model.diagram !== expected) throw Error('Kept your newer diagram edits; select the solution step again when ready.');
+      const result = model.replace(diagram); if (!result.ok) throw Error(result.error);
+      owner.index = index; owner.loaded = true; refresh(); canvas.fit({readable:true});
+    }
+    async function showSolution() {
+      const solution = solutions[current?.solutionId]; if (!solution) throw Error('This problem has no solution walkthrough');
+      if (reference) leaveReference();
+      const expected = model.diagram;
+      reference = clone(model.diagram); walkthrough = {solution, index:0, loaded:false, snapshots:new Map()};
+      try { await loadSolutionStep(0); }
+      catch (error) { if(model.diagram === expected) leaveReference(); else {reference=null;walkthrough=null;render();} throw error; }
     }
     async function showFull() {
       if (!current?.referenceExampleId) return;
@@ -177,6 +207,7 @@
     function renderDetails() {
       infoBody.replaceChildren(); if (!current) return;
       infoBody.append(make('p', '', current.problemStatement), sourceElement(current));
+      if (walkthrough) infoBody.append(make('p', '', walkthrough.solution.boundary));
       const step = current.steps[progress.index - 1];
       if (step) {
         infoBody.append(make('h3', '', step.name), make('p', '', step.interviewerPrompt));
@@ -191,7 +222,7 @@
       if (current.referenceExampleId) infoBody.append(button('Open example', 'Open optional example architecture', showFull));
     }
     function reset() {
-      generation++; progress.clear(); current = null; reference = null; problems.delete('custom');
+      generation++; progress.clear(); current = null; reference = null; walkthrough = null; problems.delete('custom');
       picker.close(); info.close(); custom.value = ''; preview.textContent = ''; provenance.replaceChildren(); infoBody.replaceChildren();
       select.value = ''; render();
     }
@@ -201,23 +232,33 @@
     };
     listen(doc, 'keydown', keydown);
     choose.disabled = true; render();
-    const ready = Promise.all([config.interviewProblemsPath, config.interviewJourneysPath].map(async path => {
+    const ready = Promise.all([config.interviewProblemsPath, config.interviewJourneysPath, config.interviewSolutionsPath].map(async path => {
       if (!path) throw Error('Interview data path is required');
       const response = await fetch(path); if (!response.ok) throw Error(`Interview data unavailable: ${path}`); return response.json();
-    })).then(([data, journeys]) => {
+    })).then(([data, journeys, solutionData]) => {
       if (journeys?.schema !== 'simulatte.systemDiagramInterview.v1' || !journeys.scenarios) throw Error('Interview practice journeys are required');
       sourceData = validateProblems(data);
+      solutions = validateSolutions(solutionData, sourceData, config);
       for (const p of sourceData.problems) problems.set(p.id, p);
       for (const [id, p] of Object.entries(journeys.scenarios || {})) problems.set(id, {...p, id, sourceKind: 'practice', referenceExampleId: id});
       renderPicker(); choose.disabled = false; render();
     }).catch(error => { onMessage?.(error.message, true); throw error; });
     // The page reports a failed load while callers can also await readiness.
     ready.catch(() => {});
-    return Object.freeze({ready, setScenario, goToStep, showFull, reset, onDocumentLoaded: reset,
+    return Object.freeze({ready, setScenario, goToStep, showFull, showSolution, leaveReference, reset, onDocumentLoaded: reset,
       toggleDrawer() { if (info.open) info.close(); else if (current) { renderDetails(); info.showModal(); } },
       getScenario: () => current, getStepIndex: () => progress.index, isExpanded: () => info.open,
       dispose() { generation++; progress.clear(); events.abort(); bar.remove(); stepper.remove(); picker.remove(); info.remove(); },
     });
   }
-  return Object.freeze({create, buildStepDocument, validateProblems, createProgress});
+  function validateSolutions(data, problems, config) {
+    if (data?.schema !== 'simulatte.interviewSolutions.v1' || !data.solutions || Array.isArray(data.solutions)) throw Error('Solution registry is required');
+    for (const [id, solution] of Object.entries(data.solutions)) {
+      if (solution.id !== id || !solution.title || !solution.boundary || !Array.isArray(solution.steps) || !solution.steps.length || solution.steps.some(s=>!s.name || !s.explanation || !/^\/data\/system-diagram\/solutions\/[a-z0-9-]+\/step-[1-9][0-9]*\.json$/.test(s.diagramPath))) throw Error(`Invalid solution: ${id}`);
+      if (!config.examples.some(e=>e.id===id)) throw Error(`Solution ${id} needs an example architecture`);
+    }
+    for (const problem of problems.problems) if (problem.solutionId && !data.solutions[problem.solutionId]) throw Error(`Missing solution for ${problem.id}`);
+    return clone(data.solutions);
+  }
+  return Object.freeze({create, buildStepDocument, validateProblems, validateSolutions, createProgress});
 });

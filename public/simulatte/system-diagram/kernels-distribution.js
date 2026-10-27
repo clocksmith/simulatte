@@ -20,7 +20,7 @@
   function firstEdge(ctx, port, index = 0) { const edges = ctx.edges(port); return edges.length ? edges[index % edges.length] : null; }
   function end(ctx, job, ok, err) { const r = ok ? { ok: true } : { ok: false, err: err || 'unavailable' }; ctx.endRequest(job.msg, r); ctx.reply(job, r); }
   function hash(value) { let h = 2166136261; for (const c of value) h = Math.imul(h ^ c.charCodeAt(0), 16777619); return h >>> 0; }
-  function segmentKey(v) { return `asset-${v.assetId}:segment-${v.segment}`; }
+  function segmentKey(v) { return `asset-${v.assetId}:segment-${v.segment}${v.rendition ? `:${v.rendition}` : ""}`; }
   function segmentValid(v) { return v && Number.isInteger(v.assetId) && v.assetId >= 0 && Number.isInteger(v.segment) && v.segment >= 0 && Number.isFinite(v.segmentKiB) && v.segmentKiB > 0 && Number.isInteger(v.viewers) && v.viewers > 0 && v.viewers <= 1000000 && typeof v.cohortId === 'string'; }
   function contentId(v) { return `${segmentKey(v)}:${v.segmentKiB}KiB`; }
   function delivered(v, fields) { return fields?.videoSegment?.contentId === contentId(v) && fields.videoSegment.assetId === v.assetId && fields.videoSegment.segment === v.segment && fields.videoSegment.segmentKiB === v.segmentKiB; }
@@ -31,9 +31,9 @@
   function viewerFetch(ctx, cohort) {
     const p = ctx.p, k = ctx.k;
     if (cohort.done || cohort.active || ctx.fault.down || !ctx.k.manifestReady) return;
-    const v = { assetId: p.assetId, segment: cohort.segment, segmentKiB: p.segmentKiB, viewers: cohort.viewers, cohortId: cohort.id };
+    const v = { assetId: p.assetId, segment: cohort.segment, segmentKiB: cohort.segmentKiB || p.segmentKiB, viewers: cohort.viewers, cohortId: cohort.id, ...(p.adaptiveBitrate ? {rendition: String(cohort.segmentKiB || p.segmentKiB)} : {}) };
     const msg = ctx.message({ ptype: 'blob', kb: toKB(REQUEST_KIB), op: 'read', key: segmentKey(v), fields: { video: v, synthetic: true } });
-    ctx.beginRequest(msg); const job = ctx.newJob(msg); cohort.active = job.id; k.requests[job.id] = { cohort: cohort.index, remaining: cohort.viewers };
+    ctx.beginRequest(msg); const job = ctx.newJob(msg); cohort.active = job.id; k.requests[job.id] = { cohort: cohort.index, remaining: cohort.viewers, startedAt: ctx.t };
     const peer = p.peerAssistance ? firstEdge(ctx, 'peers', cohort.index) : null;
     if (peer) ctx.call(job, peer.id, {}, { timeoutMs: p.peerTimeoutMs, retries: 0, slot: 'peer' });
     else viewerCdn(ctx, job);
@@ -50,6 +50,12 @@
     const p = ctx.p;
     if (c.playAt === null) { c.playAt = ctx.t; c.startupSec = ctx.t - c.startedAt; k.startedViewers += c.viewers; k.startupViewerSec += c.startupSec * c.viewers; }
     else { const due = c.playAt + c.segment * p.segmentDurationSec + c.rebufferSec, stall = Math.max(0, ctx.t - due); c.rebufferSec += stall; k.rebufferViewerSec += stall * c.viewers; }
+    if (p.adaptiveBitrate && p.lowSegmentKiB > 0 && p.lowSegmentKiB < p.segmentKiB) {
+      const elapsed = Math.max(0.001, ctx.t - r.startedAt), old = c.segmentKiB || p.segmentKiB;
+      const next = elapsed > p.segmentDurationSec ? p.lowSegmentKiB : elapsed < p.segmentDurationSec * .4 ? p.segmentKiB : old;
+      if (next !== old) { k.bitrateSwitches = (k.bitrateSwitches || 0) + 1; ctx.log('bitrate-switch', `${c.id}: ${old} to ${next} KiB per segment`); }
+      c.segmentKiB = next;
+    }
     k.deliveredSegments += c.viewers; c.segment++;
     if (p.peerAssistance) {
       const edge = firstEdge(ctx, 'peers', c.index);
@@ -60,8 +66,8 @@
     const nextAt = c.playAt + Math.max(0, c.segment - p.prefetchSegments) * p.segmentDurationSec + c.rebufferSec;
     ctx.wake(Math.max(0, nextAt - ctx.t), { kind: 'segment', index: c.index, epoch: k.epoch });
   }
-  registry.register({ id: 'videoViewers', station: null, immutableParams: ['viewers', 'cohorts', 'assetId', 'segments', 'segmentKiB', 'segmentDurationSec', 'startSec', 'startSpreadSec', 'requiresManifest'],
-    validateTopology(node, compiled) { synchronous(node, compiled, ['cdn', 'peers', 'manifest']); if (node.params.requiresManifest && !node.out.manifest.length) throw Error(`${node.id}: required manifest authority is not connected`); if (node.out.manifest?.length) routing.resolveTargets(node, compiled, 'manifest', { kernels: ['videoManifest'], targetPort: 'in' }); },
+  registry.register({ id: 'videoViewers', station: null, immutableParams: ['viewers', 'cohorts', 'assetId', 'segments', 'segmentKiB', 'segmentDurationSec', 'startSec', 'startSpreadSec', 'requiresManifest', 'lowSegmentKiB', 'adaptiveBitrate'],
+    validateTopology(node, compiled) { synchronous(node, compiled, ['cdn', 'peers', 'manifest']); if (node.params.adaptiveBitrate && (!node.params.requiresManifest || !(node.params.lowSegmentKiB > 0 && node.params.lowSegmentKiB < node.params.segmentKiB))) throw Error(`${node.id}: adaptive bitrate requires a manifest and a smaller positive rendition`); if (node.params.requiresManifest && !node.out.manifest.length) throw Error(`${node.id}: required manifest authority is not connected`); if (node.out.manifest?.length) routing.resolveTargets(node, compiled, 'manifest', { kernels: ['videoManifest'], targetPort: 'in' }); },
     init(ctx) {
       const count = Math.min(ctx.p.cohorts, ctx.p.viewers);
       return { manifestReady: !ctx.edges('manifest').length, manifestJob: null, epoch: 0, requests: {}, cohorts: Array.from({ length: count }, (_, i) => ({ id: `${ctx.nodeId}:cohort-${i}`, index: i, viewers: Math.floor(ctx.p.viewers / count) + (i < ctx.p.viewers % count ? 1 : 0), segment: 0, active: null, done: false, failed: false, startedAt: ctx.p.startSec + i * ctx.p.startSpreadSec / Math.max(1, count - 1), playAt: null, startupSec: null, rebufferSec: 0 })), deliveredSegments: 0, startedViewers: 0, completedViewers: 0, failedViewers: 0, startupViewerSec: 0, rebufferViewerSec: 0, peerKiB: 0, cdnKiB: 0, cdnRequested: 0, peerFallbackViewers: 0 };
@@ -75,7 +81,7 @@
     onResult(ctx, job, slot, result) {
       if (slot === 'manifest') {
         const m = result.msg?.fields?.videoManifest;
-        const valid = result.ok && m?.assetId === ctx.p.assetId && m.segments >= ctx.p.segments && m.segmentKiB === ctx.p.segmentKiB && m.segmentDurationSec === ctx.p.segmentDurationSec;
+        const valid = result.ok && m?.assetId === ctx.p.assetId && m.segments >= ctx.p.segments && m.segmentKiB === ctx.p.segmentKiB && m.segmentDurationSec === ctx.p.segmentDurationSec && (!ctx.p.adaptiveBitrate || (m.lowSegmentKiB > 0 && m.lowSegmentKiB === ctx.p.lowSegmentKiB));
         ctx.k.manifestReady = Boolean(valid); ctx.k.manifestJob = null; ctx.reply(job, { ok: Boolean(valid), ...(valid ? {} : { err: result.err || 'invalid' }) });
         if (valid) for (const c of ctx.k.cohorts) ctx.wake(Math.max(0, c.startedAt - ctx.t), { kind: 'segment', index: c.index, epoch: ctx.k.epoch });
         else { ctx.k.failedViewers = ctx.p.viewers; for (const c of ctx.k.cohorts) { c.failed = true; c.done = true; } }
@@ -102,11 +108,11 @@
         } else for (const c of ctx.k.cohorts) if (!c.done) ctx.wake(Math.max(0, c.startedAt - ctx.t), { kind: 'segment', index: c.index, epoch: ctx.k.epoch });
       }
     },
-    observe(ctx) { const k = ctx.k; return { detail: { viewers: ctx.p.viewers, cohorts: k.cohorts.length, 'completed viewers': k.completedViewers, 'failed viewers': k.failedViewers, 'segment deliveries': k.deliveredSegments, 'manifest ready': k.manifestReady, 'mean startup s': k.startedViewers ? k.startupViewerSec / k.startedViewers : 0, 'rebuffer viewer s': k.rebufferViewerSec, 'CDN KiB': k.cdnKiB, 'peer KiB': k.peerKiB, 'peer fallback viewers': k.peerFallbackViewers, model: 'Synthetic aggregate cohorts; playback waits for every member, not actual video or WebRTC' }, records: { cohorts: clone(k.cohorts) } }; }
+    observe(ctx) { const k = ctx.k; return { detail: { viewers: ctx.p.viewers, cohorts: k.cohorts.length, 'completed viewers': k.completedViewers, 'failed viewers': k.failedViewers, 'segment deliveries': k.deliveredSegments, 'manifest ready': k.manifestReady, 'bitrate switches': k.bitrateSwitches || 0, 'mean startup s': k.startedViewers ? k.startupViewerSec / k.startedViewers : 0, 'rebuffer viewer s': k.rebufferViewerSec, 'CDN KiB': k.cdnKiB, 'peer KiB': k.peerKiB, 'peer fallback viewers': k.peerFallbackViewers, model: 'Synthetic aggregate cohorts; playback waits for every member, not actual video or WebRTC' }, records: { cohorts: clone(k.cohorts) } }; }
   });
 
-  registry.register({ id: 'videoOrigin', station: STATION, immutableParams: ['assetId', 'segments', 'segmentKiB'], init: () => ({ segments: 0, originKiB: 0 }),
-    onRequest(ctx, job) { const v = job.msg.fields?.video; if (!segmentValid(v) || v.assetId !== ctx.p.assetId || v.segment >= ctx.p.segments || v.segmentKiB !== ctx.p.segmentKiB) { fail(ctx, job); return; } service(ctx, job); },
+  registry.register({ id: 'videoOrigin', station: STATION, immutableParams: ['assetId', 'segments', 'segmentKiB', 'lowSegmentKiB'], init: () => ({ segments: 0, originKiB: 0 }),
+    onRequest(ctx, job) { const v = job.msg.fields?.video; if (!segmentValid(v) || v.assetId !== ctx.p.assetId || v.segment >= ctx.p.segments || (v.segmentKiB !== ctx.p.segmentKiB && !(ctx.p.lowSegmentKiB > 0 && v.segmentKiB === ctx.p.lowSegmentKiB))) { fail(ctx, job); return; } service(ctx, job); },
     onServed(ctx, job) { const v = job.msg.fields.video; ctx.k.segments++; ctx.k.originKiB += v.segmentKiB * v.viewers; ctx.cost(v.segmentKiB * v.viewers / KIB_PER_GIB * ctx.p.egressUsdPerGiB); videoReply(ctx, job, v, v.viewers, 'origin'); },
     observe: ctx => ({ detail: { 'origin segment reads': ctx.k.segments, 'origin KiB': ctx.k.originKiB, asset: `asset-${ctx.p.assetId}`, model: 'Authored fixed-size segment identities and synthetic origin service' } })
   });
@@ -392,9 +398,9 @@
     onFault(ctx, f, active) { if (f.type === 'crash' && active) { ctx.k.cleanupScheduled = false; ctx.k.epoch++; ctx.k.lostBlocks += Object.keys(ctx.k.blocks).length; for (const key of Object.keys(ctx.k.blocks)) executorRemoveBlock(ctx, key); ctx.k.reducing = {}; ctx.k.pendingMaps = {}; ctx.k.writing = {}; } },
     observe(ctx) { const k = ctx.k; return { detail: { 'map tasks': k.maps, 'reduce tasks': k.reduces, 'shuffle fetches': k.fetches, 'shuffle KiB served': k.shuffleKiB, 'task spill KiB': k.spillKiB, 'shuffle resident KiB': k.residentKiB, 'shuffle disk KiB': Object.values(k.blocks).reduce((n, b) => n + b.spilledKiB, 0), 'lost shuffle blocks': k.lostBlocks, model: ctx.edges('storage').length ? 'Stage CPU with independent drawn shuffle storage; CPU crash does not erase remote blocks' : 'Executor-local synthetic RAM/disk shuffle; crashes lose blocks and trigger lineage recomputation' }, records: { blocks: clone(Object.values(k.blocks).map(({ rows, ...b }) => b)), reductions: clone(Object.entries(k.reducing).map(([id, r]) => ({ id, phase: r.phase, received: r.received, required: r.blocks.length, records: r.records }))) } }; }
   });
-  registry.register({ id: 'videoManifest', station: STATION, immutableParams: ['assetId', 'segments', 'segmentKiB', 'segmentDurationSec'],
+  registry.register({ id: 'videoManifest', station: STATION, immutableParams: ['assetId', 'segments', 'segmentKiB', 'segmentDurationSec', 'lowSegmentKiB'],
     init: () => ({ reads: 0 }), onRequest(ctx, job) { if (job.msg.fields?.videoManifest?.assetId !== ctx.p.assetId) { fail(ctx, job); return; } service(ctx, job); },
-    onServed(ctx, job) { ctx.k.reads++; const { assetId, segments, segmentKiB, segmentDurationSec } = ctx.p; ctx.reply(job, { ok: true, ptype: 'json', kb: 0.5, fields: { videoManifest: { assetId, segments, segmentKiB, segmentDurationSec } } }); },
+    onServed(ctx, job) { ctx.k.reads++; const { assetId, segments, segmentKiB, segmentDurationSec, lowSegmentKiB } = ctx.p; ctx.reply(job, { ok: true, ptype: 'json', kb: 0.5, fields: { videoManifest: { assetId, segments, segmentKiB, segmentDurationSec, lowSegmentKiB } } }); },
     observe: ctx => ({ detail: { 'manifest reads': ctx.k.reads, 'asset ID': ctx.p.assetId, segments: ctx.p.segments, model: 'Authored playback manifest, not encoding or DRM' } })
   });
   registry.register({ id: 'sparkInput', station: STATION, immutableParams: ['recordCount', 'keyCount', 'hotFraction', 'mapPartitions'],

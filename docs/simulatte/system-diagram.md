@@ -595,3 +595,50 @@ anti-entropy after log loss. Epoch/version fencing is a local receipt rule, not
 an election protocol. The older `replicatedDb` kernel remains available as a
 separate internally grouped replica-slot model; it does not replace authored
 replication links.
+
+## Company-inspired solution playback
+
+Owner: [solution generator](../../tools/simulatte/build-interview-solutions.mjs),
+[stage navigation](../../public/simulatte/system-diagram/interview-stepper.js),
+and [playback](../../public/simulatte/system-diagram/playback.js).
+
+The public catalog retains the eight sourced interview exercises and adds seven
+company-inspired practice problems. Their links provide technical context, not
+proof that those companies ask these questions. Each added problem references one
+authored solution with three independently validated graph snapshots in
+`public/data/system-diagram/solutions/`. Regenerate with
+`node tools/simulatte/build-interview-solutions.mjs`; `--check` verifies the committed
+output. The source generator composes existing kernels and versioned subsystems.
+
+Choosing a problem still starts blank. **Play solution** explicitly opens the
+first graph and its short explanation. Previous and Next retain edits to each
+visited solution stage. **Back to my diagram** restores the user's prior work.
+The last Next action becomes **Simulate**. The playback dock can also run any
+edited or intermediate architecture, pause, advance one round, restart, change
+speed, or verify replay. An architecture edit clears the accepted simulation and
+requires explicit acceptance again. Layout, selection and labels do not change
+execution. Pending asynchronous acceptance and stage loads cannot overwrite a
+newer document.
+
+Playback runs the existing deterministic engine and coordinator-backed runner.
+The canvas overlay renders real observed transfers, queues and node health.
+**Requests** opens recent request outcomes and per-request attempts on demand;
+selecting a component reveals observed state and bounded record samples in the
+properties drawer. Counters come from the run, not the walkthrough narrative.
+
+| Added behavior | Synthetic contract |
+| --- | --- |
+| Comment tree | Parent-linked records, one vote per actor/comment, deterministic score ordering, and update deliveries. |
+| Stories | Explicit bounded audiences, view identities, and timed metadata visibility expiration. The fixture uses six simulated seconds, not a real 24-hour media deletion campaign. |
+| Reservations | One stock authority preserves available + held + sold stock, suppresses duplicate payments, and releases expired unpaid holds. No real payments or distributed consensus. |
+| Presence | Renewable heartbeat leases, target-specific subscriptions, change deliveries, and bulk state snapshots in one synthetic tenant. |
+| Video | Two advertised segment sizes; completed transfer time controls the next rendition. CDN keys distinguish renditions. No codec, DRM or encoding execution. |
+| Timeline | Existing explicit follow graph, push/hybrid fanout, leased deliveries and deduplicated timeline writes. |
+| Crawler | Existing bounded domain frontier, politeness delay and synthetic duplicate discovery, followed by processing and storage. No live scraping, robots parser or DNS resolution. |
+
+Executable evidence is in `system-diagram-interview-solutions.test.cjs`,
+`system-diagram-solution-navigation.test.cjs`, `system-diagram-playback.test.cjs`,
+and `system-diagram-runtime-scripts.test.cjs`. Control adapters and browser-global
+script evaluation establish source behavior, not desktop/mobile visual acceptance
+or deployed availability. Private collection ciphertext and lock behavior remain
+separate from public solution data.

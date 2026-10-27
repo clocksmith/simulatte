@@ -1,0 +1,160 @@
+{
+  "schema": "simulatte.interviewSolutions.v1",
+  "version": "1.0.0",
+  "solutions": {
+    "reddit-comments": {
+      "id": "reddit-comments",
+      "title": "Threaded comments and voting",
+      "boundary": "Synthetic bounded comment tree and score ordering; no Reddit production ranking or actual WebSocket connection.",
+      "steps": [
+        {
+          "name": "Save replies",
+          "explanation": "Each reply names its parent. Repeating a comment does not create another copy.",
+          "diagramPath": "/data/system-diagram/solutions/reddit-comments/step-1.json"
+        },
+        {
+          "name": "Count votes",
+          "explanation": "A user has one vote per comment. Repeating the same vote leaves the score unchanged.",
+          "diagramPath": "/data/system-diagram/solutions/reddit-comments/step-2.json"
+        },
+        {
+          "name": "Read and deliver",
+          "explanation": "Readers receive score-ranked comments with parent links. The saved backend can be opened to inspect its internals.",
+          "diagramPath": "/data/system-diagram/solutions/reddit-comments/step-3.json"
+        }
+      ]
+    },
+    "meta-stories": {
+      "id": "meta-stories",
+      "title": "Ephemeral stories",
+      "boundary": "Six simulated seconds stand in for the product lifetime. Models metadata visibility and view state; processing is a service-time model, not codecs, physical media erasure or a production privacy graph.",
+      "steps": [
+        {
+          "name": "Publish media",
+          "explanation": "Process an upload, then create its visibility record and expiration time.",
+          "diagramPath": "/data/system-diagram/solutions/meta-stories/step-1.json"
+        },
+        {
+          "name": "Check the audience",
+          "explanation": "Allowed viewers can read the story. A viewer outside its audience is rejected.",
+          "diagramPath": "/data/system-diagram/solutions/meta-stories/step-2.json"
+        },
+        {
+          "name": "Expire visibility",
+          "explanation": "The timer removes the visible record and sends an update. Late reads fail even if an old client still holds its ID.",
+          "diagramPath": "/data/system-diagram/solutions/meta-stories/step-3.json"
+        }
+      ]
+    },
+    "amazon-flash-sale": {
+      "id": "amazon-flash-sale",
+      "title": "Flash sale reservations",
+      "boundary": "One synthetic stock authority; no real payments, distributed transaction consensus or multi-region locking.",
+      "steps": [
+        {
+          "name": "Reserve stock",
+          "explanation": "One authority checks available stock and creates a hold. Extra shoppers are rejected instead of overselling.",
+          "diagramPath": "/data/system-diagram/solutions/amazon-flash-sale/step-1.json"
+        },
+        {
+          "name": "Confirm once",
+          "explanation": "A payment confirms an existing hold. Duplicate payment callbacks do not sell another item.",
+          "diagramPath": "/data/system-diagram/solutions/amazon-flash-sale/step-2.json"
+        },
+        {
+          "name": "Return abandoned holds",
+          "explanation": "Unpaid holds expire and return stock. New shoppers can reserve the recovered stock.",
+          "diagramPath": "/data/system-diagram/solutions/amazon-flash-sale/step-3.json"
+        }
+      ]
+    },
+    "microsoft-presence": {
+      "id": "microsoft-presence",
+      "title": "Presence and subscriptions",
+      "boundary": "Bounded single-tenant presence and delivery model; no Microsoft production topology or real client connections.",
+      "steps": [
+        {
+          "name": "Track heartbeats",
+          "explanation": "Each heartbeat renews a user lease. An old timeout cannot override a newer heartbeat.",
+          "diagramPath": "/data/system-diagram/solutions/microsoft-presence/step-1.json"
+        },
+        {
+          "name": "Notify subscribers",
+          "explanation": "Subscriptions name the user being watched. Changes produce delivery requests only for those subscriptions.",
+          "diagramPath": "/data/system-diagram/solutions/microsoft-presence/step-2.json"
+        },
+        {
+          "name": "Catch up and go offline",
+          "explanation": "A returning client reads the full snapshot. When heartbeats stop, lease expiry changes active users to offline.",
+          "diagramPath": "/data/system-diagram/solutions/microsoft-presence/step-3.json"
+        }
+      ]
+    },
+    "google-crawler": {
+      "id": "google-crawler",
+      "title": "Distributed crawler",
+      "boundary": "Synthetic domain counters and duplicate probability; no network scraping, robots.txt parser, DNS cache, real URL fingerprints or production index.",
+      "steps": [
+        {
+          "name": "Respect each host",
+          "explanation": "The frontier limits concurrent fetches and waits between requests to the same synthetic domain.",
+          "diagramPath": "/data/system-diagram/solutions/google-crawler/step-1.json"
+        },
+        {
+          "name": "Extract records",
+          "explanation": "Fetched pages go through processing and structured validation before reaching the record store.",
+          "diagramPath": "/data/system-diagram/solutions/google-crawler/step-2.json"
+        },
+        {
+          "name": "Retain documents",
+          "explanation": "Keep both derived records and source bytes. Duplicate discovery reduces new frontier work.",
+          "diagramPath": "/data/system-diagram/solutions/google-crawler/step-3.json"
+        }
+      ]
+    },
+    "twitter-timeline": {
+      "id": "twitter-timeline",
+      "title": "Social timeline fanout",
+      "boundary": "Finite users and explicit follow relationships, bounded timeline retention and synthetic reads. No X production ranking or real WebSocket delivery.",
+      "steps": [
+        {
+          "name": "Publish and fan out",
+          "explanation": "Store each post, look up its real followers, and queue one delivery path for their timelines.",
+          "diagramPath": "/data/system-diagram/solutions/twitter-timeline/step-1.json"
+        },
+        {
+          "name": "Handle large audiences",
+          "explanation": "Switch to hybrid fanout: large audiences read from the post store while smaller audiences receive timeline writes.",
+          "diagramPath": "/data/system-diagram/solutions/twitter-timeline/step-2.json"
+        },
+        {
+          "name": "Recover delivery",
+          "explanation": "Pause the fanout worker, then watch leased work retry. Recipient/post identity prevents duplicate timeline entries.",
+          "diagramPath": "/data/system-diagram/solutions/twitter-timeline/step-3.json"
+        }
+      ]
+    },
+    "netflix-streaming": {
+      "id": "netflix-streaming",
+      "title": "Video delivery and adaptation",
+      "boundary": "Synthetic segmented delivery with two advertised rendition sizes and a transfer-time adaptation rule; manifests stand in for pre-encoded assets. No actual encoding, DRM, codecs or Netflix production implementation.",
+      "steps": [
+        {
+          "name": "Read a manifest",
+          "explanation": "Players read the asset manifest before asking a regional cache for numbered video segments.",
+          "diagramPath": "/data/system-diagram/solutions/netflix-streaming/step-1.json"
+        },
+        {
+          "name": "Share cached segments",
+          "explanation": "Two regions share an origin shield. A cached segment avoids another origin download.",
+          "diagramPath": "/data/system-diagram/solutions/netflix-streaming/step-2.json"
+        },
+        {
+          "name": "Adapt to a slow network",
+          "explanation": "A slow transfer makes the next request choose the smaller advertised rendition. The model records bitrate switches and playback stalls.",
+          "diagramPath": "/data/system-diagram/solutions/netflix-streaming/step-3.json"
+        }
+      ]
+    }
+  }
+}

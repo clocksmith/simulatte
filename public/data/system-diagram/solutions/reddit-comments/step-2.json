@@ -1,0 +1,143 @@
+{
+  "schema": "simulatte.systemDiagram.v4",
+  "id": "reddit-comments",
+  "name": "Threaded comments and voting",
+  "description": "Parent-linked comments, per-user votes and score-ranked reads.",
+  "seed": 42,
+  "run": {
+    "horizonSec": 20
+  },
+  "classes": [],
+  "nodes": [
+    {
+      "id": "comments",
+      "classId": "operation-client",
+      "label": "comments",
+      "x": 0,
+      "y": 0,
+      "params": {
+        "operation": "comment",
+        "count": 8,
+        "intervalMs": 400,
+        "duplicateEvery": 3
+      }
+    },
+    {
+      "id": "api",
+      "classId": "web-server",
+      "label": "Comment API",
+      "x": 240,
+      "y": 100,
+      "params": {
+        "serviceMs": 30
+      }
+    },
+    {
+      "id": "comments-store",
+      "classId": "comment-tree",
+      "label": "comments-store",
+      "x": 480,
+      "y": 100,
+      "params": {}
+    },
+    {
+      "id": "votes",
+      "classId": "operation-client",
+      "label": "votes",
+      "x": 0,
+      "y": 230,
+      "params": {
+        "operation": "vote",
+        "count": 16,
+        "intervalMs": 400,
+        "startSec": 4,
+        "actorSpace": 4,
+        "keySpace": 8
+      }
+    },
+    {
+      "id": "updates",
+      "classId": "worker",
+      "label": "Live update delivery",
+      "x": 730,
+      "y": 100,
+      "params": {
+        "serviceMs": 50
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "post",
+      "label": "post",
+      "from": {
+        "nodeId": "comments",
+        "portId": "out"
+      },
+      "to": {
+        "nodeId": "api",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 80,
+        "bandwidthMbps": 100
+      }
+    },
+    {
+      "id": "vote",
+      "label": "vote",
+      "from": {
+        "nodeId": "votes",
+        "portId": "out"
+      },
+      "to": {
+        "nodeId": "api",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 80,
+        "bandwidthMbps": 100
+      }
+    },
+    {
+      "id": "store",
+      "label": "store",
+      "from": {
+        "nodeId": "api",
+        "portId": "calls"
+      },
+      "to": {
+        "nodeId": "comments-store",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 80,
+        "bandwidthMbps": 100
+      }
+    },
+    {
+      "id": "notify",
+      "label": "notify",
+      "from": {
+        "nodeId": "comments-store",
+        "portId": "updates"
+      },
+      "to": {
+        "nodeId": "updates",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 80,
+        "bandwidthMbps": 100
+      }
+    }
+  ],
+  "groups": [],
+  "notes": [],
+  "faults": [],
+  "view": {
+    "x": 0,
+    "y": 0,
+    "zoom": 1
+  }
+}

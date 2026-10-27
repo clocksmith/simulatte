@@ -10,4 +10,5 @@ require('./kernels-applications.js');
 require('./kernels-distribution.js');
 require('./kernels-social-graph.js');
 require('./kernels-collaboration.js');
+require('./kernels-interview.js');
 module.exports = require('./kernel-registry.js');

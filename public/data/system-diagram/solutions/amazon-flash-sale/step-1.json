@@ -1,0 +1,64 @@
+{
+  "schema": "simulatte.systemDiagram.v4",
+  "id": "amazon-flash-sale",
+  "name": "Flash sale reservations",
+  "description": "Bounded stock, idempotent payment and reservation expiration.",
+  "seed": 42,
+  "run": {
+    "horizonSec": 20
+  },
+  "classes": [],
+  "nodes": [
+    {
+      "id": "shoppers",
+      "classId": "operation-client",
+      "label": "shoppers",
+      "x": 0,
+      "y": 0,
+      "params": {
+        "operation": "reserve",
+        "count": 8,
+        "intervalMs": 400,
+        "keySpace": 1,
+        "duplicateEvery": 2
+      }
+    },
+    {
+      "id": "inventory",
+      "classId": "inventory-reservations",
+      "label": "Inventory authority",
+      "x": 350,
+      "y": 130,
+      "params": {
+        "stock": 4,
+        "ttlSec": 5
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "reserve",
+      "label": "reserve",
+      "from": {
+        "nodeId": "shoppers",
+        "portId": "out"
+      },
+      "to": {
+        "nodeId": "inventory",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 80,
+        "bandwidthMbps": 100
+      }
+    }
+  ],
+  "groups": [],
+  "notes": [],
+  "faults": [],
+  "view": {
+    "x": 0,
+    "y": 0,
+    "zoom": 1
+  }
+}

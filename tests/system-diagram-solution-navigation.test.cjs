@@ -1,0 +1,56 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
+const Stepper=require('../public/simulatte/system-diagram/interview-stepper.js'),D=require('../public/simulatte/system-diagram/diagram.js');
+const Editor=require('../public/simulatte/system-diagram/editor-model.js'),config=require('../public/data/system-diagram/config.json');
+const library=require('../public/simulatte/system-diagram/class-library.js').loadSync(path.resolve(__dirname,'../public/data/system-diagram'));
+// Control adapter exercises navigation/actions against actual documents. It cannot prove browser layout.
+function dom(){
+ const doc={};
+ class Element{
+  constructor(tag){this.tagName=tag;this.children=[];this.events={};this.dataset={};this.value='';this.hidden=false;this.open=false;this.ownerDocument=doc;}
+  append(...items){this.children.push(...items);}
+  replaceChildren(...items){this.children=items;}
+  setAttribute(k,v){this[k]=String(v);}
+  addEventListener(k,fn){this.events[k]=fn;}
+  showModal(){this.open=true;}
+  close(){this.open=false;}
+  remove(){}
+  get textContent(){return this.text||'';}
+  set textContent(v){this.text=v;}
+ }
+ doc.createElement=tag=>new Element(tag);doc.addEventListener=()=>{};doc.body=doc.createElement('body');
+ const all=(el=doc.body)=>[el,...el.children.flatMap(child=>all(child))];
+ return {doc,all,Option:function(text,value){const e=new Element('option');e.textContent=text;e.value=value;return e;}};
+}
+async function setup(run){
+ const oldFetch=global.fetch,oldOption=global.Option,ui=dom();let intercept=null;
+ global.Option=ui.Option;
+ global.fetch=async file=>intercept?.(file) || {ok:true,json:async()=>JSON.parse(fs.readFileSync(path.join(__dirname,'../public',file),'utf8'))};
+ const model=Editor.create({diagram:D.emptyDiagram(config),library,config});let simulated=0;
+ const stepper=Stepper.create({host:ui.doc.body,model,library,config,canvas:{render(){},flush(){},fit(){}},onStepChange(){},onMessage(){},onSimulate(){simulated++;}});
+ try{await stepper.ready;await run({ui,model,stepper,simulated:()=>simulated,intercept:fn=>intercept=fn});}
+ finally{stepper.dispose();global.fetch=oldFetch;global.Option=oldOption;}
+}
+test('solution is opt-in, stages preserve edits, final action simulates and return restores personal architecture',()=>setup(async({ui,model,stepper,simulated})=>{
+ stepper.setScenario('reddit-comments');assert.equal(model.diagram.nodes.length,0);
+ model.apply({type:'addNode',classId:'worker',x:10,y:20});const personal=structuredClone(model.diagram);
+ await stepper.showSolution();assert.ok(model.diagram.nodes.some(n=>n.id==='comments-store'));
+ model.apply({type:'setNodeLabel',id:'api',label:'My API change'});
+ await stepper.goToStep(1);assert.ok(model.diagram.nodes.some(n=>n.id==='votes'));
+ await stepper.goToStep(0);assert.equal(model.diagram.nodes.find(n=>n.id==='api').label,'My API change');
+ await stepper.goToStep(2);assert.ok(model.diagram.subsystems.length>0);
+ const simulate=ui.all().find(e=>e.textContent==='Simulate');assert.ok(simulate);simulate.events.click();await Promise.resolve();await Promise.resolve();assert.equal(simulated(),1);
+ stepper.leaveReference();assert.deepEqual(model.diagram,personal);
+}));
+test('edits made during a pending stage load cannot be overwritten by its fetch result',()=>setup(async({model,stepper,intercept})=>{
+ stepper.setScenario('reddit-comments');await stepper.showSolution();let release;
+ intercept(file=>file.endsWith('/reddit-comments/step-2.json')?new Promise(resolve=>release=()=>resolve({ok:true,json:async()=>JSON.parse(fs.readFileSync(path.join(__dirname,'../public',file),'utf8'))})):null);
+ const pending=stepper.goToStep(1);model.apply({type:'setNodeLabel',id:'api',label:'Newer edit'});release();
+ await assert.rejects(pending,/Kept your newer diagram edits/);assert.equal(model.diagram.nodes.find(n=>n.id==='api').label,'Newer edit');
+}));
+test('switching problems invalidates an in-flight solution load',()=>setup(async({model,stepper,intercept})=>{
+ stepper.setScenario('reddit-comments');let release;
+ intercept(file=>file.endsWith('/reddit-comments/step-1.json')?new Promise(resolve=>release=()=>resolve({ok:true,json:async()=>JSON.parse(fs.readFileSync(path.join(__dirname,'../public',file),'utf8'))})):null);
+ const pending=stepper.showSolution();stepper.setScenario('google-crawler');release();await pending;
+ assert.equal(stepper.getScenario().id,'google-crawler');assert.equal(model.diagram.nodes.length,0);
+}));

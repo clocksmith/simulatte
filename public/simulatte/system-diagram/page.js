@@ -115,6 +115,7 @@
   });
 
   const shell = globalThis.SimulatteSystemDiagramShell.create({canvas});
+  const playback = globalThis.SimulatteSystemDiagramPlayback.create({host:document.querySelector('.canvas-panel'), model,canvas,library,config,message});
   const interviewStepper = globalThis.SimulatteSystemDiagramInterviewStepper?.create({
     host: document.querySelector('.canvas-panel') || document.body,
     model,
@@ -122,6 +123,7 @@
     library,
     config,
     onStepChange: () => render(),
+    onSimulate: () => playback.play(),
     onMessage: message,
   });
 
@@ -804,6 +806,7 @@
     document.body.dataset.loading = String(loading);
     document.body.dataset.graphNodes = String(model.diagram.nodes.length);
     properties();
+    playback.refresh();
   }
 
   model.subscribe(event => {
@@ -851,6 +854,7 @@
     selection: () => clone(select()),
     viewport: () => canvas.getView(),
     shell,
+    playback,
     saveLocal,
     loadLocal,
     hasUnsavedChanges,

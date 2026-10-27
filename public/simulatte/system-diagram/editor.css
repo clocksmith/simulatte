@@ -205,7 +205,7 @@ textarea.sd-inline-edit { min-height: 96px; resize: vertical; }
 #capability-count { display: block; margin-block: 10px; font-size: 11px; line-height: 1.5; }
 .palette-kind-title { margin: 18px 0 6px; font-size: 12px; }
 .palette-group { min-width: 0; border-bottom: 1px solid var(--wui-line); padding-block: 5px; }
-.palette-group > summary { cursor: pointer; margin: 0; padding-block: 6px; font-size: 11px; line-height: 1.5; }
+.palette-group > .palette-category-title { cursor: pointer; margin: 0; padding-block: 6px; font-size: 11px; line-height: 1.5; }
 .palette-entry { display: grid; min-width: 0; }
 .palette-item-kind { color: var(--wui-muted); font-size: 10px; line-height: 1.5; white-space: normal; }
 .palette-group[data-category='subsystems'] .component-icon { border-style: double; border-width: 3px; }
@@ -249,9 +249,9 @@ textarea.sd-inline-edit { min-height: 96px; resize: vertical; }
   .palette-panel .panel-heading, .palette-panel .palette-search, .palette-panel:has(#palette-category) > label, .palette-category-title, .palette-copy, .lucyd-subsystem-tools { display: none; }
   .palette-panel .palette-item { width: 42px; height: 40px; padding: 6px; }
   .palette-panel .component-icon { flex: none; }
-  .palette-panel .palette-group > summary { display: list-item; font-size: 0; padding: 6px 0; }
-  .palette-panel .palette-group > summary::after { content: '+'; font-size: 16px; }
-  .palette-panel .palette-group[open] > summary::after { content: '−'; }
+  .palette-panel .palette-group > .palette-category-title { display: list-item; font-size: 0; padding: 6px 0; }
+  .palette-panel .palette-group > .palette-category-title::after { content: '+'; font-size: 16px; }
+  .palette-panel .palette-group[open] > .palette-category-title::after { content: '−'; }
   .palette-panel .palette-kind-title, .palette-panel #capability-count, .palette-panel .palette-empty, .palette-panel .palette-inspect, .palette-panel .palette-manage { display: none; }
   body[data-palette-expanded='true'] .palette-panel { width: 240px; padding: 12px 12px 12px 56px; }
   body[data-palette-expanded='true'] .palette-panel .panel-heading,
@@ -260,8 +260,8 @@ textarea.sd-inline-edit { min-height: 96px; resize: vertical; }
   body[data-palette-expanded='true'] .palette-panel .palette-copy { display: flex; }
   body[data-palette-expanded='true'] .lucyd-subsystem-tools { display: block; }
   body[data-palette-expanded='true'] .palette-panel .palette-item { width: 100%; }
-  body[data-palette-expanded='true'] .palette-panel .palette-group > summary { font-size: 11px; }
-  body[data-palette-expanded='true'] .palette-panel .palette-group > summary::after { content: none; }
+  body[data-palette-expanded='true'] .palette-panel .palette-group > .palette-category-title { font-size: 11px; }
+  body[data-palette-expanded='true'] .palette-panel .palette-group > .palette-category-title::after { content: none; }
   body[data-palette-expanded='true'] .palette-panel .palette-kind-title,
   body[data-palette-expanded='true'] .palette-panel #capability-count,
   body[data-palette-expanded='true'] .palette-panel .palette-empty,
@@ -271,4 +271,20 @@ textarea.sd-inline-edit { min-height: 96px; resize: vertical; }
   .lucyd-task-prompt { grid-column: 1/-1; font-size: 12px; }
   .interview-stepper { gap: 4px; }
   .interview-stepper-title { max-width: 110px; overflow: hidden; text-overflow: ellipsis; }
+}
+
+/* One explanation at a time; playback and walkthrough navigation occupy separate rows. */
+.lucyd-task-bar { grid-template-columns: 1fr auto auto auto; }
+.lucyd-task-bar > .lucyd-task-prompt { grid-column: 1/-1; }
+.lucyd-task-bar > [hidden] { display: none; }
+.sd-run-dock { position: absolute; bottom: 64px; left: 50%; transform: translateX(-50%); z-index: 21; max-width: calc(100% - 24px); }
+.simulation-records { width: min(660px, calc(100vw - 24px)); }
+.simulation-records-list { display: grid; gap: 6px; margin-block: 12px; }
+.simulation-records-list > p { margin-block: 4px; font-size: 12px; }
+@media (max-width: 700px) {
+  .lucyd-task-bar { grid-template-columns: repeat(3, auto); }
+  .lucyd-task-action { white-space: normal; }
+  .sd-run-dock { gap: 3px; bottom: 60px; padding: 4px; flex-wrap: wrap; justify-content: center; }
+  .sd-run-dock .sd-run-more { display: none; }
+  .interview-stepper { max-width: calc(100% - 16px); }
 }

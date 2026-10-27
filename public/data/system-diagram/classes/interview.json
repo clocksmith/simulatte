@@ -1,0 +1,507 @@
+{
+  "schema": "simulatte.systemDiagramClassPack.v1",
+  "id": "interview",
+  "version": "1.0.0",
+  "kernels": [
+    {
+      "id": "operationSource",
+      "label": "Operation client",
+      "description": "Finite synthetic operations sent through actual graph connections.",
+      "paramSets": [],
+      "params": {
+        "operation": {
+          "type": "enum",
+          "label": "Operation",
+          "options": [
+            "comment",
+            "vote",
+            "readComments",
+            "publishStory",
+            "readStory",
+            "reserve",
+            "pay",
+            "readInventory",
+            "heartbeat",
+            "subscribe",
+            "readPresence"
+          ],
+          "default": "comment",
+          "group": "basic"
+        },
+        "count": {
+          "type": "integer",
+          "label": "Operations",
+          "default": 8,
+          "min": 1,
+          "max": 200,
+          "group": "basic"
+        },
+        "intervalMs": {
+          "type": "number",
+          "label": "Interval",
+          "default": 400,
+          "min": 1,
+          "max": 10000,
+          "group": "basic"
+        },
+        "startSec": {
+          "type": "number",
+          "label": "Start",
+          "default": 0,
+          "min": 0,
+          "max": 3600,
+          "group": "basic"
+        },
+        "keySpace": {
+          "type": "integer",
+          "label": "Keys",
+          "default": 8,
+          "min": 1,
+          "max": 200,
+          "group": "basic"
+        },
+        "actorSpace": {
+          "type": "integer",
+          "label": "Users",
+          "default": 8,
+          "min": 1,
+          "max": 200,
+          "group": "basic"
+        },
+        "value": {
+          "type": "number",
+          "label": "Value",
+          "default": 1,
+          "min": -1,
+          "max": 1,
+          "group": "basic"
+        },
+        "duplicateEvery": {
+          "type": "integer",
+          "label": "Repeat every N operations",
+          "default": 0,
+          "min": 0,
+          "max": 200,
+          "group": "basic"
+        },
+        "timeoutMs": {
+          "type": "number",
+          "label": "Timeout",
+          "default": 3000,
+          "min": 1,
+          "max": 60000,
+          "group": "basic"
+        },
+        "retries": {
+          "type": "integer",
+          "label": "Retries",
+          "default": 0,
+          "min": 0,
+          "max": 5,
+          "group": "basic"
+        },
+        "retryBackoffMs": {
+          "type": "number",
+          "label": "Retry backoff",
+          "default": 100,
+          "min": 1,
+          "max": 10000,
+          "group": "basic"
+        },
+        "requestKb": {
+          "type": "number",
+          "label": "Request size KB",
+          "default": 1,
+          "min": 0,
+          "max": 10000,
+          "group": "basic"
+        },
+        "actorOffset": {
+          "type": "integer",
+          "label": "First user index",
+          "default": 0,
+          "min": 0,
+          "max": 10000,
+          "group": "basic"
+        }
+      },
+      "ports": [
+        {
+          "id": "out",
+          "direction": "out",
+          "label": "out",
+          "multiple": true,
+          "required": false,
+          "emits": [
+            "json"
+          ]
+        }
+      ],
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "dropReplies"
+      ]
+    },
+    {
+      "id": "commentStore",
+      "label": "Comment tree and votes",
+      "description": "Bounded parent links, one vote per user/comment, score-ranked reads and change events.",
+      "paramSets": [],
+      "params": {
+        "concurrency": {
+          "type": "integer",
+          "label": "Concurrency",
+          "default": 4,
+          "min": 1,
+          "max": 100,
+          "group": "basic"
+        },
+        "queueCapacity": {
+          "type": "integer",
+          "label": "Queue capacity",
+          "default": 100,
+          "min": 0,
+          "max": 10000,
+          "group": "basic"
+        },
+        "serviceMs": {
+          "type": "number",
+          "label": "Service time",
+          "default": 20,
+          "min": 0,
+          "max": 10000,
+          "group": "basic"
+        },
+        "maxRecords": {
+          "type": "integer",
+          "label": "Record capacity",
+          "default": 200,
+          "min": 1,
+          "max": 10000,
+          "group": "basic"
+        }
+      },
+      "ports": [
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "in",
+          "multiple": true,
+          "required": false,
+          "accepts": [
+            "json"
+          ]
+        },
+        {
+          "id": "updates",
+          "direction": "out",
+          "label": "updates",
+          "multiple": true,
+          "required": false,
+          "emits": [
+            "json"
+          ]
+        }
+      ],
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "dropReplies"
+      ]
+    },
+    {
+      "id": "storyStore",
+      "label": "Expiring story store",
+      "description": "Bounded audience checks, unique views and timed visibility expiration. Models metadata, not media codecs or a production privacy system.",
+      "paramSets": [],
+      "params": {
+        "concurrency": {
+          "type": "integer",
+          "label": "Concurrency",
+          "default": 4,
+          "min": 1,
+          "max": 100,
+          "group": "basic"
+        },
+        "queueCapacity": {
+          "type": "integer",
+          "label": "Queue capacity",
+          "default": 100,
+          "min": 0,
+          "max": 10000,
+          "group": "basic"
+        },
+        "serviceMs": {
+          "type": "number",
+          "label": "Service time",
+          "default": 20,
+          "min": 0,
+          "max": 10000,
+          "group": "basic"
+        },
+        "maxRecords": {
+          "type": "integer",
+          "label": "Record capacity",
+          "default": 200,
+          "min": 1,
+          "max": 10000,
+          "group": "basic"
+        },
+        "ttlSec": {
+          "type": "number",
+          "label": "Visibility lifetime",
+          "default": 8,
+          "min": 0.1,
+          "max": 3600,
+          "group": "basic"
+        },
+        "audienceSize": {
+          "type": "integer",
+          "label": "Audience users",
+          "default": 3,
+          "min": 1,
+          "max": 200,
+          "group": "basic"
+        }
+      },
+      "ports": [
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "in",
+          "multiple": true,
+          "required": false,
+          "accepts": [
+            "json"
+          ]
+        },
+        {
+          "id": "updates",
+          "direction": "out",
+          "label": "updates",
+          "multiple": true,
+          "required": false,
+          "emits": [
+            "json"
+          ]
+        }
+      ],
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "dropReplies"
+      ]
+    },
+    {
+      "id": "inventoryReservations",
+      "label": "Inventory reservations",
+      "description": "Atomic bounded stock admission, held/paid/expired state, duplicate payment suppression and release on expiry.",
+      "paramSets": [],
+      "params": {
+        "concurrency": {
+          "type": "integer",
+          "label": "Concurrency",
+          "default": 4,
+          "min": 1,
+          "max": 100,
+          "group": "basic"
+        },
+        "queueCapacity": {
+          "type": "integer",
+          "label": "Queue capacity",
+          "default": 100,
+          "min": 0,
+          "max": 10000,
+          "group": "basic"
+        },
+        "serviceMs": {
+          "type": "number",
+          "label": "Service time",
+          "default": 20,
+          "min": 0,
+          "max": 10000,
+          "group": "basic"
+        },
+        "maxRecords": {
+          "type": "integer",
+          "label": "Record capacity",
+          "default": 200,
+          "min": 1,
+          "max": 10000,
+          "group": "basic"
+        },
+        "stock": {
+          "type": "integer",
+          "label": "Initial stock",
+          "default": 4,
+          "min": 0,
+          "max": 10000,
+          "group": "basic"
+        },
+        "ttlSec": {
+          "type": "number",
+          "label": "Reservation lifetime",
+          "default": 5,
+          "min": 0.1,
+          "max": 3600,
+          "group": "basic"
+        }
+      },
+      "ports": [
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "in",
+          "multiple": true,
+          "required": false,
+          "accepts": [
+            "json"
+          ]
+        },
+        {
+          "id": "updates",
+          "direction": "out",
+          "label": "updates",
+          "multiple": true,
+          "required": false,
+          "emits": [
+            "json"
+          ]
+        }
+      ],
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "dropReplies"
+      ]
+    },
+    {
+      "id": "presenceBroker",
+      "label": "Presence broker",
+      "description": "Bounded heartbeat leases, per-user subscriptions, bulk snapshots and offline notifications.",
+      "paramSets": [],
+      "params": {
+        "concurrency": {
+          "type": "integer",
+          "label": "Concurrency",
+          "default": 4,
+          "min": 1,
+          "max": 100,
+          "group": "basic"
+        },
+        "queueCapacity": {
+          "type": "integer",
+          "label": "Queue capacity",
+          "default": 100,
+          "min": 0,
+          "max": 10000,
+          "group": "basic"
+        },
+        "serviceMs": {
+          "type": "number",
+          "label": "Service time",
+          "default": 20,
+          "min": 0,
+          "max": 10000,
+          "group": "basic"
+        },
+        "maxRecords": {
+          "type": "integer",
+          "label": "Record capacity",
+          "default": 200,
+          "min": 1,
+          "max": 10000,
+          "group": "basic"
+        },
+        "ttlSec": {
+          "type": "number",
+          "label": "Heartbeat lifetime",
+          "default": 4,
+          "min": 0.1,
+          "max": 3600,
+          "group": "basic"
+        }
+      },
+      "ports": [
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "in",
+          "multiple": true,
+          "required": false,
+          "accepts": [
+            "json"
+          ]
+        },
+        {
+          "id": "updates",
+          "direction": "out",
+          "label": "updates",
+          "multiple": true,
+          "required": false,
+          "emits": [
+            "json"
+          ]
+        }
+      ],
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "dropReplies"
+      ]
+    }
+  ],
+  "classes": [
+    {
+      "id": "operation-client",
+      "label": "Operation client",
+      "description": "Finite synthetic operations sent through actual graph connections.",
+      "category": "clients",
+      "kernel": "operationSource",
+      "glyph": "users",
+      "defaults": {}
+    },
+    {
+      "id": "comment-tree",
+      "label": "Comment tree and votes",
+      "description": "Bounded parent links, one vote per user/comment, score-ranked reads and change events.",
+      "category": "storage",
+      "kernel": "commentStore",
+      "glyph": "database",
+      "defaults": {}
+    },
+    {
+      "id": "story-store",
+      "label": "Expiring story store",
+      "description": "Bounded audience checks, unique views and timed visibility expiration. Models metadata, not media codecs or a production privacy system.",
+      "category": "storage",
+      "kernel": "storyStore",
+      "glyph": "database",
+      "defaults": {}
+    },
+    {
+      "id": "inventory-reservations",
+      "label": "Inventory reservations",
+      "description": "Atomic bounded stock admission, held/paid/expired state, duplicate payment suppression and release on expiry.",
+      "category": "storage",
+      "kernel": "inventoryReservations",
+      "glyph": "database",
+      "defaults": {}
+    },
+    {
+      "id": "presence-broker",
+      "label": "Presence broker",
+      "description": "Bounded heartbeat leases, per-user subscriptions, bulk snapshots and offline notifications.",
+      "category": "storage",
+      "kernel": "presenceBroker",
+      "glyph": "database",
+      "defaults": {}
+    }
+  ]
+}

@@ -1,0 +1,89 @@
+{
+  "schema": "simulatte.systemDiagram.v4",
+  "id": "meta-stories",
+  "name": "Ephemeral stories",
+  "description": "Synthetic audience checks and expiration of story visibility.",
+  "seed": 42,
+  "run": {
+    "horizonSec": 20
+  },
+  "classes": [],
+  "nodes": [
+    {
+      "id": "uploads",
+      "classId": "operation-client",
+      "label": "uploads",
+      "x": 0,
+      "y": 0,
+      "params": {
+        "operation": "publishStory",
+        "count": 3,
+        "intervalMs": 400,
+        "actorSpace": 1
+      }
+    },
+    {
+      "id": "processing",
+      "classId": "worker",
+      "label": "Media processing",
+      "x": 240,
+      "y": 0,
+      "params": {
+        "serviceMs": 100
+      }
+    },
+    {
+      "id": "stories",
+      "classId": "story-store",
+      "label": "Story visibility",
+      "x": 480,
+      "y": 0,
+      "params": {
+        "ttlSec": 6,
+        "audienceSize": 2
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "upload",
+      "label": "upload",
+      "from": {
+        "nodeId": "uploads",
+        "portId": "out"
+      },
+      "to": {
+        "nodeId": "processing",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 80,
+        "bandwidthMbps": 100
+      }
+    },
+    {
+      "id": "publish",
+      "label": "publish",
+      "from": {
+        "nodeId": "processing",
+        "portId": "calls"
+      },
+      "to": {
+        "nodeId": "stories",
+        "portId": "in"
+      },
+      "params": {
+        "latencyMs": 80,
+        "bandwidthMbps": 100
+      }
+    }
+  ],
+  "groups": [],
+  "notes": [],
+  "faults": [],
+  "view": {
+    "x": 0,
+    "y": 0,
+    "zoom": 1
+  }
+}

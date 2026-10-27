@@ -35,6 +35,7 @@ Start blank, edit architectures with a persistent component rail, practice sourc
 - Synthetic assumptions cannot establish production capacity, provider behaviour or physical validity.
 - Deploy authenticated ciphertext only. Never publish keys/passwords. Encrypt saves, backups and exports; locking clears plaintext and editor history.
 - Distinguish published interviews, candidate reports and authored practice; examples never replace user work implicitly.
+- Explicit solution steps preserve user work; playback shows accepted execution records.
 
 ## Acceptance
 

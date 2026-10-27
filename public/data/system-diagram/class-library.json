@@ -1,6 +1,6 @@
 {
   "schema": "simulatte.systemDiagramClassLibrary.v1",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "payloadTypes": [
     {
       "id": "http",
@@ -781,6 +781,7 @@
     "classes/applications.json",
     "classes/distribution.json",
     "classes/collaboration.json",
-    "classes/social-graph.json"
+    "classes/social-graph.json",
+    "classes/interview.json"
   ]
 }
