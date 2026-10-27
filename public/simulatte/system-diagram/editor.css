@@ -191,9 +191,9 @@ textarea.sd-inline-edit { min-height: 96px; resize: vertical; }
 .private-notes h2, .private-notes h3, .private-notes h4 { margin-top: 24px; }
 
 /* Lucyd keeps components reachable while the current task stays compact. */
-.editor-layout { --lucyd-rail-width: 208px; --lucyd-header-height: 52px; }
+.editor-layout { --lucyd-rail-width: 208px; --lucyd-properties-rail-width: 56px; --lucyd-properties-width: 56px; --lucyd-header-height: 52px; }
 .app-header { inset: 0 0 auto; height: var(--lucyd-header-height); padding: 6px 12px; background: var(--wui-paper); border-bottom: 1px solid var(--wui-line); }
-.canvas-panel { top: var(--lucyd-header-height); left: var(--lucyd-rail-width); }
+.canvas-panel { top: var(--lucyd-header-height); left: var(--lucyd-rail-width); right: var(--lucyd-properties-rail-width); }
 .palette-panel {
   position: fixed; top: var(--lucyd-header-height); bottom: 0; width: var(--lucyd-rail-width);
   padding: 12px; transform: none; visibility: visible; box-shadow: none; z-index: 30;
@@ -214,7 +214,15 @@ textarea.sd-inline-edit { min-height: 96px; resize: vertical; }
 .palette-panel .palette-item { min-height: 36px; padding: 5px; gap: 7px; }
 .palette-panel .palette-label { font-size: 12px; }
 .palette-panel .palette, .palette-panel .palette-category { display: grid; grid-template-columns: 1fr; max-height: none; overflow: visible; }
-.properties-panel { top: var(--lucyd-header-height); width: min(340px, calc(100vw - var(--lucyd-rail-width) - 24px)); }
+/* The properties rail mirrors the component rail: a collapsed strip or an expanded, resizable panel. */
+.properties-panel {
+  position: fixed; top: var(--lucyd-header-height); right: 0; bottom: 0; left: auto; width: var(--lucyd-properties-width);
+  padding: 48px 12px 12px; transform: none; visibility: visible; box-shadow: none; z-index: 30;
+}
+.properties-panel .panel-heading [data-close-drawer] { display: none; }
+body[data-properties-expanded='false'] .properties-panel { padding: 48px 6px 8px; overflow: hidden; }
+body[data-properties-expanded='false'] .properties-panel > * { display: none; }
+body[data-properties-expanded='false'] .properties-panel::after { content: 'Properties'; display: block; margin: 8px auto 0; writing-mode: vertical-rl; font-size: 11px; color: var(--wui-muted); }
 .lucyd-task-bar {
   position: absolute; inset: 12px 12px auto; z-index: 20; display: grid; grid-template-columns: 1fr auto auto; gap: 8px; align-items: center;
   max-width: 880px; margin-inline: auto; padding: 8px; background: var(--wui-paper);
@@ -243,16 +251,19 @@ textarea.sd-inline-edit { min-height: 96px; resize: vertical; }
 .notice-line { display: none; }
 /* Errors sit above the run dock and wrap; at the old top offset the task card covered them. */
 .notice-line:has(#editor-status[data-error='true']) {
-  display: block; top: auto; bottom: 132px; left: calc(var(--lucyd-rail-width) + 12px); right: 12px; z-index: 22;
-  width: fit-content; max-width: min(640px, calc(100vw - var(--lucyd-rail-width) - 24px)); margin-inline: auto; box-sizing: border-box;
+  display: block; top: auto; bottom: 132px; left: calc(var(--lucyd-rail-width) + 12px); right: calc(var(--lucyd-properties-rail-width) + 12px); z-index: 22;
+  width: fit-content; max-width: min(640px, calc(100vw - var(--lucyd-rail-width) - var(--lucyd-properties-rail-width) - 24px)); margin-inline: auto; box-sizing: border-box;
   background: var(--wui-paper); border: 1px solid var(--wui-line); border-radius: var(--wui-radius);
 }
 .notice-line:has(#editor-status[data-error='true']) p { white-space: normal; }
 .notice-line:has(#editor-status[data-surface='canvas']) { display: none; }
 /* The component rail has exactly two persistent states on every viewport. */
-#palette-toggle { display:block;position:fixed;top:60px;left:8px;writing-mode:horizontal-tb;width:40px;height:32px; }
+#palette-toggle, #properties-toggle { display:block;position:fixed;top:60px;writing-mode:horizontal-tb;width:40px;height:32px;max-height:none;z-index:45; }
+#palette-toggle { left:8px;right:auto; }
+#properties-toggle { right:8px;left:auto; }
 .palette-panel { padding-top:48px; }
 .lucyd-rail-resizer { position:fixed;top:var(--lucyd-header-height);bottom:0;left:calc(var(--lucyd-rail-width) - 5px);width:10px;cursor:ew-resize;touch-action:none;z-index:46; }
+.lucyd-rail-resizer[data-side='right'] { left:auto;right:calc(var(--lucyd-properties-width) - 5px); }
 .lucyd-rail-resizer:hover,.lucyd-rail-resizer:focus-visible { background:var(--wui-active-bg);outline:1px solid var(--wui-active); }
 body[data-palette-expanded='false'] .palette-panel { padding:48px 6px 8px; }
 body[data-palette-expanded='false'] .palette-panel .panel-heading,
@@ -336,8 +347,6 @@ body[data-palette-expanded='false'] .lucyd-sketch-icon {display:inline;}
 .simulation-node-records pre { max-width: 100%; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; }
 
 /* Keep context compact; secondary study choices live in Details. */
-.app-header {padding-right:126px;}
-.properties-toggle {top:4px;right:8px;writing-mode:horizontal-tb;max-height:none;}
 .lucyd-task-bar {gap:6px;}
 .lucyd-task-prompt {display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
 .lucyd-details-controls {display:flex;gap:8px;margin-block:14px;}
@@ -366,5 +375,11 @@ body[data-palette-expanded='false'] .lucyd-sketch-icon {display:inline;}
 
 /* Expanded phone components overlay the workspace instead of shrinking its controls. */
 @media(max-width:700px){
-  .palette-panel {width:var(--lucyd-palette-width,56px);box-shadow:8px 0 24px #0003;}
+  .palette-panel {width:var(--lucyd-palette-width,56px);}
+  .properties-panel {width:var(--lucyd-properties-width,56px);}
+  body[data-palette-expanded='true'] .palette-panel {box-shadow:8px 0 24px #0003;}
+  body[data-properties-expanded='true'] .properties-panel {box-shadow:-8px 0 24px #0003;}
+  /* The run dock stays reachable above either rail overlay; overlay content scrolls clear of it. */
+  .sd-run-dock {z-index:35;}
+  body[data-palette-expanded='true'] .palette-panel, body[data-properties-expanded='true'] .properties-panel {padding-bottom:200px;}
 }

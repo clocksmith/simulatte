@@ -203,7 +203,7 @@ for (const viewport of viewports.filter(v => requestedWidth === null || v.width 
     row.build = await evaluate(`document.querySelector('meta[name="simulatte-build"]').content`);
     const railWidth = viewport.width <= 700 ? 56 : 208;
     const surface = await evaluate(`(() => {const r=document.getElementById('diagram').getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height};})()`);
-    assert.deepEqual(surface, {x:railWidth,y:52,width:viewport.width-railWidth,height:viewport.height-52}, 'canvas fills the space beside the persistent rail');
+    assert.deepEqual(surface, {x:railWidth,y:52,width:viewport.width-railWidth-56,height:viewport.height-52}, 'canvas fills the space between the persistent rails');
     assert.equal((await doc()).nodes.length, 0, 'Lucyd starts blank');
     assert.equal(await evaluate('document.getElementById("palette-drawer").inert'), false);
     row.checks.blankCanvasAndPersistentRail = true;
@@ -217,8 +217,10 @@ for (const viewport of viewports.filter(v => requestedWidth === null || v.width 
     await evaluate(`Promise.all(document.getElementById('properties-drawer').getAnimations().map(a=>a.finished))`);
     assert.ok(await evaluate(`(() => {const r=document.querySelector('#properties-drawer .panel-heading').getBoundingClientRect();return Boolean(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2)?.closest('#properties-drawer'));})()`), 'properties drawer paints above the HUD');
     await shot('00-properties-drawer');
+    // Phones dismiss the overlay with a workspace tap; desktop rails persist until their own toggle collapses them.
     await tapAt({x:railWidth+20,y:viewport.height*.8});
-    assert.equal(await evaluate('document.getElementById("properties-drawer").inert'), true);
+    assert.equal(await evaluate('document.getElementById("properties-drawer").inert'), viewport.width <= 700);
+    if (viewport.width > 700) { await click('#properties-toggle'); assert.equal(await evaluate('document.getElementById("properties-drawer").inert'), true); }
     assert.deepEqual(await evaluate('SimulatteSystemDiagramEditor.viewport()'), beforeDrawer, 'drawers never move diagram coordinates');
     row.checks.drawerDismissalAndStableCamera = true;
 
@@ -322,7 +324,7 @@ for (const viewport of viewports.filter(v => requestedWidth === null || v.width 
 
     // Open detached subsystem definition editor
     await selectNode(subInstance.id);
-    await button('Inspect / edit subsystem');
+    await button('Expand subsystem');
     assert.ok(await evaluate('Boolean(SimulatteSystemDiagramEditor.subsystemEditor?.session?.active)'), 'detached subsystem editing active');
     const draftBeforeEdit = await doc();
     assert.notEqual(draftBeforeEdit.id, subDoc.id, 'canvas shows detached draft diagram');

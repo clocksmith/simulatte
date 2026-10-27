@@ -30,7 +30,7 @@ Evolve intent into executable architecture; study sourced problems with editable
 - Canonical problems share public/private code paths; compatibility registries are generated.
 - Published problems have two structurally distinct approaches minimum, each with eight runnable stages, challenges and checks. Optional conceptual preludes do not count.
 - Stages retain edits and personal diagrams; replay configured demand without claiming matched closed-loop arrivals.
-- Rail is collapsed/expanded; expanded resizing caps at 280px and viewport bounds.
+- Left component and right properties rails share one collapsed/expanded component; expanded resizing caps at 360px and viewport bounds.
 - Parameters resolve kernel/class/instance. Unknown values refuse; layout cannot affect results.
 - Subsystems pin typed, bounded, acyclic definitions; publishing preserves accepted runs.
 - Requests, attempts/effects, rejections/timeouts remain distinguishable. Seed/controls reproduce coordinator execution.

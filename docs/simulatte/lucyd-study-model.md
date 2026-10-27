@@ -116,8 +116,8 @@ behavior is explicit per kernel; timing parameters remain synthetic assumptions.
 
 ## Study layout and request inspection
 
-The Components rail keeps its two states, with an expanded drag width up to
-280px. Algorithm exercises have a separate category. Problem selection still
+The Components rail and the Properties rail share one two-state rail component,
+with an expanded drag width up to 360px. Algorithm exercises have a separate category. Problem selection still
 starts blank; a worked approach begins with a conceptual sketch. The execution
 dock alone owns Simulate. Approach selection and full explanations live in
 Details; Properties opens from the header. Node names wrap, and connection

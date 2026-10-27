@@ -112,7 +112,7 @@ for (const width of widths) {
     await button('Insert subsystem'); current = await doc();
     const secondId = current.nodes.find(node => node.classId === 'subsystem.backend@1' && node.id !== firstId).id;
     assert.ok(secondId); row.checks.reusePinnedDefinition = true;
-    await select(firstId); await button('Inspect / edit subsystem');
+    await select(firstId); await button('Expand subsystem');
     assert.ok((await doc()).nodes.some(node => node.id === serverId));
     await select(serverId); await set('property-serviceMs', 30); await button('Apply overrides');
     await button('Fit'); await shot('definition-draft');
@@ -124,7 +124,7 @@ for (const width of widths) {
     assert.equal((await doc()).nodes.find(node => node.id === firstId).classId, 'subsystem.backend@2');
     assert.equal((await doc()).nodes.find(node => node.id === secondId).classId, 'subsystem.backend@1'); row.checks.explicitUpgrade = true;
     const beforeCancel = await doc();
-    await button('Inspect / edit subsystem'); await select(serverId); await set('property-serviceMs', 50); await button('Apply overrides'); await button('Cancel definition edits');
+    await button('Expand subsystem'); await select(serverId); await set('property-serviceMs', 50); await button('Apply overrides'); await button('Cancel definition edits');
     // Cancel deliberately re-fits the camera; the claim is that no definition or graph edit survives.
     assert.deepEqual({ ...await doc(), view: null }, { ...beforeCancel, view: null }); row.checks.cancelDetachedDraft = true;
     await select(firstId); await set('subsystem-overrides', JSON.stringify({ [serverId]: { concurrency: 3 } })); await button('Apply subsystem overrides');

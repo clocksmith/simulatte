@@ -640,7 +640,7 @@ Playback runs the existing deterministic engine and coordinator-backed runner.
 The canvas overlay renders real observed transfers, queues and node health.
 **Requests** opens recent request outcomes and per-request attempts on demand;
 selecting a component reveals observed state and bounded record samples in the
-properties drawer. Counters come from the run, not the walkthrough narrative.
+Properties rail. Counters come from the run, not the walkthrough narrative.
 
 | Added behavior | Synthetic contract |
 | --- | --- |

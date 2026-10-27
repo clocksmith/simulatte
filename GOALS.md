@@ -73,9 +73,11 @@ interview-format reference never establishes that a particular question was aske
 Offer reusable connected subsystems from the component library on a blank canvas;
 inserting one preserves its version, dependencies, existing edits and undo history.
 
-The component rail has exactly two persistent states, collapsed and expanded.
-Expanded width is draggable and keyboard-adjustable up to 280 pixels, bounded by
-the viewport; it does not become a third overlay state on phones.
+The component rail on the left and the properties rail on the right use one rail
+component with exactly two persistent states, collapsed and expanded. Expanded
+width is draggable and keyboard-adjustable up to 360 pixels, bounded by the
+viewport; on phones an expanded rail overlays the workspace without becoming a
+third state, and only one rail is expanded at a time.
 
 Keep real implementation bindings and deployment generation optional behind a
 lazy-loaded child component. Simulation and study require no cloud setup.
@@ -88,8 +90,8 @@ operation, not selecting or simulating a study stage.
 
 Lucyd at `/system-diagram` is a system architecture creator whose connections
 execute a synthetic distributed workload. Start with an empty canvas and a compact
-task chooser. Keep a persistent component rail on the left and a contextual
-property drawer on the right; the canvas fills the remaining viewport. Show only
+task chooser. Keep a persistent component rail on the left and a persistent
+properties rail on the right; the canvas fills the space between them. Show only
 the current interview question, with details and example architectures available
 on request. Previous and Next retain editable stage snapshots; selecting a task
 never fills in its solution. Attribute published interview exercises, firsthand

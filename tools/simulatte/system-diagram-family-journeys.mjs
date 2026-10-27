@@ -69,10 +69,10 @@ export async function authorFamilyJourneys(api) {
       for(const item of plan.edges){
         const from=family.nodeIds[item.from],to=family.nodeIds[item.to],before=(await doc()).edges.length;
         assert.ok(from&&to,'Fixture endpoints resolve to nodes that were actually added');
-        await connect(from,item.fromPort,to,item.toPort);
-        const next=await doc();assert.equal(next.edges.length,before+1,`${plan.id}: native port gesture creates ${item.id}`);
+        const input=await connect(from,item.fromPort,to,item.toPort);
+        await until(`SimulatteSystemDiagramEditor.document().edges.length===${before+1}`).catch(()=>{});const next=await doc();assert.equal(next.edges.length,before+1,`${plan.id}: native port gesture creates ${item.id}`);
         const edge=next.edges.at(-1);assert.deepEqual(edge.from,{nodeId:from,portId:item.fromPort});assert.deepEqual(edge.to,{nodeId:to,portId:item.toPort});family.edgeIds[item.id]=edge.id;
-        family.authoringActions.push({kind:'port-drag',id:edge.id,from:edge.from,to:edge.to,input:viewport.width<700?'touch':'mouse'});
+        family.authoringActions.push({kind:input==='keyboard'?'port-keyboard':'port-drag',id:edge.id,from:edge.from,to:edge.to,input});
         if(Object.keys(item.params||{}).length){await edgeParams(edge.id,item.params);await closeProperties();}
       }
       family.checks.nativeTypedPortTopology=true;
