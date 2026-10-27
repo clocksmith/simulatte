@@ -1,48 +1,41 @@
 # Study workspace gesture acceptance
 
-Owner: the interface implementation under `public/simulatte/system-diagram/`.
-Data contract: [composable study contract](composable-study-contract.md).
+Owner: the [study workspace](../../public/simulatte/system-diagram/study/CATSCAN.md) at `/simulatte/system-diagram/study/`.
+Data contract: [composable study contract](composable-study-contract.md). Behavior: [workspace specification](study-workspace-spec.md).
 Authority: the user's supplied Excalidraw-style interaction specification, October 27, 2026.
 
-This records an inspection of unfinished files, not acceptance of a finished interface. The existing `/system-diagram` simulator is a separate surface and is not judged by these new workspace requirements.
+The existing `/system-diagram` simulator is a separate surface and is not judged by these requirements.
 
-## Current blocking boundary
+## Resolved boundary
 
-At inspection, the local server returned HTTP 200 for `study.html`, `composable-study.js` and `study-workspace.css`. The HTML references `study-canvas.js` and `study-workspace.js`; both files were absent and returned HTTP 404. Interaction acceptance is blocked until those dependencies exist and load. None of the gestures below has browser proof from this review.
+The first review found an unfinished scaffold (`study.html` loading two missing scripts), a parser without `reconnect`, whole-approach edits and permanent side columns. That scaffold was removed. The workspace now embeds the vendored Excalidraw 0.17.6 canvas with floating controls and an on-demand study sidebar. Its adapter replays every contract operation, including v2 `rebind` and replacement labels, identically to the validator. Learner edits live in per-stage overlays of a `simulatte.studyWorkspace.v1` envelope; the authored document is never modified.
 
-Source probes establish two additional gaps:
-
-- `SimulatteComposableStudy.apply` rejects the shared contract's `reconnect` operation as unsupported. Supporting the seven current documents does not cover this required operation.
-- `editInstance(document, solutionId, nodeId, patch)` has no stage argument. Editing L034's `client` label changes all eight stages in the push approach. Stage-specific user edits need separate overlays in the workspace envelope; they must not silently alter the authored progression.
-
-The stylesheet declares permanent 250px and 300px columns beside the canvas. The latest specification instead requests an open drawing surface with compact study overlays and on-demand panels. Existing rail goals/charters must be reconciled explicitly with this new surface when the interface owner implements it.
+Latest recorded run: `LUCYD_PLAYWRIGHT_MODULE=… node tools/simulatte/audit-study-workspace.cjs` wrote [workspace-acceptance.json](../../artifacts/composable-study/workspace-acceptance.json) with 86 of 87 checks passing, using Chromium 143 at 1440x900 and iPhone 13 touch emulation, against all twelve published problems. Source-level checks: `node --test tests/study-workspace.test.cjs` (10 tests).
 
 ## Required interaction evidence
 
 Every row needs a recorded action and observed result. A button, source function, passing data test or screenshot alone does not pass it.
 
-| Area | Required checks | Current evidence |
+| Area | Required checks | Recorded evidence (latest run) |
 | --- | --- | --- |
-| Open canvas | Floating tool/menu/history controls; contextual properties; compact problem/approach/stage overlays; no permanent navigation columns. | Source layout conflicts. |
-| Drawing | Shape preview and commit; freehand; multipoint lines/arrows; tool persistence; Escape and pointer cancellation. | Blocked by missing scripts. |
-| Shortcuts/focus | Supplied tool keys; shortcuts scoped to canvas; text, inputs and dialogs suppress drawing commands. | No interaction proof. |
-| Selection | Click, Shift-add, marquee, deeper grouped selection, forgiving connector hits, contextual actions and keyboard equivalents. | No interaction proof. |
-| Transforms | Resize, rotation, Shift constraints, center resize, multi-selection, bound labels/connectors, coherent undo. | No interaction proof. |
-| Camera | Hand, Space-drag, middle drag, focal zoom, fit all/selection, temporary modifiers, empty-scene stability and pinch. | No interaction proof. |
-| Text/style | In-place labels, multiline editing, commit/cancel, Unicode/whitespace, wrapping, contextual style and stable redraw appearance. | No interaction proof. |
-| Connections | Endpoint/point editing, binding feedback and suppression, rerouting, arrow labels/heads, typed-port rejection. | Data parser validates endpoint types; reconnect is missing. |
-| Editing/history | Copy/cut/paste/delete, duplicate, Alt-drag, group/ungroup, ordering, undo/redo. Grouping does not invent subsystem ownership. | No interaction proof. |
-| Study progression | Exact graph replay, stable IDs, all operation types, change summaries, collapsible subsystem mappings, supplied engineering explanations. | Seven files parse; reconnect unsupported; rendering unverified. |
-| Import/export | Preview and atomic replacement; failure retains current work; complete metadata and supported extensions round-trip; independent approach/stage edits; visible autosave status. | Parse/serialize helpers exist; whole-approach edits conflict with stage independence. |
-| Touch | Reachable controls; navigation versus drawing; cancellation; usable handles at different zooms. | No physical-device or emulated interaction proof. |
+| Open canvas | Floating tool/menu/history controls; contextual properties; compact problem/approach/stage overlays; no permanent navigation columns. | 5/5: canvas fills the window; floating tools, menu, history, zoom and study controls; properties only with a selection; study notes on demand at 294px. |
+| Drawing | Shape preview and commit; freehand; multipoint lines/arrows; tool persistence; Escape and pointer cancellation. | 7/7: preview during drag, commit, Shift square, freehand, multipoint line and arrow, Q persistence, Escape mid-drag. Trusted touch cancellation is under Touch. |
+| Shortcuts/focus | Supplied tool keys; shortcuts scoped to canvas; text, inputs and dialogs suppress drawing commands. | 4/4: every tool key except 9 (opens the OS picker); typing in pickers, labels and dialogs never switches tools or deletes. |
+| Selection | Click, Shift-add, marquee, deeper grouped selection, forgiving connector hits, contextual actions and keyboard equivalents. | 8/8: click, Shift-add, empty-click clear, 4px-off connector hit, context menu without movement, marquee, Cmd-click inside a group, select-all. |
+| Transforms | Resize, rotation, Shift constraints, center resize, multi-selection, bound labels/connectors, coherent undo. | 8/8: corner resize, one-step undo, Shift ratio, Alt centre resize, rotation, Shift 15° snap, shared-bounds multi-resize, label and connectors follow. |
+| Camera | Hand, Space-drag, middle drag, focal zoom, fit all/selection, temporary modifiers, empty-scene stability and pinch. | 9/9: hand, Space-drag restoring the tool, middle drag, pointer-anchored zoom, keyboard zoom, fit all, fit selection, empty-scene fit, no undo steps from camera. Pinch is under Touch. |
+| Text/style | In-place labels, multiline editing, commit/cancel, Unicode/whitespace, wrapping, contextual style and stable redraw appearance. | 5/5: multiline Unicode and double spaces, wrapping with Cmd+Enter commit, undo as cancel, swatch restyles the selection, seed stable across zoom. |
+| Connections | Endpoint/point editing, binding feedback and suppression, rerouting, arrow labels/heads, typed-port rejection. | 6/6: binding feedback, Cmd suppression, endpoint reroute to another shape, arrow label, compatible ports become a typed connection saved in the stage overlay, incompatible ports are explained and refused. |
+| Editing/history | Copy/cut/paste/delete, duplicate, Alt-drag, group/ungroup, ordering, undo/redo. Grouping does not invent subsystem ownership. | 10/11: copy, cut, paste, duplicate, delete, Alt-drag, undo/redo, group/ungroup, Cmd+]/[ and context-menu front/back; grouping authored components adds only `groupIds`. **Fail:** Help-listed Cmd+Option+] does nothing under scripted input; plain 0.17.6 behaves the same. |
+| Study progression | Exact graph replay, stable IDs, all operation types, change summaries, collapsible subsystem mappings, supplied engineering explanations. | 5/5: all 203 stages of 12 problems draw exactly their graph, unchanged components stay put, additions marked, every operation summarised with its question, subsystem collapse and expand. |
+| Import/export | Preview and atomic replacement; failure retains current work; complete metadata and supported extensions round-trip; independent approach/stage edits; visible autosave status. | 11/11: stage-only edits, independent approaches, undo never crosses a stage, autosave status and reload, workspace and authored exports, preview and exact reimport with an unknown extension field, invalid file names its location and keeps work, per-stage reset, image survives navigation and export/reimport. Large scene: 2,000 learner elements imported in 92 ms; stage steps took 52/92 ms; a 20-step drag took 866 ms. |
+| Touch | Reachable controls; navigation versus drawing; cancellation; usable handles at different zooms. | 7/7 (emulated): controls in view with nothing clipped, stage controls by tap, one-finger swipe never draws, pinch zoom, touch drawing, handle resize while zoomed, trusted touchcancel leaves nothing behind. Not physical-device proof. |
 
-## Interface-owner completion order
+## Remaining gaps
 
-1. Finish the referenced entry scripts and resolve every boot error.
-2. Match the requested drawing layout and implement core gestures before secondary features.
-3. Support the complete shared operation contract. Preserve authored documents and store per-stage user edits separately.
-4. Run one supplied multi-stage solution through import, stage selection, editing, export and reimport. Compare IDs, contracts, definitions, subsystem mappings, explanations and ordered operations exactly; compare user overlays separately.
-5. Run the gesture checks with mouse, keyboard and touch. Record failures as failures, including focus and cancellation cases.
-6. Commit by owned paths and report the runnable URL, evidence and remaining gaps. Data validation does not establish rendering, simulation execution or architectural correctness.
+- Cmd+Option+] (bring to front) fails under scripted input; front/back work from the context menu. Real-keyboard behavior is unverified.
+- Excalidraw's image tool opens the File System Access picker, which scripted Chromium cannot answer; images were verified by dropping a PNG file.
+- Layout follows authored positions. Some authored layouts cross connectors over components; graph validation makes no visual-quality claim.
+- No physical touch device, screen-reader or performance-campaign evidence.
 
-The contract/content owner maintains solution data and cross-checks. This audit does not duplicate the interface owner's implementation.
+The contract/content owner maintains solution data and cross-checks.
