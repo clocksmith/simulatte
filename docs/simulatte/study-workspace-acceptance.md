@@ -12,6 +12,8 @@ The first review found an unfinished scaffold (`study.html` loading two missing 
 
 Latest recorded run: `LUCYD_PLAYWRIGHT_MODULE=… node tools/simulatte/audit-study-workspace.cjs` wrote [workspace-acceptance.json](../../artifacts/composable-study/workspace-acceptance.json) with 88 of 89 checks passing, using Chromium 143 at 1440x900 and iPhone 13 touch emulation, against all twelve published problems. Source-level checks: `node --test tests/study-workspace.test.cjs` (10 tests).
 
+Live: the same audit with `--url https://simulatte.world/simulatte/system-diagram/study/` against build `cec9b10e` wrote [workspace-acceptance-live.json](../../artifacts/composable-study/workspace-acceptance-live.json): 88 of 89 pass, with the same single failure. Two earlier live runs exposed a real race, a slow problem load overriding later navigation; it is fixed and now has its own check.
+
 ## Required interaction evidence
 
 Every row needs a recorded action and observed result. A button, source function, passing data test or screenshot alone does not pass it.
