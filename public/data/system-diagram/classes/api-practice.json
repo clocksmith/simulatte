@@ -1,0 +1,244 @@
+{
+  "schema": "simulatte.systemDiagramClassPack.v1",
+  "id": "api-practice",
+  "version": "1.0.0",
+  "kernels": [
+    {
+      "id": "apiPracticeClient",
+      "label": "API practice client",
+      "description": "Finite authored pagination or subscription commands; results are actual graph replies.",
+      "paramSets": [],
+      "params": {
+        "scenario": {
+          "type": "enum",
+          "label": "Scenario",
+          "default": "pagination",
+          "group": "basic",
+          "options": [
+            "pagination",
+            "subscriptions"
+          ]
+        },
+        "startSec": {
+          "type": "number",
+          "label": "Start",
+          "default": 0,
+          "min": 0,
+          "max": 10000,
+          "group": "basic"
+        },
+        "intervalMs": {
+          "type": "number",
+          "label": "Interval",
+          "default": 800,
+          "min": 1,
+          "max": 10000,
+          "group": "basic"
+        },
+        "timeoutMs": {
+          "type": "number",
+          "label": "Timeout",
+          "default": 300,
+          "min": 1,
+          "max": 10000,
+          "group": "basic"
+        },
+        "retries": {
+          "type": "integer",
+          "label": "Retries",
+          "default": 0,
+          "min": 0,
+          "max": 5,
+          "group": "basic"
+        },
+        "retryBackoffMs": {
+          "type": "number",
+          "label": "Retry backoff",
+          "default": 100,
+          "min": 1,
+          "max": 10000,
+          "group": "basic"
+        }
+      },
+      "ports": [
+        {
+          "id": "out",
+          "direction": "out",
+          "label": "out",
+          "multiple": true,
+          "required": false,
+          "emits": [
+            "json"
+          ]
+        }
+      ],
+      "faults": [
+        "crash"
+      ]
+    },
+    {
+      "id": "paginationStore",
+      "label": "Paginated records",
+      "description": "Bounded sorted record pages with offset, keyset or immutable snapshot cursors, concurrent mutations and scan accounting.",
+      "paramSets": [
+        "station"
+      ],
+      "params": {
+        "mode": {
+          "type": "enum",
+          "label": "Pagination mode",
+          "default": "offset",
+          "group": "basic",
+          "options": [
+            "offset",
+            "keyset",
+            "snapshot"
+          ]
+        },
+        "pageSize": {
+          "type": "integer",
+          "label": "Page size",
+          "default": 3,
+          "min": 1,
+          "max": 20,
+          "group": "basic"
+        }
+      },
+      "ports": [
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "in",
+          "multiple": true,
+          "required": false,
+          "accepts": [
+            "json"
+          ]
+        }
+      ],
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "dropReplies"
+      ]
+    },
+    {
+      "id": "subscriptionService",
+      "label": "Subscription service",
+      "description": "Versioned subscription lifecycle; provider charge acceptance and local application are distinct, with explicit reconciliation.",
+      "paramSets": [
+        "station",
+        "calls"
+      ],
+      "params": {
+        "idempotent": {
+          "type": "boolean",
+          "label": "Suppress repeated commands",
+          "default": false,
+          "group": "basic"
+        }
+      },
+      "ports": [
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "in",
+          "multiple": true,
+          "required": false,
+          "accepts": [
+            "json"
+          ]
+        },
+        {
+          "id": "provider",
+          "direction": "out",
+          "label": "provider",
+          "multiple": true,
+          "required": false,
+          "emits": [
+            "json"
+          ]
+        }
+      ],
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "dropReplies"
+      ]
+    },
+    {
+      "id": "paymentProvider",
+      "label": "Synthetic payment provider",
+      "description": "Finite card/bank charge ledger with optional event identity suppression and query for reconciliation. No real payments.",
+      "paramSets": [
+        "station"
+      ],
+      "params": {
+        "idempotent": {
+          "type": "boolean",
+          "label": "Deduplicate charges",
+          "default": false,
+          "group": "basic"
+        }
+      },
+      "ports": [
+        {
+          "id": "in",
+          "direction": "in",
+          "label": "in",
+          "multiple": true,
+          "required": false,
+          "accepts": [
+            "json"
+          ]
+        }
+      ],
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "dropReplies"
+      ]
+    }
+  ],
+  "classes": [
+    {
+      "id": "api-practice-client",
+      "label": "API practice client",
+      "description": "Finite authored pagination or subscription commands; results are actual graph replies.",
+      "category": "clients",
+      "kernel": "apiPracticeClient",
+      "glyph": "users",
+      "defaults": {}
+    },
+    {
+      "id": "pagination-store",
+      "label": "Paginated records",
+      "description": "Bounded sorted record pages with offset, keyset or immutable snapshot cursors, concurrent mutations and scan accounting.",
+      "category": "storage",
+      "kernel": "paginationStore",
+      "glyph": "database",
+      "defaults": {}
+    },
+    {
+      "id": "subscription-service",
+      "label": "Subscription service",
+      "description": "Versioned subscription lifecycle; provider charge acceptance and local application are distinct, with explicit reconciliation.",
+      "category": "compute",
+      "kernel": "subscriptionService",
+      "glyph": "server",
+      "defaults": {}
+    },
+    {
+      "id": "payment-provider",
+      "label": "Synthetic payment provider",
+      "description": "Finite card/bank charge ledger with optional event identity suppression and query for reconciliation. No real payments.",
+      "category": "storage",
+      "kernel": "paymentProvider",
+      "glyph": "database",
+      "defaults": {}
+    }
+  ]
+}

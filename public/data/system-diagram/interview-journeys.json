@@ -749,14 +749,13 @@
       "steps": [
         {
           "stepNumber": 1,
-          "name": "Conversation Persistence",
+          "name": "Persist identity and stream a bounded reply",
           "stage": "Core Data Store",
           "interviewerPrompt": "Design the core chat service: User submits prompts, authenticates, and conversation history is reliably saved.",
-          "solution": "Client connects through an Ingress gateway that validates identity policies, then forwards to the Chat service which persists prompts and history with retry bounds.",
+          "solution": "Check conversation membership at the API and storage boundaries, persist the prompt, then deliver acknowledged synthetic chunks before committing the assistant reply. One generator serves this baseline; authorization failures remain visible.",
           "tradeoffs": [
-            "Strict authorization checks on every operation prevent unauthorized access across tenants",
-            "Retry policies with bounded attempts avoid cascading failures against database locks",
-            "Synchronous HTTP responses are too slow for LLM generation"
+            "Storage remains the authority for tenant membership and ordered messages; an earlier API decision cannot bypass a later denied storage check.",
+            "A single generator is easy to inspect but serial chunk requests share its capacity. This model generates fixed text and does not execute an LLM."
           ],
           "activeNodes": [
             "client",
@@ -1436,14 +1435,13 @@
         },
         {
           "stepNumber": 2,
-          "name": "Model Router & Inference Pool",
+          "name": "Admit and route generation requests",
           "stage": "LLM Compute Routing",
           "interviewerPrompt": "We need to connect LLM workers to generate replies, but different models have different latencies and GPU capacity limits.",
-          "solution": "Introduce an Admission Controller and Model Router that dispatches generation tasks across worker pools based on availability and quotas.",
+          "solution": "Route each chunk request through bounded quota admission and a round-robin replica pool. Both generators use identical chunk framing so routing cannot change the durable reply or cursor contract.",
           "tradeoffs": [
-            "GPU capacity is finite; quota admission prevents memory exhaustion on model nodes",
-            "Load balancing across diverse model checkpoints with speculative fallback",
-            "Need to ensure tokens don't block other waiting users"
+            "Extra generation replicas share one conversation authority and stable framing; independent histories would fork durable state.",
+            "A request quota models admission, not GPU memory allocation, model checkpoints or speculative inference."
           ],
           "activeNodes": [
             "client",
@@ -2268,14 +2266,14 @@
         },
         {
           "stepNumber": 3,
-          "name": "Real-Time Token Streaming",
+          "name": "Recover a failed stream session",
           "stage": "Interactive Stream Session",
           "interviewerPrompt": "Waiting for full generation takes 10+ seconds. How do we deliver tokens incrementally as they generate, and survive sudden disconnects?",
-          "solution": "Add a dedicated Streaming Session manager and Delivery pipeline that pushes tokens to clients via WebSockets/SSE while asynchronously committing the completed reply to the conversation store.",
+          "solution": "Crash the stream session from 0.4 to 1.2 seconds while a reply is active. Bounded retries rebuild the reply from its durable prompt and replay acknowledged cursor identities. Inspect unchanged unique client chunks and one assistant commit per prompt after recovery.",
           "tradeoffs": [
-            "Client reconnection requires stream resumption tokens to avoid missing or duplicated tokens",
-            "Decoupled delivery: slow network connections on client side don't stall the GPU worker",
-            "Atomic commit of assistant message once generation finishes"
+            "Recovery repeats generation and delivery attempts, increasing latency and wasted work; client chunk identity and idempotent persistence prevent duplicate visible text and records.",
+            "The assistant commits only after actual client acknowledgements. A permanent outage or exhausted retry budget remains a failed request.",
+            "This is a synthetic cursor protocol over simulated links, not a WebSocket or SSE implementation."
           ],
           "activeNodes": [
             "client",
@@ -2627,7 +2625,10 @@
                 "label": "Access, history and prompt writes",
                 "x": 920,
                 "y": 170,
-                "params": {},
+                "params": {
+                  "retries": 3,
+                  "retryBackoffMs": 300
+                },
                 "groupId": "chat-api"
               },
               {
@@ -3090,7 +3091,19 @@
                 "w": 1000
               }
             ],
-            "faults": [],
+            "faults": [
+              {
+                "id": "stream-session-outage",
+                "atSec": 0.4,
+                "untilSec": 1.2,
+                "target": {
+                  "kind": "node",
+                  "id": "stream"
+                },
+                "type": "crash",
+                "params": {}
+              }
+            ],
             "view": {
               "x": 0,
               "y": 0,
@@ -3109,14 +3122,13 @@
       "steps": [
         {
           "stepNumber": 1,
-          "name": "Baseline LLM Pipeline",
+          "name": "Generate a bounded structured response",
           "stage": "Baseline Generation",
           "interviewerPrompt": "Let's build an AI assistant that answers user questions with structured schema validation.",
-          "solution": "Client questions route through API server to GPU worker pool, then through structured output validation before returning to user.",
+          "solution": "Questions pass through API and worker admission into structured generation and validation. The independent synthetic document source already feeds chunking and index updates, but this baseline query path does not read the index.",
           "tradeoffs": [
-            "Severe hallucinations on private or recent knowledge without external context",
-            "Context window limitations if large documents are stuffed into prompt",
-            "Model weights are static and cannot reflect daily updates"
+            "The direct query path avoids retrieval calls but has no modeled document grounding. Inspect generated output validation and request failures separately from knowledge quality.",
+            "Background chunking and index publication consume modeled work even though queries do not use them in this stage. No generated answer is evidence of factual correctness."
           ],
           "activeNodes": [
             "questions",
@@ -3496,14 +3508,13 @@
         },
         {
           "stepNumber": 2,
-          "name": "Vector Retrieval (Dense RAG)",
+          "name": "Account for retrieval calls and publication delay",
           "stage": "Semantic Search",
           "interviewerPrompt": "We need the assistant to cite internal documents accurately. How do we retrieve the right context?",
-          "solution": "Introduce a RAG Coordinator that embeds queries via Embedding Model, queries a Vector Candidates Index (e.g. Milvus/Pinecone), and injects top chunks into the LLM prompt.",
+          "solution": "Connect a coordinator that calls embedding, index search and generation in order. Search returns candidate counts and index-age metadata; these determine modeled context size and latency. Published and pending vector counts expose the effect of asynchronous ingestion, not actual retrieved passages.",
           "tradeoffs": [
-            "Dense embeddings miss exact keyword matches (e.g. error codes, product SKUs)",
-            "Chunk size trade-off: large chunks dilute signal; small chunks lose context",
-            "Vector search latency adds to overall time-to-first-token (TTFT)"
+            "The additional calls consume service capacity and increase latency before generation. The top-K and chunk-token assumptions determine modeled prompt size.",
+            "Publication delay can make a query observe older index counts. This is a bounded freshness model, not a relevance or recall evaluation."
           ],
           "activeNodes": [
             "questions",
@@ -3997,14 +4008,13 @@
         },
         {
           "stepNumber": 3,
-          "name": "Ingestion Pipeline & Cross-Encoder Reranking",
+          "name": "Estimate candidate reranking work",
           "stage": "Production Scale & Quality",
           "interviewerPrompt": "How do we continuously ingest thousands of changing documents, and filter out irrelevant vector search results?",
-          "solution": "Build an asynchronous document chunking and indexing pipeline, plus a Cross-Encoder Reranker before final prompt assembly.",
+          "solution": "Insert the reranker between search and generation while retaining the existing ingestion path. It consumes service time based on the returned candidate count and passes that count onward. Compare latency and completed calls with the previous stage; the model does not score or reorder documents.",
           "tradeoffs": [
-            "Two-stage retrieval: fast bi-encoder candidate selection + accurate cross-encoder reranking",
-            "Background ingestion indexing decoupled from query path",
-            "Output validation layer catches schema mismatches before sending to client"
+            "A larger candidate count increases modeled reranking work. There is no demonstrated answer-quality gain because semantic scoring is not implemented.",
+            "Background index publication remains independent from query completion. Structured output validation checks the modeled output contract, not truth or retrieval relevance."
           ],
           "activeNodes": [
             "questions",
@@ -4550,14 +4560,13 @@
       "steps": [
         {
           "stepNumber": 1,
-          "name": "Edge CDN POP & Origin Shield",
+          "name": "Share one edge cache and origin shield",
           "stage": "Single Region CDN",
           "interviewerPrompt": "Design a video streaming service where viewers stream HLS/DASH video chunks without overwhelming the storage origin.",
-          "solution": "Viewers fetch manifests, and video segments are routed through regional CDN POPs backed by an Origin Shield and storage cluster.",
+          "solution": "Both viewer cohorts read manifests and fetch numbered segments through one admitted edge cache. Cache misses share a retry-protected origin shield and an origin admission limit. Inspect cache hits, coalesced fetches and completed playback before splitting regions.",
           "tradeoffs": [
-            "Cache miss penalty: initial request for fresh chunks incurs high origin latency",
-            "Origin Shield protects primary database and S3 buckets from thundering herds",
-            "Bandwidth egress from single region remains costly for international viewers"
+            "A cold segment still pays edge, shield and origin transfer time. Coalescing reduces repeated origin requests for concurrent misses under the configured demand.",
+            "Both cohorts share one admission and cache boundary, so their offered work competes there. This stage does not measure geographic placement or egress prices."
           ],
           "activeNodes": [
             "viewers",
@@ -5038,14 +5047,13 @@
         },
         {
           "stepNumber": 2,
-          "name": "Multi-Region Global CDN",
+          "name": "Give each region an edge cache",
           "stage": "Multi-Region Distribution",
           "interviewerPrompt": "Traffic is scaling globally with spikes in East and West regions. How do we reduce cross-continent latency?",
-          "solution": "Deploy multi-region CDN edge POPs with geo-routed ingress and regional quotas, keeping 95%+ of traffic within local regional edges.",
+          "solution": "Route the second cohort through its own quota and edge cache while both regions share the origin shield. Inspect the separate edge hit/miss records and shared upstream transfers. These are explicit drawn routes, not a measured locality percentage or an automatic geo-router.",
           "tradeoffs": [
-            "Cache hit ratio depends on regional viewer density and content popularity",
-            "Quota limiting isolates regional traffic spikes and prevents rogue scrapers",
-            "Origin shield consolidates cross-region revalidations into single requests"
+            "Separate edge caches isolate admission but duplicate regional cache storage and cold fills. The shared shield can combine upstream misses for the same segment.",
+            "A cache hit ratio depends on this finite request sequence and cache policy. It does not establish a global traffic-locality target or production capacity."
           ],
           "activeNodes": [
             "viewers",
@@ -5629,14 +5637,13 @@
         },
         {
           "stepNumber": 3,
-          "name": "Peer-Assisted Hybrid Delivery",
+          "name": "Fall back from interrupted peer delivery",
           "stage": "Bandwidth Offload & Mesh Swarming",
           "interviewerPrompt": "CDN egress costs are unsustainable during viral streams. Can viewers in the same region share segments directly without hurting buffering?",
-          "solution": "Introduce WebRTC peer-to-peer swarm mesh sharing for hot segments, with circuit breakers that fall back to CDN if peer transfer misses playback deadlines.",
+          "solution": "Enable the drawn peer path in each region and interrupt the first peer pool from four to seven seconds. Bounded peer attempts and circuit breaking allow segment requests to fall back to CDN delivery when peer transfer cannot succeed. Inspect playback completion, peer failures and CDN calls.",
           "tradeoffs": [
-            "Peer availability fluctuates dynamically; circuit breaker must detect stalls instantly",
-            "Slight CPU and upload bandwidth overhead on viewer devices",
-            "Offloads up to 60-80% of edge CDN egress bandwidth on popular live content"
+            "Peer attempts can reduce CDN requests under the configured availability assumptions, while failed attempts add latency before fallback. Compare observed counts rather than assuming an offload percentage.",
+            "The simulation models peer transfer and deadline behavior without executing WebRTC, viewer upload scheduling or real device resource costs."
           ],
           "activeNodes": [
             "viewers",
@@ -6431,9 +6438,8 @@
           "interviewerPrompt": "Design a basic social feed where users publish posts and read recent posts from people they follow.",
           "solution": "Users publish posts to an admitted Posts DB. Feed generation queries the database on the fly by looking up followees and sorting their recent posts.",
           "tradeoffs": [
-            "Reading feeds requires joining users, follows, and posts on every page refresh",
-            "Read latency scales linearly with the number of followed users (O(N) queries)",
-            "Completely unfeasible for users following hundreds of people"
+            "Read-time assembly scans bounded recent posts from followed users; work grows with candidate posts and the follow set.",
+            "Avoiding precomputed fanout reduces write amplification but shifts work onto each feed read. Compare observed work under the same bounded demand; this is not a production scaling estimate."
           ],
           "activeNodes": [
             "users",
@@ -7019,9 +7025,9 @@
           "interviewerPrompt": "How do we make feed loading instant (<20ms) for millions of readers?",
           "solution": "Shift to Fan-out on Write: When a post is published, enqueue a background task. Fanout workers lookup followers and push the post ID into each follower's pre-computed in-memory Timeline.",
           "tradeoffs": [
-            "Timeline reads become instantaneous O(1) cache lookups",
-            "Celebrity problem: an account with 50M followers causes 50M writes on a single post",
-            "Hybrid approach needed: push for normal users, pull for high-follower celebrities"
+            "Precomputed timelines reduce read assembly work but introduce asynchronous freshness lag and recipient write amplification.",
+            "A large follow set produces more queued recipient writes per post; bounded fanout and timeline admission expose that pressure.",
+            "Recipient/post identity suppresses duplicate effects when a leased post retries."
           ],
           "activeNodes": [
             "users",
@@ -7795,14 +7801,14 @@
         },
         {
           "stepNumber": 3,
-          "name": "Social Graph Service & Deadletter Handling",
+          "name": "Bound retries and quarantine failed fanout",
           "stage": "Graph Authority & Fault Isolation",
           "interviewerPrompt": "How do we handle billions of follow relationships with fast traversals, and what happens when timeline fanout workers crash?",
-          "solution": "Add a dedicated Graph Authority service for follower queries with retry protection, plus Dead-Letter Queues (DLQ) to isolate failing writes.",
+          "solution": "Keep the existing separate graph authority and interrupt timeline writes until three seconds. Limit each queued post to two deliveries and route exhausted work to the dead-letter store. Later posts can complete after recovery; accepted posts whose fanout is quarantined remain absent from affected timelines until an operator explicitly repairs them.",
           "tradeoffs": [
-            "Graph databases / distributed adjacency lists optimize follower lookups",
-            "DLQ prevents queue blockage from unprocessable fanout jobs",
-            "Hydration layer combines timeline post IDs with full post content in parallel"
+            "A smaller receive budget limits repeated work during an outage but moves transient failures to quarantine sooner. Dead-lettering does not itself repair a timeline.",
+            "Post acceptance acknowledges stored posts and queueing, not delivery to every follower. Compare missing-post observations with dead-letter records after recovery.",
+            "Timeline recipient/post identity prevents duplicate effects during retries. The synthetic graph and bounded retention do not establish production capacity."
           ],
           "activeNodes": [
             "users",
@@ -8173,7 +8179,7 @@
                   "prefetch": 2,
                   "visibilityTimeoutMs": 1000,
                   "retryDelayMs": 150,
-                  "maxReceives": 12
+                  "maxReceives": 2
                 },
                 "groupId": "social-fanout"
               },
@@ -8605,6 +8611,17 @@
                 "target": {
                   "kind": "node",
                   "id": "fanout"
+                },
+                "type": "crash",
+                "params": {}
+              },
+              {
+                "id": "timeline-write-outage",
+                "atSec": 0,
+                "untilSec": 3,
+                "target": {
+                  "kind": "node",
+                  "id": "timelines"
                 },
                 "type": "crash",
                 "params": {}

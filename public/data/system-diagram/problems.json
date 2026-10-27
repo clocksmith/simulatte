@@ -1,6 +1,6 @@
 {
   "schema": "simulatte.lucydProblems.v2",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "followupAttribution": "Lucyd-authored practice followups, not interview transcripts. Prompts paraphrase the linked sources. Candidate accounts are not company verification. Company-inspired exercises and their solutions are authored practice based on technical references, not verified interview questions or company architectures.",
   "problems": [
     {
@@ -36,7 +36,518 @@
           "prompt": "How will tenants, access permissions and backups remain isolated?"
         }
       ],
-      "solutions": [],
+      "solutions": [
+        {
+          "id": "isolated-tenant-service",
+          "title": "Isolated tenant databases and recovery",
+          "boundary": "Stage 1 simulation of statically assigned tenant data paths, linked copies and recovery. Conceptual control plane: authorize the caller and assign an opaque tenant ID; durably record a provisioning request and reconcile it to a ready endpoint, expose credentials only after health checks, meter per-tenant capacity, and audit destructive operations. Real provisioning, IAM/TLS, SQL, CockroachDB consensus, backup/restore and alert delivery are specification obligations, not executable capabilities of this engine. Separate instances demonstrate structural isolation, not security proof. Synthetic service times establish no production capacity.",
+          "workload": {
+            "seed": 42,
+            "horizonSec": 6,
+            "sources": [
+              {
+                "id": "tenant-a",
+                "classId": "burst-producer",
+                "params": {
+                  "burstCount": 4,
+                  "burstAtSec": 0,
+                  "requestKb": 1,
+                  "readFraction": 0,
+                  "keySpace": 2,
+                  "retries": 0,
+                  "timeoutMs": 4000
+                }
+              },
+              {
+                "id": "tenant-b",
+                "classId": "burst-producer",
+                "params": {
+                  "burstCount": 4,
+                  "burstAtSec": 0,
+                  "requestKb": 1,
+                  "readFraction": 0,
+                  "keySpace": 2,
+                  "retries": 0,
+                  "timeoutMs": 4000
+                }
+              }
+            ],
+            "comparison": "Fixed configured sources, seed and horizon across these stages. Closed-loop scheduling and retry completion can differ by topology; these synthetic requests do not establish real capacity."
+          },
+          "stages": [
+            {
+              "id": "connect",
+              "title": "Connect through a tenant endpoint",
+              "explanation": "Resolve the authenticated tenant to its own database endpoint; the two synthetic sources represent already authorized tenants and deliberately reuse the same key space. A local acknowledgement has one copy and can survive neither permanent disk loss nor a region loss. Keep provisioning/reconciliation and credential issuance in a separate control plane so an operator outage does not interrupt established queries. Invariant: each tenant has four local writes in its own authority and no route to the other tenant.",
+              "tradeoffs": [
+                "Dedicated tenant instances improve failure attribution and bound noisy-neighbor effects but cost more than shared tables. Static routes here stand in for validated tenant routing, not access control.",
+                "Use a durable desired-state record plus idempotent reconciliation for real provisioning; never label an endpoint ready merely because the request was queued."
+              ],
+              "diagram": {
+                "schema": "simulatte.systemDiagram.v4",
+                "id": "database-service-connect",
+                "name": "database-service-connect",
+                "description": "Authored bounded synthetic model, not production capacity or a deployed service.",
+                "seed": 42,
+                "run": {
+                  "horizonSec": 6
+                },
+                "classes": [],
+                "nodes": [
+                  {
+                    "id": "tenant-a",
+                    "classId": "burst-producer",
+                    "label": "tenant-a assigned tenant writes",
+                    "x": 0,
+                    "y": 0,
+                    "params": {
+                      "burstCount": 4,
+                      "burstAtSec": 0,
+                      "requestKb": 1,
+                      "readFraction": 0,
+                      "keySpace": 2,
+                      "retries": 0,
+                      "timeoutMs": 4000
+                    }
+                  },
+                  {
+                    "id": "tenant-b",
+                    "classId": "burst-producer",
+                    "label": "tenant-b assigned tenant writes",
+                    "x": 0,
+                    "y": 350,
+                    "params": {
+                      "burstCount": 4,
+                      "burstAtSec": 0,
+                      "requestKb": 1,
+                      "readFraction": 0,
+                      "keySpace": 2,
+                      "retries": 0,
+                      "timeoutMs": 4000
+                    }
+                  },
+                  {
+                    "id": "db-a",
+                    "classId": "database-leader",
+                    "label": "Tenant A database authority",
+                    "x": 300,
+                    "y": 0,
+                    "params": {
+                      "writeQuorum": 1,
+                      "concurrency": 4,
+                      "maxRecords": 100
+                    }
+                  },
+                  {
+                    "id": "db-b",
+                    "classId": "database-leader",
+                    "label": "Tenant B database authority",
+                    "x": 300,
+                    "y": 350,
+                    "params": {
+                      "writeQuorum": 1,
+                      "concurrency": 4,
+                      "maxRecords": 100
+                    }
+                  }
+                ],
+                "edges": [
+                  {
+                    "id": "a-query",
+                    "from": {
+                      "nodeId": "tenant-a",
+                      "portId": "out"
+                    },
+                    "to": {
+                      "nodeId": "db-a",
+                      "portId": "in"
+                    },
+                    "params": {
+                      "latencyMs": 5,
+                      "bandwidthMbps": 100
+                    }
+                  },
+                  {
+                    "id": "b-query",
+                    "from": {
+                      "nodeId": "tenant-b",
+                      "portId": "out"
+                    },
+                    "to": {
+                      "nodeId": "db-b",
+                      "portId": "in"
+                    },
+                    "params": {
+                      "latencyMs": 5,
+                      "bandwidthMbps": 100
+                    }
+                  }
+                ],
+                "groups": [],
+                "notes": [],
+                "faults": [],
+                "view": {
+                  "x": 0,
+                  "y": 0,
+                  "zoom": 1
+                }
+              }
+            },
+            {
+              "id": "acknowledge-copies",
+              "title": "Require a tenant-local follower receipt",
+              "explanation": "Add a separately addressable follower per tenant and require two receipts before acknowledging each write. Transfer and local apply now execute over actual drawn links. Monitor local writes, applied copies and pending replication independently: a local effect can exist even when the caller has not seen success. Invariant: acknowledged writes have a leader row and follower receipt; after healthy completion both tenant followers hold matching key versions.",
+              "tradeoffs": [
+                "Waiting for a copy adds network latency and couples write availability to that follower. A single designated leader with no promotion avoids claiming unsupported split-brain safety.",
+                "Replication is not a backup: a production service also needs retention, independent recovery credentials and tested point-in-time restore."
+              ],
+              "diagram": {
+                "schema": "simulatte.systemDiagram.v4",
+                "id": "database-service-replicate",
+                "name": "database-service-connect",
+                "description": "Authored bounded synthetic model, not production capacity or a deployed service.",
+                "seed": 42,
+                "run": {
+                  "horizonSec": 6
+                },
+                "classes": [],
+                "nodes": [
+                  {
+                    "id": "tenant-a",
+                    "classId": "burst-producer",
+                    "label": "tenant-a assigned tenant writes",
+                    "x": 0,
+                    "y": 0,
+                    "params": {
+                      "burstCount": 4,
+                      "burstAtSec": 0,
+                      "requestKb": 1,
+                      "readFraction": 0,
+                      "keySpace": 2,
+                      "retries": 0,
+                      "timeoutMs": 4000
+                    }
+                  },
+                  {
+                    "id": "tenant-b",
+                    "classId": "burst-producer",
+                    "label": "tenant-b assigned tenant writes",
+                    "x": 0,
+                    "y": 350,
+                    "params": {
+                      "burstCount": 4,
+                      "burstAtSec": 0,
+                      "requestKb": 1,
+                      "readFraction": 0,
+                      "keySpace": 2,
+                      "retries": 0,
+                      "timeoutMs": 4000
+                    }
+                  },
+                  {
+                    "id": "db-a",
+                    "classId": "database-leader",
+                    "label": "Tenant A database authority",
+                    "x": 300,
+                    "y": 0,
+                    "params": {
+                      "writeQuorum": 2,
+                      "concurrency": 4,
+                      "maxRecords": 100,
+                      "timeoutMs": 80,
+                      "retryIntervalMs": 100,
+                      "maxAttempts": 2
+                    }
+                  },
+                  {
+                    "id": "db-b",
+                    "classId": "database-leader",
+                    "label": "Tenant B database authority",
+                    "x": 300,
+                    "y": 350,
+                    "params": {
+                      "writeQuorum": 2,
+                      "concurrency": 4,
+                      "maxRecords": 100,
+                      "timeoutMs": 80,
+                      "retryIntervalMs": 100,
+                      "maxAttempts": 2
+                    }
+                  },
+                  {
+                    "id": "backup-a",
+                    "classId": "database-replica",
+                    "label": "Tenant A follower",
+                    "x": 600,
+                    "y": 0,
+                    "params": {}
+                  },
+                  {
+                    "id": "backup-b",
+                    "classId": "database-replica",
+                    "label": "Tenant B follower",
+                    "x": 600,
+                    "y": 350,
+                    "params": {}
+                  }
+                ],
+                "edges": [
+                  {
+                    "id": "a-query",
+                    "from": {
+                      "nodeId": "tenant-a",
+                      "portId": "out"
+                    },
+                    "to": {
+                      "nodeId": "db-a",
+                      "portId": "in"
+                    },
+                    "params": {
+                      "latencyMs": 5,
+                      "bandwidthMbps": 100
+                    }
+                  },
+                  {
+                    "id": "b-query",
+                    "from": {
+                      "nodeId": "tenant-b",
+                      "portId": "out"
+                    },
+                    "to": {
+                      "nodeId": "db-b",
+                      "portId": "in"
+                    },
+                    "params": {
+                      "latencyMs": 5,
+                      "bandwidthMbps": 100
+                    }
+                  },
+                  {
+                    "id": "a-replication",
+                    "from": {
+                      "nodeId": "db-a",
+                      "portId": "replicate"
+                    },
+                    "to": {
+                      "nodeId": "backup-a",
+                      "portId": "replica"
+                    },
+                    "params": {
+                      "latencyMs": 5,
+                      "bandwidthMbps": 100
+                    }
+                  },
+                  {
+                    "id": "b-replication",
+                    "from": {
+                      "nodeId": "db-b",
+                      "portId": "replicate"
+                    },
+                    "to": {
+                      "nodeId": "backup-b",
+                      "portId": "replica"
+                    },
+                    "params": {
+                      "latencyMs": 5,
+                      "bandwidthMbps": 100
+                    }
+                  }
+                ],
+                "groups": [],
+                "notes": [],
+                "faults": [],
+                "view": {
+                  "x": 0,
+                  "y": 0,
+                  "zoom": 1
+                }
+              }
+            },
+            {
+              "id": "recover-isolate",
+              "title": "Recover one tenant without blocking the other",
+              "explanation": "Partition tenant A replication for half a simulated second. B continues through its own links while A retains pending rows and retries at a bounded rate until the link heals. Raise the finite attempt budget from two to ten, without changing either source. Inspect the pending outbox during the outage, then verify it drains and both follower versions converge. The operator should alert on an aging or exhausted outbox, investigate failed repair, and require human approval for destructive rebuilds.",
+              "tradeoffs": [
+                "Longer retries improve recovery within the outage bound but retain memory and extend caller waiting; budgets and deadlines must be explicit. An outage beyond the budget must surface failure and retained uncertain effects.",
+                "Per-tenant physical paths reduce shared contention but do not model shared host CPU, storage quotas, billing isolation, backup validity or credential compromise."
+              ],
+              "diagram": {
+                "schema": "simulatte.systemDiagram.v4",
+                "id": "database-service-isolation",
+                "name": "database-service-connect",
+                "description": "Authored bounded synthetic model, not production capacity or a deployed service.",
+                "seed": 42,
+                "run": {
+                  "horizonSec": 6
+                },
+                "classes": [],
+                "nodes": [
+                  {
+                    "id": "tenant-a",
+                    "classId": "burst-producer",
+                    "label": "tenant-a assigned tenant writes",
+                    "x": 0,
+                    "y": 0,
+                    "params": {
+                      "burstCount": 4,
+                      "burstAtSec": 0,
+                      "requestKb": 1,
+                      "readFraction": 0,
+                      "keySpace": 2,
+                      "retries": 0,
+                      "timeoutMs": 4000
+                    }
+                  },
+                  {
+                    "id": "tenant-b",
+                    "classId": "burst-producer",
+                    "label": "tenant-b assigned tenant writes",
+                    "x": 0,
+                    "y": 350,
+                    "params": {
+                      "burstCount": 4,
+                      "burstAtSec": 0,
+                      "requestKb": 1,
+                      "readFraction": 0,
+                      "keySpace": 2,
+                      "retries": 0,
+                      "timeoutMs": 4000
+                    }
+                  },
+                  {
+                    "id": "db-a",
+                    "classId": "database-leader",
+                    "label": "Tenant A database authority",
+                    "x": 300,
+                    "y": 0,
+                    "params": {
+                      "writeQuorum": 2,
+                      "concurrency": 4,
+                      "maxRecords": 100,
+                      "timeoutMs": 80,
+                      "retryIntervalMs": 100,
+                      "maxAttempts": 10
+                    }
+                  },
+                  {
+                    "id": "db-b",
+                    "classId": "database-leader",
+                    "label": "Tenant B database authority",
+                    "x": 300,
+                    "y": 350,
+                    "params": {
+                      "writeQuorum": 2,
+                      "concurrency": 4,
+                      "maxRecords": 100,
+                      "timeoutMs": 80,
+                      "retryIntervalMs": 100,
+                      "maxAttempts": 10
+                    }
+                  },
+                  {
+                    "id": "backup-a",
+                    "classId": "database-replica",
+                    "label": "Tenant A follower",
+                    "x": 600,
+                    "y": 0,
+                    "params": {}
+                  },
+                  {
+                    "id": "backup-b",
+                    "classId": "database-replica",
+                    "label": "Tenant B follower",
+                    "x": 600,
+                    "y": 350,
+                    "params": {}
+                  }
+                ],
+                "edges": [
+                  {
+                    "id": "a-query",
+                    "from": {
+                      "nodeId": "tenant-a",
+                      "portId": "out"
+                    },
+                    "to": {
+                      "nodeId": "db-a",
+                      "portId": "in"
+                    },
+                    "params": {
+                      "latencyMs": 5,
+                      "bandwidthMbps": 100
+                    }
+                  },
+                  {
+                    "id": "b-query",
+                    "from": {
+                      "nodeId": "tenant-b",
+                      "portId": "out"
+                    },
+                    "to": {
+                      "nodeId": "db-b",
+                      "portId": "in"
+                    },
+                    "params": {
+                      "latencyMs": 5,
+                      "bandwidthMbps": 100
+                    }
+                  },
+                  {
+                    "id": "a-replication",
+                    "from": {
+                      "nodeId": "db-a",
+                      "portId": "replicate"
+                    },
+                    "to": {
+                      "nodeId": "backup-a",
+                      "portId": "replica"
+                    },
+                    "params": {
+                      "latencyMs": 5,
+                      "bandwidthMbps": 100
+                    }
+                  },
+                  {
+                    "id": "b-replication",
+                    "from": {
+                      "nodeId": "db-b",
+                      "portId": "replicate"
+                    },
+                    "to": {
+                      "nodeId": "backup-b",
+                      "portId": "replica"
+                    },
+                    "params": {
+                      "latencyMs": 5,
+                      "bandwidthMbps": 100
+                    }
+                  }
+                ],
+                "groups": [],
+                "notes": [],
+                "faults": [
+                  {
+                    "id": "tenant-a-network",
+                    "atSec": 0,
+                    "untilSec": 0.5,
+                    "target": {
+                      "kind": "edge",
+                      "id": "a-replication"
+                    },
+                    "type": "partition",
+                    "params": {}
+                  }
+                ],
+                "view": {
+                  "x": 0,
+                  "y": 0,
+                  "zoom": 1
+                }
+              }
+            }
+          ]
+        }
+      ],
       "compatibility": {
         "registry": "interview-problems"
       }
@@ -74,7 +585,562 @@
           "prompt": "Which design choice would you change at ten times the original load?"
         }
       ],
-      "solutions": [],
+      "solutions": [
+        {
+          "id": "worked-project-review",
+          "title": "Worked project review: asynchronous reports",
+          "boundary": "Authored worked example for the sourced open-ended project prompt, not a claim about the reader's employment or an actual incident. It models admission, worker service, leased delivery and idempotent result keys. Queue ACK means accepted work, not finished report; no HTTP polling endpoint, real report rendering, durable disk, authentication or operational deployment is implemented.",
+          "workload": {
+            "seed": 42,
+            "horizonSec": 16,
+            "sources": [
+              {
+                "id": "clients",
+                "classId": "web-client",
+                "params": {
+                  "pattern": "constant",
+                  "ratePerSec": 6,
+                  "maxRequests": 36,
+                  "stopSec": 6,
+                  "retries": 0,
+                  "timeoutMs": 500,
+                  "readFraction": 0,
+                  "keySpace": 36
+                }
+              }
+            ],
+            "comparison": "Replay identical configured demand, fault schedule and seed on fresh stages. Closed-loop request timing may change with responses; rates and durations are synthetic assumptions."
+          },
+          "stages": [
+            {
+              "id": "synchronous",
+              "title": "Trace the blocking request",
+              "explanation": "A synthetic report request holds an API slot while 400 ms of worker service completes, eventually exceeding the client's 500 ms deadline as the two-worker backlog grows. Trace caller timeouts separately from downstream effects; an expired caller does not prove that work never committed.",
+              "tradeoffs": [
+                "This reference example must be replaced with your real components and observed incident when answering a personal interview.",
+                "Two workers model a measured bottleneck only if those service assumptions are later calibrated."
+              ],
+              "diagram": {
+                "schema": "simulatte.systemDiagram.v4",
+                "id": "project-review-sync",
+                "name": "project review sync",
+                "description": "Bounded authored synthetic architecture comparison.",
+                "seed": 42,
+                "run": {
+                  "horizonSec": 16
+                },
+                "classes": [],
+                "nodes": [
+                  {
+                    "id": "clients",
+                    "classId": "web-client",
+                    "label": "clients",
+                    "x": 0,
+                    "y": 100,
+                    "params": {
+                      "pattern": "constant",
+                      "ratePerSec": 6,
+                      "maxRequests": 36,
+                      "stopSec": 6,
+                      "retries": 0,
+                      "timeoutMs": 500,
+                      "readFraction": 0,
+                      "keySpace": 36
+                    }
+                  },
+                  {
+                    "id": "api",
+                    "classId": "web-server",
+                    "label": "api",
+                    "x": 220,
+                    "y": 100,
+                    "params": {
+                      "serviceMs": 5,
+                      "serviceDist": "constant",
+                      "concurrency": 2,
+                      "queueCapacity": 8,
+                      "callTimeoutMs": 2000
+                    }
+                  },
+                  {
+                    "id": "worker",
+                    "classId": "worker",
+                    "label": "worker",
+                    "x": 680,
+                    "y": 100,
+                    "params": {
+                      "serviceMs": 400,
+                      "serviceDist": "constant",
+                      "concurrency": 2,
+                      "queueCapacity": 8,
+                      "callTimeoutMs": 200,
+                      "retries": 0
+                    }
+                  },
+                  {
+                    "id": "results",
+                    "classId": "idempotent-store",
+                    "label": "results",
+                    "x": 930,
+                    "y": 100,
+                    "params": {
+                      "writeMs": 3,
+                      "serviceDist": "constant"
+                    }
+                  }
+                ],
+                "edges": [
+                  {
+                    "id": "requests",
+                    "from": {
+                      "nodeId": "clients",
+                      "portId": "out"
+                    },
+                    "to": {
+                      "nodeId": "api",
+                      "portId": "in"
+                    },
+                    "params": {
+                      "latencyMs": 2,
+                      "bandwidthMbps": 100
+                    }
+                  },
+                  {
+                    "id": "compute",
+                    "from": {
+                      "nodeId": "api",
+                      "portId": "calls"
+                    },
+                    "to": {
+                      "nodeId": "worker",
+                      "portId": "in"
+                    },
+                    "params": {
+                      "latencyMs": 2,
+                      "bandwidthMbps": 100
+                    }
+                  },
+                  {
+                    "id": "commit",
+                    "from": {
+                      "nodeId": "worker",
+                      "portId": "calls"
+                    },
+                    "to": {
+                      "nodeId": "results",
+                      "portId": "in"
+                    },
+                    "params": {
+                      "latencyMs": 2,
+                      "bandwidthMbps": 100,
+                      "op": "write"
+                    }
+                  }
+                ],
+                "groups": [],
+                "notes": [],
+                "faults": [],
+                "view": {
+                  "x": 0,
+                  "y": 0,
+                  "zoom": 1
+                }
+              }
+            },
+            {
+              "id": "accept-work",
+              "title": "Acknowledge accepted work",
+              "explanation": "Move the same requests through a bounded leased queue. API replies acknowledge admission while two consumers process reports; inspect queue backlog and result effects independently of client completion. The 1.5 s visibility lease exceeds the normal 400 ms service plus commit time.",
+              "tradeoffs": [
+                "Faster admission transfers latency to queue age; completion requires a separate job-status contract in a real product.",
+                "A finite queue rejects overload; adding workers helps only while storage and tenant budgets permit."
+              ],
+              "diagram": {
+                "schema": "simulatte.systemDiagram.v4",
+                "id": "project-review-queue",
+                "name": "project review sync",
+                "description": "Bounded authored synthetic architecture comparison.",
+                "seed": 42,
+                "run": {
+                  "horizonSec": 16
+                },
+                "classes": [],
+                "nodes": [
+                  {
+                    "id": "clients",
+                    "classId": "web-client",
+                    "label": "clients",
+                    "x": 0,
+                    "y": 100,
+                    "params": {
+                      "pattern": "constant",
+                      "ratePerSec": 6,
+                      "maxRequests": 36,
+                      "stopSec": 6,
+                      "retries": 0,
+                      "timeoutMs": 500,
+                      "readFraction": 0,
+                      "keySpace": 36
+                    }
+                  },
+                  {
+                    "id": "api",
+                    "classId": "web-server",
+                    "label": "api",
+                    "x": 220,
+                    "y": 100,
+                    "params": {
+                      "serviceMs": 5,
+                      "serviceDist": "constant",
+                      "concurrency": 2,
+                      "queueCapacity": 8,
+                      "callTimeoutMs": 2000
+                    }
+                  },
+                  {
+                    "id": "worker",
+                    "classId": "worker",
+                    "label": "worker",
+                    "x": 680,
+                    "y": 100,
+                    "params": {
+                      "serviceMs": 400,
+                      "serviceDist": "constant",
+                      "concurrency": 2,
+                      "queueCapacity": 8,
+                      "callTimeoutMs": 200,
+                      "retries": 0
+                    }
+                  },
+                  {
+                    "id": "results",
+                    "classId": "idempotent-store",
+                    "label": "results",
+                    "x": 930,
+                    "y": 100,
+                    "params": {
+                      "writeMs": 3,
+                      "serviceDist": "constant"
+                    }
+                  },
+                  {
+                    "id": "queue",
+                    "classId": "task-queue",
+                    "label": "queue",
+                    "x": 450,
+                    "y": 100,
+                    "params": {
+                      "capacity": 40,
+                      "prefetch": 2,
+                      "visibilityTimeoutMs": 1500,
+                      "maxReceives": 4,
+                      "retryDelayMs": 100
+                    }
+                  },
+                  {
+                    "id": "deadletters",
+                    "classId": "dead-letter-queue",
+                    "label": "deadletters",
+                    "x": 450,
+                    "y": 330,
+                    "params": {}
+                  }
+                ],
+                "edges": [
+                  {
+                    "id": "requests",
+                    "from": {
+                      "nodeId": "clients",
+                      "portId": "out"
+                    },
+                    "to": {
+                      "nodeId": "api",
+                      "portId": "in"
+                    },
+                    "params": {
+                      "latencyMs": 2,
+                      "bandwidthMbps": 100
+                    }
+                  },
+                  {
+                    "id": "commit",
+                    "from": {
+                      "nodeId": "worker",
+                      "portId": "calls"
+                    },
+                    "to": {
+                      "nodeId": "results",
+                      "portId": "in"
+                    },
+                    "params": {
+                      "latencyMs": 2,
+                      "bandwidthMbps": 100,
+                      "op": "write"
+                    }
+                  },
+                  {
+                    "id": "enqueue",
+                    "from": {
+                      "nodeId": "api",
+                      "portId": "calls"
+                    },
+                    "to": {
+                      "nodeId": "queue",
+                      "portId": "in"
+                    },
+                    "params": {
+                      "latencyMs": 2,
+                      "bandwidthMbps": 100,
+                      "op": "write"
+                    }
+                  },
+                  {
+                    "id": "consume",
+                    "from": {
+                      "nodeId": "queue",
+                      "portId": "consumers"
+                    },
+                    "to": {
+                      "nodeId": "worker",
+                      "portId": "in"
+                    },
+                    "params": {
+                      "latencyMs": 2,
+                      "bandwidthMbps": 100,
+                      "op": "write"
+                    }
+                  },
+                  {
+                    "id": "dead",
+                    "from": {
+                      "nodeId": "queue",
+                      "portId": "dlq"
+                    },
+                    "to": {
+                      "nodeId": "deadletters",
+                      "portId": "in"
+                    },
+                    "params": {
+                      "latencyMs": 2,
+                      "bandwidthMbps": 100
+                    }
+                  }
+                ],
+                "groups": [],
+                "notes": [],
+                "faults": [],
+                "view": {
+                  "x": 0,
+                  "y": 0,
+                  "zoom": 1
+                }
+              }
+            },
+            {
+              "id": "retry-effects",
+              "title": "Recover ambiguous commits",
+              "explanation": "Drop result replies during seconds 1 to 2. A result may commit before its reply is lost; worker failure returns the leased task for bounded retry. The idempotent store retains one effect per request key despite repeated delivery. Inspect duplicate suppression, queue settlement and dead letters.",
+              "tradeoffs": [
+                "Retrying after timeout is safe here because the result identity is stable; it is not an exactly-once transport.",
+                "At ten times this demand, inspect queue age, rejection and storage contention before changing concurrency.",
+                "The outage is an authored experiment, not a reported production incident."
+              ],
+              "diagram": {
+                "schema": "simulatte.systemDiagram.v4",
+                "id": "project-review-recovery",
+                "name": "project review sync",
+                "description": "Bounded authored synthetic architecture comparison.",
+                "seed": 42,
+                "run": {
+                  "horizonSec": 16
+                },
+                "classes": [],
+                "nodes": [
+                  {
+                    "id": "clients",
+                    "classId": "web-client",
+                    "label": "clients",
+                    "x": 0,
+                    "y": 100,
+                    "params": {
+                      "pattern": "constant",
+                      "ratePerSec": 6,
+                      "maxRequests": 36,
+                      "stopSec": 6,
+                      "retries": 0,
+                      "timeoutMs": 500,
+                      "readFraction": 0,
+                      "keySpace": 36
+                    }
+                  },
+                  {
+                    "id": "api",
+                    "classId": "web-server",
+                    "label": "api",
+                    "x": 220,
+                    "y": 100,
+                    "params": {
+                      "serviceMs": 5,
+                      "serviceDist": "constant",
+                      "concurrency": 2,
+                      "queueCapacity": 8,
+                      "callTimeoutMs": 2000
+                    }
+                  },
+                  {
+                    "id": "worker",
+                    "classId": "worker",
+                    "label": "worker",
+                    "x": 680,
+                    "y": 100,
+                    "params": {
+                      "serviceMs": 400,
+                      "serviceDist": "constant",
+                      "concurrency": 2,
+                      "queueCapacity": 8,
+                      "callTimeoutMs": 200,
+                      "retries": 0
+                    }
+                  },
+                  {
+                    "id": "results",
+                    "classId": "idempotent-store",
+                    "label": "results",
+                    "x": 930,
+                    "y": 100,
+                    "params": {
+                      "writeMs": 3,
+                      "serviceDist": "constant"
+                    }
+                  },
+                  {
+                    "id": "queue",
+                    "classId": "task-queue",
+                    "label": "queue",
+                    "x": 450,
+                    "y": 100,
+                    "params": {
+                      "capacity": 40,
+                      "prefetch": 2,
+                      "visibilityTimeoutMs": 1500,
+                      "maxReceives": 4,
+                      "retryDelayMs": 100
+                    }
+                  },
+                  {
+                    "id": "deadletters",
+                    "classId": "dead-letter-queue",
+                    "label": "deadletters",
+                    "x": 450,
+                    "y": 330,
+                    "params": {}
+                  }
+                ],
+                "edges": [
+                  {
+                    "id": "requests",
+                    "from": {
+                      "nodeId": "clients",
+                      "portId": "out"
+                    },
+                    "to": {
+                      "nodeId": "api",
+                      "portId": "in"
+                    },
+                    "params": {
+                      "latencyMs": 2,
+                      "bandwidthMbps": 100
+                    }
+                  },
+                  {
+                    "id": "commit",
+                    "from": {
+                      "nodeId": "worker",
+                      "portId": "calls"
+                    },
+                    "to": {
+                      "nodeId": "results",
+                      "portId": "in"
+                    },
+                    "params": {
+                      "latencyMs": 2,
+                      "bandwidthMbps": 100,
+                      "op": "write"
+                    }
+                  },
+                  {
+                    "id": "enqueue",
+                    "from": {
+                      "nodeId": "api",
+                      "portId": "calls"
+                    },
+                    "to": {
+                      "nodeId": "queue",
+                      "portId": "in"
+                    },
+                    "params": {
+                      "latencyMs": 2,
+                      "bandwidthMbps": 100,
+                      "op": "write"
+                    }
+                  },
+                  {
+                    "id": "consume",
+                    "from": {
+                      "nodeId": "queue",
+                      "portId": "consumers"
+                    },
+                    "to": {
+                      "nodeId": "worker",
+                      "portId": "in"
+                    },
+                    "params": {
+                      "latencyMs": 2,
+                      "bandwidthMbps": 100,
+                      "op": "write"
+                    }
+                  },
+                  {
+                    "id": "dead",
+                    "from": {
+                      "nodeId": "queue",
+                      "portId": "dlq"
+                    },
+                    "to": {
+                      "nodeId": "deadletters",
+                      "portId": "in"
+                    },
+                    "params": {
+                      "latencyMs": 2,
+                      "bandwidthMbps": 100
+                    }
+                  }
+                ],
+                "groups": [],
+                "notes": [],
+                "faults": [
+                  {
+                    "id": "lost-commit-replies",
+                    "target": {
+                      "kind": "node",
+                      "id": "results"
+                    },
+                    "type": "dropReplies",
+                    "atSec": 1,
+                    "untilSec": 2,
+                    "params": {}
+                  }
+                ],
+                "view": {
+                  "x": 0,
+                  "y": 0,
+                  "zoom": 1
+                }
+              }
+            }
+          ]
+        }
+      ],
       "compatibility": {
         "registry": "interview-problems"
       }
@@ -82,7 +1148,7 @@
     {
       "id": "pagination",
       "title": "Paginated API",
-      "description": "Design a website’s paginated results API and its database access.",
+      "description": "Design a website\u2019s paginated results API and its database access.",
       "attribution": {
         "company": "N26"
       },
@@ -112,7 +1178,254 @@
           "prompt": "How will the design avoid scanning and returning the entire dataset?"
         }
       ],
-      "solutions": [],
+      "solutions": [
+        {
+          "id": "stable-cursors",
+          "title": "Pages under concurrent mutations",
+          "boundary": "Simulation stage 1 only, architecture detail level 2. Eight ordered synthetic records; one insert and one delete between pages. Cursor tokens are model JSON, not authenticated production cursors. Keyset uses binary search over a finite in-memory sorted index; snapshot copies model MVCC visibility, not a production database isolation proof.",
+          "workload": {
+            "seed": 42,
+            "horizonSec": 20,
+            "sources": [
+              {
+                "id": "readers",
+                "classId": "api-practice-client",
+                "params": {
+                  "scenario": "pagination",
+                  "intervalMs": 800,
+                  "timeoutMs": 300,
+                  "retries": 0
+                }
+              }
+            ],
+            "comparison": "The same finite, sequential client command trace runs in every stage. Closed-loop completion times change with replies and timeouts, so arrival times are not matched."
+          },
+          "stages": [
+            {
+              "id": "offset",
+              "title": "Expose offset drift",
+              "explanation": "Read three records, then insert key 0 and delete key 8 before requesting the next page. Offset scanning repeats record 3 because the preceding prefix changed. Inspect page records and cumulative scanned entries; a fast response alone does not prove correct pagination.",
+              "tradeoffs": [
+                "Offset supports random page numbers but incurs prefix scans and unstable boundaries under mutations.",
+                "The dataset and page size are synthetic. Require stable ordering on an immutable unique key before replacing offsets."
+              ],
+              "diagram": {
+                "schema": "simulatte.systemDiagram.v4",
+                "id": "pagination",
+                "name": "pagination",
+                "description": "Authored finite synthetic API model.",
+                "seed": 42,
+                "run": {
+                  "horizonSec": 20
+                },
+                "classes": [],
+                "nodes": [
+                  {
+                    "id": "readers",
+                    "classId": "api-practice-client",
+                    "label": "readers",
+                    "x": 0,
+                    "y": 0,
+                    "params": {
+                      "scenario": "pagination",
+                      "intervalMs": 800,
+                      "timeoutMs": 300,
+                      "retries": 0
+                    }
+                  },
+                  {
+                    "id": "results",
+                    "classId": "pagination-store",
+                    "label": "results",
+                    "x": 320,
+                    "y": 0,
+                    "params": {
+                      "mode": "offset",
+                      "pageSize": 3,
+                      "serviceDist": "constant",
+                      "serviceMs": 10
+                    }
+                  }
+                ],
+                "edges": [
+                  {
+                    "id": "page-request",
+                    "label": "page-request",
+                    "from": {
+                      "nodeId": "readers",
+                      "portId": "out"
+                    },
+                    "to": {
+                      "nodeId": "results",
+                      "portId": "in"
+                    },
+                    "params": {
+                      "latencyMs": 10,
+                      "bandwidthMbps": 100
+                    }
+                  }
+                ],
+                "groups": [],
+                "notes": [],
+                "faults": [],
+                "view": {
+                  "x": 0,
+                  "y": 0,
+                  "zoom": 1
+                }
+              }
+            },
+            {
+              "id": "keyset",
+              "title": "Seek after the last key",
+              "explanation": "Keep the same client trace and page size. Next-page tokens carry the last emitted key, and a binary search seeks strictly after it. Keys 1 through 7 appear once; key 0 is behind the cursor and deleted key 8 is absent. Malformed tokens fail instead of restarting the scan.",
+              "tradeoffs": [
+                "Keyset bounds seek work to logarithmic comparisons plus page length, but loses arbitrary page jumps.",
+                "A stable key prevents duplicates, not snapshot isolation: concurrent deletion can still remove an unseen item."
+              ],
+              "diagram": {
+                "schema": "simulatte.systemDiagram.v4",
+                "id": "pagination",
+                "name": "pagination",
+                "description": "Authored finite synthetic API model.",
+                "seed": 42,
+                "run": {
+                  "horizonSec": 20
+                },
+                "classes": [],
+                "nodes": [
+                  {
+                    "id": "readers",
+                    "classId": "api-practice-client",
+                    "label": "readers",
+                    "x": 0,
+                    "y": 0,
+                    "params": {
+                      "scenario": "pagination",
+                      "intervalMs": 800,
+                      "timeoutMs": 300,
+                      "retries": 0
+                    }
+                  },
+                  {
+                    "id": "results",
+                    "classId": "pagination-store",
+                    "label": "results",
+                    "x": 320,
+                    "y": 0,
+                    "params": {
+                      "mode": "keyset",
+                      "pageSize": 3,
+                      "serviceDist": "constant",
+                      "serviceMs": 10
+                    }
+                  }
+                ],
+                "edges": [
+                  {
+                    "id": "page-request",
+                    "label": "page-request",
+                    "from": {
+                      "nodeId": "readers",
+                      "portId": "out"
+                    },
+                    "to": {
+                      "nodeId": "results",
+                      "portId": "in"
+                    },
+                    "params": {
+                      "latencyMs": 10,
+                      "bandwidthMbps": 100
+                    }
+                  }
+                ],
+                "groups": [],
+                "notes": [],
+                "faults": [],
+                "view": {
+                  "x": 0,
+                  "y": 0,
+                  "zoom": 1
+                }
+              }
+            },
+            {
+              "id": "snapshot",
+              "title": "Pin the traversal snapshot",
+              "explanation": "The first read pins one bounded snapshot, and later pages seek in that version despite live insertion and deletion. The traversal returns initial keys 1 through 8 exactly once. Inspect the live rows separately to see that snapshot consistency has a retention cost.",
+              "tradeoffs": [
+                "Snapshot traversal retains old versions until completion; production cursors need expiration, authentication, tenant binding and a bounded retention policy.",
+                "This finite model holds one snapshot per store. A public API must bound independent cursors and reject expired versions."
+              ],
+              "diagram": {
+                "schema": "simulatte.systemDiagram.v4",
+                "id": "pagination",
+                "name": "pagination",
+                "description": "Authored finite synthetic API model.",
+                "seed": 42,
+                "run": {
+                  "horizonSec": 20
+                },
+                "classes": [],
+                "nodes": [
+                  {
+                    "id": "readers",
+                    "classId": "api-practice-client",
+                    "label": "readers",
+                    "x": 0,
+                    "y": 0,
+                    "params": {
+                      "scenario": "pagination",
+                      "intervalMs": 800,
+                      "timeoutMs": 300,
+                      "retries": 0
+                    }
+                  },
+                  {
+                    "id": "results",
+                    "classId": "pagination-store",
+                    "label": "results",
+                    "x": 320,
+                    "y": 0,
+                    "params": {
+                      "mode": "snapshot",
+                      "pageSize": 3,
+                      "serviceDist": "constant",
+                      "serviceMs": 10
+                    }
+                  }
+                ],
+                "edges": [
+                  {
+                    "id": "page-request",
+                    "label": "page-request",
+                    "from": {
+                      "nodeId": "readers",
+                      "portId": "out"
+                    },
+                    "to": {
+                      "nodeId": "results",
+                      "portId": "in"
+                    },
+                    "params": {
+                      "latencyMs": 10,
+                      "bandwidthMbps": 100
+                    }
+                  }
+                ],
+                "groups": [],
+                "notes": [],
+                "faults": [],
+                "view": {
+                  "x": 0,
+                  "y": 0,
+                  "zoom": 1
+                }
+              }
+            }
+          ]
+        }
+      ],
       "compatibility": {
         "registry": "interview-problems"
       }
@@ -150,7 +1463,341 @@
           "prompt": "How will retries affect ordering and duplicate delivery?"
         }
       ],
-      "solutions": [],
+      "solutions": [
+        {
+          "id": "durable-mailbox",
+          "title": "Ordered mailbox and reconnect catchup",
+          "boundary": "One bounded two-member conversation, fixed membership and a single sequence authority. State survives simulated node faults and checkpoints only. No live sockets, real authentication, cross-shard order, group messaging or production durability. All stages execute evolution Stage 1 simulation; none implements specification, deployment, operation or system stages. Detail levels describe inspection depth independently.",
+          "workload": {
+            "seed": 42,
+            "horizonSec": 15,
+            "sources": [
+              {
+                "id": "users",
+                "classId": "messaging-workload",
+                "params": {
+                  "scenario": "chat",
+                  "timeoutMs": 6000
+                }
+              }
+            ],
+            "comparison": "Replay the identical open-loop command trace in every stage. Closed-loop user demand is not matched; retries change internal attempt load."
+          },
+          "stages": [
+            {
+              "id": "acknowledgement",
+              "title": "Commit and expose ambiguous acknowledgement",
+              "explanation": "Alice and Bob append three messages to one conversation sequence. The first acknowledgement is lost after commit. Inspect the failed client command and retained m1: a timeout cannot establish that a write failed. Retrying m1 manually preserves its original sequence. Membership rejects an outsider sync.",
+              "diagram": {
+                "schema": "simulatte.systemDiagram.v4",
+                "id": "chat-direct",
+                "name": "chat-direct",
+                "description": "Authored bounded synthetic messaging model.",
+                "seed": 42,
+                "run": {
+                  "horizonSec": 15
+                },
+                "classes": [],
+                "nodes": [
+                  {
+                    "id": "users",
+                    "classId": "messaging-workload",
+                    "x": 0,
+                    "y": 120,
+                    "params": {
+                      "scenario": "chat",
+                      "timeoutMs": 6000
+                    },
+                    "label": "Two conversation members"
+                  },
+                  {
+                    "id": "mailbox",
+                    "classId": "chat-mailbox",
+                    "x": 500,
+                    "y": 120,
+                    "params": {},
+                    "label": "Ordered conversation log"
+                  }
+                ],
+                "edges": [
+                  {
+                    "id": "commands",
+                    "label": "commands",
+                    "from": {
+                      "nodeId": "users",
+                      "portId": "out"
+                    },
+                    "to": {
+                      "nodeId": "mailbox",
+                      "portId": "in"
+                    },
+                    "params": {
+                      "latencyMs": 5,
+                      "bandwidthMbps": 1000
+                    }
+                  }
+                ],
+                "groups": [],
+                "notes": [],
+                "faults": [
+                  {
+                    "id": "ambiguous-send",
+                    "atSec": 0,
+                    "untilSec": 0.3,
+                    "target": {
+                      "kind": "node",
+                      "id": "mailbox"
+                    },
+                    "type": "dropReplies",
+                    "params": {}
+                  }
+                ],
+                "view": {
+                  "x": 0,
+                  "y": 0,
+                  "zoom": 1
+                }
+              },
+              "tradeoffs": [
+                "A single authority gives an unambiguous per-conversation order but bounds throughput and availability by one simulated station.",
+                "The source does not retry; write effects and successful acknowledgements intentionally differ."
+              ],
+              "challenge": "Expected invariant: exactly three unique committed messages with contiguous sequences; the outsider never receives history. Which result is uncertain after the lost reply?"
+            },
+            {
+              "id": "retry-identity",
+              "title": "Retry the stable message identity",
+              "explanation": "Put a bounded retry policy before the mailbox. Lost acknowledgements now retry the same message ID and content. The log returns the prior sequence rather than appending a duplicate. Inspect attempts and duplicate counters: retries recover availability while consuming additional service and link work.",
+              "diagram": {
+                "schema": "simulatte.systemDiagram.v4",
+                "id": "chat-retry",
+                "name": "chat-retry",
+                "description": "Authored bounded synthetic messaging model.",
+                "seed": 42,
+                "run": {
+                  "horizonSec": 15
+                },
+                "classes": [],
+                "nodes": [
+                  {
+                    "id": "users",
+                    "classId": "messaging-workload",
+                    "x": 0,
+                    "y": 120,
+                    "params": {
+                      "scenario": "chat",
+                      "timeoutMs": 6000
+                    },
+                    "label": "Two conversation members"
+                  },
+                  {
+                    "id": "retry",
+                    "classId": "retry-policy",
+                    "x": 240,
+                    "y": 120,
+                    "params": {
+                      "attemptTimeoutMs": 250,
+                      "maxAttempts": 3,
+                      "retryBudget": 2,
+                      "backoffMs": 150,
+                      "retryJitter": false
+                    },
+                    "label": "Bounded command retry"
+                  },
+                  {
+                    "id": "mailbox",
+                    "classId": "chat-mailbox",
+                    "x": 500,
+                    "y": 120,
+                    "params": {},
+                    "label": "Ordered conversation log"
+                  }
+                ],
+                "edges": [
+                  {
+                    "id": "commands",
+                    "label": "commands",
+                    "from": {
+                      "nodeId": "users",
+                      "portId": "out"
+                    },
+                    "to": {
+                      "nodeId": "retry",
+                      "portId": "in"
+                    },
+                    "params": {
+                      "latencyMs": 5,
+                      "bandwidthMbps": 1000
+                    }
+                  },
+                  {
+                    "id": "retry-command",
+                    "label": "retry-command",
+                    "from": {
+                      "nodeId": "retry",
+                      "portId": "target"
+                    },
+                    "to": {
+                      "nodeId": "mailbox",
+                      "portId": "in"
+                    },
+                    "params": {
+                      "latencyMs": 5,
+                      "bandwidthMbps": 1000
+                    }
+                  }
+                ],
+                "groups": [],
+                "notes": [],
+                "faults": [
+                  {
+                    "id": "ambiguous-send",
+                    "atSec": 0,
+                    "untilSec": 0.3,
+                    "target": {
+                      "kind": "node",
+                      "id": "mailbox"
+                    },
+                    "type": "dropReplies",
+                    "params": {}
+                  }
+                ],
+                "view": {
+                  "x": 0,
+                  "y": 0,
+                  "zoom": 1
+                }
+              },
+              "tradeoffs": [
+                "Stable client message IDs and content-conflict checks are required across reconnects. A new ID on each retry would create duplicate messages.",
+                "The retry budget is finite; prolonged partitions still surface failure. An in-memory station is not an external replicated database."
+              ],
+              "challenge": "Expected invariant: m1 has one effect despite more than one attempt; all authorized commands complete after the short reply-loss window."
+            },
+            {
+              "id": "reconnect-cursor",
+              "title": "Catch up after disconnection",
+              "explanation": "A connection blackhole prevents Bob from reading at second 4. The finite retry budget exposes this interruption. At second 6 Bob requests records after cursor 1 and receives m2 and m3 in order, including the message committed while disconnected. A cursor advances only from a successful history result.",
+              "diagram": {
+                "schema": "simulatte.systemDiagram.v4",
+                "id": "chat-catchup",
+                "name": "chat-retry",
+                "description": "Authored bounded synthetic messaging model.",
+                "seed": 42,
+                "run": {
+                  "horizonSec": 15
+                },
+                "classes": [],
+                "nodes": [
+                  {
+                    "id": "users",
+                    "classId": "messaging-workload",
+                    "x": 0,
+                    "y": 120,
+                    "params": {
+                      "scenario": "chat",
+                      "timeoutMs": 6000
+                    },
+                    "label": "Two conversation members"
+                  },
+                  {
+                    "id": "retry",
+                    "classId": "retry-policy",
+                    "x": 240,
+                    "y": 120,
+                    "params": {
+                      "attemptTimeoutMs": 250,
+                      "maxAttempts": 3,
+                      "retryBudget": 2,
+                      "backoffMs": 150,
+                      "retryJitter": false
+                    },
+                    "label": "Bounded command retry"
+                  },
+                  {
+                    "id": "mailbox",
+                    "classId": "chat-mailbox",
+                    "x": 500,
+                    "y": 120,
+                    "params": {},
+                    "label": "Ordered conversation log"
+                  }
+                ],
+                "edges": [
+                  {
+                    "id": "commands",
+                    "label": "commands",
+                    "from": {
+                      "nodeId": "users",
+                      "portId": "out"
+                    },
+                    "to": {
+                      "nodeId": "retry",
+                      "portId": "in"
+                    },
+                    "params": {
+                      "latencyMs": 5,
+                      "bandwidthMbps": 1000
+                    }
+                  },
+                  {
+                    "id": "retry-command",
+                    "label": "retry-command",
+                    "from": {
+                      "nodeId": "retry",
+                      "portId": "target"
+                    },
+                    "to": {
+                      "nodeId": "mailbox",
+                      "portId": "in"
+                    },
+                    "params": {
+                      "latencyMs": 5,
+                      "bandwidthMbps": 1000
+                    }
+                  }
+                ],
+                "groups": [],
+                "notes": [],
+                "faults": [
+                  {
+                    "id": "ambiguous-send",
+                    "atSec": 0,
+                    "untilSec": 0.3,
+                    "target": {
+                      "kind": "node",
+                      "id": "mailbox"
+                    },
+                    "type": "dropReplies",
+                    "params": {}
+                  },
+                  {
+                    "id": "recipient-link-outage",
+                    "atSec": 3.5,
+                    "untilSec": 5.8,
+                    "target": {
+                      "kind": "node",
+                      "id": "mailbox"
+                    },
+                    "type": "blackhole",
+                    "params": {}
+                  }
+                ],
+                "view": {
+                  "x": 0,
+                  "y": 0,
+                  "zoom": 1
+                }
+              },
+              "tradeoffs": [
+                "Pull catchup avoids depending on transient notifications for durable delivery; a production websocket could reduce latency while retaining the same log contract.",
+                "This trace sends an explicit last acknowledged cursor. It does not model client cursor persistence, retention compaction or end-to-end encryption."
+              ],
+              "challenge": "Expected invariant: recovered sync returns sequences 2 and 3 exactly once in that response; failures cannot remove committed history."
+            }
+          ]
+        }
+      ],
       "compatibility": {
         "registry": "interview-problems"
       }
@@ -158,7 +1805,7 @@
     {
       "id": "replication",
       "title": "Data center replication",
-      "description": "Design replication between data centers without relying entirely on a database’s built-in replication.",
+      "description": "Design replication between data centers without relying entirely on a database\u2019s built-in replication.",
       "attribution": {
         "company": "Agoda"
       },
@@ -188,7 +1835,386 @@
           "prompt": "How will replicas catch up and resolve conflicting changes?"
         }
       ],
-      "solutions": [],
+      "solutions": [
+        {
+          "id": "explicit-replication-outbox",
+          "title": "Explicit cross-region replication and catch-up",
+          "boundary": "Authored replication protocol built on fixed leader/follower nodes and actual network messages; does not rely on the opaque quorum-db kernel. Per-key sequence versions, bounded retained outbox and duplicate suppression execute; one designated writer avoids conflicts by construction. No consensus, automatic failover, durable physical WAL, active-active merge, cross-key transaction or real data-center capacity is proven. Crash recovery preserves simulated state; it is not a disk durability experiment. These are Stage 1 simulations; deployment and operation remain design obligations.",
+          "workload": {
+            "seed": 42,
+            "horizonSec": 6,
+            "sources": [
+              {
+                "id": "writes",
+                "classId": "burst-producer",
+                "params": {
+                  "burstCount": 4,
+                  "burstAtSec": 0,
+                  "burstSpacingMs": 300,
+                  "requestKb": 1,
+                  "readFraction": 0,
+                  "keySpace": 2,
+                  "retries": 0,
+                  "timeoutMs": 4000
+                }
+              }
+            ],
+            "comparison": "Fixed configured sources, seed and horizon across these stages. Closed-loop scheduling and retry completion can differ by topology; these synthetic requests do not establish real capacity."
+          },
+          "stages": [
+            {
+              "id": "local-ack",
+              "title": "Accept locally during a remote partition",
+              "explanation": "Keep region A as the sole accepted writer and reply after its local commit. Partition the drawn inter-region link for 0.5 seconds. All four callers can complete while region B lacks their data; the two-attempt replication budget for the earliest write exhausts and the early-write outbox remains visible. A successful API response therefore means a local effect, not remote durability. Invariant: one logical effect per write; unacknowledged copies remain attributable in pending replication.",
+              "tradeoffs": [
+                "Local acceptance favors availability and low latency but risks losing acknowledged data on permanent loss of A. Reads from B can be stale; expose that contract rather than pretending to provide global read-after-write.",
+                "Serialize writes at A using per-key monotonic sequence versions. Reject independent writers; introduce a specified fencing or conflict policy before any active-active extension."
+              ],
+              "diagram": {
+                "schema": "simulatte.systemDiagram.v4",
+                "id": "replication-local",
+                "name": "replication-local",
+                "description": "Authored bounded synthetic model, not production capacity or a deployed service.",
+                "seed": 42,
+                "run": {
+                  "horizonSec": 6
+                },
+                "classes": [],
+                "nodes": [
+                  {
+                    "id": "writes",
+                    "classId": "burst-producer",
+                    "label": "Four writes to region A",
+                    "x": 0,
+                    "y": 0,
+                    "params": {
+                      "burstCount": 4,
+                      "burstAtSec": 0,
+                      "burstSpacingMs": 300,
+                      "requestKb": 1,
+                      "readFraction": 0,
+                      "keySpace": 2,
+                      "retries": 0,
+                      "timeoutMs": 4000
+                    }
+                  },
+                  {
+                    "id": "leader",
+                    "classId": "database-leader",
+                    "label": "Region A designated writer",
+                    "x": 280,
+                    "y": 0,
+                    "params": {
+                      "writeQuorum": 1,
+                      "concurrency": 4,
+                      "timeoutMs": 80,
+                      "retryIntervalMs": 100,
+                      "maxAttempts": 2
+                    }
+                  },
+                  {
+                    "id": "follower",
+                    "classId": "database-replica",
+                    "label": "Region B local copy",
+                    "x": 600,
+                    "y": 0,
+                    "params": {}
+                  }
+                ],
+                "edges": [
+                  {
+                    "id": "write-path",
+                    "from": {
+                      "nodeId": "writes",
+                      "portId": "out"
+                    },
+                    "to": {
+                      "nodeId": "leader",
+                      "portId": "in"
+                    },
+                    "params": {
+                      "latencyMs": 5,
+                      "bandwidthMbps": 100
+                    }
+                  },
+                  {
+                    "id": "cross-region",
+                    "from": {
+                      "nodeId": "leader",
+                      "portId": "replicate"
+                    },
+                    "to": {
+                      "nodeId": "follower",
+                      "portId": "replica"
+                    },
+                    "params": {
+                      "latencyMs": 5,
+                      "bandwidthMbps": 100
+                    }
+                  }
+                ],
+                "groups": [],
+                "notes": [],
+                "faults": [
+                  {
+                    "id": "inter-region-partition",
+                    "atSec": 0,
+                    "untilSec": 0.5,
+                    "target": {
+                      "kind": "edge",
+                      "id": "cross-region"
+                    },
+                    "type": "partition",
+                    "params": {}
+                  }
+                ],
+                "view": {
+                  "x": 0,
+                  "y": 0,
+                  "zoom": 1
+                }
+              }
+            },
+            {
+              "id": "remote-ack",
+              "title": "Make remote durability part of acceptance",
+              "explanation": "Change only the acknowledgement count to two. With the same partition and finite retry budget, local writes still exist but the earliest caller fails when its remote receipt cannot arrive; later callers can succeed after the link heals. This makes the availability/durability tradeoff observable instead of hiding a network partition behind a replica icon. Invariant: no successful caller without a follower receipt; the failed calls do not roll back already committed local rows.",
+              "tradeoffs": [
+                "A retry after failure must reuse its idempotency identity because failure may mean an unknown result, not absence of a write. Keep local effects distinct from successful replies.",
+                "Two receipts do not constitute a consensus protocol. Reject leader promotion and concurrent writers until epochs, fencing and recovery safety are specified."
+              ],
+              "diagram": {
+                "schema": "simulatte.systemDiagram.v4",
+                "id": "replication-quorum",
+                "name": "replication-local",
+                "description": "Authored bounded synthetic model, not production capacity or a deployed service.",
+                "seed": 42,
+                "run": {
+                  "horizonSec": 6
+                },
+                "classes": [],
+                "nodes": [
+                  {
+                    "id": "writes",
+                    "classId": "burst-producer",
+                    "label": "Four writes to region A",
+                    "x": 0,
+                    "y": 0,
+                    "params": {
+                      "burstCount": 4,
+                      "burstAtSec": 0,
+                      "burstSpacingMs": 300,
+                      "requestKb": 1,
+                      "readFraction": 0,
+                      "keySpace": 2,
+                      "retries": 0,
+                      "timeoutMs": 4000
+                    }
+                  },
+                  {
+                    "id": "leader",
+                    "classId": "database-leader",
+                    "label": "Region A designated writer",
+                    "x": 280,
+                    "y": 0,
+                    "params": {
+                      "writeQuorum": 2,
+                      "concurrency": 4,
+                      "timeoutMs": 80,
+                      "retryIntervalMs": 100,
+                      "maxAttempts": 2
+                    }
+                  },
+                  {
+                    "id": "follower",
+                    "classId": "database-replica",
+                    "label": "Region B local copy",
+                    "x": 600,
+                    "y": 0,
+                    "params": {}
+                  }
+                ],
+                "edges": [
+                  {
+                    "id": "write-path",
+                    "from": {
+                      "nodeId": "writes",
+                      "portId": "out"
+                    },
+                    "to": {
+                      "nodeId": "leader",
+                      "portId": "in"
+                    },
+                    "params": {
+                      "latencyMs": 5,
+                      "bandwidthMbps": 100
+                    }
+                  },
+                  {
+                    "id": "cross-region",
+                    "from": {
+                      "nodeId": "leader",
+                      "portId": "replicate"
+                    },
+                    "to": {
+                      "nodeId": "follower",
+                      "portId": "replica"
+                    },
+                    "params": {
+                      "latencyMs": 5,
+                      "bandwidthMbps": 100
+                    }
+                  }
+                ],
+                "groups": [],
+                "notes": [],
+                "faults": [
+                  {
+                    "id": "inter-region-partition",
+                    "atSec": 0,
+                    "untilSec": 0.5,
+                    "target": {
+                      "kind": "edge",
+                      "id": "cross-region"
+                    },
+                    "type": "partition",
+                    "params": {}
+                  }
+                ],
+                "view": {
+                  "x": 0,
+                  "y": 0,
+                  "zoom": 1
+                }
+              }
+            },
+            {
+              "id": "catch-up",
+              "title": "Repair the outbox and suppress duplicate copies",
+              "explanation": "Increase the bounded budget to ten and keep the configured four writes unchanged. Once the partition heals, inject lost follower replies through 0.8 seconds; the leader retransmits but the follower recognizes the sequence and never applies it twice. Eventually both receipts arrive and the outbox releases retained payload. Invariant: follower applies at most four distinct sequence advances, duplicates increase, all retained key versions converge and pending replication reaches zero.",
+              "tradeoffs": [
+                "Retry backoff consumes bounded time and memory; cap retained records and surface exhausted rows for reconciliation. An operator must compare version receipts before deleting or rebuilding an outbox.",
+                "Choose a single writer for conflict avoidance. Supporting writes in B during a partition would need a different specified merge or consensus policy, not merely another line on this graph."
+              ],
+              "diagram": {
+                "schema": "simulatte.systemDiagram.v4",
+                "id": "replication-repair",
+                "name": "replication-local",
+                "description": "Authored bounded synthetic model, not production capacity or a deployed service.",
+                "seed": 42,
+                "run": {
+                  "horizonSec": 6
+                },
+                "classes": [],
+                "nodes": [
+                  {
+                    "id": "writes",
+                    "classId": "burst-producer",
+                    "label": "Four writes to region A",
+                    "x": 0,
+                    "y": 0,
+                    "params": {
+                      "burstCount": 4,
+                      "burstAtSec": 0,
+                      "burstSpacingMs": 300,
+                      "requestKb": 1,
+                      "readFraction": 0,
+                      "keySpace": 2,
+                      "retries": 0,
+                      "timeoutMs": 4000
+                    }
+                  },
+                  {
+                    "id": "leader",
+                    "classId": "database-leader",
+                    "label": "Region A designated writer",
+                    "x": 280,
+                    "y": 0,
+                    "params": {
+                      "writeQuorum": 2,
+                      "concurrency": 4,
+                      "timeoutMs": 80,
+                      "retryIntervalMs": 100,
+                      "maxAttempts": 10
+                    }
+                  },
+                  {
+                    "id": "follower",
+                    "classId": "database-replica",
+                    "label": "Region B local copy",
+                    "x": 600,
+                    "y": 0,
+                    "params": {}
+                  }
+                ],
+                "edges": [
+                  {
+                    "id": "write-path",
+                    "from": {
+                      "nodeId": "writes",
+                      "portId": "out"
+                    },
+                    "to": {
+                      "nodeId": "leader",
+                      "portId": "in"
+                    },
+                    "params": {
+                      "latencyMs": 5,
+                      "bandwidthMbps": 100
+                    }
+                  },
+                  {
+                    "id": "cross-region",
+                    "from": {
+                      "nodeId": "leader",
+                      "portId": "replicate"
+                    },
+                    "to": {
+                      "nodeId": "follower",
+                      "portId": "replica"
+                    },
+                    "params": {
+                      "latencyMs": 5,
+                      "bandwidthMbps": 100
+                    }
+                  }
+                ],
+                "groups": [],
+                "notes": [],
+                "faults": [
+                  {
+                    "id": "inter-region-partition",
+                    "atSec": 0,
+                    "untilSec": 0.5,
+                    "target": {
+                      "kind": "edge",
+                      "id": "cross-region"
+                    },
+                    "type": "partition",
+                    "params": {}
+                  },
+                  {
+                    "id": "lost-copy-replies",
+                    "atSec": 0.5,
+                    "untilSec": 0.8,
+                    "target": {
+                      "kind": "node",
+                      "id": "follower"
+                    },
+                    "type": "dropReplies",
+                    "params": {}
+                  }
+                ],
+                "view": {
+                  "x": 0,
+                  "y": 0,
+                  "zoom": 1
+                }
+              }
+            }
+          ]
+        }
+      ],
       "compatibility": {
         "registry": "interview-problems"
       }
@@ -226,7 +2252,306 @@
           "prompt": "How will a failed delivery retry without sending the same digest twice?"
         }
       ],
-      "solutions": [],
+      "solutions": [
+        {
+          "id": "match-outbox-digest",
+          "title": "Saved matches and retryable daily digests",
+          "boundary": "Finite new listings and exact lowercase title-token matching against already saved searches. One matching station scans bounded terms; no inverted index, retroactive search, unsubscribe, SMTP, external scheduler or real provider. Days 1 and 2 are explicit synthetic clock tokens, not wall-clock days. Simulated mailbox idempotency is a required endpoint contract and does not prove exactly-once real email. Every stage is evolution Stage 1 simulation, independent of diagram detail levels.",
+          "workload": {
+            "seed": 42,
+            "horizonSec": 15,
+            "sources": [
+              {
+                "id": "users",
+                "classId": "messaging-workload",
+                "params": {
+                  "scenario": "saved-search",
+                  "timeoutMs": 6000
+                }
+              }
+            ],
+            "comparison": "Replay the identical open-loop command trace in every stage. Closed-loop user demand is not matched; retries change internal attempt load."
+          },
+          "stages": [
+            {
+              "id": "retained-matches",
+              "title": "Match new listings and retain failed digests",
+              "explanation": "Save alice/distributed and bob/database before listings arrive. A title with both terms produces one match for each recipient; an unrelated gardening title produces none. Repeating b1 cannot add another match. Daily commands snapshot pending matches into immutable recipient/day digests. Delivery is deliberately unconnected, so digest requests fail and the outbox remains pending.",
+              "diagram": {
+                "schema": "simulatte.systemDiagram.v4",
+                "id": "saved-search-matching",
+                "name": "saved-search-matching",
+                "description": "Authored bounded synthetic messaging model.",
+                "seed": 42,
+                "run": {
+                  "horizonSec": 15
+                },
+                "classes": [],
+                "nodes": [
+                  {
+                    "id": "users",
+                    "classId": "messaging-workload",
+                    "x": 0,
+                    "y": 120,
+                    "params": {
+                      "scenario": "saved-search",
+                      "timeoutMs": 6000
+                    },
+                    "label": "Shoppers, listings and daily clock"
+                  },
+                  {
+                    "id": "matcher",
+                    "classId": "saved-search-matcher",
+                    "x": 500,
+                    "y": 120,
+                    "params": {
+                      "callTimeoutMs": 200,
+                      "retries": 2,
+                      "retryBackoffMs": 100
+                    },
+                    "label": "Matching and digest outbox"
+                  }
+                ],
+                "edges": [
+                  {
+                    "id": "commands",
+                    "label": "commands",
+                    "from": {
+                      "nodeId": "users",
+                      "portId": "out"
+                    },
+                    "to": {
+                      "nodeId": "matcher",
+                      "portId": "in"
+                    },
+                    "params": {
+                      "latencyMs": 5,
+                      "bandwidthMbps": 1000
+                    }
+                  }
+                ],
+                "groups": [],
+                "notes": [],
+                "faults": [],
+                "view": {
+                  "x": 0,
+                  "y": 0,
+                  "zoom": 1
+                }
+              },
+              "tradeoffs": [
+                "Scanning every saved term is simple and inspectable at this bound; term-to-search postings would be needed when listing arrival rate times saved terms exceeds the matching budget.",
+                "Snapshotting matches before delivery prevents later listings from changing an already identified digest. Missing delivery is visible failure, not a successful email counter."
+              ],
+              "challenge": "Expected invariant: four distinct recipient/listing matches, no gardening match and no delivered digest. The day-2 database listing must remain separate from day 1."
+            },
+            {
+              "id": "daily-delivery",
+              "title": "Deliver immutable recipient/day digests",
+              "explanation": "Connect the retained outbox to a separately inspectable synthetic email mailbox. One day-1 email goes to each shopper; only Bob receives the new database listing on day 2. Repeating the daily command cannot resend acknowledged digests. The matcher marks delivered only after the actual drawn delivery call returns successfully.",
+              "diagram": {
+                "schema": "simulatte.systemDiagram.v4",
+                "id": "saved-search-delivery",
+                "name": "saved-search-matching",
+                "description": "Authored bounded synthetic messaging model.",
+                "seed": 42,
+                "run": {
+                  "horizonSec": 15
+                },
+                "classes": [],
+                "nodes": [
+                  {
+                    "id": "users",
+                    "classId": "messaging-workload",
+                    "x": 0,
+                    "y": 120,
+                    "params": {
+                      "scenario": "saved-search",
+                      "timeoutMs": 6000
+                    },
+                    "label": "Shoppers, listings and daily clock"
+                  },
+                  {
+                    "id": "matcher",
+                    "classId": "saved-search-matcher",
+                    "x": 500,
+                    "y": 120,
+                    "params": {
+                      "callTimeoutMs": 200,
+                      "retries": 2,
+                      "retryBackoffMs": 100
+                    },
+                    "label": "Matching and digest outbox"
+                  },
+                  {
+                    "id": "email",
+                    "classId": "digest-mailbox",
+                    "x": 800,
+                    "y": 120,
+                    "params": {},
+                    "label": "Synthetic provider idempotency boundary"
+                  }
+                ],
+                "edges": [
+                  {
+                    "id": "commands",
+                    "label": "commands",
+                    "from": {
+                      "nodeId": "users",
+                      "portId": "out"
+                    },
+                    "to": {
+                      "nodeId": "matcher",
+                      "portId": "in"
+                    },
+                    "params": {
+                      "latencyMs": 5,
+                      "bandwidthMbps": 1000
+                    }
+                  },
+                  {
+                    "id": "digest-delivery",
+                    "label": "digest-delivery",
+                    "from": {
+                      "nodeId": "matcher",
+                      "portId": "delivery"
+                    },
+                    "to": {
+                      "nodeId": "email",
+                      "portId": "in"
+                    },
+                    "params": {
+                      "latencyMs": 5,
+                      "bandwidthMbps": 1000
+                    }
+                  }
+                ],
+                "groups": [],
+                "notes": [],
+                "faults": [],
+                "view": {
+                  "x": 0,
+                  "y": 0,
+                  "zoom": 1
+                }
+              },
+              "tradeoffs": [
+                "Grouping all searches for one recipient/day avoids one email per term or listing. Multiple terms for the same recipient/listing collapse to one pending match.",
+                "The outbox and deduplication ledger consume bounded retained state. Production designs must specify retention, unsubscribes and how a scheduler retries missed days."
+              ],
+              "challenge": "Expected invariant: exactly three email effects, each with unique recipient/day identity, and each relevant listing appears in exactly one daily email for that recipient."
+            },
+            {
+              "id": "provider-ambiguity",
+              "title": "Reconcile a lost provider acknowledgement",
+              "explanation": "Lose provider replies during the first daily delivery. The email mailbox accepts the digest but the matcher times out and retries its immutable ID. Provider deduplication acknowledges that prior effect without sending again. The next daily command resumes any unacknowledged outbox entries. Inspect duplicate provider attempts separately from the three actual mailbox effects.",
+              "diagram": {
+                "schema": "simulatte.systemDiagram.v4",
+                "id": "saved-search-recovery",
+                "name": "saved-search-matching",
+                "description": "Authored bounded synthetic messaging model.",
+                "seed": 42,
+                "run": {
+                  "horizonSec": 15
+                },
+                "classes": [],
+                "nodes": [
+                  {
+                    "id": "users",
+                    "classId": "messaging-workload",
+                    "x": 0,
+                    "y": 120,
+                    "params": {
+                      "scenario": "saved-search",
+                      "timeoutMs": 6000
+                    },
+                    "label": "Shoppers, listings and daily clock"
+                  },
+                  {
+                    "id": "matcher",
+                    "classId": "saved-search-matcher",
+                    "x": 500,
+                    "y": 120,
+                    "params": {
+                      "callTimeoutMs": 200,
+                      "retries": 2,
+                      "retryBackoffMs": 100
+                    },
+                    "label": "Matching and digest outbox"
+                  },
+                  {
+                    "id": "email",
+                    "classId": "digest-mailbox",
+                    "x": 800,
+                    "y": 120,
+                    "params": {},
+                    "label": "Synthetic provider idempotency boundary"
+                  }
+                ],
+                "edges": [
+                  {
+                    "id": "commands",
+                    "label": "commands",
+                    "from": {
+                      "nodeId": "users",
+                      "portId": "out"
+                    },
+                    "to": {
+                      "nodeId": "matcher",
+                      "portId": "in"
+                    },
+                    "params": {
+                      "latencyMs": 5,
+                      "bandwidthMbps": 1000
+                    }
+                  },
+                  {
+                    "id": "digest-delivery",
+                    "label": "digest-delivery",
+                    "from": {
+                      "nodeId": "matcher",
+                      "portId": "delivery"
+                    },
+                    "to": {
+                      "nodeId": "email",
+                      "portId": "in"
+                    },
+                    "params": {
+                      "latencyMs": 5,
+                      "bandwidthMbps": 1000
+                    }
+                  }
+                ],
+                "groups": [],
+                "notes": [],
+                "faults": [
+                  {
+                    "id": "lost-provider-ack",
+                    "atSec": 3,
+                    "untilSec": 3.8,
+                    "target": {
+                      "kind": "node",
+                      "id": "email"
+                    },
+                    "type": "dropReplies",
+                    "params": {}
+                  }
+                ],
+                "view": {
+                  "x": 0,
+                  "y": 0,
+                  "zoom": 1
+                }
+              },
+              "tradeoffs": [
+                "Without an idempotent provider contract an accepted-but-unacknowledged email cannot safely guarantee both no duplicates and no lost mail. A real integration must choose and document that tradeoff.",
+                "Retries are bounded and retain pending entries after failure. A longer outage requires future scheduler attempts or operator redrive, not unlimited in-flight requests."
+              ],
+              "challenge": "Expected invariant: a provider duplicate counter increases but unique email effects remain three; every retained digest eventually becomes acknowledged in this trace."
+            }
+          ]
+        }
+      ],
       "compatibility": {
         "registry": "interview-problems"
       }
@@ -264,7 +2589,541 @@
           "prompt": "How does an unavailable server safely rejoin traffic?"
         }
       ],
-      "solutions": [],
+      "solutions": [
+        {
+          "id": "round-robin-recovery",
+          "title": "Round robin routing, retries and probes",
+          "boundary": "Authored answer to the cited candidate-reported exercise. Read-only bounded requests and two identical synthetic backends; no production capacity, active health-check daemon, discovery or cross-process shared routing state. Time-based ejection and request-driven circuit probes are distinct policies.",
+          "workload": {
+            "seed": 42,
+            "horizonSec": 16,
+            "sources": [
+              {
+                "id": "clients",
+                "classId": "web-client",
+                "params": {
+                  "pattern": "constant",
+                  "ratePerSec": 8,
+                  "maxRequests": 80,
+                  "stopSec": 10,
+                  "retries": 0,
+                  "timeoutMs": 2000,
+                  "readFraction": 1
+                }
+              }
+            ],
+            "comparison": "Replay identical configured demand, fault schedule and seed on fresh stages. Closed-loop request timing may change with responses; rates and durations are synthetic assumptions."
+          },
+          "stages": [
+            {
+              "id": "round-robin",
+              "title": "Rotate eligible backends",
+              "explanation": "Route equal-cost reads cyclically. Backend A returns errors from second 1 through second 5, so a fair rotation still sends work to a failing server. Inspect per-backend sent/failed counts before choosing recovery.",
+              "tradeoffs": [
+                "Round robin is predictable for equal-cost requests but ignores unequal service times.",
+                "No retry is safe as a baseline; requests fail visibly and backend errors are not hidden."
+              ],
+              "diagram": {
+                "schema": "simulatte.systemDiagram.v4",
+                "id": "load-balancer-baseline",
+                "name": "load balancer baseline",
+                "description": "Bounded authored synthetic architecture comparison.",
+                "seed": 42,
+                "run": {
+                  "horizonSec": 16
+                },
+                "classes": [],
+                "nodes": [
+                  {
+                    "id": "clients",
+                    "classId": "web-client",
+                    "label": "clients",
+                    "x": 0,
+                    "y": 140,
+                    "params": {
+                      "pattern": "constant",
+                      "ratePerSec": 8,
+                      "maxRequests": 80,
+                      "stopSec": 10,
+                      "retries": 0,
+                      "timeoutMs": 2000,
+                      "readFraction": 1
+                    }
+                  },
+                  {
+                    "id": "router",
+                    "classId": "load-balancer",
+                    "label": "router",
+                    "x": 240,
+                    "y": 140,
+                    "params": {
+                      "strategy": "round-robin",
+                      "retries": 0,
+                      "healthChecks": false,
+                      "callTimeoutMs": 100,
+                      "ejectAfterErrors": 2,
+                      "ejectSec": 2
+                    }
+                  },
+                  {
+                    "id": "backend-a",
+                    "classId": "web-server",
+                    "label": "backend a",
+                    "x": 760,
+                    "y": 0,
+                    "params": {
+                      "serviceMs": 15,
+                      "serviceDist": "constant",
+                      "concurrency": 4,
+                      "queueCapacity": 8
+                    }
+                  },
+                  {
+                    "id": "backend-b",
+                    "classId": "web-server",
+                    "label": "backend b",
+                    "x": 760,
+                    "y": 280,
+                    "params": {
+                      "serviceMs": 15,
+                      "serviceDist": "constant",
+                      "concurrency": 4,
+                      "queueCapacity": 8
+                    }
+                  }
+                ],
+                "edges": [
+                  {
+                    "id": "requests",
+                    "from": {
+                      "nodeId": "clients",
+                      "portId": "out"
+                    },
+                    "to": {
+                      "nodeId": "router",
+                      "portId": "in"
+                    },
+                    "params": {
+                      "latencyMs": 2,
+                      "bandwidthMbps": 100
+                    }
+                  },
+                  {
+                    "id": "route-a",
+                    "from": {
+                      "nodeId": "router",
+                      "portId": "backends"
+                    },
+                    "to": {
+                      "nodeId": "backend-a",
+                      "portId": "in"
+                    },
+                    "params": {
+                      "latencyMs": 2,
+                      "bandwidthMbps": 100
+                    }
+                  },
+                  {
+                    "id": "route-b",
+                    "from": {
+                      "nodeId": "router",
+                      "portId": "backends"
+                    },
+                    "to": {
+                      "nodeId": "backend-b",
+                      "portId": "in"
+                    },
+                    "params": {
+                      "latencyMs": 2,
+                      "bandwidthMbps": 100
+                    }
+                  }
+                ],
+                "groups": [],
+                "notes": [],
+                "faults": [
+                  {
+                    "id": "backend-errors",
+                    "target": {
+                      "kind": "node",
+                      "id": "backend-a"
+                    },
+                    "type": "errors",
+                    "atSec": 1,
+                    "untilSec": 5,
+                    "params": {
+                      "rate": 1
+                    }
+                  }
+                ],
+                "view": {
+                  "x": 0,
+                  "y": 0,
+                  "zoom": 1
+                }
+              }
+            },
+            {
+              "id": "retry-eject",
+              "title": "Retry once and temporarily eject",
+              "explanation": "A dependency error retries on the other backend, never the same edge in that request. Two consecutive errors eject A for two seconds; traffic later readmits it by timer. A remains faulty until second 5, exposing the cost of blind readmission.",
+              "tradeoffs": [
+                "Retries are restricted to these reads; mutations require an application idempotency contract.",
+                "The connection and queue bounds cap work; retries consume spare backend capacity.",
+                "This is passive error tracking rather than independent liveness probes."
+              ],
+              "diagram": {
+                "schema": "simulatte.systemDiagram.v4",
+                "id": "load-balancer-ejection",
+                "name": "load balancer baseline",
+                "description": "Bounded authored synthetic architecture comparison.",
+                "seed": 42,
+                "run": {
+                  "horizonSec": 16
+                },
+                "classes": [],
+                "nodes": [
+                  {
+                    "id": "clients",
+                    "classId": "web-client",
+                    "label": "clients",
+                    "x": 0,
+                    "y": 140,
+                    "params": {
+                      "pattern": "constant",
+                      "ratePerSec": 8,
+                      "maxRequests": 80,
+                      "stopSec": 10,
+                      "retries": 0,
+                      "timeoutMs": 2000,
+                      "readFraction": 1
+                    }
+                  },
+                  {
+                    "id": "router",
+                    "classId": "load-balancer",
+                    "label": "router",
+                    "x": 240,
+                    "y": 140,
+                    "params": {
+                      "strategy": "round-robin",
+                      "retries": 1,
+                      "healthChecks": true,
+                      "callTimeoutMs": 100,
+                      "ejectAfterErrors": 2,
+                      "ejectSec": 2
+                    }
+                  },
+                  {
+                    "id": "backend-a",
+                    "classId": "web-server",
+                    "label": "backend a",
+                    "x": 760,
+                    "y": 0,
+                    "params": {
+                      "serviceMs": 15,
+                      "serviceDist": "constant",
+                      "concurrency": 4,
+                      "queueCapacity": 8
+                    }
+                  },
+                  {
+                    "id": "backend-b",
+                    "classId": "web-server",
+                    "label": "backend b",
+                    "x": 760,
+                    "y": 280,
+                    "params": {
+                      "serviceMs": 15,
+                      "serviceDist": "constant",
+                      "concurrency": 4,
+                      "queueCapacity": 8
+                    }
+                  }
+                ],
+                "edges": [
+                  {
+                    "id": "requests",
+                    "from": {
+                      "nodeId": "clients",
+                      "portId": "out"
+                    },
+                    "to": {
+                      "nodeId": "router",
+                      "portId": "in"
+                    },
+                    "params": {
+                      "latencyMs": 2,
+                      "bandwidthMbps": 100
+                    }
+                  },
+                  {
+                    "id": "route-a",
+                    "from": {
+                      "nodeId": "router",
+                      "portId": "backends"
+                    },
+                    "to": {
+                      "nodeId": "backend-a",
+                      "portId": "in"
+                    },
+                    "params": {
+                      "latencyMs": 2,
+                      "bandwidthMbps": 100
+                    }
+                  },
+                  {
+                    "id": "route-b",
+                    "from": {
+                      "nodeId": "router",
+                      "portId": "backends"
+                    },
+                    "to": {
+                      "nodeId": "backend-b",
+                      "portId": "in"
+                    },
+                    "params": {
+                      "latencyMs": 2,
+                      "bandwidthMbps": 100
+                    }
+                  }
+                ],
+                "groups": [],
+                "notes": [],
+                "faults": [
+                  {
+                    "id": "backend-errors",
+                    "target": {
+                      "kind": "node",
+                      "id": "backend-a"
+                    },
+                    "type": "errors",
+                    "atSec": 1,
+                    "untilSec": 5,
+                    "params": {
+                      "rate": 1
+                    }
+                  }
+                ],
+                "view": {
+                  "x": 0,
+                  "y": 0,
+                  "zoom": 1
+                }
+              }
+            },
+            {
+              "id": "probe-recovery",
+              "title": "Probe before closing the circuit",
+              "explanation": "Keep round robin and one alternate-backend retry, then protect each backend with a request-driven circuit. Repeated errors open A; after a one-second delay a half-open request probes it. A successful probe after recovery closes the circuit. Inspect opens, short circuits and final state.",
+              "tradeoffs": [
+                "Disable balancer ejection here so its timer does not mask circuit probes.",
+                "Open circuits fail fast; the router retries the healthy alternative, with a strict one-retry bound.",
+                "A single router remains a failure boundary; replication of routing state and service discovery need separate design."
+              ],
+              "diagram": {
+                "schema": "simulatte.systemDiagram.v4",
+                "id": "load-balancer-probes",
+                "name": "load balancer baseline",
+                "description": "Bounded authored synthetic architecture comparison.",
+                "seed": 42,
+                "run": {
+                  "horizonSec": 16
+                },
+                "classes": [],
+                "nodes": [
+                  {
+                    "id": "clients",
+                    "classId": "web-client",
+                    "label": "clients",
+                    "x": 0,
+                    "y": 140,
+                    "params": {
+                      "pattern": "constant",
+                      "ratePerSec": 8,
+                      "maxRequests": 80,
+                      "stopSec": 10,
+                      "retries": 0,
+                      "timeoutMs": 2000,
+                      "readFraction": 1
+                    }
+                  },
+                  {
+                    "id": "router",
+                    "classId": "load-balancer",
+                    "label": "router",
+                    "x": 240,
+                    "y": 140,
+                    "params": {
+                      "strategy": "round-robin",
+                      "retries": 1,
+                      "healthChecks": false,
+                      "callTimeoutMs": 100,
+                      "ejectAfterErrors": 2,
+                      "ejectSec": 2
+                    }
+                  },
+                  {
+                    "id": "backend-a",
+                    "classId": "web-server",
+                    "label": "backend a",
+                    "x": 760,
+                    "y": 0,
+                    "params": {
+                      "serviceMs": 15,
+                      "serviceDist": "constant",
+                      "concurrency": 4,
+                      "queueCapacity": 8
+                    }
+                  },
+                  {
+                    "id": "backend-b",
+                    "classId": "web-server",
+                    "label": "backend b",
+                    "x": 760,
+                    "y": 280,
+                    "params": {
+                      "serviceMs": 15,
+                      "serviceDist": "constant",
+                      "concurrency": 4,
+                      "queueCapacity": 8
+                    }
+                  },
+                  {
+                    "id": "breaker-a",
+                    "classId": "circuit-breaker",
+                    "label": "breaker a",
+                    "x": 500,
+                    "y": 0,
+                    "params": {
+                      "minRequests": 2,
+                      "failureThreshold": 0.5,
+                      "windowSec": 1,
+                      "openSec": 1,
+                      "halfOpenProbes": 1,
+                      "callTimeoutMs": 100
+                    }
+                  },
+                  {
+                    "id": "breaker-b",
+                    "classId": "circuit-breaker",
+                    "label": "breaker b",
+                    "x": 500,
+                    "y": 280,
+                    "params": {
+                      "minRequests": 2,
+                      "failureThreshold": 0.5,
+                      "windowSec": 1,
+                      "openSec": 1,
+                      "halfOpenProbes": 1,
+                      "callTimeoutMs": 100
+                    }
+                  }
+                ],
+                "edges": [
+                  {
+                    "id": "requests",
+                    "from": {
+                      "nodeId": "clients",
+                      "portId": "out"
+                    },
+                    "to": {
+                      "nodeId": "router",
+                      "portId": "in"
+                    },
+                    "params": {
+                      "latencyMs": 2,
+                      "bandwidthMbps": 100
+                    }
+                  },
+                  {
+                    "id": "route-a",
+                    "from": {
+                      "nodeId": "router",
+                      "portId": "backends"
+                    },
+                    "to": {
+                      "nodeId": "breaker-a",
+                      "portId": "in"
+                    },
+                    "params": {
+                      "latencyMs": 2,
+                      "bandwidthMbps": 100
+                    }
+                  },
+                  {
+                    "id": "route-b",
+                    "from": {
+                      "nodeId": "router",
+                      "portId": "backends"
+                    },
+                    "to": {
+                      "nodeId": "breaker-b",
+                      "portId": "in"
+                    },
+                    "params": {
+                      "latencyMs": 2,
+                      "bandwidthMbps": 100
+                    }
+                  },
+                  {
+                    "id": "probe-a",
+                    "from": {
+                      "nodeId": "breaker-a",
+                      "portId": "protected"
+                    },
+                    "to": {
+                      "nodeId": "backend-a",
+                      "portId": "in"
+                    },
+                    "params": {
+                      "latencyMs": 2,
+                      "bandwidthMbps": 100
+                    }
+                  },
+                  {
+                    "id": "probe-b",
+                    "from": {
+                      "nodeId": "breaker-b",
+                      "portId": "protected"
+                    },
+                    "to": {
+                      "nodeId": "backend-b",
+                      "portId": "in"
+                    },
+                    "params": {
+                      "latencyMs": 2,
+                      "bandwidthMbps": 100
+                    }
+                  }
+                ],
+                "groups": [],
+                "notes": [],
+                "faults": [
+                  {
+                    "id": "backend-errors",
+                    "target": {
+                      "kind": "node",
+                      "id": "backend-a"
+                    },
+                    "type": "errors",
+                    "atSec": 1,
+                    "untilSec": 5,
+                    "params": {
+                      "rate": 1
+                    }
+                  }
+                ],
+                "view": {
+                  "x": 0,
+                  "y": 0,
+                  "zoom": 1
+                }
+              }
+            }
+          ]
+        }
+      ],
       "compatibility": {
         "registry": "interview-problems"
       }
@@ -302,7 +3161,353 @@
           "prompt": "How will you recover when payment succeeds but local state was not updated?"
         }
       ],
-      "solutions": [],
+      "solutions": [
+        {
+          "id": "versioned-payment-reconciliation",
+          "title": "Versioned subscriptions and payment recovery",
+          "boundary": "Simulation stage 1 only, architecture detail level 2. One synthetic subscription and finite card/bank charge records, each worth 10 model units. Models lifecycle versions, event identity and reconciliation, not money movement, PCI compliance, provider webhooks, real credentials or multi-region transactions.",
+          "workload": {
+            "seed": 42,
+            "horizonSec": 20,
+            "sources": [
+              {
+                "id": "subscribers",
+                "classId": "api-practice-client",
+                "params": {
+                  "scenario": "subscriptions",
+                  "intervalMs": 800,
+                  "timeoutMs": 600,
+                  "retries": 0
+                }
+              }
+            ],
+            "comparison": "The same finite, sequential client command trace runs in every stage. Closed-loop completion times change with replies and timeouts, so arrival times are not matched."
+          },
+          "stages": [
+            {
+              "id": "duplicates",
+              "title": "Observe repeated payment effects",
+              "explanation": "Signup is repeated with the same event identity before a bank renewal, cancellation and stale renewal. Without event suppression the provider records two signup charges. Inspect the charge ledger rather than equating successful responses with one economic effect.",
+              "tradeoffs": [
+                "At-least-once requests are easy to retry, but an accepted mutation can outlive a lost reply.",
+                "The provider ledger is the payment authority; local subscription status alone cannot prove how many charges occurred."
+              ],
+              "diagram": {
+                "schema": "simulatte.systemDiagram.v4",
+                "id": "subscriptions",
+                "name": "subscriptions",
+                "description": "Authored finite synthetic API model.",
+                "seed": 42,
+                "run": {
+                  "horizonSec": 20
+                },
+                "classes": [],
+                "nodes": [
+                  {
+                    "id": "subscribers",
+                    "classId": "api-practice-client",
+                    "label": "subscribers",
+                    "x": 0,
+                    "y": 0,
+                    "params": {
+                      "scenario": "subscriptions",
+                      "intervalMs": 800,
+                      "timeoutMs": 600,
+                      "retries": 0
+                    }
+                  },
+                  {
+                    "id": "subscriptions",
+                    "classId": "subscription-service",
+                    "label": "subscriptions",
+                    "x": 300,
+                    "y": 0,
+                    "params": {
+                      "serviceDist": "constant",
+                      "serviceMs": 10,
+                      "callTimeoutMs": 200,
+                      "retries": 0,
+                      "idempotent": false
+                    }
+                  },
+                  {
+                    "id": "provider",
+                    "classId": "payment-provider",
+                    "label": "provider",
+                    "x": 600,
+                    "y": 0,
+                    "params": {
+                      "serviceDist": "constant",
+                      "serviceMs": 10,
+                      "idempotent": false
+                    }
+                  }
+                ],
+                "edges": [
+                  {
+                    "id": "subscription-request",
+                    "label": "subscription-request",
+                    "from": {
+                      "nodeId": "subscribers",
+                      "portId": "out"
+                    },
+                    "to": {
+                      "nodeId": "subscriptions",
+                      "portId": "in"
+                    },
+                    "params": {
+                      "latencyMs": 10,
+                      "bandwidthMbps": 100
+                    }
+                  },
+                  {
+                    "id": "charge-request",
+                    "label": "charge-request",
+                    "from": {
+                      "nodeId": "subscriptions",
+                      "portId": "provider"
+                    },
+                    "to": {
+                      "nodeId": "provider",
+                      "portId": "in"
+                    },
+                    "params": {
+                      "latencyMs": 10,
+                      "bandwidthMbps": 100
+                    }
+                  }
+                ],
+                "groups": [],
+                "notes": [],
+                "faults": [],
+                "view": {
+                  "x": 0,
+                  "y": 0,
+                  "zoom": 1
+                }
+              }
+            },
+            {
+              "id": "idempotent",
+              "title": "Bind event identity to lifecycle versions",
+              "explanation": "Both provider and service suppress repeated event identities. Signup charges once, renewal advances version 2, cancellation advances version 3, and stale version 2 cannot reactivate it or create another payment. The same command trace now produces exactly two charges.",
+              "tradeoffs": [
+                "Provider-side idempotency protects retry effects; service suppression avoids unnecessary downstream work. Both are required across ambiguous outcomes.",
+                "Versions reject stale lifecycle events. Production event retention and cancellation policy must be specified separately."
+              ],
+              "diagram": {
+                "schema": "simulatte.systemDiagram.v4",
+                "id": "subscriptions",
+                "name": "subscriptions",
+                "description": "Authored finite synthetic API model.",
+                "seed": 42,
+                "run": {
+                  "horizonSec": 20
+                },
+                "classes": [],
+                "nodes": [
+                  {
+                    "id": "subscribers",
+                    "classId": "api-practice-client",
+                    "label": "subscribers",
+                    "x": 0,
+                    "y": 0,
+                    "params": {
+                      "scenario": "subscriptions",
+                      "intervalMs": 800,
+                      "timeoutMs": 600,
+                      "retries": 0
+                    }
+                  },
+                  {
+                    "id": "subscriptions",
+                    "classId": "subscription-service",
+                    "label": "subscriptions",
+                    "x": 300,
+                    "y": 0,
+                    "params": {
+                      "serviceDist": "constant",
+                      "serviceMs": 10,
+                      "callTimeoutMs": 200,
+                      "retries": 0,
+                      "idempotent": true
+                    }
+                  },
+                  {
+                    "id": "provider",
+                    "classId": "payment-provider",
+                    "label": "provider",
+                    "x": 600,
+                    "y": 0,
+                    "params": {
+                      "serviceDist": "constant",
+                      "serviceMs": 10,
+                      "idempotent": true
+                    }
+                  }
+                ],
+                "edges": [
+                  {
+                    "id": "subscription-request",
+                    "label": "subscription-request",
+                    "from": {
+                      "nodeId": "subscribers",
+                      "portId": "out"
+                    },
+                    "to": {
+                      "nodeId": "subscriptions",
+                      "portId": "in"
+                    },
+                    "params": {
+                      "latencyMs": 10,
+                      "bandwidthMbps": 100
+                    }
+                  },
+                  {
+                    "id": "charge-request",
+                    "label": "charge-request",
+                    "from": {
+                      "nodeId": "subscriptions",
+                      "portId": "provider"
+                    },
+                    "to": {
+                      "nodeId": "provider",
+                      "portId": "in"
+                    },
+                    "params": {
+                      "latencyMs": 10,
+                      "bandwidthMbps": 100
+                    }
+                  }
+                ],
+                "groups": [],
+                "notes": [],
+                "faults": [],
+                "view": {
+                  "x": 0,
+                  "y": 0,
+                  "zoom": 1
+                }
+              }
+            },
+            {
+              "id": "reconcile",
+              "title": "Recover an accepted charge after reply loss",
+              "explanation": "Drop provider replies during the renewal. The provider accepts the bank charge, while the service times out and leaves local state at version 1. A later reconciliation query reads the provider ledger and advances local state to version 2. Cancellation then moves to version 3, and stale renewal is rejected.",
+              "tradeoffs": [
+                "Do not blindly generate a new payment identity after a timeout. Query the authoritative ledger and reconcile the existing event.",
+                "Reconciliation is an explicit simulated read over a bounded ledger; production requires an authenticated provider feed, durable local storage and monitored retry policy."
+              ],
+              "diagram": {
+                "schema": "simulatte.systemDiagram.v4",
+                "id": "subscriptions",
+                "name": "subscriptions",
+                "description": "Authored finite synthetic API model.",
+                "seed": 42,
+                "run": {
+                  "horizonSec": 20
+                },
+                "classes": [],
+                "nodes": [
+                  {
+                    "id": "subscribers",
+                    "classId": "api-practice-client",
+                    "label": "subscribers",
+                    "x": 0,
+                    "y": 0,
+                    "params": {
+                      "scenario": "subscriptions",
+                      "intervalMs": 800,
+                      "timeoutMs": 600,
+                      "retries": 0
+                    }
+                  },
+                  {
+                    "id": "subscriptions",
+                    "classId": "subscription-service",
+                    "label": "subscriptions",
+                    "x": 300,
+                    "y": 0,
+                    "params": {
+                      "serviceDist": "constant",
+                      "serviceMs": 10,
+                      "callTimeoutMs": 200,
+                      "retries": 0,
+                      "idempotent": true
+                    }
+                  },
+                  {
+                    "id": "provider",
+                    "classId": "payment-provider",
+                    "label": "provider",
+                    "x": 600,
+                    "y": 0,
+                    "params": {
+                      "serviceDist": "constant",
+                      "serviceMs": 10,
+                      "idempotent": true
+                    }
+                  }
+                ],
+                "edges": [
+                  {
+                    "id": "subscription-request",
+                    "label": "subscription-request",
+                    "from": {
+                      "nodeId": "subscribers",
+                      "portId": "out"
+                    },
+                    "to": {
+                      "nodeId": "subscriptions",
+                      "portId": "in"
+                    },
+                    "params": {
+                      "latencyMs": 10,
+                      "bandwidthMbps": 100
+                    }
+                  },
+                  {
+                    "id": "charge-request",
+                    "label": "charge-request",
+                    "from": {
+                      "nodeId": "subscriptions",
+                      "portId": "provider"
+                    },
+                    "to": {
+                      "nodeId": "provider",
+                      "portId": "in"
+                    },
+                    "params": {
+                      "latencyMs": 10,
+                      "bandwidthMbps": 100
+                    }
+                  }
+                ],
+                "groups": [],
+                "notes": [],
+                "faults": [
+                  {
+                    "id": "lost-renewal-response",
+                    "atSec": 1.5,
+                    "untilSec": 2.4,
+                    "target": {
+                      "kind": "node",
+                      "id": "provider"
+                    },
+                    "type": "dropReplies",
+                    "params": {}
+                  }
+                ],
+                "view": {
+                  "x": 0,
+                  "y": 0,
+                  "zoom": 1
+                }
+              }
+            }
+          ]
+        }
+      ],
       "compatibility": {
         "registry": "interview-problems"
       }
@@ -7552,13 +10757,12 @@
           "stages": [
             {
               "id": "step-1",
-              "title": "Conversation Persistence",
-              "explanation": "Client connects through an Ingress gateway that validates identity policies, then forwards to the Chat service which persists prompts and history with retry bounds.",
+              "title": "Persist identity and stream a bounded reply",
+              "explanation": "Check conversation membership at the API and storage boundaries, persist the prompt, then deliver acknowledged synthetic chunks before committing the assistant reply. One generator serves this baseline; authorization failures remain visible.",
               "challenge": "Design the core chat service: User submits prompts, authenticates, and conversation history is reliably saved.",
               "tradeoffs": [
-                "Strict authorization checks on every operation prevent unauthorized access across tenants",
-                "Retry policies with bounded attempts avoid cascading failures against database locks",
-                "Synchronous HTTP responses are too slow for LLM generation"
+                "Storage remains the authority for tenant membership and ordered messages; an earlier API decision cannot bypass a later denied storage check.",
+                "A single generator is easy to inspect but serial chunk requests share its capacity. This model generates fixed text and does not execute an LLM."
               ],
               "highlightNodes": [
                 "chat",
@@ -8003,13 +11207,12 @@
             },
             {
               "id": "step-2",
-              "title": "Model Router & Inference Pool",
-              "explanation": "Introduce an Admission Controller and Model Router that dispatches generation tasks across worker pools based on availability and quotas.",
+              "title": "Admit and route generation requests",
+              "explanation": "Route each chunk request through bounded quota admission and a round-robin replica pool. Both generators use identical chunk framing so routing cannot change the durable reply or cursor contract.",
               "challenge": "We need to connect LLM workers to generate replies, but different models have different latencies and GPU capacity limits.",
               "tradeoffs": [
-                "GPU capacity is finite; quota admission prevents memory exhaustion on model nodes",
-                "Load balancing across diverse model checkpoints with speculative fallback",
-                "Need to ensure tokens don't block other waiting users"
+                "Extra generation replicas share one conversation authority and stable framing; independent histories would fork durable state.",
+                "A request quota models admission, not GPU memory allocation, model checkpoints or speculative inference."
               ],
               "highlightNodes": [
                 "model-router",
@@ -8544,13 +11747,13 @@
             },
             {
               "id": "step-3",
-              "title": "Real-Time Token Streaming",
-              "explanation": "Add a dedicated Streaming Session manager and Delivery pipeline that pushes tokens to clients via WebSockets/SSE while asynchronously committing the completed reply to the conversation store.",
+              "title": "Recover a failed stream session",
+              "explanation": "Crash the stream session from 0.4 to 1.2 seconds while a reply is active. Bounded retries rebuild the reply from its durable prompt and replay acknowledged cursor identities. Inspect unchanged unique client chunks and one assistant commit per prompt after recovery.",
               "challenge": "Waiting for full generation takes 10+ seconds. How do we deliver tokens incrementally as they generate, and survive sudden disconnects?",
               "tradeoffs": [
-                "Client reconnection requires stream resumption tokens to avoid missing or duplicated tokens",
-                "Decoupled delivery: slow network connections on client side don't stall the GPU worker",
-                "Atomic commit of assistant message once generation finishes"
+                "Recovery repeats generation and delivery attempts, increasing latency and wasted work; client chunk identity and idempotent persistence prevent duplicate visible text and records.",
+                "The assistant commits only after actual client acknowledgements. A permanent outage or exhausted retry budget remains a failed request.",
+                "This is a synthetic cursor protocol over simulated links, not a WebSocket or SSE implementation."
               ],
               "highlightNodes": [
                 "stream-admission",
@@ -8611,7 +11814,10 @@
                     "label": "Access, history and prompt writes",
                     "x": 920,
                     "y": 170,
-                    "params": {},
+                    "params": {
+                      "retries": 3,
+                      "retryBackoffMs": 300
+                    },
                     "groupId": "chat-api"
                   },
                   {
@@ -9074,7 +12280,19 @@
                     "w": 1000
                   }
                 ],
-                "faults": [],
+                "faults": [
+                  {
+                    "id": "stream-session-outage",
+                    "atSec": 0.4,
+                    "untilSec": 1.2,
+                    "target": {
+                      "kind": "node",
+                      "id": "stream"
+                    },
+                    "type": "crash",
+                    "params": {}
+                  }
+                ],
                 "view": {
                   "x": 0,
                   "y": 0,
@@ -9664,17 +12882,16 @@
         {
           "id": "progressive-design",
           "title": "Retrieval-Augmented Generation (RAG) System",
-          "boundary": "Synthetic discrete-event model of the drawn architecture. Service times, latencies, failure rates and token costs are user assumptions, not measurements of real systems, providers or hardware.",
+          "boundary": "Synthetic request, service-time, token-count and index-publication model. The embedder returns a vector-size estimate, the index tracks vector counts and publication delay, and reranking models work per candidate without scoring or reordering documents. No actual embeddings, semantic retrieval, relevance ranking, LLM reasoning or provider capacity is executed.",
           "stages": [
             {
               "id": "step-1",
-              "title": "Baseline LLM Pipeline",
-              "explanation": "Client questions route through API server to GPU worker pool, then through structured output validation before returning to user.",
+              "title": "Generate a bounded structured response",
+              "explanation": "Questions pass through API and worker admission into structured generation and validation. The independent synthetic document source already feeds chunking and index updates, but this baseline query path does not read the index.",
               "challenge": "Let's build an AI assistant that answers user questions with structured schema validation.",
               "tradeoffs": [
-                "Severe hallucinations on private or recent knowledge without external context",
-                "Context window limitations if large documents are stuffed into prompt",
-                "Model weights are static and cannot reflect daily updates"
+                "The direct query path avoids retrieval calls but has no modeled document grounding. Inspect generated output validation and request failures separately from knowledge quality.",
+                "Background chunking and index publication consume modeled work even though queries do not use them in this stage. No generated answer is evidence of factual correctness."
               ],
               "highlightNodes": [
                 "generator",
@@ -9938,13 +13155,12 @@
             },
             {
               "id": "step-2",
-              "title": "Vector Retrieval (Dense RAG)",
-              "explanation": "Introduce a RAG Coordinator that embeds queries via Embedding Model, queries a Vector Candidates Index (e.g. Milvus/Pinecone), and injects top chunks into the LLM prompt.",
+              "title": "Account for retrieval calls and publication delay",
+              "explanation": "Connect a coordinator that calls embedding, index search and generation in order. Search returns candidate counts and index-age metadata; these determine modeled context size and latency. Published and pending vector counts expose the effect of asynchronous ingestion, not actual retrieved passages.",
               "challenge": "We need the assistant to cite internal documents accurately. How do we retrieve the right context?",
               "tradeoffs": [
-                "Dense embeddings miss exact keyword matches (e.g. error codes, product SKUs)",
-                "Chunk size trade-off: large chunks dilute signal; small chunks lose context",
-                "Vector search latency adds to overall time-to-first-token (TTFT)"
+                "The additional calls consume service capacity and increase latency before generation. The top-K and chunk-token assumptions determine modeled prompt size.",
+                "Publication delay can make a query observe older index counts. This is a bounded freshness model, not a relevance or recall evaluation."
               ],
               "highlightNodes": [
                 "rag",
@@ -10272,13 +13488,12 @@
             },
             {
               "id": "step-3",
-              "title": "Ingestion Pipeline & Cross-Encoder Reranking",
-              "explanation": "Build an asynchronous document chunking and indexing pipeline, plus a Cross-Encoder Reranker before final prompt assembly.",
+              "title": "Estimate candidate reranking work",
+              "explanation": "Insert the reranker between search and generation while retaining the existing ingestion path. It consumes service time based on the returned candidate count and passes that count onward. Compare latency and completed calls with the previous stage; the model does not score or reorder documents.",
               "challenge": "How do we continuously ingest thousands of changing documents, and filter out irrelevant vector search results?",
               "tradeoffs": [
-                "Two-stage retrieval: fast bi-encoder candidate selection + accurate cross-encoder reranking",
-                "Background ingestion indexing decoupled from query path",
-                "Output validation layer catches schema mismatches before sending to client"
+                "A larger candidate count increases modeled reranking work. There is no demonstrated answer-quality gain because semantic scoring is not implemented.",
+                "Background index publication remains independent from query completion. Structured output validation checks the modeled output contract, not truth or retrieval relevance."
               ],
               "highlightNodes": [
                 "documents",
@@ -11048,17 +14263,16 @@
         {
           "id": "progressive-design",
           "title": "Global Video Streaming & CDN Architecture",
-          "boundary": "Synthetic discrete-event model of the drawn architecture. Service times, latencies, failure rates and token costs are user assumptions, not measurements of real systems, providers or hardware.",
+          "boundary": "Synthetic finite numbered-segment delivery, coalescing caches, regional admission and peer availability over simulated links. Segment sizes, transfer times, rates and viewer demand are authored assumptions. No actual media encoding, WebRTC, geo-routing, provider egress price or production offload ratio is implemented.",
           "stages": [
             {
               "id": "step-1",
-              "title": "Edge CDN POP & Origin Shield",
-              "explanation": "Viewers fetch manifests, and video segments are routed through regional CDN POPs backed by an Origin Shield and storage cluster.",
+              "title": "Share one edge cache and origin shield",
+              "explanation": "Both viewer cohorts read manifests and fetch numbered segments through one admitted edge cache. Cache misses share a retry-protected origin shield and an origin admission limit. Inspect cache hits, coalesced fetches and completed playback before splitting regions.",
               "challenge": "Design a video streaming service where viewers stream HLS/DASH video chunks without overwhelming the storage origin.",
               "tradeoffs": [
-                "Cache miss penalty: initial request for fresh chunks incurs high origin latency",
-                "Origin Shield protects primary database and S3 buckets from thundering herds",
-                "Bandwidth egress from single region remains costly for international viewers"
+                "A cold segment still pays edge, shield and origin transfer time. Coalescing reduces repeated origin requests for concurrent misses under the configured demand.",
+                "Both cohorts share one admission and cache boundary, so their offered work competes there. This stage does not measure geographic placement or egress prices."
               ],
               "highlightNodes": [
                 "cdn",
@@ -11378,13 +14592,12 @@
             },
             {
               "id": "step-2",
-              "title": "Multi-Region Global CDN",
-              "explanation": "Deploy multi-region CDN edge POPs with geo-routed ingress and regional quotas, keeping 95%+ of traffic within local regional edges.",
+              "title": "Give each region an edge cache",
+              "explanation": "Route the second cohort through its own quota and edge cache while both regions share the origin shield. Inspect the separate edge hit/miss records and shared upstream transfers. These are explicit drawn routes, not a measured locality percentage or an automatic geo-router.",
               "challenge": "Traffic is scaling globally with spikes in East and West regions. How do we reduce cross-continent latency?",
               "tradeoffs": [
-                "Cache hit ratio depends on regional viewer density and content popularity",
-                "Quota limiting isolates regional traffic spikes and prevents rogue scrapers",
-                "Origin shield consolidates cross-region revalidations into single requests"
+                "Separate edge caches isolate admission but duplicate regional cache storage and cold fills. The shared shield can combine upstream misses for the same segment.",
+                "A cache hit ratio depends on this finite request sequence and cache policy. It does not establish a global traffic-locality target or production capacity."
               ],
               "highlightNodes": [
                 "cdn-east",
@@ -11771,13 +14984,12 @@
             },
             {
               "id": "step-3",
-              "title": "Peer-Assisted Hybrid Delivery",
-              "explanation": "Introduce WebRTC peer-to-peer swarm mesh sharing for hot segments, with circuit breakers that fall back to CDN if peer transfer misses playback deadlines.",
+              "title": "Fall back from interrupted peer delivery",
+              "explanation": "Enable the drawn peer path in each region and interrupt the first peer pool from four to seven seconds. Bounded peer attempts and circuit breaking allow segment requests to fall back to CDN delivery when peer transfer cannot succeed. Inspect playback completion, peer failures and CDN calls.",
               "challenge": "CDN egress costs are unsustainable during viral streams. Can viewers in the same region share segments directly without hurting buffering?",
               "tradeoffs": [
-                "Peer availability fluctuates dynamically; circuit breaker must detect stalls instantly",
-                "Slight CPU and upload bandwidth overhead on viewer devices",
-                "Offloads up to 60-80% of edge CDN egress bandwidth on popular live content"
+                "Peer attempts can reduce CDN requests under the configured availability assumptions, while failed attempts add latency before fallback. Compare observed counts rather than assuming an offload percentage.",
+                "The simulation models peer transfer and deadline behavior without executing WebRTC, viewer upload scheduling or real device resource costs."
               ],
               "highlightNodes": [
                 "peer-breaker",
@@ -12864,9 +16076,8 @@
               "explanation": "Users publish posts to an admitted Posts DB. Feed generation queries the database on the fly by looking up followees and sorting their recent posts.",
               "challenge": "Design a basic social feed where users publish posts and read recent posts from people they follow.",
               "tradeoffs": [
-                "Reading feeds requires joining users, follows, and posts on every page refresh",
-                "Read latency scales linearly with the number of followed users (O(N) queries)",
-                "Completely unfeasible for users following hundreds of people"
+                "Read-time assembly scans bounded recent posts from followed users; work grows with candidate posts and the follow set.",
+                "Avoiding precomputed fanout reduces write amplification but shifts work onto each feed read. Compare observed work under the same bounded demand; this is not a production scaling estimate."
               ],
               "highlightNodes": [
                 "posts",
@@ -13261,9 +16472,9 @@
               "explanation": "Shift to Fan-out on Write: When a post is published, enqueue a background task. Fanout workers lookup followers and push the post ID into each follower's pre-computed in-memory Timeline.",
               "challenge": "How do we make feed loading instant (<20ms) for millions of readers?",
               "tradeoffs": [
-                "Timeline reads become instantaneous O(1) cache lookups",
-                "Celebrity problem: an account with 50M followers causes 50M writes on a single post",
-                "Hybrid approach needed: push for normal users, pull for high-follower celebrities"
+                "Precomputed timelines reduce read assembly work but introduce asynchronous freshness lag and recipient write amplification.",
+                "A large follow set produces more queued recipient writes per post; bounded fanout and timeline admission expose that pressure.",
+                "Recipient/post identity suppresses duplicate effects when a leased post retries."
               ],
               "highlightNodes": [
                 "queue",
@@ -13780,13 +16991,13 @@
             },
             {
               "id": "step-3",
-              "title": "Social Graph Service & Deadletter Handling",
-              "explanation": "Add a dedicated Graph Authority service for follower queries with retry protection, plus Dead-Letter Queues (DLQ) to isolate failing writes.",
+              "title": "Bound retries and quarantine failed fanout",
+              "explanation": "Keep the existing separate graph authority and interrupt timeline writes until three seconds. Limit each queued post to two deliveries and route exhausted work to the dead-letter store. Later posts can complete after recovery; accepted posts whose fanout is quarantined remain absent from affected timelines until an operator explicitly repairs them.",
               "challenge": "How do we handle billions of follow relationships with fast traversals, and what happens when timeline fanout workers crash?",
               "tradeoffs": [
-                "Graph databases / distributed adjacency lists optimize follower lookups",
-                "DLQ prevents queue blockage from unprocessable fanout jobs",
-                "Hydration layer combines timeline post IDs with full post content in parallel"
+                "A smaller receive budget limits repeated work during an outage but moves transient failures to quarantine sooner. Dead-lettering does not itself repair a timeline.",
+                "Post acceptance acknowledges stored posts and queueing, not delivery to every follower. Compare missing-post observations with dead-letter records after recovery.",
+                "Timeline recipient/post identity prevents duplicate effects during retries. The synthetic graph and bounded retention do not establish production capacity."
               ],
               "highlightNodes": [
                 "graph",
@@ -13882,7 +17093,7 @@
                       "prefetch": 2,
                       "visibilityTimeoutMs": 1000,
                       "retryDelayMs": 150,
-                      "maxReceives": 12
+                      "maxReceives": 2
                     },
                     "groupId": "social-fanout"
                   },
@@ -14317,6 +17528,17 @@
                     },
                     "type": "crash",
                     "params": {}
+                  },
+                  {
+                    "id": "timeline-write-outage",
+                    "atSec": 0,
+                    "untilSec": 3,
+                    "target": {
+                      "kind": "node",
+                      "id": "timelines"
+                    },
+                    "type": "crash",
+                    "params": {}
                   }
                 ],
                 "view": {
@@ -14361,9 +17583,8 @@
               "explanation": "Users publish posts to an admitted Posts DB. Feed generation queries the database on the fly by looking up followees and sorting their recent posts.",
               "challenge": "Design a basic social feed where users publish posts and read recent posts from people they follow.",
               "tradeoffs": [
-                "Reading feeds requires joining users, follows, and posts on every page refresh",
-                "Read latency scales linearly with the number of followed users (O(N) queries)",
-                "Completely unfeasible for users following hundreds of people"
+                "Read-time assembly scans bounded recent posts from followed users; work grows with candidate posts and the follow set.",
+                "Avoiding precomputed fanout reduces write amplification but shifts work onto each feed read. Compare observed work under the same bounded demand; this is not a production scaling estimate."
               ],
               "highlightNodes": [
                 "posts",

@@ -25,7 +25,7 @@ Evolve intent and conceptual responsibilities into executable architecture; stud
 
 ## Invariants
 
-- Intent/concept/simulation/implementation/deployment/operation are design levels, not compiler phases.
+- Evolution: 0 Sketch, 1 Simulation, 2 Specification, 3 Deployment, 4 Operation, 5 System. Detail: 0 Context, 1 Capabilities, 2 Architecture, 3 Internals, 4 Implementation. These are separate axes, not compiler phases. Catalogue execution proves simulation only.
 - Strict v4 remains compatible. v5 refinement preserves identity/external contracts; unbound behavior refuses execution/deployment.
 - Canonical problems share public/private code paths; compatibility registries are generated.
 - Approaches/stages retain independent edits and personal diagrams; replay configured sources/seed without claiming matched closed-loop arrivals.

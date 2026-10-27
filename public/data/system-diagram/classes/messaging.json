@@ -1,0 +1,253 @@
+{
+  "schema": "simulatte.systemDiagramClassPack.v1",
+  "id": "messaging",
+  "version": "1.0.0",
+  "kernels": [
+    {
+      "id": "messagingSource",
+      "label": "Messaging trace",
+      "description": "Finite scripted users issue chat commands or saved-search listing and daily digest events through real graph edges. Explicit day tokens compress daily scheduling.",
+      "paramSets": [],
+      "params": {
+        "scenario": {
+          "type": "enum",
+          "label": "Trace",
+          "default": "chat",
+          "group": "basic",
+          "options": [
+            "chat",
+            "saved-search"
+          ]
+        },
+        "timeoutMs": {
+          "type": "number",
+          "label": "Command timeout",
+          "default": 6000,
+          "group": "basic",
+          "min": 1,
+          "max": 60000
+        }
+      },
+      "ports": [
+        {
+          "id": "out",
+          "label": "out",
+          "direction": "out",
+          "multiple": false,
+          "required": true,
+          "emits": [
+            "json"
+          ]
+        }
+      ],
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "blackhole",
+        "dropReplies"
+      ]
+    },
+    {
+      "id": "chatMailbox",
+      "label": "Conversation mailbox",
+      "description": "One two-member conversation with append ordering, stable message identities, authorized cursor catchup and durable simulated state. No sockets, group membership, external storage or global ordering.",
+      "paramSets": [
+        "station",
+        "memory"
+      ],
+      "params": {
+        "maxRecords": {
+          "type": "integer",
+          "label": "Retained record capacity",
+          "default": 100,
+          "group": "basic",
+          "min": 1,
+          "max": 20000
+        }
+      },
+      "ports": [
+        {
+          "id": "in",
+          "label": "in",
+          "direction": "in",
+          "multiple": false,
+          "required": true,
+          "accepts": [
+            "json"
+          ]
+        }
+      ],
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "blackhole",
+        "dropReplies"
+      ]
+    },
+    {
+      "id": "savedSearch",
+      "label": "Saved search and digest outbox",
+      "description": "Token matches for bounded saved terms against new listing titles. Retains per-recipient listing matches and immutable per-day digest identities until downstream acknowledgement. No inverted index, SMTP or external durability.",
+      "paramSets": [
+        "station",
+        "memory"
+      ],
+      "params": {
+        "maxRecords": {
+          "type": "integer",
+          "label": "Retained record capacity",
+          "default": 100,
+          "group": "basic",
+          "min": 1,
+          "max": 20000
+        },
+        "callTimeoutMs": {
+          "type": "number",
+          "label": "Delivery timeout",
+          "default": 200,
+          "min": 1,
+          "max": 60000,
+          "group": "basic"
+        },
+        "retries": {
+          "type": "integer",
+          "label": "Delivery retries",
+          "default": 2,
+          "min": 0,
+          "max": 10,
+          "group": "basic"
+        },
+        "retryBackoffMs": {
+          "type": "number",
+          "label": "Delivery retry delay",
+          "default": 100,
+          "min": 1,
+          "max": 60000,
+          "group": "basic"
+        }
+      },
+      "ports": [
+        {
+          "id": "in",
+          "label": "in",
+          "direction": "in",
+          "multiple": false,
+          "required": true,
+          "accepts": [
+            "json"
+          ]
+        },
+        {
+          "id": "delivery",
+          "label": "delivery",
+          "direction": "out",
+          "multiple": false,
+          "required": false,
+          "emits": [
+            "json"
+          ]
+        }
+      ],
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "blackhole",
+        "dropReplies"
+      ]
+    },
+    {
+      "id": "digestMailbox",
+      "label": "Idempotent email mailbox",
+      "description": "Synthetic delivery endpoint deduplicates a digest identity and rejects conflicting content. Real email providers need an equivalent idempotency contract; exactly-once SMTP is not modeled.",
+      "paramSets": [
+        "station",
+        "memory"
+      ],
+      "params": {
+        "maxRecords": {
+          "type": "integer",
+          "label": "Retained record capacity",
+          "default": 100,
+          "group": "basic",
+          "min": 1,
+          "max": 20000
+        }
+      },
+      "ports": [
+        {
+          "id": "in",
+          "label": "in",
+          "direction": "in",
+          "multiple": false,
+          "required": true,
+          "accepts": [
+            "json"
+          ]
+        }
+      ],
+      "faults": [
+        "crash",
+        "slow",
+        "errors",
+        "blackhole",
+        "dropReplies"
+      ]
+    }
+  ],
+  "classes": [
+    {
+      "id": "messaging-workload",
+      "label": "Messaging trace",
+      "description": "Finite scripted users issue chat commands or saved-search listing and daily digest events through real graph edges. Explicit day tokens compress daily scheduling.",
+      "category": "clients",
+      "kernel": "messagingSource",
+      "glyph": "users",
+      "defaults": {}
+    },
+    {
+      "id": "chat-mailbox",
+      "label": "Conversation mailbox",
+      "description": "One two-member conversation with append ordering, stable message identities, authorized cursor catchup and durable simulated state. No sockets, group membership, external storage or global ordering.",
+      "category": "storage",
+      "kernel": "chatMailbox",
+      "glyph": "database",
+      "defaults": {
+        "serviceMs": 5,
+        "serviceDist": "constant",
+        "concurrency": 4
+      }
+    },
+    {
+      "id": "saved-search-matcher",
+      "label": "Saved search and digest outbox",
+      "description": "Token matches for bounded saved terms against new listing titles. Retains per-recipient listing matches and immutable per-day digest identities until downstream acknowledgement. No inverted index, SMTP or external durability.",
+      "category": "compute",
+      "kernel": "savedSearch",
+      "glyph": "database",
+      "defaults": {
+        "serviceMs": 5,
+        "serviceDist": "constant",
+        "concurrency": 4,
+        "callTimeoutMs": 200,
+        "retries": 2,
+        "retryBackoffMs": 100
+      }
+    },
+    {
+      "id": "digest-mailbox",
+      "label": "Idempotent email mailbox",
+      "description": "Synthetic delivery endpoint deduplicates a digest identity and rejects conflicting content. Real email providers need an equivalent idempotency contract; exactly-once SMTP is not modeled.",
+      "category": "storage",
+      "kernel": "digestMailbox",
+      "glyph": "database",
+      "defaults": {
+        "serviceMs": 5,
+        "serviceDist": "constant",
+        "concurrency": 4
+      }
+    }
+  ]
+}

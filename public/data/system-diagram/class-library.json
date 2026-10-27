@@ -782,6 +782,8 @@
     "classes/distribution.json",
     "classes/collaboration.json",
     "classes/social-graph.json",
-    "classes/interview.json"
+    "classes/interview.json",
+    "classes/messaging.json",
+    "classes/api-practice.json"
   ]
 }

@@ -11,4 +11,6 @@ require('./kernels-distribution.js');
 require('./kernels-social-graph.js');
 require('./kernels-collaboration.js');
 require('./kernels-interview.js');
+require('./kernels-messaging.js');
+require('./kernels-api-practice.js');
 module.exports = require('./kernel-registry.js');

@@ -11,6 +11,17 @@ seeded discrete-event simulation of its distributed compute: requests and messag
 on edges, queueing, service time, concurrency, latency, bandwidth, failures,
 retries, timeouts, replication and recovery.
 
+The evolution stages and diagram detail levels are separate axes. Evolution
+Stage 0 is sketch, Stage 1 simulation, Stage 2 specification, Stage 3 deployment,
+Stage 4 operation and Stage 5 system. Detail Level 0 is Context, Level 1
+Capabilities, Level 2 Architecture, Level 3 Internals and Level 4 Implementation.
+A walkthrough's numbered steps are iterations within the current simulation
+stage, not promotions along either axis. Expanding a reusable subsystem changes
+inspection detail; it does not establish a deployable specification or operational
+system. The public solution catalogue executes synthetic simulations. Later
+evolution stages require their own implementation and evidence; a successful
+simulation run does not prove them.
+
 ## Question-first system designs
 
 The [six learning journeys](../../public/data/system-diagram/learning-journeys.json)
