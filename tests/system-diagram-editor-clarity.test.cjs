@@ -8,7 +8,8 @@ const Palette = require('../public/simulatte/system-diagram/palette.js');
 const Inspector = require('../public/simulatte/system-diagram/inspector.js');
 const config = require('../public/data/system-diagram/config.json');
 const library = require('../public/simulatte/system-diagram/class-library.js').loadSync(path.resolve(__dirname, '../public/data/system-diagram'));
-const legacy = () => structuredClone(require('../public/data/system-diagram/examples/web-service.json'));
+// Frozen v1 document: shipped examples migrate, but accepted v1 replays must keep their exact schema.
+const legacy = () => structuredClone(require('./fixtures/system-diagram-legacy-v1-web-service.json'));
 const editor = () => Editor.create({ diagram: legacy(), library, config });
 
 test('legacy diagrams retain their exact schema for accepted replay identities', () => {
@@ -116,38 +117,35 @@ class SvgNode {
   getComputedTextLength() { return this.textContent.length * 6; }
 }
 
-test('SVG renderer updates edge annotations, accessible full text and midpoint when nodes move', () => {
+test('SVG renderer wraps edge annotations as text lines, keeps accessible full text and follows the moved route', () => {
   const Render = require('../public/simulatte/system-diagram/editor-canvas-render.js');
   const m = editor(), id = m.diagram.edges[0].id, doc = svgDocument();
   const layers = Object.fromEntries(['nodes', 'edges', 'groups', 'notes'].map(key => [key, doc.createElementNS('', 'g')]));
   const render = Render.create({ doc, model: m, library, config, layers, arrowId: 'arrow', arrowSelectedId: 'selected' });
+  const shown = label => label.children.map(line => line.textContent).join('');
   render.render();
-  const edge = render.items.edges.get(id); assert.equal(edge.label.textContent, '');
-  const text = '<script>annotation is text, not executable HTML</script>';
+  const edge = render.items.edges.get(id); assert.equal(shown(edge.label), ''); assert.equal(edge.label.getAttribute('display'), 'none');
+  const text = '<script>annotation is text, not executable HTML</script>', to = m.diagram.edges[0].to.nodeId;
+  // Labels hide rather than overlap nodes, so give this route room for a two-line annotation first.
+  m.apply({ type: 'moveItems', ids: [to], dx: 400, dy: 0 });
   assert.equal(m.apply({ type: 'setEdgeLabel', id, label: text }).ok, true); render.render();
-  assert.ok(edge.label.textContent.endsWith('…')); assert.ok(edge.title.textContent.includes(text));
-  assert.ok(edge.el.getAttribute('aria-label').includes(text)); assert.equal(edge.label.children.length, 0);
-  const x = Number(edge.label.getAttribute('x'));
-  const to = m.diagram.edges[0].to.nodeId;
+  assert.ok(edge.label.children.length > 1, 'long annotations wrap instead of truncating');
+  assert.ok(edge.label.children.every(line => line.tagName === 'tspan' && line.children.length === 0), 'annotation lines are plain SVG text');
+  assert.equal(shown(edge.label).replace(/\s+/g, ' ').trim(), text.replace(/\s+/g, ' '));
+  assert.ok(edge.label.children.every(line => line.textContent.trim().length <= 30));
+  assert.ok(edge.title.textContent.includes(text)); assert.ok(edge.el.getAttribute('aria-label').includes(text));
+  assert.notEqual(edge.label.getAttribute('display'), 'none');
+  const x = Number(edge.label.children[0].getAttribute('x'));
   m.apply({ type: 'moveItems', ids: [to], dx: 80, dy: 16 }); render.render();
-  // Rounded orthogonal routes place labels halfway along the actual route,
-  // which differs from averaging the two endpoint coordinates.
-  const points = JSON.parse(edge.el.dataset.routePoints);
-  const lengths = points.slice(1).map((p, i) => Math.hypot(p.x - points[i].x, p.y - points[i].y));
-  let remaining = lengths.reduce((sum, value) => sum + value, 0) / 2;
-  let expected;
-  for (let i = 0; i < lengths.length; i++) {
-    if (remaining <= lengths[i]) {
-      const t = lengths[i] ? remaining / lengths[i] : 0;
-      expected = points[i].x + (points[i + 1].x - points[i].x) * t; break;
-    }
-    remaining -= lengths[i];
-  }
-  assert.equal(Number(edge.label.getAttribute('x')), expected);
-  assert.notEqual(Number(edge.label.getAttribute('x')), x);
+  assert.notEqual(edge.label.getAttribute('display'), 'none');
+  // Placement prefers route midpoints but steps aside from nodes and other labels, so check it stays beside the moved route.
+  const points = JSON.parse(edge.el.dataset.routePoints), moved = Number(edge.label.children[0].getAttribute('x'));
+  const xs = points.map(p => p.x), reach = 180 / 2 + 10;
+  assert.ok(moved >= Math.min(...xs) - reach && moved <= Math.max(...xs) + reach, `label x ${moved} beside route ${xs}`);
+  assert.notEqual(moved, x);
   m.apply({ type: 'setEdgeLabel', id, label: 'Task events' }); render.render();
-  assert.equal(edge.label.textContent, 'Task events');
-  m.apply({ type: 'setEdgeLabel', id, label: null }); render.render(); assert.equal(edge.label.textContent, '');
+  assert.equal(shown(edge.label), 'Task events');
+  m.apply({ type: 'setEdgeLabel', id, label: null }); render.render(); assert.equal(shown(edge.label), ''); assert.equal(edge.label.getAttribute('display'), 'none');
   m.apply({ type: 'deleteItems', ids: [id] }); render.render(); assert.equal(render.items.edges.has(id), false);
 });
 

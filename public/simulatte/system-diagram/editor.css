@@ -241,7 +241,14 @@ textarea.sd-inline-edit { min-height: 96px; resize: vertical; }
 .lucyd-custom-task { display: grid; justify-items: start; gap: 10px; margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--wui-line); }
 .lucyd-custom-task label { justify-self: stretch; display: grid; gap: 8px; font: 400 13px var(--wui-font); }
 .notice-line { display: none; }
-.notice-line:has(#editor-status[data-error='true']) { display: block; top: 112px; bottom: auto; left: calc(var(--lucyd-rail-width) + 12px); background: var(--wui-paper); }
+/* Errors sit above the run dock and wrap; at the old top offset the task card covered them. */
+.notice-line:has(#editor-status[data-error='true']) {
+  display: block; top: auto; bottom: 132px; left: calc(var(--lucyd-rail-width) + 12px); right: 12px; z-index: 22;
+  width: fit-content; max-width: min(640px, calc(100vw - var(--lucyd-rail-width) - 24px)); margin-inline: auto; box-sizing: border-box;
+  background: var(--wui-paper); border: 1px solid var(--wui-line); border-radius: var(--wui-radius);
+}
+.notice-line:has(#editor-status[data-error='true']) p { white-space: normal; }
+.notice-line:has(#editor-status[data-surface='canvas']) { display: none; }
 /* The component rail has exactly two persistent states on every viewport. */
 #palette-toggle { display:block;position:fixed;top:60px;left:8px;writing-mode:horizontal-tb;width:40px;height:32px; }
 .palette-panel { padding-top:48px; }
@@ -278,6 +285,14 @@ body[data-palette-expanded='false'] .palette-group > .palette-category-title { d
 .simulation-records { width: min(660px, calc(100vw - 24px)); }
 .simulation-records-list { display: grid; gap: 6px; margin-block: 12px; }
 .simulation-records-list > p { margin-block: 4px; font-size: 12px; }
+.simulation-comparison { width: min(660px, calc(100vw - 24px)); }
+.simulation-fault-times { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-block: 8px; }
+.simulation-fault-times label { display: grid; gap: 4px; font-size: 12px; }
+.simulation-fault-schedule { padding-left: 18px; }
+.simulation-comparison table { width: 100%; border-collapse: collapse; font: 400 13px/1.4 var(--wui-font); font-variant-numeric: tabular-nums; }
+.simulation-comparison th, .simulation-comparison td { padding: 6px 8px; border-bottom: 1px solid var(--wui-line); text-align: right; }
+.simulation-comparison th:first-child { text-align: left; font-weight: 400; }
+.simulation-comparison tr:first-child th { font-weight: 600; }
 @media (max-width: 700px) {
   .lucyd-task-bar { grid-template-columns: repeat(3, auto); }
   .lucyd-task-action { white-space: normal; }

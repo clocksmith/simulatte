@@ -1,5 +1,6 @@
 (function (root) {
   'use strict';
+  const MIN_INSET_CANVAS = 160;
   function create({canvas, document: doc = document}) {
     const win = doc.defaultView, events = new AbortController();
     const on = (target, type, fn, options = {}) => target.addEventListener(type, fn, {...options, signal: events.signal});
@@ -26,18 +27,22 @@
       palette.toggle.setAttribute('aria-expanded', String(expanded));
       palette.toggle.setAttribute('aria-label', expanded ? 'Collapse component library' : 'Expand component library');
     }
-    function close({focus = false} = {}) {
+    // On phones an expanded rail beside an open drawer leaves no canvas, so dismissal also collapses the rail.
+    function close({focus = false, collapseRail = false} = {}) {
       const active = properties.toggle.getAttribute('aria-expanded') === 'true';
+      const collapsed = collapseRail && compact.matches && expanded;
+      if (collapsed) {expanded = false; save();}
       properties.panel.inert = true; properties.panel.dataset.open = 'false';
       properties.toggle.setAttribute('aria-expanded', 'false');
       syncPalette(); menu.open = false; updateInsets();
       if (focus && active) properties.toggle.focus({preventScroll: true});
+      else if (focus && collapsed) palette.toggle.focus({preventScroll: true});
     }
     on(palette.toggle, 'click', () => { const open = !expanded; close(); expanded = open; syncPalette(); updateInsets();save(); });
     on(palette.panel.querySelector('[data-close-drawer]'), 'click', () => { expanded = false; syncPalette(); updateInsets();save(); palette.toggle.focus({preventScroll: true}); });
     on(properties.toggle, 'click', () => {
       const open = properties.toggle.getAttribute('aria-expanded') !== 'true';
-      close();
+      close({collapseRail: open});
       if (open) {properties.panel.inert = false; properties.panel.dataset.open = 'true'; properties.toggle.setAttribute('aria-expanded', 'true'); properties.panel.querySelector('input,button,select')?.focus({preventScroll: true});}
       updateInsets();
     });
@@ -47,11 +52,16 @@
     on(doc.getElementById('preset'), 'change', () => {menu.open = false;});
     on(menu, 'toggle', () => {if (menu.open) {syncPalette(); properties.panel.inert = true; properties.panel.dataset.open = 'false'; properties.toggle.setAttribute('aria-expanded', 'false'); updateInsets();}});
     on(doc.getElementById('diagram'), 'pointerdown', event => {
-      if (!event.target.closest('.sd-node,.sd-group,.sd-edge,.sd-note,.sd-port')) close();
+      if (!event.target.closest('.sd-node,.sd-group,.sd-edge,.sd-note,.sd-port')) close({collapseRail: true});
+    }, {capture: true});
+    // Run menus and the task bar open beneath an expanded phone rail, so a workspace tap also collapses it.
+    // Collapsing on click, not pointerdown, keeps the tapped control under the finger until it activates.
+    on(doc.querySelector('.canvas-panel'), 'click', () => {
+      if (compact.matches && expanded) {expanded = false; save(); syncPalette(); updateInsets();}
     }, {capture: true});
     on(doc, 'keydown', event => {
       if (event.key !== 'Escape' || doc.querySelector('dialog[open]')) return;
-      if (properties.toggle.getAttribute('aria-expanded') === 'true' || compact.matches && expanded) {close({focus: true}); event.preventDefault(); event.stopPropagation();}
+      if (properties.toggle.getAttribute('aria-expanded') === 'true' || compact.matches && expanded) {close({focus: true, collapseRail: true}); event.preventDefault(); event.stopPropagation();}
       if (menu.open) {menu.open = false; menu.querySelector('summary').focus({preventScroll: true}); event.preventDefault(); event.stopPropagation();}
       const json = doc.getElementById('document-panel');
       if (json.open) {json.open = false; json.querySelector('summary').focus({preventScroll: true});}
@@ -61,9 +71,12 @@
       const task = doc.querySelector('.lucyd-task-bar')?.getBoundingClientRect();
       const step = doc.querySelector('.interview-stepper:not([hidden])')?.getBoundingClientRect();
       const playback = doc.querySelector('.sd-run-dock')?.getBoundingClientRect();
-      const right = properties.panel.dataset.open === 'true' ? properties.panel.getBoundingClientRect().width + 12 : 12;
+      const left = Math.max(12, palette.panel.getBoundingClientRect().right - rect.left + 12);
+      const drawer = properties.panel.dataset.open === 'true' ? properties.panel.getBoundingClientRect().width + 12 : 12;
+      // A drawer that would leave almost no canvas overlays it instead; otherwise Fit collapses the camera to a dot.
+      const right = rect.width - left - drawer >= MIN_INSET_CANVAS ? drawer : 12;
       canvas.setInsets({top: Math.max(12, (task?.bottom || rect.top) - rect.top + 12), bottom: Math.max(step ? rect.bottom - step.top + 12 : 24, playback ? rect.bottom - playback.top + 12 : 24),
-        left: Math.max(12, palette.panel.getBoundingClientRect().right - rect.left + 12), right});
+        left, right});
     }
     const seen = new WeakSet(), resize = new win.ResizeObserver(updateInsets);
     function observe() {

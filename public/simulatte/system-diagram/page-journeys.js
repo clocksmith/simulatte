@@ -65,6 +65,16 @@
       seed: pair.demand.seed, untilSec: until, faults: clone(pair.demand.faults), controls: commonControls, baseline: rows[0], repair: rows[1],
       boundary: 'Independent sequential synthetic runs with identical authored demand, scheduled faults, recorded controls and verified actual source arrivals. Differences are model predictions, not production proof.' });
   }
+  const METRICS = Object.freeze([['offered', 'Requests offered'], ['completed', 'Completed'], ['failed', 'Failed'], ['retries', 'Retries'], ['duplicateEffects', 'Duplicate effects'],
+    ['unknownEffects', 'Unknown commit outcomes'], ['deadlineMisses', 'Deadline misses'], ['wastedWork', 'Wasted work'], ['peakMemoryMiB', 'Peak memory, MiB']]);
+  // Rows for a side-by-side readout; every value comes from the two verified comparison runs.
+  function summarize(comparison) {
+    const a = comparison.baseline.metrics, b = comparison.repair.metrics, p95 = m => Number.isFinite(m.latency?.p95) ? m.latency.p95 : null;
+    const rows = METRICS.filter(([key]) => Number.isFinite(a[key]) || Number.isFinite(b[key])).map(([key, label]) => ({ key, label, baseline: a[key] ?? null, repair: b[key] ?? null }));
+    rows.splice(3, 0, { key: 'latency.p95', label: 'p95 latency, ms', baseline: p95(a), repair: p95(b) });
+    for (const reason of [...new Set([...Object.keys(a.failedBy || {}), ...Object.keys(b.failedBy || {})])].sort()) rows.push({ key: `failedBy.${reason}`, label: `Failed: ${reason}`, baseline: a.failedBy?.[reason] || 0, repair: b.failedBy?.[reason] || 0 });
+    return rows;
+  }
   async function withSuspendedRun({ current, action, createReplacement, onSuspend = () => {}, onRestore = () => {} }) {
     const checkpoint = current ? await current.checkpoint() : null;
     onSuspend();
@@ -78,5 +88,5 @@
       }
     }
   }
-  return Object.freeze({ SOURCE_KERNELS, identity, demand, pairInputs, arrivals, compare, withSuspendedRun });
+  return Object.freeze({ SOURCE_KERNELS, identity, demand, pairInputs, arrivals, compare, summarize, withSuspendedRun });
 });

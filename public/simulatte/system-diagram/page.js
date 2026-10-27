@@ -61,9 +61,10 @@
   let loading = false, activePreset = 'blank';
   const buttons = {};
 
-  function message(text, error = false) {
+  // The canvas shows its own hint for canvas messages; the status line only surfaces the rest.
+  function message(text, error = false, {surface = 'status'} = {}) {
     const el = $('editor-status');
-    if (el) { el.textContent = text; el.dataset.error = String(error); }
+    if (el) { el.textContent = text; el.dataset.error = String(error); el.dataset.surface = surface; }
   }
 
   async function perform(action) {

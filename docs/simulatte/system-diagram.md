@@ -528,21 +528,26 @@ journeys, concrete gaps and independent acceptance tests. Streaming, replica rec
 agent recovery and healthcare/finance/lakehouse examples are editable compositions,
 not separate engines. Every component remains available from a blank canvas.
 
-Contextual fault authoring lists applicable node, link and failure-domain faults,
-validated parameters and logical start/end times. Scheduled faults belong to pending
-architecture; injected controls belong to the accepted run. Resource clusters do not
-imply failure-domain semantics.
+Run ▾ → Failures lists applicable node, connection and failure-domain faults with
+validated parameters. **Now** injects into the accepted run and is recorded as a replay
+control; **Scheduled** adds logical start/end times to the document, which is pending
+architecture. Subsystem internals are scheduled inside their definition. Resource
+clusters do not imply failure-domain semantics. Run ▾ → Run settings edits the seed
+and horizon; like any architecture edit, that clears the accepted run.
 
-Advance accepts a positive fractional duration, separate from the one-second step.
-It pauses the accepted execution at that logical observation time, so a checkpoint
-can retain short-lived service, network, acknowledgement and retry states. It does
-not accept pending diagram edits.
+Run ▾ → Advance to time pauses the accepted execution at an exact logical time, finer
+than the half-second Step round, so a checkpoint can retain short-lived service,
+network, acknowledgement and retry states. Checkpoint and Restore checkpoint belong to
+one accepted run: restart, replay or any edit invalidates the checkpoint.
 
-Capture baseline retains immutable authored demand, fault timing and controls. Compare
-repair executes baseline and edited architecture sequentially, verifies both replays,
-checks actual source IDs/times and complete input payload descriptors, then restores
-the prior accepted checkpoint. Response-coupled demand that differs is refused as a
-paired experiment. Exported evidence contains both executable replay documents.
+Capture baseline retains the immutable document (demand, scheduled faults) and the
+accepted run's recorded controls. After editing the repair, Compare repair executes
+baseline and edited architecture in fresh sequential runners without touching the
+accepted run, verifies both replays, checks actual source IDs/times and complete input
+payload descriptors, and shows Baseline and Repair metrics side by side.
+Response-coupled demand that differs is refused as a paired experiment. Saved
+documents do not store accepted execution; loading one and replaying its seed
+reproduces the identical state.
 
 Network transfers retain remaining serialization and propagation work. Authored FIFO
 or fair bandwidth sharing and full or shared duplex links invalidate stale completion

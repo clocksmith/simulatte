@@ -159,7 +159,7 @@
     function showHint(text, tone = 'info', sticky = false) {
       win.clearTimeout(hintTimer);
       hint.textContent = text || ''; hint.dataset.tone = tone;
-      if (text) onMessage(text, tone === 'error' || tone === 'warning');
+      if (text) onMessage(text, tone === 'error' || tone === 'warning', {surface: 'canvas'});
       if (text && !sticky) hintTimer = win.setTimeout(() => { hint.textContent = ''; }, HINT_MS);
     }
 

@@ -30,7 +30,7 @@ for (const viewport of viewports.filter(v => requestedWidth === null || v.width 
   client.on('Runtime.exceptionThrown', e => errors.push(e.exceptionDetails?.exception?.description || e.exceptionDetails?.text));
   client.on('Network.responseReceived', e => { if (e.response.status >= 400) networkFailures.push(`${e.response.status} ${e.response.url}`); });
   client.on('Fetch.requestPaused', async e => {
-    if (e.request.url.startsWith(browser.host.baseUrl)) await client.send('Fetch.continueRequest', { requestId: e.requestId });
+    if (e.request.url.startsWith(new URL(browser.host.baseUrl).origin)) await client.send('Fetch.continueRequest', { requestId: e.requestId });
     else {
       blockedExternal.push(new URL(e.request.url).origin);
       await client.send('Fetch.failRequest', { requestId: e.requestId, errorReason: 'BlockedByClient' });

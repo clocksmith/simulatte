@@ -58,8 +58,10 @@
 
   function faultSummary(fault, doc, library) {
     const type = library.faultTypes.find(f => f.id === fault.type)?.label || fault.type;
+    const nodeLabel = id => doc.nodes.find(n => n.id === id)?.label || id, edge = fault.target.kind === 'edge' && (doc.edges || []).find(e => e.id === fault.target.id);
     const target = fault.target.kind === 'node' ? doc.nodes.find(n => n.id === fault.target.id)?.label
-      : fault.target.kind === 'group' ? doc.groups.find(g => g.id === fault.target.id)?.label : null;
+      : fault.target.kind === 'group' ? doc.groups.find(g => g.id === fault.target.id)?.label
+      : edge ? `${nodeLabel(edge.from.nodeId)} → ${nodeLabel(edge.to.nodeId)}${edge.label ? ` · ${edge.label}` : ''}` : null;
     const window = fault.untilSec == null ? `from ${fault.atSec} s` : `${fault.atSec}–${fault.untilSec} s`;
     return `${type} on ${target || fault.target.id}, ${window}`;
   }

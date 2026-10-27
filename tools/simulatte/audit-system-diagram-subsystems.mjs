@@ -63,11 +63,18 @@ for (const width of widths) {
     }
     async function button(label) {
       row.lastAction = label;
+      // Rail sections such as Subsystem tools start collapsed; expand the owning section as a person would.
+      if (await evaluate(`(() => { const b = [...document.querySelectorAll('#palette-drawer button')].find(b => b.textContent === ${JSON.stringify(label)}); return Boolean(b && document.body.dataset.paletteExpanded !== 'true'); })()`)) await click('#palette-toggle');
+      if (await evaluate(`(() => { const b = [...document.querySelectorAll('#properties-drawer button')].find(b => b.textContent === ${JSON.stringify(label)}); return Boolean(b && document.getElementById('properties-drawer').inert); })()`)) await click('#properties-toggle');
+      await evaluate(`(() => { const b = [...document.querySelectorAll('#palette-drawer button')].find(b => b.textContent === ${JSON.stringify(label)}); const d = b?.closest('details:not([open])'); if (d) d.open = true; })()`);
+      await evaluate(`(()=>{const m=document.getElementById('workspace-menu'),b=[...document.querySelectorAll('#workspace-menu button')].find(b=>b.textContent===${JSON.stringify(label)});if(b&&!b.getClientRects().length&&m&&!m.open){m.open=true;m.dataset.auditOpened='1';}})()`);
       const before = await evaluate('Number(document.body.dataset.operationSequence || 0)');
       await evaluate(`(() => { const b = [...document.querySelectorAll('button')].find(b => b.textContent === ${JSON.stringify(label)} && b.getClientRects().length && !b.disabled); if (!b) throw Error('Missing enabled button: ' + ${JSON.stringify(label)}); b.dataset.subsystemAudit = 'active'; })()`);
+      await evaluate(`document.querySelector('[data-subsystem-audit="active"]').scrollIntoView({block:'center',behavior:'instant'})`);
       await click('[data-subsystem-audit="active"]');
       await until(`Number(document.body.dataset.operationSequence || 0) > ${before}`);
       await evaluate(`document.querySelector('[data-subsystem-audit="active"]')?.removeAttribute('data-subsystem-audit')`);
+      await evaluate(`(()=>{const m=document.getElementById('workspace-menu');if(m?.dataset.auditOpened){m.open=false;delete m.dataset.auditOpened;}})()`);
     }
     async function select(id) { await focus(`.sd-node[data-node-id="${id}"]`); await key('Enter', 'Enter', 13); assert.deepEqual(await evaluate('SimulatteSystemDiagramEditor.selection().nodes'), [id]); }
     async function shot(name) {
@@ -118,7 +125,8 @@ for (const width of widths) {
     assert.equal((await doc()).nodes.find(node => node.id === secondId).classId, 'subsystem.backend@1'); row.checks.explicitUpgrade = true;
     const beforeCancel = await doc();
     await button('Inspect / edit subsystem'); await select(serverId); await set('property-serviceMs', 50); await button('Apply overrides'); await button('Cancel definition edits');
-    assert.deepEqual(await doc(), beforeCancel); row.checks.cancelDetachedDraft = true;
+    // Cancel deliberately re-fits the camera; the claim is that no definition or graph edit survives.
+    assert.deepEqual({ ...await doc(), view: null }, { ...beforeCancel, view: null }); row.checks.cancelDetachedDraft = true;
     await select(firstId); await set('subsystem-overrides', JSON.stringify({ [serverId]: { concurrency: 3 } })); await button('Apply subsystem overrides');
     assert.equal((await doc()).nodes.find(node => node.id === firstId).overrides[serverId].concurrency, 3); row.checks.instanceOverrides = true;
     await set('subsystem-name', 'Nested backend'); await button('Save selection as subsystem'); current = await doc();
@@ -126,16 +134,24 @@ for (const width of widths) {
     assert.ok(nested.nodes.some(node => node.classId === 'subsystem.backend@2'));
     assert.equal(current.nodes.filter(node => node.classId === 'subsystem.nested-backend@1').length, 1); row.checks.nesting = true;
     await button('Fit'); await shot('nested-architecture');
-    await button('Run'); await button('Pause');
-    assert.ok(await evaluate('SimulatteSystemDiagramEditor.accepted()')); await button('Step 1 s'); await button('Replay');
-    assert.match(await evaluate(`document.getElementById('editor-status').textContent`), /Exact replay matched/); row.checks.nestedRunReplay = true;
+    const runState = 'SimulatteSystemDiagramEditor.playback.controller.state()';
+    await click('[data-run-command="toggle"]'); await until(`${runState}.running`);
+    await click('[data-run-command="toggle"]'); await until(`!${runState}.running`);
+    assert.ok(await evaluate(`${runState}.accepted`)); await click('[data-run-command="step"]');
+    await click('.sd-run-more > summary'); await click('[data-run-command="verify"]');
+    await until(`/Replay match/.test(document.getElementById('editor-status').textContent)`); row.checks.nestedRunReplay = true;
     await button('Copy library JSON');
     const portable = JSON.parse(await evaluate(`document.getElementById('subsystem-library-json').value`));
     const beforeConflict = await doc(), conflicting = structuredClone(portable); conflicting.subsystems[0].label += ' conflict';
     await set('subsystem-library-json', JSON.stringify(conflicting)); await button('Import library JSON');
     assert.deepEqual(await doc(), beforeConflict);
     assert.equal(await evaluate(`document.getElementById('editor-status').dataset.error`), 'true'); row.checks.conflictingImportIsAtomic = true;
-    await set('preset', 'blank'); await until('SimulatteSystemDiagramEditor.document().nodes.length === 0');
+    // Re-choosing the active preset is a no-op, and leaving edited work asks first; this journey discards it.
+    for (const preset of ['web-service', 'blank']) {
+      await set('preset', preset);
+      if (await evaluate(`!document.getElementById('unsaved-dialog').hidden`)) await click('#unsaved-discard');
+      await until(`SimulatteSystemDiagramEditor.document().nodes.length ${preset === 'blank' ? '=== 0' : '> 0'}`);
+    }
     await set('subsystem-library-json', JSON.stringify(portable)); await button('Import library JSON');
     await set('subsystem-library', 'subsystem.nested-backend@1'); await button('Insert subsystem');
     assert.equal((await doc()).nodes[0].classId, 'subsystem.nested-backend@1'); row.checks.crossDiagramLibraryReuse = true;

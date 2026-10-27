@@ -101,3 +101,14 @@ test('real coordinator runs pair a queued CPU/GPU store repair without changing 
   assert.equal(runners.replay(comparison.baseline.replay, { library, config, kernels, profileId: 'system-diagram-v1' }).status, 'match');
   assert.equal(runners.replay(comparison.repair.replay, { library, config, kernels, profileId: 'system-diagram-v1' }).status, 'match');
 });
+
+test('comparison summary rows come only from the two verified runs', () => {
+  const metrics = (completed, extra = {}) => ({ offered: 6, completed, failed: 6 - completed, retries: 1, duplicateEffects: 0, unknownEffects: 0, latency: { p95: 120.5 }, failedBy: {}, ...extra });
+  const rows = J.summarize({ baseline: { metrics: metrics(4, { failedBy: { timeout: 2 } }) }, repair: { metrics: metrics(6, { latency: {} }) } });
+  const row = key => rows.find(r => r.key === key);
+  assert.deepEqual([row('completed').baseline, row('completed').repair], [4, 6]);
+  assert.deepEqual([row('latency.p95').baseline, row('latency.p95').repair], [120.5, null], 'missing latency samples stay explicit');
+  assert.deepEqual([row('failedBy.timeout').baseline, row('failedBy.timeout').repair], [2, 0]);
+  assert.equal(rows.findIndex(r => r.key === 'latency.p95'), 3);
+  assert.equal(row('peakMemoryMiB'), undefined, 'metrics absent from both runs are not invented');
+});

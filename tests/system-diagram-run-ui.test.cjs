@@ -186,6 +186,8 @@ test('selection mode and fault summaries describe what the inspector shows', () 
   const doc = { nodes: [{ id: 'cache', label: 'Cache' }], groups: [], classes: [] };
   assert.equal(inspector.faultSummary({ type: 'crash', atSec: 30, untilSec: 45, target: { kind: 'node', id: 'cache' } }, doc, library), 'Crash on Cache, 30–45 s');
   assert.equal(inspector.faultSummary({ type: 'partition', atSec: 5, untilSec: null, target: { kind: 'edge', id: 'e1' } }, doc, library), 'Partition link on e1, from 5 s');
+  const linked = { ...doc, nodes: [...doc.nodes, { id: 'api', label: 'API' }], edges: [{ id: 'e2', label: 'reads', from: { nodeId: 'api', portId: 'out' }, to: { nodeId: 'cache', portId: 'in' } }] };
+  assert.equal(inspector.faultSummary({ type: 'partition', atSec: 5, untilSec: 9, target: { kind: 'edge', id: 'e2' } }, linked, library), 'Partition link on API → Cache · reads, 5–9 s');
   assert.deepEqual(inspector.classUsage({ nodes: [{ classId: 'user.a' }], classes: [{ id: 'user.b', extends: 'user.a' }] }, 'user.a'), { nodes: 1, children: 1 });
 });
 
