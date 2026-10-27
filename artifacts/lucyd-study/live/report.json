@@ -1,0 +1,92 @@
+{
+  "source": {
+    "head": "ee8883394df94d360e75435fb1323df3d39ae17c",
+    "capturedAt": "2026-10-27T02:19:17.597Z",
+    "modifiedSources": {
+      "public/index.html": {
+        "sha256": "b9bac1b23ded867a033bc92618780d5e2fb324cfe4fed74ba7ce5f0ee07fad4f",
+        "modifiedAt": "2026-10-27T02:18:38.787Z"
+      },
+      "public/simulatte/distributed-repair/index.html": {
+        "sha256": "71fc0e9f236c852cc64b5b6de9ca5af7846b5d8289faeed17aadd62d4c7de506",
+        "modifiedAt": "2026-10-27T02:18:38.788Z"
+      },
+      "public/simulatte/distributed-repair/repair.html": {
+        "sha256": "c12eb94af232fe6523cd7c8d3b98262abd573ef670f12a05a83925294adc1902",
+        "modifiedAt": "2026-10-27T02:18:38.788Z"
+      },
+      "public/simulatte/field-experiments/index.html": {
+        "sha256": "83a934d6100f8ffe865b4c64d8910a1e68341b967887d560411c222a9d02f5b6",
+        "modifiedAt": "2026-10-27T02:18:38.787Z"
+      },
+      "public/simulatte/system-diagram/index.html": {
+        "sha256": "2367c5963a06a7f912e4bc82a689eb00a622add1ca0046a3059c73d88d602b8f",
+        "modifiedAt": "2026-10-27T02:18:38.789Z"
+      },
+      "public/version.json": {
+        "sha256": "833f826bcf0f2be6cab8b95fb09e5db3712a75ca49a55a530eeb0151b2a6f237",
+        "modifiedAt": "2026-10-27T02:18:38.789Z"
+      }
+    },
+    "boundary": "Local comparison checkout; browser cases execute the named live route/build, not a local server."
+  },
+  "url": "https://simulatte.world/system-diagram",
+  "browser": "143.0.7499.4",
+  "privateChecks": true,
+  "cases": [
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "checks": {
+        "railTwoStatesAnd280Cap": true,
+        "problemStartsBlank": true,
+        "unboundRefusesSimulation": true,
+        "refinementKeepsIdentity": true,
+        "branchAndReturn": true,
+        "savedDesignRestored": true,
+        "faultRepairReplay": true,
+        "viewportNoPageOverflow": true,
+        "encryptedSaveAndLockCleanup": true,
+        "encryptedV5DraftRestoration": true,
+        "privateSubsystemDraftCannotContaminatePublicStudy": true
+      },
+      "errors": [],
+      "build": "ee8883394df94d360e75435fb1323df3d39ae17c-2449a5bdcb2c",
+      "catalogue": {
+        "problems": 31,
+        "solutions": 24,
+        "stages": 48,
+        "unauthored": 8
+      }
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "checks": {
+        "railTwoStatesAnd280Cap": true,
+        "problemStartsBlank": true,
+        "unboundRefusesSimulation": true,
+        "refinementKeepsIdentity": true,
+        "branchAndReturn": true,
+        "savedDesignRestored": true,
+        "faultRepairReplay": true,
+        "viewportNoPageOverflow": true,
+        "encryptedSaveAndLockCleanup": true,
+        "encryptedV5DraftRestoration": true,
+        "privateSubsystemDraftCannotContaminatePublicStudy": true
+      },
+      "errors": [],
+      "build": "ee8883394df94d360e75435fb1323df3d39ae17c-2449a5bdcb2c",
+      "catalogue": {
+        "problems": 31,
+        "solutions": 24,
+        "stages": 48,
+        "unauthored": 8
+      }
+    }
+  ]
+}
