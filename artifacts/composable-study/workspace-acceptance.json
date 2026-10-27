@@ -1,6 +1,6 @@
 {
   "schema": "simulatte.studyWorkspaceAcceptance.v1",
-  "started": "2026-10-27T19:52:41.699Z",
+  "started": "2026-10-27T19:59:00.986Z",
   "url": "http://127.0.0.1:4173/simulatte/system-diagram/study/",
   "browser": "chromium 143.0.7499.4",
   "viewports": {
@@ -9,8 +9,8 @@
   },
   "scope": "Scripted browser interaction on one machine. Emulated touch is not a physical device; visual quality is judged separately.",
   "summary": {
-    "checks": 88,
-    "passed": 87,
+    "checks": 89,
+    "passed": 88,
     "failed": 1
   },
   "pageProblems": [],
@@ -287,8 +287,8 @@
       "check": "marquee selects enclosed elements",
       "action": "drag a box around two rectangles",
       "observed": [
-        "YhDZVM8z5LN3TvZDy7--3",
-        "N374aE3DDne6N2MYkmbgN"
+        "A0-7ACOiYGZ-us4zdnGf5",
+        "H3J4Uj_q1AAPL-mheDv3t"
       ],
       "result": "pass"
     },
@@ -299,7 +299,7 @@
       "observed": {
         "plainClickSelects": 2,
         "deepSelect": [
-          "YhDZVM8z5LN3TvZDy7--3"
+          "A0-7ACOiYGZ-us4zdnGf5"
         ]
       },
       "result": "pass"
@@ -558,8 +558,8 @@
       "action": "zoom twice, reselect, compare the drawing seed",
       "observed": {
         "seed": [
-          94870631,
-          94870631
+          276877860,
+          276877860
         ]
       },
       "result": "pass"
@@ -590,8 +590,8 @@
       "check": "dragging an endpoint reroutes the connector",
       "action": "drag the arrow end onto a third rectangle",
       "observed": {
-        "end": "Ik-ZIIXvjbNj1ooHnNwYz",
-        "expected": "Ik-ZIIXvjbNj1ooHnNwYz"
+        "end": "qWEruwy7She1y7JM3Vfr7",
+        "expected": "qWEruwy7She1y7JM3Vfr7"
       },
       "result": "pass"
     },
@@ -623,7 +623,7 @@
           "toNodeId": "client-state",
           "toPortId": "in-nb.request",
           "mode": "request-response",
-          "labelId": "Xv7um7Et4R7UdlAq9MExo:contract"
+          "labelId": "AY-wp2lsziFO_pB9v_ssv:contract"
         },
         "savedInStageOverlay": true
       },
@@ -820,6 +820,15 @@
     },
     {
       "area": "study progression",
+      "check": "a slow problem load never overrides a later choice",
+      "action": "delay L005, choose L005 then L007 immediately",
+      "observed": {
+        "shown": "L007"
+      },
+      "result": "pass"
+    },
+    {
+      "area": "study progression",
       "check": "rapid Next clicks advance one stage each",
       "action": "click Next four times at one spot without waiting",
       "observed": {
@@ -870,7 +879,7 @@
       "check": "autosave reports status and restores after reload",
       "action": "read the save status, reload the page",
       "observed": {
-        "status": "Saved in this browser at 03:54:17 PM",
+        "status": "Saved in this browser at 04:00:38 PM",
         "restoredOverlays": true
       },
       "result": "pass"
@@ -958,10 +967,10 @@
       "check": "a stage with 2,000 learner elements stays usable",
       "action": "import a workspace with 2,000 rectangles on one stage, step away and back, drag a component",
       "observed": {
-        "importMs": 93,
-        "stepAwayMs": 55,
-        "stepBackMs": 108,
-        "dragMs": 852,
+        "importMs": 89,
+        "stepAwayMs": 45,
+        "stepBackMs": 106,
+        "dragMs": 849,
         "moved": true
       },
       "result": "pass"

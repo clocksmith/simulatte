@@ -40,7 +40,7 @@
 
   function App() {
     const apiRef = useRef(null), wsRef = useRef(null), authoredRef = useRef([]), loadingRef = useRef(false), versionRef = useRef(-1);
-    const selectionRef = useRef(''), themeRef = useRef(initialTheme()), timers = useRef({}), publishedRef = useRef(new Map()), catalogueRef = useRef([]), fileInput = useRef(null);
+    const selectionRef = useRef(''), themeRef = useRef(initialTheme()), timers = useRef({}), publishedRef = useRef(new Map()), catalogueRef = useRef([]), fileInput = useRef(null), loadRef = useRef(0);
     const [api, setApi] = useState(null);
     const [catalogue, setCatalogue] = useState([]);
     const [ws, setWsState] = useState(null);
@@ -117,12 +117,16 @@
       setWs(next); render(next, options); save();
     }, [capture, render, save]);
 
+    // A problem load finishes asynchronously; only the newest load may replace the workspace, so a slow
+    // response can never undo navigation or a later choice made while it was in flight.
     const openProblem = useCallback(async (referenceId, view = {}) => {
+      const load = ++loadRef.current;
       if (wsRef.current) { capture(); clearTimeout(timers.current.save); try { storage.set(Store.storageKey(wsRef.current.document.problem.referenceId), Store.serialize(wsRef.current)); } catch { /* reported on next save */ } }
       const item = catalogueRef.current.find(c => c.referenceId === referenceId);
       try {
         if (!item?.path) throw Error(`${referenceId} is not in the study catalogue`);
         const published = Study.parse(await fetchText(new URL(`composable-solutions/${item.path}`, DATA)));
+        if (load !== loadRef.current) return;
         publishedRef.current.set(referenceId, published);
         let next = null, status = 'Published solution loaded. Your edits will be saved in this browser.';
         const saved = storage.get(Store.storageKey(referenceId));
@@ -134,7 +138,7 @@
         const sol = next.document.solutions.find(s => s.id === view.approach);
         if (sol) next = Store.withView(next, {solutionId: sol.id, stageIndex: Number.isInteger(view.stage) && view.stage >= 0 && view.stage <= sol.stages.length ? view.stage - 1 : 0});
         setWs(next); render(next, {fit: true}); setSaveStatus(status);
-      } catch (error) { setNotice({title: `Could not open ${referenceId}`, message: error.message}); }
+      } catch (error) { if (load === loadRef.current) setNotice({title: `Could not open ${referenceId}`, message: error.message}); }
     }, [capture, render]);
 
     // Boot: catalogue from the generated manifest plus titles and attribution from problems.json.
@@ -259,7 +263,8 @@
     };
     const stepper = solution && h(P.Stepper, {stageIndex, minIndex, count: solution.stages.length, title: stageTitle, edited, onStep: step, onReset: resetStage});
     const pickers = h(P.Pickers, {catalogue, referenceId: ws?.document.problem.referenceId, solutions: ws?.document.solutions, solutionId: ws?.view.solutionId,
-      onProblem: ref => openProblem(ref), onSolution: id => navigate({solutionId: id, stageIndex: 0}, {fit: true})});
+      onProblem: ref => { if (ref !== wsRef.current?.document.problem.referenceId) openProblem(ref); },
+      onSolution: id => { if (id !== wsRef.current?.view.solutionId) navigate({solutionId: id, stageIndex: 0}, {fit: true}); }});
     const trigger = h(Sidebar.Trigger, {name: SIDEBAR, tab: 'stage', title: 'Study notes', className: 'sw-trigger'}, 'Study');
     const openStudy = () => apiRef.current?.toggleSidebar({name: SIDEBAR, tab: 'stage', force: true});
     const panel = tab => {

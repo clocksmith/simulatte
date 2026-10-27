@@ -74,6 +74,12 @@ async function progression(context) {
   const at = await h3.page.$eval(NEXT, el => { const r = el.getBoundingClientRect(); return [r.x + r.width / 2, r.y + r.height / 2]; });
   for (let i = 0; i < 4; i++) await h3.page.mouse.click(...at);
   await h3.page.waitForTimeout(600); const reached = (await view(h3)).stageIndex + 1;
+  // A slow problem load must not undo a later choice: delay one problem file, switch to it, then switch away at once.
+  await h3.page.route('**/composable-solutions/l005.json', async route => { await new Promise(r => setTimeout(r, 1500)); await route.continue(); });
+  await h3.page.selectOption('select[aria-label="Problem"]', 'L005'); await h3.page.selectOption('select[aria-label="Problem"]', 'L007');
+  await h3.page.waitForTimeout(2500);
+  const settled = await h3.page.evaluate(() => SimulatteStudyInspector.workspace().document.problem.referenceId);
+  record('study progression', 'a slow problem load never overrides a later choice', 'delay L005, choose L005 then L007 immediately', {shown: settled}, settled === 'L007');
   record('study progression', 'rapid Next clicks advance one stage each', 'click Next four times at one spot without waiting', {reachedStage: reached, expected: 5}, reached === 5);
   await h3.page.close();
 }
