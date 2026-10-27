@@ -77,7 +77,7 @@
         event.preventDefault(); const token = ++epoch; unlock.disabled = true; status.textContent = 'Unlocking...';
         let next;
         try {
-          const response = await fetch(sourcePath);
+          const response = await fetch(sourcePath, {cache: 'no-cache'});
           if (!response.ok) throw Error('Encrypted collection could not be loaded.');
           next = await crypto.unlock(await response.json(), password.value);
           password.value = '';

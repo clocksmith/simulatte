@@ -358,6 +358,15 @@
           ]
         },
         {
+          "source": "/data/system-diagram/**",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-cache"
+            }
+          ]
+        },
+        {
           "source": "/data/simulatte/**",
           "headers": [
             {

@@ -11,7 +11,7 @@
   const route = globalThis.SimulattePublicRoutes.forPath(location.pathname), routeState = globalThis.SimulatteRouter.parsePath(location.pathname, location.search);
 
   async function json(path) {
-    const r = await fetch(path);
+    const r = await fetch(path, {cache: 'no-cache'});
     if (!r.ok) throw Error(`Required asset unavailable: ${path}`);
     return r.json();
   }
