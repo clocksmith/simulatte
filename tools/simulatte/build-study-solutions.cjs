@@ -5,11 +5,12 @@ const crypto=require('node:crypto');
 const {library,sorted}=require('./study-solution-author.cjs');
 const {validateProblem}=require('./study-contract.cjs');
 const {schema}=require('./study-schema.cjs');
+const {enrich}=require('./study-explanations.cjs');
 const ROOT=path.resolve(__dirname,'../..');
 const OUTPUT=path.join(ROOT,'public/data/system-diagram/composable-solutions');
 const authors=['client-state','routing','platform','delivery','priority','notifications','batch-01','batch-02','batch-03','batch-04','batch-05','batch-06','batch-07','batch-08'];
 function build(){
- const problems=authors.flatMap(name=>Object.values(require('./study-content-'+name+'.cjs')).map(fn=>fn()));
+ const problems=authors.flatMap(name=>Object.values(require('./study-content-'+name+'.cjs')).map(fn=>enrich(fn())));
  const canonical=JSON.parse(fs.readFileSync(path.join(ROOT,'public/data/system-diagram/problems.json'),'utf8'));
  const originals=new Map(canonical.problems.map(p=>[p.referenceId,p]));
  const files=new Map(),receipts=[];

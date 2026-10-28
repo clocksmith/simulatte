@@ -9,6 +9,7 @@
   const {Excalidraw, MainMenu, Footer, Sidebar} = X;
   const DATA = new URL('../../../data/system-diagram/', document.baseURI);
   const STUDY_KEY='simulatte.studyMode.v1';
+  const Theme=root.SimulatteStudyTheme;
   const THEME_KEY = 'simulatte.theme.v1', SIDEBAR = 'study', CONNECTED = '#1971c2';
   const TABS = [['stage', 'Stage'], ['inspect', 'Inspect'], ['approach', 'Approach'], ['problem', 'Problem'], ['file', 'File']];
 
@@ -17,8 +18,7 @@
     set(key, value) { root.localStorage.setItem(key, value); },
   };
   function initialTheme() {
-    const saved = storage.get(THEME_KEY);
-    return saved === 'light' || saved === 'dark' ? saved : root.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    return Theme.resolve(Theme.preference(storage.get(THEME_KEY)),root.matchMedia('(prefers-color-scheme: dark)').matches);
   }
   async function fetchText(url) { const response = await fetch(url); if (!response.ok) throw Error(`${url.pathname}: HTTP ${response.status}`); return response.text(); }
   function download(name, text) {
@@ -44,6 +44,16 @@
     const renderGeneration = useRef(0), pointerActive = useRef(false);
     const selectionRef = useRef(''), themeRef = useRef(initialTheme()), timers = useRef({}), publishedRef = useRef(new Map()), catalogueRef = useRef([]), fileInput = useRef(null), loadRef = useRef(0);
     const [api, setApi] = useState(null);
+    const [themeMode,setThemeMode]=useState(()=>Theme.preference(storage.get(THEME_KEY)));
+    const themeModeRef=useRef(themeMode);
+    const applyTheme=useCallback((mode,persist=true)=>{
+      mode=Theme.preference(mode);themeModeRef.current=mode;setThemeMode(mode);
+      const resolved=Theme.resolve(mode,root.matchMedia('(prefers-color-scheme: dark)').matches);
+      themeRef.current=resolved;document.documentElement.dataset.theme=resolved;
+      if(apiRef.current?.getAppState().theme!==resolved)apiRef.current?.updateScene({appState:{theme:resolved},captureUpdate:X.CaptureUpdateAction.NEVER});
+      if(persist)try{storage.set(THEME_KEY,mode);}catch{}
+    },[]);
+    useEffect(()=>{const media=root.matchMedia('(prefers-color-scheme: dark)'),change=()=>{if(themeModeRef.current==='system')applyTheme('system',false);};applyTheme(themeModeRef.current,false);media.addEventListener('change',change);return()=>media.removeEventListener('change',change);},[api,applyTheme]);
     const [catalogue, setCatalogue] = useState([]);
     const [ws, setWsState] = useState(null);
     const [built, setBuilt] = useState(null);
@@ -91,7 +101,7 @@
         const boxes=authored.filter(e=>e.customData?.study?.role==='node');
         const width=Math.max(...boxes.map(e=>e.x+e.width))-Math.min(...boxes.map(e=>e.x)),height=Math.max(...boxes.map(e=>e.y+e.height))-Math.min(...boxes.map(e=>e.y));
         const changed=boxes.filter(e=>e.customData.study.change),wouldShrink=Math.min((state.width-150)/width,(state.height-180)/height)<minimum;
-        excalidraw.scrollToContent(wouldShrink&&changed.length?changed:undefined,{fitToContent:true,minZoom:minimum,maxZoom:1,animate:false,canvasOffsets:{top:92,bottom:studyModeRef.current?240:76,left:20,right:document.querySelector('.sw-sidebar')?.getBoundingClientRect().width+20||20}});
+        excalidraw.scrollToContent(wouldShrink&&changed.length?changed:undefined,{fitToContent:true,minZoom:minimum,maxZoom:1,animate:false,canvasOffsets:{top:92,bottom:studyModeRef.current?300:76,left:20,right:document.querySelector('.sw-sidebar')?.getBoundingClientRect().width+20||20}});
       });
       setBuilt(result); writeQuery(next);
     }, []);
@@ -113,7 +123,7 @@
       const selected = Object.keys(appState.selectedElementIds || {}).filter(id => appState.selectedElementIds[id]).sort().join(',');
       if (selected !== selectionRef.current) { selectionRef.current = selected; setSelection(selected ? selected.split(',') : []); }
       if (appState.theme !== themeRef.current) {
-        themeRef.current = appState.theme; document.documentElement.dataset.theme = appState.theme;
+        themeRef.current = appState.theme; themeModeRef.current=appState.theme;setThemeMode(appState.theme);document.documentElement.dataset.theme = appState.theme;
         try { storage.set(THEME_KEY, appState.theme); } catch { /* preference only */ }
       }
       if (loadingRef.current || !wsRef.current) return;
@@ -147,7 +157,7 @@
           try { next = Store.parse(saved).workspace; status = 'Restored your saved workspace from this browser.'; }
           catch (error) { status = `Your saved workspace could not be read (${error.message}); showing the published version.`; }
         }
-        next ||= Store.create(published);
+        next = next ? Store.refreshExplanations(next,published) : Store.create(published);
         await Spatial.prepare(next.document);
         if (load !== loadRef.current) return;
         if (view.resetStage) next = Store.withView(next, {stageIndex:0, collapsed:[], showRemoved:false});
@@ -323,7 +333,7 @@
         h(MainMenu.Item, {onSelect: resetStage}, 'Reset this stage'),
         h(MainMenu.Separator, null),
         h(MainMenu.DefaultItems.SaveAsImage, null),
-        h(MainMenu.DefaultItems.ToggleTheme, null),
+        h('label',{className:'sw-theme-control',onKeyDown:isolateKeys},h('span',null,'Theme'),h('select',{'aria-label':'Color theme',value:themeMode,onChange:e=>applyTheme(e.target.value)},['system','light','dark'].map(mode=>h('option',{key:mode,value:mode},mode[0].toUpperCase()+mode.slice(1))))),
         h(MainMenu.DefaultItems.ChangeCanvasBackground, null),
         h(MainMenu.DefaultItems.Help, null),
         h(MainMenu.Separator, null),

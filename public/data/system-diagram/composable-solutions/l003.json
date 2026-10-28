@@ -1091,7 +1091,7 @@
               "text": "GET /items?filter=open&sort=new&limit=20&cursor=<opaque>\n→ 200 { items: [...], nextCursor: \"eyJw...\" | null }"
             }
           ],
-          "explanation": "The contract never exposes offsets or page numbers; the server hands back an opaque position to continue from.",
+          "explanation": "Requirements: the client asks for the next page of a filter and sort. Clients never compute positions, so the server can change the paging strategy without breaking them. The contract never exposes offsets or page numbers; the server hands back an opaque position to continue from. [A cursor](https://en.wikipedia.org/wiki/Cursor_%28databases%29) records where a query should continue. Its ordering fields must distinguish equal values, and its validity depends on the query and access permissions.",
           "followupIds": [
             "followup-1"
           ],
@@ -1201,7 +1201,7 @@
             "keyset-storage-check-1-reference"
           ],
           "code": [],
-          "explanation": "Splitting out storage exposes the query. OFFSET re-counts from the top on every page, which is both slow at depth and unstable under writes.",
+          "explanation": "Rows live in a database; the obvious query is LIMIT/OFFSET. With OFFSET, one insert between requests repeats a row on the next page. Splitting out storage exposes the query. OFFSET re-counts from the top on every page, which is both slow at depth and unstable under writes. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call.",
           "followupIds": [
             "followup-2",
             "followup-3"
@@ -1381,7 +1381,7 @@
               "text": "SELECT * FROM items\nWHERE filter = $f AND (created_at, id) < ($c_at, $c_id)\nORDER BY created_at DESC, id DESC\nLIMIT $n + 1"
             }
           ],
-          "explanation": "The cursor is the last row’s sort key. The index seeks straight to it, so every page reads n+1 rows regardless of depth.",
+          "explanation": "Follow-ups 2 and 3: boundaries must not move, and deep pages must cost the same as page 1. Inserts and deletes between pages never repeat or skip rows that existed throughout. The cursor is the last row’s sort key. The index seeks straight to it, so every page reads n+1 rows regardless of depth. [A cursor](https://en.wikipedia.org/wiki/Cursor_%28databases%29) records where a query should continue.",
           "followupIds": [
             "followup-2",
             "followup-3"
@@ -1524,7 +1524,7 @@
               "text": "body = {version, ownerScope: authenticatedScope, queryHash, sort, position, expiresAt};\ntoken = encode(body) + HMAC(serverKey, encode(body));\ndecode: verifyMACConstantTime(); verifyOwnerScope(); verifyQuerySortAndExpiry();\n// Re-run row authorization on hydration. A signed cursor never grants permissions."
             }
           ],
-          "explanation": "The cursor binds the position to the exact query it came from, and the signature stops clients from inventing positions.",
+          "explanation": "A raw (created_at, id) cursor can be edited, and replayed against a different filter or sort. A forged or edited cursor is rejected. The cursor binds the position to the exact query it came from, and the signature stops clients from inventing positions. [A cursor](https://en.wikipedia.org/wiki/Cursor_%28databases%29) records where a query should continue. Its ordering fields must distinguish equal values, and its validity depends on the query and access permissions.",
           "followupIds": [
             "followup-1"
           ],
@@ -1747,7 +1747,7 @@
               "text": "onQueryChange(q):\n  generation++; query = validateAndClone(q); cursor = null; done = false\n  abortPrevious(); currentRequest = null; clearVisibleItems()\nasync loadMore():\n  if currentRequest or done: return currentRequest\n  request = { generation, query: clone(query), cursor }; currentRequest = request\n  try:\n    page = await fetchPage(request)\n    if request.generation != generation or currentRequest != request: return\n    appendAuthorizedRowsDeduped(page.items); cursor = page.nextCursor; done = cursor == null\n  catch error:\n    if request.generation == generation: exposeRetryOrExplicitSessionReset(error)\n  finally:\n    if currentRequest == request: currentRequest = null"
             }
           ],
-          "explanation": "The loader owns the cursor and the in-flight request, so duplicate scroll events and late responses cannot corrupt the list.",
+          "explanation": "Scroll events fire repeatedly, and the user can change the filter while a page is in flight. Repeated scroll events send one request per page. The loader owns the cursor and the in-flight request, so duplicate scroll events and late responses cannot corrupt the list. [A search index](https://en.wikipedia.org/wiki/Search_engine_indexing) maps query terms to candidate records. The interface must still associate each response with the active query and preserve the user’s chosen filters.",
           "followupIds": [
             "followup-1"
           ],
@@ -1991,7 +1991,7 @@
             "keyset-hot-pages-check-1"
           ],
           "code": [],
-          "explanation": "Page 1 absorbs most traffic; because cursors are keyset positions, a slightly stale cached page 1 still continues correctly.",
+          "explanation": "Scale: most reads are page 1 of a few popular filters. A cursor taken from a stale page 1 continues without repeats, because it is a position, not an offset. Page 1 absorbs most traffic; because cursors are keyset positions, a slightly stale cached page 1 still continues correctly. [A cache](https://en.wikipedia.org/wiki/Cache_replacement_policies) keeps reusable results in limited memory. Eviction controls space, while ownership and invalidation rules determine whether a returned value is still safe to use.",
           "followupIds": [
             "followup-3"
           ],
@@ -2234,7 +2234,7 @@
             "keyset-totals-check-1"
           ],
           "code": [],
-          "explanation": "Totals come from counters maintained off the change stream, so a page request never scans the filter.",
+          "explanation": "The UI shows \"about 12,400 results\"; COUNT(*) per request scans the whole filter. Approximate totals do not require a synchronous COUNT on the request path; measured latency depends on the qualified query/index plan. Totals come from counters maintained off the change stream, so a page request never scans the filter. [A search index](https://en.wikipedia.org/wiki/Search_engine_indexing) maps query terms to candidate records.",
           "followupIds": [
             "followup-3"
           ],
@@ -2538,7 +2538,7 @@
             "keyset-summary-check-1"
           ],
           "code": [],
-          "explanation": "Merging the two caches gives one entry per query, refreshed by one stream, so the page and its count are consistent with each other.",
+          "explanation": "Page 1 and its total are keyed by the same queryHash and invalidated by the same writes; two caches let them disagree. First-page rows and an approximate total carry one published summary version plus as-of metadata; the estimate need not equal exact membership. Merging the two caches gives one entry per query, refreshed by one stream, so the page and its count are consistent with each other. [A cache](https://en.wikipedia.org/wiki/Cache_replacement_policies) keeps reusable results in limited memory.",
           "followupIds": [
             "followup-3"
           ],
@@ -2817,7 +2817,7 @@
               "text": "page(bound, n):\n  rows = parallel(shards.map(s => s.seek(bound, n + 1)))\n  merged = mergeSorted(rows)            // k-way by (created_at, id)\n  return { items: merged[0:n], next: merged.length > n ? merged[n-1] : null }"
             }
           ],
-          "explanation": "Because the bound is a global sort key, scatter-gather needs no per-shard cursor state; the merged page equals the single-node page.",
+          "explanation": "Rows outgrow one database node. Scatter-gather pages equal the single-node pages, including hasMore. Because the bound is a global sort key, scatter-gather needs no per-shard cursor state; the merged page equals the single-node page. [Partitioning](https://en.wikipedia.org/wiki/Partition_%28database%29) divides data and work among owners. The key determines where requests go; skew, ownership changes, and operations spanning partitions require additional coordination.",
           "followupIds": [
             "followup-3"
           ],
@@ -3542,7 +3542,7 @@
               "text": "GET /search?q=…&limit=20&cursor=<opaque>\n→ 200 { items, nextCursor | null, removed }"
             }
           ],
-          "explanation": "The client contract is identical; only what the cursor points at differs.",
+          "explanation": "Requirements: the client asks for the next page of a ranked search. The cursor contract is the same as in the keyset approach, so clients do not care which one serves them. The client contract is identical; only what the cursor points at differs. [A cursor](https://en.wikipedia.org/wiki/Cursor_%28databases%29) records where a query should continue. Its ordering fields must distinguish equal values, and its validity depends on the query and access permissions.",
           "followupIds": [
             "followup-1"
           ],
@@ -3650,7 +3650,7 @@
             "sessions-storage-check-1"
           ],
           "code": [],
-          "explanation": "The database owns rows; the next stage adds the component that owns ranking.",
+          "explanation": "Rows must be durable and readable by id. Every row shown is read from the source of truth, not from a copy that can lag behind deletes. The database owns rows; the next stage adds the component that owns ranking. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call.",
           "followupIds": [
             "followup-3"
           ],
@@ -3817,7 +3817,7 @@
             "sessions-ranking-check-1"
           ],
           "code": [],
-          "explanation": "The index owns ranking. Its keys change with every edit, which is why keyset paging on them repeats or skips results.",
+          "explanation": "Relevance across many filter fields cannot be served by one B-tree, and scores change as rows change. The index is derived from the DB and can be rebuilt from it. The index owns ranking. Its keys change with every edit, which is why keyset paging on them repeats or skips results. [A search index](https://en.wikipedia.org/wiki/Search_engine_indexing) maps query terms to candidate records.",
           "followupIds": [
             "followup-3"
           ],
@@ -4024,7 +4024,7 @@
               "text": "open(q):  s = { pit: index.openPIT(q), ids: [], after: null }\npage(s, offset, n):\n  while s.ids.length <= offset + n and not exhausted:\n    hits = index.search(s.pit, after = s.after, size = 100)\n    s.ids += hits.ids; s.after = hits.last.key\n  return hydrate(s.ids[offset : offset + n])"
             }
           ],
-          "explanation": "The point-in-time view freezes the ranking for this search; chunks extend from it, so an unseen result that rises in score is still returned once.",
+          "explanation": "Re-ranking per page reorders results between requests, so pages repeat and skip. Re-ranking during a session never repeats or skips results, including results not yet fetched. The point-in-time view freezes the ranking for this search; chunks extend from it, so an unseen result that rises in score is still returned once. [A snapshot](https://en.wikipedia.org/wiki/Snapshot_isolation) gives one read operation a fixed view of data.",
           "followupIds": [
             "followup-2"
           ],
@@ -4245,7 +4245,7 @@
             "sessions-hydrate-check-1-reference"
           ],
           "code": [],
-          "explanation": "Order comes from the session, content from the live store: positions are stable while rows stay current.",
+          "explanation": "Sessions hold ids; rows shown must be current, and deleted rows must not appear. Pages show current row values and drop deleted rows with a count. Order comes from the session, content from the live store: positions are stable while rows stay current. [A cursor](https://en.wikipedia.org/wiki/Cursor_%28databases%29) records where a query should continue. Its ordering fields must distinguish equal values, and its validity depends on the query and access permissions.",
           "followupIds": [
             "followup-2"
           ],
@@ -4506,7 +4506,7 @@
               "text": "body = {version, ownerScope: authenticatedScope, queryHash, sort, position, expiresAt};\ntoken = encode(body) + HMAC(serverKey, encode(body));\ndecode: verifyMACConstantTime(); verifyOwnerScope(); verifyQuerySortAndExpiry();\n// Re-run row authorization on hydration. A signed cursor never grants permissions."
             }
           ],
-          "explanation": "Reusing the cursor codec keeps the client contract identical and ties each session to its caller and query.",
+          "explanation": "A raw (sessionId, offset) lets a client read another user’s session or jump past the cap. A forged or edited cursor is rejected. Reusing the cursor codec keeps the client contract identical and ties each session to its caller and query. [A cursor](https://en.wikipedia.org/wiki/Cursor_%28databases%29) records where a query should continue. Its ordering fields must distinguish equal values, and its validity depends on the query and access permissions.",
           "followupIds": [
             "followup-1"
           ],
@@ -4796,7 +4796,7 @@
               "text": "onQueryChange(q):\n  generation++; query = validateAndClone(q); cursor = null; done = false\n  abortPrevious(); currentRequest = null; clearVisibleItems()\nasync loadMore():\n  if currentRequest or done: return currentRequest\n  request = { generation, query: clone(query), cursor }; currentRequest = request\n  try:\n    page = await fetchPage(request)\n    if request.generation != generation or currentRequest != request: return\n    appendAuthorizedRowsDeduped(page.items); cursor = page.nextCursor; done = cursor == null\n  catch error:\n    if request.generation == generation: exposeRetryOrExplicitSessionReset(error)\n  finally:\n    if currentRequest == request: currentRequest = null"
             }
           ],
-          "explanation": "The loader is reused unchanged; its seen-id set becomes important in the next stage.",
+          "explanation": "Scroll events repeat, and a new search must discard responses for the old one. Repeated scroll events send one request per page. The loader is reused unchanged; its seen-id set becomes important in the next stage. [A search index](https://en.wikipedia.org/wiki/Search_engine_indexing) maps query terms to candidate records. The interface must still associate each response with the active query and preserve the user’s chosen filters.",
           "followupIds": [
             "followup-1"
           ],
@@ -5133,7 +5133,7 @@
               "text": "onError(410):\n  loader.restart()        // keep items and seen ids, drop cursor\n  loader.loadMore()       // new session; already-shown ids are skipped"
             }
           ],
-          "explanation": "Expiry is visible to the client as 410; restarting with the seen-id set keeps the screen free of repeats.",
+          "explanation": "Each session holds memory and an index reader; they must expire without the list repeating rows. After a session expires the client restarts without showing repeats. Expiry is visible to the client as 410; restarting with the seen-id set keeps the screen free of repeats. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid. Expiration must be checked at the point of use, even when background cleanup runs later.",
           "followupIds": [
             "followup-2",
             "followup-3"
@@ -5425,7 +5425,7 @@
             "sessions-index-shards-check-1-reference"
           ],
           "code": [],
-          "explanation": "Sharded ranking uses the same scatter-gather rule as sharded keyset paging: one global bound, merged top k.",
+          "explanation": "The index outgrows one node. Merging per-shard top k after one global bound equals the single-node order. Sharded ranking uses the same scatter-gather rule as sharded keyset paging: one global bound, merged top k. [An index](https://en.wikipedia.org/wiki/Database_index) maintains a structure that narrows a search without scanning every record. Faster reads come with storage costs and extra work whenever indexed data changes.",
           "followupIds": [
             "followup-3"
           ],

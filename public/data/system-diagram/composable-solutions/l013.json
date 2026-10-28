@@ -1316,7 +1316,7 @@
               "text": "POST /reservations {sku,qty,operationId,admissionToken} -> {reservationId,status,expiresAt}\nPOST /reservations/{id}/payments {paymentAttemptId} -> {payment_pending|paid|released|refund}\nGET /reservations/{id} -> {status,expiresAt}\n// Buyer identity comes from authentication. Webhooks are a separate verified internal input."
             }
           ],
-          "explanation": "Separating the reservation from payment keeps stock decisions fast and payment slow.",
+          "explanation": "Requirements: never oversell, hold stock while the buyer pays. Every request carries an idempotency key, so the server can make retries safe. Separating the reservation from payment keeps stock decisions fast and payment slow. [A transaction](https://en.wikipedia.org/wiki/Database_transaction) commits related state changes together or leaves them unapplied. The database must enforce the relevant condition during the write, rather than trusting an earlier read.",
           "followupIds": [
             "followup-1"
           ],
@@ -1425,7 +1425,7 @@
             "atomic-storage-check-1-reference"
           ],
           "code": [],
-          "explanation": "Check-then-act across two statements lets every concurrent buyer see stock that only some of them can have.",
+          "explanation": "Stock must be durable; the obvious code reads the count, checks it, then writes. The unsafe read-then-write reference grants 5,000 attempts against 100 units, overselling by 4,900; this stage deliberately demonstrates the failure. Check-then-act across two statements lets every concurrent buyer see stock that only some of them can have. [A transaction](https://en.wikipedia.org/wiki/Database_transaction) commits related state changes together or leaves them unapplied.",
           "followupIds": [
             "followup-1"
           ],
@@ -1605,7 +1605,7 @@
               "text": "transaction(() => {\n  authorizeBuyer(); lockBuyerLimitRow();\n  if (receipt(buyer, opId)) return samePayloadOrConflict(opId, request);\n  assertBuyerLimit(qty);\n  const changed = conditionalDecrement(sku, qty); // UPDATE ... WHERE available >= qty\n  if (!changed) return durableSoldOutReceipt(opId);\n  const hold = insertReservationAndReceipt(opId, sku, qty, databaseNow() + ttl);\n  return hold;\n});"
             }
           ],
-          "explanation": "The row lock makes the condition and the decrement one step; a reservation row records who holds what until when.",
+          "explanation": "Follow-up 1: the check and the decrement must be one atomic step. Conditional decrement grants exactly the stock and never goes negative. The row lock makes the condition and the decrement one step; a reservation row records who holds what until when. [A condition variable](https://en.wikipedia.org/wiki/Condition_variable) lets a thread sleep until shared state may have changed. Waking does not guarantee success, so the protected condition must be checked again.",
           "followupIds": [
             "followup-1"
           ],
@@ -1737,7 +1737,7 @@
             "atomic-checkout-client-check-1-reference"
           ],
           "code": [],
-          "explanation": "The client owns the key for one purchase attempt; the server enforces uniqueness on it, so a retry returns the original reservation.",
+          "explanation": "Buyers double-click and mobile networks drop replies; a retried submission must not reserve twice. A retried submission with the same key returns the same reservation. The client owns the key for one purchase attempt; the server enforces uniqueness on it, so a retry returns the original reservation. [A trie](https://en.wikipedia.org/wiki/Trie) organizes keys by successive prefixes. Its traversal can find matching prefixes efficiently, but the rule for choosing among matches must be specified separately.",
           "followupIds": [
             "followup-2"
           ],
@@ -1970,7 +1970,7 @@
               "text": "verifyProviderSignatureAndExpectedPaymentKey(event);\ntransaction(() => {\n  if (processedProviderEvent(event.id)) return PreviousReceipt;\n  const hold = lockReservation(event.reservationId);\n  applyAllowedMonotonicTransition(hold, event.status);\n  if (hold.wasReleased && event.status === \"succeeded\") insertUniqueRefundIntent(hold.paymentKey);\n  persistEventReceiptAndStockChanges(); // no terminal paid -> failed downgrade\n});"
             }
           ],
-          "explanation": "Our reservation id doubles as the provider’s idempotency key, so a retried charge is one charge; the handler applies each event once.",
+          "explanation": "Follow-up 2: the provider retries webhooks and may deliver them out of order. Duplicate and late contradicting webhooks do not change a final state. Our reservation id doubles as the provider’s idempotency key, so a retried charge is one charge; the handler applies each event once. [A payment provider](https://en.wikipedia.org/wiki/Payment_service_provider) performs external financial effects that local retries cannot undo. Request identity, confirmed outcomes, and reconciliation are needed when a request times out after submission.",
           "followupIds": [
             "followup-2"
           ],
@@ -2270,7 +2270,7 @@
               "text": "UPDATE reservations SET status = 'released' WHERE status = 'held' AND expires_at <= now() RETURNING sku, qty\n-- same txn: UPDATE stock SET available = available + qty"
             }
           ],
-          "explanation": "The sweeper only touches holds no one is paying for; releasing is the exact inverse of reserving.",
+          "explanation": "Follow-up 3: abandoned holds must return stock to buyers still waiting. Expired holds return stock, and a payment after release becomes a refund. The sweeper only touches holds no one is paying for; releasing is the exact inverse of reserving. [A transaction](https://en.wikipedia.org/wiki/Database_transaction) commits related state changes together or leaves them unapplied. The database must enforce the relevant condition during the write, rather than trusting an earlier read.",
           "followupIds": [
             "followup-3"
           ],
@@ -2533,7 +2533,7 @@
             "atomic-reconcile-check-1-reference"
           ],
           "code": [],
-          "explanation": "Only the provider knows the outcome of a timed-out charge, so pending holds wait for an answer instead of a timer.",
+          "explanation": "A charge call can time out after the provider charged the card; releasing that hold could sell the unit twice. The sweeper leaves payment-pending holds for the reconciler. Only the provider knows the outcome of a timed-out charge, so pending holds wait for an answer instead of a timer. [A payment provider](https://en.wikipedia.org/wiki/Payment_service_provider) performs external financial effects that local retries cannot undo.",
           "followupIds": [
             "followup-2",
             "followup-3"
@@ -2852,7 +2852,7 @@
             "atomic-waiting-room-check-1-reference"
           ],
           "code": [],
-          "explanation": "Admission turns an unbounded burst into a steady rate the stock row can serve, and tells everyone else where they stand.",
+          "explanation": "A million requests at T0 exhaust connections and queue on one row lock long before stock runs out. The waiting room admits a fixed number per tick and tokens work once. Admission turns an unbounded burst into a steady rate the stock row can serve, and tells everyone else where they stand. [A transaction](https://en.wikipedia.org/wiki/Database_transaction) commits related state changes together or leaves them unapplied.",
           "followupIds": [
             "followup-1"
           ],
@@ -3216,7 +3216,7 @@
               "text": "// Logical reservation and bucket components share one database transaction domain.\ntransaction(() => {\n  lockBuyerLimitRow(); checkReceiptAndPayload(opId); checkBuyerLimit();\n  const allocations = lockAndAllocateBucketsInStableOrder(sku, qty);\n  if (sum(allocations.qty) < qty) rollbackAndReturnSoldOutOrRetry();\n  decrementAllocatedRows(allocations);\n  insertReservation({opId, sku, qty, allocations, expiresAt: databaseNow() + ttl});\n  saveReceipt(opId); // rollback restores both bucket stock and reservation state\n});\n// Release locks the held reservation and credits its recorded bucket allocations in the same transaction."
             }
           ],
-          "explanation": "Spreading the count over buckets divides lock contention; probing every bucket before \"sold out\" keeps the last units sellable.",
+          "explanation": "Even at the admitted rate, every reservation serializes on one stock row. Bucketed stock grants exactly the total and drains every bucket before sold out. Spreading the count over buckets divides lock contention; probing every bucket before \"sold out\" keeps the last units sellable. [A transaction](https://en.wikipedia.org/wiki/Database_transaction) commits related state changes together or leaves them unapplied. The database must enforce the relevant condition during the write, rather than trusting an earlier read.",
           "followupIds": [
             "followup-1"
           ],
@@ -3674,7 +3674,7 @@
             "atomic-outcomes-check-2-reference"
           ],
           "code": [],
-          "explanation": "Whether the answer arrives by webhook or by asking, the same handler applies it, so the two paths cannot disagree.",
+          "explanation": "Webhooks and reconciliation both turn provider answers into reservation transitions; two copies of that table disagree. Each provider answer is applied once. Whether the answer arrives by webhook or by asking, the same handler applies it, so the two paths cannot disagree. [A transaction](https://en.wikipedia.org/wiki/Database_transaction) commits related state changes together or leaves them unapplied. The database must enforce the relevant condition during the write, rather than trusting an earlier read.",
           "followupIds": [
             "followup-2",
             "followup-3"
@@ -4344,7 +4344,7 @@
               "text": "POST /reservations       { sku, qty, commandId } → 202 { commandId }\nGET  /commands/:commandId                        → pending | held { reservationId, expiresAt } | sold_out"
             }
           ],
-          "explanation": "The API acknowledges that the request is queued; the decision comes from the actor moments later.",
+          "explanation": "Requirements: never oversell; answer every buyer quickly. The client chooses the command id, so resubmitting is naturally idempotent. The API acknowledges that the request is queued; the decision comes from the actor moments later. [A transaction](https://en.wikipedia.org/wiki/Database_transaction) commits related state changes together or leaves them unapplied. The database must enforce the relevant condition during the write, rather than trusting an earlier read.",
           "followupIds": [
             "followup-1"
           ],
@@ -4452,7 +4452,7 @@
             "actor-log-check-1"
           ],
           "code": [],
-          "explanation": "The log turns concurrent requests into a sequence; whoever consumes it sees one command at a time.",
+          "explanation": "Follow-up 1: serialize every stock change for a SKU without database locks. Every change to a SKU is a command in one partition, so all consumers agree on the order. The log turns concurrent requests into a sequence; whoever consumes it sees one command at a time. [A transaction](https://en.wikipedia.org/wiki/Database_transaction) commits related state changes together or leaves them unapplied. The database must enforce the relevant condition during the write, rather than trusting an earlier read.",
           "followupIds": [
             "followup-1"
           ],
@@ -4628,7 +4628,7 @@
               "text": "for (const entry of durablePartition(sku)) {\n  assertCurrentFencedOwner(leadershipEpoch);\n  const prior = outcomes[entry.cmdId];\n  if (prior) assertSamePayload(prior, entry); else applyDeterministicCommand(entry);\n  persistOrReplayableCheckpoint({stock, reservations, outcomes, appliedOffset: entry.offset});\n  // A 202 append receipt is not a reservation. Publish a decision only after its recovery boundary is durable.\n}"
             }
           ],
-          "explanation": "With one writer there is nothing to lock; the check and the decrement are two lines of ordinary code.",
+          "explanation": "Someone must apply the sequence and record each decision. One actor applying an ordered log grants exactly the stock. With one writer there is nothing to lock; the check and the decrement are two lines of ordinary code. [A transaction](https://en.wikipedia.org/wiki/Database_transaction) commits related state changes together or leaves them unapplied. The database must enforce the relevant condition during the write, rather than trusting an earlier read.",
           "followupIds": [
             "followup-1"
           ],
@@ -4884,7 +4884,7 @@
             "actor-checkout-client-check-1-reference"
           ],
           "code": [],
-          "explanation": "The command id is the idempotency key: resubmitting appends a duplicate the actor ignores, and polling returns the first outcome.",
+          "explanation": "Buyers double-click and mobile networks drop replies; a retried submission must not reserve twice. A command written twice by a retrying producer is applied once. The command id is the idempotency key: resubmitting appends a duplicate the actor ignores, and polling returns the first outcome. [A trie](https://en.wikipedia.org/wiki/Trie) organizes keys by successive prefixes. Its traversal can find matching prefixes efficiently, but the rule for choosing among matches must be specified separately.",
           "followupIds": [
             "followup-2"
           ],
@@ -5172,7 +5172,7 @@
             "actor-snapshots-check-1-reference"
           ],
           "code": [],
-          "explanation": "Because decisions depend only on the log, a snapshot plus the commands after its offset rebuilds the exact state.",
+          "explanation": "The actor’s state is in memory; a restart must neither lose nor re-apply a decision. Snapshot plus the commands after its offset rebuilds the same state. Because decisions depend only on the log, a snapshot plus the commands after its offset rebuilds the exact state. [A snapshot](https://en.wikipedia.org/wiki/Snapshot_isolation) gives one read operation a fixed view of data. Later writes may change the live system without changing the rows that reader sees.",
           "followupIds": [
             "followup-1"
           ],
@@ -5431,7 +5431,7 @@
             "actor-payments-check-2"
           ],
           "code": [],
-          "explanation": "Turning webhooks into commands reuses the actor’s dedupe and puts payment in the same order as everything else.",
+          "explanation": "Follow-up 2: webhook retries and order must not race the actor’s own decisions. A duplicated webhook command is applied once. Turning webhooks into commands reuses the actor’s dedupe and puts payment in the same order as everything else. [A payment provider](https://en.wikipedia.org/wiki/Payment_service_provider) performs external financial effects that local retries cannot undo. Request identity, confirmed outcomes, and reconciliation are needed when a request times out after submission.",
           "followupIds": [
             "followup-2"
           ],
@@ -5901,7 +5901,7 @@
             "actor-expiry-check-1-reference"
           ],
           "code": [],
-          "explanation": "The timer never changes stock itself; it appends a command, so payment and expiry are decided in one order.",
+          "explanation": "Follow-up 3: an expiry must be ordered against a payment for the same hold. The log order decides between payment and expiry. The timer never changes stock itself; it appends a command, so payment and expiry are decided in one order. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid. Expiration must be checked at the point of use, even when background cleanup runs later.",
           "followupIds": [
             "followup-3"
           ],
@@ -6320,7 +6320,7 @@
             "actor-waiting-room-check-1-reference"
           ],
           "code": [],
-          "explanation": "Admission keeps the log short, so the asynchronous answer still arrives within the buyer’s patience.",
+          "explanation": "A million submissions at T0 would make the log lag, and outcomes would arrive minutes late. The waiting room admits a fixed number per tick and tokens work once. Admission keeps the log short, so the asynchronous answer still arrives within the buyer’s patience. [Backpressure](https://en.wikipedia.org/wiki/Flow_control_%28data%29) prevents producers from outrunning the next component indefinitely. The design must choose whether excess work waits, is rejected, or is dropped with an explicit outcome.",
           "followupIds": [
             "followup-1"
           ],
@@ -6777,7 +6777,7 @@
             "actor-state-check-2-reference"
           ],
           "code": [],
-          "explanation": "Treating outcomes as part of the actor’s state makes a restored actor answer polls exactly as the old one would.",
+          "explanation": "The dedupe table the actor needs for retries is the outcome store the API polls; two copies drift after a restore. Replay rebuilds outcomes as well as stock. Treating outcomes as part of the actor’s state makes a restored actor answer polls exactly as the old one would. [Backoff](https://en.wikipedia.org/wiki/Exponential_backoff) spaces repeated attempts so failures do not create a burst of extra traffic. A retry still needs a stable identity and a clear stopping condition.",
           "followupIds": [
             "followup-2"
           ],

@@ -674,6 +674,7 @@
           "checkIds": [
             "dedup"
           ],
+          "explanation": "Begin with seed input and a coarse crawler. Crawl scope, depth and total work have explicit ceilings. [A crawler](https://en.wikipedia.org/wiki/Web_crawler) chooses which URLs to fetch and when. Scheduling must balance discovery with per-site limits, while canonicalization and duplicate checks prevent repeated or unbounded work. Consider this case: Two workers discover the same URL and another URL with a distinct query value.",
           "graph": {
             "edges": [
               {
@@ -770,6 +771,7 @@
           "checkIds": [
             "lease-recovery"
           ],
+          "explanation": "Expand the crawler into durable pending work and a worker. Deleting pending work before a durable result is forbidden. [A crawler](https://en.wikipedia.org/wiki/Web_crawler) chooses which URLs to fetch and when. Scheduling must balance discovery with per-site limits, while canonicalization and duplicate checks prevent repeated or unbounded work. Consider this case: Attempt A expires and attempt B is leased. A later completes while B is processing.",
           "graph": {
             "edges": [
               {
@@ -902,6 +904,7 @@
           "checkIds": [
             "dedup"
           ],
+          "explanation": "Make URL canonicalization and atomic admission visible. Do not drop query parameters or reorder them without a site-specific semantic rule. [Backpressure](https://en.wikipedia.org/wiki/Flow_control_%28data%29) prevents producers from outrunning the next component indefinitely. The design must choose whether excess work waits, is rejected, or is dropped with an explicit outcome. Consider this case: Two workers discover the same URL and another URL with a distinct query value.",
           "graph": {
             "edges": [
               {
@@ -1065,6 +1068,7 @@
             "ssrf",
             "robots"
           ],
+          "explanation": "Guard each fetch and redirect, including DNS results and connection destination. Robots controls crawling policy; it is not authentication or permission to access private networks. [A crawler](https://en.wikipedia.org/wiki/Web_crawler) chooses which URLs to fetch and when. Scheduling must balance discovery with per-site limits, while canonicalization and duplicate checks prevent repeated or unbounded work.",
           "graph": {
             "edges": [
               {
@@ -1231,6 +1235,7 @@
             "politeness",
             "lease-recovery"
           ],
+          "explanation": "Use a shared host scheduler instead of process-local delays. A lease expiry may cause overlapping attempts; bound duplicate load and fence stale completion. [A directed acyclic graph](https://en.wikipedia.org/wiki/Directed_acyclic_graph) expresses work that depends on earlier results. A scheduler must track completed dependencies and distinguish logical tasks from retry attempts before releasing downstream work.",
           "graph": {
             "edges": [
               {
@@ -1448,6 +1453,7 @@
           "checkIds": [
             "idempotent-index"
           ],
+          "explanation": "Store immutable bodies; make the independent parsing boundary explicit when selected. Fetch completion records and body references must commit before parse dispatch is acknowledged. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call.",
           "graph": {
             "edges": [
               {
@@ -1725,6 +1731,7 @@
             "lease-recovery",
             "idempotent-index"
           ],
+          "explanation": "Add retry recovery and a transactional outbox for derived work. A stale attempt cannot mark a newer attempt complete. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call. Consider this case: Attempt A expires and attempt B is leased.",
           "graph": {
             "edges": [
               {
@@ -2127,6 +2134,7 @@
             "politeness",
             "dedup"
           ],
+          "explanation": "Unify budget and scheduling decisions under one durable transaction boundary. Restarting a scheduler never resets the durable crawl budget. [A directed acyclic graph](https://en.wikipedia.org/wiki/Directed_acyclic_graph) expresses work that depends on earlier results. A scheduler must track completed dependencies and distinguish logical tasks from retry attempts before releasing downstream work. Consider this case: Two workers discover the same URL and another URL with a distinct query value.",
           "graph": {
             "edges": [
               {
@@ -2526,6 +2534,7 @@
           "checkIds": [
             "dedup"
           ],
+          "explanation": "Begin with seed input and a coarse crawler. Crawl scope, depth and total work have explicit ceilings. [A crawler](https://en.wikipedia.org/wiki/Web_crawler) chooses which URLs to fetch and when. Scheduling must balance discovery with per-site limits, while canonicalization and duplicate checks prevent repeated or unbounded work. Consider this case: Two workers discover the same URL and another URL with a distinct query value.",
           "graph": {
             "edges": [
               {
@@ -2622,6 +2631,7 @@
           "checkIds": [
             "lease-recovery"
           ],
+          "explanation": "Expand the crawler into durable pending work and a worker. Deleting pending work before a durable result is forbidden. [A crawler](https://en.wikipedia.org/wiki/Web_crawler) chooses which URLs to fetch and when. Scheduling must balance discovery with per-site limits, while canonicalization and duplicate checks prevent repeated or unbounded work. Consider this case: Attempt A expires and attempt B is leased. A later completes while B is processing.",
           "graph": {
             "edges": [
               {
@@ -2754,6 +2764,7 @@
           "checkIds": [
             "dedup"
           ],
+          "explanation": "Make URL canonicalization and atomic admission visible. Do not drop query parameters or reorder them without a site-specific semantic rule. [Backpressure](https://en.wikipedia.org/wiki/Flow_control_%28data%29) prevents producers from outrunning the next component indefinitely. The design must choose whether excess work waits, is rejected, or is dropped with an explicit outcome. Consider this case: Two workers discover the same URL and another URL with a distinct query value.",
           "graph": {
             "edges": [
               {
@@ -2917,6 +2928,7 @@
             "ssrf",
             "robots"
           ],
+          "explanation": "Guard each fetch and redirect, including DNS results and connection destination. Robots controls crawling policy; it is not authentication or permission to access private networks. [A crawler](https://en.wikipedia.org/wiki/Web_crawler) chooses which URLs to fetch and when. Scheduling must balance discovery with per-site limits, while canonicalization and duplicate checks prevent repeated or unbounded work.",
           "graph": {
             "edges": [
               {
@@ -3083,6 +3095,7 @@
             "politeness",
             "lease-recovery"
           ],
+          "explanation": "Use a shared host scheduler instead of process-local delays. A lease expiry may cause overlapping attempts; bound duplicate load and fence stale completion. [A directed acyclic graph](https://en.wikipedia.org/wiki/Directed_acyclic_graph) expresses work that depends on earlier results. A scheduler must track completed dependencies and distinguish logical tasks from retry attempts before releasing downstream work.",
           "graph": {
             "edges": [
               {
@@ -3300,6 +3313,7 @@
           "checkIds": [
             "idempotent-index"
           ],
+          "explanation": "Store immutable bodies; make the independent parsing boundary explicit when selected. Fetch completion records and body references must commit before parse dispatch is acknowledged. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call.",
           "graph": {
             "edges": [
               {
@@ -3716,6 +3730,7 @@
             "lease-recovery",
             "idempotent-index"
           ],
+          "explanation": "Add retry recovery and a transactional outbox for derived work. A stale attempt cannot mark a newer attempt complete. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call. Consider this case: Attempt A expires and attempt B is leased.",
           "graph": {
             "edges": [
               {
@@ -4177,6 +4192,7 @@
             "politeness",
             "dedup"
           ],
+          "explanation": "Unify budget and scheduling decisions under one durable transaction boundary. Restarting a scheduler never resets the durable crawl budget. [A directed acyclic graph](https://en.wikipedia.org/wiki/Directed_acyclic_graph) expresses work that depends on earlier results. A scheduler must track completed dependencies and distinguish logical tasks from retry attempts before releasing downstream work. Consider this case: Two workers discover the same URL and another URL with a distinct query value.",
           "graph": {
             "edges": [
               {

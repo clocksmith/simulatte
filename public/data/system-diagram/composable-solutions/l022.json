@@ -927,7 +927,7 @@
             "loss",
             "spill"
           ],
-          "explanation": "Accept an immutable dataset identity and explicit URL normalization version. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Accept an immutable dataset identity and explicit URL normalization version. Accept an immutable dataset identity and explicit URL normalization version. State owner: Count job (job and snapshot identity). Accept an immutable dataset identity and explicit URL normalization version. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers. Publishing one reference lets each reader keep a consistent version.",
           "graph": {
             "edges": [
               {
@@ -1029,7 +1029,7 @@
             "loss",
             "spill"
           ],
-          "explanation": "Expand driver; persist three map ranges and three reducer partitions with lineage. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Expand driver; persist three map ranges and three reducer partitions with lineage. Expand driver; persist three map ranges and three reducer partitions with lineage. State owner: Partition plan (logical partition lineage). Expand driver; persist three map ranges and three reducer partitions with lineage. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Partitioning](https://en.wikipedia.org/wiki/Partition_%28database%29) divides data and work among owners.",
           "graph": {
             "edges": [
               {
@@ -1168,7 +1168,7 @@
             "loss",
             "spill"
           ],
-          "explanation": "Run one fenced attempt per logical map range and combine duplicate keys locally. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Run one fenced attempt per logical map range and combine duplicate keys locally. Run one fenced attempt per logical map range and combine duplicate keys locally. State owner: Map CPUs (map attempt epoch and counts). Run one fenced attempt per logical map range and combine duplicate keys locally. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Idempotence](https://en.wikipedia.org/wiki/Idempotence) means repeating the same logical operation does not repeat its effect.",
           "graph": {
             "edges": [
               {
@@ -1548,7 +1548,7 @@
             "loss",
             "spill"
           ],
-          "explanation": "Partition partial counts by deterministic URL hash into three independently retained shuffle stores. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Partition partial counts by deterministic URL hash into three independently retained shuffle stores. Partition partial counts by deterministic URL hash into three independently retained shuffle stores. State owner: Shuffle stores (keyed blocks and checksums). Partition partial counts by deterministic URL hash into three independently retained shuffle stores. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes.",
           "graph": {
             "edges": [
               {
@@ -2046,7 +2046,7 @@
             "loss",
             "spill"
           ],
-          "explanation": "Spill sorted bounded runs and merge them without changing integer counts. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Spill sorted bounded runs and merge them without changing integer counts. Spill sorted bounded runs and merge them without changing integer counts. State owner: Spill buffers (memory budget and spill manifests). Spill sorted bounded runs and merge them without changing integer counts. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Stream processing](https://en.wikipedia.org/wiki/Stream_processing) updates results as events arrive.",
           "graph": {
             "edges": [
               {
@@ -2506,7 +2506,7 @@
             "loss",
             "spill"
           ],
-          "explanation": "Read only selected map-attempt blocks and sum each URL under its reducer owner. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Read only selected map-attempt blocks and sum each URL under its reducer owner. Read only selected map-attempt blocks and sum each URL under its reducer owner. State owner: Reduce CPUs (reduce attempt epoch). Read only selected map-attempt blocks and sum each URL under its reducer owner. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A crawler](https://en.wikipedia.org/wiki/Web_crawler) chooses which URLs to fetch and when.",
           "graph": {
             "edges": [
               {
@@ -3157,7 +3157,7 @@
             "loss",
             "spill"
           ],
-          "explanation": "Atomically publish one chosen output for each of the three logical reducers. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Atomically publish one chosen output for each of the three logical reducers. Atomically publish one chosen output for each of the three logical reducers. State owner: Output manifest (selected reducer outputs). Atomically publish one chosen output for each of the three logical reducers. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers.",
           "graph": {
             "edges": [
               {
@@ -3783,7 +3783,7 @@
             "loss",
             "spill"
           ],
-          "explanation": "Retain external blocks across compute loss; recompute only missing block lineage after storage loss. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Retain external blocks across compute loss; recompute only missing block lineage after storage loss. Retain external blocks across compute loss; recompute only missing block lineage after storage loss. State owner: Lineage recovery (missing-block recovery work). Retain external blocks across compute loss; recompute only missing block lineage after storage loss. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A checkpoint](https://en.wikipedia.org/wiki/Checkpointing) records enough progress to restart without repeating everything.",
           "graph": {
             "edges": [
               {
@@ -4543,7 +4543,7 @@
             "loss",
             "spill"
           ],
-          "explanation": "Pin input bytes, parsing and hash partition function before any task runs. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Pin input bytes, parsing and hash partition function before any task runs. Pin input bytes, parsing and hash partition function before any task runs. State owner: Dataflow submission (dataflow definition hash). Pin input bytes, parsing and hash partition function before any task runs. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Partitioning](https://en.wikipedia.org/wiki/Partition_%28database%29) divides data and work among owners.",
           "graph": {
             "edges": [
               {
@@ -4645,7 +4645,7 @@
             "loss",
             "spill"
           ],
-          "explanation": "Expand coordinator with immutable per-stage manifests and selected attempt IDs. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Expand coordinator with immutable per-stage manifests and selected attempt IDs. Expand coordinator with immutable per-stage manifests and selected attempt IDs. State owner: Checkpoint catalogue (checkpoint manifests). Expand coordinator with immutable per-stage manifests and selected attempt IDs. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version.",
           "graph": {
             "edges": [
               {
@@ -4784,7 +4784,7 @@
             "loss",
             "spill"
           ],
-          "explanation": "Lease three deterministic input ranges, fencing old worker completions. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Lease three deterministic input ranges, fencing old worker completions. Lease three deterministic input ranges, fencing old worker completions. State owner: Map task queue (range lease epochs). Lease three deterministic input ranges, fencing old worker completions. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources.",
           "graph": {
             "edges": [
               {
@@ -4963,7 +4963,7 @@
             "loss",
             "spill"
           ],
-          "explanation": "Parse/normalize each row and commit a local combine output under its attempt key. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Parse/normalize each row and commit a local combine output under its attempt key. Parse/normalize each row and commit a local combine output under its attempt key. State owner: Map checkpoint writer (map counts and attempt receipts). Parse/normalize each row and commit a local combine output under its attempt key. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure.",
           "graph": {
             "edges": [
               {
@@ -5348,7 +5348,7 @@
             "loss",
             "spill"
           ],
-          "explanation": "Route each URL to hash(URL) mod 3 and persist independent keyed blocks with spill manifests. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Route each URL to hash(URL) mod 3 and persist independent keyed blocks with spill manifests. Route each URL to hash(URL) mod 3 and persist independent keyed blocks with spill manifests. State owner: Shuffle partitioner (shuffle block manifests). Route each URL to hash(URL) mod 3 and persist independent keyed blocks with spill manifests. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A crawler](https://en.wikipedia.org/wiki/Web_crawler) chooses which URLs to fetch and when.",
           "graph": {
             "edges": [
               {
@@ -5870,7 +5870,7 @@
             "loss",
             "spill"
           ],
-          "explanation": "Aggregate only manifest-selected blocks; retries replace an attempt selection instead of appending counts again. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Aggregate only manifest-selected blocks; retries replace an attempt selection instead of appending counts again. Aggregate only manifest-selected blocks; retries replace an attempt selection instead of appending counts again. State owner: Reduce dataflow (reduce attempt selection). [Backoff](https://en.wikipedia.org/wiki/Exponential_backoff) spaces repeated attempts so failures do not create a burst of extra traffic. A retry still needs a stable identity and a clear stopping condition.",
           "graph": {
             "edges": [
               {
@@ -6400,7 +6400,7 @@
             "loss",
             "spill"
           ],
-          "explanation": "Require all three reducer partitions before publishing an immutable output manifest. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Require all three reducer partitions before publishing an immutable output manifest. Require all three reducer partitions before publishing an immutable output manifest. State owner: Result commit (result commit identity). Require all three reducer partitions before publishing an immutable output manifest. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers.",
           "graph": {
             "edges": [
               {
@@ -6956,7 +6956,7 @@
             "loss",
             "spill"
           ],
-          "explanation": "Validate checkpoint/block checksums; retain valid external storage across CPU loss and reconstruct only absent dependencies. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Validate checkpoint/block checksums; retain valid external storage across CPU loss and reconstruct only absent dependencies. Validate checkpoint/block checksums; retain valid external storage across CPU loss and reconstruct only absent dependencies. State owner: Checkpoint repair (checkpoint validation cursor). Validate checkpoint/block checksums; retain valid external storage across CPU loss and reconstruct only absent dependencies. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A checkpoint](https://en.wikipedia.org/wiki/Checkpointing) records enough progress to restart without repeating everything.",
           "graph": {
             "edges": [
               {

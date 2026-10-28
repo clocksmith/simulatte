@@ -729,6 +729,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Route each second to its timestamp-tagged slot; hold the slot stripe while resetting epoch and incrementing count. Timestamp and count reset/increment occur in the same protected transition. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return.",
           "graph": {
             "edges": [
               {
@@ -828,6 +829,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Use an injected clock adapter with nondecreasing clamp and a visible rollback diagnostic; never trust request time for expiration. All hit/window decisions use the declared clock. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid. Expiration must be checked at the point of use, even when background cleanup runs later.",
           "graph": {
             "edges": [
               {
@@ -938,6 +940,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Index now modulo 300; slot contains epoch second and count, never count alone. Only epochs in [now-299,now] contribute. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return. Consider this case: Hits at seconds 0, 299 and 300 with multiple increments in one slot.",
           "graph": {
             "edges": [
               {
@@ -1072,6 +1075,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Lock the stripe covering the slot, replace stale tag/count with {now,0}, checked increment, then release. No increment can be lost between epoch check and reset. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources. A newer owner needs a token that the resource checks, not merely a belief that ownership changed.",
           "graph": {
             "edges": [
               {
@@ -1230,6 +1234,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Acquire all stripes in ascending index, sample clock once, sum matching epochs, and release reverse order. Hit samples now only after its stripe lock is held. Snapshot linearizes while every stripe is held; readers do not mix resets. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return.",
           "graph": {
             "edges": [
               {
@@ -1412,6 +1417,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "tryAcquire takes all stripes in the same order and checks sum plus increments its current slot as one transition. Plain hit remains slot-striped. Denied requests never increment the hit count. [Rate limiting](https://en.wikipedia.org/wiki/Rate_limiting) bounds accepted work over a defined time interval. Exact boundary rules, the source of time, and concurrent updates determine whether the stated limit is actually enforced.",
           "graph": {
             "edges": [
               {
@@ -1618,6 +1624,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Use a capped key directory and reference pinning; reclaim idle keys only when their window is empty and no operation pins the entry. A reclaimed entry cannot still receive a hit through a stale pointer. [Stream processing](https://en.wikipedia.org/wiki/Stream_processing) updates results as events arrive. Arrival order may differ from event time, so late-data rules and bounded retained state are part of the result definition.",
           "graph": {
             "edges": [
               {
@@ -1848,6 +1855,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Check per-slot increment and sum overflow before publishing mutation; report exhaustion rather than wrap negative. A failed hit does not reset or increment partially. [Rate limiting](https://en.wikipedia.org/wiki/Rate_limiting) bounds accepted work over a defined time interval. Exact boundary rules, the source of time, and concurrent updates determine whether the stated limit is actually enforced.",
           "graph": {
             "edges": [
               {
@@ -2171,6 +2179,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Store ascending timestamp buckets per key and expire from the head; serialize only operations for the same key. Ascending timestamp buckets are removed explicitly when they leave the window. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid. Expiration must be checked at the point of use, even when background cleanup runs later.",
           "graph": {
             "edges": [
               {
@@ -2270,6 +2279,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Use bounded striped directory lookup with pinned per-key entries, then serialize only that entry's state transitions. Eviction cannot detach a pinned key. [An index](https://en.wikipedia.org/wiki/Database_index) maintains a structure that narrows a search without scanning every record. Faster reads come with storage costs and extra work whenever indexed data changes. Consider this case: Hits at seconds 0, 299 and 300 with multiple increments in one slot.",
           "graph": {
             "edges": [
               {
@@ -2380,6 +2390,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Sample the injected monotone clock while holding the key mutex; clamp regressions and keep diagnostic state. Deque bucket timestamps remain ascending. [A lock](https://en.wikipedia.org/wiki/Lock_%28computer_science%29) gives one thread exclusive access to protected state. Correctness depends on protecting the whole decision and update, and releasing ownership on every exit. Consider this case: Hits at seconds 0, 299 and 300 with multiple increments in one slot.",
           "graph": {
             "edges": [
               {
@@ -2514,6 +2525,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Increment the tail bucket if its timestamp equals now, otherwise append one bucket; keep checked running total. At most 300 live second buckets for a nondecreasing integer clock. [Rate limiting](https://en.wikipedia.org/wiki/Rate_limiting) bounds accepted work over a defined time interval. Exact boundary rules, the source of time, and concurrent updates determine whether the stated limit is actually enforced.",
           "graph": {
             "edges": [
               {
@@ -2672,6 +2684,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Before any read/admission, pop while head.second <= now-300 and subtract each count exactly once. All retained buckets satisfy now-300 < second <= now. [Backpressure](https://en.wikipedia.org/wiki/Flow_control_%28data%29) prevents producers from outrunning the next component indefinitely. The design must choose whether excess work waits, is rejected, or is dropped with an explicit outcome. Consider this case: Hits at seconds 0, 299 and 300 with multiple increments in one slot.",
           "graph": {
             "edges": [
               {
@@ -2854,6 +2867,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Under the same key lock, expire then compare total to limit; on success add one hit before unlocking. Count snapshot and admission linearize inside the same key critical section. [Backpressure](https://en.wikipedia.org/wiki/Flow_control_%28data%29) prevents producers from outrunning the next component indefinitely. The design must choose whether excess work waits, is rejected, or is dropped with an explicit outcome.",
           "graph": {
             "edges": [
               {
@@ -3060,6 +3074,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "After expiration leaves empty deque, mark idle; directory removal checks entry identity and pin count. Live-key cap rejects rather than evicts active accounting. Active-window counts are never dropped to free memory. [A cache](https://en.wikipedia.org/wiki/Cache_replacement_policies) keeps reusable results in limited memory. Eviction controls space, while ownership and invalidation rules determine whether a returned value is still safe to use.",
           "graph": {
             "edges": [
               {
@@ -3290,6 +3305,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Only pop a bucket once under its owner lock, use checked totals, and stop admission on numeric exhaustion. Reinitialization is explicit. Errors never wrap counts or silently reset a live window. [Backpressure](https://en.wikipedia.org/wiki/Flow_control_%28data%29) prevents producers from outrunning the next component indefinitely. The design must choose whether excess work waits, is rejected, or is dropped with an explicit outcome.",
           "graph": {
             "edges": [
               {

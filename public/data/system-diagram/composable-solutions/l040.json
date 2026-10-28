@@ -737,6 +737,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Serialize every ring mutation under one mutex; notFull and notEmpty belong to that same mutex. The condition await atomically releases its associated lock and reacquires it before returning. [A condition variable](https://en.wikipedia.org/wiki/Condition_variable) lets a thread sleep until shared state may have changed. Waking does not guarantee success, so the protected condition must be checked again.",
           "graph": {
             "edges": [
               {
@@ -836,6 +837,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Allocate exactly capacity slots; wrap head/tail modulo capacity and clear a taken slot to release references. Occupied count never exceeds capacity. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources. A newer owner needs a token that the resource checks, not merely a belief that ownership changed. Consider this case: Capacity one, producer P1 fills, P2 waits, consumer removes.",
           "graph": {
             "edges": [
               {
@@ -946,6 +948,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Guard count, indices, slots and closed flag with one mutex; release in finally on every exit. No queue field is read for a decision without the mutex. [A lock](https://en.wikipedia.org/wiki/Lock_%28computer_science%29) gives one thread exclusive access to protected state. Correctness depends on protecting the whole decision and update, and releasing ownership on every exit.",
           "graph": {
             "edges": [
               {
@@ -1080,6 +1083,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Under mutex, while full and not closed await notFull; after every return, test again before mutation. Notification is permission to recheck, not a reserved slot. [A lock](https://en.wikipedia.org/wiki/Lock_%28computer_science%29) gives one thread exclusive access to protected state. Correctness depends on protecting the whole decision and update, and releasing ownership on every exit.",
           "graph": {
             "edges": [
               {
@@ -1238,6 +1242,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Taker loops while empty and open under the same lock; put writes slot and count before signaling notEmpty. Predicate test, wait registration and publication share synchronization. [A condition variable](https://en.wikipedia.org/wiki/Condition_variable) lets a thread sleep until shared state may have changed. Waking does not guarantee success, so the protected condition must be checked again.",
           "graph": {
             "edges": [
               {
@@ -1420,6 +1425,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Put linearizes at count increment after slot write; take linearizes at removal/count decrement, then signals notFull while locked. Each successful take returns the oldest published item exactly once. [Linearizability](https://en.wikipedia.org/wiki/Linearizability) assigns each completed operation one instant when it takes effect. Concurrent callers may overlap, but their visible outcomes must fit a valid sequential order.",
           "graph": {
             "edges": [
               {
@@ -1626,6 +1632,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Await interruption unwinds through finally; if no mutation occurred the operation has no queue effect. Once mutation commits, return success rather than retroactively cancel it. Cancellation does not undo another thread's publication. [A queue](https://en.wikipedia.org/wiki/Queue_%28abstract_data_type%29) separates accepting work from completing it. Capacity, ordering, ownership, and shutdown behavior determine what producers and consumers may safely assume about each item.",
           "graph": {
             "edges": [
               {
@@ -1856,6 +1863,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Closing the queue means no new items may enter; it does not mean discarding items already accepted. Set the closed flag under the same mutex that protects the queue, then wake both producers and consumers. Each awakened thread rechecks its condition: producers fail, while consumers drain remaining items before reporting closed-and-empty. [Condition variables](https://en.wikipedia.org/wiki/Condition_variable) make those waiting threads sleep without continuously polling.",
           "graph": {
             "edges": [
               {
@@ -2179,6 +2187,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Serialize producers with putLock, consumers with takeLock, and publish count through an atomic counter with release/acquire ordering. Link publication precedes atomic count increment; acquiring the count synchronizes consumer visibility. [A queue](https://en.wikipedia.org/wiki/Queue_%28abstract_data_type%29) separates accepting work from completing it. Capacity, ordering, ownership, and shutdown behavior determine what producers and consumers may safely assume about each item.",
           "graph": {
             "edges": [
               {
@@ -2278,6 +2287,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Use a dummy head; producer appends through tail under putLock, consumer advances dummy head under takeLock and clears detached references. Only published nodes with positive count may be removed. [A lock](https://en.wikipedia.org/wiki/Lock_%28computer_science%29) gives one thread exclusive access to protected state. Correctness depends on protecting the whole decision and update, and releasing ownership on every exit.",
           "graph": {
             "edges": [
               {
@@ -2388,6 +2398,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "putLock protects producer wait predicate and tail links. notFull is associated only with putLock. One producer publishes one tail link at a time. [A lock](https://en.wikipedia.org/wiki/Lock_%28computer_science%29) gives one thread exclusive access to protected state. Correctness depends on protecting the whole decision and update, and releasing ownership on every exit. Consider this case: Capacity one, producer P1 fills, P2 waits, consumer removes.",
           "graph": {
             "edges": [
               {
@@ -2522,6 +2533,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "takeLock protects head and notEmpty waiting; consume only after atomic count observes a published entry. One consumer advances head at a time. [A lock](https://en.wikipedia.org/wiki/Lock_%28computer_science%29) gives one thread exclusive access to protected state. Correctness depends on protecting the whole decision and update, and releasing ownership on every exit. Consider this case: Capacity one, producer P1 fills, P2 waits, consumer removes.",
           "graph": {
             "edges": [
               {
@@ -2680,6 +2692,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "A producer links then atomic getAndIncrement; consumer checks count with acquire semantics before following next. Decrement follows removal. Count transitions publish link writes; count remains within capacity. [A queue](https://en.wikipedia.org/wiki/Queue_%28abstract_data_type%29) separates accepting work from completing it. Capacity, ordering, ownership, and shutdown behavior determine what producers and consumers may safely assume about each item.",
           "graph": {
             "edges": [
               {
@@ -2862,6 +2875,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Release local mutation lock before acquiring the opposite lock for empty-to-nonempty or full-to-nonfull signal. Propagate local signals when further work is possible. Normal put/take never hold both locks simultaneously. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources. A newer owner needs a token that the resource checks, not merely a belief that ownership changed.",
           "graph": {
             "edges": [
               {
@@ -3068,6 +3082,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Close takes putLock then takeLock, sets shared closed, and signals both wait sets before releasing in reverse order; puts test closed under putLock. Any path that holds both locks uses putLock then takeLock. [A lock](https://en.wikipedia.org/wiki/Lock_%28computer_science%29) gives one thread exclusive access to protected state. Correctness depends on protecting the whole decision and update, and releasing ownership on every exit.",
           "graph": {
             "edges": [
               {
@@ -3298,6 +3313,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Use while loops with closed checks on the relevant condition; interrupted await exits before linking/unlinking, unlocking in finally. No semaphore permit accounting exists to leak; count changes only with data mutation. [A condition variable](https://en.wikipedia.org/wiki/Condition_variable) lets a thread sleep until shared state may have changed. Waking does not guarantee success, so the protected condition must be checked again.",
           "graph": {
             "edges": [
               {

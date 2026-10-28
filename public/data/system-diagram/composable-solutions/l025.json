@@ -735,6 +735,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Admit finite chunk work, execute bounded GPU batches and retain separate per-subscriber outstanding identities until acknowledged. GPU completion and each subscriber ACK are separate states. [Presence information](https://en.wikipedia.org/wiki/Presence_information) describes a recently observed connection or activity. It is time-bounded evidence, not proof that a person or device will remain reachable after the observation.",
           "graph": {
             "edges": [
               {
@@ -834,6 +835,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Admit into a finite queue by chunk identity; reject when full and never treat rejection as completed work. Every submitted chunk is queued, rejected or explicitly unfinished. [A queue](https://en.wikipedia.org/wiki/Queue_%28abstract_data_type%29) separates accepting work from completing it. Capacity, ordering, ownership, and shutdown behavior determine what producers and consumers may safely assume about each item.",
           "graph": {
             "edges": [
               {
@@ -944,6 +946,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Claim a batch with stable chunk IDs; record modeled compute completion before fan-out. Batching speed is a parameter, not measured hardware proof. A duplicate chunk identity cannot change immutable output bytes. [Data ingestion](https://en.wikipedia.org/wiki/Data_integration) moves source records into a usable destination. Stable source identity and progress records distinguish genuinely new data from repeated delivery or a restarted import.",
           "graph": {
             "edges": [
               {
@@ -1078,6 +1081,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Track outstanding chunk IDs per subscriber/session with a fixed window; full subscribers receive a visible refusal or disconnection. No subscriber holds more than its configured window. [Stream processing](https://en.wikipedia.org/wiki/Stream_processing) updates results as events arrive. Arrival order may differ from event time, so late-data rules and bounded retained state are part of the result definition.",
           "graph": {
             "edges": [
               {
@@ -1236,6 +1240,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Maintain immutable content-key cache and single in-flight promise per key; bound distinct fill concurrency and waiter count. A fill failure clears the in-flight entry so a later explicit retry may proceed. [A cache](https://en.wikipedia.org/wiki/Cache_replacement_policies) keeps reusable results in limited memory. Eviction controls space, while ownership and invalidation rules determine whether a returned value is still safe to use.",
           "graph": {
             "edges": [
               {
@@ -1418,6 +1423,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Verify subscriber, session epoch and outstanding chunk ID; delete once. Unknown or duplicate ACKs change no occupancy. An old session cannot free a new-session outstanding chunk. [Idempotence](https://en.wikipedia.org/wiki/Idempotence) means repeating the same logical operation does not repeat its effect. Stable request identities let a retry recover an existing outcome instead of creating another change.",
           "graph": {
             "edges": [
               {
@@ -1624,6 +1630,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Expire or disconnect a session under declared deadline, release its local slots and retain explicit undelivered IDs; do not count them as acknowledged. Resource reclamation is not delivery success. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid. Expiration must be checked at the point of use, even when background cleanup runs later.",
           "graph": {
             "edges": [
               {
@@ -1854,6 +1861,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "For every submitted chunk and subscriber record delivered/ACKed/rejected/unfinished outcome; separate compute totals from fan-out totals. The finite input ledger balances without inventing completion. [Publish–subscribe](https://en.wikipedia.org/wiki/Publish%E2%80%93subscribe_pattern) separates producing an update from distributing it to interested consumers. Delivery cost shifts depending on whether work is performed when writing or when someone reads. Consider this case: Two consumers, capacity one per subscriber, one ACK withheld.",
           "graph": {
             "edges": [
               {
@@ -2177,6 +2185,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Compute finite immutable chunks once, publish a committed manifest, and let each subscriber pull at its own rate through the CDN. Each subscriber requests the next chunk only when it is ready. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version.",
           "graph": {
             "edges": [
               {
@@ -2276,6 +2285,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Admit source chunks into a finite deduplicated batch queue independent of subscriber demand; expose rejected identities. Repeated pulls cannot schedule duplicate chunk computation. [Idempotence](https://en.wikipedia.org/wiki/Idempotence) means repeating the same logical operation does not repeat its effect. Stable request identities let a retry recover an existing outcome instead of creating another change.",
           "graph": {
             "edges": [
               {
@@ -2386,6 +2396,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Finish modeled batch output, hash bytes and store immutable chunk before publishing its manifest entry. No advertised entry points to an uncommitted output. [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers. Publishing one reference lets each reader keep a consistent version. Consider this case: Two consumers, capacity one per subscriber, one ACK withheld.",
           "graph": {
             "edges": [
               {
@@ -2520,6 +2531,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Store immutable content keys with explicit retained sequence floor and per-stream byte budget; pruning never silently rewrites an old key. A pruned chunk returns expired, never a different chunk under the same identity. [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers. Publishing one reference lets each reader keep a consistent version.",
           "graph": {
             "edges": [
               {
@@ -2678,6 +2690,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Publish sorted committed chunk identities and explicit gaps/rejections in an immutable version; consumer advances only past declared outcomes. A higher manifest version never changes old content hashes. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call.",
           "graph": {
             "edges": [
               {
@@ -2860,6 +2873,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Subscriber requests next identity with bounded concurrency and advances after its own successful receipt; publisher has no per-chunk push wait. One slow cursor does not allocate publisher-side unbounded buffered chunks. [Presence information](https://en.wikipedia.org/wiki/Presence_information) describes a recently observed connection or activity. It is time-bounded evidence, not proof that a person or device will remain reachable after the observation.",
           "graph": {
             "edges": [
               {
@@ -3066,6 +3080,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Coalesce identical content-key misses; cap distinct fills and waiters, verify payload hash, and keep fill cancellation independent per waiter. Canceling one waiter does not cancel a fill still needed by others. [A condition variable](https://en.wikipedia.org/wiki/Condition_variable) lets a thread sleep until shared state may have changed. Waking does not guarantee success, so the protected condition must be checked again.",
           "graph": {
             "edges": [
               {
@@ -3296,6 +3311,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Return 410 with current floor and manifest version; require an explicit skip/reset or archived recovery source rather than claiming continuous delivery. Retention loss remains a visible gap in finite-stream accounting. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version.",
           "graph": {
             "edges": [
               {

@@ -816,6 +816,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Deny cross-workspace reads and writes; role inheritance and explicit deny have defined precedence. [Access control](https://en.wikipedia.org/wiki/Access_control) decides whether an authenticated identity may perform a particular action. The check must apply to the actual resource and operation, including cached and asynchronous paths. Consider this case: A user has edit at epoch 4. Revoke at epoch 5 before a stale edit commits.",
           "graph": {
             "edges": [
               {
@@ -915,6 +916,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Lock policy and target rows, evaluate inherited grants and explicit deny, then mutate. Own workspace membership, project ancestry, role grants and object rows. policy snapshot and object version belongs to Permission transaction; tenant-scoped keys belongs to Workspace tables. [Access control](https://en.wikipedia.org/wiki/Access_control) decides whether an authenticated identity may perform a particular action. The check must apply to the actual resource and operation, including cached and asynchronous paths.",
           "graph": {
             "edges": [
               {
@@ -1051,6 +1053,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Add a tenant/principal/resource/version keyed cache; never cache a private response under a public key. Cache validity is bounded and write authorization is never delegated to a stale entry. [A cache](https://en.wikipedia.org/wiki/Cache_replacement_policies) keeps reusable results in limited memory. Eviction controls space, while ownership and invalidation rules determine whether a returned value is still safe to use.",
           "graph": {
             "edges": [
               {
@@ -1204,6 +1207,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Persist an immutable event with the authorized mutation in the same transaction. No event is emitted for a rolled-back object change. [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers. Publishing one reference lets each reader keep a consistent version. Consider this case: A user has edit at epoch 4. Revoke at epoch 5 before a stale edit commits.",
           "graph": {
             "edges": [
               {
@@ -1381,6 +1385,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Claim durable event IDs and retry downstream independently of client success. Queued and published are distinct observable states. [Backoff](https://en.wikipedia.org/wiki/Exponential_backoff) spaces repeated attempts so failures do not create a burst of extra traffic. A retry still needs a stable identity and a clear stopping condition. Consider this case: A user has edit at epoch 4. Revoke at epoch 5 before a stale edit commits.",
           "graph": {
             "edges": [
               {
@@ -1576,6 +1581,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Deduplicate event IDs before applying the activity projection. An event ID can affect the projection once. [Idempotence](https://en.wikipedia.org/wiki/Idempotence) means repeating the same logical operation does not repeat its effect. Stable request identities let a retry recover an existing outcome instead of creating another change. Consider this case: A user has edit at epoch 4. Revoke at epoch 5 before a stale edit commits.",
           "graph": {
             "edges": [
               {
@@ -1795,6 +1801,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Advance policy epoch and serialize protected commits against it; reject stale decisions. Revocation cutoff is the authoritative transaction order. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return. Consider this case: A user has edit at epoch 4.",
           "graph": {
             "edges": [
               {
@@ -2044,6 +2051,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Record decision reason, policy version and event delivery status with restricted audit access. Audit data does not grant permission to read the protected object. [Access control](https://en.wikipedia.org/wiki/Access_control) decides whether an authenticated identity may perform a particular action. The check must apply to the actual resource and operation, including cached and asynchronous paths.",
           "graph": {
             "edges": [
               {
@@ -2394,6 +2402,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Deny cross-workspace reads and writes; role inheritance and explicit deny have defined precedence. [Access control](https://en.wikipedia.org/wiki/Access_control) decides whether an authenticated identity may perform a particular action. The check must apply to the actual resource and operation, including cached and asynchronous paths. Consider this case: A capability carries epoch 4. The authority advances to epoch 5 and the client misses notification.",
           "graph": {
             "edges": [
               {
@@ -2493,6 +2502,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Verify signature, expiry, audience, tenant and resource scope before accepting an operation. Own current workspace revocation epochs and role source of truth. verification keys and accepted epoch belongs to Capability verifier; workspace epochs belongs to Epoch authority. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return.",
           "graph": {
             "edges": [
               {
@@ -2629,6 +2639,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Issue only after an authoritative membership check and bind action, resource, audience and expiry. A capability is not transferable across audiences or tenants. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid. Expiration must be checked at the point of use, even when background cleanup runs later.",
           "graph": {
             "edges": [
               {
@@ -2782,6 +2793,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Compare capability epoch with the authoritative epoch inside the object transaction. A signed but revoked write proof is rejected. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return. Consider this case: A capability carries epoch 4.",
           "graph": {
             "edges": [
               {
@@ -2959,6 +2971,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Append command identity and resulting version with the mutation. The log records completed decisions, not queued promises. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call. Consider this case: A capability carries epoch 4. The authority advances to epoch 5 and the client misses notification.",
           "graph": {
             "edges": [
               {
@@ -3154,6 +3167,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Apply monotonic policy epochs and object versions from replayable events. An old event cannot reduce a projection epoch. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return. Consider this case: A capability carries epoch 4. The authority advances to epoch 5 and the client misses notification.",
           "graph": {
             "edges": [
               {
@@ -3373,6 +3387,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Publish bounded key overlap and reject unknown key IDs; compromise can force online epoch checks. Key retirement and capability expiration are explicit. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return.",
           "graph": {
             "edges": [
               {
@@ -3616,6 +3631,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Notify clients to discard local proofs while server epoch fencing remains authoritative. A missed client notification cannot permit a stale write. [Access control](https://en.wikipedia.org/wiki/Access_control) decides whether an authenticated identity may perform a particular action. The check must apply to the actual resource and operation, including cached and asynchronous paths. Consider this case: A capability carries epoch 4.",
           "graph": {
             "edges": [
               {

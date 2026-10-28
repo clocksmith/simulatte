@@ -869,7 +869,7 @@
             "gap",
             "pressure"
           ],
-          "explanation": "Authenticate conversation membership and assign a stable generation ID. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Authenticate conversation membership and assign a stable generation ID. Authenticate conversation membership and assign a stable generation ID. State owner: Prompt API (command receipts). Authenticate conversation membership and assign a stable generation ID. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A WebSocket](https://en.wikipedia.org/wiki/WebSocket) keeps a two-way connection open for timely updates. Connection lifetime is separate from durable delivery: reconnecting clients still need identities, cursors, and missing-event recovery.",
           "graph": {
             "edges": [
               {
@@ -971,7 +971,7 @@
             "gap",
             "pressure"
           ],
-          "explanation": "Expand API; persist prompt, model selection and cancellation epoch. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Expand API; persist prompt, model selection and cancellation epoch. Expand API; persist prompt, model selection and cancellation epoch. State owner: Conversation ledger (prompt and generation records). Expand API; persist prompt, model selection and cancellation epoch. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A WebSocket](https://en.wikipedia.org/wiki/WebSocket) keeps a two-way connection open for timely updates. Connection lifetime is separate from durable delivery: reconnecting clients still need identities, cursors, and missing-event recovery.",
           "graph": {
             "edges": [
               {
@@ -1110,7 +1110,7 @@
             "gap",
             "pressure"
           ],
-          "explanation": "Route by model identity and reserve bounded queue/GPU slots with deadlines. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Route by model identity and reserve bounded queue/GPU slots with deadlines. Route by model identity and reserve bounded queue/GPU slots with deadlines. State owner: Model admission (capacity reservations). Route by model identity and reserve bounded queue/GPU slots with deadlines. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Backpressure](https://en.wikipedia.org/wiki/Flow_control_%28data%29) prevents producers from outrunning the next component indefinitely.",
           "graph": {
             "edges": [
               {
@@ -1266,7 +1266,7 @@
             "gap",
             "pressure"
           ],
-          "explanation": "One fenced generation attempt emits monotonically numbered chunks. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "One fenced generation attempt emits monotonically numbered chunks. One fenced generation attempt emits monotonically numbered chunks. State owner: Inference worker (attempt fence and token index). One fenced generation attempt emits monotonically numbered chunks. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources. A newer owner needs a token that the resource checks, not merely a belief that ownership changed.",
           "graph": {
             "edges": [
               {
@@ -1440,7 +1440,7 @@
             "gap",
             "pressure"
           ],
-          "explanation": "Persist indexed chunks before acknowledging resumable delivery. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Persist indexed chunks before acknowledging resumable delivery. Persist indexed chunks before acknowledging resumable delivery. State owner: Token journal (generation/token sequence). Persist indexed chunks before acknowledging resumable delivery. The graph is an authored conceptual design; guarantees require the named deployment contracts. [An index](https://en.wikipedia.org/wiki/Database_index) maintains a structure that narrows a search without scanning every record. Faster reads come with storage costs and extra work whenever indexed data changes.",
           "graph": {
             "edges": [
               {
@@ -1638,7 +1638,7 @@
             "gap",
             "pressure"
           ],
-          "explanation": "Deliver only after durable cursor; bound queue bytes and close with resume instruction. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Deliver only after durable cursor; bound queue bytes and close with resume instruction. Deliver only after durable cursor; bound queue bytes and close with resume instruction. State owner: Stream gateway (connection delivery cursor). Deliver only after durable cursor; bound queue bytes and close with resume instruction. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A cursor](https://en.wikipedia.org/wiki/Cursor_%28databases%29) records where a query should continue.",
           "graph": {
             "edges": [
               {
@@ -1891,7 +1891,7 @@
             "gap",
             "pressure"
           ],
-          "explanation": "Advance generation epoch and reject late attempt writes; cancellation cannot erase already observed text. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Advance generation epoch and reject late attempt writes; cancellation cannot erase already observed text. Advance generation epoch and reject late attempt writes; cancellation cannot erase already observed text. State owner: Cancel fence (cancellation epoch). Advance generation epoch and reject late attempt writes; cancellation cannot erase already observed text. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes.",
           "graph": {
             "edges": [
               {
@@ -2182,7 +2182,7 @@
             "gap",
             "pressure"
           ],
-          "explanation": "Return an explicit gap and final snapshot or regenerate under a new identity. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Return an explicit gap and final snapshot or regenerate under a new identity. Return an explicit gap and final snapshot or regenerate under a new identity. State owner: Resume reconciler (retention floor). Return an explicit gap and final snapshot or regenerate under a new identity. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A snapshot](https://en.wikipedia.org/wiki/Snapshot_isolation) gives one read operation a fixed view of data.",
           "graph": {
             "edges": [
               {
@@ -2624,7 +2624,7 @@
             "gap",
             "pressure"
           ],
-          "explanation": "Start a durable command keyed by conversation and command identity. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Start a durable command keyed by conversation and command identity. Start a durable command keyed by conversation and command identity. State owner: Generation workflow (workflow identity). Start a durable command keyed by conversation and command identity. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A workflow](https://en.wikipedia.org/wiki/Workflow) records which step should run next and what has already finished.",
           "graph": {
             "edges": [
               {
@@ -2726,7 +2726,7 @@
             "gap",
             "pressure"
           ],
-          "explanation": "Expand workflow with journaled model activity decisions and cancellation versions. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Expand workflow with journaled model activity decisions and cancellation versions. Expand workflow with journaled model activity decisions and cancellation versions. State owner: Workflow history (workflow history). Expand workflow with journaled model activity decisions and cancellation versions. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A workflow](https://en.wikipedia.org/wiki/Workflow) records which step should run next and what has already finished.",
           "graph": {
             "edges": [
               {
@@ -2865,7 +2865,7 @@
             "gap",
             "pressure"
           ],
-          "explanation": "Dispatch retryable inference activities with stable attempt/fence identities. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Dispatch retryable inference activities with stable attempt/fence identities. Dispatch retryable inference activities with stable attempt/fence identities. State owner: Activity queue (activity leases). Dispatch retryable inference activities with stable attempt/fence identities. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources. A newer owner needs a token that the resource checks, not merely a belief that ownership changed.",
           "graph": {
             "edges": [
               {
@@ -3021,7 +3021,7 @@
             "gap",
             "pressure"
           ],
-          "explanation": "Persist tokens through a fenced append API; a new attempt cannot append to the prior prefix. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Persist tokens through a fenced append API; a new attempt cannot append to the prior prefix. Persist tokens through a fenced append API; a new attempt cannot append to the prior prefix. State owner: Chunk producer (token prefix identity). [An index](https://en.wikipedia.org/wiki/Database_index) maintains a structure that narrows a search without scanning every record. Faster reads come with storage costs and extra work whenever indexed data changes.",
           "graph": {
             "edges": [
               {
@@ -3195,7 +3195,7 @@
             "gap",
             "pressure"
           ],
-          "explanation": "Materialize immutable chunk pages and completion status under generation/version. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Materialize immutable chunk pages and completion status under generation/version. Materialize immutable chunk pages and completion status under generation/version. State owner: Output pages (immutable chunk pages). Materialize immutable chunk pages and completion status under generation/version. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers. Publishing one reference lets each reader keep a consistent version.",
           "graph": {
             "edges": [
               {
@@ -3393,7 +3393,7 @@
             "gap",
             "pressure"
           ],
-          "explanation": "Poll after the last accepted index and discard duplicate indexes locally. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Poll after the last accepted index and discard duplicate indexes locally. Poll after the last accepted index and discard duplicate indexes locally. State owner: Cursor reader (reader cursor). Poll after the last accepted index and discard duplicate indexes locally. The graph is an authored conceptual design; guarantees require the named deployment contracts. [An index](https://en.wikipedia.org/wiki/Database_index) maintains a structure that narrows a search without scanning every record.",
           "graph": {
             "edges": [
               {
@@ -3646,7 +3646,7 @@
             "gap",
             "pressure"
           ],
-          "explanation": "Persist cancellation before cancelling queued activities and fence late output commits. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Persist cancellation before cancelling queued activities and fence late output commits. Persist cancellation before cancelling queued activities and fence late output commits. State owner: Cancellation signal (cancellation epoch). Persist cancellation before cancelling queued activities and fence late output commits. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A race condition](https://en.wikipedia.org/wiki/Race_condition) makes an outcome depend on which operation finishes first.",
           "graph": {
             "edges": [
               {
@@ -3937,7 +3937,7 @@
             "gap",
             "pressure"
           ],
-          "explanation": "Compact finalized workflow state while preserving retention floor and explicit gap responses. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Compact finalized workflow state while preserving retention floor and explicit gap responses. Compact finalized workflow state while preserving retention floor and explicit gap responses. State owner: History compactor (retention floor and final digest). Compact finalized workflow state while preserving retention floor and explicit gap responses. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A workflow](https://en.wikipedia.org/wiki/Workflow) records which step should run next and what has already finished.",
           "graph": {
             "edges": [
               {

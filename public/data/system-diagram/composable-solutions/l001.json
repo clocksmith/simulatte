@@ -570,6 +570,7 @@
           "checkIds": [
             "tenant-isolation"
           ],
+          "explanation": "Start with a tenant application and one database-service boundary. Before choosing machines or storage, define who may issue a query and which tenant owns its data. Derive that tenant identity from authentication rather than trusting a tenant name supplied in a URL. This introduces [access control](https://en.wikipedia.org/wiki/Access_control): every later gateway, pooled connection, and database query must preserve the same isolation boundary.",
           "graph": {
             "edges": [
               {
@@ -666,6 +667,7 @@
           "checkIds": [
             "tenant-isolation"
           ],
+          "explanation": "Expand the service into query validation and the actual storage engine. Gateway retries do not invent transaction success. [Retrieval-augmented generation](https://en.wikipedia.org/wiki/Retrieval-augmented_generation) brings external material into a model request. Retrieval quality, access permissions, source freshness, and explicit evidence boundaries matter separately from the model’s generated answer. Consider this case: Tenant A and B share a gateway or pool.",
           "graph": {
             "edges": [
               {
@@ -798,6 +800,7 @@
           "checkIds": [
             "reconcile-retry"
           ],
+          "explanation": "Introduce a separate control API and durable desired-state registry. Accepted means desired state is durable, not that a database is ready. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call. Consider this case: Provider created a resource but the controller lost its reply.",
           "graph": {
             "edges": [
               {
@@ -992,6 +995,7 @@
           "checkIds": [
             "reconcile-retry"
           ],
+          "explanation": "Add a controller whose retries use stable resource IDs and generation guards. Stale desired generations cannot publish ready for a newer request. [A control loop](https://en.wikipedia.org/wiki/Control_loop) compares desired state with observed state and applies corrections. Repeated execution must converge safely, especially when a previous action succeeded but its reply was lost.",
           "graph": {
             "edges": [
               {
@@ -1209,6 +1213,7 @@
           "checkIds": [
             "tenant-isolation"
           ],
+          "explanation": "Make tenant routing and pooled-session reset obligations explicit. Never reuse a pooled session with another tenant context still installed. [Access control](https://en.wikipedia.org/wiki/Access_control) decides whether an authenticated identity may perform a particular action. The check must apply to the actual resource and operation, including cached and asynchronous paths. Consider this case: Tenant A and B share a gateway or pool.",
           "graph": {
             "edges": [
               {
@@ -1462,6 +1467,7 @@
           "checkIds": [
             "quota"
           ],
+          "explanation": "Add tenant and global admission before database work. All terminal query paths release admission permits. [Access control](https://en.wikipedia.org/wiki/Access_control) decides whether an authenticated identity may perform a particular action. The check must apply to the actual resource and operation, including cached and asynchronous paths. Consider this case: Tenant A fills its concurrency budget. A and B submit another query.",
           "graph": {
             "edges": [
               {
@@ -1751,6 +1757,7 @@
           "checkIds": [
             "restore"
           ],
+          "explanation": "Add engine-consistent backup and isolated restore verification. A backup manifest without a successful restore is not recovery proof. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version. Consider this case: A verified checkpoint and WAL are retained. Restore to a fresh isolated target.",
           "graph": {
             "edges": [
               {
@@ -2100,6 +2107,7 @@
             "cutover",
             "reconcile-retry"
           ],
+          "explanation": "Add write fencing and join lifecycle decisions under one desired generation. Only the new epoch becomes writable after cutover; old targets reject stale epochs. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources. A newer owner needs a token that the resource checks, not merely a belief that ownership changed.",
           "graph": {
             "edges": [
               {
@@ -2571,6 +2579,7 @@
           "checkIds": [
             "tenant-isolation"
           ],
+          "explanation": "Start with a tenant application and one database-service boundary. Before choosing machines or storage, define who may issue a query and which tenant owns its data. Derive that tenant identity from authentication rather than trusting a tenant name supplied in a URL. This introduces [access control](https://en.wikipedia.org/wiki/Access_control): every later gateway, pooled connection, and database query must preserve the same isolation boundary.",
           "graph": {
             "edges": [
               {
@@ -2667,6 +2676,7 @@
           "checkIds": [
             "tenant-isolation"
           ],
+          "explanation": "Expand the service into query validation and the actual storage engine. Gateway retries do not invent transaction success. [Retrieval-augmented generation](https://en.wikipedia.org/wiki/Retrieval-augmented_generation) brings external material into a model request. Retrieval quality, access permissions, source freshness, and explicit evidence boundaries matter separately from the model’s generated answer. Consider this case: Tenant A and B share a gateway or pool.",
           "graph": {
             "edges": [
               {
@@ -2799,6 +2809,7 @@
           "checkIds": [
             "reconcile-retry"
           ],
+          "explanation": "Introduce a separate control API and durable desired-state registry. Accepted means desired state is durable, not that a database is ready. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call. Consider this case: Provider created a resource but the controller lost its reply.",
           "graph": {
             "edges": [
               {
@@ -2993,6 +3004,7 @@
           "checkIds": [
             "reconcile-retry"
           ],
+          "explanation": "Add a controller whose retries use stable resource IDs and generation guards. Stale desired generations cannot publish ready for a newer request. [A control loop](https://en.wikipedia.org/wiki/Control_loop) compares desired state with observed state and applies corrections. Repeated execution must converge safely, especially when a previous action succeeded but its reply was lost.",
           "graph": {
             "edges": [
               {
@@ -3210,6 +3222,7 @@
           "checkIds": [
             "tenant-isolation"
           ],
+          "explanation": "Make tenant routing and pooled-session reset obligations explicit. Never reuse a pooled session with another tenant context still installed. [Access control](https://en.wikipedia.org/wiki/Access_control) decides whether an authenticated identity may perform a particular action. The check must apply to the actual resource and operation, including cached and asynchronous paths. Consider this case: Tenant A and B share a gateway or pool.",
           "graph": {
             "edges": [
               {
@@ -3535,6 +3548,7 @@
           "checkIds": [
             "quota"
           ],
+          "explanation": "Add tenant and global admission before database work. All terminal query paths release admission permits. [Access control](https://en.wikipedia.org/wiki/Access_control) decides whether an authenticated identity may perform a particular action. The check must apply to the actual resource and operation, including cached and asynchronous paths. Consider this case: Tenant A fills its concurrency budget. A and B submit another query.",
           "graph": {
             "edges": [
               {
@@ -3847,6 +3861,7 @@
           "checkIds": [
             "restore"
           ],
+          "explanation": "Add engine-consistent backup and isolated restore verification. A backup manifest without a successful restore is not recovery proof. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version. Consider this case: A verified checkpoint and WAL are retained. Restore to a fresh isolated target.",
           "graph": {
             "edges": [
               {
@@ -4219,6 +4234,7 @@
             "cutover",
             "reconcile-retry"
           ],
+          "explanation": "Add write fencing and join lifecycle decisions under one desired generation. Only the new epoch becomes writable after cutover; old targets reject stale epochs. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources. A newer owner needs a token that the resource checks, not merely a belief that ownership changed.",
           "graph": {
             "edges": [
               {

@@ -849,7 +849,7 @@
             "speculation",
             "loss"
           ],
-          "explanation": "Validate acyclicity and coalesce narrow dependencies while separating wide shuffle edges. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Validate acyclicity and coalesce narrow dependencies while separating wide shuffle edges. Validate acyclicity and coalesce narrow dependencies while separating wide shuffle edges. State owner: DAG planner (DAG and stage identities). Validate acyclicity and coalesce narrow dependencies while separating wide shuffle edges. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A directed acyclic graph](https://en.wikipedia.org/wiki/Directed_acyclic_graph) expresses work that depends on earlier results.",
           "graph": {
             "edges": [
               {
@@ -951,7 +951,7 @@
             "speculation",
             "loss"
           ],
-          "explanation": "Expand planner; persist remaining dependencies, attempt epochs and selected output receipts. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Expand planner; persist remaining dependencies, attempt epochs and selected output receipts. Expand planner; persist remaining dependencies, attempt epochs and selected output receipts. State owner: Coordinator state (DAG state and epochs). Expand planner; persist remaining dependencies, attempt epochs and selected output receipts. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes.",
           "graph": {
             "edges": [
               {
@@ -1090,7 +1090,7 @@
             "speculation",
             "loss"
           ],
-          "explanation": "Enqueue only when all distinct predecessor output receipts exist. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Enqueue only when all distinct predecessor output receipts exist. Enqueue only when all distinct predecessor output receipts exist. State owner: Ready queue (ready task identities). Enqueue only when all distinct predecessor output receipts exist. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A queue](https://en.wikipedia.org/wiki/Queue_%28abstract_data_type%29) separates accepting work from completing it. Capacity, ordering, ownership, and shutdown behavior determine what producers and consumers may safely assume about each item.",
           "graph": {
             "edges": [
               {
@@ -1246,7 +1246,7 @@
             "speculation",
             "loss"
           ],
-          "explanation": "Assign tasks under epoch leases and record locality hints without confusing them with correctness authority. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Assign tasks under epoch leases and record locality hints without confusing them with correctness authority. Assign tasks under epoch leases and record locality hints without confusing them with correctness authority. State owner: Worker leases (worker lease and task attempt). [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources. A newer owner needs a token that the resource checks, not merely a belief that ownership changed.",
           "graph": {
             "edges": [
               {
@@ -1420,7 +1420,7 @@
             "speculation",
             "loss"
           ],
-          "explanation": "Retain partition blocks separately and enforce bounded spill and backpressure. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Retain partition blocks separately and enforce bounded spill and backpressure. Retain partition blocks separately and enforce bounded spill and backpressure. State owner: Shuffle storage (block checksums and spill manifests). Retain partition blocks separately and enforce bounded spill and backpressure. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Stream processing](https://en.wikipedia.org/wiki/Stream_processing) updates results as events arrive.",
           "graph": {
             "edges": [
               {
@@ -1618,7 +1618,7 @@
             "speculation",
             "loss"
           ],
-          "explanation": "Launch a bounded speculative attempt and atomically select the first valid successful result per logical task. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Launch a bounded speculative attempt and atomically select the first valid successful result per logical task. Launch a bounded speculative attempt and atomically select the first valid successful result per logical task. State owner: Attempt selection (selected attempt ID). [A directed acyclic graph](https://en.wikipedia.org/wiki/Directed_acyclic_graph) expresses work that depends on earlier results. A scheduler must track completed dependencies and distinguish logical tasks from retry attempts before releasing downstream work.",
           "graph": {
             "edges": [
               {
@@ -1840,7 +1840,7 @@
             "speculation",
             "loss"
           ],
-          "explanation": "Deduplicate selected predecessor completion before reducing child dependency counts. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Deduplicate selected predecessor completion before reducing child dependency counts. Deduplicate selected predecessor completion before reducing child dependency counts. State owner: Dependency release (completion receipts and counters). Deduplicate selected predecessor completion before reducing child dependency counts. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A directed acyclic graph](https://en.wikipedia.org/wiki/Directed_acyclic_graph) expresses work that depends on earlier results.",
           "graph": {
             "edges": [
               {
@@ -2117,7 +2117,7 @@
             "speculation",
             "loss"
           ],
-          "explanation": "Fence failed attempts, retain valid artifacts, and regenerate only missing lineage; cancel losing speculative work. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Fence failed attempts, retain valid artifacts, and regenerate only missing lineage; cancel losing speculative work. Fence failed attempts, retain valid artifacts, and regenerate only missing lineage; cancel losing speculative work. State owner: Lineage rescheduler (recovery frontier). Fence failed attempts, retain valid artifacts, and regenerate only missing lineage; cancel losing speculative work. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A checkpoint](https://en.wikipedia.org/wiki/Checkpointing) records enough progress to restart without repeating everything.",
           "graph": {
             "edges": [
               {
@@ -2576,7 +2576,7 @@
             "speculation",
             "loss"
           ],
-          "explanation": "Validate graph and assign each stable task ID to one owner shard. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Validate graph and assign each stable task ID to one owner shard. Validate graph and assign each stable task ID to one owner shard. State owner: DAG partitioner (DAG hash and ownership map). Validate graph and assign each stable task ID to one owner shard. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Partitioning](https://en.wikipedia.org/wiki/Partition_%28database%29) divides data and work among owners.",
           "graph": {
             "edges": [
               {
@@ -2678,7 +2678,7 @@
             "speculation",
             "loss"
           ],
-          "explanation": "Expand partitioner with task transition logs and committed predecessor receipts. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Expand partitioner with task transition logs and committed predecessor receipts. Expand partitioner with task transition logs and committed predecessor receipts. State owner: Task actor journal (task journal and ownership epoch). Expand partitioner with task transition logs and committed predecessor receipts. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Partitioning](https://en.wikipedia.org/wiki/Partition_%28database%29) divides data and work among owners.",
           "graph": {
             "edges": [
               {
@@ -2817,7 +2817,7 @@
             "speculation",
             "loss"
           ],
-          "explanation": "Deduplicate prerequisite completion IDs at each child actor before emitting ready state. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Deduplicate prerequisite completion IDs at each child actor before emitting ready state. Deduplicate prerequisite completion IDs at each child actor before emitting ready state. State owner: Completion inbox (child prerequisite set). Deduplicate prerequisite completion IDs at each child actor before emitting ready state. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Idempotence](https://en.wikipedia.org/wiki/Idempotence) means repeating the same logical operation does not repeat its effect.",
           "graph": {
             "edges": [
               {
@@ -2973,7 +2973,7 @@
             "speculation",
             "loss"
           ],
-          "explanation": "Publish ready tasks under owner epoch and lease bounded work to executors. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Publish ready tasks under owner epoch and lease bounded work to executors. Publish ready tasks under owner epoch and lease bounded work to executors. State owner: Shard ready frontier (frontier entries and leases). Publish ready tasks under owner epoch and lease bounded work to executors. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources.",
           "graph": {
             "edges": [
               {
@@ -3147,7 +3147,7 @@
             "speculation",
             "loss"
           ],
-          "explanation": "Route typed partition artifacts via checksum manifests with per-partition FIFO/backpressure and spill. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Route typed partition artifacts via checksum manifests with per-partition FIFO/backpressure and spill. Route typed partition artifacts via checksum manifests with per-partition FIFO/backpressure and spill. State owner: Artifact exchange (artifact manifests and spill budget). Route typed partition artifacts via checksum manifests with per-partition FIFO/backpressure and spill. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Partitioning](https://en.wikipedia.org/wiki/Partition_%28database%29) divides data and work among owners.",
           "graph": {
             "edges": [
               {
@@ -3345,7 +3345,7 @@
             "speculation",
             "loss"
           ],
-          "explanation": "Each task owner atomically selects one valid artifact receipt and emits stable completion identity. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Each task owner atomically selects one valid artifact receipt and emits stable completion identity. Each task owner atomically selects one valid artifact receipt and emits stable completion identity. State owner: Commit arbiter (winner receipt and loser attempts). [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call.",
           "graph": {
             "edges": [
               {
@@ -3567,7 +3567,7 @@
             "speculation",
             "loss"
           ],
-          "explanation": "Deliver selected task completion to dependent-owner inboxes through a durable replayable outbox. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Deliver selected task completion to dependent-owner inboxes through a durable replayable outbox. Deliver selected task completion to dependent-owner inboxes through a durable replayable outbox. State owner: Completion fan-out (completion outbox and delivery offsets). Deliver selected task completion to dependent-owner inboxes through a durable replayable outbox. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Change data capture](https://en.wikipedia.org/wiki/Change_data_capture) turns committed data changes into an ordered stream for other components.",
           "graph": {
             "edges": [
               {
@@ -3844,7 +3844,7 @@
             "speculation",
             "loss"
           ],
-          "explanation": "Advance owner epoch, replay journals and pending completion outboxes, and reschedule only artifacts missing from lineage. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Advance owner epoch, replay journals and pending completion outboxes, and reschedule only artifacts missing from lineage. Advance owner epoch, replay journals and pending completion outboxes, and reschedule only artifacts missing from lineage. State owner: Shard recovery (shard recovery offsets). [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return.",
           "graph": {
             "edges": [
               {

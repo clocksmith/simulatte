@@ -843,6 +843,7 @@
             "case1",
             "publication-pin"
           ],
+          "explanation": "Split arbitrary byte ranges into fixed blocks, clamp at EOF and validate offsets/lengths. [A cache](https://en.wikipedia.org/wiki/Cache_replacement_policies) keeps reusable results in limited memory. Eviction controls space, while ownership and invalidation rules determine whether a returned value is still safe to use. Consider this case: A file has a partial last block and the read is unaligned. Plan slices across a block boundary and at EOF.",
           "graph": {
             "edges": [
               {
@@ -943,6 +944,7 @@
             "case1",
             "publication-pin"
           ],
+          "explanation": "Bind an immutable/version-addressed URI and file size for handle lifetime; split the interval into blocks. Own READY and LOADING records under one metadata mutex. read pins and destination slices belongs to CachedFile.read; revision/block index and access order belongs to Block map and LRU. [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers. Publishing one reference lets each reader keep a consistent version.",
           "graph": {
             "edges": [
               {
@@ -1080,6 +1082,7 @@
             "case1",
             "publication-pin"
           ],
+          "explanation": "Compute floor(offset/B) through floor((end-1)/B), clamp end at size, and special-case zero length. Never fetch beyond EOF or allocate for an empty read. [A cache](https://en.wikipedia.org/wiki/Cache_replacement_policies) keeps reusable results in limited memory. Eviction controls space, while ownership and invalidation rules determine whether a returned value is still safe to use. Consider this case: A file has a partial last block and the read is unaligned.",
           "graph": {
             "edges": [
               {
@@ -1234,6 +1237,7 @@
             "case1",
             "publication-pin"
           ],
+          "explanation": "Install one shared future atomically under the metadata lock; followers attach outside the lock. One in-flight fetch per pinned revision/block. [A thundering herd](https://en.wikipedia.org/wiki/Thundering_herd_problem) occurs when many callers trigger the same expensive work together. Sharing one in-flight result reduces duplicate work without making all unrelated requests wait. Consider this case: A file has a partial last block and the read is unaligned.",
           "graph": {
             "edges": [
               {
@@ -1412,6 +1416,7 @@
             "case1",
             "publication-pin"
           ],
+          "explanation": "Reserve block bytes before fetch; evict unpinned ready blocks or wait with bounded admission. Ready plus reserved bytes never exceed the configured budget. [A transaction](https://en.wikipedia.org/wiki/Database_transaction) commits related state changes together or leaves them unapplied. The database must enforce the relevant condition during the write, rather than trusting an earlier read.",
           "graph": {
             "edges": [
               {
@@ -1608,6 +1613,7 @@
             "case1",
             "publication-pin"
           ],
+          "explanation": "Call original fetch(uri,offset,length,buffer) outside metadata lock against the immutable/version-addressed URI. Conditional fetch/version validation is a proposed adapter extension only; without it mutable-source snapshot consistency is unsupported. Canonical mode requires stable URI content for the entire handle lifetime; the original interface cannot detect arbitrary mutable-source changes. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version.",
           "graph": {
             "edges": [
               {
@@ -1828,6 +1834,7 @@
             "case1",
             "publication-pin"
           ],
+          "explanation": "Publish immutable bytes or exceptional completion; remove failed slot and release reservations before permitting retry. Only the owning future may remove its slot; waiters see the same failure. [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers. Publishing one reference lets each reader keep a consistent version.",
           "graph": {
             "edges": [
               {
@@ -2072,6 +2079,7 @@
             "case1",
             "publication-pin"
           ],
+          "explanation": "Acquire a read lease under metadata lock before waiting for publication, retain it across await/copy, then release in finally. Eviction cannot win between completion and pinning. Eviction never reuses a pinned buffer. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources. A newer owner needs a token that the resource checks, not merely a belief that ownership changed.",
           "graph": {
             "edges": [
               {
@@ -2455,6 +2463,7 @@
             "case1",
             "publication-pin"
           ],
+          "explanation": "Split arbitrary byte ranges into fixed blocks, clamp at EOF and validate offsets/lengths. [A cache](https://en.wikipedia.org/wiki/Cache_replacement_policies) keeps reusable results in limited memory. Eviction controls space, while ownership and invalidation rules determine whether a returned value is still safe to use. Consider this case: An unaligned range reaches a partial final block. Plan and assemble shard-owned slices.",
           "graph": {
             "edges": [
               {
@@ -2555,6 +2564,7 @@
             "case1",
             "publication-pin"
           ],
+          "explanation": "Bind immutable/version-addressed URI identity and distribute block slices to deterministic shard owners. Map immutable block keys to one owning shard. per-read slices and cancellation belongs to CachedFile facade; fixed shard mapping belongs to Shard directory. [Partitioning](https://en.wikipedia.org/wiki/Partition_%28database%29) divides data and work among owners. The key determines where requests go; skew, ownership changes, and operations spanning partitions require additional coordination.",
           "graph": {
             "edges": [
               {
@@ -2692,6 +2702,7 @@
             "case1",
             "publication-pin"
           ],
+          "explanation": "Use checked end arithmetic and clamp against immutable file size. Invalid negative or overflowing ranges are rejected. [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers. Publishing one reference lets each reader keep a consistent version. Consider this case: An unaligned range reaches a partial final block. Plan and assemble shard-owned slices.",
           "graph": {
             "edges": [
               {
@@ -2846,6 +2857,7 @@
             "case1",
             "publication-pin"
           ],
+          "explanation": "One shard mutex installs a promise per revision/block key before any IO begins. All readers of the same block resolve to the same shard future. [Partitioning](https://en.wikipedia.org/wiki/Partition_%28database%29) divides data and work among owners. The key determines where requests go; skew, ownership changes, and operations spanning partitions require additional coordination. Consider this case: An unaligned range reaches a partial final block.",
           "graph": {
             "edges": [
               {
@@ -3024,6 +3036,7 @@
             "case1",
             "publication-pin"
           ],
+          "explanation": "Acquire global bytes before allocation, outside shard lock; recheck for a winner after reacquiring. No shard waits for memory while holding its metadata mutex. [Partitioning](https://en.wikipedia.org/wiki/Partition_%28database%29) divides data and work among owners. The key determines where requests go; skew, ownership changes, and operations spanning partitions require additional coordination. Consider this case: An unaligned range reaches a partial final block.",
           "graph": {
             "edges": [
               {
@@ -3220,6 +3233,7 @@
             "case1",
             "publication-pin"
           ],
+          "explanation": "Run admitted calls to original fetch(uri,offset,length,buffer) outside shard locks. URI content must remain stable for the handle lifetime; conditional versions and deadlines require an explicitly proposed supporting adapter. Failures release permits; mutable-source snapshot consistency is unsupported without the proposed adapter extension. [A condition variable](https://en.wikipedia.org/wiki/Condition_variable) lets a thread sleep until shared state may have changed. Waking does not guarantee success, so the protected condition must be checked again.",
           "graph": {
             "edges": [
               {
@@ -3440,6 +3454,7 @@
             "case1",
             "publication-pin"
           ],
+          "explanation": "Track shard-local access order and evict only unpinned READY entries; never drop a LOADING promise. LOADING slots retain single-flight identity until completed. [A cache](https://en.wikipedia.org/wiki/Cache_replacement_policies) keeps reusable results in limited memory. Eviction controls space, while ownership and invalidation rules determine whether a returned value is still safe to use. Consider this case: An unaligned range reaches a partial final block.",
           "graph": {
             "edges": [
               {
@@ -3684,6 +3699,7 @@
             "case1",
             "publication-pin"
           ],
+          "explanation": "Pin the shared slot under its shard lock before awaiting completion; copy immutable slices and release the lease in finally. Cancel one waiter without canceling another reader shared fetch. Release pins/permits exactly once under success, failure and cancellation. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources. A newer owner needs a token that the resource checks, not merely a belief that ownership changed.",
           "graph": {
             "edges": [
               {

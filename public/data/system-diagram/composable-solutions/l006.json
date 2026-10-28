@@ -619,6 +619,7 @@
           "checkIds": [
             "match-boundary"
           ],
+          "explanation": "Start with a shopper and one alerts boundary; record exact predicates and a daily delivery promise. A saved search has an owner, version, timezone and explicit matching semantics. [A search index](https://en.wikipedia.org/wiki/Search_engine_indexing) maps query terms to candidate records. The interface must still associate each response with the active query and preserve the user’s chosen filters.",
           "graph": {
             "edges": [
               {
@@ -716,6 +717,7 @@
             "match-boundary",
             "unsubscribe"
           ],
+          "explanation": "Expand into authoritative preferences and listing history; do not treat an edited predicate as the old search version. Never mutate an old search version used by an already frozen digest. [A search index](https://en.wikipedia.org/wiki/Search_engine_indexing) maps query terms to candidate records. The interface must still associate each response with the active query and preserve the user’s chosen filters.",
           "graph": {
             "edges": [
               {
@@ -822,6 +824,7 @@
             "match-boundary",
             "duplicate-match"
           ],
+          "explanation": "Freeze the upper publication cursor and use keyset pagination inside that interval. Progress never advances past work whose match writes are not durably committed. [A cursor](https://en.wikipedia.org/wiki/Cursor_%28databases%29) records where a query should continue. Its ordering fields must distinguish equal values, and its validity depends on the query and access permissions. Consider this case: A listing commits while an existing scan is paging and a saved predicate is edited.",
           "graph": {
             "edges": [
               {
@@ -980,6 +983,7 @@
           "checkIds": [
             "duplicate-match"
           ],
+          "explanation": "Separate candidate discovery from durable exact-match admission with a unique search-version/listing key. An edited search version is a distinct matching policy; historic digests keep their original content. [A search index](https://en.wikipedia.org/wiki/Search_engine_indexing) maps query terms to candidate records. The interface must still associate each response with the active query and preserve the user’s chosen filters.",
           "graph": {
             "edges": [
               {
@@ -1145,6 +1149,7 @@
           "checkIds": [
             "digest-freeze"
           ],
+          "explanation": "Add a calendar cutoff and materializer; immutable recipient/period digests pin a publication watermark and payload hash. DST days may contain 23 or 25 hours; period identity is a local date with a resolved UTC interval. [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers. Publishing one reference lets each reader keep a consistent version.",
           "graph": {
             "edges": [
               {
@@ -1438,6 +1443,7 @@
             "unsubscribe",
             "uncertain-send"
           ],
+          "explanation": "Add an independent dispatcher and provider; check current suppression before claiming an attempt. A dispatch authorization defines the unsubscribe cutoff; an already accepted email cannot be recalled. [Access control](https://en.wikipedia.org/wiki/Access_control) decides whether an authenticated identity may perform a particular action. The check must apply to the actual resource and operation, including cached and asynchronous paths.",
           "graph": {
             "edges": [
               {
@@ -1776,6 +1782,7 @@
           "checkIds": [
             "uncertain-send"
           ],
+          "explanation": "Separate accepted, delivered, bounce and complaint receipts; preserve an uncertain state after a lost response. Do not claim exactly-once inbox delivery from a unique local outbox row. [Change data capture](https://en.wikipedia.org/wiki/Change_data_capture) turns committed data changes into an ordered stream for other components. Consumers still need replay positions and duplicate handling when delivery is retried.",
           "graph": {
             "edges": [
               {
@@ -2152,6 +2159,7 @@
             "duplicate-match",
             "digest-freeze"
           ],
+          "explanation": "Compare durable checkpoints with retained publication history and run a bounded overlap backfill. If retention was exceeded, report the uncovered interval and rebuild; do not silently claim complete coverage. [A checkpoint](https://en.wikipedia.org/wiki/Checkpointing) records enough progress to restart without repeating everything. Its usefulness depends on which state is durable and whether later effects can be replayed safely.",
           "graph": {
             "edges": [
               {
@@ -2679,6 +2687,7 @@
           "checkIds": [
             "match-boundary"
           ],
+          "explanation": "Start with a shopper and one alerts boundary; record exact predicates and a daily delivery promise. A saved search has an owner, version, timezone and explicit matching semantics. [A search index](https://en.wikipedia.org/wiki/Search_engine_indexing) maps query terms to candidate records. The interface must still associate each response with the active query and preserve the user’s chosen filters.",
           "graph": {
             "edges": [
               {
@@ -2776,6 +2785,7 @@
             "match-boundary",
             "unsubscribe"
           ],
+          "explanation": "Expand into authoritative preferences and listing history; do not treat an edited predicate as the old search version. Never mutate an old search version used by an already frozen digest. [A search index](https://en.wikipedia.org/wiki/Search_engine_indexing) maps query terms to candidate records. The interface must still associate each response with the active query and preserve the user’s chosen filters.",
           "graph": {
             "edges": [
               {
@@ -2882,6 +2892,7 @@
             "match-boundary",
             "duplicate-match"
           ],
+          "explanation": "A committed publication emits a durable event; replay is allowed and matching must deduplicate. Progress never advances past work whose match writes are not durably committed. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call.",
           "graph": {
             "edges": [
               {
@@ -3092,6 +3103,7 @@
           "checkIds": [
             "duplicate-match"
           ],
+          "explanation": "Separate candidate discovery from durable exact-match admission with a unique search-version/listing key. An edited search version is a distinct matching policy; historic digests keep their original content. [A search index](https://en.wikipedia.org/wiki/Search_engine_indexing) maps query terms to candidate records. The interface must still associate each response with the active query and preserve the user’s chosen filters.",
           "graph": {
             "edges": [
               {
@@ -3280,6 +3292,7 @@
           "checkIds": [
             "digest-freeze"
           ],
+          "explanation": "Add a calendar cutoff and materializer; immutable recipient/period digests pin a publication watermark and payload hash. DST days may contain 23 or 25 hours; period identity is a local date with a resolved UTC interval. [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers. Publishing one reference lets each reader keep a consistent version.",
           "graph": {
             "edges": [
               {
@@ -3596,6 +3609,7 @@
             "unsubscribe",
             "uncertain-send"
           ],
+          "explanation": "Add an independent dispatcher and provider; check current suppression before claiming an attempt. A dispatch authorization defines the unsubscribe cutoff; an already accepted email cannot be recalled. [Access control](https://en.wikipedia.org/wiki/Access_control) decides whether an authenticated identity may perform a particular action. The check must apply to the actual resource and operation, including cached and asynchronous paths.",
           "graph": {
             "edges": [
               {
@@ -3957,6 +3971,7 @@
           "checkIds": [
             "uncertain-send"
           ],
+          "explanation": "Separate accepted, delivered, bounce and complaint receipts; preserve an uncertain state after a lost response. Do not claim exactly-once inbox delivery from a unique local outbox row. [Change data capture](https://en.wikipedia.org/wiki/Change_data_capture) turns committed data changes into an ordered stream for other components. Consumers still need replay positions and duplicate handling when delivery is retried.",
           "graph": {
             "edges": [
               {
@@ -4356,6 +4371,7 @@
             "duplicate-match",
             "digest-freeze"
           ],
+          "explanation": "Compare durable checkpoints with retained publication history and run a bounded overlap backfill. If retention was exceeded, report the uncovered interval and rebuild; do not silently claim complete coverage. [A checkpoint](https://en.wikipedia.org/wiki/Checkpointing) records enough progress to restart without repeating everything. Its usefulness depends on which state is durable and whether later effects can be replayed safely.",
           "graph": {
             "edges": [
               {

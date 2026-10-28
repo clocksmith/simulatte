@@ -715,6 +715,7 @@
           "checkIds": [
             "stale-edit"
           ],
+          "explanation": "Separate user intent from authoritative state before adding collaboration. A pending edit is not a committed revision. [Collaborative editing](https://en.wikipedia.org/wiki/Operational_transformation) must reconcile concurrent edits against an agreed document version. Sending changes is only one part; reconnects also need a way to recover missing updates and conflicts. Consider this case: Cell revision is 8; two editors read 8. Both submit different replacement text with expectedRevision=8.",
           "graph": {
             "edges": [
               {
@@ -811,6 +812,7 @@
           "checkIds": [
             "duplicate-execution"
           ],
+          "explanation": "Make the API/database transaction boundary visible without changing the outer notebook identity. Cells and operation receipts commit together. [Collaborative editing](https://en.wikipedia.org/wiki/Operational_transformation) must reconcile concurrent edits against an agreed document version. Sending changes is only one part; reconnects also need a way to recover missing updates and conflicts. Consider this case: Execution request K was committed but its acknowledgement was lost.",
           "graph": {
             "edges": [
               {
@@ -943,6 +945,7 @@
           "checkIds": [
             "stale-edit"
           ],
+          "explanation": "The client tracks tentative changes rather than overwriting authoritative revisions. A rejected pending edit remains distinguishable from committed code. [An optimistic interface](https://en.wikipedia.org/wiki/Optimistic_replication) shows a tentative result before the server confirms it. Pending state must remain distinguishable from authoritative state so rejection or late replies can be reconciled. Consider this case: Cell revision is 8; two editors read 8.",
           "graph": {
             "edges": [
               {
@@ -1105,6 +1108,7 @@
           "checkIds": [
             "duplicate-execution"
           ],
+          "explanation": "A durable execution identity is handed to workers through committed outbox records. A request receipt and execution ID survive retries. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call. Consider this case: Execution request K was committed but its acknowledgement was lost.",
           "graph": {
             "edges": [
               {
@@ -1404,6 +1408,7 @@
           "checkIds": [
             "snapshot-race"
           ],
+          "explanation": "Use the snapshot revision as a durable cursor rather than subscribing after an unversioned read. Install snapshot at V, then apply only contiguous events after V. [A snapshot](https://en.wikipedia.org/wiki/Snapshot_isolation) gives one read operation a fixed view of data. Later writes may change the live system without changing the rows that reader sees.",
           "graph": {
             "edges": [
               {
@@ -1813,6 +1818,7 @@
           "checkIds": [
             "cursor-expiry"
           ],
+          "explanation": "Resume within retention; otherwise obtain a new snapshot and replace the local view explicitly. Cursor expiry is reset, not silent omission. [A cursor](https://en.wikipedia.org/wiki/Cursor_%28databases%29) records where a query should continue. Its ordering fields must distinguish equal values, and its validity depends on the query and access permissions. Consider this case: Client cursor is 4; retained events begin at 20.",
           "graph": {
             "edges": [
               {
@@ -2214,6 +2220,7 @@
           "checkIds": [
             "revocation"
           ],
+          "explanation": "Use explicit membership revisions and bounded buffers; disconnect and resnapshot when a lossless stream cannot keep up. Membership changes are ordered with cell events; later revisions cannot be delivered under revoked access. Already transmitted data cannot be recalled. [A snapshot](https://en.wikipedia.org/wiki/Snapshot_isolation) gives one read operation a fixed view of data. Later writes may change the live system without changing the rows that reader sees.",
           "graph": {
             "edges": [
               {
@@ -2666,6 +2673,7 @@
             "cursor-expiry",
             "duplicate-execution"
           ],
+          "explanation": "One client state owner deduplicates opIds and orders revisions across all transports. Only the unified reducer mutates the displayed authoritative notebook. [Collaborative editing](https://en.wikipedia.org/wiki/Operational_transformation) must reconcile concurrent edits against an agreed document version. Sending changes is only one part; reconnects also need a way to recover missing updates and conflicts. Consider this case: Execution request K was committed but its acknowledgement was lost.",
           "graph": {
             "edges": [
               {
@@ -3168,6 +3176,7 @@
           "checkIds": [
             "stale-edit"
           ],
+          "explanation": "Separate user intent from authoritative state before adding collaboration. A pending edit is not a committed revision. [Collaborative editing](https://en.wikipedia.org/wiki/Operational_transformation) must reconcile concurrent edits against an agreed document version. Sending changes is only one part; reconnects also need a way to recover missing updates and conflicts. Consider this case: Cell revision is 8; two editors read 8. Both submit different replacement text with expectedRevision=8.",
           "graph": {
             "edges": [
               {
@@ -3264,6 +3273,7 @@
           "checkIds": [
             "duplicate-execution"
           ],
+          "explanation": "Make the API/database transaction boundary visible without changing the outer notebook identity. Cells and operation receipts commit together. [Collaborative editing](https://en.wikipedia.org/wiki/Operational_transformation) must reconcile concurrent edits against an agreed document version. Sending changes is only one part; reconnects also need a way to recover missing updates and conflicts. Consider this case: Execution request K was committed but its acknowledgement was lost.",
           "graph": {
             "edges": [
               {
@@ -3396,6 +3406,7 @@
           "checkIds": [
             "stale-edit"
           ],
+          "explanation": "A lease is useful only when every write validates its fencing token in the same transaction. An expired or superseded fencing token cannot update a cell. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources. A newer owner needs a token that the resource checks, not merely a belief that ownership changed.",
           "graph": {
             "edges": [
               {
@@ -3538,6 +3549,7 @@
           "checkIds": [
             "duplicate-execution"
           ],
+          "explanation": "A durable execution identity is handed to workers through committed outbox records. A request receipt and execution ID survive retries. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call. Consider this case: Execution request K was committed but its acknowledgement was lost.",
           "graph": {
             "edges": [
               {
@@ -3837,6 +3849,7 @@
           "checkIds": [
             "snapshot-race"
           ],
+          "explanation": "Use the snapshot revision as a durable cursor rather than subscribing after an unversioned read. Install snapshot at V, then apply only contiguous events after V. [A snapshot](https://en.wikipedia.org/wiki/Snapshot_isolation) gives one read operation a fixed view of data. Later writes may change the live system without changing the rows that reader sees.",
           "graph": {
             "edges": [
               {
@@ -4246,6 +4259,7 @@
           "checkIds": [
             "cursor-expiry"
           ],
+          "explanation": "Resume within retention; otherwise obtain a new snapshot and replace the local view explicitly. Cursor expiry is reset, not silent omission. [A cursor](https://en.wikipedia.org/wiki/Cursor_%28databases%29) records where a query should continue. Its ordering fields must distinguish equal values, and its validity depends on the query and access permissions. Consider this case: Client cursor is 4; retained events begin at 20.",
           "graph": {
             "edges": [
               {
@@ -4719,6 +4733,7 @@
           "checkIds": [
             "revocation"
           ],
+          "explanation": "Use explicit membership revisions and bounded buffers; disconnect and resnapshot when a lossless stream cannot keep up. Membership changes are ordered with cell events; later revisions cannot be delivered under revoked access. Already transmitted data cannot be recalled. [A snapshot](https://en.wikipedia.org/wiki/Snapshot_isolation) gives one read operation a fixed view of data. Later writes may change the live system without changing the rows that reader sees.",
           "graph": {
             "edges": [
               {
@@ -5194,6 +5209,7 @@
             "cursor-expiry",
             "duplicate-execution"
           ],
+          "explanation": "One client state owner deduplicates opIds and orders revisions across all transports. Only the unified reducer mutates the displayed authoritative notebook. [Collaborative editing](https://en.wikipedia.org/wiki/Operational_transformation) must reconcile concurrent edits against an agreed document version. Sending changes is only one part; reconnects also need a way to recover missing updates and conflicts. Consider this case: Execution request K was committed but its acknowledgement was lost.",
           "graph": {
             "edges": [
               {

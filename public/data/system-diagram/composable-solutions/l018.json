@@ -857,7 +857,7 @@
             "budget",
             "support"
           ],
-          "explanation": "Authenticate tenant and accept a bounded question with an explicit deadline. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Authenticate tenant and accept a bounded question with an explicit deadline. Authenticate tenant and accept a bounded question with an explicit deadline. State owner: Answer gateway (query identity and deadline). Authenticate tenant and accept a bounded question with an explicit deadline. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid.",
           "graph": {
             "edges": [
               {
@@ -959,7 +959,7 @@
             "budget",
             "support"
           ],
-          "explanation": "Expand gateway; retain immutable source revisions and current ACL epochs. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Expand gateway; retain immutable source revisions and current ACL epochs. Expand gateway; retain immutable source revisions and current ACL epochs. State owner: Document authority (document revision and ACL). Expand gateway; retain immutable source revisions and current ACL epochs. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers. Publishing one reference lets each reader keep a consistent version.",
           "graph": {
             "edges": [
               {
@@ -1098,7 +1098,7 @@
             "budget",
             "support"
           ],
-          "explanation": "Pin embedding model, dimensions and normalization to the selected index version. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Pin embedding model, dimensions and normalization to the selected index version. Pin embedding model, dimensions and normalization to the selected index version. State owner: Embedding lane (embedding compatibility identity). Pin embedding model, dimensions and normalization to the selected index version. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Retrieval-augmented generation](https://en.wikipedia.org/wiki/Retrieval-augmented_generation) brings external material into a model request.",
           "graph": {
             "edges": [
               {
@@ -1254,7 +1254,7 @@
             "budget",
             "support"
           ],
-          "explanation": "Union lexical and vector candidates with provenance and bounded recall-tested k. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Union lexical and vector candidates with provenance and bounded recall-tested k. Union lexical and vector candidates with provenance and bounded recall-tested k. State owner: Candidate retrieval (candidate scores and source versions). Union lexical and vector candidates with provenance and bounded recall-tested k. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Retrieval-augmented generation](https://en.wikipedia.org/wiki/Retrieval-augmented_generation) brings external material into a model request.",
           "graph": {
             "edges": [
               {
@@ -1428,7 +1428,7 @@
             "budget",
             "support"
           ],
-          "explanation": "Filter candidates against current source ACL and revision before model context assembly. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Filter candidates against current source ACL and revision before model context assembly. Filter candidates against current source ACL and revision before model context assembly. State owner: ACL and freshness (current source eligibility). Filter candidates against current source ACL and revision before model context assembly. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A search index](https://en.wikipedia.org/wiki/Search_engine_indexing) maps query terms to candidate records.",
           "graph": {
             "edges": [
               {
@@ -1663,7 +1663,7 @@
             "budget",
             "support"
           ],
-          "explanation": "Rerank eligible candidates within token/deadline budgets; retain rejected-score evidence. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Rerank eligible candidates within token/deadline budgets; retain rejected-score evidence. Rerank eligible candidates within token/deadline budgets; retain rejected-score evidence. State owner: Cross-encoder (ranked candidate receipt). Rerank eligible candidates within token/deadline budgets; retain rejected-score evidence. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid. Expiration must be checked at the point of use, even when background cleanup runs later.",
           "graph": {
             "edges": [
               {
@@ -1899,7 +1899,7 @@
             "budget",
             "support"
           ],
-          "explanation": "Generate a typed answer tied to supplied span IDs, then validate shape and citation membership. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Generate a typed answer tied to supplied span IDs, then validate shape and citation membership. Generate a typed answer tied to supplied span IDs, then validate shape and citation membership. State owner: Grounded generation (answer draft and validation status). [Raft](https://en.wikipedia.org/wiki/Raft_%28algorithm%29) coordinates a replicated log through an elected leader and majority agreement. Terms and voting rules prevent an outdated leader from deciding new committed entries alone.",
           "graph": {
             "edges": [
               {
@@ -2159,7 +2159,7 @@
             "budget",
             "support"
           ],
-          "explanation": "Check support and stale sources before release; record unsupported claims rather than inventing citations. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Check support and stale sources before release; record unsupported claims rather than inventing citations. Check support and stale sources before release; record unsupported claims rather than inventing citations. State owner: Evidence gate (support verdict and phase timings). Check support and stale sources before release; record unsupported claims rather than inventing citations. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources.",
           "graph": {
             "edges": [
               {
@@ -2581,7 +2581,7 @@
             "budget",
             "support"
           ],
-          "explanation": "Classify against declared intent IDs and refuse unsupported questions explicitly. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Classify against declared intent IDs and refuse unsupported questions explicitly. Classify against declared intent IDs and refuse unsupported questions explicitly. State owner: Pack request (intent classification receipt). Classify against declared intent IDs and refuse unsupported questions explicitly. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Retrieval-augmented generation](https://en.wikipedia.org/wiki/Retrieval-augmented_generation) brings external material into a model request.",
           "graph": {
             "edges": [
               {
@@ -2683,7 +2683,7 @@
             "budget",
             "support"
           ],
-          "explanation": "Expand request boundary; retain content hashes, source revisions and pack schema version. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Expand request boundary; retain content hashes, source revisions and pack schema version. Expand request boundary; retain content hashes, source revisions and pack schema version. State owner: Pack manifest (pack versions and source hashes). Expand request boundary; retain content hashes, source revisions and pack schema version. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Retrieval-augmented generation](https://en.wikipedia.org/wiki/Retrieval-augmented_generation) brings external material into a model request.",
           "graph": {
             "edges": [
               {
@@ -2822,7 +2822,7 @@
             "budget",
             "support"
           ],
-          "explanation": "Freeze source revisions and normalize exact citation spans before constructing a new pack. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Freeze source revisions and normalize exact citation spans before constructing a new pack. Freeze source revisions and normalize exact citation spans before constructing a new pack. State owner: Ingest snapshot (ingestion snapshot). Freeze source revisions and normalize exact citation spans before constructing a new pack. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A snapshot](https://en.wikipedia.org/wiki/Snapshot_isolation) gives one read operation a fixed view of data.",
           "graph": {
             "edges": [
               {
@@ -2978,7 +2978,7 @@
             "budget",
             "support"
           ],
-          "explanation": "Evaluate lexical/dense recall against labeled intent questions before promoting candidate sets. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Evaluate lexical/dense recall against labeled intent questions before promoting candidate sets. Evaluate lexical/dense recall against labeled intent questions before promoting candidate sets. State owner: Offline retrieval (retrieval evaluation receipt). Evaluate lexical/dense recall against labeled intent questions before promoting candidate sets. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Retrieval-augmented generation](https://en.wikipedia.org/wiki/Retrieval-augmented_generation) brings external material into a model request.",
           "graph": {
             "edges": [
               {
@@ -3152,7 +3152,7 @@
             "budget",
             "support"
           ],
-          "explanation": "Build schema-validated answer templates with explicit claim-to-span bindings. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Build schema-validated answer templates with explicit claim-to-span bindings. Build schema-validated answer templates with explicit claim-to-span bindings. State owner: Pack compiler (compiled answer pack). Build schema-validated answer templates with explicit claim-to-span bindings. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Retrieval-augmented generation](https://en.wikipedia.org/wiki/Retrieval-augmented_generation) brings external material into a model request. Retrieval quality, access permissions, source freshness, and explicit evidence boundaries matter separately from the model’s generated answer.",
           "graph": {
             "edges": [
               {
@@ -3350,7 +3350,7 @@
             "budget",
             "support"
           ],
-          "explanation": "Publish one immutable manifest only after pack bytes and dependencies are complete. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Publish one immutable manifest only after pack bytes and dependencies are complete. Publish one immutable manifest only after pack bytes and dependencies are complete. State owner: Atomic publication (active manifest pointer). Publish one immutable manifest only after pack bytes and dependencies are complete. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers.",
           "graph": {
             "edges": [
               {
@@ -3609,7 +3609,7 @@
             "budget",
             "support"
           ],
-          "explanation": "Verify current ACL/revisions and fill only typed allowed slots before returning citations. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Verify current ACL/revisions and fill only typed allowed slots before returning citations. Verify current ACL/revisions and fill only typed allowed slots before returning citations. State owner: Online verification (online eligibility verdict). Verify current ACL/revisions and fill only typed allowed slots before returning citations. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Retrieval-augmented generation](https://en.wikipedia.org/wiki/Retrieval-augmented_generation) brings external material into a model request.",
           "graph": {
             "edges": [
               {
@@ -3900,7 +3900,7 @@
             "budget",
             "support"
           ],
-          "explanation": "Invalidate affected packs, expose freshness and rebuild; do not reuse invalid support while rebuilding. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Invalidate affected packs, expose freshness and rebuild; do not reuse invalid support while rebuilding. Invalidate affected packs, expose freshness and rebuild; do not reuse invalid support while rebuilding. State owner: Invalidation repair (invalidation cursor). Invalidate affected packs, expose freshness and rebuild; do not reuse invalid support while rebuilding. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A cursor](https://en.wikipedia.org/wiki/Cursor_%28databases%29) records where a query should continue.",
           "graph": {
             "edges": [
               {

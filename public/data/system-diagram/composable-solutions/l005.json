@@ -578,6 +578,7 @@
           "checkIds": [
             "ack-loss"
           ],
+          "explanation": "Start with the client and the storage abstraction. Success means primary fsync; remote replication may lag. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return. Consider this case: A write is acknowledged and the current primary permanently fails.",
           "graph": {
             "edges": [
               {
@@ -674,6 +675,7 @@
           "checkIds": [
             "duplicate"
           ],
+          "explanation": "Expand the boundary into a writer and replayable command log. A returned operation receipt is persisted with its command. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call. Consider this case: A write commits but its reply is lost.",
           "graph": {
             "edges": [
               {
@@ -806,6 +808,7 @@
           "checkIds": [
             "ack-loss"
           ],
+          "explanation": "Separate transport acknowledgements from application progress. A received batch is not necessarily fsynced or applied. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return. Consider this case: A write is acknowledged and the current primary permanently fails. Recover using a surviving follower group.",
           "graph": {
             "edges": [
               {
@@ -1000,6 +1003,7 @@
           "checkIds": [
             "read-watermark"
           ],
+          "explanation": "Add a read router with a minimum position watermark. A session read waits, chooses a sufficiently caught-up node, or fails explicitly. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return. Consider this case: Caller observed position 12 but follower applied only 10.",
           "graph": {
             "edges": [
               {
@@ -1246,6 +1250,7 @@
           "checkIds": [
             "stale-leader"
           ],
+          "explanation": "Leadership needs an enforceable protocol, not a DNS update. An old epoch cannot append authoritative commands after fencing. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return. Consider this case: Leader epoch T loses authority while isolated.",
           "graph": {
             "edges": [
               {
@@ -1513,6 +1518,7 @@
             "ack-loss",
             "stale-leader"
           ],
+          "explanation": "Tie reply visibility to the selected durability contract. Promotion reports its replayed position and the accepted loss window. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call. Consider this case: A write is acknowledged and the current primary permanently fails.",
           "graph": {
             "edges": [
               {
@@ -1873,6 +1879,7 @@
           "checkIds": [
             "snapshot-recovery"
           ],
+          "explanation": "Add a recovery boundary that never mixes unrelated snapshots and log suffixes. Verify hash and included index/term before replaying entries beyond the snapshot. [A snapshot](https://en.wikipedia.org/wiki/Snapshot_isolation) gives one read operation a fixed view of data. Later writes may change the live system without changing the rows that reader sees. Consider this case: Follower is behind the oldest retained log record.",
           "graph": {
             "edges": [
               {
@@ -2238,6 +2245,7 @@
             "duplicate",
             "read-watermark"
           ],
+          "explanation": "One client consistency owner carries epoch, receipt and read watermark. Duplicate requests return their original committed receipt or explicit uncertainty. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return. Consider this case: A write commits but its reply is lost.",
           "graph": {
             "edges": [
               {
@@ -2664,6 +2672,7 @@
           "checkIds": [
             "ack-loss"
           ],
+          "explanation": "Start with the client and the storage abstraction. Success will mean a durably committed quorum log entry. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return. Consider this case: A write is acknowledged and the current primary permanently fails.",
           "graph": {
             "edges": [
               {
@@ -2760,6 +2769,7 @@
           "checkIds": [
             "duplicate"
           ],
+          "explanation": "Expand the boundary into a writer and replayable command log. A returned operation receipt is persisted with its command. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call. Consider this case: A write commits but its reply is lost.",
           "graph": {
             "edges": [
               {
@@ -2892,6 +2902,7 @@
           "checkIds": [
             "ack-loss"
           ],
+          "explanation": "Separate transport acknowledgements from application progress. A received batch is not necessarily fsynced or applied. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return. Consider this case: A write is acknowledged and the current primary permanently fails. Recover using a surviving follower group.",
           "graph": {
             "edges": [
               {
@@ -3086,6 +3097,7 @@
           "checkIds": [
             "read-watermark"
           ],
+          "explanation": "Add a read router with a minimum position watermark. A session read waits, chooses a sufficiently caught-up node, or fails explicitly. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return. Consider this case: Caller observed position 12 but follower applied only 10.",
           "graph": {
             "edges": [
               {
@@ -3332,6 +3344,7 @@
           "checkIds": [
             "stale-leader"
           ],
+          "explanation": "Leadership needs an enforceable protocol, not a DNS update. An old epoch cannot append authoritative commands after fencing. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return. Consider this case: Leader epoch T loses authority while isolated.",
           "graph": {
             "edges": [
               {
@@ -3599,6 +3612,7 @@
             "ack-loss",
             "stale-leader"
           ],
+          "explanation": "Tie reply visibility to the selected durability contract. Advance commitIndex by Raft rules, including the current-term restriction. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call. Consider this case: A write is acknowledged and the current primary permanently fails.",
           "graph": {
             "edges": [
               {
@@ -3959,6 +3973,7 @@
           "checkIds": [
             "snapshot-recovery"
           ],
+          "explanation": "Add a recovery boundary that never mixes unrelated snapshots and log suffixes. Verify hash and included index/term before replaying entries beyond the snapshot. [A snapshot](https://en.wikipedia.org/wiki/Snapshot_isolation) gives one read operation a fixed view of data. Later writes may change the live system without changing the rows that reader sees. Consider this case: Follower is behind the oldest retained log record.",
           "graph": {
             "edges": [
               {
@@ -4324,6 +4339,7 @@
             "duplicate",
             "read-watermark"
           ],
+          "explanation": "One client consistency owner carries epoch, receipt and read watermark. Duplicate requests return their original committed receipt or explicit uncertainty. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return. Consider this case: A write commits but its reply is lost.",
           "graph": {
             "edges": [
               {

@@ -845,7 +845,7 @@
             "effect",
             "review"
           ],
-          "explanation": "Validate acyclic dependencies and assign stable task/run IDs before work. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Validate acyclic dependencies and assign stable task/run IDs before work. Validate acyclic dependencies and assign stable task/run IDs before work. State owner: Task submission (run identity). Validate acyclic dependencies and assign stable task/run IDs before work. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A directed acyclic graph](https://en.wikipedia.org/wiki/Directed_acyclic_graph) expresses work that depends on earlier results.",
           "graph": {
             "edges": [
               {
@@ -947,7 +947,7 @@
             "effect",
             "review"
           ],
-          "explanation": "Expand coordinator; journal transitions and output references before scheduling dependents. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Expand coordinator; journal transitions and output references before scheduling dependents. Expand coordinator; journal transitions and output references before scheduling dependents. State owner: Decision history (workflow history and task states). Expand coordinator; journal transitions and output references before scheduling dependents. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A directed acyclic graph](https://en.wikipedia.org/wiki/Directed_acyclic_graph) expresses work that depends on earlier results.",
           "graph": {
             "edges": [
               {
@@ -1086,7 +1086,7 @@
             "effect",
             "review"
           ],
-          "explanation": "Release tasks only when all predecessor output receipts are committed. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Release tasks only when all predecessor output receipts are committed. Release tasks only when all predecessor output receipts are committed. State owner: Ready scheduler (dependency counters). Release tasks only when all predecessor output receipts are committed. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources.",
           "graph": {
             "edges": [
               {
@@ -1242,7 +1242,7 @@
             "effect",
             "review"
           ],
-          "explanation": "Execute research/tool steps with stable effect keys and bounded attempts. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Execute research/tool steps with stable effect keys and bounded attempts. Execute research/tool steps with stable effect keys and bounded attempts. State owner: Research activities (activity attempt fence). Execute research/tool steps with stable effect keys and bounded attempts. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A search index](https://en.wikipedia.org/wiki/Search_engine_indexing) maps query terms to candidate records.",
           "graph": {
             "edges": [
               {
@@ -1416,7 +1416,7 @@
             "effect",
             "review"
           ],
-          "explanation": "Require explicit source/constraint inspection receipts before synthesis consumes inputs. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Require explicit source/constraint inspection receipts before synthesis consumes inputs. Require explicit source/constraint inspection receipts before synthesis consumes inputs. State owner: Constraint gate (constraint verdict). Require explicit source/constraint inspection receipts before synthesis consumes inputs. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A workflow](https://en.wikipedia.org/wiki/Workflow) records which step should run next and what has already finished. Durable transitions and effect identities let recovery resume work without blindly repeating external actions.",
           "graph": {
             "edges": [
               {
@@ -1614,7 +1614,7 @@
             "effect",
             "review"
           ],
-          "explanation": "Persist review verdict and artifact hash; a revised artifact requires fresh review. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Persist review verdict and artifact hash; a revised artifact requires fresh review. Persist review verdict and artifact hash; a revised artifact requires fresh review. State owner: Review checkpoint (reviewed artifact hash). Persist review verdict and artifact hash; a revised artifact requires fresh review. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure.",
           "graph": {
             "edges": [
               {
@@ -1836,7 +1836,7 @@
             "effect",
             "review"
           ],
-          "explanation": "Commit an outbox identity for the approved hash before issuing a remote write. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Commit an outbox identity for the approved hash before issuing a remote write. Commit an outbox identity for the approved hash before issuing a remote write. State owner: Publication intent (publication intent and remote receipt). Commit an outbox identity for the approved hash before issuing a remote write. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A workflow](https://en.wikipedia.org/wiki/Workflow) records which step should run next and what has already finished.",
           "graph": {
             "edges": [
               {
@@ -2082,7 +2082,7 @@
             "effect",
             "review"
           ],
-          "explanation": "Reconcile by effect identity before retry; publish compact task states separately from private computation. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Reconcile by effect identity before retry; publish compact task states separately from private computation. Reconcile by effect identity before retry; publish compact task states separately from private computation. State owner: Recovery and status (reconciliation cursor and public status). [A control loop](https://en.wikipedia.org/wiki/Control_loop) compares desired state with observed state and applies corrections. Repeated execution must converge safely, especially when a previous action succeeded but its reply was lost.",
           "graph": {
             "edges": [
               {
@@ -2496,7 +2496,7 @@
             "effect",
             "review"
           ],
-          "explanation": "Accept immutable task IDs and reject cycles or missing prerequisite IDs. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Accept immutable task IDs and reject cycles or missing prerequisite IDs. Accept immutable task IDs and reject cycles or missing prerequisite IDs. State owner: DAG command (DAG command identity). Accept immutable task IDs and reject cycles or missing prerequisite IDs. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers.",
           "graph": {
             "edges": [
               {
@@ -2598,7 +2598,7 @@
             "effect",
             "review"
           ],
-          "explanation": "Expand command boundary; store state, attempt epoch and predecessor receipts transactionally. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Expand command boundary; store state, attempt epoch and predecessor receipts transactionally. Expand command boundary; store state, attempt epoch and predecessor receipts transactionally. State owner: Task rows (task rows and transition receipts). Expand command boundary; store state, attempt epoch and predecessor receipts transactionally. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A workflow](https://en.wikipedia.org/wiki/Workflow) records which step should run next and what has already finished.",
           "graph": {
             "edges": [
               {
@@ -2737,7 +2737,7 @@
             "effect",
             "review"
           ],
-          "explanation": "Claim ready task with compare-and-swap and monotonic attempt epoch. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Claim ready task with compare-and-swap and monotonic attempt epoch. Claim ready task with compare-and-swap and monotonic attempt epoch. State owner: Lease claims (lease epoch and deadline). Claim ready task with compare-and-swap and monotonic attempt epoch. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes.",
           "graph": {
             "edges": [
               {
@@ -2893,7 +2893,7 @@
             "effect",
             "review"
           ],
-          "explanation": "Record stable remote intent and classify known rejection versus uncertain acceptance. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Record stable remote intent and classify known rejection versus uncertain acceptance. Record stable remote intent and classify known rejection versus uncertain acceptance. State owner: Effect ledger (effect keys and outcomes). Record stable remote intent and classify known rejection versus uncertain acceptance. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A workflow](https://en.wikipedia.org/wiki/Workflow) records which step should run next and what has already finished.",
           "graph": {
             "edges": [
               {
@@ -3067,7 +3067,7 @@
             "effect",
             "review"
           ],
-          "explanation": "Persist immutable research results and explicit constraint verdict before advancing dependencies. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Persist immutable research results and explicit constraint verdict before advancing dependencies. Persist immutable research results and explicit constraint verdict before advancing dependencies. State owner: Research and constraints (output hashes and constraint receipt). Persist immutable research results and explicit constraint verdict before advancing dependencies. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A search index](https://en.wikipedia.org/wiki/Search_engine_indexing) maps query terms to candidate records.",
           "graph": {
             "edges": [
               {
@@ -3265,7 +3265,7 @@
             "effect",
             "review"
           ],
-          "explanation": "Deduplicate predecessor completion and decrement remaining dependency count once. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Deduplicate predecessor completion and decrement remaining dependency count once. Deduplicate predecessor completion and decrement remaining dependency count once. State owner: Join transition (completion identity set). Deduplicate predecessor completion and decrement remaining dependency count once. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Idempotence](https://en.wikipedia.org/wiki/Idempotence) means repeating the same logical operation does not repeat its effect. Stable request identities let a retry recover an existing outcome instead of creating another change.",
           "graph": {
             "edges": [
               {
@@ -3524,7 +3524,7 @@
             "effect",
             "review"
           ],
-          "explanation": "Bind review to artifact digest and append publication intent in the same versioned transition. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Bind review to artifact digest and append publication intent in the same versioned transition. Bind review to artifact digest and append publication intent in the same versioned transition. State owner: Approval outbox (approval and publication outbox). [A workflow](https://en.wikipedia.org/wiki/Workflow) records which step should run next and what has already finished. Durable transitions and effect identities let recovery resume work without blindly repeating external actions.",
           "graph": {
             "edges": [
               {
@@ -3784,7 +3784,7 @@
             "effect",
             "review"
           ],
-          "explanation": "Fence expired owners, reconcile unknown effects, and expose pending status rather than false success. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Fence expired owners, reconcile unknown effects, and expose pending status rather than false success. Fence expired owners, reconcile unknown effects, and expose pending status rather than false success. State owner: Reconciliation sweep (sweep cursor and status receipt). [A control loop](https://en.wikipedia.org/wiki/Control_loop) compares desired state with observed state and applies corrections. Repeated execution must converge safely, especially when a previous action succeeded but its reply was lost.",
           "graph": {
             "edges": [
               {

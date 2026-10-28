@@ -717,6 +717,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Parse once, normalize network and mask, then test immutable rules in original order until a match. The first matching array entry determines the action. [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers. Publishing one reference lets each reader keep a consistent version. Consider this case: An early /8 DENY and later /32 ALLOW cover one address, followed by reversed order.",
           "graph": {
             "edges": [
               {
@@ -816,6 +817,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Require exactly four canonical decimal octets in 0..255 and accumulate an unsigned 32-bit integer. Reject whitespace, signs, shorthand and extra components. [A trie](https://en.wikipedia.org/wiki/Trie) organizes keys by successive prefixes. Its traversal can find matching prefixes efficiently, but the rule for choosing among matches must be specified separately. Consider this case: An early /8 DENY and later /32 ALLOW cover one address, followed by reversed order.",
           "graph": {
             "edges": [
               {
@@ -926,6 +928,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Validate prefix length; /0 has mask zero, /32 all bits, otherwise construct an unsigned high-bit mask; clear host bits. A host address in a CIDR rule is normalized, not interpreted as a different prefix. [An index](https://en.wikipedia.org/wiki/Database_index) maintains a structure that narrows a search without scanning every record. Faster reads come with storage costs and extra work whenever indexed data changes.",
           "graph": {
             "edges": [
               {
@@ -1060,6 +1063,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Keep rule ordinal with normalized network, mask and action; do not sort by prefix length. Original rule order remains authoritative. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version. Consider this case: An early /8 DENY and later /32 ALLOW cover one address, followed by reversed order.",
           "graph": {
             "edges": [
               {
@@ -1218,6 +1222,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Compare unsigned (ip & mask) with unsigned network; short circuit at the first hit. One check reads exactly one policy version. [A trie](https://en.wikipedia.org/wiki/Trie) organizes keys by successive prefixes. Its traversal can find matching prefixes efficiently, but the rule for choosing among matches must be specified separately. Consider this case: An early /8 DENY and later /32 ALLOW cover one address, followed by reversed order.",
           "graph": {
             "edges": [
               {
@@ -1400,6 +1405,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Return DENY with no rule ordinal and the current policy version; malformed input takes a separate deny reason. Absence never silently becomes ALLOW. [A trie](https://en.wikipedia.org/wiki/Trie) organizes keys by successive prefixes. Its traversal can find matching prefixes efficiently, but the rule for choosing among matches must be specified separately. Consider this case: An early /8 DENY and later /32 ALLOW cover one address, followed by reversed order.",
           "graph": {
             "edges": [
               {
@@ -1606,6 +1612,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Build and validate a candidate array privately; require every action and CIDR to parse before publication. Compilation failure cannot alter active rules. [A trie](https://en.wikipedia.org/wiki/Trie) organizes keys by successive prefixes. Its traversal can find matching prefixes efficiently, but the rule for choosing among matches must be specified separately. Consider this case: An early /8 DENY and later /32 ALLOW cover one address, followed by reversed order.",
           "graph": {
             "edges": [
               {
@@ -1836,6 +1843,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Build and validate the replacement rule array before exposing it to readers. Publish the array and its version together with one atomic reference swap. Each reader captures that pair once and uses it for the entire scan, so an update cannot mix old rules with a new version label. Keep the previous array alive until its readers finish. This is [immutable publication](https://en.wikipedia.org/wiki/Read-copy-update).",
           "graph": {
             "edges": [
               {
@@ -2159,6 +2167,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Store each prefix at its bit-depth node; traverse the address path and select minimum original ordinal over all matching ancestor prefixes. The winning rule has smallest ordinal, not greatest depth. [An index](https://en.wikipedia.org/wiki/Database_index) maintains a structure that narrows a search without scanning every record. Faster reads come with storage costs and extra work whenever indexed data changes.",
           "graph": {
             "edges": [
               {
@@ -2258,6 +2267,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Canonical dotted-decimal parser produces one uint32; invalid input fails closed before traversal. Bit 31 is handled as an unsigned network-order bit. [A trie](https://en.wikipedia.org/wiki/Trie) organizes keys by successive prefixes. Its traversal can find matching prefixes efficiently, but the rule for choosing among matches must be specified separately. Consider this case: An early /8 DENY and later /32 ALLOW cover one address, followed by reversed order.",
           "graph": {
             "edges": [
               {
@@ -2368,6 +2378,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Root stores earliest /0 candidate; each rule descends exactly prefixLength bits after masking network host bits. A /0 candidate participates in every valid lookup. [An index](https://en.wikipedia.org/wiki/Database_index) maintains a structure that narrows a search without scanning every record. Faster reads come with storage costs and extra work whenever indexed data changes.",
           "graph": {
             "edges": [
               {
@@ -2502,6 +2513,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "At a prefix node retain the candidate with lowest ordinal, including its action; do not overwrite with a later conflicting action. A trie node candidate is earliest for that exact prefix. [An index](https://en.wikipedia.org/wiki/Database_index) maintains a structure that narrows a search without scanning every record. Faster reads come with storage costs and extra work whenever indexed data changes.",
           "graph": {
             "edges": [
               {
@@ -2660,6 +2672,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Visit root and at most 32 nodes following each address bit; update best when candidate ordinal is lower. Unvisited sibling prefixes cannot match the address. [An index](https://en.wikipedia.org/wiki/Database_index) maintains a structure that narrows a search without scanning every record. Faster reads come with storage costs and extra work whenever indexed data changes.",
           "graph": {
             "edges": [
               {
@@ -2842,6 +2855,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Choose lowest ordinal among root/path candidates; deny if none. Do not use longest-prefix APIs as a substitute. Trie and ordered scan agree for the same policy. [An index](https://en.wikipedia.org/wiki/Database_index) maintains a structure that narrows a search without scanning every record. Faster reads come with storage costs and extra work whenever indexed data changes.",
           "graph": {
             "edges": [
               {
@@ -3048,6 +3062,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Construct the entire next trie privately and validate counts/ordinals; never mutate the pinned active root. An invalid CIDR aborts the complete replacement. [A trie](https://en.wikipedia.org/wiki/Trie) organizes keys by successive prefixes. Its traversal can find matching prefixes efficiently, but the rule for choosing among matches must be specified separately. Consider this case: An early /8 DENY and later /32 ALLOW cover one address, followed by reversed order.",
           "graph": {
             "edges": [
               {
@@ -3278,6 +3293,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Publish a root/version pair atomically and retain old immutable nodes until pinned readers complete. One check reports exactly one policy version. [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers. Publishing one reference lets each reader keep a consistent version. Consider this case: An early /8 DENY and later /32 ALLOW cover one address, followed by reversed order.",
           "graph": {
             "edges": [
               {

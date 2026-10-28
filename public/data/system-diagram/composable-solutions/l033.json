@@ -825,6 +825,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Render only the viewport plus overscan while bounding retained rows and bytes. [A cursor](https://en.wikipedia.org/wiki/Cursor_%28databases%29) records where a query should continue. Its ordering fields must distinguish equal values, and its validity depends on the query and access permissions. Consider this case: A fixed-height grid has 100000 rows. Compute the viewport near the beginning, middle and end.",
           "graph": {
             "edges": [
               {
@@ -924,6 +925,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Own query generation and reject responses from old sorts or canceled queries. Own a bounded LRU of snapshot/cursor pages and retained-byte count. active generation belongs to Grid controller; page bytes and eviction order belongs to Page cache. [A cache](https://en.wikipedia.org/wiki/Cache_replacement_policies) keeps reusable results in limited memory. Eviction controls space, while ownership and invalidation rules determine whether a returned value is still safe to use.",
           "graph": {
             "edges": [
               {
@@ -1060,6 +1062,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Submit a stable request ID and receive one job/snapshot identity. A timed-out submit retry retains its request identity. [A snapshot](https://en.wikipedia.org/wiki/Snapshot_isolation) gives one read operation a fixed view of data. Later writes may change the live system without changing the rows that reader sees. Consider this case: A fixed-height grid has 100000 rows. Compute the viewport near the beginning, middle and end.",
           "graph": {
             "edges": [
               {
@@ -1213,6 +1216,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Order by selected keys plus a unique tie-breaker within one immutable result snapshot. All pages share one snapshot and total ordering. [A snapshot](https://en.wikipedia.org/wiki/Snapshot_isolation) gives one read operation a fixed view of data. Later writes may change the live system without changing the rows that reader sees. Consider this case: A fixed-height grid has 100000 rows. Compute the viewport near the beginning, middle and end.",
           "graph": {
             "edges": [
               {
@@ -1384,6 +1388,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Compute half-open visible indices from scrollTop and fixed rowHeight, clamp and add bounded overscan. DOM row count depends on viewport, not total result size. [A cursor](https://en.wikipedia.org/wiki/Cursor_%28databases%29) records where a query should continue. Its ordering fields must distinguish equal values, and its validity depends on the query and access permissions. Consider this case: A fixed-height grid has 100000 rows.",
           "graph": {
             "edges": [
               {
@@ -1585,6 +1590,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Render only the computed range with stable row keys and loading placeholders. Selection uses row identity, never recycled DOM position. [A cursor](https://en.wikipedia.org/wiki/Cursor_%28databases%29) records where a query should continue. Its ordering fields must distinguish equal values, and its validity depends on the query and access permissions. Consider this case: A fixed-height grid has 100000 rows. Compute the viewport near the beginning, middle and end.",
           "graph": {
             "edges": [
               {
@@ -1804,6 +1810,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Push global ordering/filtering to the server and issue a new snapshot generation. Sorting one cached page never claims to sort all results. [A search index](https://en.wikipedia.org/wiki/Search_engine_indexing) maps query terms to candidate records. The interface must still associate each response with the active query and preserve the user’s chosen filters. Consider this case: A fixed-height grid has 100000 rows.",
           "graph": {
             "edges": [
               {
@@ -2053,6 +2060,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Abort requests when possible and reject every response whose generation differs. Cancellation is best effort; generation comparison is mandatory. [A race condition](https://en.wikipedia.org/wiki/Race_condition) makes an outcome depend on which operation finishes first. Responses need an identity or generation check so an older request cannot overwrite newer user intent. Consider this case: A fixed-height grid has 100000 rows.",
           "graph": {
             "edges": [
               {
@@ -2403,6 +2411,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Render only the viewport plus overscan while bounding retained rows and bytes. [A cursor](https://en.wikipedia.org/wiki/Cursor_%28databases%29) records where a query should continue. Its ordering fields must distinguish equal values, and its validity depends on the query and access permissions. Consider this case: Chunks contain many more rows than the viewport. Render the current range and evict distant chunks.",
           "graph": {
             "edges": [
               {
@@ -2502,6 +2511,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Own query generation, granted byte credit and received chunk sequence. Own retained decoded chunks under a total byte budget. active stream credit belongs to Stream controller; cached chunks belongs to Bounded chunk cache. [A race condition](https://en.wikipedia.org/wiki/Race_condition) makes an outcome depend on which operation finishes first. Responses need an identity or generation check so an older request cannot overwrite newer user intent.",
           "graph": {
             "edges": [
               {
@@ -2638,6 +2648,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Persist immutable query result chunks keyed by query generation and sequence. Spool retention and expiration are visible to clients. [A search index](https://en.wikipedia.org/wiki/Search_engine_indexing) maps query terms to candidate records. The interface must still associate each response with the active query and preserve the user’s chosen filters. Consider this case: Chunks contain many more rows than the viewport.",
           "graph": {
             "edges": [
               {
@@ -2791,6 +2802,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Send only chunks covered by explicit byte credit; grant more only after bounded admission or release. Decoded and in-flight bytes count toward admission budget. [Backpressure](https://en.wikipedia.org/wiki/Flow_control_%28data%29) prevents producers from outrunning the next component indefinitely. The design must choose whether excess work waits, is rejected, or is dropped with an explicit outcome.",
           "graph": {
             "edges": [
               {
@@ -2962,6 +2974,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Verify sequence/hash and retain a bounded reorder window; resume from acknowledged contiguous chunk. A missing chunk is never silently skipped. [Stream processing](https://en.wikipedia.org/wiki/Stream_processing) updates results as events arrive. Arrival order may differ from event time, so late-data rules and bounded retained state are part of the result definition. Consider this case: Chunks contain many more rows than the viewport.",
           "graph": {
             "edges": [
               {
@@ -3157,6 +3170,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Project only the visible index range and use placeholders for unretained chunks. Retained chunks and visible DOM rows have separate bounds. [An index](https://en.wikipedia.org/wiki/Database_index) maintains a structure that narrows a search without scanning every record. Faster reads come with storage costs and extra work whenever indexed data changes. Consider this case: Chunks contain many more rows than the viewport.",
           "graph": {
             "edges": [
               {
@@ -3382,6 +3396,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Cancel the old job, revoke its credit and create a new server-side query generation. Old chunks cannot enter the new grid. [A race condition](https://en.wikipedia.org/wiki/Race_condition) makes an outcome depend on which operation finishes first. Responses need an identity or generation check so an older request cannot overwrite newer user intent. Consider this case: Chunks contain many more rows than the viewport.",
           "graph": {
             "edges": [
               {
@@ -3631,6 +3646,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Resume from the spool using snapshot/generation plus last contiguous sequence; fail explicitly if expired. Reconnect cannot pretend expired chunks still exist. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid. Expiration must be checked at the point of use, even when background cleanup runs later. Consider this case: Chunks contain many more rows than the viewport.",
           "graph": {
             "edges": [
               {

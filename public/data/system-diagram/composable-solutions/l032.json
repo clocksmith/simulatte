@@ -540,6 +540,7 @@
           "checkIds": [
             "stale-response"
           ],
+          "explanation": "Begin with one request path and stable result identities. A response identifies its query generation. [A search index](https://en.wikipedia.org/wiki/Search_engine_indexing) maps query terms to candidate records. The interface must still associate each response with the active query and preserve the user’s chosen filters. Consider this case: Request A is generation 1; B is generation 2. B returns, then A returns despite cancellation.",
           "graph": {
             "edges": [
               {
@@ -636,6 +637,7 @@
           "checkIds": [
             "page-reset"
           ],
+          "explanation": "Expose API validation and the actual index without adding a second authoritative UI state. Unauthorized filters never reach a broader corpus. [A search index](https://en.wikipedia.org/wiki/Search_engine_indexing) maps query terms to candidate records. The interface must still associate each response with the active query and preserve the user’s chosen filters. Consider this case: Page two of filter A is in flight.",
           "graph": {
             "edges": [
               {
@@ -768,6 +770,7 @@
           "checkIds": [
             "stale-response"
           ],
+          "explanation": "Keep work-reduction mechanisms separate from correctness. A cancelled query can still finish remotely. [A search index](https://en.wikipedia.org/wiki/Search_engine_indexing) maps query terms to candidate records. The interface must still associate each response with the active query and preserve the user’s chosen filters. Consider this case: Request A is generation 1; B is generation 2. B returns, then A returns despite cancellation.",
           "graph": {
             "edges": [
               {
@@ -983,6 +986,7 @@
           "checkIds": [
             "stale-response"
           ],
+          "explanation": "Response application checks both generation and filter identity. Generation A cannot overwrite generation B. [A search index](https://en.wikipedia.org/wiki/Search_engine_indexing) maps query terms to candidate records. The interface must still associate each response with the active query and preserve the user’s chosen filters. Consider this case: Request A is generation 1; B is generation 2. B returns, then A returns despite cancellation.",
           "graph": {
             "edges": [
               {
@@ -1200,6 +1204,7 @@
           "checkIds": [
             "save-conflict"
           ],
+          "explanation": "Separate shareable draft state from authenticated account saves. Updating a stale saved-filter version returns a conflict instead of losing another device edit. [A search index](https://en.wikipedia.org/wiki/Search_engine_indexing) maps query terms to candidate records. The interface must still associate each response with the active query and preserve the user’s chosen filters. Consider this case: Two devices loaded saved-filter version 3. Both update with expectedVersion=3.",
           "graph": {
             "edges": [
               {
@@ -1476,6 +1481,7 @@
           "checkIds": [
             "scope-change"
           ],
+          "explanation": "Cache identity includes authorization and dataset scope. Sign-out and authorization-scope changes invalidate cache and local index copies. [A cache](https://en.wikipedia.org/wiki/Cache_replacement_policies) keeps reusable results in limited memory. Eviction controls space, while ownership and invalidation rules determine whether a returned value is still safe to use. Consider this case: User A has cached results and a local index. Sign out and sign in as B.",
           "graph": {
             "edges": [
               {
@@ -1775,6 +1781,7 @@
           "checkIds": [
             "page-reset"
           ],
+          "explanation": "A page belongs to exactly one filter, ordering and query generation. Cross-query pages are discarded and duplicate record IDs appear once. [A search index](https://en.wikipedia.org/wiki/Search_engine_indexing) maps query terms to candidate records. The interface must still associate each response with the active query and preserve the user’s chosen filters. Consider this case: Page two of filter A is in flight.",
           "graph": {
             "edges": [
               {
@@ -2102,6 +2109,7 @@
             "stale-response",
             "page-reset"
           ],
+          "explanation": "A single coordinator owns generation, cancellation and visible page identity. Cache hits and network responses pass through the same generation guard. [A race condition](https://en.wikipedia.org/wiki/Race_condition) makes an outcome depend on which operation finishes first. Responses need an identity or generation check so an older request cannot overwrite newer user intent. Consider this case: Request A is generation 1; B is generation 2.",
           "graph": {
             "edges": [
               {
@@ -2467,6 +2475,7 @@
           "checkIds": [
             "stale-response"
           ],
+          "explanation": "Begin with one request path and stable result identities. A response identifies its query generation. [A search index](https://en.wikipedia.org/wiki/Search_engine_indexing) maps query terms to candidate records. The interface must still associate each response with the active query and preserve the user’s chosen filters. Consider this case: Request A is generation 1; B is generation 2. B returns, then A returns despite cancellation.",
           "graph": {
             "edges": [
               {
@@ -2563,6 +2572,7 @@
           "checkIds": [
             "page-reset"
           ],
+          "explanation": "Expose API validation and the actual index without adding a second authoritative UI state. Unauthorized filters never reach a broader corpus. [A search index](https://en.wikipedia.org/wiki/Search_engine_indexing) maps query terms to candidate records. The interface must still associate each response with the active query and preserve the user’s chosen filters. Consider this case: Page two of filter A is in flight.",
           "graph": {
             "edges": [
               {
@@ -2695,6 +2705,7 @@
           "checkIds": [
             "stale-response"
           ],
+          "explanation": "Keep work-reduction mechanisms separate from correctness. A cancelled query can still finish remotely. [An index](https://en.wikipedia.org/wiki/Database_index) maintains a structure that narrows a search without scanning every record. Faster reads come with storage costs and extra work whenever indexed data changes. Consider this case: Request A is generation 1; B is generation 2. B returns, then A returns despite cancellation.",
           "graph": {
             "edges": [
               {
@@ -2910,6 +2921,7 @@
           "checkIds": [
             "stale-response"
           ],
+          "explanation": "Response application checks both generation and filter identity. Generation A cannot overwrite generation B. [A search index](https://en.wikipedia.org/wiki/Search_engine_indexing) maps query terms to candidate records. The interface must still associate each response with the active query and preserve the user’s chosen filters. Consider this case: Request A is generation 1; B is generation 2. B returns, then A returns despite cancellation.",
           "graph": {
             "edges": [
               {
@@ -3127,6 +3139,7 @@
           "checkIds": [
             "save-conflict"
           ],
+          "explanation": "Separate shareable draft state from authenticated account saves. Updating a stale saved-filter version returns a conflict instead of losing another device edit. [A search index](https://en.wikipedia.org/wiki/Search_engine_indexing) maps query terms to candidate records. The interface must still associate each response with the active query and preserve the user’s chosen filters. Consider this case: Two devices loaded saved-filter version 3. Both update with expectedVersion=3.",
           "graph": {
             "edges": [
               {
@@ -3403,6 +3416,7 @@
           "checkIds": [
             "scope-change"
           ],
+          "explanation": "Cache identity includes authorization and dataset scope. Sign-out and authorization-scope changes invalidate cache and local index copies. [A cache](https://en.wikipedia.org/wiki/Cache_replacement_policies) keeps reusable results in limited memory. Eviction controls space, while ownership and invalidation rules determine whether a returned value is still safe to use. Consider this case: User A has cached results and a local index. Sign out and sign in as B.",
           "graph": {
             "edges": [
               {
@@ -3702,6 +3716,7 @@
           "checkIds": [
             "page-reset"
           ],
+          "explanation": "A page belongs to exactly one filter, ordering and query generation. Cross-query pages are discarded and duplicate record IDs appear once. [A search index](https://en.wikipedia.org/wiki/Search_engine_indexing) maps query terms to candidate records. The interface must still associate each response with the active query and preserve the user’s chosen filters. Consider this case: Page two of filter A is in flight.",
           "graph": {
             "edges": [
               {
@@ -4029,6 +4044,7 @@
             "stale-response",
             "page-reset"
           ],
+          "explanation": "A single coordinator owns generation, cancellation and visible page identity. Cache hits and network responses pass through the same generation guard. [A race condition](https://en.wikipedia.org/wiki/Race_condition) makes an outcome depend on which operation finishes first. Responses need an identity or generation check so an older request cannot overwrite newer user intent. Consider this case: Request A is generation 1; B is generation 2.",
           "graph": {
             "edges": [
               {

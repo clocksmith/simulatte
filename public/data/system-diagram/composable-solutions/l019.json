@@ -804,6 +804,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Keep immutable segment keys and signed manifest authorization separate from routing. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version. Consider this case: A replica lacks one referenced segment. Fail the active region.",
           "graph": {
             "edges": [
               {
@@ -903,6 +904,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Authorize manifest and return immutable segment locations with a signed routing epoch. Own immutable manifest versions and content hashes. routing decision belongs to Playback resolver; asset/version metadata belongs to Asset catalogue. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version.",
           "graph": {
             "edges": [
               {
@@ -1039,6 +1041,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Combine bounded health samples and capacity with locality; avoid routing solely on stale latency. Unknown health is not healthy capacity. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version. Consider this case: A replica lacks one referenced segment. Fail the active region.",
           "graph": {
             "edges": [
               {
@@ -1192,6 +1195,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Resolve a signed asset/version/segment cache key and serve verified immutable content. Authorization tokens do not create shared-user cache leaks. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version. Consider this case: A replica lacks one referenced segment. Fail the active region.",
           "graph": {
             "edges": [
               {
@@ -1363,6 +1367,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Coalesce identical misses through a regional shield with bounded in-flight fetches. Miss coalescing retains segment/version identity. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version. Consider this case: A replica lacks one referenced segment. Fail the active region.",
           "graph": {
             "edges": [
               {
@@ -1558,6 +1563,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Publish a region as eligible only after manifest and all referenced segments have completion receipts. A partial replica is never an eligible origin. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version. Consider this case: A replica lacks one referenced segment.",
           "graph": {
             "edges": [
               {
@@ -1777,6 +1783,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Return a distinct healthy provider with jittered bounded retry and an overall playback deadline. Retry budgets include every attempted provider. [Backoff](https://en.wikipedia.org/wiki/Exponential_backoff) spaces repeated attempts so failures do not create a burst of extra traffic. A retry still needs a stable identity and a clear stopping condition. Consider this case: A replica lacks one referenced segment. Fail the active region.",
           "graph": {
             "edges": [
               {
@@ -2020,6 +2027,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Feed observed errors and deadline misses into the next signed routing generation. Feedback is measured telemetry, not proof of future capacity. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid. Expiration must be checked at the point of use, even when background cleanup runs later. Consider this case: A replica lacks one referenced segment. Fail the active region.",
           "graph": {
             "edges": [
               {
@@ -2370,6 +2378,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Keep immutable segment keys and signed manifest authorization separate from routing. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version. Consider this case: A peer returns bytes whose hash differs from manifest. Verify then consider fallback.",
           "graph": {
             "edges": [
               {
@@ -2469,6 +2478,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Choose a bounded peer attempt only when enough playback slack remains. Own verified segment sequence and current buffer horizon. segment deadlines belongs to Segment scheduler; buffered immutable segments belongs to Playback buffer. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version.",
           "graph": {
             "edges": [
               {
@@ -2605,6 +2615,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Advertise short-lived possession claims scoped to region and asset version. Tracker possession is a claim, not verified delivery. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version. Consider this case: A peer returns bytes whose hash differs from manifest. Verify then consider fallback.",
           "graph": {
             "edges": [
               {
@@ -2758,6 +2769,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Attempt bounded direct transport within consent and upload quota. Failed connectivity consumes a finite budget. [Transcoding](https://en.wikipedia.org/wiki/Transcoding) creates new media representations from an uploaded source. Publication should reference completed outputs, while retries and cleanup must not expose a partially processed asset. Consider this case: A peer returns bytes whose hash differs from manifest. Verify then consider fallback.",
           "graph": {
             "edges": [
               {
@@ -2929,6 +2941,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Check the manifest hash before admitting a received segment. Corrupt bytes are discarded, never played. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version. Consider this case: A peer returns bytes whose hash differs from manifest. Verify then consider fallback.",
           "graph": {
             "edges": [
               {
@@ -3124,6 +3137,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Start origin-backed retrieval before the reserved playback slack expires. Peer benefit cannot consume the entire playback deadline. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version. Consider this case: A peer returns bytes whose hash differs from manifest. Verify then consider fallback.",
           "graph": {
             "edges": [
               {
@@ -3349,6 +3363,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Coalesce segment misses and enforce origin concurrency for the fallback path. Peer churn does not grant unbounded origin fetches. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version. Consider this case: A peer returns bytes whose hash differs from manifest. Verify then consider fallback.",
           "graph": {
             "edges": [
               {
@@ -3592,6 +3607,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Expire claims, track integrity failures and honor immediate upload opt-out. Opt-out stops new uploads; prior downloaded bytes cannot be recalled. [Transcoding](https://en.wikipedia.org/wiki/Transcoding) creates new media representations from an uploaded source. Publication should reference completed outputs, while retries and cleanup must not expose a partially processed asset. Consider this case: A peer returns bytes whose hash differs from manifest. Verify then consider fallback.",
           "graph": {
             "edges": [
               {

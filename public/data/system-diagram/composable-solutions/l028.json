@@ -801,6 +801,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Validate schema and quarantine ambiguous identity without guessing. [Data ingestion](https://en.wikipedia.org/wiki/Data_integration) moves source records into a usable destination. Stable source identity and progress records distinguish genuinely new data from repeated delivery or a restarted import. Consider this case: Approval names revision 2 hash A. Submit revision 2 hash B or revision 1 after revision 2 commits.",
           "graph": {
             "edges": [
               {
@@ -900,6 +901,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Validate event envelopes before accepting workflow intent. Own immutable raw event hashes and revision state. event receipt identity belongs to Ingest coordinator; event IDs and states belongs to Staging ledger. [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers. Publishing one reference lets each reader keep a consistent version.",
           "graph": {
             "edges": [
               {
@@ -1036,6 +1038,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Pin schema version and store rejected raw input hashes. Validation failure cannot become accepted data. [Data ingestion](https://en.wikipedia.org/wiki/Data_integration) moves source records into a usable destination. Stable source identity and progress records distinguish genuinely new data from repeated delivery or a restarted import. Consider this case: Approval names revision 2 hash A. Submit revision 2 hash B or revision 1 after revision 2 commits.",
           "graph": {
             "edges": [
               {
@@ -1189,6 +1192,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Require a unique stable match or quarantine; retain candidate reasons. Ambiguity never silently merges identities. [Data ingestion](https://en.wikipedia.org/wiki/Data_integration) moves source records into a usable destination. Stable source identity and progress records distinguish genuinely new data from repeated delivery or a restarted import. Consider this case: Approval names revision 2 hash A. Submit revision 2 hash B or revision 1 after revision 2 commits.",
           "graph": {
             "edges": [
               {
@@ -1360,6 +1364,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Freeze entity ID, revision, payload hash and policy version in review intent. Any payload change requires a new approval. [A workflow](https://en.wikipedia.org/wiki/Workflow) records which step should run next and what has already finished. Durable transitions and effect identities let recovery resume work without blindly repeating external actions. Consider this case: Approval names revision 2 hash A.",
           "graph": {
             "edges": [
               {
@@ -1555,6 +1560,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Compare expected entity revision and current approval binding atomically. Out-of-order revisions remain pending or rejected. [A transaction](https://en.wikipedia.org/wiki/Database_transaction) commits related state changes together or leaves them unapplied. The database must enforce the relevant condition during the write, rather than trusting an earlier read. Consider this case: Approval names revision 2 hash A. Submit revision 2 hash B or revision 1 after revision 2 commits.",
           "graph": {
             "edges": [
               {
@@ -1774,6 +1780,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Uniquely admit event ID and detect the same ID with conflicting bytes. Conflicting reuse of an event ID is an error. [Collaborative editing](https://en.wikipedia.org/wiki/Operational_transformation) must reconcile concurrent edits against an agreed document version. Sending changes is only one part; reconnects also need a way to recover missing updates and conflicts. Consider this case: Approval names revision 2 hash A.",
           "graph": {
             "edges": [
               {
@@ -2023,6 +2030,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Append actor, decision, policy version and source receipt for each terminal transition. Audit preserves denied and superseded decisions. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return. Consider this case: Approval names revision 2 hash A.",
           "graph": {
             "edges": [
               {
@@ -2373,6 +2381,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Validate schema and quarantine ambiguous identity without guessing. [Data ingestion](https://en.wikipedia.org/wiki/Data_integration) moves source records into a usable destination. Stable source identity and progress records distinguish genuinely new data from repeated delivery or a restarted import. Consider this case: An approval arrives before its matching event. Replay with a mismatched payload hash.",
           "graph": {
             "edges": [
               {
@@ -2472,6 +2481,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Validate and route resolved identities into one entity partition. Own immutable ordered pending and approved event records. routing generation belongs to Envelope router; partition offsets belongs to Entity event log. [Partitioning](https://en.wikipedia.org/wiki/Partition_%28database%29) divides data and work among owners. The key determines where requests go; skew, ownership changes, and operations spanning partitions require additional coordination.",
           "graph": {
             "edges": [
               {
@@ -2608,6 +2618,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Route invalid or ambiguous envelopes into a separately inspectable queue. Unresolved identity has no accepted entity partition. [A queue](https://en.wikipedia.org/wiki/Queue_%28abstract_data_type%29) separates accepting work from completing it. Capacity, ordering, ownership, and shutdown behavior determine what producers and consumers may safely assume about each item. Consider this case: An approval arrives before its matching event. Replay with a mismatched payload hash.",
           "graph": {
             "edges": [
               {
@@ -2761,6 +2772,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Append versioned mapping decisions rather than editing old events. Replay uses the original mapping version. [An event log](https://en.wikipedia.org/wiki/Event-driven_architecture) preserves ordered changes so a consumer can rebuild state or catch up. The consumer must remember its position and handle repeated delivery without repeated effects. Consider this case: An approval arrives before its matching event. Replay with a mismatched payload hash.",
           "graph": {
             "edges": [
               {
@@ -2938,6 +2950,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Buffer bounded commands keyed by event ID; require the referenced hash before applying. An unbound approval is never a commit. [A workflow](https://en.wikipedia.org/wiki/Workflow) records which step should run next and what has already finished. Durable transitions and effect identities let recovery resume work without blindly repeating external actions. Consider this case: An approval arrives before its matching event.",
           "graph": {
             "edges": [
               {
@@ -3133,6 +3146,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Consume one partition epoch and apply allowed state transitions to the next revision. Offsets advance only with persisted reducer state. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return. Consider this case: An approval arrives before its matching event.",
           "graph": {
             "edges": [
               {
@@ -3358,6 +3372,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Upsert by entity/revision/event ID with checkpoint in one transaction. Replay is idempotent for accepted revisions. [A transaction](https://en.wikipedia.org/wiki/Database_transaction) commits related state changes together or leaves them unapplied. The database must enforce the relevant condition during the write, rather than trusting an earlier read. Consider this case: An approval arrives before its matching event. Replay with a mismatched payload hash.",
           "graph": {
             "edges": [
               {
@@ -3601,6 +3616,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Build a new projection generation and compare before explicit publication. A new mapping cannot mutate historic decisions in place. [An event log](https://en.wikipedia.org/wiki/Event-driven_architecture) preserves ordered changes so a consumer can rebuild state or catch up. The consumer must remember its position and handle repeated delivery without repeated effects. Consider this case: An approval arrives before its matching event.",
           "graph": {
             "edges": [
               {

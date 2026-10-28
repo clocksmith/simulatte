@@ -727,6 +727,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Consume characters once with state CODE, SINGLE, DOUBLE, LINE or BLOCK; preserve one pending delimiter character across chunks. Only CODE state recognizes comment openers. [Lexical analysis](https://en.wikipedia.org/wiki/Lexical_analysis) reads characters while tracking their meaning in the current context. The same delimiter can be ordinary text inside a string and syntax outside it.",
           "graph": {
             "edges": [
               {
@@ -826,6 +827,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Hold at most one undecided /, -, quote or block-star until the next code unit or explicit EOF resolves it. feed boundaries cannot change output. [Lexical analysis](https://en.wikipedia.org/wiki/Lexical_analysis) reads characters while tracking their meaning in the current context. The same delimiter can be ordinary text inside a string and syntax outside it.",
           "graph": {
             "edges": [
               {
@@ -936,6 +938,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Enter matching quote state from CODE; copy characters verbatim and treat delimiter bytes only as literal content while quoted. A delimiter inside a literal never changes comment state. [Lexical analysis](https://en.wikipedia.org/wiki/Lexical_analysis) reads characters while tracking their meaning in the current context. The same delimiter can be ordinary text inside a string and syntax outside it.",
           "graph": {
             "edges": [
               {
@@ -1070,6 +1073,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Backslash copies the following code unit literally; doubled matching quotes remain inside the same literal. Escapes preserve original bytes and do not reinterpret adjacent comment markers. [Record linkage](https://en.wikipedia.org/wiki/Record_linkage) identifies entries that refer to the same real-world entity. A matching rule needs explicit uncertainty handling so an ambiguous similarity does not silently become authoritative identity.",
           "graph": {
             "edges": [
               {
@@ -1228,6 +1232,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "On // or -- emit one separator then discard until CR or LF; copy newline code units and return to CODE. Newlines survive exactly as supplied. [Lexical analysis](https://en.wikipedia.org/wiki/Lexical_analysis) reads characters while tracking their meaning in the current context. The same delimiter can be ordinary text inside a string and syntax outside it.",
           "graph": {
             "edges": [
               {
@@ -1410,6 +1415,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "After /* emit one separator, drop nonnewline content until first */; internal /* is plain comment content. /*/ cannot close itself because no complete */ follows the opener. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return.",
           "graph": {
             "edges": [
               {
@@ -1616,6 +1622,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Append the opener separator and retained newlines to a terminal-owned output sink; never join lexical tokens across removed comments. a/**/b becomes a b. [Lexical analysis](https://en.wikipedia.org/wiki/Lexical_analysis) reads characters while tracking their meaning in the current context. The same delimiter can be ordinary text inside a string and syntax outside it. Consider this case: Quoted delimiters, escaped quotes, doubled quotes, // and -- lines, and multiline blocks.",
           "graph": {
             "edges": [
               {
@@ -1846,6 +1853,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Flush ordinary pending characters, finish a line comment at EOF, and reject BLOCK or unclosed quote state. Mark finished exactly once. EOF is explicit and independent from chunk completion. [Lexical analysis](https://en.wikipedia.org/wiki/Lexical_analysis) reads characters while tracking their meaning in the current context. The same delimiter can be ordinary text inside a string and syntax outside it.",
           "graph": {
             "edges": [
               {
@@ -2169,6 +2177,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Retain the source, tokenize nonoverlapping literal/comment/plain spans, then reconstruct from source slices and comment whitespace. Comment deletion never changes scanner offsets in the original source. [Lexical analysis](https://en.wikipedia.org/wiki/Lexical_analysis) reads characters while tracking their meaning in the current context. The same delimiter can be ordinary text inside a string and syntax outside it.",
           "graph": {
             "edges": [
               {
@@ -2268,6 +2277,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Read the entire input into an immutable source and use half-open code-unit ranges. Every span refers to original input offsets. [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers. Publishing one reference lets each reader keep a consistent version. Consider this case: Quoted delimiters, escaped quotes, doubled quotes, // and -- lines, and multiline blocks.",
           "graph": {
             "edges": [
               {
@@ -2378,6 +2388,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "At a quote, scan matching delimiter with escapes/doubled-quote rules and emit a literal span without scanning its body for comments. Literal spans copy source bytes exactly. [Lexical analysis](https://en.wikipedia.org/wiki/Lexical_analysis) reads characters while tracking their meaning in the current context. The same delimiter can be ordinary text inside a string and syntax outside it.",
           "graph": {
             "edges": [
               {
@@ -2512,6 +2523,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "At CODE // or -- record through the last nonnewline character; leave CR/LF to the next plain span. A line comment may end at EOF without error. [Lexical analysis](https://en.wikipedia.org/wiki/Lexical_analysis) reads characters while tracking their meaning in the current context. The same delimiter can be ordinary text inside a string and syntax outside it.",
           "graph": {
             "edges": [
               {
@@ -2670,6 +2682,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "At CODE /* search the first */ while counting newlines for diagnostics; reject EOF with no closer. No nested block grammar is inferred. [A search index](https://en.wikipedia.org/wiki/Search_engine_indexing) maps query terms to candidate records. The interface must still associate each response with the active query and preserve the user’s chosen filters. Consider this case: Quoted delimiters, escaped quotes, doubled quotes, // and -- lines, and multiline blocks.",
           "graph": {
             "edges": [
               {
@@ -2852,6 +2865,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Append adjacent disjoint spans covering source exactly once; keep original start/end and span kind. No overlap, gap or reordered source interval is permitted. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version. Consider this case: Quoted delimiters, escaped quotes, doubled quotes, // and -- lines, and multiline blocks.",
           "graph": {
             "edges": [
               {
@@ -3058,6 +3072,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Copy plain/literal slices; replace each comment with one space plus its original CR/LF code units. Record emitted intervals for source mapping. a/**/b retains a token boundary and line counts stay stable. [Lexical analysis](https://en.wikipedia.org/wiki/Lexical_analysis) reads characters while tracking their meaning in the current context. The same delimiter can be ordinary text inside a string and syntax outside it.",
           "graph": {
             "edges": [
               {
@@ -3288,6 +3303,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Validate every span and EOF state before joining output pieces; errors report original opener offset without returning a successful partial result. Malformed input returns no successful output artifact. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version.",
           "graph": {
             "edges": [
               {

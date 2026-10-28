@@ -67,11 +67,18 @@
     return {...workspace, overlays};
   }
   const withView = (workspace, patch) => ({...workspace, view: {...workspace.view, ...patch}});
+  // Only upgrade published teaching text when every other authored field matches. Learner
+  // overlays, notes and imported extensions remain untouched; edited/imported designs stay authoritative.
+  function refreshExplanations(workspace,published) {
+    const withoutText=document=>{const copy=structuredClone(document);for(const s of copy.solutions)for(const t of s.stages)delete t.explanation;return copy;};
+    if(!study.same(withoutText(workspace.document),withoutText(published)))return workspace;
+    return {...workspace,document:structuredClone(published)};
+  }
   function summary(workspace) {
     const d = workspace.document;
     return {referenceId: d.problem.referenceId, studyLabel: d.problem.studyLabel, approaches: d.solutions.map(s => `${s.title} (${s.stages.length} stages)`),
       stages: d.solutions.reduce((n, s) => n + s.stages.length, 0), editedStages: Object.values(workspace.overlays).reduce((n, stages) => n + Object.keys(stages).length, 0)};
   }
   const storageKey = referenceId => STORAGE_PREFIX + referenceId;
-  return Object.freeze({SCHEMA, STORAGE_PREFIX, create, parse, serialize, stageKey, overlayFor, withOverlay, withView, summary, storageKey});
+  return Object.freeze({SCHEMA, STORAGE_PREFIX, create, parse, serialize, stageKey, overlayFor, withOverlay, withView, refreshExplanations, summary, storageKey});
 });

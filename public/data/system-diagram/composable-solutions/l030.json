@@ -842,7 +842,7 @@
             "late",
             "replay"
           ],
-          "explanation": "Accept source event ID, partition, schema version and an event timestamp separate from arrival time. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Accept source event ID, partition, schema version and an event timestamp separate from arrival time. Accept source event ID, partition, schema version and an event timestamp separate from arrival time. State owner: Event intake (source event identity). Accept source event ID, partition, schema version and an event timestamp separate from arrival time. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Partitioning](https://en.wikipedia.org/wiki/Partition_%28database%29) divides data and work among owners.",
           "graph": {
             "edges": [
               {
@@ -944,7 +944,7 @@
             "late",
             "replay"
           ],
-          "explanation": "Expand ingress with source offsets, schema compatibility and state checkpoint identities. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Expand ingress with source offsets, schema compatibility and state checkpoint identities. Expand ingress with source offsets, schema compatibility and state checkpoint identities. State owner: Offset authority (offset and checkpoint versions). Expand ingress with source offsets, schema compatibility and state checkpoint identities. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A checkpoint](https://en.wikipedia.org/wiki/Checkpointing) records enough progress to restart without repeating everything.",
           "graph": {
             "edges": [
               {
@@ -1083,7 +1083,7 @@
             "late",
             "replay"
           ],
-          "explanation": "Decode v1/v2 through explicit converters to one canonical value; reject unknown versions. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Decode v1/v2 through explicit converters to one canonical value; reject unknown versions. Decode v1/v2 through explicit converters to one canonical value; reject unknown versions. State owner: Version decoder (schema conversion registry). Decode v1/v2 through explicit converters to one canonical value; reject unknown versions. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Stream processing](https://en.wikipedia.org/wiki/Stream_processing) updates results as events arrive.",
           "graph": {
             "edges": [
               {
@@ -1239,7 +1239,7 @@
             "late",
             "replay"
           ],
-          "explanation": "Keep per-partition FIFO with bounded buffers and backpressure on source admission. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Keep per-partition FIFO with bounded buffers and backpressure on source admission. Keep per-partition FIFO with bounded buffers and backpressure on source admission. State owner: Partition FIFO (partition queue and byte budget). Keep per-partition FIFO with bounded buffers and backpressure on source admission. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Backpressure](https://en.wikipedia.org/wiki/Flow_control_%28data%29) prevents producers from outrunning the next component indefinitely.",
           "graph": {
             "edges": [
               {
@@ -1413,7 +1413,7 @@
             "late",
             "replay"
           ],
-          "explanation": "Update floor(eventTime/windowSize) half-open sum/count after deduplicating event IDs. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Update floor(eventTime/windowSize) half-open sum/count after deduplicating event IDs. Update floor(eventTime/windowSize) half-open sum/count after deduplicating event IDs. State owner: Window state (key/window sum, count and dedupe). Update floor(eventTime/windowSize) half-open sum/count after deduplicating event IDs. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Stream processing](https://en.wikipedia.org/wiki/Stream_processing) updates results as events arrive. Arrival order may differ from event time, so late-data rules and bounded retained state are part of the result definition.",
           "graph": {
             "edges": [
               {
@@ -1617,7 +1617,7 @@
             "late",
             "replay"
           ],
-          "explanation": "Advance a monotonic watermark under declared partition/idleness policy and route older events to quarantine. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Advance a monotonic watermark under declared partition/idleness policy and route older events to quarantine. Advance a monotonic watermark under declared partition/idleness policy and route older events to quarantine. State owner: Watermark gate (watermark and late-event reasons). Advance a monotonic watermark under declared partition/idleness policy and route older events to quarantine. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes.",
           "graph": {
             "edges": [
               {
@@ -1870,7 +1870,7 @@
             "late",
             "replay"
           ],
-          "explanation": "Spill bounded sorted runs and atomically checkpoint state references plus source offsets. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Spill bounded sorted runs and atomically checkpoint state references plus source offsets. Spill bounded sorted runs and atomically checkpoint state references plus source offsets. State owner: Spill checkpoint (spill manifests and checkpoints). Spill bounded sorted runs and atomically checkpoint state references plus source offsets. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A checkpoint](https://en.wikipedia.org/wiki/Checkpointing) records enough progress to restart without repeating everything.",
           "graph": {
             "edges": [
               {
@@ -2167,7 +2167,7 @@
             "late",
             "replay"
           ],
-          "explanation": "Restore a checkpoint, deduplicate replayed IDs and publish versioned window results; finality follows the declared watermark rule. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Restore a checkpoint, deduplicate replayed IDs and publish versioned window results; finality follows the declared watermark rule. Restore a checkpoint, deduplicate replayed IDs and publish versioned window results; finality follows the declared watermark rule. State owner: Replay and finalize (output versions and replay cursor). [An event log](https://en.wikipedia.org/wiki/Event-driven_architecture) preserves ordered changes so a consumer can rebuild state or catch up. The consumer must remember its position and handle repeated delivery without repeated effects.",
           "graph": {
             "edges": [
               {
@@ -2603,7 +2603,7 @@
             "late",
             "replay"
           ],
-          "explanation": "Freeze upper source offsets and a unique batch identity without treating arrival time as event time. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Freeze upper source offsets and a unique batch identity without treating arrival time as event time. Freeze upper source offsets and a unique batch identity without treating arrival time as event time. State owner: Batch cutoff (batch offset interval). [Data ingestion](https://en.wikipedia.org/wiki/Data_integration) moves source records into a usable destination. Stable source identity and progress records distinguish genuinely new data from repeated delivery or a restarted import.",
           "graph": {
             "edges": [
               {
@@ -2705,7 +2705,7 @@
             "late",
             "replay"
           ],
-          "explanation": "Expand batch coordinator with immutable offset ranges and commit receipts. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Expand batch coordinator with immutable offset ranges and commit receipts. Expand batch coordinator with immutable offset ranges and commit receipts. State owner: Batch catalogue (batch identity and ranges). Expand batch coordinator with immutable offset ranges and commit receipts. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Data ingestion](https://en.wikipedia.org/wiki/Data_integration) moves source records into a usable destination.",
           "graph": {
             "edges": [
               {
@@ -2844,7 +2844,7 @@
             "late",
             "replay"
           ],
-          "explanation": "Retain event IDs, event times and original schema version in an immutable batch object. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Retain event IDs, event times and original schema version in an immutable batch object. Retain event IDs, event times and original schema version in an immutable batch object. State owner: Raw event archive (raw batch bytes and digest). Retain event IDs, event times and original schema version in an immutable batch object. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Data ingestion](https://en.wikipedia.org/wiki/Data_integration) moves source records into a usable destination.",
           "graph": {
             "edges": [
               {
@@ -3000,7 +3000,7 @@
             "late",
             "replay"
           ],
-          "explanation": "Convert each declared version to canonical key/value fields and quarantine unknown versions. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Convert each declared version to canonical key/value fields and quarantine unknown versions. Convert each declared version to canonical key/value fields and quarantine unknown versions. State owner: Schema normalize (conversion version and rejects). Convert each declared version to canonical key/value fields and quarantine unknown versions. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Stream processing](https://en.wikipedia.org/wiki/Stream_processing) updates results as events arrive.",
           "graph": {
             "edges": [
               {
@@ -3174,7 +3174,7 @@
             "late",
             "replay"
           ],
-          "explanation": "Sort by key/window/event ID into bounded disk runs, deduplicating repeated source identities. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Sort by key/window/event ID into bounded disk runs, deduplicating repeated source identities. Sort by key/window/event ID into bounded disk runs, deduplicating repeated source identities. State owner: Sort and spill (sorted spill runs). Sort by key/window/event ID into bounded disk runs, deduplicating repeated source identities. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Stream processing](https://en.wikipedia.org/wiki/Stream_processing) updates results as events arrive.",
           "graph": {
             "edges": [
               {
@@ -3372,7 +3372,7 @@
             "late",
             "replay"
           ],
-          "explanation": "Use the frozen batch watermark; eligible events update windows, older events enter a retained quarantine dataset. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Use the frozen batch watermark; eligible events update windows, older events enter a retained quarantine dataset. Use the frozen batch watermark; eligible events update windows, older events enter a retained quarantine dataset. State owner: Lateness partition (batch watermark and quarantine). [Stream processing](https://en.wikipedia.org/wiki/Stream_processing) updates results as events arrive. Arrival order may differ from event time, so late-data rules and bounded retained state are part of the result definition.",
           "graph": {
             "edges": [
               {
@@ -3594,7 +3594,7 @@
             "late",
             "replay"
           ],
-          "explanation": "Commit touched-window aggregates and batch receipt together, or recompute from selected immutable batches. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Commit touched-window aggregates and batch receipt together, or recompute from selected immutable batches. Commit touched-window aggregates and batch receipt together, or recompute from selected immutable batches. State owner: Atomic window merge (window versions and batch receipts). Commit touched-window aggregates and batch receipt together, or recompute from selected immutable batches. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Data ingestion](https://en.wikipedia.org/wiki/Data_integration) moves source records into a usable destination.",
           "graph": {
             "edges": [
               {
@@ -3840,7 +3840,7 @@
             "late",
             "replay"
           ],
-          "explanation": "Reuse frozen ranges and batch identity, reconcile merge receipt, then advance source checkpoint. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Reuse frozen ranges and batch identity, reconcile merge receipt, then advance source checkpoint. Reuse frozen ranges and batch identity, reconcile merge receipt, then advance source checkpoint. State owner: Batch recovery (recovery cursor and output receipt). Reuse frozen ranges and batch identity, reconcile merge receipt, then advance source checkpoint. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Data ingestion](https://en.wikipedia.org/wiki/Data_integration) moves source records into a usable destination.",
           "graph": {
             "edges": [
               {

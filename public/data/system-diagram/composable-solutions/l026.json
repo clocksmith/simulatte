@@ -809,6 +809,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Distinguish acknowledged durable writes, committed prefixes and lagging applied state. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call. Consider this case: A former leader is isolated from a majority. A newer term elects another leader.",
           "graph": {
             "edges": [
               {
@@ -908,6 +909,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Assign one log index per deduplicated command in the current term. Own indexed terms and checksummed command entries before acknowledgement. term and commit index belongs to Leader state machine; log prefix belongs to Local durable log. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return.",
           "graph": {
             "edges": [
               {
@@ -1044,6 +1046,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Verify prior index/term, durably append the matching suffix and reject log mismatch. An acknowledgement names a persisted matching prefix. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return. Consider this case: A former leader is isolated from a majority.",
           "graph": {
             "edges": [
               {
@@ -1197,6 +1200,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Advance only with the consensus current-term rule and a majority of the active configuration. A bare count without term/configuration is insufficient. [Raft](https://en.wikipedia.org/wiki/Raft_%28algorithm%29) coordinates a replicated log through an elected leader and majority agreement. Terms and voting rules prevent an outdated leader from deciding new committed entries alone. Consider this case: A former leader is isolated from a majority.",
           "graph": {
             "edges": [
               {
@@ -1368,6 +1372,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Apply committed entries in index order and use a verified leadership/read-index barrier. Read success requires appliedIndex at least the read barrier. [An index](https://en.wikipedia.org/wiki/Database_index) maintains a structure that narrows a search without scanning every record. Faster reads come with storage costs and extra work whenever indexed data changes. Consider this case: A former leader is isolated from a majority.",
           "graph": {
             "edges": [
               {
@@ -1563,6 +1568,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Persist votes and term; reject candidates whose logs are not sufficiently up to date. Timeout triggers an election, not proof that the old leader is dead. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return.",
           "graph": {
             "edges": [
               {
@@ -1788,6 +1794,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Install a checksummed snapshot with last included index/term, then append the suffix. Snapshot and suffix meet at one verified boundary. [A snapshot](https://en.wikipedia.org/wiki/Snapshot_isolation) gives one read operation a fixed view of data. Later writes may change the live system without changing the rows that reader sees. Consider this case: A former leader is isolated from a majority. A newer term elects another leader.",
           "graph": {
             "edges": [
               {
@@ -2031,6 +2038,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Persist client sequence/result in the replicated state machine. A repeated command sequence returns its original committed result. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call. Consider this case: A former leader is isolated from a majority. A newer term elects another leader.",
           "graph": {
             "edges": [
               {
@@ -2381,6 +2389,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Distinguish acknowledged durable writes, committed prefixes and lagging applied state. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call. Consider this case: A stale primary still believes its lease is valid. It writes with token 4 after token 5 is installed.",
           "graph": {
             "edges": [
               {
@@ -2480,6 +2489,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Require a current monotonically increasing storage fence on every mutation. Own durable sequenced writes and client result receipts. current fence token belongs to Primary writer; journal LSN belongs to Primary journal. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call.",
           "graph": {
             "edges": [
               {
@@ -2616,6 +2626,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "For zero declared loss within the selected failure model, await a durable backup receipt before success. Async acknowledgement instead exposes an explicit potential-loss window. [Collaborative editing](https://en.wikipedia.org/wiki/Operational_transformation) must reconcile concurrent edits against an agreed document version. Sending changes is only one part; reconnects also need a way to recover missing updates and conflicts.",
           "graph": {
             "edges": [
               {
@@ -2769,6 +2780,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Issue monotonic fencing tokens and enforce them at the storage mutation boundary. Lease timeout without storage enforcement is insufficient. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources. A newer owner needs a token that the resource checks, not merely a belief that ownership changed. Consider this case: A stale primary still believes its lease is valid.",
           "graph": {
             "edges": [
               {
@@ -2946,6 +2958,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Compare durable acknowledgement watermark and available log prefixes before selecting a survivor. Do not promote below the acknowledged boundary unless data loss is explicitly accepted. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return.",
           "graph": {
             "edges": [
               {
@@ -3141,6 +3154,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Carry a minimum LSN token and wait or route to primary when a replica is behind. A stale replica cannot satisfy the stronger read token. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return.",
           "graph": {
             "edges": [
               {
@@ -3360,6 +3374,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Rejoin as a follower under the new fence and restore verified snapshot plus journal suffix. Recovery never restores the old write authority. [A snapshot](https://en.wikipedia.org/wiki/Snapshot_isolation) gives one read operation a fixed view of data. Later writes may change the live system without changing the rows that reader sees. Consider this case: A stale primary still believes its lease is valid.",
           "graph": {
             "edges": [
               {
@@ -3603,6 +3618,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Retain request IDs, promotion decisions and acknowledged LSN boundary for client retry resolution. A missing receipt is not automatically proof of nonexecution. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return.",
           "graph": {
             "edges": [
               {

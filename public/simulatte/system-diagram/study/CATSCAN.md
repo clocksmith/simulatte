@@ -33,7 +33,8 @@ This directory, canonical route `/lucyd`; legacy entrypoints remain compatible.
 - Only matching ports create typed connections.
 - Validate imports before replacement; retain unknown fields and current work on failure.
 - Page Up/Down navigate outside typing, dialogs and active gestures.
-- Study mode toggles a centered sequence guide. Notes open on demand, viewport-bounded at 480px with readable contrast.
+- Study mode shows a centered guide with 50–75-word explanations and safe background links. Notes are viewport-bounded at 480px.
+- Theme defaults to System and tracks OS changes; explicit Light/Dark overrides persist.
 - Study controls never trigger canvas shortcuts.
 
 ## Acceptance

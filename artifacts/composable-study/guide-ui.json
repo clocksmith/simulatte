@@ -1,0 +1,98 @@
+{
+  "schema": "simulatte.studyGuideUI.v1",
+  "url": "http://127.0.0.1:4173/lucyd",
+  "passed": true,
+  "scope": "Chromium desktop, live OS preference changes, saved captions and 390px touch emulation; not physical-device proof",
+  "rows": [
+    {
+      "name": "Published explanations replace old saved captions while retaining practice notes",
+      "ok": true,
+      "observed": {
+        "words": 62
+      }
+    },
+    {
+      "name": "Reading a focused explanation scrolls without changing stages",
+      "ok": true
+    },
+    {
+      "name": "Explanation renders safe clickable background links",
+      "ok": true,
+      "observed": [
+        {
+          "href": "https://en.wikipedia.org/wiki/Read-copy-update",
+          "rel": "noopener noreferrer",
+          "target": "_blank"
+        }
+      ]
+    },
+    {
+      "name": "Study button aligns with native zoom and history controls",
+      "ok": true,
+      "observed": {
+        "study": {
+          "x": 237.59375,
+          "y": 948,
+          "w": 57.984375,
+          "h": 36
+        },
+        "zoom": {
+          "x": 16,
+          "y": 948,
+          "w": 132,
+          "h": 36
+        },
+        "undo": {
+          "x": 157.59375,
+          "y": 948,
+          "w": 72,
+          "h": 36
+        }
+      }
+    },
+    {
+      "name": "Theme defaults to System",
+      "ok": true
+    },
+    {
+      "name": "System follows a live OS dark-mode change",
+      "ok": true
+    },
+    {
+      "name": "Explicit Light survives reload despite a dark OS",
+      "ok": true
+    },
+    {
+      "name": "Explicit Dark overrides a light OS",
+      "ok": true
+    },
+    {
+      "name": "Returning to System persists and resumes live OS tracking",
+      "ok": true
+    },
+    {
+      "name": "Phone explanation remains readable, focusable and within the viewport",
+      "ok": true,
+      "observed": {
+        "words": 62,
+        "left": 20,
+        "right": 370,
+        "bottom": 765,
+        "height": 78,
+        "width": 390,
+        "screen": 844,
+        "scrollable": true,
+        "focusable": true
+      }
+    },
+    {
+      "name": "Phone can scroll to the complete explanation and its link",
+      "ok": true,
+      "observed": {
+        "visible": true,
+        "scrollTop": 35
+      }
+    }
+  ],
+  "errors": []
+}

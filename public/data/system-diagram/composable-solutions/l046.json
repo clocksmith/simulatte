@@ -804,6 +804,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Admit only resources covered by tenant quota and cluster capacity. [Access control](https://en.wikipedia.org/wiki/Access_control) decides whether an authenticated identity may perform a particular action. The check must apply to the actual resource and operation, including cached and asynchronous paths. Consider this case: Two admissions each ask for the final free GPU. Serialize reservations in the central ledger.",
           "graph": {
             "edges": [
               {
@@ -903,6 +904,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Authenticate tenant and atomically reserve quota plus physical capacity. Own tenant limits, active reservations and cluster free capacity. reservation decision belongs to Admission controller; resource vectors belongs to Quota ledger. [Access control](https://en.wikipedia.org/wiki/Access_control) decides whether an authenticated identity may perform a particular action. The check must apply to the actual resource and operation, including cached and asynchronous paths.",
           "graph": {
             "edges": [
               {
@@ -1039,6 +1041,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Queue by declared weighted-share policy with bounded per-tenant pending requests. Quota limit is not a fairness guarantee. [A queue](https://en.wikipedia.org/wiki/Queue_%28abstract_data_type%29) separates accepting work from completing it. Capacity, ordering, ownership, and shutdown behavior determine what producers and consumers may safely assume about each item. Consider this case: Two admissions each ask for the final free GPU. Serialize reservations in the central ledger.",
           "graph": {
             "edges": [
               {
@@ -1192,6 +1195,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Assign one resource vector and lease epoch; reject stale allocation commands. One reservation cannot be placed twice. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return. Consider this case: Two admissions each ask for the final free GPU.",
           "graph": {
             "edges": [
               {
@@ -1363,6 +1367,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Install cgroup CPU/memory and supported device/network controls before starting user code. GPU scheduling isolation needs its own supported mechanism; quota alone is insufficient. [A directed acyclic graph](https://en.wikipedia.org/wiki/Directed_acyclic_graph) expresses work that depends on earlier results. A scheduler must track completed dependencies and distinguish logical tasks from retry attempts before releasing downstream work.",
           "graph": {
             "edges": [
               {
@@ -1558,6 +1563,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Record monotonic start/end intervals with allocation/fence and sequence; deduplicate retries. Wall-clock changes cannot create negative or duplicate elapsed usage. [Idempotence](https://en.wikipedia.org/wiki/Idempotence) means repeating the same logical operation does not repeat its effect. Stable request identities let a retry recover an existing outcome instead of creating another change. Consider this case: Two admissions each ask for the final free GPU.",
           "graph": {
             "edges": [
               {
@@ -1777,6 +1783,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Keep warm capacity under an explicit idle budget; stop only after fenced idle timeout and drain. A queued new request prevents unsafe idle teardown. [Backoff](https://en.wikipedia.org/wiki/Exponential_backoff) spaces repeated attempts so failures do not create a burst of extra traffic. A retry still needs a stable identity and a clear stopping condition.",
           "graph": {
             "edges": [
               {
@@ -2020,6 +2027,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Compare node leases and ledger reservations; fence the old allocation before releasing reusable capacity. Lease expiry without fencing cannot safely free capacity. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources. A newer owner needs a token that the resource checks, not merely a belief that ownership changed.",
           "graph": {
             "edges": [
               {
@@ -2370,6 +2378,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Admit only resources covered by tenant quota and cluster capacity. [Access control](https://en.wikipedia.org/wiki/Access_control) decides whether an authenticated identity may perform a particular action. The check must apply to the actual resource and operation, including cached and asynchronous paths. Consider this case: Regional grants consume all global quota. A third region asks for another grant before revocation completes.",
           "graph": {
             "edges": [
               {
@@ -2469,6 +2478,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Partition quota into nonoverlapping expiring resource leases. Own token amounts, holder, epoch and revocation state. issued resource tokens belongs to Global quota issuer; outstanding grants belongs to Global lease ledger. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources. A newer owner needs a token that the resource checks, not merely a belief that ownership changed.",
           "graph": {
             "edges": [
               {
@@ -2605,6 +2615,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Spend only within a region-held resource lease and persist each allocation deduction. Regional grants sum to no more than global quota. [A cache](https://en.wikipedia.org/wiki/Cache_replacement_policies) keeps reusable results in limited memory. Eviction controls space, while ownership and invalidation rules determine whether a returned value is still safe to use. Consider this case: Regional grants consume all global quota.",
           "graph": {
             "edges": [
               {
@@ -2758,6 +2769,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Serialize per-lease vector deductions and bounded weighted local queues. Every local allocation has one unique deduction. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources. A newer owner needs a token that the resource checks, not merely a belief that ownership changed. Consider this case: Regional grants consume all global quota. A third region asks for another grant before revocation completes.",
           "graph": {
             "edges": [
               {
@@ -2929,6 +2941,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Stop or renew allocations before lease safety deadline and enforce epochs at runtime. An expired grant cannot continue consuming reclaimed capacity. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources. A newer owner needs a token that the resource checks, not merely a belief that ownership changed. Consider this case: Regional grants consume all global quota.",
           "graph": {
             "edges": [
               {
@@ -3124,6 +3137,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Deduplicate interval sequences by allocation/epoch before rolling up tenant totals. Aggregation is idempotent for repeated interval reports. [Idempotence](https://en.wikipedia.org/wiki/Idempotence) means repeating the same logical operation does not repeat its effect. Stable request identities let a retry recover an existing outcome instead of creating another change. Consider this case: Regional grants consume all global quota. A third region asks for another grant before revocation completes.",
           "graph": {
             "edges": [
               {
@@ -3343,6 +3357,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Reissue only after revoke/ack or safe expiry/fence, never by assuming a disconnected holder stopped. Old and replacement resource rights must not overlap. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources. A newer owner needs a token that the resource checks, not merely a belief that ownership changed.",
           "graph": {
             "edges": [
               {
@@ -3592,6 +3607,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Reserve a bounded warm subset under the same regional grant and reclaim on idle policy. Warm capacity is charged against the regional lease. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources. A newer owner needs a token that the resource checks, not merely a belief that ownership changed.",
           "graph": {
             "edges": [
               {

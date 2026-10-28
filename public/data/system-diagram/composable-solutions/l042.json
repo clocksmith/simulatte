@@ -819,6 +819,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "A get linearizes against put and never returns an entry expired at its lookup timestamp. [Linearizability](https://en.wikipedia.org/wiki/Linearizability) assigns each completed operation one instant when it takes effect. Concurrent callers may overlap, but their visible outcomes must fit a valid sequential order. Consider this case: A key has value A expiring at 10. Read at 9 and 10 with an injected monotonic clock.",
           "graph": {
             "edges": [
               {
@@ -918,6 +919,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Validate TTL and linearize lookup/replace against a monotonic timestamp. Own immutable value, deadline and monotonically increasing generation per key. operation timestamp belongs to Cache methods; key/value/deadline/generation belongs to RW-locked map. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid. Expiration must be checked at the point of use, even when background cleanup runs later.",
           "graph": {
             "edges": [
               {
@@ -1054,6 +1056,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Treat zero TTL as immediate absence and reject negative TTL; use checked monotonic deadline arithmetic. Expiry comparison is now >= deadline. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid. Expiration must be checked at the point of use, even when background cleanup runs later. Consider this case: A key has value A expiring at 10.",
           "graph": {
             "edges": [
               {
@@ -1207,6 +1210,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Push deadline/key/generation on put under exclusive mutation synchronization. An old heap record does not authorize deleting a replacement. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid. Expiration must be checked at the point of use, even when background cleanup runs later. Consider this case: A key has value A expiring at 10.",
           "graph": {
             "edges": [
               {
@@ -1384,6 +1388,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Release shared lock, acquire exclusive lock, and compare generation/deadline again before removal. A newer put survives a stale reader cleanup. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources. A newer owner needs a token that the resource checks, not merely a belief that ownership changed. Consider this case: A key has value A expiring at 10.",
           "graph": {
             "edges": [
               {
@@ -1585,6 +1590,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Pop at most a configured number of due records, deleting only matching generations. Sweep work per tick is bounded; backlog remains observable. [Record linkage](https://en.wikipedia.org/wiki/Record_linkage) identifies entries that refer to the same real-world entity. A matching rule needs explicit uncertainty handling so an ambiguous similarity does not silently become authoritative identity.",
           "graph": {
             "edges": [
               {
@@ -1804,6 +1810,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Enforce a byte/entry budget independently of TTL and compact stale heap records under a bounded policy. TTL is not a memory-capacity policy. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid. Expiration must be checked at the point of use, even when background cleanup runs later. Consider this case: A key has value A expiring at 10.",
           "graph": {
             "edges": [
               {
@@ -2053,6 +2060,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Cancel future ticks, join current sweep and make post-close method behavior explicit. No background task retains the cache after close returns. [A cache](https://en.wikipedia.org/wiki/Cache_replacement_policies) keeps reusable results in limited memory. Eviction controls space, while ownership and invalidation rules determine whether a returned value is still safe to use. Consider this case: A key has value A expiring at 10.",
           "graph": {
             "edges": [
               {
@@ -2403,6 +2411,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "A get linearizes against put and never returns an entry expired at its lookup timestamp. [Linearizability](https://en.wikipedia.org/wiki/Linearizability) assigns each completed operation one instant when it takes effect. Concurrent callers may overlap, but their visible outcomes must fit a valid sequential order. Consider this case: A wheel tick runs after an exact deadline. Read the key before the delayed tick.",
           "graph": {
             "edges": [
               {
@@ -2502,6 +2511,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Route each key consistently and capture a monotonic operation timestamp. Own key values and generations under independent shard locks. fixed hash seed belongs to Shard router; per-shard mutable maps belongs to Shard maps. [Partitioning](https://en.wikipedia.org/wiki/Partition_%28database%29) divides data and work among owners. The key determines where requests go; skew, ownership changes, and operations spanning partitions require additional coordination.",
           "graph": {
             "edges": [
               {
@@ -2638,6 +2648,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Use one shard mutex or RW lock, never a process-wide lock for ordinary operations. Same-key operations still serialize on one owner. [Partitioning](https://en.wikipedia.org/wiki/Partition_%28database%29) divides data and work among owners. The key determines where requests go; skew, ownership changes, and operations spanning partitions require additional coordination. Consider this case: A wheel tick runs after an exact deadline. Read the key before the delayed tick.",
           "graph": {
             "edges": [
               {
@@ -2791,6 +2802,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Insert key/generation/deadline with wheel slot and remaining rounds. Wheel tick rounding does not redefine exact expiry. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid. Expiration must be checked at the point of use, even when background cleanup runs later. Consider this case: A wheel tick runs after an exact deadline. Read the key before the delayed tick.",
           "graph": {
             "edges": [
               {
@@ -2962,6 +2974,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Check exact deadline during every get and conditionally remove an expired generation. A delayed sweep cannot make expired data readable. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid. Expiration must be checked at the point of use, even when background cleanup runs later. Consider this case: A wheel tick runs after an exact deadline.",
           "graph": {
             "edges": [
               {
@@ -3163,6 +3176,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Drain a bounded bucket segment and compare generation plus current deadline under the shard lock. Old bucket records cannot delete a fresh put. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid. Expiration must be checked at the point of use, even when background cleanup runs later.",
           "graph": {
             "edges": [
               {
@@ -3382,6 +3396,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Bound each shard and report skew; choose explicit rejection or local eviction rather than borrowing unbounded memory. Concurrent shards together remain under the total configured bound. [Partitioning](https://en.wikipedia.org/wiki/Partition_%28database%29) divides data and work among owners. The key determines where requests go; skew, ownership changes, and operations spanning partitions require additional coordination. Consider this case: A wheel tick runs after an exact deadline.",
           "graph": {
             "edges": [
               {
@@ -3625,6 +3640,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Fence close state per shard, stop wheel scheduling and join drain tasks. No put schedules into a closed timer generation. [A directed acyclic graph](https://en.wikipedia.org/wiki/Directed_acyclic_graph) expresses work that depends on earlier results. A scheduler must track completed dependencies and distinguish logical tasks from retry attempts before releasing downstream work. Consider this case: A wheel tick runs after an exact deadline.",
           "graph": {
             "edges": [
               {

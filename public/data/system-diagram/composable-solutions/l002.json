@@ -744,6 +744,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Authenticate a user, validate parameters and generate a bounded report within one request lifecycle. This is an illustrative request path, not a claim about a real project. [An API contract](https://en.wikipedia.org/wiki/Application_programming_interface) states what callers send, what an outcome means, and how failures are reported. It should remain clear before the implementation is split into more components.",
           "graph": {
             "edges": [
               {
@@ -843,6 +844,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Validate principal and ownership before processing or returning an existing request receipt. Idempotency lookup never bypasses authorization. [Access control](https://en.wikipedia.org/wiki/Access_control) decides whether an authenticated identity may perform a particular action. The check must apply to the actual resource and operation, including cached and asynchronous paths. Consider this case: Illustrative request K accepted, response lost, and K retried.",
           "graph": {
             "edges": [
               {
@@ -953,6 +955,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Bind owner/requestKey to a parameter hash and report ID atomically; identical retries share a receipt. Same key with different parameters returns conflict. [Backoff](https://en.wikipedia.org/wiki/Exponential_backoff) spaces repeated attempts so failures do not create a burst of extra traffic. A retry still needs a stable identity and a clear stopping condition. Consider this case: Illustrative request K accepted, response lost, and K retried.",
           "graph": {
             "edges": [
               {
@@ -1087,6 +1090,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Choose an explicit read snapshot/cutoff and retain that input identity in report metadata. The report names the inputs it actually read. [A snapshot](https://en.wikipedia.org/wiki/Snapshot_isolation) gives one read operation a fixed view of data. Later writes may change the live system without changing the rows that reader sees. Consider this case: Illustrative request K accepted, response lost, and K retried.",
           "graph": {
             "edges": [
               {
@@ -1245,6 +1249,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Enforce row, byte and work budgets; abort with explicit failure before publishing an incomplete artifact. A partial byte stream is never advertised as complete. [A race condition](https://en.wikipedia.org/wiki/Race_condition) makes an outcome depend on which operation finishes first. Responses need an identity or generation check so an older request cannot overwrite newer user intent.",
           "graph": {
             "edges": [
               {
@@ -1427,6 +1432,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Store bytes under hash-addressed identity and bind output hash to the report; repeated identical writes are harmless. A completed receipt references immutable matching content. [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers. Publishing one reference lets each reader keep a consistent version. Consider this case: Illustrative request K accepted, response lost, and K retried.",
           "graph": {
             "edges": [
               {
@@ -1633,6 +1639,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Commit metadata referencing an already written artifact; if commit fails keep a retriable/uncertain receipt and reconcile orphan bytes explicitly. Remote artifact write and metadata transaction are not falsely called atomic. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call.",
           "graph": {
             "edges": [
               {
@@ -1863,6 +1870,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "For this hypothetical design record request duration, timeouts, CPU work and database wait as proposed measurements. A tenfold input is a scenario, not observed capacity. No actual incident, throughput or user outcome is invented. [Backoff](https://en.wikipedia.org/wiki/Exponential_backoff) spaces repeated attempts so failures do not create a burst of extra traffic. A retry still needs a stable identity and a clear stopping condition.",
           "graph": {
             "edges": [
               {
@@ -2186,6 +2194,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Persist a report job and dispatch intent atomically, return accepted, and let a leased worker publish completion later. An accepted response means durable intent, not a generated artifact. [An API contract](https://en.wikipedia.org/wiki/Application_programming_interface) states what callers send, what an outcome means, and how failures are reported. It should remain clear before the implementation is split into more components.",
           "graph": {
             "edges": [
               {
@@ -2285,6 +2294,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Atomically create unique owner/requestKey receipt, parameter hash and job record; conflicting payloads reject. Identical retries reuse report ID. [Collaborative editing](https://en.wikipedia.org/wiki/Operational_transformation) must reconcile concurrent edits against an agreed document version. Sending changes is only one part; reconnects also need a way to recover missing updates and conflicts. Consider this case: Illustrative request K accepted, response lost, and K retried.",
           "graph": {
             "edges": [
               {
@@ -2395,6 +2405,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Commit outbox row with the job in the same database transaction; a dispatcher retries delivery by job ID. No accepted job exists without durable dispatch intent. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call.",
           "graph": {
             "edges": [
               {
@@ -2529,6 +2540,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Claim job with monotonically increasing fencing token and lease; completion verifies current token. Lease expiry alone never authorizes a stale token to commit. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources. A newer owner needs a token that the resource checks, not merely a belief that ownership changed.",
           "graph": {
             "edges": [
               {
@@ -2687,6 +2699,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Pin query cutoff and renderer version in the job before work; retries reuse them or explicitly create a new report version. One job ID does not silently change input semantics. [Backoff](https://en.wikipedia.org/wiki/Exponential_backoff) spaces repeated attempts so failures do not create a burst of extra traffic. A retry still needs a stable identity and a clear stopping condition.",
           "graph": {
             "edges": [
               {
@@ -2869,6 +2882,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Write immutable content by hash; completion records one authorized artifact choice under the current fencing token. Remote writes may duplicate, but stale workers cannot replace committed metadata. [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers. Publishing one reference lets each reader keep a consistent version.",
           "graph": {
             "edges": [
               {
@@ -3075,6 +3089,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Authorize each read and report accepted/running/complete/failed/uncertain; complete requires verified artifact and fenced metadata commit. Progress percentages, if used, are measured work or omitted. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources. A newer owner needs a token that the resource checks, not merely a belief that ownership changed.",
           "graph": {
             "edges": [
               {
@@ -3305,6 +3320,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Scan unfinished jobs and artifacts, verify identity/hash, requeue or reconcile with a fresh lease. Unknown irreversible effects stay uncertain. Recovery does not claim an incident actually occurred or prove deployed reliability. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources. A newer owner needs a token that the resource checks, not merely a belief that ownership changed.",
           "graph": {
             "edges": [
               {

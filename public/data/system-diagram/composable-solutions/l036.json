@@ -719,6 +719,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Append one immutable operation cell; terminals compile the reversed history once and drive source values in order. Intermediate operations call no user code. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return.",
           "graph": {
             "edges": [
               {
@@ -818,6 +819,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Link a new {previous,kind,fn} cell to the prior tail; never append into an array shared by branches. Each append allocates one cell and preserves earlier tails. [A search index](https://en.wikipedia.org/wiki/Search_engine_indexing) maps query terms to candidate records. The interface must still associate each response with the active query and preserve the user’s chosen filters.",
           "graph": {
             "edges": [
               {
@@ -928,6 +930,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Shallow-copy the source once; do not recopy on each intermediate call. Objects referenced by the copy are not deep frozen. Chain construction adds O(1) work after source construction. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return.",
           "graph": {
             "edges": [
               {
@@ -1062,6 +1065,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Reverse the operation history once; coalesce only adjacent map descriptors into iterative map runs. Never hoist a filter or recursively nest a long composed function. A failed predicate prevents every later map for that element. [Transcoding](https://en.wikipedia.org/wiki/Transcoding) creates new media representations from an uploaded source. Publication should reference completed outputs, while retries and cleanup must not expose a partially processed asset.",
           "graph": {
             "edges": [
               {
@@ -1220,6 +1224,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "For each source item, thread one local value through map runs and filters; rejected items continue the outer source loop. No intermediate output array exists between operators. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return.",
           "graph": {
             "edges": [
               {
@@ -1402,6 +1407,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Increment output ordinal only after all filters pass; Object.is comparison returns immediately at the first match. No callback runs for source elements after a terminal match. [An index](https://en.wikipedia.org/wiki/Database_index) maintains a structure that narrows a search without scanning every record. Faster reads come with storage costs and extra work whenever indexed data changes.",
           "graph": {
             "edges": [
               {
@@ -1608,6 +1614,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Use normal propagation through the terminal loop; discard the terminal-local accumulator and preserve the immutable plan. An exception does not mark the reusable plan consumed. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return.",
           "graph": {
             "edges": [
               {
@@ -1838,6 +1845,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Create source and output counters per terminal; retain source snapshot and plan only, without caching results or sharing iteration state. Two consumers have independent positions and each reruns callbacks. [A snapshot](https://en.wikipedia.org/wiki/Snapshot_isolation) gives one read operation a fixed view of data. Later writes may change the live system without changing the rows that reader sees.",
           "graph": {
             "edges": [
               {
@@ -2161,6 +2169,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Retain immutable operator descriptors; create a pull machine per consumer whose next() resumes at the next accepted output. Each consumer owns its own cursor state. [A cursor](https://en.wikipedia.org/wiki/Cursor_%28databases%29) records where a query should continue. Its ordering fields must distinguish equal values, and its validity depends on the query and access permissions.",
           "graph": {
             "edges": [
               {
@@ -2260,6 +2269,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Append a descriptor cell with a previous pointer; it describes a cursor factory and holds no live cursor. Descriptor append never calls next or a callback. [A cursor](https://en.wikipedia.org/wiki/Cursor_%28databases%29) records where a query should continue. Its ordering fields must distinguish equal values, and its validity depends on the query and access permissions.",
           "graph": {
             "edges": [
               {
@@ -2370,6 +2380,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Flatten descriptor spine once when opening a consumer; allocate source index and output ordinal privately. Opening a cursor evaluates no source elements. [An index](https://en.wikipedia.org/wiki/Database_index) maintains a structure that narrows a search without scanning every record. Faster reads come with storage costs and extra work whenever indexed data changes. Consider this case: A mapped/filtered source and counters on callbacks.",
           "graph": {
             "edges": [
               {
@@ -2504,6 +2515,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "next() loops source candidates and runs descriptors until one survives, then suspends with the next source index. One next call yields at most one output. [An index](https://en.wikipedia.org/wiki/Database_index) maintains a structure that narrows a search without scanning every record. Faster reads come with storage costs and extra work whenever indexed data changes.",
           "graph": {
             "edges": [
               {
@@ -2662,6 +2674,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Compile adjacent map descriptors into array runs; evaluate each user callback in order for only the pulled candidate. Fusion preserves side-effect and throw order. [Lazy evaluation](https://en.wikipedia.org/wiki/Lazy_evaluation) postpones work until a result is requested. Short-circuiting can avoid unnecessary work, but the design must specify when callbacks run and how iteration state is owned.",
           "graph": {
             "edges": [
               {
@@ -2844,6 +2857,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "indexOf calls next until Object.is succeeds, then closes that consumer; no extra next call is made. Short circuit is demand cessation, not source prefetch. [A cursor](https://en.wikipedia.org/wiki/Cursor_%28databases%29) records where a query should continue. Its ordering fields must distinguish equal values, and its validity depends on the query and access permissions. Consider this case: A mapped/filtered source and counters on callbacks.",
           "graph": {
             "edges": [
               {
@@ -3050,6 +3064,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Set closed before dropping retained temporary references; next after close returns done, while a new consumer remains valid. Closing a consumer cannot mutate its parent descriptor recipe. [A queue](https://en.wikipedia.org/wiki/Queue_%28abstract_data_type%29) separates accepting work from completing it. Capacity, ordering, ownership, and shutdown behavior determine what producers and consumers may safely assume about each item.",
           "graph": {
             "edges": [
               {
@@ -3280,6 +3295,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Collect repeatedly calls next into one terminal-owned output array; no map or filter owns an intermediate collection. Exceptions close this cursor and propagate without caching partial output. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return.",
           "graph": {
             "edges": [
               {

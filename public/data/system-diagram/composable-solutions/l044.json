@@ -891,7 +891,7 @@
             "snapshot",
             "retention"
           ],
-          "explanation": "Start from a pinned table snapshot and record read predicates plus intended additions/removals. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Start from a pinned table snapshot and record read predicates plus intended additions/removals. Start from a pinned table snapshot and record read predicates plus intended additions/removals. State owner: Table transaction (transaction read version). Start from a pinned table snapshot and record read predicates plus intended additions/removals. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A snapshot](https://en.wikipedia.org/wiki/Snapshot_isolation) gives one read operation a fixed view of data.",
           "graph": {
             "edges": [
               {
@@ -993,7 +993,7 @@
             "snapshot",
             "retention"
           ],
-          "explanation": "Expand transaction boundary with ordered immutable log actions and protocol metadata. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Expand transaction boundary with ordered immutable log actions and protocol metadata. Expand transaction boundary with ordered immutable log actions and protocol metadata. State owner: Snapshot catalogue (table log versions). Expand transaction boundary with ordered immutable log actions and protocol metadata. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A transaction](https://en.wikipedia.org/wiki/Database_transaction) commits related state changes together or leaves them unapplied.",
           "graph": {
             "edges": [
               {
@@ -1132,7 +1132,7 @@
             "snapshot",
             "retention"
           ],
-          "explanation": "Upload immutable data objects and verify their hashes before attempting publication. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Upload immutable data objects and verify their hashes before attempting publication. Upload immutable data objects and verify their hashes before attempting publication. State owner: Data staging (staged object refs and hashes). Upload immutable data objects and verify their hashes before attempting publication. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers.",
           "graph": {
             "edges": [
               {
@@ -1288,7 +1288,7 @@
             "snapshot",
             "retention"
           ],
-          "explanation": "Read intervening commits; compare read/write predicates and schema/protocol changes under declared isolation. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Read intervening commits; compare read/write predicates and schema/protocol changes under declared isolation. Read intervening commits; compare read/write predicates and schema/protocol changes under declared isolation. State owner: Conflict validation (validated read and write sets). Read intervening commits; compare read/write predicates and schema/protocol changes under declared isolation. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure.",
           "graph": {
             "edges": [
               {
@@ -1499,7 +1499,7 @@
             "snapshot",
             "retention"
           ],
-          "explanation": "Create the next immutable log key with If-None-Match star; a loser rereads and revalidates before retry. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Create the next immutable log key with If-None-Match star; a loser rereads and revalidates before retry. Create the next immutable log key with If-None-Match star; a loser rereads and revalidates before retry. State owner: Conditional commit (commit key and attempt identity). [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers. Publishing one reference lets each reader keep a consistent version.",
           "graph": {
             "edges": [
               {
@@ -1779,7 +1779,7 @@
             "snapshot",
             "retention"
           ],
-          "explanation": "Choose one committed version and replay checkpoint plus contiguous log suffix. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Choose one committed version and replay checkpoint plus contiguous log suffix. Choose one committed version and replay checkpoint plus contiguous log suffix. State owner: Snapshot reader (reader snapshot version). Choose one committed version and replay checkpoint plus contiguous log suffix. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A snapshot](https://en.wikipedia.org/wiki/Snapshot_isolation) gives one read operation a fixed view of data.",
           "graph": {
             "edges": [
               {
@@ -2074,7 +2074,7 @@
             "snapshot",
             "retention"
           ],
-          "explanation": "Publish a complete checkpoint after each illustrative ten commits; verify checksum and retain required log suffix. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Publish a complete checkpoint after each illustrative ten commits; verify checksum and retain required log suffix. Publish a complete checkpoint after each illustrative ten commits; verify checksum and retain required log suffix. State owner: Metadata checkpoint (checkpoint version and checksum). [A checkpoint](https://en.wikipedia.org/wiki/Checkpointing) records enough progress to restart without repeating everything. Its usefulness depends on which state is durable and whether later effects can be replayed safely.",
           "graph": {
             "edges": [
               {
@@ -2407,7 +2407,7 @@
             "snapshot",
             "retention"
           ],
-          "explanation": "Collect only unreferenced staged files after a grace period; respect active-reader retention and reconcile unknown commit outcomes by transaction ID. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Collect only unreferenced staged files after a grace period; respect active-reader retention and reconcile unknown commit outcomes by transaction ID. Collect only unreferenced staged files after a grace period; respect active-reader retention and reconcile unknown commit outcomes by transaction ID. State owner: Retention and orphan cleanup (retention floor and orphan receipts). [A transaction](https://en.wikipedia.org/wiki/Database_transaction) commits related state changes together or leaves them unapplied.",
           "graph": {
             "edges": [
               {
@@ -2885,7 +2885,7 @@
             "snapshot",
             "retention"
           ],
-          "explanation": "Submit base version, read predicates and immutable staged file references. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Submit base version, read predicates and immutable staged file references. Submit base version, read predicates and immutable staged file references. State owner: Commit request (writer request identity). Submit base version, read predicates and immutable staged file references. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers. Publishing one reference lets each reader keep a consistent version.",
           "graph": {
             "edges": [
               {
@@ -2987,7 +2987,7 @@
             "snapshot",
             "retention"
           ],
-          "explanation": "Expand commit API with transaction receipts, monotonic table version and publisher epoch. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Expand commit API with transaction receipts, monotonic table version and publisher epoch. Expand commit API with transaction receipts, monotonic table version and publisher epoch. State owner: Coordinator ledger (table sequence and writer receipts). Expand commit API with transaction receipts, monotonic table version and publisher epoch. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A transaction](https://en.wikipedia.org/wiki/Database_transaction) commits related state changes together or leaves them unapplied.",
           "graph": {
             "edges": [
               {
@@ -3126,7 +3126,7 @@
             "snapshot",
             "retention"
           ],
-          "explanation": "Verify object existence, schema and digest before reserving commit publication. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Verify object existence, schema and digest before reserving commit publication. Verify object existence, schema and digest before reserving commit publication. State owner: Staging verifier (verified staged refs). Verify object existence, schema and digest before reserving commit publication. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure.",
           "graph": {
             "edges": [
               {
@@ -3282,7 +3282,7 @@
             "snapshot",
             "retention"
           ],
-          "explanation": "Validate against all intervening committed actions and enforce declared conflict semantics. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Validate against all intervening committed actions and enforce declared conflict semantics. Validate against all intervening committed actions and enforce declared conflict semantics. State owner: OCC validator (read/write set verdict). Validate against all intervening committed actions and enforce declared conflict semantics. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Collaborative editing](https://en.wikipedia.org/wiki/Operational_transformation) must reconcile concurrent edits against an agreed document version.",
           "graph": {
             "edges": [
               {
@@ -3493,7 +3493,7 @@
             "snapshot",
             "retention"
           ],
-          "explanation": "Only the current publisher epoch can materialize ordered log records; recover pending publication before issuing later versions. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Only the current publisher epoch can materialize ordered log records; recover pending publication before issuing later versions. Only the current publisher epoch can materialize ordered log records; recover pending publication before issuing later versions. State owner: Fenced publisher (publication epoch and pending record). [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return.",
           "graph": {
             "edges": [
               {
@@ -3742,7 +3742,7 @@
             "snapshot",
             "retention"
           ],
-          "explanation": "Readers expose only a contiguous committed prefix with immutable log hashes. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Readers expose only a contiguous committed prefix with immutable log hashes. Readers expose only a contiguous committed prefix with immutable log hashes. State owner: Committed view (committed prefix and snapshot). Readers expose only a contiguous committed prefix with immutable log hashes. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure.",
           "graph": {
             "edges": [
               {
@@ -4023,7 +4023,7 @@
             "snapshot",
             "retention"
           ],
-          "explanation": "Create immutable checkpoints with protocol/schema metadata from the committed prefix. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Create immutable checkpoints with protocol/schema metadata from the committed prefix. Create immutable checkpoints with protocol/schema metadata from the committed prefix. State owner: Checkpoint builder (checkpoint digest and version). Create immutable checkpoints with protocol/schema metadata from the committed prefix. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A checkpoint](https://en.wikipedia.org/wiki/Checkpointing) records enough progress to restart without repeating everything.",
           "graph": {
             "edges": [
               {
@@ -4311,7 +4311,7 @@
             "snapshot",
             "retention"
           ],
-          "explanation": "Resolve transaction identity against log/coordinator receipts before retry or cleanup; never skip a missing log version. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Resolve transaction identity against log/coordinator receipts before retry or cleanup; never skip a missing log version. Resolve transaction identity against log/coordinator receipts before retry or cleanup; never skip a missing log version. State owner: Publication reconciler (pending publication recovery). [A transaction](https://en.wikipedia.org/wiki/Database_transaction) commits related state changes together or leaves them unapplied. The database must enforce the relevant condition during the write, rather than trusting an earlier read.",
           "graph": {
             "edges": [
               {

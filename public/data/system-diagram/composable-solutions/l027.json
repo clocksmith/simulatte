@@ -832,7 +832,7 @@
             "stale",
             "budget"
           ],
-          "explanation": "Record request deadline, repair allowance and tool-attempt limit before dispatch. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Record request deadline, repair allowance and tool-attempt limit before dispatch. Record request deadline, repair allowance and tool-attempt limit before dispatch. State owner: Request controller (budget counters). Record request deadline, repair allowance and tool-attempt limit before dispatch. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid.",
           "graph": {
             "edges": [
               {
@@ -934,7 +934,7 @@
             "stale",
             "budget"
           ],
-          "explanation": "Expand controller; persist source revisions, plan versions and stable effect identities. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Expand controller; persist source revisions, plan versions and stable effect identities. Expand controller; persist source revisions, plan versions and stable effect identities. State owner: Recovery ledger (request attempt records). Expand controller; persist source revisions, plan versions and stable effect identities. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure.",
           "graph": {
             "edges": [
               {
@@ -1073,7 +1073,7 @@
             "stale",
             "budget"
           ],
-          "explanation": "Grant tokens per normalized origin with bounded concurrency and explicit retry-after. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Grant tokens per normalized origin with bounded concurrency and explicit retry-after. Grant tokens per normalized origin with bounded concurrency and explicit retry-after. State owner: Origin scheduler (origin tokens and in-flight count). Grant tokens per normalized origin with bounded concurrency and explicit retry-after. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers.",
           "graph": {
             "edges": [
               {
@@ -1229,7 +1229,7 @@
             "stale",
             "budget"
           ],
-          "explanation": "Publish index revision atomically and include source revision in each hit. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Publish index revision atomically and include source revision in each hit. Publish index revision atomically and include source revision in each hit. State owner: Index publication (index manifest and source watermark). Publish index revision atomically and include source revision in each hit. The graph is an authored conceptual design; guarantees require the named deployment contracts. [An index](https://en.wikipedia.org/wiki/Database_index) maintains a structure that narrows a search without scanning every record.",
           "graph": {
             "edges": [
               {
@@ -1403,7 +1403,7 @@
             "stale",
             "budget"
           ],
-          "explanation": "Recheck source revision and ACL before model context or tool preconditions are accepted. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Recheck source revision and ACL before model context or tool preconditions are accepted. Recheck source revision and ACL before model context or tool preconditions are accepted. State owner: Freshness guard (freshness verdict). Recheck source revision and ACL before model context or tool preconditions are accepted. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A condition variable](https://en.wikipedia.org/wiki/Condition_variable) lets a thread sleep until shared state may have changed.",
           "graph": {
             "edges": [
               {
@@ -1601,7 +1601,7 @@
             "stale",
             "budget"
           ],
-          "explanation": "Validate typed output and decrement repair budget before any repair request. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Validate typed output and decrement repair budget before any repair request. Validate typed output and decrement repair budget before any repair request. State owner: Schema repair (repair count and validation errors). Validate typed output and decrement repair budget before any repair request. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Retrieval-augmented generation](https://en.wikipedia.org/wiki/Retrieval-augmented_generation) brings external material into a model request.",
           "graph": {
             "edges": [
               {
@@ -1823,7 +1823,7 @@
             "stale",
             "budget"
           ],
-          "explanation": "Send stable effect key and expected resource version; mark ambiguous acceptance unknown. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Send stable effect key and expected resource version; mark ambiguous acceptance unknown. Send stable effect key and expected resource version; mark ambiguous acceptance unknown. State owner: Tool executor (tool attempt and effect receipt). Send stable effect key and expected resource version; mark ambiguous acceptance unknown. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Retrieval-augmented generation](https://en.wikipedia.org/wiki/Retrieval-augmented_generation) brings external material into a model request.",
           "graph": {
             "edges": [
               {
@@ -2069,7 +2069,7 @@
             "stale",
             "budget"
           ],
-          "explanation": "Query remote effect identity where supported; otherwise surface uncertainty under explicit duplicate-versus-loss policy. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Query remote effect identity where supported; otherwise surface uncertainty under explicit duplicate-versus-loss policy. Query remote effect identity where supported; otherwise surface uncertainty under explicit duplicate-versus-loss policy. State owner: Outcome reconciliation (reconciliation status). Query remote effect identity where supported; otherwise surface uncertainty under explicit duplicate-versus-loss policy. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Idempotence](https://en.wikipedia.org/wiki/Idempotence) means repeating the same logical operation does not repeat its effect.",
           "graph": {
             "edges": [
               {
@@ -2483,7 +2483,7 @@
             "stale",
             "budget"
           ],
-          "explanation": "Persist typed intent, deadline and versioned authorization scope. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Persist typed intent, deadline and versioned authorization scope. Persist typed intent, deadline and versioned authorization scope. State owner: Intent inbox (intent receipt). Persist typed intent, deadline and versioned authorization scope. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Retrieval-augmented generation](https://en.wikipedia.org/wiki/Retrieval-augmented_generation) brings external material into a model request. Retrieval quality, access permissions, source freshness, and explicit evidence boundaries matter separately from the model’s generated answer.",
           "graph": {
             "edges": [
               {
@@ -2585,7 +2585,7 @@
             "stale",
             "budget"
           ],
-          "explanation": "Expand inbox and store versioned plan state plus work/event identities. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Expand inbox and store versioned plan state plus work/event identities. Expand inbox and store versioned plan state plus work/event identities. State owner: Intent journal (intent events and dedupe keys). Expand inbox and store versioned plan state plus work/event identities. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Retrieval-augmented generation](https://en.wikipedia.org/wiki/Retrieval-augmented_generation) brings external material into a model request.",
           "graph": {
             "edges": [
               {
@@ -2724,7 +2724,7 @@
             "stale",
             "budget"
           ],
-          "explanation": "Issue per-origin permits and carry crawl cursor/byte limits in each queued job. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Issue per-origin permits and carry crawl cursor/byte limits in each queued job. Issue per-origin permits and carry crawl cursor/byte limits in each queued job. State owner: Crawl permits (origin permit ledger). Issue per-origin permits and carry crawl cursor/byte limits in each queued job. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A crawler](https://en.wikipedia.org/wiki/Web_crawler) chooses which URLs to fetch and when.",
           "graph": {
             "edges": [
               {
@@ -2880,7 +2880,7 @@
             "stale",
             "budget"
           ],
-          "explanation": "Build a new immutable index view then emit its published revision barrier. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Build a new immutable index view then emit its published revision barrier. Build a new immutable index view then emit its published revision barrier. State owner: Revision projector (index publication watermark). Build a new immutable index view then emit its published revision barrier. The graph is an authored conceptual design; guarantees require the named deployment contracts. [An index](https://en.wikipedia.org/wiki/Database_index) maintains a structure that narrows a search without scanning every record.",
           "graph": {
             "edges": [
               {
@@ -3054,7 +3054,7 @@
             "stale",
             "budget"
           ],
-          "explanation": "Compare plan source revisions with current barriers and queue refresh instead of tool execution. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Compare plan source revisions with current barriers and queue refresh instead of tool execution. Compare plan source revisions with current barriers and queue refresh instead of tool execution. State owner: Plan validator (plan eligibility receipt). Compare plan source revisions with current barriers and queue refresh instead of tool execution. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A queue](https://en.wikipedia.org/wiki/Queue_%28abstract_data_type%29) separates accepting work from completing it.",
           "graph": {
             "edges": [
               {
@@ -3252,7 +3252,7 @@
             "stale",
             "budget"
           ],
-          "explanation": "Enqueue repair only with a decreasing shared budget and an unexpired deadline. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Enqueue repair only with a decreasing shared budget and an unexpired deadline. Enqueue repair only with a decreasing shared budget and an unexpired deadline. State owner: Repair queue (repair job identities). Enqueue repair only with a decreasing shared budget and an unexpired deadline. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid.",
           "graph": {
             "edges": [
               {
@@ -3474,7 +3474,7 @@
             "stale",
             "budget"
           ],
-          "explanation": "Persist one stable effect key per approved tool action and expected resource version. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Persist one stable effect key per approved tool action and expected resource version. Persist one stable effect key per approved tool action and expected resource version. State owner: Effect outbox (effect intent and dedupe key). Persist one stable effect key per approved tool action and expected resource version. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure.",
           "graph": {
             "edges": [
               {
@@ -3720,7 +3720,7 @@
             "stale",
             "budget"
           ],
-          "explanation": "Fold receipts into completed, rejected, exhausted or uncertain; old retries cannot overwrite newer outcomes. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Fold receipts into completed, rejected, exhausted or uncertain; old retries cannot overwrite newer outcomes. Fold receipts into completed, rejected, exhausted or uncertain; old retries cannot overwrite newer outcomes. State owner: Recovery projector (public recovery projection). [Backoff](https://en.wikipedia.org/wiki/Exponential_backoff) spaces repeated attempts so failures do not create a burst of extra traffic. A retry still needs a stable identity and a clear stopping condition.",
           "graph": {
             "edges": [
               {

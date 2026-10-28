@@ -631,6 +631,7 @@
           "checkIds": [
             "command-retry"
           ],
+          "explanation": "Begin with subscriber and a billing boundary; pending means accepted intent, not paid access. A timeout never creates a new invoice identity when the same command is retried. [A payment provider](https://en.wikipedia.org/wiki/Payment_service_provider) performs external financial effects that local retries cannot undo. Request identity, confirmed outcomes, and reconciliation are needed when a request times out after submission.",
           "graph": {
             "edges": [
               {
@@ -728,6 +729,7 @@
             "command-retry",
             "cancel-race"
           ],
+          "explanation": "Expand the coarse boundary into command processing and durable state. Each accepted command compares or serializes one subscription version. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call. Consider this case: One Start command is accepted but the UI times out.",
           "graph": {
             "edges": [
               {
@@ -860,6 +862,7 @@
           "checkIds": [
             "renewal-retry"
           ],
+          "explanation": "A renewal planner claims due periods using a unique subscription/period identity. Invoice amount and currency are fixed at issuance; adjustments have separate identities. [A payment provider](https://en.wikipedia.org/wiki/Payment_service_provider) performs external financial effects that local retries cannot undo. Request identity, confirmed outcomes, and reconciliation are needed when a request times out after submission.",
           "graph": {
             "edges": [
               {
@@ -1031,6 +1034,7 @@
           "checkIds": [
             "uncertain-charge"
           ],
+          "explanation": "Commit payment intent before dispatch; send stable attempt identities to the provider. A local transaction cannot make a remote charge atomic with its commit. [A payment provider](https://en.wikipedia.org/wiki/Payment_service_provider) performs external financial effects that local retries cannot undo. Request identity, confirmed outcomes, and reconciliation are needed when a request times out after submission.",
           "graph": {
             "edges": [
               {
@@ -1261,6 +1265,7 @@
           "checkIds": [
             "event-order"
           ],
+          "explanation": "Verify signatures against raw request bytes, persist the event ID, then acknowledge and process asynchronously. A 2xx webhook response means durable receipt, not completed subscription projection. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call.",
           "graph": {
             "edges": [
               {
@@ -1486,6 +1491,7 @@
             "event-order",
             "uncertain-charge"
           ],
+          "explanation": "Read the current provider object and apply an allowed versioned local transition instead of trusting event arrival order. Do not compare unrelated event timestamps as a global order; fetch authoritative status for ambiguity. [A control loop](https://en.wikipedia.org/wiki/Control_loop) compares desired state with observed state and applies corrections. Repeated execution must converge safely, especially when a previous action succeeded but its reply was lost.",
           "graph": {
             "edges": [
               {
@@ -1791,6 +1797,7 @@
           "checkIds": [
             "cancel-race"
           ],
+          "explanation": "Separate financial settlement from access; cancellation epochs and effective dates fence stale activation. A late paid invoice may require refund or credit, but cannot silently reactivate a canceled version. [A race condition](https://en.wikipedia.org/wiki/Race_condition) makes an outcome depend on which operation finishes first. Responses need an identity or generation check so an older request cannot overwrite newer user intent.",
           "graph": {
             "edges": [
               {
@@ -2118,6 +2125,7 @@
             "uncertain-charge",
             "cancel-race"
           ],
+          "explanation": "Sweep pending intent and expired leases, reconcile provider objects and resume unissued periods. Respect remote idempotency retention; outside it, reconcile before retrying an uncertain charge. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid. Expiration must be checked at the point of use, even when background cleanup runs later.",
           "graph": {
             "edges": [
               {
@@ -2615,6 +2623,7 @@
           "checkIds": [
             "command-retry"
           ],
+          "explanation": "Begin with subscriber and a billing boundary; pending means accepted intent, not paid access. A timeout never creates a new invoice identity when the same command is retried. [A payment provider](https://en.wikipedia.org/wiki/Payment_service_provider) performs external financial effects that local retries cannot undo. Request identity, confirmed outcomes, and reconciliation are needed when a request times out after submission.",
           "graph": {
             "edges": [
               {
@@ -2712,6 +2721,7 @@
             "command-retry",
             "cancel-race"
           ],
+          "explanation": "Expand the coarse boundary into command processing and durable state. Each accepted command compares or serializes one subscription version. [A workflow](https://en.wikipedia.org/wiki/Workflow) records which step should run next and what has already finished. Durable transitions and effect identities let recovery resume work without blindly repeating external actions. Consider this case: One Start command is accepted but the UI times out.",
           "graph": {
             "edges": [
               {
@@ -2844,6 +2854,7 @@
           "checkIds": [
             "renewal-retry"
           ],
+          "explanation": "Persist durable timer intent and a unique invoice decision in the workflow journal. Invoice amount and currency are fixed at issuance; adjustments have separate identities. [A payment provider](https://en.wikipedia.org/wiki/Payment_service_provider) performs external financial effects that local retries cannot undo. Request identity, confirmed outcomes, and reconciliation are needed when a request times out after submission.",
           "graph": {
             "edges": [
               {
@@ -3015,6 +3026,7 @@
           "checkIds": [
             "uncertain-charge"
           ],
+          "explanation": "Commit payment intent before dispatch; send stable attempt identities to the provider. A local transaction cannot make a remote charge atomic with its commit. [A payment provider](https://en.wikipedia.org/wiki/Payment_service_provider) performs external financial effects that local retries cannot undo. Request identity, confirmed outcomes, and reconciliation are needed when a request times out after submission.",
           "graph": {
             "edges": [
               {
@@ -3245,6 +3257,7 @@
           "checkIds": [
             "event-order"
           ],
+          "explanation": "Verify signatures against raw request bytes, persist the event ID, then acknowledge and process asynchronously. A 2xx webhook response means durable receipt, not completed subscription projection. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call.",
           "graph": {
             "edges": [
               {
@@ -3470,6 +3483,7 @@
             "event-order",
             "uncertain-charge"
           ],
+          "explanation": "Read the current provider object and apply an allowed versioned local transition instead of trusting event arrival order. Do not compare unrelated event timestamps as a global order; fetch authoritative status for ambiguity. [A control loop](https://en.wikipedia.org/wiki/Control_loop) compares desired state with observed state and applies corrections. Repeated execution must converge safely, especially when a previous action succeeded but its reply was lost.",
           "graph": {
             "edges": [
               {
@@ -3775,6 +3789,7 @@
           "checkIds": [
             "cancel-race"
           ],
+          "explanation": "Separate financial settlement from access; cancellation epochs and effective dates fence stale activation. A late paid invoice may require refund or credit, but cannot silently reactivate a canceled version. [A race condition](https://en.wikipedia.org/wiki/Race_condition) makes an outcome depend on which operation finishes first. Responses need an identity or generation check so an older request cannot overwrite newer user intent.",
           "graph": {
             "edges": [
               {
@@ -4102,6 +4117,7 @@
             "uncertain-charge",
             "cancel-race"
           ],
+          "explanation": "Replay durable workflow decisions and reconcile unfinished activities; replay itself never calls a provider again without the same identity. Respect remote idempotency retention; outside it, reconcile before retrying an uncertain charge. [An event log](https://en.wikipedia.org/wiki/Event-driven_architecture) preserves ordered changes so a consumer can rebuild state or catch up. The consumer must remember its position and handle repeated delivery without repeated effects.",
           "graph": {
             "edges": [
               {

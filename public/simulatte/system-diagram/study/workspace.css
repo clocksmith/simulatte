@@ -104,17 +104,27 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: var(--sw-bg)
 .sw-guide-stages button:focus-visible { outline:2px solid var(--sw-tab-active); outline-offset:1px; }
 .sw-guide-number { font-weight:700; }
 .sw-guide-name { overflow-wrap:anywhere; }
-.sw-guide-explanation { margin:4px 3px 2px; font:14px/1.45 Assistant,system-ui,sans-serif; color:var(--sw-panel-text); max-height:4.35em; overflow-y:auto; }
+.sw-guide-explanation { margin:4px 3px 2px; font:14px/1.45 Assistant,system-ui,sans-serif; color:var(--sw-panel-text); max-height:7.5em; overflow-y:auto; overscroll-behavior:contain; }
 .sw-root:has(.sw-sidebar) .sw-guide-wrap { left:calc((100% - min(var(--sw-study-width),calc(100vw - 16px))) / 2); width:min(880px,calc(100vw - min(var(--sw-study-width),calc(100vw - 16px)) - 32px)); }
 @media (max-width:1200px) { .sw-save { display:none; } }
 @media (max-width:730px) {
  .sw-sidebar .sw-panel { padding-inline:16px; }
  .sw-guide-wrap { bottom:68px; width:calc(100vw - 16px); }
  .sw-guide-stages button { flex-basis:104px; }
- .sw-guide-explanation { font-size:13px; max-height:4.35em; }
+ .sw-guide-explanation { font-size:13px; max-height:6em; }
  .sw-root:has(.sw-sidebar) .sw-guide-wrap { display:none; }
 }
 
 .sw-guide-wrap.sw-footer { display:block; }
 .sw-guide-wrap .sw-icon { color:var(--sw-panel-text); }
 @media (max-width:730px) { .sw-root:has(.sw-sidebar) .sw-guide-wrap.sw-footer { display:none; } }
+
+.excalidraw .sw-footer { min-height:36px; margin-left:8px; }
+.sw-mode-toggle { height:36px; box-sizing:border-box; display:inline-flex; align-items:center; justify-content:center; flex:none; }
+.sw-footer .sw-save { overflow:hidden; text-overflow:ellipsis; max-width:min(420px,30vw); }
+.sw-guide-explanation a { color:var(--sw-panel-text); text-decoration:underline; text-underline-offset:2px; }
+.sw-guide-explanation:focus-visible { outline:2px solid var(--sw-tab-active); outline-offset:2px; }
+.sw-theme-control { display:flex; align-items:center; justify-content:space-between; gap:24px; padding:8px 12px; font:14px Assistant,system-ui,sans-serif; color:var(--sw-panel-text); }
+.sw-theme-control select { font:inherit; color:inherit; background:var(--sw-panel-bg); border:1px solid var(--sw-line); border-radius:6px; padding:5px 8px; }
+
+.sw-guide-explanation { scrollbar-width:thin; scrollbar-color:var(--sw-tab-active) transparent; padding-right:6px; }

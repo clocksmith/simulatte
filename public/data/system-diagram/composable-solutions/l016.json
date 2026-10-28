@@ -807,6 +807,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Preserve read/write semantics while scaling hot reads. [An API contract](https://en.wikipedia.org/wiki/Application_programming_interface) states what callers send, what an outcome means, and how failures are reported. It should remain clear before the implementation is split into more components. Consider this case: A job request times out after its intent commits. Retry the same request ID and run two lease owners.",
           "graph": {
             "edges": [
               {
@@ -906,6 +907,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Authorize requests and commit versioned updates at one write authority. Own records, versions and durable job intent. request context belongs to Stateless API; object rows and job keys belongs to Primary database. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call.",
           "graph": {
             "edges": [
               {
@@ -1042,6 +1044,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Read a versioned cached value or fill from authority; updates invalidate after commit with bounded TTL. Cache hit does not imply read-your-write unless a minimum version is enforced. [A cache](https://en.wikipedia.org/wiki/Cache_replacement_policies) keeps reusable results in limited memory. Eviction controls space, while ownership and invalidation rules determine whether a returned value is still safe to use.",
           "graph": {
             "edges": [
               {
@@ -1195,6 +1198,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Serve only reads whose required version is available; route stronger reads to primary. An insufficient replica version cannot satisfy a strong session read. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return.",
           "graph": {
             "edges": [
               {
@@ -1366,6 +1370,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Insert job identity and input hash with the business transaction before returning accepted. Accepted does not mean completed. [A transaction](https://en.wikipedia.org/wiki/Database_transaction) commits related state changes together or leaves them unapplied. The database must enforce the relevant condition during the write, rather than trusting an earlier read. Consider this case: A job request times out after its intent commits.",
           "graph": {
             "edges": [
               {
@@ -1567,6 +1572,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Claim bounded work, run with a lease epoch, and retain the original job ID on retry. An expired owner cannot commit over its successor. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources. A newer owner needs a token that the resource checks, not merely a belief that ownership changed.",
           "graph": {
             "edges": [
               {
@@ -1786,6 +1792,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Commit one result identity per job and model external effects with their own deduplication contract. A unique local row alone cannot deduplicate a remote webhook. [Idempotence](https://en.wikipedia.org/wiki/Idempotence) means repeating the same logical operation does not repeat its effect. Stable request identities let a retry recover an existing outcome instead of creating another change.",
           "graph": {
             "edges": [
               {
@@ -2029,6 +2036,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Reject or defer when per-tenant queued work or database concurrency reaches its declared bound. Overload is surfaced rather than hidden in unbounded queues. [Backpressure](https://en.wikipedia.org/wiki/Flow_control_%28data%29) prevents producers from outrunning the next component indefinitely. The design must choose whether excess work waits, is rejected, or is dropped with an explicit outcome. Consider this case: A job request times out after its intent commits.",
           "graph": {
             "edges": [
               {
@@ -2385,6 +2393,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Preserve read/write semantics while scaling hot reads. [An API contract](https://en.wikipedia.org/wiki/Application_programming_interface) states what callers send, what an outcome means, and how failures are reported. It should remain clear before the implementation is split into more components. Consider this case: A reducer replays the same accepted command. Emit its long-task intent twice.",
           "graph": {
             "edges": [
               {
@@ -2484,6 +2493,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Validate authenticated commands and append stable command identity. Own immutable ordered commands and deduplication receipts. accepted command offset belongs to Command admission; per-aggregate sequence belongs to Command journal. [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers. Publishing one reference lets each reader keep a consistent version.",
           "graph": {
             "edges": [
               {
@@ -2620,6 +2630,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Apply one aggregate sequence with expected-version checks and atomic checkpoint. Conflicting commands fail explicitly instead of silently overwriting. [A checkpoint](https://en.wikipedia.org/wiki/Checkpointing) records enough progress to restart without repeating everything. Its usefulness depends on which state is durable and whether later effects can be replayed safely. Consider this case: A reducer replays the same accepted command. Emit its long-task intent twice.",
           "graph": {
             "edges": [
               {
@@ -2773,6 +2784,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Materialize query-specific records with applied offset and generation. A projection names its freshness boundary. [A search index](https://en.wikipedia.org/wiki/Search_engine_indexing) maps query terms to candidate records. The interface must still associate each response with the active query and preserve the user’s chosen filters. Consider this case: A reducer replays the same accepted command. Emit its long-task intent twice.",
           "graph": {
             "edges": [
               {
@@ -2944,6 +2956,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Return a command token; wait boundedly for projection offset or expose pending. Pending projection is not failed command execution. [An API contract](https://en.wikipedia.org/wiki/Application_programming_interface) states what callers send, what an outcome means, and how failures are reported. It should remain clear before the implementation is split into more components. Consider this case: A reducer replays the same accepted command. Emit its long-task intent twice.",
           "graph": {
             "edges": [
               {
@@ -3139,6 +3152,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Emit stable task identities from committed reducer transitions. Replay emits the same task identity. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call. Consider this case: A reducer replays the same accepted command. Emit its long-task intent twice.",
           "graph": {
             "edges": [
               {
@@ -3358,6 +3372,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Consume stable IDs with leased retries and explicit external idempotency/reconciliation. Unknown external outcome remains unknown until reconciled. [A control loop](https://en.wikipedia.org/wiki/Control_loop) compares desired state with observed state and applies corrections. Repeated execution must converge safely, especially when a previous action succeeded but its reply was lost. Consider this case: A reducer replays the same accepted command. Emit its long-task intent twice.",
           "graph": {
             "edges": [
               {
@@ -3601,6 +3616,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Replay into a shadow projection and publish only after its target offset is reached. Clients do not mix two projection generations. [An event log](https://en.wikipedia.org/wiki/Event-driven_architecture) preserves ordered changes so a consumer can rebuild state or catch up. The consumer must remember its position and handle repeated delivery without repeated effects. Consider this case: A reducer replays the same accepted command.",
           "graph": {
             "edges": [
               {

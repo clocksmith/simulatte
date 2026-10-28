@@ -797,6 +797,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Match only the same key and revision with equal scalar value. [Record linkage](https://en.wikipedia.org/wiki/Record_linkage) identifies entries that refer to the same real-world entity. A matching rule needs explicit uncertainty handling so an ambiguous similarity does not silently become authoritative identity. Consider this case: Left 7 arrives twice then right 7. Process all receipts for one key/revision.",
           "graph": {
             "edges": [
               {
@@ -896,6 +897,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Admit one immutable side value per key/revision. Own left/right receipts and terminal match identity. current pair transition belongs to Pair matcher; key/revision records belongs to Pair state. [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers. Publishing one reference lets each reader keep a consistent version.",
           "graph": {
             "edges": [
               {
@@ -1032,6 +1034,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Deduplicate event IDs and reject conflicting side values. The first admitted side is immutable. [Idempotence](https://en.wikipedia.org/wiki/Idempotence) means repeating the same logical operation does not repeat its effect. Stable request identities let a retry recover an existing outcome instead of creating another change. Consider this case: Left 7 arrives twice then right 7. Process all receipts for one key/revision.",
           "graph": {
             "edges": [
               {
@@ -1185,6 +1188,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Use exact typed scalar equality after both sides arrive. No tolerance or missing-value default is invented. [Record linkage](https://en.wikipedia.org/wiki/Record_linkage) identifies entries that refer to the same real-world entity. A matching rule needs explicit uncertainty handling so an ambiguous similarity does not silently become authoritative identity. Consider this case: Left 7 arrives twice then right 7. Process all receipts for one key/revision.",
           "graph": {
             "edges": [
               {
@@ -1362,6 +1366,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Commit terminal state and one pair-result intent atomically. One key/revision produces one terminal result. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return. Consider this case: Left 7 arrives twice then right 7. Process all receipts for one key/revision.",
           "graph": {
             "edges": [
               {
@@ -1557,6 +1562,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Apply pair ID once and preserve mismatch explanation. A mismatch is a visible terminal outcome. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return. Consider this case: Left 7 arrives twice then right 7. Process all receipts for one key/revision.",
           "graph": {
             "edges": [
               {
@@ -1776,6 +1782,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Record deadline without fabricating a counterpart; late arrivals follow reopen/new-revision policy. Overdue is not matched. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid. Expiration must be checked at the point of use, even when background cleanup runs later. Consider this case: Left 7 arrives twice then right 7. Process all receipts for one key/revision.",
           "graph": {
             "edges": [
               {
@@ -2025,6 +2032,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Scan durable terminal pairs against outbox/projection and repair missing publication. Repair retains the original pair identity. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return. Consider this case: Left 7 arrives twice then right 7. Process all receipts for one key/revision.",
           "graph": {
             "edges": [
               {
@@ -2375,6 +2383,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Match only the same key and revision with equal scalar value. [Record linkage](https://en.wikipedia.org/wiki/Record_linkage) identifies entries that refer to the same real-world entity. A matching rule needs explicit uncertainty handling so an ambiguous similarity does not silently become authoritative identity. Consider this case: Both frozen sides contain equal values plus duplicate receipts. Full-outer join the normalized key/revision sets.",
           "graph": {
             "edges": [
               {
@@ -2474,6 +2483,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Freeze left and right manifest identities for a reconciliation run. Own immutable left/right rows with source receipt hashes. run identity belongs to Join planner; manifest hashes belongs to Input snapshots. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version.",
           "graph": {
             "edges": [
               {
@@ -2610,6 +2620,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Group key/revision/side, collapse exact repeats and isolate conflicting values. Conflicting duplicates do not become arbitrary winners. [Idempotence](https://en.wikipedia.org/wiki/Idempotence) means repeating the same logical operation does not repeat its effect. Stable request identities let a retry recover an existing outcome instead of creating another change. Consider this case: Both frozen sides contain equal values plus duplicate receipts. Full-outer join the normalized key/revision sets.",
           "graph": {
             "edges": [
               {
@@ -2763,6 +2774,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Hash partition both sides by the same key/revision function and full-outer join. Each key/revision belongs to exactly one join partition. [Partitioning](https://en.wikipedia.org/wiki/Partition_%28database%29) divides data and work among owners. The key determines where requests go; skew, ownership changes, and operations spanning partitions require additional coordination. Consider this case: Both frozen sides contain equal values plus duplicate receipts. Full-outer join the normalized key/revision sets.",
           "graph": {
             "edges": [
               {
@@ -2934,6 +2946,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Write matched, mismatch, missing-left and missing-right rows explicitly. An inner join cannot hide unmatched records. [Record linkage](https://en.wikipedia.org/wiki/Record_linkage) identifies entries that refer to the same real-world entity. A matching rule needs explicit uncertainty handling so an ambiguous similarity does not silently become authoritative identity. Consider this case: Both frozen sides contain equal values plus duplicate receipts. Full-outer join the normalized key/revision sets.",
           "graph": {
             "edges": [
               {
@@ -3129,6 +3142,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Require every declared input and partition receipt before publication. Run completeness and match rate are separate. [Partitioning](https://en.wikipedia.org/wiki/Partition_%28database%29) divides data and work among owners. The key determines where requests go; skew, ownership changes, and operations spanning partitions require additional coordination. Consider this case: Both frozen sides contain equal values plus duplicate receipts. Full-outer join the normalized key/revision sets.",
           "graph": {
             "edges": [
               {
@@ -3348,6 +3362,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Swap one active generation pointer after all outputs are committed. Readers never mix outputs from two runs. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call. Consider this case: Both frozen sides contain equal values plus duplicate receipts.",
           "graph": {
             "edges": [
               {
@@ -3591,6 +3606,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Create a linked new reconciliation generation and retain old missing evidence. Historical results remain attributable to their frozen inputs. [A control loop](https://en.wikipedia.org/wiki/Control_loop) compares desired state with observed state and applies corrections. Repeated execution must converge safely, especially when a previous action succeeded but its reply was lost. Consider this case: Both frozen sides contain equal values plus duplicate receipts.",
           "graph": {
             "edges": [
               {

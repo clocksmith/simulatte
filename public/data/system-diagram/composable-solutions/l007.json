@@ -533,6 +533,7 @@
           "checkIds": [
             "retry-budget"
           ],
+          "explanation": "Begin with a caller and a coarse routing boundary. All attempts belong to one operation ID. [Backpressure](https://en.wikipedia.org/wiki/Flow_control_%28data%29) prevents producers from outrunning the next component indefinitely. The design must choose whether excess work waits, is rejected, or is dropped with an explicit outcome. Consider this case: Each operation allows three attempts with a fixed total deadline. Every backend returns a retryable failure.",
           "graph": {
             "edges": [
               {
@@ -629,6 +630,7 @@
           "checkIds": [
             "eligibility"
           ],
+          "explanation": "Expand the routing boundary into selection and a backend pool. Select against one immutable eligible snapshot. [Backpressure](https://en.wikipedia.org/wiki/Flow_control_%28data%29) prevents producers from outrunning the next component indefinitely. The design must choose whether excess work waits, is rejected, or is dropped with an explicit outcome. Consider this case: Epoch 7 contains A and B; B is not ready. Route concurrent calls, then receive stale epoch 6.",
           "graph": {
             "edges": [
               {
@@ -761,6 +763,7 @@
           "checkIds": [
             "eligibility"
           ],
+          "explanation": "Make the location of policy an architectural choice, not a label on an arrow. The application contract does not change when routing moves. [Backpressure](https://en.wikipedia.org/wiki/Flow_control_%28data%29) prevents producers from outrunning the next component indefinitely. The design must choose whether excess work waits, is rejected, or is dropped with an explicit outcome. Consider this case: Epoch 7 contains A and B; B is not ready.",
           "graph": {
             "edges": [
               {
@@ -923,6 +926,7 @@
           "checkIds": [
             "draining"
           ],
+          "explanation": "Decouple endpoint membership from request execution. An older discovery epoch cannot replace a newer one. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return. Consider this case: Endpoint B has accepted work when a newer epoch marks it draining.",
           "graph": {
             "edges": [
               {
@@ -1088,6 +1092,7 @@
           "checkIds": [
             "eligibility"
           ],
+          "explanation": "Probe and sample failures using explicit thresholds before changing eligibility. A directory entry alone does not imply readiness. [Backpressure](https://en.wikipedia.org/wiki/Flow_control_%28data%29) prevents producers from outrunning the next component indefinitely. The design must choose whether excess work waits, is rejected, or is dropped with an explicit outcome. Consider this case: Epoch 7 contains A and B; B is not ready.",
           "graph": {
             "edges": [
               {
@@ -1306,6 +1311,7 @@
             "retry-budget",
             "overload"
           ],
+          "explanation": "Insert explicit admission and retry accounting before dispatch. Reject when no deadline or permit remains; never create an unbounded retry queue. [Backoff](https://en.wikipedia.org/wiki/Exponential_backoff) spaces repeated attempts so failures do not create a burst of extra traffic. A retry still needs a stable identity and a clear stopping condition. Consider this case: Each operation allows three attempts with a fixed total deadline.",
           "graph": {
             "edges": [
               {
@@ -1603,6 +1609,7 @@
             "draining",
             "overload"
           ],
+          "explanation": "Limit half-open probes and coordinate membership removal with accepted work. Draining endpoints receive no new work after the local snapshot advances. [A snapshot](https://en.wikipedia.org/wiki/Snapshot_isolation) gives one read operation a fixed view of data. Later writes may change the live system without changing the rows that reader sees. Consider this case: All permits are used and the circuit is open.",
           "graph": {
             "edges": [
               {
@@ -1955,6 +1962,7 @@
             "retry-budget",
             "overload"
           ],
+          "explanation": "Unify policy state while keeping backend execution and discovery separate. Every accepted attempt releases exactly one permit on success, failure or cancellation. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources. A newer owner needs a token that the resource checks, not merely a belief that ownership changed.",
           "graph": {
             "edges": [
               {
@@ -2311,6 +2319,7 @@
           "checkIds": [
             "retry-budget"
           ],
+          "explanation": "Begin with a caller and a coarse routing boundary. All attempts belong to one operation ID. [Backpressure](https://en.wikipedia.org/wiki/Flow_control_%28data%29) prevents producers from outrunning the next component indefinitely. The design must choose whether excess work waits, is rejected, or is dropped with an explicit outcome. Consider this case: Each operation allows three attempts with a fixed total deadline. Every backend returns a retryable failure.",
           "graph": {
             "edges": [
               {
@@ -2407,6 +2416,7 @@
           "checkIds": [
             "eligibility"
           ],
+          "explanation": "Expand the routing boundary into selection and a backend pool. Select against one immutable eligible snapshot. [Backpressure](https://en.wikipedia.org/wiki/Flow_control_%28data%29) prevents producers from outrunning the next component indefinitely. The design must choose whether excess work waits, is rejected, or is dropped with an explicit outcome. Consider this case: Epoch 7 contains A and B; B is not ready. Route concurrent calls, then receive stale epoch 6.",
           "graph": {
             "edges": [
               {
@@ -2539,6 +2549,7 @@
           "checkIds": [
             "eligibility"
           ],
+          "explanation": "Make the location of policy an architectural choice, not a label on an arrow. The application contract does not change when routing moves. [Backpressure](https://en.wikipedia.org/wiki/Flow_control_%28data%29) prevents producers from outrunning the next component indefinitely. The design must choose whether excess work waits, is rejected, or is dropped with an explicit outcome. Consider this case: Epoch 7 contains A and B; B is not ready.",
           "graph": {
             "edges": [
               {
@@ -2701,6 +2712,7 @@
           "checkIds": [
             "draining"
           ],
+          "explanation": "Decouple endpoint membership from request execution. An older discovery epoch cannot replace a newer one. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return. Consider this case: Endpoint B has accepted work when a newer epoch marks it draining.",
           "graph": {
             "edges": [
               {
@@ -2866,6 +2878,7 @@
           "checkIds": [
             "eligibility"
           ],
+          "explanation": "Probe and sample failures using explicit thresholds before changing eligibility. A directory entry alone does not imply readiness. [Backpressure](https://en.wikipedia.org/wiki/Flow_control_%28data%29) prevents producers from outrunning the next component indefinitely. The design must choose whether excess work waits, is rejected, or is dropped with an explicit outcome. Consider this case: Epoch 7 contains A and B; B is not ready.",
           "graph": {
             "edges": [
               {
@@ -3084,6 +3097,7 @@
             "retry-budget",
             "overload"
           ],
+          "explanation": "Insert explicit admission and retry accounting before dispatch. Reject when no deadline or permit remains; never create an unbounded retry queue. [Backoff](https://en.wikipedia.org/wiki/Exponential_backoff) spaces repeated attempts so failures do not create a burst of extra traffic. A retry still needs a stable identity and a clear stopping condition. Consider this case: Each operation allows three attempts with a fixed total deadline.",
           "graph": {
             "edges": [
               {
@@ -3381,6 +3395,7 @@
             "draining",
             "overload"
           ],
+          "explanation": "Limit half-open probes and coordinate membership removal with accepted work. Draining endpoints receive no new work after the local snapshot advances. [A snapshot](https://en.wikipedia.org/wiki/Snapshot_isolation) gives one read operation a fixed view of data. Later writes may change the live system without changing the rows that reader sees. Consider this case: All permits are used and the circuit is open.",
           "graph": {
             "edges": [
               {
@@ -3733,6 +3748,7 @@
             "retry-budget",
             "overload"
           ],
+          "explanation": "Unify policy state while keeping backend execution and discovery separate. Every accepted attempt releases exactly one permit on success, failure or cancellation. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources. A newer owner needs a token that the resource checks, not merely a belief that ownership changed.",
           "graph": {
             "edges": [
               {

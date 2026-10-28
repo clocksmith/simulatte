@@ -808,6 +808,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Append framed checksummed records before applying writes; acknowledge only at the selected sync boundary. [Write-ahead logging](https://en.wikipedia.org/wiki/Write-ahead_logging) records a change before relying on its final stored form. Recovery replays durable records, so acknowledgement and flush boundaries must match the promised durability. Consider this case: A WAL record is appended but sync fails. Attempt always-sync acknowledgement.",
           "graph": {
             "edges": [
               {
@@ -907,6 +908,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Serialize command IDs and LSN assignment before append. Own applied key/value versions and last applied LSN. next LSN and duplicate receipts belongs to Write mutex; in-memory values belongs to Memory map. [Idempotence](https://en.wikipedia.org/wiki/Idempotence) means repeating the same logical operation does not repeat its effect. Stable request identities let a retry recover an existing outcome instead of creating another change.",
           "graph": {
             "edges": [
               {
@@ -1043,6 +1045,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Append length, LSN, operation, payload and checksum, looping for short writes. A short write is retried or fails; it is never assumed complete. [Write-ahead logging](https://en.wikipedia.org/wiki/Write-ahead_logging) records a change before relying on its final stored form. Recovery replays durable records, so acknowledgement and flush boundaries must match the promised durability. Consider this case: A WAL record is appended but sync fails.",
           "graph": {
             "edges": [
               {
@@ -1196,6 +1199,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Call fsync/fdatasync according to the declared platform contract before applying and acknowledging. OS-buffered append alone cannot satisfy always-sync acknowledgement. [Write-ahead logging](https://en.wikipedia.org/wiki/Write-ahead_logging) records a change before relying on its final stored form. Recovery replays durable records, so acknowledgement and flush boundaries must match the promised durability. Consider this case: A WAL record is appended but sync fails. Attempt always-sync acknowledgement.",
           "graph": {
             "edges": [
               {
@@ -1367,6 +1371,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Pin an immutable/copy-on-write root at cut LSN while later writes continue in a retained suffix. The snapshot contains exactly state through its cut. [A snapshot](https://en.wikipedia.org/wiki/Snapshot_isolation) gives one read operation a fixed view of data. Later writes may change the live system without changing the rows that reader sees. Consider this case: A WAL record is appended but sync fails.",
           "graph": {
             "edges": [
               {
@@ -1568,6 +1573,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Write temporary snapshot, sync it, rename, sync directory and publish/sync generation manifest. The old manifest and logs remain until publication is durable. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version. Consider this case: A WAL record is appended but sync fails.",
           "graph": {
             "edges": [
               {
@@ -1787,6 +1793,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Verify snapshot hash; replay contiguous framed suffix above cut, tolerate incomplete final frame only. Interior checksum failure is a surfaced error, not skipped data. [A snapshot](https://en.wikipedia.org/wiki/Snapshot_isolation) gives one read operation a fixed view of data. Later writes may change the live system without changing the rows that reader sees. Consider this case: A WAL record is appended but sync fails.",
           "graph": {
             "edges": [
               {
@@ -2030,6 +2037,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Delete only generations covered by the durable checkpoint manifest and fsync directory changes. No acknowledged suffix is removed before a recoverable checkpoint exists. [A checkpoint](https://en.wikipedia.org/wiki/Checkpointing) records enough progress to restart without repeating everything. Its usefulness depends on which state is durable and whether later effects can be replayed safely. Consider this case: A WAL record is appended but sync fails.",
           "graph": {
             "edges": [
               {
@@ -2380,6 +2388,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Append framed checksummed records before applying writes; acknowledge only at the selected sync boundary. [Write-ahead logging](https://en.wikipedia.org/wiki/Write-ahead_logging) records a change before relying on its final stored form. Recovery replays durable records, so acknowledgement and flush boundaries must match the promised durability. Consider this case: Batch A synced through 4; batch B appended through 7 but is unsynced. Release group-commit waiters.",
           "graph": {
             "edges": [
               {
@@ -2479,6 +2488,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Queue bounded commands and assign ordered LSNs to one append batch. Own committed values and applied watermark. batch membership and ack waiters belongs to Commit coordinator; committed LSN belongs to Applied map. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call.",
           "graph": {
             "edges": [
               {
@@ -2615,6 +2625,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Use one sequencer to append complete frames to the current segment, preserving command identity. Concurrent threads never interleave frame bytes. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version. Consider this case: Batch A synced through 4; batch B appended through 7 but is unsynced.",
           "graph": {
             "edges": [
               {
@@ -2768,6 +2779,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Sync the batch once, advance durableThrough and release only waiters at or below that watermark. A later unsynced batch cannot borrow an earlier sync receipt. [Data ingestion](https://en.wikipedia.org/wiki/Data_integration) moves source records into a usable destination. Stable source identity and progress records distinguish genuinely new data from repeated delivery or a restarted import.",
           "graph": {
             "edges": [
               {
@@ -2939,6 +2951,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Pause append briefly, seal segment at cut LSN and start a new generation before copying state. Rotation does not discard the uncheckpointed new generation. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version.",
           "graph": {
             "edges": [
               {
@@ -3134,6 +3147,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Snapshot a pinned root through the sealed cut, with later mutations isolated by copy-on-write. All post-cut writes remain in retained WAL suffix. [A snapshot](https://en.wikipedia.org/wiki/Snapshot_isolation) gives one read operation a fixed view of data. Later writes may change the live system without changing the rows that reader sees. Consider this case: Batch A synced through 4; batch B appended through 7 but is unsynced.",
           "graph": {
             "edges": [
               {
@@ -3359,6 +3373,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Publish one synced manifest naming snapshot hash/cut and exact replay segment set. A crash chooses a complete old or new manifest, never mixed generations. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version.",
           "graph": {
             "edges": [
               {
@@ -3602,6 +3617,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Recover the cut plus suffix; compact only under a new equivalent checkpoint and retain tombstones until older sources are excluded. Compaction preserves deletes and the acknowledged logical state. [An event log](https://en.wikipedia.org/wiki/Event-driven_architecture) preserves ordered changes so a consumer can rebuild state or catch up. The consumer must remember its position and handle repeated delivery without repeated effects.",
           "graph": {
             "edges": [
               {

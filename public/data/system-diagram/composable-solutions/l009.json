@@ -1282,7 +1282,7 @@
               "text": "GET  /posts/:id/comments?sort=best&depth=5&limit=200 → { comments: Node[], more: Stub[] }\nPOST /posts/:id/comments { parentId?, body, clientId } → { id, path }\nPUT  /comments/:id/vote  { value: -1 | 0 | 1 }        → { up, down, myVote }"
             }
           ],
-          "explanation": "Votes are idempotent \"set my vote\" calls, not increments, so retries are harmless from the start.",
+          "explanation": "Requirements: read a ranked thread, reply anywhere, vote on any comment. PUT carries the desired vote, so a retried request cannot count twice. Votes are idempotent \"set my vote\" calls, not increments, so retries are harmless from the start. [Lexical analysis](https://en.wikipedia.org/wiki/Lexical_analysis) reads characters while tracking their meaning in the current context. The same delimiter can be ordinary text inside a string and syntax outside it.",
           "followupIds": [
             "followup-1"
           ],
@@ -1391,7 +1391,7 @@
             "write-time-adjacency-check-1"
           ],
           "code": [],
-          "explanation": "An adjacency list is easy to write but reads a deep thread one level at a time.",
+          "explanation": "Comments must be durable; the obvious schema is a parent_id column. Every comment has exactly one parent in the same post, so the comments form a tree. An adjacency list is easy to write but reads a deep thread one level at a time. [Lexical analysis](https://en.wikipedia.org/wiki/Lexical_analysis) reads characters while tracking their meaning in the current context. The same delimiter can be ordinary text inside a string and syntax outside it.",
           "followupIds": [
             "followup-1"
           ],
@@ -1567,7 +1567,7 @@
               "text": "// Example representation: an indexed array of uint32 sibling ordinals.\ntransaction: validate same-post parent; lock sibling allocator; allocate unique ordinal;\ninsert path = parent.path || [ordinal]; enforce depth/ordinal bounds;\n// A subtree uses segment-aware prefix containment, never a raw ambiguous text prefix.\nread post subtree in deterministic path order with a bounded continuation;"
             }
           ],
-          "explanation": "The path encodes ancestry, so one range scan returns a whole thread or subtree in display order.",
+          "explanation": "Follow-up 1: a thread or subtree must be one indexed range read. A subtree is one prefix range and path order is depth-first. The path encodes ancestry, so one range scan returns a whole thread or subtree in display order. [A rope](https://en.wikipedia.org/wiki/Rope_%28data_structure%29) stores text in smaller pieces arranged as a tree. Subtree lengths guide indexing and edits, while balancing prevents a sequence of changes from creating slow paths.",
           "followupIds": [
             "followup-1"
           ],
@@ -1697,7 +1697,7 @@
             "write-time-thread-cache-check-1-reference"
           ],
           "code": [],
-          "explanation": "Shared cache entries hold the ranked, depth-limited tree; anything per-user stays out of them.",
+          "explanation": "High read throughput: hot threads are re-assembled and re-sorted on every request. Levels are ranked and wide or deep branches become stubs with reply counts. Shared cache entries hold the ranked, depth-limited tree; anything per-user stays out of them. [A cache](https://en.wikipedia.org/wiki/Cache_replacement_policies) keeps reusable results in limited memory. Eviction controls space, while ownership and invalidation rules determine whether a returned value is still safe to use.",
           "followupIds": [
             "followup-1"
           ],
@@ -1868,7 +1868,7 @@
               "text": "transaction(() => {\n  authorizeVote(actor, commentId);\n  if (receipt(actor, opId)) return samePayloadOrConflict(opId, request);\n  const old = lockOrCreateVoteRow(actor, commentId); // unique-key conflicts retry transaction\n  if (expectedVoteVersion !== old.version) throw Conflict;\n  const delta = difference(old.value, desiredValue);\n  writeVote(desiredValue, old.version + 1); saveReceipt(opId, payloadHash(request));\n  updateCounterInSameTransaction(delta); // later moved behind a durable vote outbox\n});"
             }
           ],
-          "explanation": "Storing the current vote makes every vote call idempotent and turns changes into exact deltas.",
+          "explanation": "One vote per user; changing or clearing a vote must adjust the tally exactly. Retries are no-ops and changing a vote emits only the difference. Storing the current vote makes every vote call idempotent and turns changes into exact deltas. [Idempotence](https://en.wikipedia.org/wiki/Idempotence) means repeating the same logical operation does not repeat its effect. Stable request identities let a retry recover an existing outcome instead of creating another change.",
           "followupIds": [
             "followup-2"
           ],
@@ -2057,7 +2057,7 @@
             "write-time-optimistic-check-2-reference"
           ],
           "code": [],
-          "explanation": "The client owns the user’s intent; the server owns the confirmed vote. Coalescing clicks also cuts load during storms.",
+          "explanation": "Votes must feel instant, and rapid clicking must not flood the API. The score moves at once and reverts if the server rejects. The client owns the user’s intent; the server owns the confirmed vote. Coalescing clicks also cuts load during storms. [An index](https://en.wikipedia.org/wiki/Database_index) maintains a structure that narrows a search without scanning every record. Faster reads come with storage costs and extra work whenever indexed data changes.",
           "followupIds": [
             "followup-2"
           ],
@@ -2395,7 +2395,7 @@
               "text": "// Vote transaction appends an event to its durable outbox instead of updating the hot counter.\nconsumeBatch(events):\n  transaction:\n    unseen = claimUniqueEventIds(events)\n    applySummedCounterDeltas(unseen)\n    saveConsumerCheckpointAndPublicationIntents()\n  // Counter deltas, dedupe records and checkpoint commit together.\n  // Crash/replay is safe only with that durable boundary; an in-memory seen set is insufficient."
             }
           ],
-          "explanation": "Vote rows spread writes across many keys; counters receive one summed write per comment per flush instead of one per vote.",
+          "explanation": "Follow-up 2: on a hot comment every vote updates one counter row, and its lock serializes thousands of writes per second. A storm of 1,100 votes on one comment becomes one counter write, and the totals match the vote rows. Vote rows spread writes across many keys; counters receive one summed write per comment per flush instead of one per vote. [Lexical analysis](https://en.wikipedia.org/wiki/Lexical_analysis) reads characters while tracking their meaning in the current context.",
           "followupIds": [
             "followup-2"
           ],
@@ -2751,7 +2751,7 @@
               "text": "n = up + down; if n == 0: return 0;\nbest(up, down) = (p + z²/2n − z·√(p(1−p)/n + z²/4n²)) / (1 + z²/n),  p = up/n, z = 1.96\n// Ties use immutable creation key and comment ID."
             }
           ],
-          "explanation": "Ranking runs after each flush on the affected threads and rewrites their cached pages.",
+          "explanation": "Follow-up 3: \"best\" and \"top\" orders change as counts change. \"best\" prefers confident ratios over raw totals. Ranking runs after each flush on the affected threads and rewrites their cached pages. [A cache](https://en.wikipedia.org/wiki/Cache_replacement_policies) keeps reusable results in limited memory. Eviction controls space, while ownership and invalidation rules determine whether a returned value is still safe to use.",
           "followupIds": [
             "followup-3"
           ],
@@ -3101,7 +3101,7 @@
             "write-time-live-check-1-reference"
           ],
           "code": [],
-          "explanation": "Gateways hold streams for open threads; versioned updates make reordering and duplicates harmless.",
+          "explanation": "Follow-up 3: open threads should see scores and order change without polling. Live updates apply only when newer. Gateways hold streams for open threads; versioned updates make reordering and duplicates harmless. [Long polling](https://en.wikipedia.org/wiki/Push_technology#Long_polling) holds a request until an update or timeout is available. Reissuing that request requires a continuation position so gaps between requests do not lose updates.",
           "followupIds": [
             "followup-3"
           ],
@@ -3551,7 +3551,7 @@
             "write-time-pipeline-check-2-reference"
           ],
           "code": [],
-          "explanation": "Merging aggregation and ranking into one keyed consumer keeps counts, order and versions consistent for each post.",
+          "explanation": "The ranker re-reads counts the aggregator just wrote, and versions need one ordered writer per post. One fenced partition owner commits count/checkpoint/version changes; this distributed ownership guarantee is an authored requirement. Merging aggregation and ranking into one keyed consumer keeps counts, order and versions consistent for each post. [Idempotence](https://en.wikipedia.org/wiki/Idempotence) means repeating the same logical operation does not repeat its effect. Stable request identities let a retry recover an existing outcome instead of creating another change.",
           "followupIds": [
             "followup-2",
             "followup-3"
@@ -4240,7 +4240,7 @@
               "text": "GET  /posts/:id/comments?sort=best&depth=5&limit=200 → { comments: Node[], more: Stub[] }\nPOST /posts/:id/comments { parentId?, body, clientId } → { id, path }\nPUT  /comments/:id/vote  { value: -1 | 0 | 1 }        → { up, down, myVote }"
             }
           ],
-          "explanation": "Votes are idempotent \"set my vote\" calls, not increments, so retries are harmless from the start.",
+          "explanation": "Requirements: read a ranked thread, reply anywhere, vote on any comment. PUT carries the desired vote, so a retried request cannot count twice. Votes are idempotent \"set my vote\" calls, not increments, so retries are harmless from the start. [Lexical analysis](https://en.wikipedia.org/wiki/Lexical_analysis) reads characters while tracking their meaning in the current context. The same delimiter can be ordinary text inside a string and syntax outside it.",
           "followupIds": [
             "followup-1"
           ],
@@ -4357,7 +4357,7 @@
               "text": "// Example representation: an indexed array of uint32 sibling ordinals.\ntransaction: validate same-post parent; lock sibling allocator; allocate unique ordinal;\ninsert path = parent.path || [ordinal]; enforce depth/ordinal bounds;\n// A subtree uses segment-aware prefix containment, never a raw ambiguous text prefix.\nread post subtree in deterministic path order with a bounded continuation;"
             }
           ],
-          "explanation": "Tree storage is identical to the other approach; the difference is where scores come from.",
+          "explanation": "Follow-up 1: a thread must be one indexed range read. A subtree is one prefix range and path order is depth-first. Tree storage is identical to the other approach; the difference is where scores come from. [An index](https://en.wikipedia.org/wiki/Database_index) maintains a structure that narrows a search without scanning every record. Faster reads come with storage costs and extra work whenever indexed data changes.",
           "followupIds": [
             "followup-1"
           ],
@@ -4535,7 +4535,7 @@
               "text": "transaction(() => {\n  authorizeVote(actor, commentId);\n  if (receipt(actor, opId)) return samePayloadOrConflict(opId, request);\n  const old = lockOrCreateVoteRow(actor, commentId); // unique-key conflicts retry transaction\n  if (expectedVoteVersion !== old.version) throw Conflict;\n  const delta = difference(old.value, desiredValue);\n  writeVote(desiredValue, old.version + 1); saveReceipt(opId, payloadHash(request));\n  // No stored counter; consistent snapshots derive totals from authoritative vote rows.\n});"
             }
           ],
-          "explanation": "Removing the shared per-comment counter avoids that lock bottleneck. Vote rows, indexes, storage and snapshot builds still have finite capacity.",
+          "explanation": "Follow-up 2: avoid a shared counter row entirely. One current vote per user; retries are no-ops. Removing the shared per-comment counter avoids that lock bottleneck. Vote rows, indexes, storage and snapshot builds still have finite capacity. [A snapshot](https://en.wikipedia.org/wiki/Snapshot_isolation) gives one read operation a fixed view of data. Later writes may change the live system without changing the rows that reader sees.",
           "followupIds": [
             "followup-2"
           ],
@@ -4697,7 +4697,7 @@
             "read-time-optimistic-check-2-reference"
           ],
           "code": [],
-          "explanation": "The client shows its own vote on top of a snapshot that may not include it yet.",
+          "explanation": "Votes must feel instant even though scores refresh later. The score moves at once and reverts if the server rejects. The client shows its own vote on top of a snapshot that may not include it yet. [An optimistic interface](https://en.wikipedia.org/wiki/Optimistic_replication) shows a tentative result before the server confirms it. Pending state must remain distinguishable from authoritative state so rejection or late replies can be reconciled.",
           "followupIds": [
             "followup-2"
           ],
@@ -5005,7 +5005,7 @@
             "read-time-snapshots-check-2-reference"
           ],
           "code": [],
-          "explanation": "A snapshot amortizes the aggregation and the ranking across every reader in its lifetime.",
+          "explanation": "Summing votes on every read of a hot thread costs a scan per request. Snapshots hold ranked, depth-limited trees with stubs. A snapshot amortizes the aggregation and the ranking across every reader in its lifetime. [A snapshot](https://en.wikipedia.org/wiki/Snapshot_isolation) gives one read operation a fixed view of data. Later writes may change the live system without changing the rows that reader sees.",
           "followupIds": [
             "followup-1",
             "followup-3"
@@ -5247,7 +5247,7 @@
             "read-time-builder-check-1-reference"
           ],
           "code": [],
-          "explanation": "Serving stale while one build runs bounds database load to one aggregation per key per TTL.",
+          "explanation": "When a hot snapshot expires, every concurrent reader would rebuild it at once. Concurrent misses and stale reads trigger one build at a time. Serving stale while one build runs bounds database load to one aggregation per key per TTL. [A snapshot](https://en.wikipedia.org/wiki/Snapshot_isolation) gives one read operation a fixed view of data. Later writes may change the live system without changing the rows that reader sees.",
           "followupIds": [
             "followup-1"
           ],
@@ -5616,7 +5616,7 @@
             "read-time-polling-check-1-reference"
           ],
           "code": [],
-          "explanation": "Polling a cacheable snapshot gives near-live tallies; most polls end at the edge with a 304.",
+          "explanation": "Follow-up 3: open threads need fresh scores without a connection tier. Polling an unchanged snapshot returns 304. Polling a cacheable snapshot gives near-live tallies; most polls end at the edge with a 304. [Long polling](https://en.wikipedia.org/wiki/Push_technology#Long_polling) holds a request until an update or timeout is available. Reissuing that request requires a continuation position so gaps between requests do not lose updates.",
           "followupIds": [
             "followup-3"
           ],
@@ -5962,7 +5962,7 @@
             "read-time-partition-check-1"
           ],
           "code": [],
-          "explanation": "Merging the two stores under one partition key makes each build a single local read and gives storage one way to shard.",
+          "explanation": "Each build joins comments with votes for one post; two stores mean two scans and two shard keys. Every row a build needs lives in one partition, so builds never fan out across shards. Merging the two stores under one partition key makes each build a single local read and gives storage one way to shard. [Partitioning](https://en.wikipedia.org/wiki/Partition_%28database%29) divides data and work among owners.",
           "followupIds": [
             "followup-1",
             "followup-2"

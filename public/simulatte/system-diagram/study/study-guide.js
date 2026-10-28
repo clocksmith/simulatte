@@ -7,7 +7,7 @@
   return h('div',{className:'sw-guide-body'},
    h('nav',{'aria-label':'Solution stages',ref:list,className:'sw-guide-stages'},solution.stages.map((stage,i)=>h('button',{key:stage.id,type:'button','aria-current':i===stageIndex?'step':undefined,'aria-label':`Stage ${i+1}: ${stage.title}`,title:stage.question,onClick:()=>onSelect(i)},
     h('span',{className:'sw-guide-number'},i+1),h('span',{className:'sw-guide-name'},stage.title)))),
-   h('p',{className:'sw-guide-explanation'},current?current.reason:'Starting architecture before the first stage.'));
+   h('p',{className:'sw-guide-explanation',tabIndex:0,'aria-label':'Stage explanation'},root.SimulatteStudyText.render(current?(current.explanation||current.reason):'Starting architecture before the first stage.',h)));
  }
  root.SimulatteStudyGuide=StudyGuide;
 })(globalThis);

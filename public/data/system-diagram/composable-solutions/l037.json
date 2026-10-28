@@ -730,6 +730,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Validate scalar ranges, split weighted tree and join bounded chunks; publish a new balanced root only after a successful edit. Every weight and public position counts the same Unicode scalar unit. [A rope](https://en.wikipedia.org/wiki/Rope_%28data_structure%29) stores text in smaller pieces arranged as a tree. Subtree lengths guide indexing and edits, while balancing prevents a sequence of changes from creating slow paths.",
           "graph": {
             "edges": [
               {
@@ -829,6 +830,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Store at most B bytes per leaf, splitting on scalar boundaries; retain both byte and scalar length. No split creates invalid UTF-8. [A rope](https://en.wikipedia.org/wiki/Rope_%28data_structure%29) stores text in smaller pieces arranged as a tree. Subtree lengths guide indexing and edits, while balancing prevents a sequence of changes from creating slow paths.",
           "graph": {
             "edges": [
               {
@@ -939,6 +941,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Store left scalar weight and total subtree count; subtract left weight only when descending right. Cached counts equal child totals after every structural operation. [A rope](https://en.wikipedia.org/wiki/Rope_%28data_structure%29) stores text in smaller pieces arranged as a tree. Subtree lengths guide indexing and edits, while balancing prevents a sequence of changes from creating slow paths.",
           "graph": {
             "edges": [
               {
@@ -1073,6 +1076,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Descend by weight, split at a valid scalar boundary, and reconstruct only nodes on the search path. concat(left,right) restores the original scalar sequence. [A rope](https://en.wikipedia.org/wiki/Rope_%28data_structure%29) stores text in smaller pieces arranged as a tree. Subtree lengths guide indexing and edits, while balancing prevents a sequence of changes from creating slow paths.",
           "graph": {
             "edges": [
               {
@@ -1231,6 +1235,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Join by descending the taller spine; allocate input chunks once and repair path metadata. insert(i,s) equals join(prefix,s,suffix). [An index](https://en.wikipedia.org/wiki/Database_index) maintains a structure that narrows a search without scanning every record. Faster reads come with storage costs and extra work whenever indexed data changes. Consider this case: A rope containing a supplementary Unicode scalar and multiple chunks.",
           "graph": {
             "edges": [
               {
@@ -1413,6 +1418,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Apply single or double rotations on repaired paths and recompute heights and weights bottom-up. Absolute child-height difference is at most one after publication. [A rope](https://en.wikipedia.org/wiki/Rope_%28data_structure%29) stores text in smaller pieces arranged as a tree. Subtree lengths guide indexing and edits, while balancing prevents a sequence of changes from creating slow paths.",
           "graph": {
             "edges": [
               {
@@ -1619,6 +1625,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Immutable nodes retain old roots; publish the new root in one writer transition. Snapshots own root references. Existing readers never observe partially repaired weights. [A snapshot](https://en.wikipedia.org/wiki/Snapshot_isolation) gives one read operation a fixed view of data. Later writes may change the live system without changing the rows that reader sees. Consider this case: A rope containing a supplementary Unicode scalar and multiple chunks.",
           "graph": {
             "edges": [
               {
@@ -1849,6 +1856,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Detach a range structurally in logarithmic navigation work, then account separately for removed-node destruction and retained snapshots. Reclamation cannot free nodes reachable from a pinned root. [A snapshot](https://en.wikipedia.org/wiki/Snapshot_isolation) gives one read operation a fixed view of data. Later writes may change the live system without changing the rows that reader sees.",
           "graph": {
             "edges": [
               {
@@ -2172,6 +2180,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Use in-order position instead of explicit keys; heap priorities choose structure while subtree counts select positions. In-order sequence defines position; priorities never define text order. [A rope](https://en.wikipedia.org/wiki/Rope_%28data_structure%29) stores text in smaller pieces arranged as a tree. Subtree lengths guide indexing and edits, while balancing prevents a sequence of changes from creating slow paths.",
           "graph": {
             "edges": [
               {
@@ -2271,6 +2280,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Each treap node owns a bounded scalar chunk plus left/right children and a stable priority. Priority collisions use a stable unique tie-breaker. [A rope](https://en.wikipedia.org/wiki/Rope_%28data_structure%29) stores text in smaller pieces arranged as a tree. Subtree lengths guide indexing and edits, while balancing prevents a sequence of changes from creating slow paths.",
           "graph": {
             "edges": [
               {
@@ -2381,6 +2391,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Store total left/chunk/right scalar counts and repair after changing any child pointer. No edit renumbers untouched nodes. [A rope](https://en.wikipedia.org/wiki/Rope_%28data_structure%29) stores text in smaller pieces arranged as a tree. Subtree lengths guide indexing and edits, while balancing prevents a sequence of changes from creating slow paths. Consider this case: A rope containing a supplementary Unicode scalar and multiple chunks.",
           "graph": {
             "edges": [
               {
@@ -2515,6 +2526,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Split the chunk into two valid bounded chunks and merge each piece with its corresponding subtree using fresh ordered priorities. The concatenation of split outputs preserves every scalar once. [A rope](https://en.wikipedia.org/wiki/Rope_%28data_structure%29) stores text in smaller pieces arranged as a tree. Subtree lengths guide indexing and edits, while balancing prevents a sequence of changes from creating slow paths.",
           "graph": {
             "edges": [
               {
@@ -2673,6 +2685,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Inputs represent consecutive text ranges. Select lower priority root and recursively merge only its touching child; repair counts. Heap ordering and in-order text both survive merge. [A heap](https://en.wikipedia.org/wiki/Heap_%28data_structure%29) keeps the next priority item cheap to find. When items can be replaced or canceled, stale entries need explicit detection before they are allowed to act.",
           "graph": {
             "edges": [
               {
@@ -2855,6 +2868,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Insert splits once and merges input; delete splits twice and merges survivors. Read follows subtree ranks without changing root. No existing node priority changes merely because its index shifted. [A rope](https://en.wikipedia.org/wiki/Rope_%28data_structure%29) stores text in smaller pieces arranged as a tree. Subtree lengths guide indexing and edits, while balancing prevents a sequence of changes from creating slow paths.",
           "graph": {
             "edges": [
               {
@@ -3061,6 +3075,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Path-copy changed nodes and atomically publish a new immutable root under a single writer version check. Writer conflicts retry from a new root; no partially edited path is public. [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers. Publishing one reference lets each reader keep a consistent version.",
           "graph": {
             "edges": [
               {
@@ -3291,6 +3306,7 @@
             "behavior",
             "boundary"
           ],
+          "explanation": "Track depth against a declared guard; rebuild with fresh priorities or reject the operation with old root intact. This is a fallback policy with explicit linear rebuild cost. Expected complexity is not reported as a worst-case bound. [A rope](https://en.wikipedia.org/wiki/Rope_%28data_structure%29) stores text in smaller pieces arranged as a tree. Subtree lengths guide indexing and edits, while balancing prevents a sequence of changes from creating slow paths.",
           "graph": {
             "edges": [
               {

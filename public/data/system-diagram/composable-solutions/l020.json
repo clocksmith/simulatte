@@ -873,7 +873,7 @@
             "acl",
             "lag"
           ],
-          "explanation": "Authenticate owner and persist a stable publication identity. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Authenticate owner and persist a stable publication identity. Authenticate owner and persist a stable publication identity. State owner: Post command (post command receipts). Authenticate owner and persist a stable publication identity. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call.",
           "graph": {
             "edges": [
               {
@@ -975,7 +975,7 @@
             "acl",
             "lag"
           ],
-          "explanation": "Expand posting authority; commit post version and fan-out intent atomically. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Expand posting authority; commit post version and fan-out intent atomically. Expand posting authority; commit post version and fan-out intent atomically. State owner: Post outbox (posts and outbox). Expand posting authority; commit post version and fan-out intent atomically. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Publish–subscribe](https://en.wikipedia.org/wiki/Publish%E2%80%93subscribe_pattern) separates producing an update from distributing it to interested consumers.",
           "graph": {
             "edges": [
               {
@@ -1114,7 +1114,7 @@
             "acl",
             "lag"
           ],
-          "explanation": "Pin a relationship snapshot for enumeration while checking current access on reads. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Pin a relationship snapshot for enumeration while checking current access on reads. Pin a relationship snapshot for enumeration while checking current access on reads. State owner: Graph snapshot (graph snapshot revision). Pin a relationship snapshot for enumeration while checking current access on reads. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A snapshot](https://en.wikipedia.org/wiki/Snapshot_isolation) gives one read operation a fixed view of data.",
           "graph": {
             "edges": [
               {
@@ -1270,7 +1270,7 @@
             "acl",
             "lag"
           ],
-          "explanation": "Deduplicate viewer/post insertion and commit page checkpoints after writes. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Deduplicate viewer/post insertion and commit page checkpoints after writes. Deduplicate viewer/post insertion and commit page checkpoints after writes. State owner: Candidate fan-out (recipient page checkpoints). Deduplicate viewer/post insertion and commit page checkpoints after writes. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A checkpoint](https://en.wikipedia.org/wiki/Checkpointing) records enough progress to restart without repeating everything. Its usefulness depends on which state is durable and whether later effects can be replayed safely.",
           "graph": {
             "edges": [
               {
@@ -1481,7 +1481,7 @@
             "acl",
             "lag"
           ],
-          "explanation": "Store bounded pointers and source watermark; high-degree sources remain pull candidates. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Store bounded pointers and source watermark; high-degree sources remain pull candidates. Store bounded pointers and source watermark; high-degree sources remain pull candidates. State owner: Timeline candidates (candidate identities and watermark). Store bounded pointers and source watermark; high-degree sources remain pull candidates. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes.",
           "graph": {
             "edges": [
               {
@@ -1693,7 +1693,7 @@
             "acl",
             "lag"
           ],
-          "explanation": "Pin feature and ranker versions for one feed session. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Pin feature and ranker versions for one feed session. Pin feature and ranker versions for one feed session. State owner: Feature snapshot (feature snapshot and ranker version). Pin feature and ranker versions for one feed session. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A snapshot](https://en.wikipedia.org/wiki/Snapshot_isolation) gives one read operation a fixed view of data. Later writes may change the live system without changing the rows that reader sees.",
           "graph": {
             "edges": [
               {
@@ -1935,7 +1935,7 @@
             "acl",
             "lag"
           ],
-          "explanation": "Order by score then publication sequence then post ID; encode snapshot in cursor. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Order by score then publication sequence then post ID; encode snapshot in cursor. Order by score then publication sequence then post ID; encode snapshot in cursor. State owner: Stable ranker (feed session cursor). Order by score then publication sequence then post ID; encode snapshot in cursor. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A cursor](https://en.wikipedia.org/wiki/Cursor_%28databases%29) records where a query should continue.",
           "graph": {
             "edges": [
               {
@@ -2257,7 +2257,7 @@
             "acl",
             "lag"
           ],
-          "explanation": "Compare watermark against publication progress and merge bounded recent pull results. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Compare watermark against publication progress and merge bounded recent pull results. Compare watermark against publication progress and merge bounded recent pull results. State owner: Freshness repair (repair watermark). Compare watermark against publication progress and merge bounded recent pull results. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes.",
           "graph": {
             "edges": [
               {
@@ -2744,7 +2744,7 @@
             "acl",
             "lag"
           ],
-          "explanation": "Authenticate viewer and freeze a publication upper bound. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Authenticate viewer and freeze a publication upper bound. Authenticate viewer and freeze a publication upper bound. State owner: Feed query (session identity). Authenticate viewer and freeze a publication upper bound. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A search index](https://en.wikipedia.org/wiki/Search_engine_indexing) maps query terms to candidate records. The interface must still associate each response with the active query and preserve the user’s chosen filters.",
           "graph": {
             "edges": [
               {
@@ -2846,7 +2846,7 @@
             "acl",
             "lag"
           ],
-          "explanation": "Expand query boundary and persist horizon, graph revision and ranker version. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Expand query boundary and persist horizon, graph revision and ranker version. Expand query boundary and persist horizon, graph revision and ranker version. State owner: Session authority (session snapshot). Expand query boundary and persist horizon, graph revision and ranker version. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Publish–subscribe](https://en.wikipedia.org/wiki/Publish%E2%80%93subscribe_pattern) separates producing an update from distributing it to interested consumers.",
           "graph": {
             "edges": [
               {
@@ -2985,7 +2985,7 @@
             "acl",
             "lag"
           ],
-          "explanation": "Enumerate followed authors from a stable graph snapshot with pagination. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Enumerate followed authors from a stable graph snapshot with pagination. Enumerate followed authors from a stable graph snapshot with pagination. State owner: Follow traversal (author cursors). Enumerate followed authors from a stable graph snapshot with pagination. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A cursor](https://en.wikipedia.org/wiki/Cursor_%28databases%29) records where a query should continue. Its ordering fields must distinguish equal values, and its validity depends on the query and access permissions.",
           "graph": {
             "edges": [
               {
@@ -3141,7 +3141,7 @@
             "acl",
             "lag"
           ],
-          "explanation": "Open bounded per-source publication cursors up to the fixed horizon. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Open bounded per-source publication cursors up to the fixed horizon. Open bounded per-source publication cursors up to the fixed horizon. State owner: Post iterators (source cursors). Open bounded per-source publication cursors up to the fixed horizon. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A cursor](https://en.wikipedia.org/wiki/Cursor_%28databases%29) records where a query should continue. Its ordering fields must distinguish equal values, and its validity depends on the query and access permissions.",
           "graph": {
             "edges": [
               {
@@ -3315,7 +3315,7 @@
             "acl",
             "lag"
           ],
-          "explanation": "Merge source heads with a candidate budget and explicit diversity cap. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Merge source heads with a candidate budget and explicit diversity cap. Merge source heads with a candidate budget and explicit diversity cap. State owner: Candidate heap (merge heap and source budget). Merge source heads with a candidate budget and explicit diversity cap. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A heap](https://en.wikipedia.org/wiki/Heap_%28data_structure%29) keeps the next priority item cheap to find.",
           "graph": {
             "edges": [
               {
@@ -3513,7 +3513,7 @@
             "acl",
             "lag"
           ],
-          "explanation": "Read features at a pinned version, separating missing features from zero values. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Read features at a pinned version, separating missing features from zero values. Read features at a pinned version, separating missing features from zero values. State owner: Rank features (feature version). Read features at a pinned version, separating missing features from zero values. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Publish–subscribe](https://en.wikipedia.org/wiki/Publish%E2%80%93subscribe_pattern) separates producing an update from distributing it to interested consumers.",
           "graph": {
             "edges": [
               {
@@ -3735,7 +3735,7 @@
             "acl",
             "lag"
           ],
-          "explanation": "Rank deterministically and keep the snapshot plus tie tuple in continuation state. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Rank deterministically and keep the snapshot plus tie tuple in continuation state. Rank deterministically and keep the snapshot plus tie tuple in continuation state. State owner: Ranking cursor (rank tuple cursor). Rank deterministically and keep the snapshot plus tie tuple in continuation state. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A snapshot](https://en.wikipedia.org/wiki/Snapshot_isolation) gives one read operation a fixed view of data.",
           "graph": {
             "edges": [
               {
@@ -4012,7 +4012,7 @@
             "acl",
             "lag"
           ],
-          "explanation": "Recheck deletion/revocation and report source lag without filling pages with stale grants. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Recheck deletion/revocation and report source lag without filling pages with stale grants. Recheck deletion/revocation and report source lag without filling pages with stale grants. State owner: Access and lag (access epoch and lag receipts). Recheck deletion/revocation and report source lag without filling pages with stale grants. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes.",
           "graph": {
             "edges": [
               {

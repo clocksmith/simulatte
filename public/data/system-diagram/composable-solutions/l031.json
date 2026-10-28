@@ -922,7 +922,7 @@
             "upgrade",
             "override"
           ],
-          "explanation": "Start with a stable chat contract independent of internal generation topology. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Start with a stable chat contract independent of internal generation topology. Start with a stable chat contract independent of internal generation topology. State owner: Chat boundary (conversation identity). Start with a stable chat contract independent of internal generation topology. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A WebSocket](https://en.wikipedia.org/wiki/WebSocket) keeps a two-way connection open for timely updates.",
           "graph": {
             "edges": [
               {
@@ -1024,7 +1024,7 @@
             "upgrade",
             "override"
           ],
-          "explanation": "Expand backend into command control and conversation authority without changing its identity. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Expand backend into command control and conversation authority without changing its identity. Expand backend into command control and conversation authority without changing its identity. State owner: Backend revision (conversation versions). Expand backend into command control and conversation authority without changing its identity. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A WebSocket](https://en.wikipedia.org/wiki/WebSocket) keeps a two-way connection open for timely updates.",
           "graph": {
             "edges": [
               {
@@ -1163,7 +1163,7 @@
             "upgrade",
             "override"
           ],
-          "explanation": "Expand command control into a router and pinned generation-capacity boundary. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Expand command control into a router and pinned generation-capacity boundary. Expand command control into a router and pinned generation-capacity boundary. State owner: Generation boundary (generation instance binding). Expand command control into a router and pinned generation-capacity boundary. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A WebSocket](https://en.wikipedia.org/wiki/WebSocket) keeps a two-way connection open for timely updates.",
           "graph": {
             "edges": [
               {
@@ -1339,7 +1339,7 @@
             "upgrade",
             "override"
           ],
-          "explanation": "Expand generation capacity into admission and worker with typed exposed mapping. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Expand generation capacity into admission and worker with typed exposed mapping. Expand generation capacity into admission and worker with typed exposed mapping. State owner: Capacity internals (capacity permits and worker state). Expand generation capacity into admission and worker with typed exposed mapping. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Backpressure](https://en.wikipedia.org/wiki/Flow_control_%28data%29) prevents producers from outrunning the next component indefinitely.",
           "graph": {
             "edges": [
               {
@@ -1552,7 +1552,7 @@
             "upgrade",
             "override"
           ],
-          "explanation": "Add an explicit output adapter; internal token batches become the stable reply contract. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Add an explicit output adapter; internal token batches become the stable reply contract. Add an explicit output adapter; internal token batches become the stable reply contract. State owner: Output contract (adapter compatibility version). Add an explicit output adapter; internal token batches become the stable reply contract. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A WebSocket](https://en.wikipedia.org/wiki/WebSocket) keeps a two-way connection open for timely updates.",
           "graph": {
             "edges": [
               {
@@ -1794,7 +1794,7 @@
             "upgrade",
             "override"
           ],
-          "explanation": "Replace the worker implementation while retaining identity and compatible ports; record migration. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Replace the worker implementation while retaining identity and compatible ports; record migration. Replace the worker implementation while retaining identity and compatible ports; record migration. State owner: Worker upgrade (worker version and active-attempt policy). Replace the worker implementation while retaining identity and compatible ports; record migration. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A WebSocket](https://en.wikipedia.org/wiki/WebSocket) keeps a two-way connection open for timely updates.",
           "graph": {
             "edges": [
               {
@@ -1994,7 +1994,7 @@
             "upgrade",
             "override"
           ],
-          "explanation": "Add a distinct admission candidate for the new binding and validate its port compatibility. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Add a distinct admission candidate for the new binding and validate its port compatibility. Add a distinct admission candidate for the new binding and validate its port compatibility. State owner: Binding candidate (candidate permit state). Add a distinct admission candidate for the new binding and validate its port compatibility. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Backpressure](https://en.wikipedia.org/wiki/Flow_control_%28data%29) prevents producers from outrunning the next component indefinitely.",
           "graph": {
             "edges": [
               {
@@ -2244,7 +2244,7 @@
             "upgrade",
             "override"
           ],
-          "explanation": "Create a new immutable subsystem binding and rebind only this capacity instance; earlier stages remain unchanged. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Create a new immutable subsystem binding and rebind only this capacity instance; earlier stages remain unchanged. Create a new immutable subsystem binding and rebind only this capacity instance; earlier stages remain unchanged. State owner: Explicit rebind (selected binding identity). [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers. Publishing one reference lets each reader keep a consistent version.",
           "graph": {
             "edges": [
               {
@@ -2630,7 +2630,7 @@
             "upgrade",
             "override"
           ],
-          "explanation": "Accept the same logical conversation command while internal capacity is remote. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Accept the same logical conversation command while internal capacity is remote. Accept the same logical conversation command while internal capacity is remote. State owner: Remote chat contract (request identity). Accept the same logical conversation command while internal capacity is remote. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A WebSocket](https://en.wikipedia.org/wiki/WebSocket) keeps a two-way connection open for timely updates.",
           "graph": {
             "edges": [
               {
@@ -2732,7 +2732,7 @@
             "upgrade",
             "override"
           ],
-          "explanation": "Expand backend into orchestration and durable conversation state. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Expand backend into orchestration and durable conversation state. Expand backend into orchestration and durable conversation state. State owner: Backend journal (conversation and remote intent). Expand backend into orchestration and durable conversation state. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call.",
           "graph": {
             "edges": [
               {
@@ -2871,7 +2871,7 @@
             "upgrade",
             "override"
           ],
-          "explanation": "Expand orchestration into a contract adapter and pinned remote generation boundary. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Expand orchestration into a contract adapter and pinned remote generation boundary. Expand orchestration into a contract adapter and pinned remote generation boundary. State owner: RPC capacity boundary (remote binding and retry identity). Expand orchestration into a contract adapter and pinned remote generation boundary. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A WebSocket](https://en.wikipedia.org/wiki/WebSocket) keeps a two-way connection open for timely updates.",
           "graph": {
             "edges": [
               {
@@ -3047,7 +3047,7 @@
             "upgrade",
             "override"
           ],
-          "explanation": "Expand capacity into remote admission and generation worker, preserving exposed contracts. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Expand capacity into remote admission and generation worker, preserving exposed contracts. Expand capacity into remote admission and generation worker, preserving exposed contracts. State owner: Remote internals (remote permits and attempt fences). Expand capacity into remote admission and generation worker, preserving exposed contracts. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A WebSocket](https://en.wikipedia.org/wiki/WebSocket) keeps a two-way connection open for timely updates.",
           "graph": {
             "edges": [
               {
@@ -3260,7 +3260,7 @@
             "upgrade",
             "override"
           ],
-          "explanation": "Decode the remote revision explicitly and map to stable external reply shape. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Decode the remote revision explicitly and map to stable external reply shape. Decode the remote revision explicitly and map to stable external reply shape. State owner: Response adapter (wire-version compatibility verdict). Decode the remote revision explicitly and map to stable external reply shape. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A WebSocket](https://en.wikipedia.org/wiki/WebSocket) keeps a two-way connection open for timely updates.",
           "graph": {
             "edges": [
               {
@@ -3502,7 +3502,7 @@
             "upgrade",
             "override"
           ],
-          "explanation": "Replace only the worker binding, draining or fencing active attempts before activation. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Replace only the worker binding, draining or fencing active attempts before activation. Replace only the worker binding, draining or fencing active attempts before activation. State owner: Remote worker revision (remote attempt epoch). Replace only the worker binding, draining or fencing active attempts before activation. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources.",
           "graph": {
             "edges": [
               {
@@ -3702,7 +3702,7 @@
             "upgrade",
             "override"
           ],
-          "explanation": "Add a separately versioned admission candidate without mutating the active binding. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Add a separately versioned admission candidate without mutating the active binding. Add a separately versioned admission candidate without mutating the active binding. State owner: Admission revision (candidate contract and permits). Add a separately versioned admission candidate without mutating the active binding. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Backpressure](https://en.wikipedia.org/wiki/Flow_control_%28data%29) prevents producers from outrunning the next component indefinitely.",
           "graph": {
             "edges": [
               {
@@ -3952,7 +3952,7 @@
             "upgrade",
             "override"
           ],
-          "explanation": "Rebind this instance explicitly; preserve other instances and prior immutable definitions. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Rebind this instance explicitly; preserve other instances and prior immutable definitions. Rebind this instance explicitly; preserve other instances and prior immutable definitions. State owner: Instance upgrade (instance binding selection). Rebind this instance explicitly; preserve other instances and prior immutable definitions. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers.",
           "graph": {
             "edges": [
               {

@@ -864,7 +864,7 @@
             "gap",
             "acl"
           ],
-          "explanation": "Start with authenticated user, device, session generation and sequence. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Start with authenticated user, device, session generation and sequence. Start with authenticated user, device, session generation and sequence. State owner: Presence ingress (session generation). Start with authenticated user, device, session generation and sequence. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Presence information](https://en.wikipedia.org/wiki/Presence_information) describes a recently observed connection or activity. It is time-bounded evidence, not proof that a person or device will remain reachable after the observation.",
           "graph": {
             "edges": [
               {
@@ -966,7 +966,7 @@
             "gap",
             "acl"
           ],
-          "explanation": "Expand ingress and retain the greatest generation/sequence per device. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Expand ingress and retain the greatest generation/sequence per device. Expand ingress and retain the greatest generation/sequence per device. State owner: Session authority (session lease records). Expand ingress and retain the greatest generation/sequence per device. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources. A newer owner needs a token that the resource checks, not merely a belief that ownership changed.",
           "graph": {
             "edges": [
               {
@@ -1105,7 +1105,7 @@
             "gap",
             "acl"
           ],
-          "explanation": "Refresh a bounded deadline only for a current session; old generations are rejected. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Refresh a bounded deadline only for a current session; old generations are rejected. Refresh a bounded deadline only for a current session; old generations are rejected. State owner: Heartbeat lease (expiry deadlines). Refresh a bounded deadline only for a current session; old generations are rejected. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid.",
           "graph": {
             "edges": [
               {
@@ -1292,7 +1292,7 @@
             "gap",
             "acl"
           ],
-          "explanation": "Aggregate all unexpired devices and explicit availability settings. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Aggregate all unexpired devices and explicit availability settings. Aggregate all unexpired devices and explicit availability settings. State owner: User reduction (aggregate version). Aggregate all unexpired devices and explicit availability settings. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid. Expiration must be checked at the point of use, even when background cleanup runs later.",
           "graph": {
             "edges": [
               {
@@ -1480,7 +1480,7 @@
             "gap",
             "acl"
           ],
-          "explanation": "Commit aggregate changes and ordered transition intent under one user owner. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Commit aggregate changes and ordered transition intent under one user owner. Commit aggregate changes and ordered transition intent under one user owner. State owner: Transition outbox (transition outbox). Commit aggregate changes and ordered transition intent under one user owner. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Presence information](https://en.wikipedia.org/wiki/Presence_information) describes a recently observed connection or activity.",
           "graph": {
             "edges": [
               {
@@ -1692,7 +1692,7 @@
             "gap",
             "acl"
           ],
-          "explanation": "Authorize channel/contact subscriptions and cap their cardinality. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Authorize channel/contact subscriptions and cap their cardinality. Authorize channel/contact subscriptions and cap their cardinality. State owner: Subscription filter (subscription ACL epoch). Authorize channel/contact subscriptions and cap their cardinality. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Access control](https://en.wikipedia.org/wiki/Access_control) decides whether an authenticated identity may perform a particular action. The check must apply to the actual resource and operation, including cached and asynchronous paths.",
           "graph": {
             "edges": [
               {
@@ -1928,7 +1928,7 @@
             "gap",
             "acl"
           ],
-          "explanation": "Capture a revisioned snapshot then replay transitions strictly after its cursor. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Capture a revisioned snapshot then replay transitions strictly after its cursor. Capture a revisioned snapshot then replay transitions strictly after its cursor. State owner: Snapshot cursor (snapshot revision). Capture a revisioned snapshot then replay transitions strictly after its cursor. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A snapshot](https://en.wikipedia.org/wiki/Snapshot_isolation) gives one read operation a fixed view of data.",
           "graph": {
             "edges": [
               {
@@ -2250,7 +2250,7 @@
             "gap",
             "acl"
           ],
-          "explanation": "Signal resnapshot rather than inventing continuity; expire leases after owner failover. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Signal resnapshot rather than inventing continuity; expire leases after owner failover. Signal resnapshot rather than inventing continuity; expire leases after owner failover. State owner: Gap recovery (retention floor). Signal resnapshot rather than inventing continuity; expire leases after owner failover. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A snapshot](https://en.wikipedia.org/wiki/Snapshot_isolation) gives one read operation a fixed view of data.",
           "graph": {
             "edges": [
               {
@@ -2700,7 +2700,7 @@
             "gap",
             "acl"
           ],
-          "explanation": "Record authenticated open, heartbeat and close events with stable identity. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Record authenticated open, heartbeat and close events with stable identity. Record authenticated open, heartbeat and close events with stable identity. State owner: Session append (event identity). Record authenticated open, heartbeat and close events with stable identity. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Presence information](https://en.wikipedia.org/wiki/Presence_information) describes a recently observed connection or activity. It is time-bounded evidence, not proof that a person or device will remain reachable after the observation.",
           "graph": {
             "edges": [
               {
@@ -2802,7 +2802,7 @@
             "gap",
             "acl"
           ],
-          "explanation": "Expand ingress into an append handler and retained session journal. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Expand ingress into an append handler and retained session journal. Expand ingress into an append handler and retained session journal. State owner: Presence journal (session events). Expand ingress into an append handler and retained session journal. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Presence information](https://en.wikipedia.org/wiki/Presence_information) describes a recently observed connection or activity. It is time-bounded evidence, not proof that a person or device will remain reachable after the observation.",
           "graph": {
             "edges": [
               {
@@ -2941,7 +2941,7 @@
             "gap",
             "acl"
           ],
-          "explanation": "Fold each session by generation then sequence; close tombstones fence old beats. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Fold each session by generation then sequence; close tombstones fence old beats. Fold each session by generation then sequence; close tombstones fence old beats. State owner: Session fold (per-session folded state). Fold each session by generation then sequence; close tombstones fence old beats. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources.",
           "graph": {
             "edges": [
               {
@@ -3097,7 +3097,7 @@
             "gap",
             "acl"
           ],
-          "explanation": "Schedule expiry against last accepted heartbeat and recheck its version before closing. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Schedule expiry against last accepted heartbeat and recheck its version before closing. Schedule expiry against last accepted heartbeat and recheck its version before closing. State owner: Expiry events (timer versions). Schedule expiry against last accepted heartbeat and recheck its version before closing. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid.",
           "graph": {
             "edges": [
               {
@@ -3271,7 +3271,7 @@
             "gap",
             "acl"
           ],
-          "explanation": "Reduce active sessions into a monotonic user projection with source offsets. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Reduce active sessions into a monotonic user projection with source offsets. Reduce active sessions into a monotonic user projection with source offsets. State owner: User projection (user view and watermark). Reduce active sessions into a monotonic user projection with source offsets. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes.",
           "graph": {
             "edges": [
               {
@@ -3469,7 +3469,7 @@
             "gap",
             "acl"
           ],
-          "explanation": "Resolve current observer permission independently from stale presence projection. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Resolve current observer permission independently from stale presence projection. Resolve current observer permission independently from stale presence projection. State owner: ACL projection (ACL epochs). Resolve current observer permission independently from stale presence projection. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Access control](https://en.wikipedia.org/wiki/Access_control) decides whether an authenticated identity may perform a particular action. The check must apply to the actual resource and operation, including cached and asynchronous paths.",
           "graph": {
             "edges": [
               {
@@ -3691,7 +3691,7 @@
             "gap",
             "acl"
           ],
-          "explanation": "Return materialized state at a source watermark then stream greater versions. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Return materialized state at a source watermark then stream greater versions. Return materialized state at a source watermark then stream greater versions. State owner: Snapshot barrier (snapshot watermark). Return materialized state at a source watermark then stream greater versions. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes.",
           "graph": {
             "edges": [
               {
@@ -3968,7 +3968,7 @@
             "gap",
             "acl"
           ],
-          "explanation": "Replay retained journal into a new view and swap at a verified barrier. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Replay retained journal into a new view and swap at a verified barrier. Replay retained journal into a new view and swap at a verified barrier. State owner: Rebuild worker (rebuild cursor). Replay retained journal into a new view and swap at a verified barrier. The graph is an authored conceptual design; guarantees require the named deployment contracts. [An event log](https://en.wikipedia.org/wiki/Event-driven_architecture) preserves ordered changes so a consumer can rebuild state or catch up.",
           "graph": {
             "edges": [
               {

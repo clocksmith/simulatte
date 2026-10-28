@@ -800,6 +800,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Resolve schedules into stable run IDs and bound pending work per origin. [A directed acyclic graph](https://en.wikipedia.org/wiki/Directed_acyclic_graph) expresses work that depends on earlier results. A scheduler must track completed dependencies and distinguish logical tasks from retry attempts before releasing downstream work. Consider this case: A worker commits output but loses its acknowledgement. Retry the same source revision under a new lease.",
           "graph": {
             "edges": [
               {
@@ -899,6 +900,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Create one run per schedule/instant and admit only configured origins. Own normalized URL/revision keys, lease owner, attempts and next eligible time. run identity belongs to Run coordinator; URL leases belongs to Frontier. [A crawler](https://en.wikipedia.org/wiki/Web_crawler) chooses which URLs to fetch and when. Scheduling must balance discovery with per-site limits, while canonicalization and duplicate checks prevent repeated or unbounded work.",
           "graph": {
             "edges": [
               {
@@ -1035,6 +1037,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Grant a bounded concurrent permit after robots and minimum-delay checks. Retries consume the same per-origin budget. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version. Consider this case: A worker commits output but loses its acknowledgement. Retry the same source revision under a new lease.",
           "graph": {
             "edges": [
               {
@@ -1188,6 +1191,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Use finite response-size/time limits and conditional validators; retain status and receipt. A timeout is retryable intent, not evidence of an empty source. [A condition variable](https://en.wikipedia.org/wiki/Condition_variable) lets a thread sleep until shared state may have changed. Waking does not guarantee success, so the protected condition must be checked again. Consider this case: A worker commits output but loses its acknowledgement.",
           "graph": {
             "edges": [
               {
@@ -1359,6 +1363,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Parse retained bytes with a pinned parser version and emit schema errors to quarantine. Invalid records never enter the accepted output table. [Data ingestion](https://en.wikipedia.org/wiki/Data_integration) moves source records into a usable destination. Stable source identity and progress records distinguish genuinely new data from repeated delivery or a restarted import. Consider this case: A worker commits output but loses its acknowledgement.",
           "graph": {
             "edges": [
               {
@@ -1554,6 +1559,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Commit unique source/revision/parser outputs and completion marker atomically. The completion marker never outruns output commit. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call. Consider this case: A worker commits output but loses its acknowledgement. Retry the same source revision under a new lease.",
           "graph": {
             "edges": [
               {
@@ -1773,6 +1779,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Fence expired lease holders and retry with the same run/revision identity. A stale worker cannot complete a reassigned lease. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources. A newer owner needs a token that the resource checks, not merely a belief that ownership changed. Consider this case: A worker commits output but loses its acknowledgement.",
           "graph": {
             "edges": [
               {
@@ -2022,6 +2029,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Retain source URL, receipt hash, parser version, scheduled instant and terminal state. A record is attributable to immutable inputs. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return. Consider this case: A worker commits output but loses its acknowledgement.",
           "graph": {
             "edges": [
               {
@@ -2372,6 +2380,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Resolve schedules into stable run IDs and bound pending work per origin. [A directed acyclic graph](https://en.wikipedia.org/wiki/Directed_acyclic_graph) expresses work that depends on earlier results. A scheduler must track completed dependencies and distinguish logical tasks from retry attempts before releasing downstream work. Consider this case: A partition output is complete but a worker restarts. Reprocess that partition.",
           "graph": {
             "edges": [
               {
@@ -2471,6 +2480,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Freeze an input manifest for one scheduled instant. Own immutable source revision lists and partition bounds. manifest identity belongs to Snapshot planner; manifest hash and partitions belongs to Manifest store. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version.",
           "graph": {
             "edges": [
               {
@@ -2607,6 +2617,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Split the manifest by deterministic ranges with stable partition IDs. Ranges are disjoint and cover exactly the frozen manifest. [Partitioning](https://en.wikipedia.org/wiki/Partition_%28database%29) divides data and work among owners. The key determines where requests go; skew, ownership changes, and operations spanning partitions require additional coordination. Consider this case: A partition output is complete but a worker restarts. Reprocess that partition.",
           "graph": {
             "edges": [
               {
@@ -2760,6 +2771,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Lease partitions and read their immutable input revision list. A reassignment retains the same partition identity. [Partitioning](https://en.wikipedia.org/wiki/Partition_%28database%29) divides data and work among owners. The key determines where requests go; skew, ownership changes, and operations spanning partitions require additional coordination. Consider this case: A partition output is complete but a worker restarts. Reprocess that partition.",
           "graph": {
             "edges": [
               {
@@ -2931,6 +2943,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Apply a pinned schema/parser and retain rejected inputs separately. Quarantine counts remain visible in run completeness. [Data ingestion](https://en.wikipedia.org/wiki/Data_integration) moves source records into a usable destination. Stable source identity and progress records distinguish genuinely new data from repeated delivery or a restarted import. Consider this case: A partition output is complete but a worker restarts. Reprocess that partition.",
           "graph": {
             "edges": [
               {
@@ -3126,6 +3139,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Write partition outputs to a run-scoped namespace before publication. Readers cannot confuse staging rows with the published snapshot. [Partitioning](https://en.wikipedia.org/wiki/Partition_%28database%29) divides data and work among owners. The key determines where requests go; skew, ownership changes, and operations spanning partitions require additional coordination. Consider this case: A partition output is complete but a worker restarts. Reprocess that partition.",
           "graph": {
             "edges": [
               {
@@ -3345,6 +3359,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Compare every expected partition receipt and atomically swap the active manifest pointer. Only a complete accepted generation is published. [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers. Publishing one reference lets each reader keep a consistent version. Consider this case: A partition output is complete but a worker restarts. Reprocess that partition.",
           "graph": {
             "edges": [
               {
@@ -3588,6 +3603,7 @@
             "case0",
             "case1"
           ],
+          "explanation": "Delete abandoned staging only after lease expiry and retention; preserve published provenance. Cleanup never deletes the active generation. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources. A newer owner needs a token that the resource checks, not merely a belief that ownership changed. Consider this case: A partition output is complete but a worker restarts. Reprocess that partition.",
           "graph": {
             "edges": [
               {

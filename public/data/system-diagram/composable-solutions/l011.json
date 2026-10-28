@@ -1310,7 +1310,7 @@
               "text": "POST /tweets   { clientId, text }          → { id, timestamp }      // idempotent per (author, clientId)\nGET  /timeline?limit=20&cursor=<opaque>    → { tweets, nextCursor }\nPUT  /follows/:author                       → 204"
             }
           ],
-          "explanation": "The follower distribution is the design driver: most accounts are small, a few are enormous.",
+          "explanation": "Requirements: users post, follow accounts, and read a fresh home feed. A retried post with the same clientId returns the same tweet. The follower distribution is the design driver: most accounts are small, a few are enormous. [Publish–subscribe](https://en.wikipedia.org/wiki/Publish%E2%80%93subscribe_pattern) separates producing an update from distributing it to interested consumers. Delivery cost shifts depending on whether work is performed when writing or when someone reads.",
           "followupIds": [],
           "graph": {
             "edges": [
@@ -1418,7 +1418,7 @@
             "push-storage-check-1-reference"
           ],
           "code": [],
-          "explanation": "The pull query defines what a correct timeline is; every later stage must return the same posts more cheaply.",
+          "explanation": "Posts and follows must be durable; the first correct read is a query over followees. The baseline timeline is the newest posts across everyone followed. The pull query defines what a correct timeline is; every later stage must return the same posts more cheaply. [A search index](https://en.wikipedia.org/wiki/Search_engine_indexing) maps query terms to candidate records. The interface must still associate each response with the active query and preserve the user’s chosen filters.",
           "followupIds": [
             "followup-1"
           ],
@@ -1647,7 +1647,7 @@
               "text": "onPost(t): for f in followers(t.authorId):          // batched, 1k per job\n  timelines[f].insert({ id: t.id, timestamp: t.timestamp })     // sorted, dedupe by id\nread(u, cursor): ids = timelines[u].after(cursor).take(n)"
             }
           ],
-          "explanation": "Work moves from every read to each post. Workers are idempotent so a redelivered job never duplicates an entry.",
+          "explanation": "Follow-up 1: reads are ~100× posts, so a read must be one list read. A post lands at the head of every follower timeline. Work moves from every read to each post. Workers are idempotent so a redelivered job never duplicates an entry. [Publish–subscribe](https://en.wikipedia.org/wiki/Publish%E2%80%93subscribe_pattern) separates producing an update from distributing it to interested consumers. Delivery cost shifts depending on whether work is performed when writing or when someone reads.",
           "followupIds": [
             "followup-1"
           ],
@@ -2018,7 +2018,7 @@
             "push-hydrate-check-1-reference"
           ],
           "code": [],
-          "explanation": "Ids keep lists small and keep edits and deletes in one place.",
+          "explanation": "Copying tweet bodies into millions of lists wastes memory and makes edits and deletes unbounded. A deleted tweet disappears from timelines that still hold its id. Ids keep lists small and keep edits and deletes in one place. [Publish–subscribe](https://en.wikipedia.org/wiki/Publish%E2%80%93subscribe_pattern) separates producing an update from distributing it to interested consumers. Delivery cost shifts depending on whether work is performed when writing or when someone reads.",
           "followupIds": [
             "followup-2"
           ],
@@ -2345,7 +2345,7 @@
             "push-bounded-check-2-reference"
           ],
           "code": [],
-          "explanation": "Bounded lists for active users fit in memory; anyone else is rebuilt on demand by the same pull logic as the baseline.",
+          "explanation": "Follow-up 2: memory = users × entries; most users are inactive on any given day. Timelines keep only the newest cap entries. Bounded lists for active users fit in memory; anyone else is rebuilt on demand by the same pull logic as the baseline. [Publish–subscribe](https://en.wikipedia.org/wiki/Publish%E2%80%93subscribe_pattern) separates producing an update from distributing it to interested consumers. Delivery cost shifts depending on whether work is performed when writing or when someone reads.",
           "followupIds": [
             "followup-2"
           ],
@@ -2794,7 +2794,7 @@
               "text": "read(u, cursor):\n  mine   = timelines[u].after(cursor).take(n)\n  celebs = following(u).filter(isCelebrity).flatMap(a => recent[a].after(cursor).take(n))\n  return mergeByTime(mine, celebs).dedupeById().take(n)"
             }
           ],
-          "explanation": "Fan-out on write for the long tail, fan-out on read for the head: each read merges a handful of celebrity lists into the user’s own list.",
+          "explanation": "Follow-up 1: one post by an account with 50M followers is 50M writes and minutes of lag. Skipping fan-out for celebrities and merging at read equals the pure pull timeline. Fan-out on write for the long tail, fan-out on read for the head: each read merges a handful of celebrity lists into the user’s own list. [Publish–subscribe](https://en.wikipedia.org/wiki/Publish%E2%80%93subscribe_pattern) separates producing an update from distributing it to interested consumers.",
           "followupIds": [
             "followup-1"
           ],
@@ -3228,7 +3228,7 @@
               "text": "live(t):     if own[t.clientId]: confirm(t) else if !shown[t.id]: waiting[t.id] = t\nshowNew():   shown += waiting; waiting = {}\nappendPage(p): for t in p: shown[t.id] ??= t"
             }
           ],
-          "explanation": "The feed store is the single owner of what is on screen; every source (pages, live, own posts) merges through it.",
+          "explanation": "Own posts must appear at once, and new posts must not shift what the user is reading. Live posts wait above the list, pages append below, and nothing shows twice. The feed store is the single owner of what is on screen; every source (pages, live, own posts) merges through it. [Publish–subscribe](https://en.wikipedia.org/wiki/Publish%E2%80%93subscribe_pattern) separates producing an update from distributing it to interested consumers.",
           "followupIds": [
             "followup-3"
           ],
@@ -3703,7 +3703,7 @@
             "push-live-check-1-reference"
           ],
           "code": [],
-          "explanation": "Delivery piggybacks on fan-out for normal accounts and on author topics for celebrities; the feed store makes duplicates harmless.",
+          "explanation": "Follow-up 3: open sessions should see new posts without polling. Pushed posts are deduped against pages and wait above the list. Delivery piggybacks on fan-out for normal accounts and on author topics for celebrities; the feed store makes duplicates harmless. [Long polling](https://en.wikipedia.org/wiki/Push_technology#Long_polling) holds a request until an update or timeout is available. Reissuing that request requires a continuation position so gaps between requests do not lose updates.",
           "followupIds": [
             "followup-3"
           ],
@@ -4342,7 +4342,7 @@
             "push-builder-check-1-reference"
           ],
           "code": [],
-          "explanation": "Merging the two writers removes the risk that a rebuilt timeline shows posts that fan-out would have filtered, or the reverse.",
+          "explanation": "Fan-out and rebuild both turn graph + tweets into entries; mute, block and visibility rules must be identical in both. A rebuilt timeline equals the fan-out result. Merging the two writers removes the risk that a rebuilt timeline shows posts that fan-out would have filtered, or the reverse. [Publish–subscribe](https://en.wikipedia.org/wiki/Publish%E2%80%93subscribe_pattern) separates producing an update from distributing it to interested consumers. Delivery cost shifts depending on whether work is performed when writing or when someone reads.",
           "followupIds": [
             "followup-1",
             "followup-2"
@@ -5175,7 +5175,7 @@
               "text": "POST /tweets   { clientId, text }          → { id, timestamp }      // idempotent per (author, clientId)\nGET  /timeline?limit=20&cursor=<opaque>    → { tweets, nextCursor }\nPUT  /follows/:author                       → 204"
             }
           ],
-          "explanation": "The follower distribution is the design driver: most accounts are small, a few are enormous.",
+          "explanation": "Requirements: users post, follow accounts, and read a fresh home feed. A retried post with the same clientId returns the same tweet. The follower distribution is the design driver: most accounts are small, a few are enormous. [Publish–subscribe](https://en.wikipedia.org/wiki/Publish%E2%80%93subscribe_pattern) separates producing an update from distributing it to interested consumers. Delivery cost shifts depending on whether work is performed when writing or when someone reads.",
           "followupIds": [],
           "graph": {
             "edges": [
@@ -5283,7 +5283,7 @@
             "pull-storage-check-1-reference"
           ],
           "code": [],
-          "explanation": "Storage is laid out for the read: recent posts by author come from one index range.",
+          "explanation": "Posts and follows must be durable and readable by author. Posting is idempotent per (author, clientId). Storage is laid out for the read: recent posts by author come from one index range. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call.",
           "followupIds": [
             "followup-1"
           ],
@@ -5514,7 +5514,7 @@
               "text": "timeline(u, cursor):\n  lists = following(u).map(a => tweets.by(a).after(cursor).take(n))   // parallel\n  return kWayMerge(lists, by = (timestamp, id)).take(n)"
             }
           ],
-          "explanation": "Each followee contributes at most n posts after the cursor, so the merge is bounded and pages are stable while new posts arrive.",
+          "explanation": "Follow-up 1: the home timeline is a merge of followees’ posts, computed per request. The merged page is the newest posts across everyone followed. Each followee contributes at most n posts after the cursor, so the merge is bounded and pages are stable while new posts arrive. [Publish–subscribe](https://en.wikipedia.org/wiki/Publish%E2%80%93subscribe_pattern) separates producing an update from distributing it to interested consumers. Delivery cost shifts depending on whether work is performed when writing or when someone reads.",
           "followupIds": [
             "followup-1"
           ],
@@ -5845,7 +5845,7 @@
             "pull-author-cache-check-1"
           ],
           "code": [],
-          "explanation": "Caching by author answers the timeline-cache question for this approach: memory follows authors, and nothing per reader needs evicting.",
+          "explanation": "Each refresh reads hundreds of authors from the database; recent ids per author are tiny and shared by all followers. The cache holds only ids already in the database, so a miss is always safe to serve from storage. Caching by author answers the timeline-cache question for this approach: memory follows authors, and nothing per reader needs evicting. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure.",
           "followupIds": [
             "followup-1",
             "followup-2"
@@ -6137,7 +6137,7 @@
             "pull-first-page-check-1-reference"
           ],
           "code": [],
-          "explanation": "A short per-user cache absorbs refresh storms; the keyset cursor keeps continuation correct even from a stale first page.",
+          "explanation": "Pull-to-refresh repeats the same merge many times a minute. A cursor taken from an older first page continues without repeats. A short per-user cache absorbs refresh storms; the keyset cursor keeps continuation correct even from a stale first page. [A cursor](https://en.wikipedia.org/wiki/Cursor_%28databases%29) records where a query should continue. Its ordering fields must distinguish equal values, and its validity depends on the query and access permissions.",
           "followupIds": [
             "followup-2"
           ],
@@ -6421,7 +6421,7 @@
             "pull-hydrate-check-1-reference"
           ],
           "code": [],
-          "explanation": "Bodies live once; every list is ids.",
+          "explanation": "Author lists and pages hold ids; text must be current and deleted tweets must vanish. Deleted tweets drop out of pages that still reference them. Bodies live once; every list is ids. [Publish–subscribe](https://en.wikipedia.org/wiki/Publish%E2%80%93subscribe_pattern) separates producing an update from distributing it to interested consumers. Delivery cost shifts depending on whether work is performed when writing or when someone reads.",
           "followupIds": [
             "followup-2"
           ],
@@ -6773,7 +6773,7 @@
               "text": "live(t):     if own[t.clientId]: confirm(t) else if !shown[t.id]: waiting[t.id] = t\nshowNew():   shown += waiting; waiting = {}\nappendPage(p): for t in p: shown[t.id] ??= t"
             }
           ],
-          "explanation": "The feed store is the single owner of what is on screen; every source (pages, live, own posts) merges through it.",
+          "explanation": "Own posts must appear at once, and new posts must not shift what the user is reading. Live posts wait above the list, pages append below, and nothing shows twice. The feed store is the single owner of what is on screen; every source (pages, live, own posts) merges through it. [Publish–subscribe](https://en.wikipedia.org/wiki/Publish%E2%80%93subscribe_pattern) separates producing an update from distributing it to interested consumers.",
           "followupIds": [
             "followup-3"
           ],
@@ -7157,7 +7157,7 @@
             "pull-live-check-1-reference"
           ],
           "code": [],
-          "explanation": "Live delivery fans out only to connected sessions, so it costs nothing for the offline majority.",
+          "explanation": "Follow-up 3: open sessions should see new posts without polling. Pushed posts are deduped against pages and wait above the list. Live delivery fans out only to connected sessions, so it costs nothing for the offline majority. [Long polling](https://en.wikipedia.org/wiki/Push_technology#Long_polling) holds a request until an update or timeout is available. Reissuing that request requires a continuation position so gaps between requests do not lose updates.",
           "followupIds": [
             "followup-3",
             "followup-1"
@@ -7680,7 +7680,7 @@
             "pull-streams-check-1"
           ],
           "code": [],
-          "explanation": "An append-only stream per author serves both the mixer’s range reads and the gateways’ live tails, so refresh and push always agree.",
+          "explanation": "The recent-posts cache and the author topics both hold \"new posts per author\"; keeping two copies lets live and refresh disagree. A gateway resumes within retained stream history; a position beyond retention triggers an explicit reset and fresh feed merge. An append-only stream per author serves both the mixer’s range reads and the gateways’ live tails, so refresh and push always agree. [A cache](https://en.wikipedia.org/wiki/Cache_replacement_policies) keeps reusable results in limited memory.",
           "followupIds": [
             "followup-1",
             "followup-3"

@@ -880,7 +880,7 @@
             "acl",
             "views"
           ],
-          "explanation": "Start with upload intent; publication requires verified immutable media. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Start with upload intent; publication requires verified immutable media. Start with upload intent; publication requires verified immutable media. State owner: Stories API (story command identities). Start with upload intent; publication requires verified immutable media. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Transcoding](https://en.wikipedia.org/wiki/Transcoding) creates new media representations from an uploaded source. Publication should reference completed outputs, while retries and cleanup must not expose a partially processed asset.",
           "graph": {
             "edges": [
               {
@@ -982,7 +982,7 @@
             "acl",
             "views"
           ],
-          "explanation": "Expand the API into command handling and a versioned metadata authority. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Expand the API into command handling and a versioned metadata authority. Expand the API into command handling and a versioned metadata authority. State owner: Story ledger (owner, expiry, media digest). Expand the API into command handling and a versioned metadata authority. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Transcoding](https://en.wikipedia.org/wiki/Transcoding) creates new media representations from an uploaded source.",
           "graph": {
             "edges": [
               {
@@ -1121,7 +1121,7 @@
             "acl",
             "views"
           ],
-          "explanation": "Validate size, digest and codec output before publishing a rendition manifest. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Validate size, digest and codec output before publishing a rendition manifest. Validate size, digest and codec output before publishing a rendition manifest. State owner: Media finalize (upload receipts). Validate size, digest and codec output before publishing a rendition manifest. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers.",
           "graph": {
             "edges": [
               {
@@ -1308,7 +1308,7 @@
             "acl",
             "views"
           ],
-          "explanation": "Join current audience epoch on each read before issuing bounded access. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Join current audience epoch on each read before issuing bounded access. Join current audience epoch on each read before issuing bounded access. State owner: Audience join (audience epochs). Join current audience epoch on each read before issuing bounded access. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes.",
           "graph": {
             "edges": [
               {
@@ -1533,7 +1533,7 @@
             "acl",
             "views"
           ],
-          "explanation": "Use a stable story publication cursor and filter expired entries at the server. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Use a stable story publication cursor and filter expired entries at the server. Use a stable story publication cursor and filter expired entries at the server. State owner: Tray cursor (publication cursor). Use a stable story publication cursor and filter expired entries at the server. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A cursor](https://en.wikipedia.org/wiki/Cursor_%28databases%29) records where a query should continue.",
           "graph": {
             "edges": [
               {
@@ -1790,7 +1790,7 @@
             "acl",
             "views"
           ],
-          "explanation": "Union viewed identities per user and story; a read retry is idempotent. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Union viewed identities per user and story; a read retry is idempotent. Union viewed identities per user and story; a read retry is idempotent. State owner: Viewed register (viewed story set). Union viewed identities per user and story; a read retry is idempotent. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Transcoding](https://en.wikipedia.org/wiki/Transcoding) creates new media representations from an uploaded source.",
           "graph": {
             "edges": [
               {
@@ -2054,7 +2054,7 @@
             "acl",
             "views"
           ],
-          "explanation": "Check now < expiresAt while authorizing every metadata and media response. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Check now < expiresAt while authorizing every metadata and media response. Check now < expiresAt while authorizing every metadata and media response. State owner: Expiry guard (authorization clock policy). Check now < expiresAt while authorizing every metadata and media response. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid.",
           "graph": {
             "edges": [
               {
@@ -2342,7 +2342,7 @@
             "acl",
             "views"
           ],
-          "explanation": "Reconcile expired metadata with media deletion receipts; retain explicit backup policy. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Reconcile expired metadata with media deletion receipts; retain explicit backup policy. Reconcile expired metadata with media deletion receipts; retain explicit backup policy. State owner: Purge sweeper (purge cursor and receipts). Reconcile expired metadata with media deletion receipts; retain explicit backup policy. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid.",
           "graph": {
             "edges": [
               {
@@ -2792,7 +2792,7 @@
             "acl",
             "views"
           ],
-          "explanation": "Accept a stable story identity and retain pending upload status. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Accept a stable story identity and retain pending upload status. Accept a stable story identity and retain pending upload status. State owner: Publish gateway (publication receipts). Accept a stable story identity and retain pending upload status. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Transcoding](https://en.wikipedia.org/wiki/Transcoding) creates new media representations from an uploaded source. Publication should reference completed outputs, while retries and cleanup must not expose a partially processed asset.",
           "graph": {
             "edges": [
               {
@@ -2894,7 +2894,7 @@
             "acl",
             "views"
           ],
-          "explanation": "Expand the gateway; commit immutable story metadata and outbox intent together. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Expand the gateway; commit immutable story metadata and outbox intent together. Expand the gateway; commit immutable story metadata and outbox intent together. State owner: Publish outbox (story metadata and outbox). Expand the gateway; commit immutable story metadata and outbox intent together. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Change data capture](https://en.wikipedia.org/wiki/Change_data_capture) turns committed data changes into an ordered stream for other components.",
           "graph": {
             "edges": [
               {
@@ -3033,7 +3033,7 @@
             "acl",
             "views"
           ],
-          "explanation": "Write deterministic rendition keys and verify completion before releasing publication. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Write deterministic rendition keys and verify completion before releasing publication. Write deterministic rendition keys and verify completion before releasing publication. State owner: Transcode queue (rendition attempts). Write deterministic rendition keys and verify completion before releasing publication. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes.",
           "graph": {
             "edges": [
               {
@@ -3220,7 +3220,7 @@
             "acl",
             "views"
           ],
-          "explanation": "Retain recipient pages and deduplicate inbox insertion by viewer/story. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Retain recipient pages and deduplicate inbox insertion by viewer/story. Retain recipient pages and deduplicate inbox insertion by viewer/story. State owner: Fan-out log (recipient page checkpoints). Retain recipient pages and deduplicate inbox insertion by viewer/story. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Idempotence](https://en.wikipedia.org/wiki/Idempotence) means repeating the same logical operation does not repeat its effect. Stable request identities let a retry recover an existing outcome instead of creating another change.",
           "graph": {
             "edges": [
               {
@@ -3414,7 +3414,7 @@
             "acl",
             "views"
           ],
-          "explanation": "Store ranked pointers with expiry and source version, not media ownership. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Store ranked pointers with expiry and source version, not media ownership. Store ranked pointers with expiry and source version, not media ownership. State owner: Viewer inbox (unique viewer/story pointers). Store ranked pointers with expiry and source version, not media ownership. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Transcoding](https://en.wikipedia.org/wiki/Transcoding) creates new media representations from an uploaded source.",
           "graph": {
             "edges": [
               {
@@ -3626,7 +3626,7 @@
             "acl",
             "views"
           ],
-          "explanation": "Recheck current audience and expiry when dereferencing inbox pointers. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Recheck current audience and expiry when dereferencing inbox pointers. Recheck current audience and expiry when dereferencing inbox pointers. State owner: Read authorization (current authorization epoch). Recheck current audience and expiry when dereferencing inbox pointers. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid. Expiration must be checked at the point of use, even when background cleanup runs later.",
           "graph": {
             "edges": [
               {
@@ -3924,7 +3924,7 @@
             "acl",
             "views"
           ],
-          "explanation": "Merge viewed identities independently from feed order; duplicates do not reset progress. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Merge viewed identities independently from feed order; duplicates do not reset progress. Merge viewed identities independently from feed order; duplicates do not reset progress. State owner: View merge (viewed identities). Merge viewed identities independently from feed order; duplicates do not reset progress. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Idempotence](https://en.wikipedia.org/wiki/Idempotence) means repeating the same logical operation does not repeat its effect.",
           "graph": {
             "edges": [
               {
@@ -4212,7 +4212,7 @@
             "acl",
             "views"
           ],
-          "explanation": "Read-time expiry is authoritative; sweep derived inbox pointers and objects asynchronously. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "explanation": "Read-time expiry is authoritative; sweep derived inbox pointers and objects asynchronously. Read-time expiry is authoritative; sweep derived inbox pointers and objects asynchronously. State owner: Expiry reconciliation (sweep checkpoints). Read-time expiry is authoritative; sweep derived inbox pointers and objects asynchronously. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid.",
           "graph": {
             "edges": [
               {

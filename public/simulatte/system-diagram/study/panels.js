@@ -26,7 +26,7 @@
       h('h2', null, stage.title),
       h(Section, {title: 'Question'}, h('p', null, stage.question)),
       h(Section, {title: 'Why this stage'}, h('p', null, stage.reason)),
-      h(Section, {title: 'Explanation', hidden: !stage.explanation}, h('p', null, stage.explanation)),
+      h(Section, {title: 'Explanation', hidden: !stage.explanation}, h('p', null, root.SimulatteStudyText.render(stage.explanation||'',h))),
       h(Section, {title: 'Board notes', hidden: !stage.notes?.length}, h(List, {items: stage.notes})),
       h(Section, {title: 'Follow-ups answered', hidden: !stage.followupIds?.length}, h(List, {items: stage.followupIds, render: id => followups?.get(id) ? `${followups.get(id).title}: ${followups.get(id).prompt}` : id})),
       h(Section, {title: 'Changes in this stage'},

@@ -609,6 +609,7 @@
           "checkIds": [
             "atomic-publish"
           ],
+          "explanation": "Start with a viewer and a coarse video boundary. A manifest refers to a single published media version. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version. Consider this case: One rendition has not finished encoding. A viewer requests the new asset.",
           "graph": {
             "edges": [
               {
@@ -705,6 +706,7 @@
           "checkIds": [
             "atomic-publish"
           ],
+          "explanation": "Expand serving into a manifest API and immutable segment storage. Do not publish a playlist referencing unavailable segments. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version. Consider this case: One rendition has not finished encoding. A viewer requests the new asset.",
           "graph": {
             "edges": [
               {
@@ -837,6 +839,7 @@
           "checkIds": [
             "atomic-publish"
           ],
+          "explanation": "Separate costly rendition generation from request serving. Publish pointer only after every required rendition passes validation. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version. Consider this case: One rendition has not finished encoding. A viewer requests the new asset.",
           "graph": {
             "edges": [
               {
@@ -1008,6 +1011,7 @@
           "checkIds": [
             "corruption"
           ],
+          "explanation": "Make the chosen distribution architecture explicit. A cache miss cannot change assetVersion or rendition identity. [A cache](https://en.wikipedia.org/wiki/Cache_replacement_policies) keeps reusable results in limited memory. Eviction controls space, while ownership and invalidation rules determine whether a returned value is still safe to use. Consider this case: A regional cache has incorrect bytes under the requested segment key. Download and validate against the trusted content hash.",
           "graph": {
             "edges": [
               {
@@ -1216,6 +1220,7 @@
             "cold-spike",
             "entitlement"
           ],
+          "explanation": "Collapse misses behind a shield and enforce capability checks before media delivery. One in-flight fill per immutable key; failed fills wake waiters and can retry boundedly. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version.",
           "graph": {
             "edges": [
               {
@@ -1531,6 +1536,7 @@
           "checkIds": [
             "bounded-buffer"
           ],
+          "explanation": "Expose the player’s bandwidth estimate and bounded playback buffer. Use buffer and throughput hysteresis, not the last single download alone. [Adaptive streaming](https://en.wikipedia.org/wiki/Adaptive_bitrate_streaming) chooses among encoded quality levels as network conditions change. The player balances visible quality against the risk of exhausting its playback buffer. Consider this case: Downloads complete quickly while playback is paused or seeking. Continue completion callbacks from an old generation.",
           "graph": {
             "edges": [
               {
@@ -1877,6 +1883,7 @@
             "corruption",
             "regional-loss"
           ],
+          "explanation": "Choose an alternate healthy location while preserving the media contract. Only identical versioned segments are eligible; corrupt copies are quarantined. [Transcoding](https://en.wikipedia.org/wiki/Transcoding) creates new media representations from an uploaded source. Publication should reference completed outputs, while retries and cleanup must not expose a partially processed asset. Consider this case: A regional cache has incorrect bytes under the requested segment key.",
           "graph": {
             "edges": [
               {
@@ -2226,6 +2233,7 @@
             "bounded-buffer",
             "regional-loss"
           ],
+          "explanation": "One generation-aware owner reconciles download, buffer and failover decisions. An old playback generation never appends media after a seek. [A control loop](https://en.wikipedia.org/wiki/Control_loop) compares desired state with observed state and applies corrections. Repeated execution must converge safely, especially when a previous action succeeded but its reply was lost. Consider this case: Downloads complete quickly while playback is paused or seeking.",
           "graph": {
             "edges": [
               {
@@ -2605,6 +2613,7 @@
           "checkIds": [
             "atomic-publish"
           ],
+          "explanation": "Start with a viewer and a coarse video boundary. A manifest refers to a single published media version. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version. Consider this case: One rendition has not finished encoding. A viewer requests the new asset.",
           "graph": {
             "edges": [
               {
@@ -2701,6 +2710,7 @@
           "checkIds": [
             "atomic-publish"
           ],
+          "explanation": "Expand serving into a manifest API and immutable segment storage. Do not publish a playlist referencing unavailable segments. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version. Consider this case: One rendition has not finished encoding. A viewer requests the new asset.",
           "graph": {
             "edges": [
               {
@@ -2833,6 +2843,7 @@
           "checkIds": [
             "atomic-publish"
           ],
+          "explanation": "Separate costly rendition generation from request serving. Publish pointer only after every required rendition passes validation. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version. Consider this case: One rendition has not finished encoding. A viewer requests the new asset.",
           "graph": {
             "edges": [
               {
@@ -3004,6 +3015,7 @@
           "checkIds": [
             "corruption"
           ],
+          "explanation": "Make the chosen distribution architecture explicit. A cache miss cannot change assetVersion or rendition identity. [Transcoding](https://en.wikipedia.org/wiki/Transcoding) creates new media representations from an uploaded source. Publication should reference completed outputs, while retries and cleanup must not expose a partially processed asset. Consider this case: A regional cache has incorrect bytes under the requested segment key. Download and validate against the trusted content hash.",
           "graph": {
             "edges": [
               {
@@ -3293,6 +3305,7 @@
             "cold-spike",
             "entitlement"
           ],
+          "explanation": "Collapse misses behind a shield and enforce capability checks before media delivery. One in-flight fill per immutable key; failed fills wake waiters and can retry boundedly. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version.",
           "graph": {
             "edges": [
               {
@@ -3644,6 +3657,7 @@
           "checkIds": [
             "bounded-buffer"
           ],
+          "explanation": "Expose the player’s bandwidth estimate and bounded playback buffer. Use buffer and throughput hysteresis, not the last single download alone. [Adaptive streaming](https://en.wikipedia.org/wiki/Adaptive_bitrate_streaming) chooses among encoded quality levels as network conditions change. The player balances visible quality against the risk of exhausting its playback buffer. Consider this case: Downloads complete quickly while playback is paused or seeking. Continue completion callbacks from an old generation.",
           "graph": {
             "edges": [
               {
@@ -4026,6 +4040,7 @@
             "corruption",
             "regional-loss"
           ],
+          "explanation": "Choose an alternate healthy location while preserving the media contract. Only identical versioned segments are eligible; corrupt copies are quarantined. [Transcoding](https://en.wikipedia.org/wiki/Transcoding) creates new media representations from an uploaded source. Publication should reference completed outputs, while retries and cleanup must not expose a partially processed asset. Consider this case: A regional cache has incorrect bytes under the requested segment key.",
           "graph": {
             "edges": [
               {
@@ -4440,6 +4455,7 @@
             "bounded-buffer",
             "regional-loss"
           ],
+          "explanation": "One generation-aware owner reconciles download, buffer and failover decisions. An old playback generation never appends media after a seek. [A control loop](https://en.wikipedia.org/wiki/Control_loop) compares desired state with observed state and applies corrections. Repeated execution must converge safely, especially when a previous action succeeded but its reply was lost. Consider this case: Downloads complete quickly while playback is paused or seeking.",
           "graph": {
             "edges": [
               {
