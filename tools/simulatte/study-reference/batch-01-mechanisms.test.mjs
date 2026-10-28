@@ -1,0 +1,6 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+import {visible,heartbeat,appendToken,ranked} from './batch-01-mechanisms.mjs';
+test('L012 bounded mechanism',()=>{const story={expiresAt:100};assert.equal(visible(story,true,99),true);assert.equal(visible(story,true,100),false);assert.equal(visible(story,false,99),false);});
+test('L015 bounded mechanism',()=>{const current={epoch:3,seq:8,deadline:100};assert.equal(heartbeat(current,{epoch:2,seq:99},90,20),current);assert.equal(heartbeat(current,{epoch:3,seq:8},90,20),current);assert.deepEqual(heartbeat(current,{epoch:3,seq:9},90,20),{epoch:3,seq:9,deadline:110});const devices=[{deadline:80},{deadline:110}];assert.equal(devices.some(d=>d.deadline>100),true);});
+test('L017 bounded mechanism',()=>{const state={epoch:4,tokens:['a','b'],cancelled:false};assert.equal(appendToken(state,{epoch:4,index:1,text:'b'}),false);state.epoch++;state.cancelled=true;assert.equal(appendToken(state,{epoch:4,index:2,text:'c'}),false);assert.deepEqual(state.tokens.slice(1),['b']);});
+test('L020 bounded mechanism',()=>{const rows=[{id:'b',score:3,seq:2,allowed:true},{id:'a',score:3,seq:1,allowed:true},{id:'x',score:5,seq:3,allowed:false}];assert.deepEqual(ranked(rows).map(r=>r.id),['b','a']);assert.deepEqual(ranked([...rows].reverse()),ranked(rows));});
