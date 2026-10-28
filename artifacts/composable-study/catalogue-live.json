@@ -1,216 +1,232 @@
 {
   "schema": "simulatte.studyLiveCatalogue.v1",
   "url": "https://simulatte.world/lucyd",
-  "build": "4075073ab863dd8f1bfa0344de3aca1c1c4ee7e1-928751d7128d",
+  "build": "0788c151e9e7f1c9115140a32dfac8c34cdc37c6-5dd4094c9982",
   "problems": 46,
   "approaches": 92,
   "stages": 747,
   "ok": true,
-  "scope": "Exact deployed catalogue and shared-model/runtime asset bytes; not production system behavior",
+  "scope": "Exact deployed problem documents, guide, text rendering, theme, storage, shortcuts and style bytes; not production system behavior",
   "rows": [
     {
-      "path": "manifest.json",
-      "sha256": "e7b1e6bf8f356006db0fd901b9cfa671024002ee4590449406bc373c235d262f"
+      "path": "public/data/system-diagram/composable-solutions/l001.json",
+      "sha256": "1e410a4b267739205242ad75a51ec6d5427d1ea5f31990d6888a58f5e30db8da"
     },
     {
-      "path": "l001.json",
-      "sha256": "45a66bf07630dec2dde2c01a9922c2aa6afb421eae1314ecc7dab18cf5833388"
+      "path": "public/data/system-diagram/composable-solutions/l002.json",
+      "sha256": "696681c834a7b436c96df4512f73d0f8e59f7ce14386d1cfad0792deb6d4182b"
     },
     {
-      "path": "l002.json",
-      "sha256": "d84cc92bf85eca51023a29cddf91c9f66059bdca84d25a5bdfc640ca95d76ca7"
+      "path": "public/data/system-diagram/composable-solutions/l003.json",
+      "sha256": "f219a0ac69c7856d1263576fa98b68272d30dccf07c776452c25f4d5e70dfbc2"
     },
     {
-      "path": "l003.json",
-      "sha256": "cf320c30ad113cd7418e74dd684b5eb56ca78393b797159cc6abd612009ee442"
+      "path": "public/data/system-diagram/composable-solutions/l004.json",
+      "sha256": "b4b77b5743e0e4fa107295ae42fc31bd76a99c1625705b3aa72a2ff02a4f5bea"
     },
     {
-      "path": "l004.json",
-      "sha256": "ef593c594002438a439f41a2ec0ea7432feb283177f982c883e9b750718bd011"
+      "path": "public/data/system-diagram/composable-solutions/l005.json",
+      "sha256": "335ab67126f942e9a4b416f2481b1931fc9bb29a9a409d0e10b7d62b4ae6ab90"
     },
     {
-      "path": "l005.json",
-      "sha256": "a2614c5522cfc9dc5ccea2a92f7368bdfa46fc5e8a9277f32cfc569814019662"
+      "path": "public/data/system-diagram/composable-solutions/l006.json",
+      "sha256": "aaf296d1f50679b543995ec5323c2a1dcf4d01f8afcc05be5f596dad0f4bed28"
     },
     {
-      "path": "l006.json",
-      "sha256": "a232bc2d3679ee17ffd2d4c170ba4394483ce3d326bbcfff503849faa196733b"
+      "path": "public/data/system-diagram/composable-solutions/l007.json",
+      "sha256": "c300426223f53130a6f882309280555cf21b830b6908ee1302c9fd49103dd831"
     },
     {
-      "path": "l007.json",
-      "sha256": "19af8de64416ec45a8ef89ed4cf28821f58e7c2126a7be3e8f5cfe0a46a503d4"
+      "path": "public/data/system-diagram/composable-solutions/l008.json",
+      "sha256": "cd076b0bf052af599d54c0544ec3935717590e0ad0f44b9a0bdd447ef747f45d"
     },
     {
-      "path": "l008.json",
-      "sha256": "3d3bd3270d0332ac2b1505b45a1dacf2d75f2c339187db7645f7abc2f513ab2f"
+      "path": "public/data/system-diagram/composable-solutions/l009.json",
+      "sha256": "c091d663b6197e71c8db36f90d4126ab3a9e37d4340c2eec1552b98d96466e96"
     },
     {
-      "path": "l009.json",
-      "sha256": "655cbc43d026272842defa604417ccc5024064735fdd261ba4fb9b342f2132be"
+      "path": "public/data/system-diagram/composable-solutions/l010.json",
+      "sha256": "0a662e2718ee949f1248e24fd4947b4e867738863e11dc46371464fde36f6113"
     },
     {
-      "path": "l010.json",
-      "sha256": "4003bcb5fc9188cb364b2c7b3cb0b904d02c31f76841e2b8331d72a5d74923b0"
+      "path": "public/data/system-diagram/composable-solutions/l011.json",
+      "sha256": "40fc215dadd610d3a2f8fba0c338935d0bfd9f87506e074ced6fef4476a6851d"
     },
     {
-      "path": "l011.json",
-      "sha256": "e7558d23b14018797e66e7ff7097ee5a70e2fe05fccc719843754afde8c416a8"
+      "path": "public/data/system-diagram/composable-solutions/l012.json",
+      "sha256": "4e4d58c67163143ce4c933b4e614959bd3ab3b7fe78faf18aa59742e432b59bf"
     },
     {
-      "path": "l012.json",
-      "sha256": "fc6ea4cf03fee0ba1bf96f126620394fa40836153cf264870cd9ca90c55da7ab"
+      "path": "public/data/system-diagram/composable-solutions/l013.json",
+      "sha256": "dc6644a6e0fe472d51c9089b4a921853c1bf94cd2c438bc850d878162391b8fb"
     },
     {
-      "path": "l013.json",
-      "sha256": "95997e1695a3342bd8872fdbe1b89a1b5d8feaa8ab64984d8944b80729c070d7"
+      "path": "public/data/system-diagram/composable-solutions/l014.json",
+      "sha256": "12ed7dd9e7bdacdc74a6d81138c90d329ef9631c25e5dfe6b7efa376a7b9eacc"
     },
     {
-      "path": "l014.json",
-      "sha256": "21e92de63ea3bd7bbc90ba2001da51a9164d69b1c3394b34dba6b5a81698a2ee"
+      "path": "public/data/system-diagram/composable-solutions/l015.json",
+      "sha256": "e640a3259111b334fa20ce6c8cbc972a9ddb7b4b779eb4b55be9059514ecc5cf"
     },
     {
-      "path": "l015.json",
-      "sha256": "8b39967059163cd54f7b4b482a58ea4b993120ee90ad91c7687c4ce343fc5451"
+      "path": "public/data/system-diagram/composable-solutions/l016.json",
+      "sha256": "0103b4631428774edcdb10ca678d2fe2b54ad4a54d2ecc24919aedf5439ebe8a"
     },
     {
-      "path": "l016.json",
-      "sha256": "146ff78804a1520be13705e8ae89d314c0448f88aadfaeca28ce4aadb1840dc4"
+      "path": "public/data/system-diagram/composable-solutions/l017.json",
+      "sha256": "5e15c34fe93b9e9fff605c3b259c5f1830086cec7c88f8074537508947b6f022"
     },
     {
-      "path": "l017.json",
-      "sha256": "a2e49529cf8a3ea70f6b303809e62614fd062dd872fbeee130db13e32b86ff8b"
+      "path": "public/data/system-diagram/composable-solutions/l018.json",
+      "sha256": "2bb01b76583b7b9c38a91f95e6908bf59f7faf9dea0b5b6ef5780ec026f6b0e7"
     },
     {
-      "path": "l018.json",
-      "sha256": "0de4101ff6df95c320c3560bbff49101e4a4d902c61f068ad54dac269286f590"
+      "path": "public/data/system-diagram/composable-solutions/l019.json",
+      "sha256": "5f6b236ceb134259de7319ef33ae19f016133359c952bdccdb43fdb037f85efd"
     },
     {
-      "path": "l019.json",
-      "sha256": "26e00df475b7341eee1e4c9aeec53ae70f32bf4da1c468417434783df1d41f0d"
+      "path": "public/data/system-diagram/composable-solutions/l020.json",
+      "sha256": "6be4937480f25fe493145db80d38d66fc1d6ec394879308ee97805248bd5bf0b"
     },
     {
-      "path": "l020.json",
-      "sha256": "8d1c405a0ccdd83e34120056779c27e11ab7c2f07d2592bff64de01aec60c08f"
+      "path": "public/data/system-diagram/composable-solutions/l021.json",
+      "sha256": "539ac45d2ae28033cbb9f26ef9dffb2cc3cad0c5e5fd73a5178a84028b9a2b7b"
     },
     {
-      "path": "l021.json",
-      "sha256": "a30b012fd186dd2a2c73f9b05a4bf8d263ad461a0302e127f888b696418a45e9"
+      "path": "public/data/system-diagram/composable-solutions/l022.json",
+      "sha256": "0dc207fa15e761c821a353de5baef7c9053918b08b99474b9e5181124a1cb9ed"
     },
     {
-      "path": "l022.json",
-      "sha256": "2f17b7556c0eda812c7f3acf69a6173e8a56387d0a4497ca53a45350d8cdd23e"
+      "path": "public/data/system-diagram/composable-solutions/l023.json",
+      "sha256": "1aa4bdd044825d1e88f892d6ca18bdd64124ef8c429721fba25ea3c44e75fe28"
     },
     {
-      "path": "l023.json",
-      "sha256": "f7b89d96134ae02ab260db174b9f218751c2999cd249187358347c61122f98d9"
+      "path": "public/data/system-diagram/composable-solutions/l024.json",
+      "sha256": "f411d7cdf3498263d8e49b2db322b4d46c6d2f789073752790d8864ce29ff72e"
     },
     {
-      "path": "l024.json",
-      "sha256": "9dee97cdd2734f15ece62579ad68175d8770dd8c94f19f1bf9332ec681426fb5"
+      "path": "public/data/system-diagram/composable-solutions/l025.json",
+      "sha256": "9e086c3d0bb61f0800b601766c125741b3d3e60688391f0a74d2a0442880741d"
     },
     {
-      "path": "l025.json",
-      "sha256": "a5e7c791a4a8e285ef22503b87abc4854453c875bcef29ea376480118824fe81"
+      "path": "public/data/system-diagram/composable-solutions/l026.json",
+      "sha256": "5173f2d8e538d0b87cd30216ea8082c42bdf189a402c3a71cc73da2a327753f8"
     },
     {
-      "path": "l026.json",
-      "sha256": "f6cbf20d9cc857f7f6ecb0092d99854871d002e670e18e90c0ef74590e162bfb"
+      "path": "public/data/system-diagram/composable-solutions/l027.json",
+      "sha256": "9299f5fd1a89d513610668a565b1728e5909c290662a26173eacc5cdbd63f5e1"
     },
     {
-      "path": "l027.json",
-      "sha256": "4bcac089fdb7b71c0d0f6a471c5da5ba5ba4dc5876f69bffa1b87d4d3700ad68"
+      "path": "public/data/system-diagram/composable-solutions/l028.json",
+      "sha256": "fe19e5c97d50748c026fc4357cae287dc08ac34f63edc4f0309f3276eb783edd"
     },
     {
-      "path": "l028.json",
-      "sha256": "9ea04a1f2d8a17a1b9a5585736044f9009a03783d1c362d2ba02d48c85842bf1"
+      "path": "public/data/system-diagram/composable-solutions/l029.json",
+      "sha256": "9d90ae01c9f05eeb151501546b0aae295ceb9311d54667cdaabeef2e6b59f45c"
     },
     {
-      "path": "l029.json",
-      "sha256": "cc1be450044c1c2d9fbb7c60845384bdb473915ef9b20b0932e3d88c360136dd"
+      "path": "public/data/system-diagram/composable-solutions/l030.json",
+      "sha256": "160bba854c907c9af5e3094aa12b1f53b1a7eedc55e70913a20f149a9ecd7d0d"
     },
     {
-      "path": "l030.json",
-      "sha256": "a0bd435539459cde79c72f0218c6601e0259b1c09b1646006d3de7162524e644"
+      "path": "public/data/system-diagram/composable-solutions/l031.json",
+      "sha256": "be66bb811832f21760329300222b940082ab4ed5c153f19f988b7ee54ae12c07"
     },
     {
-      "path": "l031.json",
-      "sha256": "16d49041a2037e43e0cb3fd8a4c39f728788481cc3c7514b7142fa6f56f13a0e"
+      "path": "public/data/system-diagram/composable-solutions/l032.json",
+      "sha256": "62a393edde25a4f3ba917dbccc64a3c14398cee05284cde4077af0550bf3ee48"
     },
     {
-      "path": "l032.json",
-      "sha256": "1f1f821062c81d7127fdc3a7536a7eb786f0629278fae79510c10e719115993c"
+      "path": "public/data/system-diagram/composable-solutions/l033.json",
+      "sha256": "0f55631711db724692501b37cde42e56d6ead44147309408fe84093a4f947e83"
     },
     {
-      "path": "l033.json",
-      "sha256": "90ca98e3f83e4a89048cce12e04f994aeb22a9d7ecd02015ddccd577a7aced91"
+      "path": "public/data/system-diagram/composable-solutions/l034.json",
+      "sha256": "44a3698a92d8dbd108fe8b389badcc9063e7e947d3634fa4b89b630467bfc72d"
     },
     {
-      "path": "l034.json",
-      "sha256": "ec53551f59ad7435a8ab1049652655d0e909ecb7faa4eec6da7f65138042999c"
+      "path": "public/data/system-diagram/composable-solutions/l035.json",
+      "sha256": "acf2003acd85cbbb3c10d7abdd82bf593f9d1931bb84d70638eba2bf17b67353"
     },
     {
-      "path": "l035.json",
-      "sha256": "12e7a7d8580f6f6f737585a18b58027636e6673e618555e9c8eb332738adb320"
+      "path": "public/data/system-diagram/composable-solutions/l036.json",
+      "sha256": "80e121161390920c8a866dc01217cab725da92894449dd5065dd96718a7b5ff1"
     },
     {
-      "path": "l036.json",
-      "sha256": "770532841f81af96a6a1848770b7c5b6c277a8ea0cf89594dafbdeae52a19172"
+      "path": "public/data/system-diagram/composable-solutions/l037.json",
+      "sha256": "51e3b07df300ece88c26ac11a7462131ce570347604a47b9cf41fe60575d6275"
     },
     {
-      "path": "l037.json",
-      "sha256": "8e706b164f516a6035b9fbd2ab59c69f641569d9b60fb2bc3e478e8d92d0a98e"
+      "path": "public/data/system-diagram/composable-solutions/l038.json",
+      "sha256": "cb6a0dcd99bf83a4d7bc0e374887e6e54c9ee9e731c2ead9fb70d30b678a8e9b"
     },
     {
-      "path": "l038.json",
-      "sha256": "aa6116837b1a2e06dce172875d491cb6bd9a149502c040a0a33d476d04300236"
+      "path": "public/data/system-diagram/composable-solutions/l039.json",
+      "sha256": "d152c31d5e10478c07a191638c2d661a8bd744f2b4ac241312dcf5b8dc376e22"
     },
     {
-      "path": "l039.json",
-      "sha256": "431f1e626991ef8e689390224c3616d85646d22bdb4c0104daf353da7aca656d"
+      "path": "public/data/system-diagram/composable-solutions/l040.json",
+      "sha256": "dea671a5d9eee8731ba97e025233d726bfb835b406b3cec7d414a9a50a97993b"
     },
     {
-      "path": "l040.json",
-      "sha256": "482e4bd9b1ed2337f31730950dd5c8ecd89ddc1489052bc89fd9fd0267a0564d"
+      "path": "public/data/system-diagram/composable-solutions/l041.json",
+      "sha256": "fca52a9714be1ce5c1e3d5f99795ccf6dbfd5e07d3ea46a43ff9d9574ba7e65f"
     },
     {
-      "path": "l041.json",
-      "sha256": "b2350a5e8531d678727c4870540cabf5b7709aa2a67e123a0eeb008b4f9eccb7"
+      "path": "public/data/system-diagram/composable-solutions/l042.json",
+      "sha256": "639e8a2030aee8b52bfa8c6d481703ac9de668012911e4b9b8ffdc82304ded8b"
     },
     {
-      "path": "l042.json",
-      "sha256": "3ec8fbf776efd312e79b3c53a80da881680be306f6e33ecfacc983e523f0d78a"
+      "path": "public/data/system-diagram/composable-solutions/l043.json",
+      "sha256": "764e9bd679770177604d30ecc87a4d0c5a5ebc7ae6fc0ab99f43de1b7e7ac9d9"
     },
     {
-      "path": "l043.json",
-      "sha256": "8a9989741b98430438372a8c26b51fb9416c37bfb447b36f19b278ef2abdcf09"
+      "path": "public/data/system-diagram/composable-solutions/l044.json",
+      "sha256": "67e8deb39f5956b55c0c61418187bc1292ae5e2569521a8ea5a12be6c9252906"
     },
     {
-      "path": "l044.json",
-      "sha256": "9f3ddc9f11ec4027d685ceacee69d2428318c9a46ed95d076a2dd4c161ea09b8"
+      "path": "public/data/system-diagram/composable-solutions/l045.json",
+      "sha256": "0b1c3ebe06990be4274f8893a959b3d13486f63bc4074edcee4aa7a78fd2aa96"
     },
     {
-      "path": "l045.json",
-      "sha256": "ea01ca70a79b9d3a3e38f84da6ff56fa8d9f9cc2abde6af426c8934ad3d9eac9"
+      "path": "public/data/system-diagram/composable-solutions/l046.json",
+      "sha256": "f956e87ebc654a9b8aa3ff448c7cb906ccfef77fce797cf854b2252eb4c7ee35"
     },
     {
-      "path": "l046.json",
-      "sha256": "09f82681e094daefb300efd0747d22f5c4f906243115132e4e4f62fd87c091d3"
-    },
-    {
-      "path": "public/simulatte/system-diagram/architecture-model.js",
-      "sha256": "1726b36cf236e36a0ae6c0f39ddc058684d3840e578fd58a047b4ffe99b7c9f3"
-    },
-    {
-      "path": "public/simulatte/system-diagram/architecture-adapters.js",
-      "sha256": "465dfd3196e837b19abf14598c0e4d3588cc16b780c195c5af82d63043367ff6"
+      "path": "public/data/system-diagram/composable-solutions/manifest.json",
+      "sha256": "44d81bb76850aeec6533a223e3f8ff8179a1c7b53fc3791fd0a13549ae60ca81"
     },
     {
       "path": "public/simulatte/system-diagram/study/app.js",
-      "sha256": "fbebcfde7821355ecec8d8d9dacbd459ebcd17b23cfdac41e3091c4905719ae0"
+      "sha256": "3627d47c922b7686930ab82342f7e6cd665a61c18b88569b9a6ac776bc1604ff"
     },
     {
-      "path": "public/simulatte/system-diagram/study/spatial-routing.js",
-      "sha256": "e75c7cec474f780f6133a5ed1acf9543954f76fb287c742b2d396636a5cd101e"
+      "path": "public/simulatte/system-diagram/study/index.html",
+      "sha256": "8ccef77516c1a26ce459304da532e152a97a942bcef2444ee797331def69b6c0"
+    },
+    {
+      "path": "public/simulatte/system-diagram/study/inline-text.js",
+      "sha256": "26e09a58051b074a94b5d0a98fd6d9dab7d91d3ed9a3eac56d555e0c292c83c9"
+    },
+    {
+      "path": "public/simulatte/system-diagram/study/stage-shortcuts.js",
+      "sha256": "85bbbfe9985e77ca1d0efc318191e4b9631d858f0a9bd8b8fbf7feefeb1301c4"
+    },
+    {
+      "path": "public/simulatte/system-diagram/study/study-guide.js",
+      "sha256": "d00f75e0fac8f7e23db3af389a71ab2ef64fd6310436b5327411bece9d6ff518"
+    },
+    {
+      "path": "public/simulatte/system-diagram/study/theme-preference.js",
+      "sha256": "8270e66c4c8e26b97b4b5c4d35051037a9cbd9f12c916db5a2bcd60bbb5b75ec"
+    },
+    {
+      "path": "public/simulatte/system-diagram/study/workspace-store.js",
+      "sha256": "1e88838627ab76dafd8f0c83604ff619dde755a161b449e95a16696ded6790be"
+    },
+    {
+      "path": "public/simulatte/system-diagram/study/workspace.css",
+      "sha256": "b8d684c84d66aaf6d15794e62bfe8f4f4ead216ed4a52cda91e5711a2d58731c"
     }
   ]
 }
