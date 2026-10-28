@@ -1,0 +1,11 @@
+{
+  "pass": true,
+  "route": "https://simulatte.world/lucyd?problem=L004&approach=push&stage=1",
+  "checks": [
+    "L004 canvas",
+    "Practice answer",
+    "Shaky rating",
+    "Reveal explanation"
+  ],
+  "errors": []
+}

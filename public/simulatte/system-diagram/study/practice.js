@@ -8,6 +8,7 @@
   if(patch.rating){if(!['shaky','solid'].includes(patch.rating))throw Error('Unknown self-assessment');next.reviewedAt=now;}
   return {...workspace,practice:{...workspace.practice,[key(solution,stage)]:next}};
  }
+ function beginReview(workspace,solution,stage){const old=entry(workspace,solution,stage);return update(workspace,solution,stage,{answer:'',revealed:false,previousAttempts:[...(old.previousAttempts||[]),{answer:old.answer,rating:old.rating,reviewedAt:old.reviewedAt}].slice(-10)});}
  function due(workspaces,now=Date.now()){
   return workspaces.flatMap(w=>Object.values(w.practice||{}).filter(p=>p.rating==='shaky'||(p.rating==='solid'&&now-(p.reviewedAt||0)>=7*86400000))).sort((a,b)=>(a.rating==='shaky'?0:1)-(b.rating==='shaky'?0:1)||(a.reviewedAt||0)-(b.reviewedAt||0));
  }
@@ -25,5 +26,5 @@
    workspace.document.solutions.filter(s=>s.id!==solution.id).map(s=>h('button',{key:s.id,className:'sw-button block',onClick:()=>onCompare(s.id)},'Open '+s.title+' alongside')),
    h('h3',null,'Weak spots and scheduled review'),reviewItems.length?h('ul',null,reviewItems.map((item,i)=>h('li',{key:i},h('button',{className:'sw-button',onClick:()=>onOpen(item)},`${item.referenceId} · ${item.title} (${item.rating})`)))):h('p',null,'Mark a stage shaky to revisit it here. Solid stages return after seven days.'));
  }
- return Object.freeze({key,entry,update,due,hidden,Panel});
+ return Object.freeze({key,entry,update,beginReview,due,hidden,Panel});
 });
