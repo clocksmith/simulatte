@@ -7,7 +7,7 @@ const {validateProblem}=require('./study-contract.cjs');
 const {schema}=require('./study-schema.cjs');
 const ROOT=path.resolve(__dirname,'../..');
 const OUTPUT=path.join(ROOT,'public/data/system-diagram/composable-solutions');
-const authors=['client-state','routing','platform','delivery','priority'];
+const authors=['client-state','routing','platform','delivery','priority','notifications'];
 function build(){
  const problems=authors.flatMap(name=>Object.values(require('./study-content-'+name+'.cjs')).map(fn=>fn()));
  const canonical=JSON.parse(fs.readFileSync(path.join(ROOT,'public/data/system-diagram/problems.json'),'utf8'));

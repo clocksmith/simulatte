@@ -74,7 +74,10 @@ Offer reusable connected subsystems from the component library on a blank canvas
 inserting one preserves its version, dependencies, existing edits and undo history.
 The study workspace retains Excalidraw-native drawing controls, gestures and shortcut
 display, with Lucyd branding and compact study controls. Keep drawing changes to
-verified compatibility fixes rather than rebuilding the canvas experience.
+verified compatibility fixes rather than rebuilding the canvas experience. Serve it
+canonically at `/lucyd`, with the newer native font picker. Generate deterministic
+compound layouts and obstacle-routed arrows; reject overlapping authored geometry
+before publication. Keep text readable while focusing each stage’s changes.
 Give authored problems permanent L-number references in the chooser, brief and
 shareable URL. Reordering or removing problems never renumbers or reuses IDs.
 

@@ -63,6 +63,7 @@ function byteRange(header, size) {
 }
 
 function requestLocation(publicRoot, mounts, pathname) {
+  if (pathname === '/lucyd' || pathname === '/lucyd/') return {root:publicRoot,relativePath:'simulatte/system-diagram/study/index.html',allowsSpaFallback:false};
   const page = publicRoutes.forPath(pathname);
   if (page?.entry) return { root: publicRoot, relativePath: page.entry.replace(/^\/+/, ''), allowsSpaFallback: false };
   const mount = mounts.find((entry) => pathname.startsWith(entry.prefix));

@@ -10,6 +10,26 @@
       ],
       "redirects": [
         {
+          "source": "/simulatte/system-diagram/study",
+          "destination": "/lucyd",
+          "type": 301
+        },
+        {
+          "source": "/simulatte/system-diagram/study/",
+          "destination": "/lucyd",
+          "type": 301
+        },
+        {
+          "source": "/simulatte/system-diagram/study/index.html",
+          "destination": "/lucyd",
+          "type": 301
+        },
+        {
+          "source": "/lucyd/",
+          "destination": "/lucyd",
+          "type": 301
+        },
+        {
           "source": "/system-diagram/",
           "destination": "/system-diagram",
           "type": 301
@@ -272,6 +292,10 @@
       ],
       "rewrites": [
         {
+          "source": "/lucyd",
+          "destination": "/simulatte/system-diagram/study/index.html"
+        },
+        {
           "source": "/system-diagram",
           "destination": "/simulatte/system-diagram/index.html"
         },
@@ -321,6 +345,15 @@
         }
       ],
       "headers": [
+        {
+          "source": "/lucyd{,/**}",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-cache"
+            }
+          ]
+        },
         {
           "source": "/",
           "headers": [

@@ -1,0 +1,8 @@
+/**
+ * Bundled by jsDelivr using Rollup v4.62.2 and esbuild v0.28.1.
+ * Original file: /npm/use-sync-external-store@1.2.0/shim/with-selector.js
+ *
+ * Do NOT use SRI with dynamically generated files! More information: https://www.jsdelivr.com/using-sri-with-dynamic-files
+ */
+import*as P from"../react.js";import*as k from"./7fc593e075285ff03640.js";function _(e){return e&&Object.prototype.hasOwnProperty.call(e,"default")?e.default:e}var p={exports:{}},S={},F=_(P),I=_(k);var q;function M(){if(q)return S;q=1;var e=F,W=I;function w(t,u){return t===u&&(t!==0||1/t===1/u)||t!==t&&u!==u}var $=typeof Object.is=="function"?Object.is:w,O=W.useSyncExternalStore,V=e.useRef,j=e.useEffect,R=e.useMemo,D=e.useDebugValue;return S.useSyncExternalStoreWithSelector=function(t,u,s,f,c){var n=V(null);if(n.current===null){var o={hasValue:!1,value:null};n.current=o}else o=n.current;n=R(function(){function h(r){if(!d){if(d=!0,v=r,r=f(r),c!==void 0&&o.hasValue){var i=o.value;if(c(i,r))return a=i}return a=r}if(i=a,$(v,r))return i;var x=f(r);return c!==void 0&&c(i,x)?i:(v=r,a=x)}var d=!1,v,a,m=s===void 0?null:s;return[function(){return h(u())},m===null?void 0:function(){return h(m())}]},[u,s,f,c]);var l=O(t,n[0],n[1]);return j(function(){o.hasValue=!0,o.value=l},[l]),D(l),l},S}var y;function N(){return y||(y=1,p.exports=M()),p.exports}var E=N(),z=E.useSyncExternalStoreWithSelector;export{E as default,z as useSyncExternalStoreWithSelector};
+//# sourceMappingURL=/sm/37a5682c1bd5226989b1134bf969ef0739e555e7966fdf4e77e4cdca4bb1511c.map

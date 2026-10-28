@@ -1,0 +1,8 @@
+/**
+ * Bundled by jsDelivr using Rollup v4.62.2 and esbuild v0.28.1.
+ * Original file: /npm/use-callback-ref@1.3.3/dist/es2015/index.js
+ *
+ * Do NOT use SRI with dynamically generated files! More information: https://www.jsdelivr.com/using-sri-with-dynamic-files
+ */
+import*as l from"../react.js";import{useState as R}from"../react.js";function a(n,r){return typeof n=="function"?n(r):n&&(n.current=r),n}function f(n,r){var t=R(function(){return{value:n,callback:r,facade:{get current(){return t.value},set current(e){var u=t.value;u!==e&&(t.value=e,t.callback(e,u))}}}})[0];return t.callback=r,t.facade}function o(n){var r=null;return{get current(){return r},set current(t){var e=r;e!==t&&(r=t,n(t,e))}}}function b(n){return o(function(r){return n.forEach(function(t){return a(t,r)})})}var d=typeof window<"u"?l.useLayoutEffect:l.useEffect,s=new WeakMap;function p(n,r){var t=f(r||null,function(e){return n.forEach(function(u){return a(u,e)})});return d(function(){var e=s.get(t);if(e){var u=new Set(e),i=new Set(n),m=t.current;u.forEach(function(c){i.has(c)||a(c,null)}),i.forEach(function(c){u.has(c)||a(c,m)})}s.set(t,n)},[n]),t}function g(n,r){return f(null,function(t){return a(n,r(t))})}function h(n,r){return o(function(t){return a(n,r(t))})}function v(n){return function(r){typeof n=="function"?n(r):n&&(n.current=r)}}var w=function(){return null},k=new WeakMap,E=function(n){var r=n||w,t=k.get(r);if(t)return t;var e=v(r);return k.set(r,e),e};function y(n){return E(n)}export{a as assignRef,o as createCallbackRef,b as mergeRefs,v as refToCallback,h as transformRef,f as useCallbackRef,p as useMergeRefs,y as useRefToCallback,g as useTransformRef};
+//# sourceMappingURL=/sm/683eb9de10c92da9cd4840e086d0ce7eb15a723d0d2e02dd762d5694ce298169.map

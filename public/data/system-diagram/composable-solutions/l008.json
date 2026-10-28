@@ -1,0 +1,4624 @@
+{
+  "components": [
+    {
+      "extends": {
+        "id": "core.client",
+        "version": 1
+      },
+      "id": "bill.customer",
+      "label": "Subscriber",
+      "ports": [
+        {
+          "contractId": "bill.command",
+          "direction": "out",
+          "id": "out-bill.command"
+        },
+        {
+          "contractId": "bill.access",
+          "direction": "out",
+          "id": "out-bill.access"
+        }
+      ],
+      "responsibility": "Submit authenticated plan and cancellation commands.",
+      "stateOwnership": [
+        "pending command identity"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.service",
+        "version": 1
+      },
+      "id": "bill.system",
+      "label": "Subscription billing",
+      "ports": [
+        {
+          "contractId": "bill.command",
+          "direction": "in",
+          "id": "in-bill.command"
+        },
+        {
+          "contractId": "bill.invoice",
+          "direction": "in",
+          "id": "in-bill.invoice-api"
+        },
+        {
+          "contractId": "bill.charge",
+          "direction": "in",
+          "id": "in-bill.charge-ledger"
+        },
+        {
+          "contractId": "bill.event",
+          "direction": "in",
+          "id": "in-bill.event-api"
+        },
+        {
+          "contractId": "bill.access",
+          "direction": "out",
+          "id": "out-bill.access-api"
+        },
+        {
+          "contractId": "bill.invoice",
+          "direction": "in",
+          "id": "in-bill.invoice-ledger"
+        }
+      ],
+      "responsibility": "Expose explicit billing and access states while remote payment is asynchronous.",
+      "stateOwnership": [
+        "logical subscription lifecycle"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.service",
+        "version": 1
+      },
+      "id": "bill.api",
+      "label": "Command API",
+      "ports": [
+        {
+          "contractId": "bill.command",
+          "direction": "out",
+          "id": "out-bill.command"
+        },
+        {
+          "contractId": "bill.command",
+          "direction": "in",
+          "id": "in-bill.command"
+        },
+        {
+          "contractId": "bill.invoice",
+          "direction": "in",
+          "id": "in-bill.invoice"
+        },
+        {
+          "contractId": "bill.invoice",
+          "direction": "out",
+          "id": "out-bill.invoice"
+        },
+        {
+          "contractId": "bill.event",
+          "direction": "in",
+          "id": "in-bill.event"
+        },
+        {
+          "contractId": "bill.access",
+          "direction": "out",
+          "id": "out-bill.access"
+        }
+      ],
+      "responsibility": "Authorize accounts, compare expected versions and retain command receipts.",
+      "stateOwnership": [
+        "command idempotency receipts"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "bill.ledger",
+      "label": "Subscription and invoice ledger",
+      "ports": [
+        {
+          "contractId": "bill.command",
+          "direction": "in",
+          "id": "in-bill.command"
+        },
+        {
+          "contractId": "bill.invoice",
+          "direction": "in",
+          "id": "in-bill.invoice"
+        },
+        {
+          "contractId": "bill.charge",
+          "direction": "in",
+          "id": "in-bill.charge"
+        }
+      ],
+      "responsibility": "Own local versions, period identities, immutable invoice amounts and durable outbound intent.",
+      "stateOwnership": [
+        "subscription versions",
+        "invoice identities",
+        "outbox"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "bill.scheduler",
+      "label": "Renewal planner",
+      "ports": [
+        {
+          "contractId": "bill.invoice",
+          "direction": "out",
+          "id": "out-bill.invoice"
+        },
+        {
+          "contractId": "bill.invoice",
+          "direction": "in",
+          "id": "in-bill.invoice"
+        }
+      ],
+      "responsibility": "Claim due billing periods by durable unique key and catch up missed timers.",
+      "stateOwnership": [
+        "renewal watermark"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "bill.dispatcher",
+      "label": "Payment dispatcher",
+      "ports": [
+        {
+          "contractId": "bill.charge",
+          "direction": "out",
+          "id": "out-bill.charge"
+        }
+      ],
+      "responsibility": "Execute committed intents with stable provider idempotency keys and bounded retries.",
+      "stateOwnership": [
+        "fenced leases"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.external",
+        "version": 1
+      },
+      "id": "bill.provider",
+      "label": "Payment processor",
+      "ports": [
+        {
+          "contractId": "bill.charge",
+          "direction": "in",
+          "id": "in-bill.charge"
+        },
+        {
+          "contractId": "bill.event",
+          "direction": "out",
+          "id": "out-bill.event"
+        }
+      ],
+      "responsibility": "Own payment-method tokens and authoritative charge receipts; support explicit idempotency retention limits.",
+      "stateOwnership": [
+        "provider payments"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "bill.inbox",
+      "label": "Verified event inbox",
+      "ports": [
+        {
+          "contractId": "bill.event",
+          "direction": "in",
+          "id": "in-bill.event"
+        },
+        {
+          "contractId": "bill.event",
+          "direction": "out",
+          "id": "out-bill.event"
+        }
+      ],
+      "responsibility": "Persist signed event IDs before acknowledging; duplicates are harmless.",
+      "stateOwnership": [
+        "provider event IDs"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "bill.projector",
+      "label": "Payment reconciler",
+      "ports": [
+        {
+          "contractId": "bill.event",
+          "direction": "in",
+          "id": "in-bill.event"
+        },
+        {
+          "contractId": "bill.charge",
+          "direction": "out",
+          "id": "out-bill.charge"
+        },
+        {
+          "contractId": "bill.event",
+          "direction": "out",
+          "id": "out-bill.event"
+        }
+      ],
+      "responsibility": "Fetch authoritative object state when events are missing or reordered; compare local transition versions.",
+      "stateOwnership": [
+        "reconciliation progress"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "bill.access",
+      "label": "Entitlement projection",
+      "ports": [
+        {
+          "contractId": "bill.access",
+          "direction": "in",
+          "id": "in-bill.access"
+        }
+      ],
+      "responsibility": "Project accepted local billing versions into explicit grace/expiry policy.",
+      "stateOwnership": [
+        "access version"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.service",
+        "version": 1
+      },
+      "id": "bill.workflow",
+      "label": "Durable billing workflow",
+      "ports": [
+        {
+          "contractId": "bill.command",
+          "direction": "out",
+          "id": "out-bill.command"
+        },
+        {
+          "contractId": "bill.command",
+          "direction": "in",
+          "id": "in-bill.command"
+        },
+        {
+          "contractId": "bill.invoice",
+          "direction": "in",
+          "id": "in-bill.invoice"
+        },
+        {
+          "contractId": "bill.invoice",
+          "direction": "out",
+          "id": "out-bill.invoice"
+        },
+        {
+          "contractId": "bill.event",
+          "direction": "in",
+          "id": "in-bill.event"
+        },
+        {
+          "contractId": "bill.access",
+          "direction": "out",
+          "id": "out-bill.access"
+        }
+      ],
+      "responsibility": "Serialize commands and durable timers per subscription while remote payment is a retryable activity.",
+      "stateOwnership": [
+        "workflow history",
+        "command version",
+        "timers"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "bill.journal",
+      "label": "Workflow and invoice journal",
+      "ports": [
+        {
+          "contractId": "bill.command",
+          "direction": "in",
+          "id": "in-bill.command"
+        },
+        {
+          "contractId": "bill.invoice",
+          "direction": "in",
+          "id": "in-bill.invoice"
+        },
+        {
+          "contractId": "bill.charge",
+          "direction": "in",
+          "id": "in-bill.charge"
+        }
+      ],
+      "responsibility": "Persist workflow decisions and unique invoice identities atomically; never place a remote call inside a database transaction.",
+      "stateOwnership": [
+        "durable history"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "bill.recovery",
+      "label": "Settlement sweeper",
+      "ports": [
+        {
+          "contractId": "bill.invoice",
+          "direction": "out",
+          "id": "out-bill.invoice"
+        },
+        {
+          "contractId": "bill.event",
+          "direction": "out",
+          "id": "out-bill.event"
+        }
+      ],
+      "responsibility": "Reconcile pending provider objects and expired leases, respecting invoice identity and cancellation policy.",
+      "stateOwnership": [
+        "recovery cursor"
+      ],
+      "version": 1
+    }
+  ],
+  "contracts": [
+    {
+      "id": "bill.command",
+      "request": {
+        "action": "start|change-plan|cancel",
+        "commandId": "idempotency key",
+        "effectiveAt": "timestamp",
+        "expectedVersion": "integer",
+        "ownerId": "authenticated account",
+        "subscriptionId": "uuid"
+      },
+      "response": {
+        "invoiceId": "uuid|null",
+        "state": "trial|pending|active|past-due|canceled",
+        "version": "integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "bill.invoice",
+      "request": {
+        "amountMinor": "integer minor units",
+        "currency": "ISO currency",
+        "periodId": "billing period identity",
+        "planVersion": "integer",
+        "subscriptionId": "uuid"
+      },
+      "response": {
+        "invoiceId": "stable subscription/period/adjustment identity",
+        "state": "open|paid|void|uncollectible"
+      },
+      "version": 1
+    },
+    {
+      "id": "bill.charge",
+      "request": {
+        "amountMinor": "integer",
+        "attemptKey": "stable invoice payment attempt",
+        "currency": "ISO currency",
+        "invoiceId": "uuid",
+        "paymentToken": "provider token"
+      },
+      "response": {
+        "providerPaymentId": "string",
+        "state": "requires-action|processing|succeeded|failed|unknown"
+      },
+      "version": 1
+    },
+    {
+      "id": "bill.event",
+      "request": {
+        "objectId": "provider invoice/payment ID",
+        "payload": "verified provider event",
+        "providerEventId": "string",
+        "receivedAt": "timestamp"
+      },
+      "response": {
+        "reconciledVersion": "integer|null",
+        "stored": "boolean"
+      },
+      "version": 1
+    },
+    {
+      "id": "bill.access",
+      "request": {
+        "policyVersion": "integer",
+        "subscriptionId": "uuid",
+        "version": "monotonic local version"
+      },
+      "response": {
+        "access": "allowed|grace|denied",
+        "validUntil": "timestamp"
+      },
+      "version": 1
+    }
+  ],
+  "execution": {
+    "implementation": null,
+    "kind": "conceptual-design"
+  },
+  "problem": {
+    "referenceId": "L008",
+    "requirements": [
+      {
+        "id": "identity",
+        "text": "Authorize subscription commands and apply stable idempotency identities to invoice/payment attempts."
+      },
+      {
+        "id": "lifecycle",
+        "text": "Define trial, active, past-due and canceled states, effective dates and access policy."
+      },
+      {
+        "id": "reconcile",
+        "text": "Handle duplicated, reordered or missing provider events and reconcile uncertain remote effects."
+      },
+      {
+        "id": "recovery",
+        "text": "Recover renewals and cancellations after worker failure without charging the same invoice twice."
+      }
+    ],
+    "scope": "Recurring billing with payment-method tokens, plan changes, cancellation and asynchronous provider outcomes. Compare a relational subscription authority with durable per-subscription workflows. The payment provider is the charge authority; no raw card storage, universal ordering or exactly-once external calls are assumed.",
+    "studyLabel": "Recurring subscription payments"
+  },
+  "provenance": {
+    "kind": "authored-practice",
+    "note": "Authored interview preparation. Technical references support mechanisms, not the claim that a company asked this question."
+  },
+  "references": [
+    {
+      "id": "webhooks",
+      "scope": "background",
+      "supports": "Signature verification, duplicates, retries and event ordering limits.",
+      "title": "Stripe webhook delivery",
+      "url": "https://docs.stripe.com/webhooks"
+    },
+    {
+      "id": "subscriptions",
+      "scope": "background",
+      "supports": "Asynchronous subscription and invoice lifecycle notifications.",
+      "title": "Stripe subscription events",
+      "url": "https://docs.stripe.com/billing/subscriptions/webhooks"
+    },
+    {
+      "id": "transactions",
+      "scope": "background",
+      "supports": "Concurrent state transitions and atomic durable intent.",
+      "title": "PostgreSQL transaction isolation",
+      "url": "https://www.postgresql.org/docs/18/transaction-iso.html"
+    }
+  ],
+  "schema": "simulatte.composableStudy.v2",
+  "solutions": [
+    {
+      "acceptanceCases": [
+        {
+          "given": "One Start command is accepted but the UI times out.",
+          "id": "command-retry",
+          "relatedRequirementIds": [
+            "identity"
+          ],
+          "then": "Return the original result once; deny cross-account access.",
+          "when": "Repeat the same command ID, then submit an unauthorized account request."
+        },
+        {
+          "given": "Two timers or recovery workers process the same billing period.",
+          "id": "renewal-retry",
+          "relatedRequirementIds": [
+            "recovery"
+          ],
+          "then": "The unique invoice identity is shared; dispatches retain the same provider attempt identity.",
+          "when": "Attempt to issue and dispatch the renewal concurrently."
+        },
+        {
+          "given": "The provider succeeds but dispatch acknowledgement is lost.",
+          "id": "uncertain-charge",
+          "relatedRequirementIds": [
+            "identity",
+            "recovery",
+            "reconcile"
+          ],
+          "then": "Reconcile the provider object or reuse the key within its documented retention; do not blindly create a second charge.",
+          "when": "Expire the lease and restart processing."
+        },
+        {
+          "given": "A succeeded notification precedes an older failed event, and either is duplicated.",
+          "id": "event-order",
+          "relatedRequirementIds": [
+            "reconcile"
+          ],
+          "then": "Local financial state converges to authoritative status and the event inbox deduplicates receipts.",
+          "when": "Process both and fetch current provider state."
+        },
+        {
+          "given": "A cancel command advances cancellation epoch while payment is processing.",
+          "id": "cancel-race",
+          "relatedRequirementIds": [
+            "lifecycle",
+            "recovery"
+          ],
+          "then": "Record the settlement and explicit refund/credit policy without restoring access to the canceled version.",
+          "when": "Receive a later payment success for the previous epoch."
+        }
+      ],
+      "algorithms": [
+        {
+          "code": "transaction(() => {\n  if (commandReceipt(commandId)) return savedReceipt(commandId);\n  const sub = lockSubscription(subscriptionId); assertVersion(sub, expectedVersion);\n  const invoice = insertOrReadInvoiceUnique(subscriptionId, periodId, adjustmentId);\n  appendPaymentIntent(invoice.id, stableAttemptKey(invoice));\n  applyAllowedCommand(sub, command); persistCommandReceipt(commandId, sub.version);\n});\n// Workflow branch persists the same decision before scheduling a retryable remote activity.\n// Do not create a fresh attempt key solely because a network response timed out.",
+          "guarantees": [
+            "The same period and adjustment create one invoice identity; retries retain remote intent identity."
+          ],
+          "id": "create-invoice-intent",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "api"
+        },
+        {
+          "code": "verifyAndStoreInboxBeforeAck(rawBytes, signature, providerEventId);\nconst current = await provider.fetchPayment(objectId);\ntransaction(() => {\n const sub = lockSubscriptionForPayment(objectId);\n persistAuthoritativeReceipt(current);\n if (sub.cancelEpoch > paymentIntent.cancelEpoch) recordSettlementWithoutReactivation(current);\n else applyAllowedPaymentTransition(sub, current);\n appendEntitlementOutbox(sub.id, sub.version, accessPolicy(sub));\n markEventReconciled(providerEventId);\n});\n// Duplicate and reordered deliveries converge by authoritative object and allowed transitions.",
+          "guarantees": [
+            "Financial settlement and entitlement are separate; stale events cannot bypass cancellation policy."
+          ],
+          "id": "reconcile-payment",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "projector"
+        }
+      ],
+      "apis": [
+        {
+          "errors": "403 wrong account; 409 version conflict; 422 invalid transition",
+          "method": "POST",
+          "ownerNodeId": "api",
+          "path": "/subscriptions/{id}/commands",
+          "request": "{commandId,expectedVersion,action,effectiveAt}",
+          "response": "{version,state,invoiceId}"
+        },
+        {
+          "errors": "400 invalid signature; 503 durable storage unavailable",
+          "method": "POST",
+          "ownerNodeId": "inbox",
+          "path": "/billing/webhooks",
+          "request": "raw signed provider bytes",
+          "response": "200 after durable inbox insert"
+        }
+      ],
+      "assumptions": [
+        "Provider tokens replace card details; this design does not establish payment-compliance certification.",
+        "Access grace, proration and cancellation policy are product choices fixed per version."
+      ],
+      "chooseWhen": "A relational authority and a small number of background jobs fit the lifecycle.",
+      "id": "ledger",
+      "initialGraph": {
+        "edges": [],
+        "nodes": []
+      },
+      "stages": [
+        {
+          "checkIds": [
+            "command-retry"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "bill.command",
+                "from": {
+                  "nodeId": "customer",
+                  "portId": "out-bill.command"
+                },
+                "id": "command",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-bill.command"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "bill.customer",
+                "id": "customer",
+                "label": "Subscriber",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.system",
+                "id": "system",
+                "label": "Subscription billing",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "ledger-s1",
+          "invariants": [
+            "A timeout never creates a new invoice identity when the same command is retried."
+          ],
+          "number": 1,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "bill.customer",
+                "id": "customer",
+                "label": "Subscriber",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "bill.system",
+                "id": "system",
+                "label": "Subscription billing",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "bill.command",
+                "from": {
+                  "nodeId": "customer",
+                  "portId": "out-bill.command"
+                },
+                "id": "command",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-bill.command"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What can the UI promise after Start is accepted?",
+          "reason": "Begin with subscriber and a billing boundary; pending means accepted intent, not paid access.",
+          "title": "Separate request from payment success"
+        },
+        {
+          "checkIds": [
+            "command-retry",
+            "cancel-race"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "bill.command",
+                "from": {
+                  "nodeId": "customer",
+                  "portId": "out-bill.command"
+                },
+                "id": "command",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-bill.command"
+                }
+              },
+              {
+                "contractId": "bill.command",
+                "from": {
+                  "nodeId": "api",
+                  "portId": "out-bill.command"
+                },
+                "id": "state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "ledger",
+                  "portId": "in-bill.command"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "bill.customer",
+                "id": "customer",
+                "label": "Subscriber",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.system",
+                "id": "system",
+                "label": "Subscription billing",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "ledger-authority",
+                "version": 1
+              },
+              {
+                "definitionId": "bill.api",
+                "id": "api",
+                "label": "Command API",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.ledger",
+                "id": "ledger",
+                "label": "Subscription and invoice ledger",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "ledger-s2",
+          "invariants": [
+            "Each accepted command compares or serializes one subscription version."
+          ],
+          "number": 2,
+          "operations": [
+            {
+              "edges": [
+                {
+                  "contractId": "bill.command",
+                  "from": {
+                    "nodeId": "api",
+                    "portId": "out-bill.command"
+                  },
+                  "id": "state",
+                  "mode": "storage",
+                  "to": {
+                    "nodeId": "ledger",
+                    "portId": "in-bill.command"
+                  }
+                }
+              ],
+              "nodeId": "system",
+              "nodes": [
+                {
+                  "definitionId": "bill.api",
+                  "id": "api",
+                  "label": "Command API",
+                  "position": {
+                    "x": 560,
+                    "y": 0
+                  },
+                  "version": 1
+                },
+                {
+                  "definitionId": "bill.ledger",
+                  "id": "ledger",
+                  "label": "Subscription and invoice ledger",
+                  "position": {
+                    "x": 840,
+                    "y": 0
+                  },
+                  "version": 1
+                }
+              ],
+              "op": "expand",
+              "subsystemId": "ledger-authority"
+            }
+          ],
+          "question": "Who owns subscription versions and invoices?",
+          "reason": "Expand the coarse boundary into command processing and durable state.",
+          "title": "Expose command authority and ledger"
+        },
+        {
+          "checkIds": [
+            "renewal-retry"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "bill.command",
+                "from": {
+                  "nodeId": "customer",
+                  "portId": "out-bill.command"
+                },
+                "id": "command",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-bill.command"
+                }
+              },
+              {
+                "contractId": "bill.command",
+                "from": {
+                  "nodeId": "api",
+                  "portId": "out-bill.command"
+                },
+                "id": "state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "ledger",
+                  "portId": "in-bill.command"
+                }
+              },
+              {
+                "contractId": "bill.invoice",
+                "from": {
+                  "nodeId": "scheduler",
+                  "portId": "out-bill.invoice"
+                },
+                "id": "due-period",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-bill.invoice-api"
+                }
+              },
+              {
+                "contractId": "bill.invoice",
+                "from": {
+                  "nodeId": "api",
+                  "portId": "out-bill.invoice"
+                },
+                "id": "invoice",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "ledger",
+                  "portId": "in-bill.invoice"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "bill.customer",
+                "id": "customer",
+                "label": "Subscriber",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.system",
+                "id": "system",
+                "label": "Subscription billing",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "ledger-authority",
+                "version": 1
+              },
+              {
+                "definitionId": "bill.api",
+                "id": "api",
+                "label": "Command API",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.ledger",
+                "id": "ledger",
+                "label": "Subscription and invoice ledger",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.scheduler",
+                "id": "scheduler",
+                "label": "Renewal planner",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "ledger-s3",
+          "invariants": [
+            "Invoice amount and currency are fixed at issuance; adjustments have separate identities."
+          ],
+          "number": 3,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "bill.scheduler",
+                "id": "scheduler",
+                "label": "Renewal planner",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "bill.invoice",
+                "from": {
+                  "nodeId": "scheduler",
+                  "portId": "out-bill.invoice"
+                },
+                "id": "due-period",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-bill.invoice-api"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "bill.invoice",
+                "from": {
+                  "nodeId": "api",
+                  "portId": "out-bill.invoice"
+                },
+                "id": "invoice",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "ledger",
+                  "portId": "in-bill.invoice"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How does a restart avoid a second renewal invoice?",
+          "reason": "A renewal planner claims due periods using a unique subscription/period identity.",
+          "title": "Define billing periods and invoices"
+        },
+        {
+          "checkIds": [
+            "uncertain-charge"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "bill.command",
+                "from": {
+                  "nodeId": "customer",
+                  "portId": "out-bill.command"
+                },
+                "id": "command",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-bill.command"
+                }
+              },
+              {
+                "contractId": "bill.command",
+                "from": {
+                  "nodeId": "api",
+                  "portId": "out-bill.command"
+                },
+                "id": "state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "ledger",
+                  "portId": "in-bill.command"
+                }
+              },
+              {
+                "contractId": "bill.invoice",
+                "from": {
+                  "nodeId": "scheduler",
+                  "portId": "out-bill.invoice"
+                },
+                "id": "due-period",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-bill.invoice-api"
+                }
+              },
+              {
+                "contractId": "bill.invoice",
+                "from": {
+                  "nodeId": "api",
+                  "portId": "out-bill.invoice"
+                },
+                "id": "invoice",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "ledger",
+                  "portId": "in-bill.invoice"
+                }
+              },
+              {
+                "contractId": "bill.charge",
+                "from": {
+                  "nodeId": "dispatcher",
+                  "portId": "out-bill.charge"
+                },
+                "id": "claim-intent",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-bill.charge-ledger"
+                }
+              },
+              {
+                "contractId": "bill.charge",
+                "from": {
+                  "nodeId": "dispatcher",
+                  "portId": "out-bill.charge"
+                },
+                "id": "charge",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "provider",
+                  "portId": "in-bill.charge"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "bill.customer",
+                "id": "customer",
+                "label": "Subscriber",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.system",
+                "id": "system",
+                "label": "Subscription billing",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "ledger-authority",
+                "version": 1
+              },
+              {
+                "definitionId": "bill.api",
+                "id": "api",
+                "label": "Command API",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.ledger",
+                "id": "ledger",
+                "label": "Subscription and invoice ledger",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.scheduler",
+                "id": "scheduler",
+                "label": "Renewal planner",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.dispatcher",
+                "id": "dispatcher",
+                "label": "Payment dispatcher",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.provider",
+                "id": "provider",
+                "label": "Payment processor",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "ledger-s4",
+          "invariants": [
+            "A local transaction cannot make a remote charge atomic with its commit."
+          ],
+          "number": 4,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "bill.dispatcher",
+                "id": "dispatcher",
+                "label": "Payment dispatcher",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "bill.provider",
+                "id": "provider",
+                "label": "Payment processor",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "bill.charge",
+                "from": {
+                  "nodeId": "dispatcher",
+                  "portId": "out-bill.charge"
+                },
+                "id": "claim-intent",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-bill.charge-ledger"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "bill.charge",
+                "from": {
+                  "nodeId": "dispatcher",
+                  "portId": "out-bill.charge"
+                },
+                "id": "charge",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "provider",
+                  "portId": "in-bill.charge"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What happens if charging succeeds but the response is lost?",
+          "reason": "Commit payment intent before dispatch; send stable attempt identities to the provider.",
+          "title": "Add retryable payment activities"
+        },
+        {
+          "checkIds": [
+            "event-order"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "bill.command",
+                "from": {
+                  "nodeId": "customer",
+                  "portId": "out-bill.command"
+                },
+                "id": "command",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-bill.command"
+                }
+              },
+              {
+                "contractId": "bill.command",
+                "from": {
+                  "nodeId": "api",
+                  "portId": "out-bill.command"
+                },
+                "id": "state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "ledger",
+                  "portId": "in-bill.command"
+                }
+              },
+              {
+                "contractId": "bill.invoice",
+                "from": {
+                  "nodeId": "scheduler",
+                  "portId": "out-bill.invoice"
+                },
+                "id": "due-period",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-bill.invoice-api"
+                }
+              },
+              {
+                "contractId": "bill.invoice",
+                "from": {
+                  "nodeId": "api",
+                  "portId": "out-bill.invoice"
+                },
+                "id": "invoice",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "ledger",
+                  "portId": "in-bill.invoice"
+                }
+              },
+              {
+                "contractId": "bill.charge",
+                "from": {
+                  "nodeId": "dispatcher",
+                  "portId": "out-bill.charge"
+                },
+                "id": "claim-intent",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-bill.charge-ledger"
+                }
+              },
+              {
+                "contractId": "bill.charge",
+                "from": {
+                  "nodeId": "dispatcher",
+                  "portId": "out-bill.charge"
+                },
+                "id": "charge",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "provider",
+                  "portId": "in-bill.charge"
+                }
+              },
+              {
+                "contractId": "bill.event",
+                "from": {
+                  "nodeId": "provider",
+                  "portId": "out-bill.event"
+                },
+                "id": "webhook",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "inbox",
+                  "portId": "in-bill.event"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "bill.customer",
+                "id": "customer",
+                "label": "Subscriber",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.system",
+                "id": "system",
+                "label": "Subscription billing",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "ledger-authority",
+                "version": 1
+              },
+              {
+                "definitionId": "bill.api",
+                "id": "api",
+                "label": "Command API",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.ledger",
+                "id": "ledger",
+                "label": "Subscription and invoice ledger",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.scheduler",
+                "id": "scheduler",
+                "label": "Renewal planner",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.dispatcher",
+                "id": "dispatcher",
+                "label": "Payment dispatcher",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.provider",
+                "id": "provider",
+                "label": "Payment processor",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.inbox",
+                "id": "inbox",
+                "label": "Verified event inbox",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "ledger-s5",
+          "invariants": [
+            "A 2xx webhook response means durable receipt, not completed subscription projection."
+          ],
+          "number": 5,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "bill.inbox",
+                "id": "inbox",
+                "label": "Verified event inbox",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "bill.event",
+                "from": {
+                  "nodeId": "provider",
+                  "portId": "out-bill.event"
+                },
+                "id": "webhook",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "inbox",
+                  "portId": "in-bill.event"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How are duplicate or forged webhooks handled?",
+          "reason": "Verify signatures against raw request bytes, persist the event ID, then acknowledge and process asynchronously.",
+          "title": "Persist verified event delivery"
+        },
+        {
+          "checkIds": [
+            "event-order",
+            "uncertain-charge"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "bill.command",
+                "from": {
+                  "nodeId": "customer",
+                  "portId": "out-bill.command"
+                },
+                "id": "command",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-bill.command"
+                }
+              },
+              {
+                "contractId": "bill.command",
+                "from": {
+                  "nodeId": "api",
+                  "portId": "out-bill.command"
+                },
+                "id": "state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "ledger",
+                  "portId": "in-bill.command"
+                }
+              },
+              {
+                "contractId": "bill.invoice",
+                "from": {
+                  "nodeId": "scheduler",
+                  "portId": "out-bill.invoice"
+                },
+                "id": "due-period",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-bill.invoice-api"
+                }
+              },
+              {
+                "contractId": "bill.invoice",
+                "from": {
+                  "nodeId": "api",
+                  "portId": "out-bill.invoice"
+                },
+                "id": "invoice",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "ledger",
+                  "portId": "in-bill.invoice"
+                }
+              },
+              {
+                "contractId": "bill.charge",
+                "from": {
+                  "nodeId": "dispatcher",
+                  "portId": "out-bill.charge"
+                },
+                "id": "claim-intent",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-bill.charge-ledger"
+                }
+              },
+              {
+                "contractId": "bill.charge",
+                "from": {
+                  "nodeId": "dispatcher",
+                  "portId": "out-bill.charge"
+                },
+                "id": "charge",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "provider",
+                  "portId": "in-bill.charge"
+                }
+              },
+              {
+                "contractId": "bill.event",
+                "from": {
+                  "nodeId": "provider",
+                  "portId": "out-bill.event"
+                },
+                "id": "webhook",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "inbox",
+                  "portId": "in-bill.event"
+                }
+              },
+              {
+                "contractId": "bill.event",
+                "from": {
+                  "nodeId": "inbox",
+                  "portId": "out-bill.event"
+                },
+                "id": "consume-events",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "projector",
+                  "portId": "in-bill.event"
+                }
+              },
+              {
+                "contractId": "bill.charge",
+                "from": {
+                  "nodeId": "projector",
+                  "portId": "out-bill.charge"
+                },
+                "id": "authoritative-status",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "provider",
+                  "portId": "in-bill.charge"
+                }
+              },
+              {
+                "contractId": "bill.event",
+                "from": {
+                  "nodeId": "projector",
+                  "portId": "out-bill.event"
+                },
+                "id": "apply-payment",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-bill.event-api"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "bill.customer",
+                "id": "customer",
+                "label": "Subscriber",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.system",
+                "id": "system",
+                "label": "Subscription billing",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "ledger-authority",
+                "version": 1
+              },
+              {
+                "definitionId": "bill.api",
+                "id": "api",
+                "label": "Command API",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.ledger",
+                "id": "ledger",
+                "label": "Subscription and invoice ledger",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.scheduler",
+                "id": "scheduler",
+                "label": "Renewal planner",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.dispatcher",
+                "id": "dispatcher",
+                "label": "Payment dispatcher",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.provider",
+                "id": "provider",
+                "label": "Payment processor",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.inbox",
+                "id": "inbox",
+                "label": "Verified event inbox",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.projector",
+                "id": "projector",
+                "label": "Payment reconciler",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "ledger-s6",
+          "invariants": [
+            "Do not compare unrelated event timestamps as a global order; fetch authoritative status for ambiguity."
+          ],
+          "number": 6,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "bill.projector",
+                "id": "projector",
+                "label": "Payment reconciler",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "bill.event",
+                "from": {
+                  "nodeId": "inbox",
+                  "portId": "out-bill.event"
+                },
+                "id": "consume-events",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "projector",
+                  "portId": "in-bill.event"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "bill.charge",
+                "from": {
+                  "nodeId": "projector",
+                  "portId": "out-bill.charge"
+                },
+                "id": "authoritative-status",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "provider",
+                  "portId": "in-bill.charge"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "bill.event",
+                "from": {
+                  "nodeId": "projector",
+                  "portId": "out-bill.event"
+                },
+                "id": "apply-payment",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-bill.event-api"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can an old failure event undo a confirmed payment?",
+          "reason": "Read the current provider object and apply an allowed versioned local transition instead of trusting event arrival order.",
+          "title": "Reconcile authoritative payment objects"
+        },
+        {
+          "checkIds": [
+            "cancel-race"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "bill.command",
+                "from": {
+                  "nodeId": "customer",
+                  "portId": "out-bill.command"
+                },
+                "id": "command",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-bill.command"
+                }
+              },
+              {
+                "contractId": "bill.command",
+                "from": {
+                  "nodeId": "api",
+                  "portId": "out-bill.command"
+                },
+                "id": "state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "ledger",
+                  "portId": "in-bill.command"
+                }
+              },
+              {
+                "contractId": "bill.invoice",
+                "from": {
+                  "nodeId": "scheduler",
+                  "portId": "out-bill.invoice"
+                },
+                "id": "due-period",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-bill.invoice-api"
+                }
+              },
+              {
+                "contractId": "bill.invoice",
+                "from": {
+                  "nodeId": "api",
+                  "portId": "out-bill.invoice"
+                },
+                "id": "invoice",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "ledger",
+                  "portId": "in-bill.invoice"
+                }
+              },
+              {
+                "contractId": "bill.charge",
+                "from": {
+                  "nodeId": "dispatcher",
+                  "portId": "out-bill.charge"
+                },
+                "id": "claim-intent",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-bill.charge-ledger"
+                }
+              },
+              {
+                "contractId": "bill.charge",
+                "from": {
+                  "nodeId": "dispatcher",
+                  "portId": "out-bill.charge"
+                },
+                "id": "charge",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "provider",
+                  "portId": "in-bill.charge"
+                }
+              },
+              {
+                "contractId": "bill.event",
+                "from": {
+                  "nodeId": "provider",
+                  "portId": "out-bill.event"
+                },
+                "id": "webhook",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "inbox",
+                  "portId": "in-bill.event"
+                }
+              },
+              {
+                "contractId": "bill.event",
+                "from": {
+                  "nodeId": "inbox",
+                  "portId": "out-bill.event"
+                },
+                "id": "consume-events",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "projector",
+                  "portId": "in-bill.event"
+                }
+              },
+              {
+                "contractId": "bill.charge",
+                "from": {
+                  "nodeId": "projector",
+                  "portId": "out-bill.charge"
+                },
+                "id": "authoritative-status",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "provider",
+                  "portId": "in-bill.charge"
+                }
+              },
+              {
+                "contractId": "bill.event",
+                "from": {
+                  "nodeId": "projector",
+                  "portId": "out-bill.event"
+                },
+                "id": "apply-payment",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-bill.event-api"
+                }
+              },
+              {
+                "contractId": "bill.access",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-bill.access-api"
+                },
+                "id": "entitlements",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "access",
+                  "portId": "in-bill.access"
+                }
+              },
+              {
+                "contractId": "bill.access",
+                "from": {
+                  "nodeId": "customer",
+                  "portId": "out-bill.access"
+                },
+                "id": "read-access",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "access",
+                  "portId": "in-bill.access"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "bill.customer",
+                "id": "customer",
+                "label": "Subscriber",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.system",
+                "id": "system",
+                "label": "Subscription billing",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "ledger-authority",
+                "version": 1
+              },
+              {
+                "definitionId": "bill.api",
+                "id": "api",
+                "label": "Command API",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.ledger",
+                "id": "ledger",
+                "label": "Subscription and invoice ledger",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.scheduler",
+                "id": "scheduler",
+                "label": "Renewal planner",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.dispatcher",
+                "id": "dispatcher",
+                "label": "Payment dispatcher",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.provider",
+                "id": "provider",
+                "label": "Payment processor",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.inbox",
+                "id": "inbox",
+                "label": "Verified event inbox",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.projector",
+                "id": "projector",
+                "label": "Payment reconciler",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.access",
+                "id": "access",
+                "label": "Entitlement projection",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "ledger-s7",
+          "invariants": [
+            "A late paid invoice may require refund or credit, but cannot silently reactivate a canceled version."
+          ],
+          "number": 7,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "bill.access",
+                "id": "access",
+                "label": "Entitlement projection",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "bill.access",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-bill.access-api"
+                },
+                "id": "entitlements",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "access",
+                  "portId": "in-bill.access"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "bill.access",
+                "from": {
+                  "nodeId": "customer",
+                  "portId": "out-bill.access"
+                },
+                "id": "read-access",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "access",
+                  "portId": "in-bill.access"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What does a late payment mean after cancellation?",
+          "reason": "Separate financial settlement from access; cancellation epochs and effective dates fence stale activation.",
+          "title": "Project cancellation and access policy"
+        },
+        {
+          "checkIds": [
+            "renewal-retry",
+            "uncertain-charge",
+            "cancel-race"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "bill.command",
+                "from": {
+                  "nodeId": "customer",
+                  "portId": "out-bill.command"
+                },
+                "id": "command",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-bill.command"
+                }
+              },
+              {
+                "contractId": "bill.command",
+                "from": {
+                  "nodeId": "api",
+                  "portId": "out-bill.command"
+                },
+                "id": "state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "ledger",
+                  "portId": "in-bill.command"
+                }
+              },
+              {
+                "contractId": "bill.invoice",
+                "from": {
+                  "nodeId": "scheduler",
+                  "portId": "out-bill.invoice"
+                },
+                "id": "due-period",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-bill.invoice-api"
+                }
+              },
+              {
+                "contractId": "bill.invoice",
+                "from": {
+                  "nodeId": "api",
+                  "portId": "out-bill.invoice"
+                },
+                "id": "invoice",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "ledger",
+                  "portId": "in-bill.invoice"
+                }
+              },
+              {
+                "contractId": "bill.charge",
+                "from": {
+                  "nodeId": "dispatcher",
+                  "portId": "out-bill.charge"
+                },
+                "id": "claim-intent",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-bill.charge-ledger"
+                }
+              },
+              {
+                "contractId": "bill.charge",
+                "from": {
+                  "nodeId": "dispatcher",
+                  "portId": "out-bill.charge"
+                },
+                "id": "charge",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "provider",
+                  "portId": "in-bill.charge"
+                }
+              },
+              {
+                "contractId": "bill.event",
+                "from": {
+                  "nodeId": "provider",
+                  "portId": "out-bill.event"
+                },
+                "id": "webhook",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "inbox",
+                  "portId": "in-bill.event"
+                }
+              },
+              {
+                "contractId": "bill.event",
+                "from": {
+                  "nodeId": "inbox",
+                  "portId": "out-bill.event"
+                },
+                "id": "consume-events",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "projector",
+                  "portId": "in-bill.event"
+                }
+              },
+              {
+                "contractId": "bill.charge",
+                "from": {
+                  "nodeId": "projector",
+                  "portId": "out-bill.charge"
+                },
+                "id": "authoritative-status",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "provider",
+                  "portId": "in-bill.charge"
+                }
+              },
+              {
+                "contractId": "bill.event",
+                "from": {
+                  "nodeId": "projector",
+                  "portId": "out-bill.event"
+                },
+                "id": "apply-payment",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-bill.event-api"
+                }
+              },
+              {
+                "contractId": "bill.access",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-bill.access-api"
+                },
+                "id": "entitlements",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "access",
+                  "portId": "in-bill.access"
+                }
+              },
+              {
+                "contractId": "bill.access",
+                "from": {
+                  "nodeId": "customer",
+                  "portId": "out-bill.access"
+                },
+                "id": "read-access",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "access",
+                  "portId": "in-bill.access"
+                }
+              },
+              {
+                "contractId": "bill.invoice",
+                "from": {
+                  "nodeId": "recovery",
+                  "portId": "out-bill.invoice"
+                },
+                "id": "pending-state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-bill.invoice-ledger"
+                }
+              },
+              {
+                "contractId": "bill.event",
+                "from": {
+                  "nodeId": "recovery",
+                  "portId": "out-bill.event"
+                },
+                "id": "repair-events",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "projector",
+                  "portId": "in-bill.event"
+                }
+              },
+              {
+                "contractId": "bill.invoice",
+                "from": {
+                  "nodeId": "recovery",
+                  "portId": "out-bill.invoice"
+                },
+                "id": "missed-periods",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "scheduler",
+                  "portId": "in-bill.invoice"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "bill.customer",
+                "id": "customer",
+                "label": "Subscriber",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.system",
+                "id": "system",
+                "label": "Subscription billing",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "ledger-authority",
+                "version": 1
+              },
+              {
+                "definitionId": "bill.api",
+                "id": "api",
+                "label": "Command API",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.ledger",
+                "id": "ledger",
+                "label": "Subscription and invoice ledger",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.scheduler",
+                "id": "scheduler",
+                "label": "Renewal planner",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.dispatcher",
+                "id": "dispatcher",
+                "label": "Payment dispatcher",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.provider",
+                "id": "provider",
+                "label": "Payment processor",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.inbox",
+                "id": "inbox",
+                "label": "Verified event inbox",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.projector",
+                "id": "projector",
+                "label": "Payment reconciler",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.access",
+                "id": "access",
+                "label": "Entitlement projection",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.recovery",
+                "id": "recovery",
+                "label": "Settlement sweeper",
+                "position": {
+                  "x": 560,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "ledger-s8",
+          "invariants": [
+            "Respect remote idempotency retention; outside it, reconcile before retrying an uncertain charge."
+          ],
+          "number": 8,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "bill.recovery",
+                "id": "recovery",
+                "label": "Settlement sweeper",
+                "position": {
+                  "x": 560,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "bill.invoice",
+                "from": {
+                  "nodeId": "recovery",
+                  "portId": "out-bill.invoice"
+                },
+                "id": "pending-state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-bill.invoice-ledger"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "bill.event",
+                "from": {
+                  "nodeId": "recovery",
+                  "portId": "out-bill.event"
+                },
+                "id": "repair-events",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "projector",
+                  "portId": "in-bill.event"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "bill.invoice",
+                "from": {
+                  "nodeId": "recovery",
+                  "portId": "out-bill.invoice"
+                },
+                "id": "missed-periods",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "scheduler",
+                  "portId": "in-bill.invoice"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What if timers, events or dispatch acknowledgements are missing?",
+          "reason": "Sweep pending intent and expired leases, reconcile provider objects and resume unissued periods.",
+          "title": "Recover timers and uncertain settlement"
+        }
+      ],
+      "title": "Transactional ledger and asynchronous payment outbox",
+      "tradeoffs": [
+        "Timers, leases and outbox recovery need explicit transactional implementation.",
+        "Multi-step changes require state transitions rather than a blocking request chain."
+      ]
+    },
+    {
+      "acceptanceCases": [
+        {
+          "given": "One Start command is accepted but the UI times out.",
+          "id": "command-retry",
+          "relatedRequirementIds": [
+            "identity"
+          ],
+          "then": "Return the original result once; deny cross-account access.",
+          "when": "Repeat the same command ID, then submit an unauthorized account request."
+        },
+        {
+          "given": "Two timers or recovery workers process the same billing period.",
+          "id": "renewal-retry",
+          "relatedRequirementIds": [
+            "recovery"
+          ],
+          "then": "The unique invoice identity is shared; dispatches retain the same provider attempt identity.",
+          "when": "Attempt to issue and dispatch the renewal concurrently."
+        },
+        {
+          "given": "The provider succeeds but dispatch acknowledgement is lost.",
+          "id": "uncertain-charge",
+          "relatedRequirementIds": [
+            "identity",
+            "recovery",
+            "reconcile"
+          ],
+          "then": "Reconcile the provider object or reuse the key within its documented retention; do not blindly create a second charge.",
+          "when": "Expire the lease and restart processing."
+        },
+        {
+          "given": "A succeeded notification precedes an older failed event, and either is duplicated.",
+          "id": "event-order",
+          "relatedRequirementIds": [
+            "reconcile"
+          ],
+          "then": "Local financial state converges to authoritative status and the event inbox deduplicates receipts.",
+          "when": "Process both and fetch current provider state."
+        },
+        {
+          "given": "A cancel command advances cancellation epoch while payment is processing.",
+          "id": "cancel-race",
+          "relatedRequirementIds": [
+            "lifecycle",
+            "recovery"
+          ],
+          "then": "Record the settlement and explicit refund/credit policy without restoring access to the canceled version.",
+          "when": "Receive a later payment success for the previous epoch."
+        }
+      ],
+      "algorithms": [
+        {
+          "code": "transaction(() => {\n  if (commandReceipt(commandId)) return savedReceipt(commandId);\n  const sub = lockSubscription(subscriptionId); assertVersion(sub, expectedVersion);\n  const invoice = insertOrReadInvoiceUnique(subscriptionId, periodId, adjustmentId);\n  appendPaymentIntent(invoice.id, stableAttemptKey(invoice));\n  applyAllowedCommand(sub, command); persistCommandReceipt(commandId, sub.version);\n});\n// Workflow branch persists the same decision before scheduling a retryable remote activity.\n// Do not create a fresh attempt key solely because a network response timed out.",
+          "guarantees": [
+            "The same period and adjustment create one invoice identity; retries retain remote intent identity."
+          ],
+          "id": "create-invoice-intent",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "api"
+        },
+        {
+          "code": "verifyAndStoreInboxBeforeAck(rawBytes, signature, providerEventId);\nconst current = await provider.fetchPayment(objectId);\ntransaction(() => {\n const sub = lockSubscriptionForPayment(objectId);\n persistAuthoritativeReceipt(current);\n if (sub.cancelEpoch > paymentIntent.cancelEpoch) recordSettlementWithoutReactivation(current);\n else applyAllowedPaymentTransition(sub, current);\n appendEntitlementOutbox(sub.id, sub.version, accessPolicy(sub));\n markEventReconciled(providerEventId);\n});\n// Duplicate and reordered deliveries converge by authoritative object and allowed transitions.",
+          "guarantees": [
+            "Financial settlement and entitlement are separate; stale events cannot bypass cancellation policy."
+          ],
+          "id": "reconcile-payment",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "projector"
+        }
+      ],
+      "apis": [
+        {
+          "errors": "403 wrong account; 409 version conflict; 422 invalid transition",
+          "method": "POST",
+          "ownerNodeId": "api",
+          "path": "/subscriptions/{id}/commands",
+          "request": "{commandId,expectedVersion,action,effectiveAt}",
+          "response": "{version,state,invoiceId}"
+        },
+        {
+          "errors": "400 invalid signature; 503 durable storage unavailable",
+          "method": "POST",
+          "ownerNodeId": "inbox",
+          "path": "/billing/webhooks",
+          "request": "raw signed provider bytes",
+          "response": "200 after durable inbox insert"
+        }
+      ],
+      "assumptions": [
+        "Provider tokens replace card details; this design does not establish payment-compliance certification.",
+        "Access grace, proration and cancellation policy are product choices fixed per version."
+      ],
+      "chooseWhen": "Long-lived timers and multi-step payment recovery justify a workflow runtime.",
+      "id": "workflow",
+      "initialGraph": {
+        "edges": [],
+        "nodes": []
+      },
+      "stages": [
+        {
+          "checkIds": [
+            "command-retry"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "bill.command",
+                "from": {
+                  "nodeId": "customer",
+                  "portId": "out-bill.command"
+                },
+                "id": "command",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-bill.command"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "bill.customer",
+                "id": "customer",
+                "label": "Subscriber",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.system",
+                "id": "system",
+                "label": "Subscription billing",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "workflow-s1",
+          "invariants": [
+            "A timeout never creates a new invoice identity when the same command is retried."
+          ],
+          "number": 1,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "bill.customer",
+                "id": "customer",
+                "label": "Subscriber",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "bill.system",
+                "id": "system",
+                "label": "Subscription billing",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "bill.command",
+                "from": {
+                  "nodeId": "customer",
+                  "portId": "out-bill.command"
+                },
+                "id": "command",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-bill.command"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What can the UI promise after Start is accepted?",
+          "reason": "Begin with subscriber and a billing boundary; pending means accepted intent, not paid access.",
+          "title": "Separate request from payment success"
+        },
+        {
+          "checkIds": [
+            "command-retry",
+            "cancel-race"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "bill.command",
+                "from": {
+                  "nodeId": "customer",
+                  "portId": "out-bill.command"
+                },
+                "id": "command",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-bill.command"
+                }
+              },
+              {
+                "contractId": "bill.command",
+                "from": {
+                  "nodeId": "api",
+                  "portId": "out-bill.command"
+                },
+                "id": "state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "ledger",
+                  "portId": "in-bill.command"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "bill.customer",
+                "id": "customer",
+                "label": "Subscriber",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.system",
+                "id": "system",
+                "label": "Subscription billing",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "workflow-authority",
+                "version": 1
+              },
+              {
+                "definitionId": "bill.workflow",
+                "id": "api",
+                "label": "Durable billing workflow",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.journal",
+                "id": "ledger",
+                "label": "Workflow and invoice journal",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "workflow-s2",
+          "invariants": [
+            "Each accepted command compares or serializes one subscription version."
+          ],
+          "number": 2,
+          "operations": [
+            {
+              "edges": [
+                {
+                  "contractId": "bill.command",
+                  "from": {
+                    "nodeId": "api",
+                    "portId": "out-bill.command"
+                  },
+                  "id": "state",
+                  "mode": "storage",
+                  "to": {
+                    "nodeId": "ledger",
+                    "portId": "in-bill.command"
+                  }
+                }
+              ],
+              "nodeId": "system",
+              "nodes": [
+                {
+                  "definitionId": "bill.workflow",
+                  "id": "api",
+                  "label": "Durable billing workflow",
+                  "position": {
+                    "x": 560,
+                    "y": 0
+                  },
+                  "version": 1
+                },
+                {
+                  "definitionId": "bill.journal",
+                  "id": "ledger",
+                  "label": "Workflow and invoice journal",
+                  "position": {
+                    "x": 840,
+                    "y": 0
+                  },
+                  "version": 1
+                }
+              ],
+              "op": "expand",
+              "subsystemId": "workflow-authority"
+            }
+          ],
+          "question": "Who owns subscription versions and invoices?",
+          "reason": "Expand the coarse boundary into command processing and durable state.",
+          "title": "Expose workflow and journal"
+        },
+        {
+          "checkIds": [
+            "renewal-retry"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "bill.command",
+                "from": {
+                  "nodeId": "customer",
+                  "portId": "out-bill.command"
+                },
+                "id": "command",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-bill.command"
+                }
+              },
+              {
+                "contractId": "bill.command",
+                "from": {
+                  "nodeId": "api",
+                  "portId": "out-bill.command"
+                },
+                "id": "state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "ledger",
+                  "portId": "in-bill.command"
+                }
+              },
+              {
+                "contractId": "bill.invoice",
+                "from": {
+                  "nodeId": "scheduler",
+                  "portId": "out-bill.invoice"
+                },
+                "id": "due-period",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-bill.invoice-api"
+                }
+              },
+              {
+                "contractId": "bill.invoice",
+                "from": {
+                  "nodeId": "api",
+                  "portId": "out-bill.invoice"
+                },
+                "id": "invoice",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "ledger",
+                  "portId": "in-bill.invoice"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "bill.customer",
+                "id": "customer",
+                "label": "Subscriber",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.system",
+                "id": "system",
+                "label": "Subscription billing",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "workflow-authority",
+                "version": 1
+              },
+              {
+                "definitionId": "bill.workflow",
+                "id": "api",
+                "label": "Durable billing workflow",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.journal",
+                "id": "ledger",
+                "label": "Workflow and invoice journal",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.scheduler",
+                "id": "scheduler",
+                "label": "Renewal planner",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "workflow-s3",
+          "invariants": [
+            "Invoice amount and currency are fixed at issuance; adjustments have separate identities."
+          ],
+          "number": 3,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "bill.scheduler",
+                "id": "scheduler",
+                "label": "Renewal planner",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "bill.invoice",
+                "from": {
+                  "nodeId": "scheduler",
+                  "portId": "out-bill.invoice"
+                },
+                "id": "due-period",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-bill.invoice-api"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "bill.invoice",
+                "from": {
+                  "nodeId": "api",
+                  "portId": "out-bill.invoice"
+                },
+                "id": "invoice",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "ledger",
+                  "portId": "in-bill.invoice"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How does a restart avoid a second renewal invoice?",
+          "reason": "Persist durable timer intent and a unique invoice decision in the workflow journal.",
+          "title": "Define billing periods and invoices"
+        },
+        {
+          "checkIds": [
+            "uncertain-charge"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "bill.command",
+                "from": {
+                  "nodeId": "customer",
+                  "portId": "out-bill.command"
+                },
+                "id": "command",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-bill.command"
+                }
+              },
+              {
+                "contractId": "bill.command",
+                "from": {
+                  "nodeId": "api",
+                  "portId": "out-bill.command"
+                },
+                "id": "state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "ledger",
+                  "portId": "in-bill.command"
+                }
+              },
+              {
+                "contractId": "bill.invoice",
+                "from": {
+                  "nodeId": "scheduler",
+                  "portId": "out-bill.invoice"
+                },
+                "id": "due-period",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-bill.invoice-api"
+                }
+              },
+              {
+                "contractId": "bill.invoice",
+                "from": {
+                  "nodeId": "api",
+                  "portId": "out-bill.invoice"
+                },
+                "id": "invoice",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "ledger",
+                  "portId": "in-bill.invoice"
+                }
+              },
+              {
+                "contractId": "bill.charge",
+                "from": {
+                  "nodeId": "dispatcher",
+                  "portId": "out-bill.charge"
+                },
+                "id": "claim-intent",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-bill.charge-ledger"
+                }
+              },
+              {
+                "contractId": "bill.charge",
+                "from": {
+                  "nodeId": "dispatcher",
+                  "portId": "out-bill.charge"
+                },
+                "id": "charge",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "provider",
+                  "portId": "in-bill.charge"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "bill.customer",
+                "id": "customer",
+                "label": "Subscriber",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.system",
+                "id": "system",
+                "label": "Subscription billing",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "workflow-authority",
+                "version": 1
+              },
+              {
+                "definitionId": "bill.workflow",
+                "id": "api",
+                "label": "Durable billing workflow",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.journal",
+                "id": "ledger",
+                "label": "Workflow and invoice journal",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.scheduler",
+                "id": "scheduler",
+                "label": "Renewal planner",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.dispatcher",
+                "id": "dispatcher",
+                "label": "Payment dispatcher",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.provider",
+                "id": "provider",
+                "label": "Payment processor",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "workflow-s4",
+          "invariants": [
+            "A local transaction cannot make a remote charge atomic with its commit."
+          ],
+          "number": 4,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "bill.dispatcher",
+                "id": "dispatcher",
+                "label": "Payment dispatcher",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "bill.provider",
+                "id": "provider",
+                "label": "Payment processor",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "bill.charge",
+                "from": {
+                  "nodeId": "dispatcher",
+                  "portId": "out-bill.charge"
+                },
+                "id": "claim-intent",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-bill.charge-ledger"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "bill.charge",
+                "from": {
+                  "nodeId": "dispatcher",
+                  "portId": "out-bill.charge"
+                },
+                "id": "charge",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "provider",
+                  "portId": "in-bill.charge"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What happens if charging succeeds but the response is lost?",
+          "reason": "Commit payment intent before dispatch; send stable attempt identities to the provider.",
+          "title": "Add retryable payment activities"
+        },
+        {
+          "checkIds": [
+            "event-order"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "bill.command",
+                "from": {
+                  "nodeId": "customer",
+                  "portId": "out-bill.command"
+                },
+                "id": "command",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-bill.command"
+                }
+              },
+              {
+                "contractId": "bill.command",
+                "from": {
+                  "nodeId": "api",
+                  "portId": "out-bill.command"
+                },
+                "id": "state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "ledger",
+                  "portId": "in-bill.command"
+                }
+              },
+              {
+                "contractId": "bill.invoice",
+                "from": {
+                  "nodeId": "scheduler",
+                  "portId": "out-bill.invoice"
+                },
+                "id": "due-period",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-bill.invoice-api"
+                }
+              },
+              {
+                "contractId": "bill.invoice",
+                "from": {
+                  "nodeId": "api",
+                  "portId": "out-bill.invoice"
+                },
+                "id": "invoice",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "ledger",
+                  "portId": "in-bill.invoice"
+                }
+              },
+              {
+                "contractId": "bill.charge",
+                "from": {
+                  "nodeId": "dispatcher",
+                  "portId": "out-bill.charge"
+                },
+                "id": "claim-intent",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-bill.charge-ledger"
+                }
+              },
+              {
+                "contractId": "bill.charge",
+                "from": {
+                  "nodeId": "dispatcher",
+                  "portId": "out-bill.charge"
+                },
+                "id": "charge",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "provider",
+                  "portId": "in-bill.charge"
+                }
+              },
+              {
+                "contractId": "bill.event",
+                "from": {
+                  "nodeId": "provider",
+                  "portId": "out-bill.event"
+                },
+                "id": "webhook",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "inbox",
+                  "portId": "in-bill.event"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "bill.customer",
+                "id": "customer",
+                "label": "Subscriber",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.system",
+                "id": "system",
+                "label": "Subscription billing",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "workflow-authority",
+                "version": 1
+              },
+              {
+                "definitionId": "bill.workflow",
+                "id": "api",
+                "label": "Durable billing workflow",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.journal",
+                "id": "ledger",
+                "label": "Workflow and invoice journal",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.scheduler",
+                "id": "scheduler",
+                "label": "Renewal planner",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.dispatcher",
+                "id": "dispatcher",
+                "label": "Payment dispatcher",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.provider",
+                "id": "provider",
+                "label": "Payment processor",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.inbox",
+                "id": "inbox",
+                "label": "Verified event inbox",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "workflow-s5",
+          "invariants": [
+            "A 2xx webhook response means durable receipt, not completed subscription projection."
+          ],
+          "number": 5,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "bill.inbox",
+                "id": "inbox",
+                "label": "Verified event inbox",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "bill.event",
+                "from": {
+                  "nodeId": "provider",
+                  "portId": "out-bill.event"
+                },
+                "id": "webhook",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "inbox",
+                  "portId": "in-bill.event"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How are duplicate or forged webhooks handled?",
+          "reason": "Verify signatures against raw request bytes, persist the event ID, then acknowledge and process asynchronously.",
+          "title": "Persist verified event delivery"
+        },
+        {
+          "checkIds": [
+            "event-order",
+            "uncertain-charge"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "bill.command",
+                "from": {
+                  "nodeId": "customer",
+                  "portId": "out-bill.command"
+                },
+                "id": "command",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-bill.command"
+                }
+              },
+              {
+                "contractId": "bill.command",
+                "from": {
+                  "nodeId": "api",
+                  "portId": "out-bill.command"
+                },
+                "id": "state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "ledger",
+                  "portId": "in-bill.command"
+                }
+              },
+              {
+                "contractId": "bill.invoice",
+                "from": {
+                  "nodeId": "scheduler",
+                  "portId": "out-bill.invoice"
+                },
+                "id": "due-period",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-bill.invoice-api"
+                }
+              },
+              {
+                "contractId": "bill.invoice",
+                "from": {
+                  "nodeId": "api",
+                  "portId": "out-bill.invoice"
+                },
+                "id": "invoice",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "ledger",
+                  "portId": "in-bill.invoice"
+                }
+              },
+              {
+                "contractId": "bill.charge",
+                "from": {
+                  "nodeId": "dispatcher",
+                  "portId": "out-bill.charge"
+                },
+                "id": "claim-intent",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-bill.charge-ledger"
+                }
+              },
+              {
+                "contractId": "bill.charge",
+                "from": {
+                  "nodeId": "dispatcher",
+                  "portId": "out-bill.charge"
+                },
+                "id": "charge",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "provider",
+                  "portId": "in-bill.charge"
+                }
+              },
+              {
+                "contractId": "bill.event",
+                "from": {
+                  "nodeId": "provider",
+                  "portId": "out-bill.event"
+                },
+                "id": "webhook",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "inbox",
+                  "portId": "in-bill.event"
+                }
+              },
+              {
+                "contractId": "bill.event",
+                "from": {
+                  "nodeId": "inbox",
+                  "portId": "out-bill.event"
+                },
+                "id": "consume-events",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "projector",
+                  "portId": "in-bill.event"
+                }
+              },
+              {
+                "contractId": "bill.charge",
+                "from": {
+                  "nodeId": "projector",
+                  "portId": "out-bill.charge"
+                },
+                "id": "authoritative-status",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "provider",
+                  "portId": "in-bill.charge"
+                }
+              },
+              {
+                "contractId": "bill.event",
+                "from": {
+                  "nodeId": "projector",
+                  "portId": "out-bill.event"
+                },
+                "id": "apply-payment",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-bill.event-api"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "bill.customer",
+                "id": "customer",
+                "label": "Subscriber",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.system",
+                "id": "system",
+                "label": "Subscription billing",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "workflow-authority",
+                "version": 1
+              },
+              {
+                "definitionId": "bill.workflow",
+                "id": "api",
+                "label": "Durable billing workflow",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.journal",
+                "id": "ledger",
+                "label": "Workflow and invoice journal",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.scheduler",
+                "id": "scheduler",
+                "label": "Renewal planner",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.dispatcher",
+                "id": "dispatcher",
+                "label": "Payment dispatcher",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.provider",
+                "id": "provider",
+                "label": "Payment processor",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.inbox",
+                "id": "inbox",
+                "label": "Verified event inbox",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.projector",
+                "id": "projector",
+                "label": "Payment reconciler",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "workflow-s6",
+          "invariants": [
+            "Do not compare unrelated event timestamps as a global order; fetch authoritative status for ambiguity."
+          ],
+          "number": 6,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "bill.projector",
+                "id": "projector",
+                "label": "Payment reconciler",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "bill.event",
+                "from": {
+                  "nodeId": "inbox",
+                  "portId": "out-bill.event"
+                },
+                "id": "consume-events",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "projector",
+                  "portId": "in-bill.event"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "bill.charge",
+                "from": {
+                  "nodeId": "projector",
+                  "portId": "out-bill.charge"
+                },
+                "id": "authoritative-status",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "provider",
+                  "portId": "in-bill.charge"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "bill.event",
+                "from": {
+                  "nodeId": "projector",
+                  "portId": "out-bill.event"
+                },
+                "id": "apply-payment",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-bill.event-api"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can an old failure event undo a confirmed payment?",
+          "reason": "Read the current provider object and apply an allowed versioned local transition instead of trusting event arrival order.",
+          "title": "Reconcile authoritative payment objects"
+        },
+        {
+          "checkIds": [
+            "cancel-race"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "bill.command",
+                "from": {
+                  "nodeId": "customer",
+                  "portId": "out-bill.command"
+                },
+                "id": "command",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-bill.command"
+                }
+              },
+              {
+                "contractId": "bill.command",
+                "from": {
+                  "nodeId": "api",
+                  "portId": "out-bill.command"
+                },
+                "id": "state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "ledger",
+                  "portId": "in-bill.command"
+                }
+              },
+              {
+                "contractId": "bill.invoice",
+                "from": {
+                  "nodeId": "scheduler",
+                  "portId": "out-bill.invoice"
+                },
+                "id": "due-period",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-bill.invoice-api"
+                }
+              },
+              {
+                "contractId": "bill.invoice",
+                "from": {
+                  "nodeId": "api",
+                  "portId": "out-bill.invoice"
+                },
+                "id": "invoice",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "ledger",
+                  "portId": "in-bill.invoice"
+                }
+              },
+              {
+                "contractId": "bill.charge",
+                "from": {
+                  "nodeId": "dispatcher",
+                  "portId": "out-bill.charge"
+                },
+                "id": "claim-intent",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-bill.charge-ledger"
+                }
+              },
+              {
+                "contractId": "bill.charge",
+                "from": {
+                  "nodeId": "dispatcher",
+                  "portId": "out-bill.charge"
+                },
+                "id": "charge",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "provider",
+                  "portId": "in-bill.charge"
+                }
+              },
+              {
+                "contractId": "bill.event",
+                "from": {
+                  "nodeId": "provider",
+                  "portId": "out-bill.event"
+                },
+                "id": "webhook",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "inbox",
+                  "portId": "in-bill.event"
+                }
+              },
+              {
+                "contractId": "bill.event",
+                "from": {
+                  "nodeId": "inbox",
+                  "portId": "out-bill.event"
+                },
+                "id": "consume-events",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "projector",
+                  "portId": "in-bill.event"
+                }
+              },
+              {
+                "contractId": "bill.charge",
+                "from": {
+                  "nodeId": "projector",
+                  "portId": "out-bill.charge"
+                },
+                "id": "authoritative-status",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "provider",
+                  "portId": "in-bill.charge"
+                }
+              },
+              {
+                "contractId": "bill.event",
+                "from": {
+                  "nodeId": "projector",
+                  "portId": "out-bill.event"
+                },
+                "id": "apply-payment",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-bill.event-api"
+                }
+              },
+              {
+                "contractId": "bill.access",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-bill.access-api"
+                },
+                "id": "entitlements",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "access",
+                  "portId": "in-bill.access"
+                }
+              },
+              {
+                "contractId": "bill.access",
+                "from": {
+                  "nodeId": "customer",
+                  "portId": "out-bill.access"
+                },
+                "id": "read-access",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "access",
+                  "portId": "in-bill.access"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "bill.customer",
+                "id": "customer",
+                "label": "Subscriber",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.system",
+                "id": "system",
+                "label": "Subscription billing",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "workflow-authority",
+                "version": 1
+              },
+              {
+                "definitionId": "bill.workflow",
+                "id": "api",
+                "label": "Durable billing workflow",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.journal",
+                "id": "ledger",
+                "label": "Workflow and invoice journal",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.scheduler",
+                "id": "scheduler",
+                "label": "Renewal planner",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.dispatcher",
+                "id": "dispatcher",
+                "label": "Payment dispatcher",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.provider",
+                "id": "provider",
+                "label": "Payment processor",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.inbox",
+                "id": "inbox",
+                "label": "Verified event inbox",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.projector",
+                "id": "projector",
+                "label": "Payment reconciler",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.access",
+                "id": "access",
+                "label": "Entitlement projection",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "workflow-s7",
+          "invariants": [
+            "A late paid invoice may require refund or credit, but cannot silently reactivate a canceled version."
+          ],
+          "number": 7,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "bill.access",
+                "id": "access",
+                "label": "Entitlement projection",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "bill.access",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-bill.access-api"
+                },
+                "id": "entitlements",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "access",
+                  "portId": "in-bill.access"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "bill.access",
+                "from": {
+                  "nodeId": "customer",
+                  "portId": "out-bill.access"
+                },
+                "id": "read-access",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "access",
+                  "portId": "in-bill.access"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What does a late payment mean after cancellation?",
+          "reason": "Separate financial settlement from access; cancellation epochs and effective dates fence stale activation.",
+          "title": "Project cancellation and access policy"
+        },
+        {
+          "checkIds": [
+            "renewal-retry",
+            "uncertain-charge",
+            "cancel-race"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "bill.command",
+                "from": {
+                  "nodeId": "customer",
+                  "portId": "out-bill.command"
+                },
+                "id": "command",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-bill.command"
+                }
+              },
+              {
+                "contractId": "bill.command",
+                "from": {
+                  "nodeId": "api",
+                  "portId": "out-bill.command"
+                },
+                "id": "state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "ledger",
+                  "portId": "in-bill.command"
+                }
+              },
+              {
+                "contractId": "bill.invoice",
+                "from": {
+                  "nodeId": "scheduler",
+                  "portId": "out-bill.invoice"
+                },
+                "id": "due-period",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-bill.invoice-api"
+                }
+              },
+              {
+                "contractId": "bill.invoice",
+                "from": {
+                  "nodeId": "api",
+                  "portId": "out-bill.invoice"
+                },
+                "id": "invoice",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "ledger",
+                  "portId": "in-bill.invoice"
+                }
+              },
+              {
+                "contractId": "bill.charge",
+                "from": {
+                  "nodeId": "dispatcher",
+                  "portId": "out-bill.charge"
+                },
+                "id": "claim-intent",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-bill.charge-ledger"
+                }
+              },
+              {
+                "contractId": "bill.charge",
+                "from": {
+                  "nodeId": "dispatcher",
+                  "portId": "out-bill.charge"
+                },
+                "id": "charge",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "provider",
+                  "portId": "in-bill.charge"
+                }
+              },
+              {
+                "contractId": "bill.event",
+                "from": {
+                  "nodeId": "provider",
+                  "portId": "out-bill.event"
+                },
+                "id": "webhook",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "inbox",
+                  "portId": "in-bill.event"
+                }
+              },
+              {
+                "contractId": "bill.event",
+                "from": {
+                  "nodeId": "inbox",
+                  "portId": "out-bill.event"
+                },
+                "id": "consume-events",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "projector",
+                  "portId": "in-bill.event"
+                }
+              },
+              {
+                "contractId": "bill.charge",
+                "from": {
+                  "nodeId": "projector",
+                  "portId": "out-bill.charge"
+                },
+                "id": "authoritative-status",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "provider",
+                  "portId": "in-bill.charge"
+                }
+              },
+              {
+                "contractId": "bill.event",
+                "from": {
+                  "nodeId": "projector",
+                  "portId": "out-bill.event"
+                },
+                "id": "apply-payment",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-bill.event-api"
+                }
+              },
+              {
+                "contractId": "bill.access",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-bill.access-api"
+                },
+                "id": "entitlements",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "access",
+                  "portId": "in-bill.access"
+                }
+              },
+              {
+                "contractId": "bill.access",
+                "from": {
+                  "nodeId": "customer",
+                  "portId": "out-bill.access"
+                },
+                "id": "read-access",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "access",
+                  "portId": "in-bill.access"
+                }
+              },
+              {
+                "contractId": "bill.invoice",
+                "from": {
+                  "nodeId": "recovery",
+                  "portId": "out-bill.invoice"
+                },
+                "id": "pending-state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-bill.invoice-ledger"
+                }
+              },
+              {
+                "contractId": "bill.event",
+                "from": {
+                  "nodeId": "recovery",
+                  "portId": "out-bill.event"
+                },
+                "id": "repair-events",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "projector",
+                  "portId": "in-bill.event"
+                }
+              },
+              {
+                "contractId": "bill.invoice",
+                "from": {
+                  "nodeId": "recovery",
+                  "portId": "out-bill.invoice"
+                },
+                "id": "missed-periods",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "scheduler",
+                  "portId": "in-bill.invoice"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "bill.customer",
+                "id": "customer",
+                "label": "Subscriber",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.system",
+                "id": "system",
+                "label": "Subscription billing",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "workflow-authority",
+                "version": 1
+              },
+              {
+                "definitionId": "bill.workflow",
+                "id": "api",
+                "label": "Durable billing workflow",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.journal",
+                "id": "ledger",
+                "label": "Workflow and invoice journal",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.scheduler",
+                "id": "scheduler",
+                "label": "Renewal planner",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.dispatcher",
+                "id": "dispatcher",
+                "label": "Payment dispatcher",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.provider",
+                "id": "provider",
+                "label": "Payment processor",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.inbox",
+                "id": "inbox",
+                "label": "Verified event inbox",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.projector",
+                "id": "projector",
+                "label": "Payment reconciler",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.access",
+                "id": "access",
+                "label": "Entitlement projection",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "bill.recovery",
+                "id": "recovery",
+                "label": "Settlement sweeper",
+                "position": {
+                  "x": 560,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "workflow-s8",
+          "invariants": [
+            "Respect remote idempotency retention; outside it, reconcile before retrying an uncertain charge."
+          ],
+          "number": 8,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "bill.recovery",
+                "id": "recovery",
+                "label": "Settlement sweeper",
+                "position": {
+                  "x": 560,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "bill.invoice",
+                "from": {
+                  "nodeId": "recovery",
+                  "portId": "out-bill.invoice"
+                },
+                "id": "pending-state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-bill.invoice-ledger"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "bill.event",
+                "from": {
+                  "nodeId": "recovery",
+                  "portId": "out-bill.event"
+                },
+                "id": "repair-events",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "projector",
+                  "portId": "in-bill.event"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "bill.invoice",
+                "from": {
+                  "nodeId": "recovery",
+                  "portId": "out-bill.invoice"
+                },
+                "id": "missed-periods",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "scheduler",
+                  "portId": "in-bill.invoice"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What if timers, events or dispatch acknowledgements are missing?",
+          "reason": "Replay durable workflow decisions and reconcile unfinished activities; replay itself never calls a provider again without the same identity.",
+          "title": "Recover timers and uncertain settlement"
+        }
+      ],
+      "title": "Durable per-subscription workflows",
+      "tradeoffs": [
+        "Workflow versioning and history retention become production responsibilities.",
+        "Remote activity execution still requires provider idempotency and reconciliation."
+      ]
+    }
+  ],
+  "subsystems": [
+    {
+      "definitionId": "bill.system",
+      "id": "ledger-authority",
+      "ports": [
+        {
+          "contractId": "bill.command",
+          "direction": "in",
+          "id": "in-bill.command",
+          "target": {
+            "nodeId": "api",
+            "portId": "in-bill.command"
+          }
+        },
+        {
+          "contractId": "bill.invoice",
+          "direction": "in",
+          "id": "in-bill.invoice-api",
+          "target": {
+            "nodeId": "api",
+            "portId": "in-bill.invoice"
+          }
+        },
+        {
+          "contractId": "bill.charge",
+          "direction": "in",
+          "id": "in-bill.charge-ledger",
+          "target": {
+            "nodeId": "ledger",
+            "portId": "in-bill.charge"
+          }
+        },
+        {
+          "contractId": "bill.event",
+          "direction": "in",
+          "id": "in-bill.event-api",
+          "target": {
+            "nodeId": "api",
+            "portId": "in-bill.event"
+          }
+        },
+        {
+          "contractId": "bill.access",
+          "direction": "out",
+          "id": "out-bill.access-api",
+          "target": {
+            "nodeId": "api",
+            "portId": "out-bill.access"
+          }
+        },
+        {
+          "contractId": "bill.invoice",
+          "direction": "in",
+          "id": "in-bill.invoice-ledger",
+          "target": {
+            "nodeId": "ledger",
+            "portId": "in-bill.invoice"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "bill.system",
+      "id": "workflow-authority",
+      "ports": [
+        {
+          "contractId": "bill.command",
+          "direction": "in",
+          "id": "in-bill.command",
+          "target": {
+            "nodeId": "api",
+            "portId": "in-bill.command"
+          }
+        },
+        {
+          "contractId": "bill.invoice",
+          "direction": "in",
+          "id": "in-bill.invoice-api",
+          "target": {
+            "nodeId": "api",
+            "portId": "in-bill.invoice"
+          }
+        },
+        {
+          "contractId": "bill.charge",
+          "direction": "in",
+          "id": "in-bill.charge-ledger",
+          "target": {
+            "nodeId": "ledger",
+            "portId": "in-bill.charge"
+          }
+        },
+        {
+          "contractId": "bill.event",
+          "direction": "in",
+          "id": "in-bill.event-api",
+          "target": {
+            "nodeId": "api",
+            "portId": "in-bill.event"
+          }
+        },
+        {
+          "contractId": "bill.access",
+          "direction": "out",
+          "id": "out-bill.access-api",
+          "target": {
+            "nodeId": "api",
+            "portId": "out-bill.access"
+          }
+        },
+        {
+          "contractId": "bill.invoice",
+          "direction": "in",
+          "id": "in-bill.invoice-ledger",
+          "target": {
+            "nodeId": "ledger",
+            "portId": "in-bill.invoice"
+          }
+        }
+      ],
+      "version": 1
+    }
+  ],
+  "version": 1
+}

@@ -10,11 +10,11 @@ Study authored system-design solutions stage by stage on an open Excalidraw canv
 
 - Owns the workspace page, stage projection onto the canvas, per-stage learner overlays, typed-connection choices, browser autosave and workspace import/export.
 - Does not own authored solutions; the composable study contract and its content owners do.
-- Keeps Excalidraw's native drawing UI and gestures; the pinned 0.17.6 build owns behavior, with reproducible compatibility patches recorded in `vendor/versions.json`.
+- Keeps Excalidraw's native drawing UI and gestures; the pinned 0.18.1 build owns behavior, with reproducible compatibility patches recorded in `vendor/modern/versions.json`.
 
 ## Scope
 
-This directory, served at `/simulatte/system-diagram/study/`.
+This directory, served canonically at `/lucyd`; physical entrypoint links remain compatible.
 
 ## Contracts
 
@@ -26,6 +26,7 @@ This directory, served at `/simulatte/system-diagram/study/`.
 - Replay matches the contract validator exactly; mismatched stage graphs are refused, never repaired.
 - Authored documents are never edited. Learner changes live only in the overlay of the stage where they were made.
 - Navigation never enters undo history; undo never crosses a stage.
+- Every authored stage has deterministic compound layout, obstacle-routed connections and checked text clearance. Spatial layout never changes graph meaning.
 - Drawn arrows become typed connections only through matching ports.
 - Imports validate before replacing anything, name the failing location and keep unknown fields.
 - Study controls never trigger canvas shortcuts. Open canvas; notes open on demand.
@@ -33,6 +34,7 @@ This directory, served at `/simulatte/system-diagram/study/`.
 ## Acceptance
 
 - Evidence: [workspace tests](../../../../tests/study-workspace.test.cjs) and the [gesture audit](../../../../tools/simulatte/audit-study-workspace.cjs) recorded in [acceptance](../../../../docs/simulatte/study-workspace-acceptance.md).
+- Spatial evidence: [composition policy and audits](../../../../docs/simulatte/study-spatial-layout.md).
 - Emulated touch is not physical-device proof.
 
 ## Non-goals

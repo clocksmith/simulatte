@@ -1,0 +1,8 @@
+/**
+ * Bundled by jsDelivr using Rollup v4.62.2 and esbuild v0.28.1.
+ * Original file: /npm/points-on-curve@0.2.0/lib/index.js
+ *
+ * Do NOT use SRI with dynamically generated files! More information: https://www.jsdelivr.com/using-sri-with-dynamic-files
+ */
+function d(t,n){return Math.sqrt(q(t,n))}function q(t,n){return Math.pow(t[0]-n[0],2)+Math.pow(t[1]-n[1],2)}function y(t,n,c){const r=q(n,c);if(r===0)return q(t,n);let e=((t[0]-n[0])*(c[0]-n[0])+(t[1]-n[1])*(c[1]-n[1]))/r;return e=Math.max(0,Math.min(1,e)),q(t,g(n,c,e))}function g(t,n,c){return[t[0]+(n[0]-t[0])*c,t[1]+(n[1]-t[1])*c]}function z(t,n){const c=t[n+0],r=t[n+1],e=t[n+2],u=t[n+3];let s=3*r[0]-2*c[0]-u[0];s*=s;let i=3*r[1]-2*c[1]-u[1];i*=i;let o=3*e[0]-2*u[0]-c[0];o*=o;let l=3*e[1]-2*u[1]-c[1];return l*=l,s<o&&(s=o),i<l&&(i=l),s+i}function x(t,n,c,r){const e=r||[];if(z(t,n)<c){const u=t[n+0];e.length?d(e[e.length-1],u)>1&&e.push(u):e.push(u),e.push(t[n+3])}else{const s=t[n+0],i=t[n+1],o=t[n+2],l=t[n+3],h=g(s,i,.5),m=g(i,o,.5),S=g(o,l,.5),M=g(h,m,.5),P=g(m,S,.5),a=g(M,P,.5);x([s,h,M,a],0,c,e),x([a,P,S,l],0,c,e)}return e}function B(t,n){return f(t,0,t.length,n)}function f(t,n,c,r,e){const u=e||[],s=t[n],i=t[c-1];let o=0,l=1;for(let h=n+1;h<c-1;++h){const m=y(t[h],s,i);m>o&&(o=m,l=h)}return Math.sqrt(o)>r?(f(t,n,l+1,r,u),f(t,l,c,r,u)):(u.length||u.push(s),u.push(i)),u}function C(t,n=.15,c){const r=[],e=(t.length-1)/3;for(let u=0;u<e;u++){const s=u*3;x(t,s,n,r)}return c&&c>0?f(r,0,r.length,c):r}export{C as pointsOnBezierCurves,B as simplify};
+//# sourceMappingURL=/sm/95e4e60f1f7d3cab9f29d0faa0b1160ca37f145f1a187a3e8ff32c064144ecfe.map

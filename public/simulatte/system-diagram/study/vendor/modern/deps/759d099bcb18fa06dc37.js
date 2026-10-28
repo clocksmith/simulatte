@@ -1,0 +1,8 @@
+/**
+ * Bundled by jsDelivr using Rollup v4.62.2 and esbuild v0.28.1.
+ * Original file: /npm/jotai@2.9.3/esm/react.mjs
+ *
+ * Do NOT use SRI with dynamically generated files! More information: https://www.jsdelivr.com/using-sri-with-dynamic-files
+ */
+import g,{createContext as w,useContext as R,useRef as h,createElement as x,useReducer as A,useEffect as E,useDebugValue as S,useCallback as y}from"../react.js";import{getDefaultStore as C,createStore as j}from"./f8e896a0213b33a40fc2.js";const i=w(void 0),l=e=>{const t=R(i);return e?.store||t||C()},D=({children:e,store:t})=>{const r=h();return!t&&!r.current&&(r.current=j()),x(i.Provider,{value:t||r.current},e)},F=e=>typeof e?.then=="function",P=g.use||(e=>{if(e.status==="pending")throw e;if(e.status==="fulfilled")return e.value;throw e.status==="rejected"?e.reason:(e.status="pending",e.then(t=>{e.status="fulfilled",e.value=t},t=>{e.status="rejected",e.reason=t}),e)});function a(e,t){const r=l(t),[[f,o,b],s]=A(u=>{const d=r.get(e);return Object.is(u[0],d)&&u[1]===r&&u[2]===e?u:[d,r,e]},void 0,()=>[r.get(e),r,e]);let n=f;(o!==r||b!==e)&&(s(),n=r.get(e));const c=t?.delay;return E(()=>{const u=r.sub(e,()=>{if(typeof c=="number"){setTimeout(s,c);return}s()});return s(),u},[r,e,c]),S(n),F(n)?P(n):n}function v(e,t){const r=l(t);return y((...o)=>{if((import.meta.env?import.meta.env.MODE:void 0)!=="production"&&!("write"in e))throw new Error("not writable atom");return r.set(e,...o)},[r,e])}function V(e,t){return[a(e,t),v(e,t)]}export{D as Provider,V as useAtom,a as useAtomValue,v as useSetAtom,l as useStore};
+//# sourceMappingURL=/sm/163cbcdea0d3e6a289f3ff2a843fd50d1e142fdb7a61422d3778582427c145fc.map

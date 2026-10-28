@@ -26,8 +26,8 @@ for(const [name,author]of Object.entries(authors)){
   }
  });
 }
-test('all twelve problems use one v2 artifact format and contain twenty-four approaches',()=>{
- const {files,receipts}=build();assert.equal(receipts.length,12);assert.equal(receipts.reduce((n,r)=>n+r.solutions,0),24);assert.equal(receipts.reduce((n,r)=>n+r.stages,0),203);
+test('published problems share the v2 format and two or more approaches',()=>{
+ const {files,receipts}=build();assert.ok(receipts.length>=14);assert.ok(receipts.every(r=>r.solutions>=2));assert.ok(receipts.every(r=>r.stages>=r.solutions*8));
  for(const row of receipts){const p=JSON.parse(files.get(row.path));assert.equal(p.schema,'simulatte.composableStudy.v2');assert.deepEqual(JSON.parse(JSON.stringify(p)),p);}
 });
 test('v2 rebinding preserves the boundary and old binding definitions',()=>{

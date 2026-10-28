@@ -42,10 +42,26 @@
       "stages": 16
     },
     {
+      "path": "l006.json",
+      "problemId": "saved-search",
+      "referenceId": "L006",
+      "sha256": "a232bc2d3679ee17ffd2d4c170ba4394483ce3d326bbcfff503849faa196733b",
+      "solutions": 2,
+      "stages": 16
+    },
+    {
       "path": "l007.json",
       "problemId": "load-balancer",
       "referenceId": "L007",
       "sha256": "19af8de64416ec45a8ef89ed4cf28821f58e7c2126a7be3e8f5cfe0a46a503d4",
+      "solutions": 2,
+      "stages": 16
+    },
+    {
+      "path": "l008.json",
+      "problemId": "subscriptions",
+      "referenceId": "L008",
+      "sha256": "3d3bd3270d0332ac2b1505b45a1dacf2d75f2c339187db7645f7abc2f513ab2f",
       "solutions": 2,
       "stages": 16
     },

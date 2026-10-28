@@ -1,0 +1,8 @@
+/**
+ * Bundled by jsDelivr using Rollup v4.62.2 and esbuild v0.28.1.
+ * Original file: /npm/@radix-ui/react-context@1.0.0/dist/index.module.js
+ *
+ * Do NOT use SRI with dynamically generated files! More information: https://www.jsdelivr.com/using-sri-with-dynamic-files
+ */
+import{useMemo as $,createElement as b,useContext as h,createContext as x}from"../react.js";function P(t,c){const o=x(c);function d(r){const{children:e,...n}=r,s=$(()=>n,Object.values(n));return b(o.Provider,{value:s},e)}function u(r){const e=h(o);if(e)return e;if(c!==void 0)return c;throw new Error(`\`${r}\` must be used within \`${t}\``)}return d.displayName=t+"Provider",[d,u]}function C(t,c=[]){let o=[];function d(r,e){const n=x(e),s=o.length;o=[...o,e];function p(f){const{scope:i,children:v,...a}=f,m=i?.[t][s]||n,S=$(()=>a,Object.values(a));return b(m.Provider,{value:S},v)}function l(f,i){const v=i?.[t][s]||n,a=h(v);if(a)return a;if(e!==void 0)return e;throw new Error(`\`${f}\` must be used within \`${r}\``)}return p.displayName=r+"Provider",[p,l]}const u=()=>{const r=o.map(e=>x(e));return function(n){const s=n?.[t]||r;return $(()=>({[`__scope${t}`]:{...n,[t]:s}}),[n,s])}};return u.scopeName=t,[d,w(u,...c)]}function w(...t){const c=t[0];if(t.length===1)return c;const o=()=>{const d=t.map(u=>({useScope:u(),scopeName:u.scopeName}));return function(r){const e=d.reduce((n,{useScope:s,scopeName:p})=>{const f=s(r)[`__scope${p}`];return{...n,...f}},{});return $(()=>({[`__scope${c.scopeName}`]:e}),[e])}};return o.scopeName=c.scopeName,o}export{P as createContext,C as createContextScope};
+//# sourceMappingURL=/sm/3b75cf553dec4a2ac4a306b54c5bc8bc891ed55ffe5edb2f60e615d7252f3f81.map

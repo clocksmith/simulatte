@@ -1,0 +1,4880 @@
+{
+  "components": [
+    {
+      "extends": {
+        "id": "core.client",
+        "version": 1
+      },
+      "id": "alerts.reader",
+      "label": "Book shopper",
+      "ports": [
+        {
+          "contractId": "alerts.preference",
+          "direction": "out",
+          "id": "out-alerts.preference"
+        }
+      ],
+      "responsibility": "Own saved search settings and display effective versions.",
+      "stateOwnership": [
+        "editable preferences"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.service",
+        "version": 1
+      },
+      "id": "alerts.system",
+      "label": "Saved-search alerts",
+      "ports": [
+        {
+          "contractId": "alerts.preference",
+          "direction": "in",
+          "id": "in-alerts.preference"
+        },
+        {
+          "contractId": "alerts.preference",
+          "direction": "in",
+          "id": "in-alerts.preference-preferences"
+        },
+        {
+          "contractId": "alerts.listing",
+          "direction": "in",
+          "id": "in-alerts.listing-listings"
+        },
+        {
+          "contractId": "alerts.listing",
+          "direction": "out",
+          "id": "out-alerts.listing-listings"
+        }
+      ],
+      "responsibility": "Accept searches and produce bounded daily notification intent.",
+      "stateOwnership": [
+        "logical alert lifecycle"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "alerts.preferences",
+      "label": "Preferences and consent",
+      "ports": [
+        {
+          "contractId": "alerts.preference",
+          "direction": "in",
+          "id": "in-alerts.preference"
+        }
+      ],
+      "responsibility": "Own search versions, timezone and current consent.",
+      "stateOwnership": [
+        "search versions",
+        "consent epoch"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "alerts.listings",
+      "label": "Publication index",
+      "ports": [
+        {
+          "contractId": "alerts.listing",
+          "direction": "in",
+          "id": "in-alerts.listing"
+        },
+        {
+          "contractId": "alerts.listing",
+          "direction": "out",
+          "id": "out-alerts.listing"
+        }
+      ],
+      "responsibility": "Own committed listing revisions and stable publication sequence.",
+      "stateOwnership": [
+        "publication sequence"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "alerts.matcher",
+      "label": "Scheduled snapshot matcher",
+      "ports": [
+        {
+          "contractId": "alerts.preference",
+          "direction": "out",
+          "id": "out-alerts.preference"
+        },
+        {
+          "contractId": "alerts.listing",
+          "direction": "out",
+          "id": "out-alerts.listing"
+        },
+        {
+          "contractId": "alerts.match",
+          "direction": "out",
+          "id": "out-alerts.match"
+        },
+        {
+          "contractId": "alerts.listing",
+          "direction": "in",
+          "id": "in-alerts.listing"
+        }
+      ],
+      "responsibility": "Scan a fixed committed publication interval, page by total cursor, then commit progress with match writes.",
+      "stateOwnership": [
+        "scan cursor"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "alerts.event-matcher",
+      "label": "Change-driven matcher",
+      "ports": [
+        {
+          "contractId": "alerts.preference",
+          "direction": "out",
+          "id": "out-alerts.preference"
+        },
+        {
+          "contractId": "alerts.listing",
+          "direction": "in",
+          "id": "in-alerts.listing"
+        },
+        {
+          "contractId": "alerts.match",
+          "direction": "out",
+          "id": "out-alerts.match"
+        }
+      ],
+      "responsibility": "Route committed listing events through candidate predicates then exact evaluation.",
+      "stateOwnership": [
+        "partition checkpoints"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.log",
+        "version": 1
+      },
+      "id": "alerts.events",
+      "label": "Publication change log",
+      "ports": [
+        {
+          "contractId": "alerts.listing",
+          "direction": "in",
+          "id": "in-alerts.listing"
+        },
+        {
+          "contractId": "alerts.listing",
+          "direction": "out",
+          "id": "out-alerts.listing"
+        }
+      ],
+      "responsibility": "Retain committed publication events and replay positions; support outbox or CDC handoff.",
+      "stateOwnership": [
+        "event offsets"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "alerts.matches",
+      "label": "Unique matches store",
+      "ports": [
+        {
+          "contractId": "alerts.match",
+          "direction": "in",
+          "id": "in-alerts.match"
+        }
+      ],
+      "responsibility": "Persist search-version/listing matches with a uniqueness constraint.",
+      "stateOwnership": [
+        "match identities"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "alerts.clock",
+      "label": "Calendar cutoff planner",
+      "ports": [
+        {
+          "contractId": "alerts.digest",
+          "direction": "out",
+          "id": "out-alerts.digest"
+        }
+      ],
+      "responsibility": "Resolve recipient local dates into explicit UTC half-open intervals, including DST changes.",
+      "stateOwnership": [
+        "period cutoffs"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "alerts.digest",
+      "label": "Digest materializer",
+      "ports": [
+        {
+          "contractId": "alerts.digest",
+          "direction": "in",
+          "id": "in-alerts.digest"
+        },
+        {
+          "contractId": "alerts.match",
+          "direction": "out",
+          "id": "out-alerts.match"
+        },
+        {
+          "contractId": "alerts.digest",
+          "direction": "out",
+          "id": "out-alerts.digest"
+        }
+      ],
+      "responsibility": "Freeze recipients, sorted listing identities and payload hash once per period.",
+      "stateOwnership": [
+        "materialization lease"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "alerts.outbox",
+      "label": "Digest outbox",
+      "ports": [
+        {
+          "contractId": "alerts.digest",
+          "direction": "in",
+          "id": "in-alerts.digest"
+        },
+        {
+          "contractId": "alerts.send",
+          "direction": "in",
+          "id": "in-alerts.send"
+        }
+      ],
+      "responsibility": "Commit digest payload, retry state and uncertain outcomes durably.",
+      "stateOwnership": [
+        "immutable digest payload",
+        "attempt state"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "alerts.sender",
+      "label": "Consent-aware dispatcher",
+      "ports": [
+        {
+          "contractId": "alerts.send",
+          "direction": "out",
+          "id": "out-alerts.send"
+        },
+        {
+          "contractId": "alerts.preference",
+          "direction": "out",
+          "id": "out-alerts.preference"
+        }
+      ],
+      "responsibility": "Recheck consent, claim a fenced attempt, send with stable identity and reconcile ambiguous results.",
+      "stateOwnership": [
+        "attempt lease"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.external",
+        "version": 1
+      },
+      "id": "alerts.mail",
+      "label": "Email provider",
+      "ports": [
+        {
+          "contractId": "alerts.send",
+          "direction": "in",
+          "id": "in-alerts.send"
+        },
+        {
+          "contractId": "alerts.send",
+          "direction": "out",
+          "id": "out-alerts.send"
+        }
+      ],
+      "responsibility": "Accept or reject mail; only promise idempotency if the selected provider explicitly supports it.",
+      "stateOwnership": [
+        "provider receipts"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "alerts.feedback",
+      "label": "Delivery feedback consumer",
+      "ports": [
+        {
+          "contractId": "alerts.send",
+          "direction": "in",
+          "id": "in-alerts.send"
+        },
+        {
+          "contractId": "alerts.send",
+          "direction": "out",
+          "id": "out-alerts.send"
+        },
+        {
+          "contractId": "alerts.preference",
+          "direction": "out",
+          "id": "out-alerts.preference"
+        }
+      ],
+      "responsibility": "Verify feedback, deduplicate events and persist delivery or suppression without confusing acceptance with inbox receipt.",
+      "stateOwnership": [
+        "feedback receipts"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "alerts.recovery",
+      "label": "Progress reconciler",
+      "ports": [
+        {
+          "contractId": "alerts.listing",
+          "direction": "out",
+          "id": "out-alerts.listing"
+        },
+        {
+          "contractId": "alerts.digest",
+          "direction": "out",
+          "id": "out-alerts.digest"
+        }
+      ],
+      "responsibility": "Compare scan/log checkpoints and retained source history; backfill before retention expires.",
+      "stateOwnership": [
+        "reconciliation watermark"
+      ],
+      "version": 1
+    }
+  ],
+  "contracts": [
+    {
+      "id": "alerts.preference",
+      "request": {
+        "enabled": "boolean",
+        "ownerId": "authenticated owner",
+        "predicate": "validated exact terms and filters",
+        "searchId": "uuid",
+        "timezone": "IANA zone",
+        "version": "expected version"
+      },
+      "response": {
+        "effectiveAt": "database timestamp",
+        "version": "monotonic integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "alerts.listing",
+      "request": {
+        "listingId": "uuid",
+        "publicationSeq": "monotonic publish cursor",
+        "publishedAt": "timestamp",
+        "revision": "integer",
+        "terms": "normalized token set"
+      },
+      "response": {
+        "cursor": "committed cursor",
+        "persisted": "boolean"
+      },
+      "version": 1
+    },
+    {
+      "id": "alerts.match",
+      "request": {
+        "listingId": "uuid",
+        "periodId": "recipient local date and zone rule",
+        "publicationSeq": "integer",
+        "searchId": "uuid",
+        "searchVersion": "integer"
+      },
+      "response": {
+        "inserted": "boolean",
+        "uniqueKey": "search version/listing"
+      },
+      "version": 1
+    },
+    {
+      "id": "alerts.digest",
+      "request": {
+        "cutoff": "committed cursor",
+        "periodId": "local calendar date",
+        "recipientId": "uuid",
+        "templateVersion": "integer"
+      },
+      "response": {
+        "digestId": "immutable recipient/period identity",
+        "listingIds": "stable distinct IDs[]",
+        "payloadHash": "sha256"
+      },
+      "version": 1
+    },
+    {
+      "id": "alerts.send",
+      "request": {
+        "digestId": "stable idempotency identity",
+        "payloadHash": "sha256",
+        "recipientId": "uuid"
+      },
+      "response": {
+        "providerId": "string|null",
+        "state": "pending|accepted|delivered|uncertain|suppressed|failed"
+      },
+      "version": 1
+    }
+  ],
+  "execution": {
+    "implementation": null,
+    "kind": "conceptual-design"
+  },
+  "problem": {
+    "referenceId": "L006",
+    "requirements": [
+      {
+        "id": "matching",
+        "text": "Match newly published listings against versioned saved search predicates without omissions at scan boundaries."
+      },
+      {
+        "id": "digest",
+        "text": "Build one immutable digest per recipient and local calendar period, deduplicating listing matches."
+      },
+      {
+        "id": "delivery",
+        "text": "Retry boundedly while distinguishing pending, accepted, delivered, suppressed and uncertain outcomes."
+      },
+      {
+        "id": "consent",
+        "text": "Apply unsubscribe and address suppression at dispatch time, not just when matching."
+      }
+    ],
+    "scope": "Book shoppers save searches and receive daily digests for newly published matching listings. Compare scheduled index scans with change-driven matching. Search semantics, consent, timezone cutoffs and uncertain email acceptance are explicit; exactly-once inbox delivery is not promised.",
+    "studyLabel": "Saved-search email digests"
+  },
+  "provenance": {
+    "kind": "authored-practice",
+    "note": "Authored interview preparation. Technical references support mechanisms, not the claim that a company asked this question."
+  },
+  "references": [
+    {
+      "id": "isolation",
+      "scope": "background",
+      "supports": "Snapshot boundaries and concurrent transactional updates.",
+      "title": "PostgreSQL transaction isolation",
+      "url": "https://www.postgresql.org/docs/18/transaction-iso.html"
+    },
+    {
+      "id": "ses",
+      "scope": "background",
+      "supports": "Sending acceptance differs from delivery, bounce, complaint and suppression.",
+      "title": "Amazon SES sending events",
+      "url": "https://docs.aws.amazon.com/ses/latest/dg/monitor-sending-activity.html"
+    }
+  ],
+  "schema": "simulatte.composableStudy.v2",
+  "solutions": [
+    {
+      "acceptanceCases": [
+        {
+          "given": "A listing commits while an existing scan is paging and a saved predicate is edited.",
+          "id": "match-boundary",
+          "relatedRequirementIds": [
+            "matching"
+          ],
+          "then": "No committed listing is skipped; each match names the exact search version and scan boundary.",
+          "when": "Finish the fixed upper-cursor scan and start the next interval."
+        },
+        {
+          "given": "The same listing event or scan page is delivered twice.",
+          "id": "duplicate-match",
+          "relatedRequirementIds": [
+            "matching"
+          ],
+          "then": "The unique match key produces one record per search version/listing; progress cannot outrun committed writes.",
+          "when": "Commit matches and retry after a simulated checkpoint-write interruption."
+        },
+        {
+          "given": "A digest is frozen before another matching listing arrives and the local day crosses DST.",
+          "id": "digest-freeze",
+          "relatedRequirementIds": [
+            "digest"
+          ],
+          "then": "The first payload hash is unchanged; the new listing follows the recorded late-arrival policy, with no invented 24-hour day assumption.",
+          "when": "Retry materialization and then process the following local date."
+        },
+        {
+          "given": "A digest is queued and consent is revoked before dispatch authorization.",
+          "id": "unsubscribe",
+          "relatedRequirementIds": [
+            "consent"
+          ],
+          "then": "Suppress it; a race after provider acceptance is documented as unable to recall already sent mail.",
+          "when": "Claim a send attempt."
+        },
+        {
+          "given": "A provider accepts a digest but its response is lost.",
+          "id": "uncertain-send",
+          "relatedRequirementIds": [
+            "delivery"
+          ],
+          "then": "Keep outcome uncertain until reconciled; retries follow the declared remote idempotency or duplicate-versus-loss policy.",
+          "when": "The dispatcher restarts."
+        }
+      ],
+      "algorithms": [
+        {
+          "code": "const upper = committedPublicationCursor();\nfor (const page of listPublishedAfter(checkpoint, upper, totalOrderCursor)) {\n  transaction(() => { for (const listing of page) for (const search of exactMatches(listing))\n    insertMatchIfAbsent(search.id, search.version, listing.id);\n    advanceCheckpoint(page.lastCursor); });\n}\n// Change-driven branch checkpoints each partition only after its unique match writes commit.\n// Freeze sorted distinct listing IDs and payload hash in a unique recipient/period transaction.",
+          "guarantees": [
+            "Repeated source delivery cannot duplicate a match; a fixed upper cursor prevents a moving pagination boundary."
+          ],
+          "id": "admit-matches",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "matcher"
+        },
+        {
+          "code": "const attempt = claimFencedLease(digestId);\nif (!currentConsentAllows(recipientId)) return suppress(attempt);\ntry { const receipt = await provider.send(digestId, immutablePayload); recordAccepted(attempt, receipt); }\ncatch (error) { if (knownRejectedBeforeAcceptance(error)) scheduleBoundedRetry(attempt);\n  else markUncertainAndReconcile(attempt); }\n// Retry uncertain sends only under an explicit duplicate-versus-loss policy or provider idempotency contract.",
+          "guarantees": [
+            "Provider acceptance and delivery are different states; a stable local ID alone cannot deduplicate a remote side effect."
+          ],
+          "id": "dispatch-digest",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "sender"
+        }
+      ],
+      "apis": [
+        {
+          "errors": "403 wrong owner; 409 stale version; 422 invalid predicate",
+          "method": "PUT",
+          "ownerNodeId": "preferences",
+          "path": "/saved-searches/{id}",
+          "request": "{expectedVersion,predicate,timezone,enabled}",
+          "response": "{version,effectiveAt}"
+        },
+        {
+          "errors": "400 invalid token; repeated requests idempotently succeed",
+          "method": "POST",
+          "ownerNodeId": "preferences",
+          "path": "/unsubscribe",
+          "request": "{signedScopedToken}",
+          "response": "{consentEpoch,disabled:true}"
+        }
+      ],
+      "assumptions": [
+        "Published revisions have immutable identities and a committed ordering cursor.",
+        "Email acceptance can be uncertain; without provider deduplication, retry may duplicate or fail to deliver."
+      ],
+      "chooseWhen": "Daily latency is acceptable and an indexed listing store can scan fixed publication intervals.",
+      "id": "scheduled",
+      "initialGraph": {
+        "edges": [],
+        "nodes": []
+      },
+      "stages": [
+        {
+          "checkIds": [
+            "match-boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "alerts.preference",
+                "from": {
+                  "nodeId": "reader",
+                  "portId": "out-alerts.preference"
+                },
+                "id": "save-search",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-alerts.preference"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "alerts.reader",
+                "id": "reader",
+                "label": "Book shopper",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.system",
+                "id": "system",
+                "label": "Saved-search alerts",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "scheduled-s1",
+          "invariants": [
+            "A saved search has an owner, version, timezone and explicit matching semantics."
+          ],
+          "number": 1,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "alerts.reader",
+                "id": "reader",
+                "label": "Book shopper",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "alerts.system",
+                "id": "system",
+                "label": "Saved-search alerts",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "alerts.preference",
+                "from": {
+                  "nodeId": "reader",
+                  "portId": "out-alerts.preference"
+                },
+                "id": "save-search",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-alerts.preference"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What is a new matching listing?",
+          "reason": "Start with a shopper and one alerts boundary; record exact predicates and a daily delivery promise.",
+          "title": "Define search and notification intent"
+        },
+        {
+          "checkIds": [
+            "match-boundary",
+            "unsubscribe"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "alerts.preference",
+                "from": {
+                  "nodeId": "reader",
+                  "portId": "out-alerts.preference"
+                },
+                "id": "save-search",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-alerts.preference"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "alerts.reader",
+                "id": "reader",
+                "label": "Book shopper",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.system",
+                "id": "system",
+                "label": "Saved-search alerts",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "scheduled-authority",
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.preferences",
+                "id": "preferences",
+                "label": "Preferences and consent",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.listings",
+                "id": "listings",
+                "label": "Publication index",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "scheduled-s2",
+          "invariants": [
+            "Never mutate an old search version used by an already frozen digest."
+          ],
+          "number": 2,
+          "operations": [
+            {
+              "edges": [],
+              "nodeId": "system",
+              "nodes": [
+                {
+                  "definitionId": "alerts.preferences",
+                  "id": "preferences",
+                  "label": "Preferences and consent",
+                  "position": {
+                    "x": 560,
+                    "y": 0
+                  },
+                  "version": 1
+                },
+                {
+                  "definitionId": "alerts.listings",
+                  "id": "listings",
+                  "label": "Publication index",
+                  "position": {
+                    "x": 840,
+                    "y": 0
+                  },
+                  "version": 1
+                }
+              ],
+              "op": "expand",
+              "subsystemId": "scheduled-authority"
+            }
+          ],
+          "question": "Which state changes when a shopper edits a search?",
+          "reason": "Expand into authoritative preferences and listing history; do not treat an edited predicate as the old search version.",
+          "title": "Separate preferences from publications"
+        },
+        {
+          "checkIds": [
+            "match-boundary",
+            "duplicate-match"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "alerts.preference",
+                "from": {
+                  "nodeId": "reader",
+                  "portId": "out-alerts.preference"
+                },
+                "id": "save-search",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-alerts.preference"
+                }
+              },
+              {
+                "contractId": "alerts.preference",
+                "from": {
+                  "nodeId": "matcher",
+                  "portId": "out-alerts.preference"
+                },
+                "id": "read-searches",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-alerts.preference-preferences"
+                }
+              },
+              {
+                "contractId": "alerts.listing",
+                "from": {
+                  "nodeId": "matcher",
+                  "portId": "out-alerts.listing"
+                },
+                "id": "scan-listings",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-alerts.listing-listings"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "alerts.reader",
+                "id": "reader",
+                "label": "Book shopper",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.system",
+                "id": "system",
+                "label": "Saved-search alerts",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "scheduled-authority",
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.preferences",
+                "id": "preferences",
+                "label": "Preferences and consent",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.listings",
+                "id": "listings",
+                "label": "Publication index",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.matcher",
+                "id": "matcher",
+                "label": "Scheduled snapshot matcher",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "scheduled-s3",
+          "invariants": [
+            "Progress never advances past work whose match writes are not durably committed."
+          ],
+          "number": 3,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "alerts.matcher",
+                "id": "matcher",
+                "label": "Scheduled snapshot matcher",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "alerts.preference",
+                "from": {
+                  "nodeId": "matcher",
+                  "portId": "out-alerts.preference"
+                },
+                "id": "read-searches",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-alerts.preference-preferences"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "alerts.listing",
+                "from": {
+                  "nodeId": "matcher",
+                  "portId": "out-alerts.listing"
+                },
+                "id": "scan-listings",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-alerts.listing-listings"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How do listings become candidate matches?",
+          "reason": "Freeze the upper publication cursor and use keyset pagination inside that interval.",
+          "title": "Introduce fixed-window scheduled scans"
+        },
+        {
+          "checkIds": [
+            "duplicate-match"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "alerts.preference",
+                "from": {
+                  "nodeId": "reader",
+                  "portId": "out-alerts.preference"
+                },
+                "id": "save-search",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-alerts.preference"
+                }
+              },
+              {
+                "contractId": "alerts.preference",
+                "from": {
+                  "nodeId": "matcher",
+                  "portId": "out-alerts.preference"
+                },
+                "id": "read-searches",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-alerts.preference-preferences"
+                }
+              },
+              {
+                "contractId": "alerts.listing",
+                "from": {
+                  "nodeId": "matcher",
+                  "portId": "out-alerts.listing"
+                },
+                "id": "scan-listings",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-alerts.listing-listings"
+                }
+              },
+              {
+                "contractId": "alerts.match",
+                "from": {
+                  "nodeId": "matcher",
+                  "portId": "out-alerts.match"
+                },
+                "id": "record-match",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "matches",
+                  "portId": "in-alerts.match"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "alerts.reader",
+                "id": "reader",
+                "label": "Book shopper",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.system",
+                "id": "system",
+                "label": "Saved-search alerts",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "scheduled-authority",
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.preferences",
+                "id": "preferences",
+                "label": "Preferences and consent",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.listings",
+                "id": "listings",
+                "label": "Publication index",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.matcher",
+                "id": "matcher",
+                "label": "Scheduled snapshot matcher",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.matches",
+                "id": "matches",
+                "label": "Unique matches store",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "scheduled-s4",
+          "invariants": [
+            "An edited search version is a distinct matching policy; historic digests keep their original content."
+          ],
+          "number": 4,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "alerts.matches",
+                "id": "matches",
+                "label": "Unique matches store",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "alerts.match",
+                "from": {
+                  "nodeId": "matcher",
+                  "portId": "out-alerts.match"
+                },
+                "id": "record-match",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "matches",
+                  "portId": "in-alerts.match"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What if a scan or event is repeated?",
+          "reason": "Separate candidate discovery from durable exact-match admission with a unique search-version/listing key.",
+          "title": "Persist unique search/listing matches"
+        },
+        {
+          "checkIds": [
+            "digest-freeze"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "alerts.preference",
+                "from": {
+                  "nodeId": "reader",
+                  "portId": "out-alerts.preference"
+                },
+                "id": "save-search",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-alerts.preference"
+                }
+              },
+              {
+                "contractId": "alerts.preference",
+                "from": {
+                  "nodeId": "matcher",
+                  "portId": "out-alerts.preference"
+                },
+                "id": "read-searches",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-alerts.preference-preferences"
+                }
+              },
+              {
+                "contractId": "alerts.listing",
+                "from": {
+                  "nodeId": "matcher",
+                  "portId": "out-alerts.listing"
+                },
+                "id": "scan-listings",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-alerts.listing-listings"
+                }
+              },
+              {
+                "contractId": "alerts.match",
+                "from": {
+                  "nodeId": "matcher",
+                  "portId": "out-alerts.match"
+                },
+                "id": "record-match",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "matches",
+                  "portId": "in-alerts.match"
+                }
+              },
+              {
+                "contractId": "alerts.digest",
+                "from": {
+                  "nodeId": "clock",
+                  "portId": "out-alerts.digest"
+                },
+                "id": "cutoff",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "digest",
+                  "portId": "in-alerts.digest"
+                }
+              },
+              {
+                "contractId": "alerts.match",
+                "from": {
+                  "nodeId": "digest",
+                  "portId": "out-alerts.match"
+                },
+                "id": "matching-listings",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "matches",
+                  "portId": "in-alerts.match"
+                }
+              },
+              {
+                "contractId": "alerts.digest",
+                "from": {
+                  "nodeId": "digest",
+                  "portId": "out-alerts.digest"
+                },
+                "id": "freeze-digest",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "outbox",
+                  "portId": "in-alerts.digest"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "alerts.reader",
+                "id": "reader",
+                "label": "Book shopper",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.system",
+                "id": "system",
+                "label": "Saved-search alerts",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "scheduled-authority",
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.preferences",
+                "id": "preferences",
+                "label": "Preferences and consent",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.listings",
+                "id": "listings",
+                "label": "Publication index",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.matcher",
+                "id": "matcher",
+                "label": "Scheduled snapshot matcher",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.matches",
+                "id": "matches",
+                "label": "Unique matches store",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.clock",
+                "id": "clock",
+                "label": "Calendar cutoff planner",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.digest",
+                "id": "digest",
+                "label": "Digest materializer",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.outbox",
+                "id": "outbox",
+                "label": "Digest outbox",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "scheduled-s5",
+          "invariants": [
+            "DST days may contain 23 or 25 hours; period identity is a local date with a resolved UTC interval."
+          ],
+          "number": 5,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "alerts.clock",
+                "id": "clock",
+                "label": "Calendar cutoff planner",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "alerts.digest",
+                "id": "digest",
+                "label": "Digest materializer",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "alerts.outbox",
+                "id": "outbox",
+                "label": "Digest outbox",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "alerts.digest",
+                "from": {
+                  "nodeId": "clock",
+                  "portId": "out-alerts.digest"
+                },
+                "id": "cutoff",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "digest",
+                  "portId": "in-alerts.digest"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "alerts.match",
+                "from": {
+                  "nodeId": "digest",
+                  "portId": "out-alerts.match"
+                },
+                "id": "matching-listings",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "matches",
+                  "portId": "in-alerts.match"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "alerts.digest",
+                "from": {
+                  "nodeId": "digest",
+                  "portId": "out-alerts.digest"
+                },
+                "id": "freeze-digest",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "outbox",
+                  "portId": "in-alerts.digest"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What does daily mean across timezone changes?",
+          "reason": "Add a calendar cutoff and materializer; immutable recipient/period digests pin a publication watermark and payload hash.",
+          "title": "Freeze local-day digest contents"
+        },
+        {
+          "checkIds": [
+            "unsubscribe",
+            "uncertain-send"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "alerts.preference",
+                "from": {
+                  "nodeId": "reader",
+                  "portId": "out-alerts.preference"
+                },
+                "id": "save-search",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-alerts.preference"
+                }
+              },
+              {
+                "contractId": "alerts.preference",
+                "from": {
+                  "nodeId": "matcher",
+                  "portId": "out-alerts.preference"
+                },
+                "id": "read-searches",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-alerts.preference-preferences"
+                }
+              },
+              {
+                "contractId": "alerts.listing",
+                "from": {
+                  "nodeId": "matcher",
+                  "portId": "out-alerts.listing"
+                },
+                "id": "scan-listings",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-alerts.listing-listings"
+                }
+              },
+              {
+                "contractId": "alerts.match",
+                "from": {
+                  "nodeId": "matcher",
+                  "portId": "out-alerts.match"
+                },
+                "id": "record-match",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "matches",
+                  "portId": "in-alerts.match"
+                }
+              },
+              {
+                "contractId": "alerts.digest",
+                "from": {
+                  "nodeId": "clock",
+                  "portId": "out-alerts.digest"
+                },
+                "id": "cutoff",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "digest",
+                  "portId": "in-alerts.digest"
+                }
+              },
+              {
+                "contractId": "alerts.match",
+                "from": {
+                  "nodeId": "digest",
+                  "portId": "out-alerts.match"
+                },
+                "id": "matching-listings",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "matches",
+                  "portId": "in-alerts.match"
+                }
+              },
+              {
+                "contractId": "alerts.digest",
+                "from": {
+                  "nodeId": "digest",
+                  "portId": "out-alerts.digest"
+                },
+                "id": "freeze-digest",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "outbox",
+                  "portId": "in-alerts.digest"
+                }
+              },
+              {
+                "contractId": "alerts.send",
+                "from": {
+                  "nodeId": "sender",
+                  "portId": "out-alerts.send"
+                },
+                "id": "claim-digest",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "outbox",
+                  "portId": "in-alerts.send"
+                }
+              },
+              {
+                "contractId": "alerts.preference",
+                "from": {
+                  "nodeId": "sender",
+                  "portId": "out-alerts.preference"
+                },
+                "id": "consent",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-alerts.preference-preferences"
+                }
+              },
+              {
+                "contractId": "alerts.send",
+                "from": {
+                  "nodeId": "sender",
+                  "portId": "out-alerts.send"
+                },
+                "id": "send",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "mail",
+                  "portId": "in-alerts.send"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "alerts.reader",
+                "id": "reader",
+                "label": "Book shopper",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.system",
+                "id": "system",
+                "label": "Saved-search alerts",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "scheduled-authority",
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.preferences",
+                "id": "preferences",
+                "label": "Preferences and consent",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.listings",
+                "id": "listings",
+                "label": "Publication index",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.matcher",
+                "id": "matcher",
+                "label": "Scheduled snapshot matcher",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.matches",
+                "id": "matches",
+                "label": "Unique matches store",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.clock",
+                "id": "clock",
+                "label": "Calendar cutoff planner",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.digest",
+                "id": "digest",
+                "label": "Digest materializer",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.outbox",
+                "id": "outbox",
+                "label": "Digest outbox",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.sender",
+                "id": "sender",
+                "label": "Consent-aware dispatcher",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.mail",
+                "id": "mail",
+                "label": "Email provider",
+                "position": {
+                  "x": 560,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "scheduled-s6",
+          "invariants": [
+            "A dispatch authorization defines the unsubscribe cutoff; an already accepted email cannot be recalled."
+          ],
+          "number": 6,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "alerts.sender",
+                "id": "sender",
+                "label": "Consent-aware dispatcher",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "alerts.mail",
+                "id": "mail",
+                "label": "Email provider",
+                "position": {
+                  "x": 560,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "alerts.send",
+                "from": {
+                  "nodeId": "sender",
+                  "portId": "out-alerts.send"
+                },
+                "id": "claim-digest",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "outbox",
+                  "portId": "in-alerts.send"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "alerts.preference",
+                "from": {
+                  "nodeId": "sender",
+                  "portId": "out-alerts.preference"
+                },
+                "id": "consent",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-alerts.preference-preferences"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "alerts.send",
+                "from": {
+                  "nodeId": "sender",
+                  "portId": "out-alerts.send"
+                },
+                "id": "send",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "mail",
+                  "portId": "in-alerts.send"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can a queued digest ignore a later unsubscribe?",
+          "reason": "Add an independent dispatcher and provider; check current suppression before claiming an attempt.",
+          "title": "Dispatch with current consent"
+        },
+        {
+          "checkIds": [
+            "uncertain-send"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "alerts.preference",
+                "from": {
+                  "nodeId": "reader",
+                  "portId": "out-alerts.preference"
+                },
+                "id": "save-search",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-alerts.preference"
+                }
+              },
+              {
+                "contractId": "alerts.preference",
+                "from": {
+                  "nodeId": "matcher",
+                  "portId": "out-alerts.preference"
+                },
+                "id": "read-searches",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-alerts.preference-preferences"
+                }
+              },
+              {
+                "contractId": "alerts.listing",
+                "from": {
+                  "nodeId": "matcher",
+                  "portId": "out-alerts.listing"
+                },
+                "id": "scan-listings",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-alerts.listing-listings"
+                }
+              },
+              {
+                "contractId": "alerts.match",
+                "from": {
+                  "nodeId": "matcher",
+                  "portId": "out-alerts.match"
+                },
+                "id": "record-match",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "matches",
+                  "portId": "in-alerts.match"
+                }
+              },
+              {
+                "contractId": "alerts.digest",
+                "from": {
+                  "nodeId": "clock",
+                  "portId": "out-alerts.digest"
+                },
+                "id": "cutoff",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "digest",
+                  "portId": "in-alerts.digest"
+                }
+              },
+              {
+                "contractId": "alerts.match",
+                "from": {
+                  "nodeId": "digest",
+                  "portId": "out-alerts.match"
+                },
+                "id": "matching-listings",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "matches",
+                  "portId": "in-alerts.match"
+                }
+              },
+              {
+                "contractId": "alerts.digest",
+                "from": {
+                  "nodeId": "digest",
+                  "portId": "out-alerts.digest"
+                },
+                "id": "freeze-digest",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "outbox",
+                  "portId": "in-alerts.digest"
+                }
+              },
+              {
+                "contractId": "alerts.send",
+                "from": {
+                  "nodeId": "sender",
+                  "portId": "out-alerts.send"
+                },
+                "id": "claim-digest",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "outbox",
+                  "portId": "in-alerts.send"
+                }
+              },
+              {
+                "contractId": "alerts.preference",
+                "from": {
+                  "nodeId": "sender",
+                  "portId": "out-alerts.preference"
+                },
+                "id": "consent",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-alerts.preference-preferences"
+                }
+              },
+              {
+                "contractId": "alerts.send",
+                "from": {
+                  "nodeId": "sender",
+                  "portId": "out-alerts.send"
+                },
+                "id": "send",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "mail",
+                  "portId": "in-alerts.send"
+                }
+              },
+              {
+                "contractId": "alerts.send",
+                "from": {
+                  "nodeId": "mail",
+                  "portId": "out-alerts.send"
+                },
+                "id": "provider-events",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "feedback",
+                  "portId": "in-alerts.send"
+                }
+              },
+              {
+                "contractId": "alerts.send",
+                "from": {
+                  "nodeId": "feedback",
+                  "portId": "out-alerts.send"
+                },
+                "id": "save-receipt",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "outbox",
+                  "portId": "in-alerts.send"
+                }
+              },
+              {
+                "contractId": "alerts.preference",
+                "from": {
+                  "nodeId": "feedback",
+                  "portId": "out-alerts.preference"
+                },
+                "id": "suppress-address",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-alerts.preference-preferences"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "alerts.reader",
+                "id": "reader",
+                "label": "Book shopper",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.system",
+                "id": "system",
+                "label": "Saved-search alerts",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "scheduled-authority",
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.preferences",
+                "id": "preferences",
+                "label": "Preferences and consent",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.listings",
+                "id": "listings",
+                "label": "Publication index",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.matcher",
+                "id": "matcher",
+                "label": "Scheduled snapshot matcher",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.matches",
+                "id": "matches",
+                "label": "Unique matches store",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.clock",
+                "id": "clock",
+                "label": "Calendar cutoff planner",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.digest",
+                "id": "digest",
+                "label": "Digest materializer",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.outbox",
+                "id": "outbox",
+                "label": "Digest outbox",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.sender",
+                "id": "sender",
+                "label": "Consent-aware dispatcher",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.mail",
+                "id": "mail",
+                "label": "Email provider",
+                "position": {
+                  "x": 560,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.feedback",
+                "id": "feedback",
+                "label": "Delivery feedback consumer",
+                "position": {
+                  "x": 840,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "scheduled-s7",
+          "invariants": [
+            "Do not claim exactly-once inbox delivery from a unique local outbox row."
+          ],
+          "number": 7,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "alerts.feedback",
+                "id": "feedback",
+                "label": "Delivery feedback consumer",
+                "position": {
+                  "x": 840,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "alerts.send",
+                "from": {
+                  "nodeId": "mail",
+                  "portId": "out-alerts.send"
+                },
+                "id": "provider-events",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "feedback",
+                  "portId": "in-alerts.send"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "alerts.send",
+                "from": {
+                  "nodeId": "feedback",
+                  "portId": "out-alerts.send"
+                },
+                "id": "save-receipt",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "outbox",
+                  "portId": "in-alerts.send"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "alerts.preference",
+                "from": {
+                  "nodeId": "feedback",
+                  "portId": "out-alerts.preference"
+                },
+                "id": "suppress-address",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-alerts.preference-preferences"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Does a successful send mean the message arrived?",
+          "reason": "Separate accepted, delivered, bounce and complaint receipts; preserve an uncertain state after a lost response.",
+          "title": "Record provider feedback and ambiguity"
+        },
+        {
+          "checkIds": [
+            "match-boundary",
+            "duplicate-match",
+            "digest-freeze"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "alerts.preference",
+                "from": {
+                  "nodeId": "reader",
+                  "portId": "out-alerts.preference"
+                },
+                "id": "save-search",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-alerts.preference"
+                }
+              },
+              {
+                "contractId": "alerts.preference",
+                "from": {
+                  "nodeId": "matcher",
+                  "portId": "out-alerts.preference"
+                },
+                "id": "read-searches",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-alerts.preference-preferences"
+                }
+              },
+              {
+                "contractId": "alerts.listing",
+                "from": {
+                  "nodeId": "matcher",
+                  "portId": "out-alerts.listing"
+                },
+                "id": "scan-listings",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-alerts.listing-listings"
+                }
+              },
+              {
+                "contractId": "alerts.match",
+                "from": {
+                  "nodeId": "matcher",
+                  "portId": "out-alerts.match"
+                },
+                "id": "record-match",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "matches",
+                  "portId": "in-alerts.match"
+                }
+              },
+              {
+                "contractId": "alerts.digest",
+                "from": {
+                  "nodeId": "clock",
+                  "portId": "out-alerts.digest"
+                },
+                "id": "cutoff",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "digest",
+                  "portId": "in-alerts.digest"
+                }
+              },
+              {
+                "contractId": "alerts.match",
+                "from": {
+                  "nodeId": "digest",
+                  "portId": "out-alerts.match"
+                },
+                "id": "matching-listings",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "matches",
+                  "portId": "in-alerts.match"
+                }
+              },
+              {
+                "contractId": "alerts.digest",
+                "from": {
+                  "nodeId": "digest",
+                  "portId": "out-alerts.digest"
+                },
+                "id": "freeze-digest",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "outbox",
+                  "portId": "in-alerts.digest"
+                }
+              },
+              {
+                "contractId": "alerts.send",
+                "from": {
+                  "nodeId": "sender",
+                  "portId": "out-alerts.send"
+                },
+                "id": "claim-digest",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "outbox",
+                  "portId": "in-alerts.send"
+                }
+              },
+              {
+                "contractId": "alerts.preference",
+                "from": {
+                  "nodeId": "sender",
+                  "portId": "out-alerts.preference"
+                },
+                "id": "consent",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-alerts.preference-preferences"
+                }
+              },
+              {
+                "contractId": "alerts.send",
+                "from": {
+                  "nodeId": "sender",
+                  "portId": "out-alerts.send"
+                },
+                "id": "send",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "mail",
+                  "portId": "in-alerts.send"
+                }
+              },
+              {
+                "contractId": "alerts.send",
+                "from": {
+                  "nodeId": "mail",
+                  "portId": "out-alerts.send"
+                },
+                "id": "provider-events",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "feedback",
+                  "portId": "in-alerts.send"
+                }
+              },
+              {
+                "contractId": "alerts.send",
+                "from": {
+                  "nodeId": "feedback",
+                  "portId": "out-alerts.send"
+                },
+                "id": "save-receipt",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "outbox",
+                  "portId": "in-alerts.send"
+                }
+              },
+              {
+                "contractId": "alerts.preference",
+                "from": {
+                  "nodeId": "feedback",
+                  "portId": "out-alerts.preference"
+                },
+                "id": "suppress-address",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-alerts.preference-preferences"
+                }
+              },
+              {
+                "contractId": "alerts.listing",
+                "from": {
+                  "nodeId": "recovery",
+                  "portId": "out-alerts.listing"
+                },
+                "id": "source-boundary",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-alerts.listing-listings"
+                }
+              },
+              {
+                "contractId": "alerts.listing",
+                "from": {
+                  "nodeId": "recovery",
+                  "portId": "out-alerts.listing"
+                },
+                "id": "replay-work",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "matcher",
+                  "portId": "in-alerts.listing"
+                }
+              },
+              {
+                "contractId": "alerts.digest",
+                "from": {
+                  "nodeId": "recovery",
+                  "portId": "out-alerts.digest"
+                },
+                "id": "audit-digests",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "outbox",
+                  "portId": "in-alerts.digest"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "alerts.reader",
+                "id": "reader",
+                "label": "Book shopper",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.system",
+                "id": "system",
+                "label": "Saved-search alerts",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "scheduled-authority",
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.preferences",
+                "id": "preferences",
+                "label": "Preferences and consent",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.listings",
+                "id": "listings",
+                "label": "Publication index",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.matcher",
+                "id": "matcher",
+                "label": "Scheduled snapshot matcher",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.matches",
+                "id": "matches",
+                "label": "Unique matches store",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.clock",
+                "id": "clock",
+                "label": "Calendar cutoff planner",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.digest",
+                "id": "digest",
+                "label": "Digest materializer",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.outbox",
+                "id": "outbox",
+                "label": "Digest outbox",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.sender",
+                "id": "sender",
+                "label": "Consent-aware dispatcher",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.mail",
+                "id": "mail",
+                "label": "Email provider",
+                "position": {
+                  "x": 560,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.feedback",
+                "id": "feedback",
+                "label": "Delivery feedback consumer",
+                "position": {
+                  "x": 840,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.recovery",
+                "id": "recovery",
+                "label": "Progress reconciler",
+                "position": {
+                  "x": 0,
+                  "y": 540
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "scheduled-s8",
+          "invariants": [
+            "If retention was exceeded, report the uncovered interval and rebuild; do not silently claim complete coverage."
+          ],
+          "number": 8,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "alerts.recovery",
+                "id": "recovery",
+                "label": "Progress reconciler",
+                "position": {
+                  "x": 0,
+                  "y": 540
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "alerts.listing",
+                "from": {
+                  "nodeId": "recovery",
+                  "portId": "out-alerts.listing"
+                },
+                "id": "source-boundary",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-alerts.listing-listings"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "alerts.listing",
+                "from": {
+                  "nodeId": "recovery",
+                  "portId": "out-alerts.listing"
+                },
+                "id": "replay-work",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "matcher",
+                  "portId": "in-alerts.listing"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "alerts.digest",
+                "from": {
+                  "nodeId": "recovery",
+                  "portId": "out-alerts.digest"
+                },
+                "id": "audit-digests",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "outbox",
+                  "portId": "in-alerts.digest"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What if the worker loses progress or source history expires?",
+          "reason": "Compare durable checkpoints with retained publication history and run a bounded overlap backfill.",
+          "title": "Reconcile interrupted progress"
+        }
+      ],
+      "title": "Scheduled publication scans and daily digests",
+      "tradeoffs": [
+        "Search-by-search scans repeat work and create scheduled load peaks.",
+        "Fixed cursor boundaries and retained history are necessary to avoid missing late work."
+      ]
+    },
+    {
+      "acceptanceCases": [
+        {
+          "given": "A listing commits while an existing scan is paging and a saved predicate is edited.",
+          "id": "match-boundary",
+          "relatedRequirementIds": [
+            "matching"
+          ],
+          "then": "No committed listing is skipped; each match names the exact search version and scan boundary.",
+          "when": "Finish the fixed upper-cursor scan and start the next interval."
+        },
+        {
+          "given": "The same listing event or scan page is delivered twice.",
+          "id": "duplicate-match",
+          "relatedRequirementIds": [
+            "matching"
+          ],
+          "then": "The unique match key produces one record per search version/listing; progress cannot outrun committed writes.",
+          "when": "Commit matches and retry after a simulated checkpoint-write interruption."
+        },
+        {
+          "given": "A digest is frozen before another matching listing arrives and the local day crosses DST.",
+          "id": "digest-freeze",
+          "relatedRequirementIds": [
+            "digest"
+          ],
+          "then": "The first payload hash is unchanged; the new listing follows the recorded late-arrival policy, with no invented 24-hour day assumption.",
+          "when": "Retry materialization and then process the following local date."
+        },
+        {
+          "given": "A digest is queued and consent is revoked before dispatch authorization.",
+          "id": "unsubscribe",
+          "relatedRequirementIds": [
+            "consent"
+          ],
+          "then": "Suppress it; a race after provider acceptance is documented as unable to recall already sent mail.",
+          "when": "Claim a send attempt."
+        },
+        {
+          "given": "A provider accepts a digest but its response is lost.",
+          "id": "uncertain-send",
+          "relatedRequirementIds": [
+            "delivery"
+          ],
+          "then": "Keep outcome uncertain until reconciled; retries follow the declared remote idempotency or duplicate-versus-loss policy.",
+          "when": "The dispatcher restarts."
+        }
+      ],
+      "algorithms": [
+        {
+          "code": "const upper = committedPublicationCursor();\nfor (const page of listPublishedAfter(checkpoint, upper, totalOrderCursor)) {\n  transaction(() => { for (const listing of page) for (const search of exactMatches(listing))\n    insertMatchIfAbsent(search.id, search.version, listing.id);\n    advanceCheckpoint(page.lastCursor); });\n}\n// Change-driven branch checkpoints each partition only after its unique match writes commit.\n// Freeze sorted distinct listing IDs and payload hash in a unique recipient/period transaction.",
+          "guarantees": [
+            "Repeated source delivery cannot duplicate a match; a fixed upper cursor prevents a moving pagination boundary."
+          ],
+          "id": "admit-matches",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "matcher"
+        },
+        {
+          "code": "const attempt = claimFencedLease(digestId);\nif (!currentConsentAllows(recipientId)) return suppress(attempt);\ntry { const receipt = await provider.send(digestId, immutablePayload); recordAccepted(attempt, receipt); }\ncatch (error) { if (knownRejectedBeforeAcceptance(error)) scheduleBoundedRetry(attempt);\n  else markUncertainAndReconcile(attempt); }\n// Retry uncertain sends only under an explicit duplicate-versus-loss policy or provider idempotency contract.",
+          "guarantees": [
+            "Provider acceptance and delivery are different states; a stable local ID alone cannot deduplicate a remote side effect."
+          ],
+          "id": "dispatch-digest",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "sender"
+        }
+      ],
+      "apis": [
+        {
+          "errors": "403 wrong owner; 409 stale version; 422 invalid predicate",
+          "method": "PUT",
+          "ownerNodeId": "preferences",
+          "path": "/saved-searches/{id}",
+          "request": "{expectedVersion,predicate,timezone,enabled}",
+          "response": "{version,effectiveAt}"
+        },
+        {
+          "errors": "400 invalid token; repeated requests idempotently succeed",
+          "method": "POST",
+          "ownerNodeId": "preferences",
+          "path": "/unsubscribe",
+          "request": "{signedScopedToken}",
+          "response": "{consentEpoch,disabled:true}"
+        }
+      ],
+      "assumptions": [
+        "Published revisions have immutable identities and a committed ordering cursor.",
+        "Email acceptance can be uncertain; without provider deduplication, retry may duplicate or fail to deliver."
+      ],
+      "chooseWhen": "Listing volume is high and a bounded event backlog is cheaper than rerunning every query.",
+      "id": "change-driven",
+      "initialGraph": {
+        "edges": [],
+        "nodes": []
+      },
+      "stages": [
+        {
+          "checkIds": [
+            "match-boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "alerts.preference",
+                "from": {
+                  "nodeId": "reader",
+                  "portId": "out-alerts.preference"
+                },
+                "id": "save-search",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-alerts.preference"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "alerts.reader",
+                "id": "reader",
+                "label": "Book shopper",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.system",
+                "id": "system",
+                "label": "Saved-search alerts",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "change-driven-s1",
+          "invariants": [
+            "A saved search has an owner, version, timezone and explicit matching semantics."
+          ],
+          "number": 1,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "alerts.reader",
+                "id": "reader",
+                "label": "Book shopper",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "alerts.system",
+                "id": "system",
+                "label": "Saved-search alerts",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "alerts.preference",
+                "from": {
+                  "nodeId": "reader",
+                  "portId": "out-alerts.preference"
+                },
+                "id": "save-search",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-alerts.preference"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What is a new matching listing?",
+          "reason": "Start with a shopper and one alerts boundary; record exact predicates and a daily delivery promise.",
+          "title": "Define search and notification intent"
+        },
+        {
+          "checkIds": [
+            "match-boundary",
+            "unsubscribe"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "alerts.preference",
+                "from": {
+                  "nodeId": "reader",
+                  "portId": "out-alerts.preference"
+                },
+                "id": "save-search",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-alerts.preference"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "alerts.reader",
+                "id": "reader",
+                "label": "Book shopper",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.system",
+                "id": "system",
+                "label": "Saved-search alerts",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "change-driven-authority",
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.preferences",
+                "id": "preferences",
+                "label": "Preferences and consent",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.listings",
+                "id": "listings",
+                "label": "Publication index",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "change-driven-s2",
+          "invariants": [
+            "Never mutate an old search version used by an already frozen digest."
+          ],
+          "number": 2,
+          "operations": [
+            {
+              "edges": [],
+              "nodeId": "system",
+              "nodes": [
+                {
+                  "definitionId": "alerts.preferences",
+                  "id": "preferences",
+                  "label": "Preferences and consent",
+                  "position": {
+                    "x": 560,
+                    "y": 0
+                  },
+                  "version": 1
+                },
+                {
+                  "definitionId": "alerts.listings",
+                  "id": "listings",
+                  "label": "Publication index",
+                  "position": {
+                    "x": 840,
+                    "y": 0
+                  },
+                  "version": 1
+                }
+              ],
+              "op": "expand",
+              "subsystemId": "change-driven-authority"
+            }
+          ],
+          "question": "Which state changes when a shopper edits a search?",
+          "reason": "Expand into authoritative preferences and listing history; do not treat an edited predicate as the old search version.",
+          "title": "Separate preferences from publications"
+        },
+        {
+          "checkIds": [
+            "match-boundary",
+            "duplicate-match"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "alerts.preference",
+                "from": {
+                  "nodeId": "reader",
+                  "portId": "out-alerts.preference"
+                },
+                "id": "save-search",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-alerts.preference"
+                }
+              },
+              {
+                "contractId": "alerts.preference",
+                "from": {
+                  "nodeId": "matcher",
+                  "portId": "out-alerts.preference"
+                },
+                "id": "read-searches",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-alerts.preference-preferences"
+                }
+              },
+              {
+                "contractId": "alerts.listing",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-alerts.listing-listings"
+                },
+                "id": "publish-outbox",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "events",
+                  "portId": "in-alerts.listing"
+                }
+              },
+              {
+                "contractId": "alerts.listing",
+                "from": {
+                  "nodeId": "events",
+                  "portId": "out-alerts.listing"
+                },
+                "id": "consume-listing",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "matcher",
+                  "portId": "in-alerts.listing"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "alerts.reader",
+                "id": "reader",
+                "label": "Book shopper",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.system",
+                "id": "system",
+                "label": "Saved-search alerts",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "change-driven-authority",
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.preferences",
+                "id": "preferences",
+                "label": "Preferences and consent",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.listings",
+                "id": "listings",
+                "label": "Publication index",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.event-matcher",
+                "id": "matcher",
+                "label": "Change-driven matcher",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.events",
+                "id": "events",
+                "label": "Publication change log",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "change-driven-s3",
+          "invariants": [
+            "Progress never advances past work whose match writes are not durably committed."
+          ],
+          "number": 3,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "alerts.event-matcher",
+                "id": "matcher",
+                "label": "Change-driven matcher",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "alerts.preference",
+                "from": {
+                  "nodeId": "matcher",
+                  "portId": "out-alerts.preference"
+                },
+                "id": "read-searches",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-alerts.preference-preferences"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "node": {
+                "definitionId": "alerts.events",
+                "id": "events",
+                "label": "Publication change log",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "alerts.listing",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-alerts.listing-listings"
+                },
+                "id": "publish-outbox",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "events",
+                  "portId": "in-alerts.listing"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "alerts.listing",
+                "from": {
+                  "nodeId": "events",
+                  "portId": "out-alerts.listing"
+                },
+                "id": "consume-listing",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "matcher",
+                  "portId": "in-alerts.listing"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How do listings become candidate matches?",
+          "reason": "A committed publication emits a durable event; replay is allowed and matching must deduplicate.",
+          "title": "Introduce committed publication events"
+        },
+        {
+          "checkIds": [
+            "duplicate-match"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "alerts.preference",
+                "from": {
+                  "nodeId": "reader",
+                  "portId": "out-alerts.preference"
+                },
+                "id": "save-search",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-alerts.preference"
+                }
+              },
+              {
+                "contractId": "alerts.preference",
+                "from": {
+                  "nodeId": "matcher",
+                  "portId": "out-alerts.preference"
+                },
+                "id": "read-searches",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-alerts.preference-preferences"
+                }
+              },
+              {
+                "contractId": "alerts.listing",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-alerts.listing-listings"
+                },
+                "id": "publish-outbox",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "events",
+                  "portId": "in-alerts.listing"
+                }
+              },
+              {
+                "contractId": "alerts.listing",
+                "from": {
+                  "nodeId": "events",
+                  "portId": "out-alerts.listing"
+                },
+                "id": "consume-listing",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "matcher",
+                  "portId": "in-alerts.listing"
+                }
+              },
+              {
+                "contractId": "alerts.match",
+                "from": {
+                  "nodeId": "matcher",
+                  "portId": "out-alerts.match"
+                },
+                "id": "record-match",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "matches",
+                  "portId": "in-alerts.match"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "alerts.reader",
+                "id": "reader",
+                "label": "Book shopper",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.system",
+                "id": "system",
+                "label": "Saved-search alerts",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "change-driven-authority",
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.preferences",
+                "id": "preferences",
+                "label": "Preferences and consent",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.listings",
+                "id": "listings",
+                "label": "Publication index",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.event-matcher",
+                "id": "matcher",
+                "label": "Change-driven matcher",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.events",
+                "id": "events",
+                "label": "Publication change log",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.matches",
+                "id": "matches",
+                "label": "Unique matches store",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "change-driven-s4",
+          "invariants": [
+            "An edited search version is a distinct matching policy; historic digests keep their original content."
+          ],
+          "number": 4,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "alerts.matches",
+                "id": "matches",
+                "label": "Unique matches store",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "alerts.match",
+                "from": {
+                  "nodeId": "matcher",
+                  "portId": "out-alerts.match"
+                },
+                "id": "record-match",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "matches",
+                  "portId": "in-alerts.match"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What if a scan or event is repeated?",
+          "reason": "Separate candidate discovery from durable exact-match admission with a unique search-version/listing key.",
+          "title": "Persist unique search/listing matches"
+        },
+        {
+          "checkIds": [
+            "digest-freeze"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "alerts.preference",
+                "from": {
+                  "nodeId": "reader",
+                  "portId": "out-alerts.preference"
+                },
+                "id": "save-search",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-alerts.preference"
+                }
+              },
+              {
+                "contractId": "alerts.preference",
+                "from": {
+                  "nodeId": "matcher",
+                  "portId": "out-alerts.preference"
+                },
+                "id": "read-searches",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-alerts.preference-preferences"
+                }
+              },
+              {
+                "contractId": "alerts.listing",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-alerts.listing-listings"
+                },
+                "id": "publish-outbox",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "events",
+                  "portId": "in-alerts.listing"
+                }
+              },
+              {
+                "contractId": "alerts.listing",
+                "from": {
+                  "nodeId": "events",
+                  "portId": "out-alerts.listing"
+                },
+                "id": "consume-listing",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "matcher",
+                  "portId": "in-alerts.listing"
+                }
+              },
+              {
+                "contractId": "alerts.match",
+                "from": {
+                  "nodeId": "matcher",
+                  "portId": "out-alerts.match"
+                },
+                "id": "record-match",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "matches",
+                  "portId": "in-alerts.match"
+                }
+              },
+              {
+                "contractId": "alerts.digest",
+                "from": {
+                  "nodeId": "clock",
+                  "portId": "out-alerts.digest"
+                },
+                "id": "cutoff",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "digest",
+                  "portId": "in-alerts.digest"
+                }
+              },
+              {
+                "contractId": "alerts.match",
+                "from": {
+                  "nodeId": "digest",
+                  "portId": "out-alerts.match"
+                },
+                "id": "matching-listings",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "matches",
+                  "portId": "in-alerts.match"
+                }
+              },
+              {
+                "contractId": "alerts.digest",
+                "from": {
+                  "nodeId": "digest",
+                  "portId": "out-alerts.digest"
+                },
+                "id": "freeze-digest",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "outbox",
+                  "portId": "in-alerts.digest"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "alerts.reader",
+                "id": "reader",
+                "label": "Book shopper",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.system",
+                "id": "system",
+                "label": "Saved-search alerts",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "change-driven-authority",
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.preferences",
+                "id": "preferences",
+                "label": "Preferences and consent",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.listings",
+                "id": "listings",
+                "label": "Publication index",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.event-matcher",
+                "id": "matcher",
+                "label": "Change-driven matcher",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.events",
+                "id": "events",
+                "label": "Publication change log",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.matches",
+                "id": "matches",
+                "label": "Unique matches store",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.clock",
+                "id": "clock",
+                "label": "Calendar cutoff planner",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.digest",
+                "id": "digest",
+                "label": "Digest materializer",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.outbox",
+                "id": "outbox",
+                "label": "Digest outbox",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "change-driven-s5",
+          "invariants": [
+            "DST days may contain 23 or 25 hours; period identity is a local date with a resolved UTC interval."
+          ],
+          "number": 5,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "alerts.clock",
+                "id": "clock",
+                "label": "Calendar cutoff planner",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "alerts.digest",
+                "id": "digest",
+                "label": "Digest materializer",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "alerts.outbox",
+                "id": "outbox",
+                "label": "Digest outbox",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "alerts.digest",
+                "from": {
+                  "nodeId": "clock",
+                  "portId": "out-alerts.digest"
+                },
+                "id": "cutoff",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "digest",
+                  "portId": "in-alerts.digest"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "alerts.match",
+                "from": {
+                  "nodeId": "digest",
+                  "portId": "out-alerts.match"
+                },
+                "id": "matching-listings",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "matches",
+                  "portId": "in-alerts.match"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "alerts.digest",
+                "from": {
+                  "nodeId": "digest",
+                  "portId": "out-alerts.digest"
+                },
+                "id": "freeze-digest",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "outbox",
+                  "portId": "in-alerts.digest"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What does daily mean across timezone changes?",
+          "reason": "Add a calendar cutoff and materializer; immutable recipient/period digests pin a publication watermark and payload hash.",
+          "title": "Freeze local-day digest contents"
+        },
+        {
+          "checkIds": [
+            "unsubscribe",
+            "uncertain-send"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "alerts.preference",
+                "from": {
+                  "nodeId": "reader",
+                  "portId": "out-alerts.preference"
+                },
+                "id": "save-search",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-alerts.preference"
+                }
+              },
+              {
+                "contractId": "alerts.preference",
+                "from": {
+                  "nodeId": "matcher",
+                  "portId": "out-alerts.preference"
+                },
+                "id": "read-searches",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-alerts.preference-preferences"
+                }
+              },
+              {
+                "contractId": "alerts.listing",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-alerts.listing-listings"
+                },
+                "id": "publish-outbox",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "events",
+                  "portId": "in-alerts.listing"
+                }
+              },
+              {
+                "contractId": "alerts.listing",
+                "from": {
+                  "nodeId": "events",
+                  "portId": "out-alerts.listing"
+                },
+                "id": "consume-listing",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "matcher",
+                  "portId": "in-alerts.listing"
+                }
+              },
+              {
+                "contractId": "alerts.match",
+                "from": {
+                  "nodeId": "matcher",
+                  "portId": "out-alerts.match"
+                },
+                "id": "record-match",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "matches",
+                  "portId": "in-alerts.match"
+                }
+              },
+              {
+                "contractId": "alerts.digest",
+                "from": {
+                  "nodeId": "clock",
+                  "portId": "out-alerts.digest"
+                },
+                "id": "cutoff",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "digest",
+                  "portId": "in-alerts.digest"
+                }
+              },
+              {
+                "contractId": "alerts.match",
+                "from": {
+                  "nodeId": "digest",
+                  "portId": "out-alerts.match"
+                },
+                "id": "matching-listings",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "matches",
+                  "portId": "in-alerts.match"
+                }
+              },
+              {
+                "contractId": "alerts.digest",
+                "from": {
+                  "nodeId": "digest",
+                  "portId": "out-alerts.digest"
+                },
+                "id": "freeze-digest",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "outbox",
+                  "portId": "in-alerts.digest"
+                }
+              },
+              {
+                "contractId": "alerts.send",
+                "from": {
+                  "nodeId": "sender",
+                  "portId": "out-alerts.send"
+                },
+                "id": "claim-digest",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "outbox",
+                  "portId": "in-alerts.send"
+                }
+              },
+              {
+                "contractId": "alerts.preference",
+                "from": {
+                  "nodeId": "sender",
+                  "portId": "out-alerts.preference"
+                },
+                "id": "consent",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-alerts.preference-preferences"
+                }
+              },
+              {
+                "contractId": "alerts.send",
+                "from": {
+                  "nodeId": "sender",
+                  "portId": "out-alerts.send"
+                },
+                "id": "send",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "mail",
+                  "portId": "in-alerts.send"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "alerts.reader",
+                "id": "reader",
+                "label": "Book shopper",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.system",
+                "id": "system",
+                "label": "Saved-search alerts",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "change-driven-authority",
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.preferences",
+                "id": "preferences",
+                "label": "Preferences and consent",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.listings",
+                "id": "listings",
+                "label": "Publication index",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.event-matcher",
+                "id": "matcher",
+                "label": "Change-driven matcher",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.events",
+                "id": "events",
+                "label": "Publication change log",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.matches",
+                "id": "matches",
+                "label": "Unique matches store",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.clock",
+                "id": "clock",
+                "label": "Calendar cutoff planner",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.digest",
+                "id": "digest",
+                "label": "Digest materializer",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.outbox",
+                "id": "outbox",
+                "label": "Digest outbox",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.sender",
+                "id": "sender",
+                "label": "Consent-aware dispatcher",
+                "position": {
+                  "x": 560,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.mail",
+                "id": "mail",
+                "label": "Email provider",
+                "position": {
+                  "x": 840,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "change-driven-s6",
+          "invariants": [
+            "A dispatch authorization defines the unsubscribe cutoff; an already accepted email cannot be recalled."
+          ],
+          "number": 6,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "alerts.sender",
+                "id": "sender",
+                "label": "Consent-aware dispatcher",
+                "position": {
+                  "x": 560,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "alerts.mail",
+                "id": "mail",
+                "label": "Email provider",
+                "position": {
+                  "x": 840,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "alerts.send",
+                "from": {
+                  "nodeId": "sender",
+                  "portId": "out-alerts.send"
+                },
+                "id": "claim-digest",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "outbox",
+                  "portId": "in-alerts.send"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "alerts.preference",
+                "from": {
+                  "nodeId": "sender",
+                  "portId": "out-alerts.preference"
+                },
+                "id": "consent",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-alerts.preference-preferences"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "alerts.send",
+                "from": {
+                  "nodeId": "sender",
+                  "portId": "out-alerts.send"
+                },
+                "id": "send",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "mail",
+                  "portId": "in-alerts.send"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can a queued digest ignore a later unsubscribe?",
+          "reason": "Add an independent dispatcher and provider; check current suppression before claiming an attempt.",
+          "title": "Dispatch with current consent"
+        },
+        {
+          "checkIds": [
+            "uncertain-send"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "alerts.preference",
+                "from": {
+                  "nodeId": "reader",
+                  "portId": "out-alerts.preference"
+                },
+                "id": "save-search",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-alerts.preference"
+                }
+              },
+              {
+                "contractId": "alerts.preference",
+                "from": {
+                  "nodeId": "matcher",
+                  "portId": "out-alerts.preference"
+                },
+                "id": "read-searches",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-alerts.preference-preferences"
+                }
+              },
+              {
+                "contractId": "alerts.listing",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-alerts.listing-listings"
+                },
+                "id": "publish-outbox",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "events",
+                  "portId": "in-alerts.listing"
+                }
+              },
+              {
+                "contractId": "alerts.listing",
+                "from": {
+                  "nodeId": "events",
+                  "portId": "out-alerts.listing"
+                },
+                "id": "consume-listing",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "matcher",
+                  "portId": "in-alerts.listing"
+                }
+              },
+              {
+                "contractId": "alerts.match",
+                "from": {
+                  "nodeId": "matcher",
+                  "portId": "out-alerts.match"
+                },
+                "id": "record-match",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "matches",
+                  "portId": "in-alerts.match"
+                }
+              },
+              {
+                "contractId": "alerts.digest",
+                "from": {
+                  "nodeId": "clock",
+                  "portId": "out-alerts.digest"
+                },
+                "id": "cutoff",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "digest",
+                  "portId": "in-alerts.digest"
+                }
+              },
+              {
+                "contractId": "alerts.match",
+                "from": {
+                  "nodeId": "digest",
+                  "portId": "out-alerts.match"
+                },
+                "id": "matching-listings",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "matches",
+                  "portId": "in-alerts.match"
+                }
+              },
+              {
+                "contractId": "alerts.digest",
+                "from": {
+                  "nodeId": "digest",
+                  "portId": "out-alerts.digest"
+                },
+                "id": "freeze-digest",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "outbox",
+                  "portId": "in-alerts.digest"
+                }
+              },
+              {
+                "contractId": "alerts.send",
+                "from": {
+                  "nodeId": "sender",
+                  "portId": "out-alerts.send"
+                },
+                "id": "claim-digest",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "outbox",
+                  "portId": "in-alerts.send"
+                }
+              },
+              {
+                "contractId": "alerts.preference",
+                "from": {
+                  "nodeId": "sender",
+                  "portId": "out-alerts.preference"
+                },
+                "id": "consent",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-alerts.preference-preferences"
+                }
+              },
+              {
+                "contractId": "alerts.send",
+                "from": {
+                  "nodeId": "sender",
+                  "portId": "out-alerts.send"
+                },
+                "id": "send",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "mail",
+                  "portId": "in-alerts.send"
+                }
+              },
+              {
+                "contractId": "alerts.send",
+                "from": {
+                  "nodeId": "mail",
+                  "portId": "out-alerts.send"
+                },
+                "id": "provider-events",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "feedback",
+                  "portId": "in-alerts.send"
+                }
+              },
+              {
+                "contractId": "alerts.send",
+                "from": {
+                  "nodeId": "feedback",
+                  "portId": "out-alerts.send"
+                },
+                "id": "save-receipt",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "outbox",
+                  "portId": "in-alerts.send"
+                }
+              },
+              {
+                "contractId": "alerts.preference",
+                "from": {
+                  "nodeId": "feedback",
+                  "portId": "out-alerts.preference"
+                },
+                "id": "suppress-address",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-alerts.preference-preferences"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "alerts.reader",
+                "id": "reader",
+                "label": "Book shopper",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.system",
+                "id": "system",
+                "label": "Saved-search alerts",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "change-driven-authority",
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.preferences",
+                "id": "preferences",
+                "label": "Preferences and consent",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.listings",
+                "id": "listings",
+                "label": "Publication index",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.event-matcher",
+                "id": "matcher",
+                "label": "Change-driven matcher",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.events",
+                "id": "events",
+                "label": "Publication change log",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.matches",
+                "id": "matches",
+                "label": "Unique matches store",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.clock",
+                "id": "clock",
+                "label": "Calendar cutoff planner",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.digest",
+                "id": "digest",
+                "label": "Digest materializer",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.outbox",
+                "id": "outbox",
+                "label": "Digest outbox",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.sender",
+                "id": "sender",
+                "label": "Consent-aware dispatcher",
+                "position": {
+                  "x": 560,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.mail",
+                "id": "mail",
+                "label": "Email provider",
+                "position": {
+                  "x": 840,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.feedback",
+                "id": "feedback",
+                "label": "Delivery feedback consumer",
+                "position": {
+                  "x": 0,
+                  "y": 540
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "change-driven-s7",
+          "invariants": [
+            "Do not claim exactly-once inbox delivery from a unique local outbox row."
+          ],
+          "number": 7,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "alerts.feedback",
+                "id": "feedback",
+                "label": "Delivery feedback consumer",
+                "position": {
+                  "x": 0,
+                  "y": 540
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "alerts.send",
+                "from": {
+                  "nodeId": "mail",
+                  "portId": "out-alerts.send"
+                },
+                "id": "provider-events",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "feedback",
+                  "portId": "in-alerts.send"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "alerts.send",
+                "from": {
+                  "nodeId": "feedback",
+                  "portId": "out-alerts.send"
+                },
+                "id": "save-receipt",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "outbox",
+                  "portId": "in-alerts.send"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "alerts.preference",
+                "from": {
+                  "nodeId": "feedback",
+                  "portId": "out-alerts.preference"
+                },
+                "id": "suppress-address",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-alerts.preference-preferences"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Does a successful send mean the message arrived?",
+          "reason": "Separate accepted, delivered, bounce and complaint receipts; preserve an uncertain state after a lost response.",
+          "title": "Record provider feedback and ambiguity"
+        },
+        {
+          "checkIds": [
+            "match-boundary",
+            "duplicate-match",
+            "digest-freeze"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "alerts.preference",
+                "from": {
+                  "nodeId": "reader",
+                  "portId": "out-alerts.preference"
+                },
+                "id": "save-search",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-alerts.preference"
+                }
+              },
+              {
+                "contractId": "alerts.preference",
+                "from": {
+                  "nodeId": "matcher",
+                  "portId": "out-alerts.preference"
+                },
+                "id": "read-searches",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-alerts.preference-preferences"
+                }
+              },
+              {
+                "contractId": "alerts.listing",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-alerts.listing-listings"
+                },
+                "id": "publish-outbox",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "events",
+                  "portId": "in-alerts.listing"
+                }
+              },
+              {
+                "contractId": "alerts.listing",
+                "from": {
+                  "nodeId": "events",
+                  "portId": "out-alerts.listing"
+                },
+                "id": "consume-listing",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "matcher",
+                  "portId": "in-alerts.listing"
+                }
+              },
+              {
+                "contractId": "alerts.match",
+                "from": {
+                  "nodeId": "matcher",
+                  "portId": "out-alerts.match"
+                },
+                "id": "record-match",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "matches",
+                  "portId": "in-alerts.match"
+                }
+              },
+              {
+                "contractId": "alerts.digest",
+                "from": {
+                  "nodeId": "clock",
+                  "portId": "out-alerts.digest"
+                },
+                "id": "cutoff",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "digest",
+                  "portId": "in-alerts.digest"
+                }
+              },
+              {
+                "contractId": "alerts.match",
+                "from": {
+                  "nodeId": "digest",
+                  "portId": "out-alerts.match"
+                },
+                "id": "matching-listings",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "matches",
+                  "portId": "in-alerts.match"
+                }
+              },
+              {
+                "contractId": "alerts.digest",
+                "from": {
+                  "nodeId": "digest",
+                  "portId": "out-alerts.digest"
+                },
+                "id": "freeze-digest",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "outbox",
+                  "portId": "in-alerts.digest"
+                }
+              },
+              {
+                "contractId": "alerts.send",
+                "from": {
+                  "nodeId": "sender",
+                  "portId": "out-alerts.send"
+                },
+                "id": "claim-digest",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "outbox",
+                  "portId": "in-alerts.send"
+                }
+              },
+              {
+                "contractId": "alerts.preference",
+                "from": {
+                  "nodeId": "sender",
+                  "portId": "out-alerts.preference"
+                },
+                "id": "consent",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-alerts.preference-preferences"
+                }
+              },
+              {
+                "contractId": "alerts.send",
+                "from": {
+                  "nodeId": "sender",
+                  "portId": "out-alerts.send"
+                },
+                "id": "send",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "mail",
+                  "portId": "in-alerts.send"
+                }
+              },
+              {
+                "contractId": "alerts.send",
+                "from": {
+                  "nodeId": "mail",
+                  "portId": "out-alerts.send"
+                },
+                "id": "provider-events",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "feedback",
+                  "portId": "in-alerts.send"
+                }
+              },
+              {
+                "contractId": "alerts.send",
+                "from": {
+                  "nodeId": "feedback",
+                  "portId": "out-alerts.send"
+                },
+                "id": "save-receipt",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "outbox",
+                  "portId": "in-alerts.send"
+                }
+              },
+              {
+                "contractId": "alerts.preference",
+                "from": {
+                  "nodeId": "feedback",
+                  "portId": "out-alerts.preference"
+                },
+                "id": "suppress-address",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-alerts.preference-preferences"
+                }
+              },
+              {
+                "contractId": "alerts.listing",
+                "from": {
+                  "nodeId": "recovery",
+                  "portId": "out-alerts.listing"
+                },
+                "id": "source-boundary",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "events",
+                  "portId": "in-alerts.listing"
+                }
+              },
+              {
+                "contractId": "alerts.listing",
+                "from": {
+                  "nodeId": "recovery",
+                  "portId": "out-alerts.listing"
+                },
+                "id": "replay-work",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "matcher",
+                  "portId": "in-alerts.listing"
+                }
+              },
+              {
+                "contractId": "alerts.digest",
+                "from": {
+                  "nodeId": "recovery",
+                  "portId": "out-alerts.digest"
+                },
+                "id": "audit-digests",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "outbox",
+                  "portId": "in-alerts.digest"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "alerts.reader",
+                "id": "reader",
+                "label": "Book shopper",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.system",
+                "id": "system",
+                "label": "Saved-search alerts",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "change-driven-authority",
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.preferences",
+                "id": "preferences",
+                "label": "Preferences and consent",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.listings",
+                "id": "listings",
+                "label": "Publication index",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.event-matcher",
+                "id": "matcher",
+                "label": "Change-driven matcher",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.events",
+                "id": "events",
+                "label": "Publication change log",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.matches",
+                "id": "matches",
+                "label": "Unique matches store",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.clock",
+                "id": "clock",
+                "label": "Calendar cutoff planner",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.digest",
+                "id": "digest",
+                "label": "Digest materializer",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.outbox",
+                "id": "outbox",
+                "label": "Digest outbox",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.sender",
+                "id": "sender",
+                "label": "Consent-aware dispatcher",
+                "position": {
+                  "x": 560,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.mail",
+                "id": "mail",
+                "label": "Email provider",
+                "position": {
+                  "x": 840,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.feedback",
+                "id": "feedback",
+                "label": "Delivery feedback consumer",
+                "position": {
+                  "x": 0,
+                  "y": 540
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "alerts.recovery",
+                "id": "recovery",
+                "label": "Progress reconciler",
+                "position": {
+                  "x": 280,
+                  "y": 540
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "change-driven-s8",
+          "invariants": [
+            "If retention was exceeded, report the uncovered interval and rebuild; do not silently claim complete coverage."
+          ],
+          "number": 8,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "alerts.recovery",
+                "id": "recovery",
+                "label": "Progress reconciler",
+                "position": {
+                  "x": 280,
+                  "y": 540
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "alerts.listing",
+                "from": {
+                  "nodeId": "recovery",
+                  "portId": "out-alerts.listing"
+                },
+                "id": "source-boundary",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "events",
+                  "portId": "in-alerts.listing"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "alerts.listing",
+                "from": {
+                  "nodeId": "recovery",
+                  "portId": "out-alerts.listing"
+                },
+                "id": "replay-work",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "matcher",
+                  "portId": "in-alerts.listing"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "alerts.digest",
+                "from": {
+                  "nodeId": "recovery",
+                  "portId": "out-alerts.digest"
+                },
+                "id": "audit-digests",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "outbox",
+                  "portId": "in-alerts.digest"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What if the worker loses progress or source history expires?",
+          "reason": "Compare durable checkpoints with retained publication history and run a bounded overlap backfill.",
+          "title": "Reconcile interrupted progress"
+        }
+      ],
+      "title": "Change-driven matching with scheduled digests",
+      "tradeoffs": [
+        "Predicate indexing and replay checkpoints add operational complexity.",
+        "Long outages need retained change history or a snapshot backfill."
+      ]
+    }
+  ],
+  "subsystems": [
+    {
+      "definitionId": "alerts.system",
+      "id": "scheduled-authority",
+      "ports": [
+        {
+          "contractId": "alerts.preference",
+          "direction": "in",
+          "id": "in-alerts.preference",
+          "target": {
+            "nodeId": "preferences",
+            "portId": "in-alerts.preference"
+          }
+        },
+        {
+          "contractId": "alerts.preference",
+          "direction": "in",
+          "id": "in-alerts.preference-preferences",
+          "target": {
+            "nodeId": "preferences",
+            "portId": "in-alerts.preference"
+          }
+        },
+        {
+          "contractId": "alerts.listing",
+          "direction": "in",
+          "id": "in-alerts.listing-listings",
+          "target": {
+            "nodeId": "listings",
+            "portId": "in-alerts.listing"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "alerts.system",
+      "id": "change-driven-authority",
+      "ports": [
+        {
+          "contractId": "alerts.preference",
+          "direction": "in",
+          "id": "in-alerts.preference",
+          "target": {
+            "nodeId": "preferences",
+            "portId": "in-alerts.preference"
+          }
+        },
+        {
+          "contractId": "alerts.preference",
+          "direction": "in",
+          "id": "in-alerts.preference-preferences",
+          "target": {
+            "nodeId": "preferences",
+            "portId": "in-alerts.preference"
+          }
+        },
+        {
+          "contractId": "alerts.listing",
+          "direction": "out",
+          "id": "out-alerts.listing-listings",
+          "target": {
+            "nodeId": "listings",
+            "portId": "out-alerts.listing"
+          }
+        }
+      ],
+      "version": 1
+    }
+  ],
+  "version": 1
+}

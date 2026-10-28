@@ -1,0 +1,15 @@
+const instance=globalThis.ReactDOM;
+if(!instance)throw Error("Load pinned ReactDOM before Excalidraw modules");
+export const __SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED=instance.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
+export const createPortal=instance.createPortal;
+export const createRoot=instance.createRoot;
+export const findDOMNode=instance.findDOMNode;
+export const flushSync=instance.flushSync;
+export const hydrate=instance.hydrate;
+export const hydrateRoot=instance.hydrateRoot;
+export const render=instance.render;
+export const unmountComponentAtNode=instance.unmountComponentAtNode;
+export const unstable_batchedUpdates=instance.unstable_batchedUpdates;
+export const unstable_renderSubtreeIntoContainer=instance.unstable_renderSubtreeIntoContainer;
+export const version=instance.version;
+export default instance;

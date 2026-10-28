@@ -87,7 +87,7 @@ async function progression(context) {
 async function files(context) {
   const h = await boot(context, '?problem=L034&approach=push&stage=2'), page = h.page;
   await page.evaluate(() => localStorage.clear()); await page.reload({waitUntil: 'networkidle'}); await until(h, () => SimulatteStudyInspector.ready());
-  const move = async (id, dx, dy) => { const b = await h.box(id); await h.drag(b.c, [b.c[0] + dx, b.c[1] + dy]); await page.waitForTimeout(700); };
+  const move = async (id, dx, dy) => { const b = await h.box(id), zoom=(await h.state()).zoom; await h.drag(b.c, [b.c[0] + dx*zoom, b.c[1] + dy*zoom]); await page.waitForTimeout(700); };
   const nodeAt = async () => (await h.elements()).find(e => e.role === 'node' && e.id === 'study:n:client');
   const original = await nodeAt(); await move(original.id, 80, 40);
   await page.click(NEXT); await until(h, () => SimulatteStudyInspector.workspace().view.stageIndex === 2);
@@ -187,7 +187,7 @@ async function largeScene(h) {
   await until(h, () => SimulatteStudyInspector.elements().length > 2000); const importMs = Date.now() - t;
   t = Date.now(); await page.click('.sw-footer .sw-stepper button[aria-label="Next stage"]'); await until(h, n => SimulatteStudyInspector.workspace().view.stageIndex === n, ws.view.stageIndex + 1); const awayMs = Date.now() - t;
   t = Date.now(); await page.click('.sw-footer .sw-stepper button[aria-label="Previous stage"]'); await until(h, () => SimulatteStudyInspector.elements().length > 2000); const backMs = Date.now() - t;
-  const node = (await h.elements()).find(e => e.role === 'node'), box = await h.box(node.id);
+  const node = (await h.elements()).find(e => e.role === 'node'); await h.reveal(node.id); const box = await h.box(node.id);
   t = Date.now(); await h.drag(box.c, [box.c[0] + 40, box.c[1] + 30], {steps: 20}); const dragMs = Date.now() - t;
   const moved = (await h.elements()).find(e => e.id === node.id);
   record('performance', 'a stage with 2,000 learner elements stays usable', 'import a workspace with 2,000 rectangles on one stage, step away and back, drag a component', {importMs, stepAwayMs: awayMs, stepBackMs: backMs, dragMs, moved: !near(moved.x, node.x, 0.5)},

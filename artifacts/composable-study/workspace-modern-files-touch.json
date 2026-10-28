@@ -1,0 +1,242 @@
+{
+  "schema": "simulatte.studyWorkspaceAcceptance.v1",
+  "started": "2026-10-28T00:09:36.662Z",
+  "url": "http://127.0.0.1:4173/lucyd",
+  "browser": "chromium 143.0.7499.4",
+  "viewports": {
+    "desktop": "1440x900",
+    "phone": "iPhone 13 emulation (touch)"
+  },
+  "scope": "Scripted browser interaction on one machine. Emulated touch is not a physical device; visual quality is judged separately.",
+  "summary": {
+    "checks": 19,
+    "passed": 19,
+    "failed": 0
+  },
+  "pageProblems": [],
+  "rows": [
+    {
+      "area": "import/export",
+      "check": "an edit stays with its stage only",
+      "action": "move a component on stage 2, visit stage 3, return",
+      "observed": {
+        "stage3Unmoved": true,
+        "stage2Kept": true,
+        "editedBadge": true
+      },
+      "result": "pass"
+    },
+    {
+      "area": "import/export",
+      "check": "undo after changing stage stays within the stage",
+      "action": "edit stage 2, go to stage 3 and back, press undo",
+      "observed": {
+        "sceneUnchanged": true,
+        "editKept": true
+      },
+      "result": "pass"
+    },
+    {
+      "area": "import/export",
+      "check": "each approach keeps independent stage edits",
+      "action": "edit stage 2 of both approaches",
+      "observed": {
+        "overlays": {
+          "push": [
+            "push-s2"
+          ],
+          "lease-poll": [
+            "lease-poll-s2"
+          ]
+        }
+      },
+      "result": "pass"
+    },
+    {
+      "area": "import/export",
+      "check": "autosave reports status and restores after reload",
+      "action": "read the save status, reload the page",
+      "observed": {
+        "status": "Saved in this browser at 08:09:42 PM",
+        "restoredOverlays": true
+      },
+      "result": "pass"
+    },
+    {
+      "area": "import/export",
+      "check": "export writes the authored document, every stage edit and the view",
+      "action": "File → Export workspace",
+      "observed": {
+        "file": "l034-study-workspace.json",
+        "equal": true
+      },
+      "result": "pass"
+    },
+    {
+      "area": "import/export",
+      "check": "the authored document exports unchanged",
+      "action": "File → Export authored document only",
+      "observed": {
+        "sameAsPublished": true
+      },
+      "result": "pass"
+    },
+    {
+      "area": "import/export",
+      "check": "reimport previews, then restores everything including unknown fields",
+      "action": "import the export with an extra extension field, confirm",
+      "observed": {
+        "previewNamesProblem": true,
+        "previewCountsEdits": true,
+        "equal": true
+      },
+      "result": "pass"
+    },
+    {
+      "area": "import/export",
+      "check": "an invalid import names the location and keeps current work",
+      "action": "import a file whose overlay names a missing stage",
+      "observed": {
+        "message": "bad.json was not imported  overlays.push.no-such-stage: no such stage in this approach. Your current workspace is unchanged.",
+        "unchanged": true
+      },
+      "result": "pass"
+    },
+    {
+      "area": "import/export",
+      "check": "resetting a stage removes only that stage overlay",
+      "action": "press Edited · reset on lease-poll stage 2",
+      "observed": {
+        "overlays": {
+          "push": [
+            "push-s2"
+          ]
+        }
+      },
+      "result": "pass"
+    },
+    {
+      "area": "import/export",
+      "check": "an inserted image survives stage navigation and is saved with the stage",
+      "action": "drop a PNG file on the canvas, go to the next stage and back",
+      "observed": {
+        "placed": true,
+        "back": true,
+        "fileStored": true
+      },
+      "result": "pass"
+    },
+    {
+      "area": "import/export",
+      "check": "an image round-trips through export and reimport",
+      "action": "export, clear browser storage, reimport",
+      "observed": {
+        "restored": {
+          "type": "image",
+          "status": "pending",
+          "fileId": "fe12e1d89041cb0e09f475f01fcff94abcfaae4c"
+        },
+        "fileDataLoaded": true
+      },
+      "result": "pass"
+    },
+    {
+      "area": "performance",
+      "check": "a stage with 2,000 learner elements stays usable",
+      "action": "import a workspace with 2,000 rectangles on one stage, step away and back, drag a component",
+      "observed": {
+        "importMs": 71,
+        "stepAwayMs": 61,
+        "stepBackMs": 92,
+        "dragMs": 960,
+        "moved": true
+      },
+      "result": "pass"
+    },
+    {
+      "area": "touch",
+      "check": "controls are reachable on a phone",
+      "action": "iPhone 13 emulation: tools, undo and menu inside the viewport, nothing clipped",
+      "observed": {
+        "tools": true,
+        "undo": true,
+        "menu": true,
+        "nothingClipped": true
+      },
+      "result": "pass"
+    },
+    {
+      "area": "touch",
+      "check": "problem, approach and stage controls work by tap",
+      "action": "Menu → Study notes and stages, tap Next in the sidebar",
+      "observed": {
+        "sidebarControlsVisible": true,
+        "stageIndex": 3
+      },
+      "result": "pass"
+    },
+    {
+      "area": "touch",
+      "check": "a one-finger drag on empty canvas never creates or moves shapes",
+      "action": "swipe empty canvas with the selection tool",
+      "observed": {
+        "elementsUnchanged": true,
+        "scrolled": [
+          0,
+          0
+        ]
+      },
+      "result": "pass"
+    },
+    {
+      "area": "touch",
+      "check": "pinch zooms without drawing",
+      "action": "two-finger pinch outwards",
+      "observed": {
+        "zoom": [
+          0.7,
+          2.567
+        ],
+        "elementsAdded": 0
+      },
+      "result": "pass"
+    },
+    {
+      "area": "touch",
+      "check": "a touch drag draws with the chosen tool",
+      "action": "tap Rectangle, drag with one finger",
+      "observed": {
+        "tool": "rectangle",
+        "drawn": [
+          "rectangle",
+          27,
+          19
+        ]
+      },
+      "result": "pass"
+    },
+    {
+      "area": "touch",
+      "check": "resize handles are usable while zoomed",
+      "action": "drag the corner handle by touch at zoom 2.57",
+      "observed": {
+        "width": [
+          27,
+          43
+        ]
+      },
+      "result": "pass"
+    },
+    {
+      "area": "touch",
+      "check": "a cancelled touch leaves no phantom or stuck gesture",
+      "action": "Rectangle, touch-drag, then touchcancel, then tap empty canvas",
+      "observed": {
+        "leftover": [],
+        "toolAfterCancel": "selection",
+        "selectedAfterTap": 0
+      },
+      "result": "pass"
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 # Study workspace gesture acceptance
 
-Owner: the [study workspace](../../public/simulatte/system-diagram/study/CATSCAN.md) at `/simulatte/system-diagram/study/`.
+Owner: the [study workspace](../../public/simulatte/system-diagram/study/CATSCAN.md) at `/lucyd`.
 Data contract: [composable study contract](composable-study-contract.md). Behavior: [workspace specification](study-workspace-spec.md).
 Authority: the user's supplied Excalidraw-style interaction specification, October 27, 2026.
 
@@ -45,3 +45,17 @@ Every row needs a recorded action and observed result. A button, source function
 - No physical touch device, screen-reader or performance-campaign evidence.
 
 The contract/content owner maintains solution data and cross-checks.
+
+Current spatial work: [composition contract](study-spatial-layout.md). The source geometry receipt and browser receipt are separate from the historical gesture baseline above; do not combine their counts.
+
+## Current composition and font release
+
+The study workspace now uses Excalidraw 0.18.1 and its native newer font picker. The [vendor record](study-canvas-vendor.md) describes pinned files, licenses, local dependency imports and the retained shortcut compatibility fix.
+
+- [Source spatial audit](../../artifacts/composable-study/spatial-audit.json): 235 stages, 522 expanded/individually collapsed views; all pass. This is generated geometry evidence.
+- [Browser spatial audit](../../artifacts/composable-study/spatial-browser-audit.json): all 235 stages pass restored element geometry and text-containment checks. The reading zoom is at least 0.7; large diagrams require native panning or explicit Fit all. Perpendicular crossings are recorded separately from overlaps.
+- [Drawing/editing](../../artifacts/composable-study/workspace-modern-drawing-editing.json): 23/23, including keyboard focus, drawing and advertised layer shortcuts.
+- [Files/touch](../../artifacts/composable-study/workspace-modern-files-touch.json): 19/19, including independent stage edits, undo boundaries, JSON/image round-trips, 2,000 learner elements, pinch and cancellation. Cancellation removes the draft via the newer `newElement` API. The audit pans to off-screen targets and measures drag distances in scene coordinates at the current zoom.
+- [Fonts](../../artifacts/composable-study/modern-fonts.json): 8/8, including native font selection, legacy font IDs and JSON persistence.
+
+The earlier `workspace-modern-focused*.json` receipts retain the failing upgrade attempts. They are superseded by the two passing focused receipts above, not counted as additional acceptance. Emulated touch remains distinct from physical-device evidence. Source tests include 33 contract tests, 13 workspace/spatial tests, 3 modern-vendor tests and 66 bounded reference-model tests; these are separate evidence layers.

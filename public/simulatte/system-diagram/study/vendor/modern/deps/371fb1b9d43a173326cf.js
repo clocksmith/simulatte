@@ -1,0 +1,8 @@
+/**
+ * Bundled by jsDelivr using Rollup v4.62.2 and esbuild v0.28.1.
+ * Original file: /npm/lodash-es@4.17.21/flatten.js
+ *
+ * Do NOT use SRI with dynamically generated files! More information: https://www.jsdelivr.com/using-sri-with-dynamic-files
+ */
+function y(t,r){for(var n=-1,a=r.length,e=t.length;++n<a;)t[e+n]=r[n];return t}var f=typeof global<"u"?global:typeof self<"u"?self:typeof window<"u"?window:{},h=typeof f=="object"&&f&&f.Object===Object&&f,O=typeof self=="object"&&self&&self.Object===Object&&self,S=h||O||Function("return this")(),o=S.Symbol,b=Object.prototype,T=b.hasOwnProperty,w=b.toString,i=o?o.toStringTag:void 0;function m(t){var r=T.call(t,i),n=t[i];try{t[i]=void 0;var a=!0}catch{}var e=w.call(t);return a&&(r?t[i]=n:delete t[i]),e}var v=Object.prototype,P=v.toString;function A(t){return P.call(t)}var $="[object Null]",x="[object Undefined]",g=o?o.toStringTag:void 0;function F(t){return t==null?t===void 0?x:$:g&&g in Object(t)?m(t):A(t)}function s(t){return t!=null&&typeof t=="object"}var I="[object Arguments]";function d(t){return s(t)&&F(t)==I}var u=Object.prototype,E=u.hasOwnProperty,G=u.propertyIsEnumerable,k=d((function(){return arguments})())?d:function(t){return s(t)&&E.call(t,"callee")&&!G.call(t,"callee")},C=Array.isArray,p=o?o.isConcatSpreadable:void 0;function L(t){return C(t)||k(t)||!!(p&&t&&t[p])}function N(t,r,n,a,e){var c=-1,j=t.length;for(n||(n=L),e||(e=[]);++c<j;){var l=t[c];n(l)?y(e,l):e[e.length]=l}return e}function R(t){var r=t==null?0:t.length;return r?N(t):[]}export{R as default};
+//# sourceMappingURL=/sm/2cd246ce0050a2acb9bdafcbfe24dd1befd6ca18af1277ebab5a51ff542d56a9.map

@@ -1,0 +1,8 @@
+/**
+ * Bundled by jsDelivr using Rollup v4.62.2 and esbuild v0.28.1.
+ * Original file: /npm/png-chunk-text@1.0.0/index.js
+ *
+ * Do NOT use SRI with dynamically generated files! More information: https://www.jsdelivr.com/using-sri-with-dynamic-files
+ */
+var o={},u,v;function x(){if(v)return u;v=1,u=c;function c(r,e){if(r=String(r),e=String(e),!/^[\x00-\xFF]+$/.test(r)||!/^[\x00-\xFF]+$/.test(e))throw new Error("Only Latin-1 characters are permitted in PNG tEXt chunks. You might want to consider base64 encoding and/or zEXt compression");if(r.length>=80)throw new Error('Keyword "'+r+'" is longer than the 79-character limit imposed by the PNG specification');for(var i=r.length+e.length+1,n=new Uint8Array(i),a=0,t,h=0;h<r.length;h++){if(!(t=r.charCodeAt(h)))throw new Error("0x00 character is not permitted in tEXt keywords");n[a++]=t}n[a++]=0;for(var d=0;d<e.length;d++){if(!(t=e.charCodeAt(d)))throw new Error("0x00 character is not permitted in tEXt content");n[a++]=t}return{name:"tEXt",data:n}}return u}var f,g;function m(){if(g)return f;g=1,f=c;function c(r){r.data&&r.name&&(r=r.data);for(var e=!0,i="",n="",a=0;a<r.length;a++){var t=r[a];if(e)t?n+=String.fromCharCode(t):e=!1;else if(t)i+=String.fromCharCode(t);else throw new Error("Invalid NULL character found. 0x00 character is not permitted in tEXt content")}return{keyword:n,text:i}}return f}var l;function E(){return l||(l=1,o.encode=x(),o.decode=m()),o}var s=E(),_=s.decode,p=s.encode;export{_ as decode,s as default,p as encode};
+//# sourceMappingURL=/sm/dc0ec7824e3edc5b8b01ce021421c1f1ca07f068c0ab897c573d5f6367bffbe4.map

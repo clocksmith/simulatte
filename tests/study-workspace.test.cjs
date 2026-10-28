@@ -12,6 +12,8 @@ const DATA = path.join(__dirname, '../public/data/system-diagram/composable-solu
 const manifest = JSON.parse(fs.readFileSync(path.join(DATA, 'manifest.json'), 'utf8'));
 const raw = Object.fromEntries(manifest.problems.map(p => [p.referenceId, fs.readFileSync(path.join(DATA, p.path), 'utf8')]));
 const first = Object.keys(raw)[0];
+const spatial = require('../public/simulatte/system-diagram/study/spatial-layout.js');
+test.before(async () => { for (const text of Object.values(raw)) await spatial.prepare(study.parse(text)); });
 
 test('study adapter accepts every published study document', () => {
   for (const [id, text] of Object.entries(raw)) assert.equal(study.parse(text).problem.referenceId, id);

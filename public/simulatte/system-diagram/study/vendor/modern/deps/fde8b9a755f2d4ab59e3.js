@@ -1,0 +1,8 @@
+/**
+ * Bundled by jsDelivr using Rollup v4.62.2 and esbuild v0.28.1.
+ * Original file: /npm/@radix-ui/react-collection@1.0.1/dist/index.module.js
+ *
+ * Do NOT use SRI with dynamically generated files! More information: https://www.jsdelivr.com/using-sri-with-dynamic-files
+ */
+import t from"../react.js";import{createContextScope as v}from"./7cb3262f88bc0d49793b.js";import{useComposedRefs as u}from"./ba0ad00898a5de28eda8.js";import{Slot as p}from"./da4ec4c9b158b93a3779.js";function O(s){const m=s+"CollectionProvider",[C,R]=v(m),[M,f]=C(m,{collectionRef:{current:null},itemMap:new Map}),I=r=>{const{scope:e,children:l}=r,o=t.useRef(null),c=t.useRef(new Map).current;return t.createElement(M,{scope:e,itemMap:c,collectionRef:o},l)},S=s+"CollectionSlot",x=t.forwardRef((r,e)=>{const{scope:l,children:o}=r,c=f(S,l),n=u(e,c.collectionRef);return t.createElement(p,{ref:n},o)}),E=s+"CollectionItemSlot",d="data-radix-collection-item",A=t.forwardRef((r,e)=>{const{scope:l,children:o,...c}=r,n=t.useRef(null),a=u(e,n),i=f(E,l);return t.useEffect(()=>(i.itemMap.set(n,{ref:n,...c}),()=>{i.itemMap.delete(n)})),t.createElement(p,{[d]:"",ref:a},o)});function T(r){const e=f(s+"CollectionConsumer",r);return t.useCallback(()=>{const o=e.collectionRef.current;if(!o)return[];const c=Array.from(o.querySelectorAll(`[${d}]`));return Array.from(e.itemMap.values()).sort((i,h)=>c.indexOf(i.ref.current)-c.indexOf(h.ref.current))},[e.collectionRef,e.itemMap])}return[{Provider:I,Slot:x,ItemSlot:A},T,R]}export{O as createCollection};
+//# sourceMappingURL=/sm/48eb2f62055a009e2e57c696e6ed51ccc29316755f5268370d9b51c5f4b86a7f.map

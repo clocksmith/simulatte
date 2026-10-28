@@ -1,0 +1,3408 @@
+{
+  "schema": "simulatte.studySpatialBrowserAudit.v1",
+  "url": "http://127.0.0.1:4173/lucyd",
+  "inputHashes": [
+    {
+      "path": "public/data/system-diagram/composable-solutions/components.json",
+      "sha256": "45b90e455690abf21415119af9695982e4e0db0a032d341e6fe4d19d8a3c8eb6"
+    },
+    {
+      "path": "public/data/system-diagram/composable-solutions/l001.json",
+      "sha256": "45a66bf07630dec2dde2c01a9922c2aa6afb421eae1314ecc7dab18cf5833388"
+    },
+    {
+      "path": "public/data/system-diagram/composable-solutions/l003.json",
+      "sha256": "cf320c30ad113cd7418e74dd684b5eb56ca78393b797159cc6abd612009ee442"
+    },
+    {
+      "path": "public/data/system-diagram/composable-solutions/l004.json",
+      "sha256": "ef593c594002438a439f41a2ec0ea7432feb283177f982c883e9b750718bd011"
+    },
+    {
+      "path": "public/data/system-diagram/composable-solutions/l005.json",
+      "sha256": "a2614c5522cfc9dc5ccea2a92f7368bdfa46fc5e8a9277f32cfc569814019662"
+    },
+    {
+      "path": "public/data/system-diagram/composable-solutions/l006.json",
+      "sha256": "a232bc2d3679ee17ffd2d4c170ba4394483ce3d326bbcfff503849faa196733b"
+    },
+    {
+      "path": "public/data/system-diagram/composable-solutions/l007.json",
+      "sha256": "19af8de64416ec45a8ef89ed4cf28821f58e7c2126a7be3e8f5cfe0a46a503d4"
+    },
+    {
+      "path": "public/data/system-diagram/composable-solutions/l008.json",
+      "sha256": "3d3bd3270d0332ac2b1505b45a1dacf2d75f2c339187db7645f7abc2f513ab2f"
+    },
+    {
+      "path": "public/data/system-diagram/composable-solutions/l009.json",
+      "sha256": "655cbc43d026272842defa604417ccc5024064735fdd261ba4fb9b342f2132be"
+    },
+    {
+      "path": "public/data/system-diagram/composable-solutions/l010.json",
+      "sha256": "4003bcb5fc9188cb364b2c7b3cb0b904d02c31f76841e2b8331d72a5d74923b0"
+    },
+    {
+      "path": "public/data/system-diagram/composable-solutions/l011.json",
+      "sha256": "e7558d23b14018797e66e7ff7097ee5a70e2fe05fccc719843754afde8c416a8"
+    },
+    {
+      "path": "public/data/system-diagram/composable-solutions/l013.json",
+      "sha256": "95997e1695a3342bd8872fdbe1b89a1b5d8feaa8ab64984d8944b80729c070d7"
+    },
+    {
+      "path": "public/data/system-diagram/composable-solutions/l014.json",
+      "sha256": "21e92de63ea3bd7bbc90ba2001da51a9164d69b1c3394b34dba6b5a81698a2ee"
+    },
+    {
+      "path": "public/data/system-diagram/composable-solutions/l032.json",
+      "sha256": "1f1f821062c81d7127fdc3a7536a7eb786f0629278fae79510c10e719115993c"
+    },
+    {
+      "path": "public/data/system-diagram/composable-solutions/l034.json",
+      "sha256": "ec53551f59ad7435a8ab1049652655d0e909ecb7faa4eec6da7f65138042999c"
+    },
+    {
+      "path": "public/data/system-diagram/composable-solutions/manifest.json",
+      "sha256": "21cf1c079c6d3036a385aa8b163e1ae1ca3f59894f74f77326c77265428f241e"
+    },
+    {
+      "path": "public/data/system-diagram/composable-solutions/problem.schema.json",
+      "sha256": "047263766fd45c839127478aeb7731d11703eb180ac15106e8d5256a05b9223e"
+    },
+    {
+      "path": "public/data/system-diagram/spatial-policy.json",
+      "sha256": "03fd290b8bfd7da13d6f843ecd16bf6f37f0cd4d7010a81822cff5d73a8ca708"
+    },
+    {
+      "path": "public/data/system-diagram/study-font-metrics.json",
+      "sha256": "675a60786b71100cf6df3f86d4c19f7355a532e5c015894b2962860165113e7e"
+    },
+    {
+      "path": "public/simulatte/system-diagram/study/scene.js",
+      "sha256": "7bbcd68a16847a79f63bae570111c491e3817b633141ba0b82992e629ea9921c"
+    },
+    {
+      "path": "public/simulatte/system-diagram/study/spatial-check.js",
+      "sha256": "c6fba7762f2f9c5483d546febcf34fdf9b79529e696317e86b2011785a51734e"
+    },
+    {
+      "path": "public/simulatte/system-diagram/study/spatial-layout.js",
+      "sha256": "8dcf18d0d8f07ac3874a6a77bb7f5dba97f607f838e30f397f6a22261b702421"
+    },
+    {
+      "path": "public/simulatte/system-diagram/study/spatial-routing.js",
+      "sha256": "3f6923f55a8bec2c4a162946fc057cd6ab9ddc91439846c8deca0096b423f68e"
+    },
+    {
+      "path": "public/simulatte/system-diagram/study/spatial-text.js",
+      "sha256": "1090484e18603c522bdc6f1115f285651c0e28f56f4875fc261a139be8270cfb"
+    },
+    {
+      "path": "public/simulatte/system-diagram/study/vendor/elk/versions.json",
+      "sha256": "b1dde43270d7dbdff4963481f77100be60b8e0088074c0fc3d249c1009e7c590"
+    }
+  ],
+  "canvasVersion": "0.18.1",
+  "viewport": {
+    "width": 1600,
+    "height": 1000
+  },
+  "layer": "Chromium restored Excalidraw element geometry and screenshot; not physical phone or human adjudication",
+  "ok": true,
+  "errors": [],
+  "stages": 235,
+  "rows": [
+    {
+      "problem": "L001",
+      "solution": "dedicated",
+      "stage": 1,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 2,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L001",
+      "solution": "dedicated",
+      "stage": 2,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 4,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L001",
+      "solution": "dedicated",
+      "stage": 3,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 6,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L001",
+      "solution": "dedicated",
+      "stage": 4,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 1,
+      "nodeCount": 7,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L001",
+      "solution": "dedicated",
+      "stage": 5,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 5,
+      "nodeCount": 8,
+      "zoom": 0.9,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L001",
+      "solution": "dedicated",
+      "stage": 6,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 11,
+      "nodeCount": 9,
+      "zoom": 0.9,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L001",
+      "solution": "dedicated",
+      "stage": 7,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 10,
+      "nodeCount": 11,
+      "zoom": 0.9,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L001",
+      "solution": "dedicated",
+      "stage": 8,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 14,
+      "nodeCount": 11,
+      "zoom": 0.9,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L001",
+      "solution": "shared",
+      "stage": 1,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 2,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L001",
+      "solution": "shared",
+      "stage": 2,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 4,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L001",
+      "solution": "shared",
+      "stage": 3,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 6,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L001",
+      "solution": "shared",
+      "stage": 4,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 7,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L001",
+      "solution": "shared",
+      "stage": 5,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 4,
+      "nodeCount": 9,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L001",
+      "solution": "shared",
+      "stage": 6,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 7,
+      "nodeCount": 10,
+      "zoom": 0.8,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L001",
+      "solution": "shared",
+      "stage": 7,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 12,
+      "nodeCount": 12,
+      "zoom": 0.8,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L001",
+      "solution": "shared",
+      "stage": 8,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 22,
+      "nodeCount": 12,
+      "zoom": 0.8,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L003",
+      "solution": "keyset",
+      "stage": 1,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 2,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L003",
+      "solution": "keyset",
+      "stage": 2,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 4,
+      "zoom": 0.7,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L003",
+      "solution": "keyset",
+      "stage": 3,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 4,
+      "zoom": 0.7,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L003",
+      "solution": "keyset",
+      "stage": 4,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 6,
+      "zoom": 0.7,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L003",
+      "solution": "keyset",
+      "stage": 5,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 8,
+      "zoom": 0.7,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L003",
+      "solution": "keyset",
+      "stage": 6,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 1,
+      "nodeCount": 9,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L003",
+      "solution": "keyset",
+      "stage": 7,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 3,
+      "nodeCount": 10,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L003",
+      "solution": "keyset",
+      "stage": 8,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 1,
+      "nodeCount": 9,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L003",
+      "solution": "keyset",
+      "stage": 9,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 3,
+      "nodeCount": 12,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L003",
+      "solution": "sessions",
+      "stage": 1,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 2,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L003",
+      "solution": "sessions",
+      "stage": 2,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 4,
+      "zoom": 0.7,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L003",
+      "solution": "sessions",
+      "stage": 3,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 5,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L003",
+      "solution": "sessions",
+      "stage": 4,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 6,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L003",
+      "solution": "sessions",
+      "stage": 5,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 1,
+      "nodeCount": 7,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L003",
+      "solution": "sessions",
+      "stage": 6,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 1,
+      "nodeCount": 9,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L003",
+      "solution": "sessions",
+      "stage": 7,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 1,
+      "nodeCount": 11,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L003",
+      "solution": "sessions",
+      "stage": 8,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 1,
+      "nodeCount": 11,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L003",
+      "solution": "sessions",
+      "stage": 9,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 4,
+      "nodeCount": 14,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L004",
+      "solution": "push",
+      "stage": 1,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 2,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L004",
+      "solution": "push",
+      "stage": 2,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 4,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L004",
+      "solution": "push",
+      "stage": 3,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 6,
+      "zoom": 0.7,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L004",
+      "solution": "push",
+      "stage": 4,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 6,
+      "zoom": 0.7,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L004",
+      "solution": "push",
+      "stage": 5,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 6,
+      "nodeCount": 12,
+      "zoom": 0.7,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L004",
+      "solution": "push",
+      "stage": 6,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 20,
+      "nodeCount": 13,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L004",
+      "solution": "push",
+      "stage": 7,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 26,
+      "nodeCount": 14,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L004",
+      "solution": "push",
+      "stage": 8,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 6,
+      "nodeCount": 13,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L004",
+      "solution": "push",
+      "stage": 9,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 7,
+      "nodeCount": 17,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L004",
+      "solution": "inbox",
+      "stage": 1,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 2,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L004",
+      "solution": "inbox",
+      "stage": 2,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 4,
+      "zoom": 0.7,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L004",
+      "solution": "inbox",
+      "stage": 3,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 6,
+      "zoom": 0.7,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L004",
+      "solution": "inbox",
+      "stage": 4,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 2,
+      "nodeCount": 8,
+      "zoom": 0.7,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L004",
+      "solution": "inbox",
+      "stage": 5,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 3,
+      "nodeCount": 9,
+      "zoom": 0.7,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L004",
+      "solution": "inbox",
+      "stage": 6,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 3,
+      "nodeCount": 9,
+      "zoom": 0.7,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L004",
+      "solution": "inbox",
+      "stage": 7,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 1,
+      "nodeCount": 8,
+      "zoom": 0.7,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L004",
+      "solution": "inbox",
+      "stage": 8,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 1,
+      "nodeCount": 10,
+      "zoom": 0.8,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L004",
+      "solution": "inbox",
+      "stage": 9,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 1,
+      "nodeCount": 11,
+      "zoom": 0.8,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L005",
+      "solution": "async-primary",
+      "stage": 1,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 2,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L005",
+      "solution": "async-primary",
+      "stage": 2,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 4,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L005",
+      "solution": "async-primary",
+      "stage": 3,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 1,
+      "nodeCount": 6,
+      "zoom": 0.8,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L005",
+      "solution": "async-primary",
+      "stage": 4,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 2,
+      "nodeCount": 7,
+      "zoom": 0.8,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L005",
+      "solution": "async-primary",
+      "stage": 5,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 2,
+      "nodeCount": 8,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L005",
+      "solution": "async-primary",
+      "stage": 6,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 6,
+      "nodeCount": 9,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L005",
+      "solution": "async-primary",
+      "stage": 7,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 10,
+      "nodeCount": 10,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L005",
+      "solution": "async-primary",
+      "stage": 8,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 16,
+      "nodeCount": 9,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L005",
+      "solution": "raft",
+      "stage": 1,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 2,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L005",
+      "solution": "raft",
+      "stage": 2,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 4,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L005",
+      "solution": "raft",
+      "stage": 3,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 1,
+      "nodeCount": 6,
+      "zoom": 0.8,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L005",
+      "solution": "raft",
+      "stage": 4,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 2,
+      "nodeCount": 7,
+      "zoom": 0.8,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L005",
+      "solution": "raft",
+      "stage": 5,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 2,
+      "nodeCount": 8,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L005",
+      "solution": "raft",
+      "stage": 6,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 6,
+      "nodeCount": 9,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L005",
+      "solution": "raft",
+      "stage": 7,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 10,
+      "nodeCount": 10,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L005",
+      "solution": "raft",
+      "stage": 8,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 16,
+      "nodeCount": 9,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L006",
+      "solution": "scheduled",
+      "stage": 1,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 2,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L006",
+      "solution": "scheduled",
+      "stage": 2,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 4,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L006",
+      "solution": "scheduled",
+      "stage": 3,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 2,
+      "nodeCount": 5,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L006",
+      "solution": "scheduled",
+      "stage": 4,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 1,
+      "nodeCount": 6,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L006",
+      "solution": "scheduled",
+      "stage": 5,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 1,
+      "nodeCount": 9,
+      "zoom": 0.9,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L006",
+      "solution": "scheduled",
+      "stage": 6,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 5,
+      "nodeCount": 11,
+      "zoom": 0.8,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L006",
+      "solution": "scheduled",
+      "stage": 7,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 13,
+      "nodeCount": 12,
+      "zoom": 0.8,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L006",
+      "solution": "scheduled",
+      "stage": 8,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 15,
+      "nodeCount": 13,
+      "zoom": 0.8,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L006",
+      "solution": "change-driven",
+      "stage": 1,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 2,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L006",
+      "solution": "change-driven",
+      "stage": 2,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 4,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L006",
+      "solution": "change-driven",
+      "stage": 3,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 2,
+      "nodeCount": 6,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L006",
+      "solution": "change-driven",
+      "stage": 4,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 2,
+      "nodeCount": 7,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L006",
+      "solution": "change-driven",
+      "stage": 5,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 3,
+      "nodeCount": 10,
+      "zoom": 0.9,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L006",
+      "solution": "change-driven",
+      "stage": 6,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 5,
+      "nodeCount": 12,
+      "zoom": 0.9,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L006",
+      "solution": "change-driven",
+      "stage": 7,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 8,
+      "nodeCount": 13,
+      "zoom": 0.8,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L006",
+      "solution": "change-driven",
+      "stage": 8,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 21,
+      "nodeCount": 14,
+      "zoom": 0.8,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L007",
+      "solution": "proxy",
+      "stage": 1,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 2,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L007",
+      "solution": "proxy",
+      "stage": 2,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 4,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L007",
+      "solution": "proxy",
+      "stage": 3,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 5,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L007",
+      "solution": "proxy",
+      "stage": 4,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 6,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L007",
+      "solution": "proxy",
+      "stage": 5,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 1,
+      "nodeCount": 7,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L007",
+      "solution": "proxy",
+      "stage": 6,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 1,
+      "nodeCount": 9,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L007",
+      "solution": "proxy",
+      "stage": 7,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 2,
+      "nodeCount": 11,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L007",
+      "solution": "proxy",
+      "stage": 8,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 2,
+      "nodeCount": 10,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L007",
+      "solution": "client",
+      "stage": 1,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 2,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L007",
+      "solution": "client",
+      "stage": 2,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 4,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L007",
+      "solution": "client",
+      "stage": 3,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 5,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L007",
+      "solution": "client",
+      "stage": 4,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 6,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L007",
+      "solution": "client",
+      "stage": 5,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 1,
+      "nodeCount": 7,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L007",
+      "solution": "client",
+      "stage": 6,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 1,
+      "nodeCount": 9,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L007",
+      "solution": "client",
+      "stage": 7,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 2,
+      "nodeCount": 11,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L007",
+      "solution": "client",
+      "stage": 8,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 2,
+      "nodeCount": 10,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L008",
+      "solution": "ledger",
+      "stage": 1,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 2,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L008",
+      "solution": "ledger",
+      "stage": 2,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 4,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L008",
+      "solution": "ledger",
+      "stage": 3,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 1,
+      "nodeCount": 5,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L008",
+      "solution": "ledger",
+      "stage": 4,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 7,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L008",
+      "solution": "ledger",
+      "stage": 5,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 1,
+      "nodeCount": 8,
+      "zoom": 0.9,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L008",
+      "solution": "ledger",
+      "stage": 6,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 3,
+      "nodeCount": 9,
+      "zoom": 0.9,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L008",
+      "solution": "ledger",
+      "stage": 7,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 2,
+      "nodeCount": 10,
+      "zoom": 0.7,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L008",
+      "solution": "ledger",
+      "stage": 8,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 2,
+      "nodeCount": 11,
+      "zoom": 0.8,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L008",
+      "solution": "workflow",
+      "stage": 1,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 2,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L008",
+      "solution": "workflow",
+      "stage": 2,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 4,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L008",
+      "solution": "workflow",
+      "stage": 3,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 1,
+      "nodeCount": 5,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L008",
+      "solution": "workflow",
+      "stage": 4,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 7,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L008",
+      "solution": "workflow",
+      "stage": 5,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 1,
+      "nodeCount": 8,
+      "zoom": 0.9,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L008",
+      "solution": "workflow",
+      "stage": 6,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 3,
+      "nodeCount": 9,
+      "zoom": 0.9,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L008",
+      "solution": "workflow",
+      "stage": 7,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 2,
+      "nodeCount": 10,
+      "zoom": 0.7,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L008",
+      "solution": "workflow",
+      "stage": 8,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 2,
+      "nodeCount": 11,
+      "zoom": 0.8,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L009",
+      "solution": "write-time",
+      "stage": 1,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 2,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L009",
+      "solution": "write-time",
+      "stage": 2,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 4,
+      "zoom": 0.9,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L009",
+      "solution": "write-time",
+      "stage": 3,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 4,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L009",
+      "solution": "write-time",
+      "stage": 4,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 5,
+      "zoom": 0.7,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L009",
+      "solution": "write-time",
+      "stage": 5,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 1,
+      "nodeCount": 6,
+      "zoom": 0.7,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L009",
+      "solution": "write-time",
+      "stage": 6,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 1,
+      "nodeCount": 8,
+      "zoom": 0.7,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L009",
+      "solution": "write-time",
+      "stage": 7,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 9,
+      "nodeCount": 10,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L009",
+      "solution": "write-time",
+      "stage": 8,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 6,
+      "nodeCount": 11,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L009",
+      "solution": "write-time",
+      "stage": 9,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 8,
+      "nodeCount": 13,
+      "zoom": 0.7,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L009",
+      "solution": "write-time",
+      "stage": 10,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 8,
+      "nodeCount": 12,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L009",
+      "solution": "read-time",
+      "stage": 1,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 2,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L009",
+      "solution": "read-time",
+      "stage": 2,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 4,
+      "zoom": 0.7,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L009",
+      "solution": "read-time",
+      "stage": 3,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 1,
+      "nodeCount": 5,
+      "zoom": 0.7,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L009",
+      "solution": "read-time",
+      "stage": 4,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 1,
+      "nodeCount": 7,
+      "zoom": 0.7,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L009",
+      "solution": "read-time",
+      "stage": 5,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 1,
+      "nodeCount": 8,
+      "zoom": 0.7,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L009",
+      "solution": "read-time",
+      "stage": 6,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 3,
+      "nodeCount": 9,
+      "zoom": 0.8,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L009",
+      "solution": "read-time",
+      "stage": 7,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 10,
+      "nodeCount": 10,
+      "zoom": 0.7,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L009",
+      "solution": "read-time",
+      "stage": 8,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 8,
+      "nodeCount": 9,
+      "zoom": 0.7,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L010",
+      "solution": "pull-cdn",
+      "stage": 1,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 2,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L010",
+      "solution": "pull-cdn",
+      "stage": 2,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 4,
+      "zoom": 0.8,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L010",
+      "solution": "pull-cdn",
+      "stage": 3,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 1,
+      "nodeCount": 5,
+      "zoom": 0.8,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L010",
+      "solution": "pull-cdn",
+      "stage": 4,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 3,
+      "nodeCount": 6,
+      "zoom": 0.8,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L010",
+      "solution": "pull-cdn",
+      "stage": 5,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 4,
+      "nodeCount": 8,
+      "zoom": 0.8,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L010",
+      "solution": "pull-cdn",
+      "stage": 6,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 4,
+      "nodeCount": 10,
+      "zoom": 0.8,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L010",
+      "solution": "pull-cdn",
+      "stage": 7,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 5,
+      "nodeCount": 11,
+      "zoom": 0.8,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L010",
+      "solution": "pull-cdn",
+      "stage": 8,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 4,
+      "nodeCount": 9,
+      "zoom": 0.8,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L010",
+      "solution": "regional-placement",
+      "stage": 1,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 2,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L010",
+      "solution": "regional-placement",
+      "stage": 2,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 4,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L010",
+      "solution": "regional-placement",
+      "stage": 3,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 5,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L010",
+      "solution": "regional-placement",
+      "stage": 4,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 1,
+      "nodeCount": 7,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L010",
+      "solution": "regional-placement",
+      "stage": 5,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 4,
+      "nodeCount": 9,
+      "zoom": 0.8,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L010",
+      "solution": "regional-placement",
+      "stage": 6,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 5,
+      "nodeCount": 11,
+      "zoom": 0.7,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L010",
+      "solution": "regional-placement",
+      "stage": 7,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 11,
+      "nodeCount": 12,
+      "zoom": 0.7,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L010",
+      "solution": "regional-placement",
+      "stage": 8,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 8,
+      "nodeCount": 10,
+      "zoom": 0.8,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L011",
+      "solution": "push",
+      "stage": 1,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 2,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L011",
+      "solution": "push",
+      "stage": 2,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 5,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L011",
+      "solution": "push",
+      "stage": 3,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 7,
+      "nodeCount": 8,
+      "zoom": 0.7,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L011",
+      "solution": "push",
+      "stage": 4,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 12,
+      "nodeCount": 9,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L011",
+      "solution": "push",
+      "stage": 5,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 15,
+      "nodeCount": 10,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L011",
+      "solution": "push",
+      "stage": 6,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 17,
+      "nodeCount": 11,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L011",
+      "solution": "push",
+      "stage": 7,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 19,
+      "nodeCount": 13,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L011",
+      "solution": "push",
+      "stage": 8,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 19,
+      "nodeCount": 16,
+      "zoom": 0.7,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L011",
+      "solution": "push",
+      "stage": 9,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 15,
+      "nodeCount": 15,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L011",
+      "solution": "pull",
+      "stage": 1,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 2,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L011",
+      "solution": "pull",
+      "stage": 2,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 5,
+      "zoom": 0.7,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L011",
+      "solution": "pull",
+      "stage": 3,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 1,
+      "nodeCount": 7,
+      "zoom": 0.7,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L011",
+      "solution": "pull",
+      "stage": 4,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 5,
+      "nodeCount": 8,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L011",
+      "solution": "pull",
+      "stage": 5,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 8,
+      "nodeCount": 9,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L011",
+      "solution": "pull",
+      "stage": 6,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 9,
+      "nodeCount": 10,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L011",
+      "solution": "pull",
+      "stage": 7,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 12,
+      "nodeCount": 12,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L011",
+      "solution": "pull",
+      "stage": 8,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 10,
+      "nodeCount": 15,
+      "zoom": 0.7,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L011",
+      "solution": "pull",
+      "stage": 9,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 14,
+      "nodeCount": 14,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L013",
+      "solution": "atomic",
+      "stage": 1,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 2,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L013",
+      "solution": "atomic",
+      "stage": 2,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 4,
+      "zoom": 0.7,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L013",
+      "solution": "atomic",
+      "stage": 3,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 4,
+      "zoom": 0.7,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L013",
+      "solution": "atomic",
+      "stage": 4,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 6,
+      "zoom": 0.7,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L013",
+      "solution": "atomic",
+      "stage": 5,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 3,
+      "nodeCount": 8,
+      "zoom": 0.7,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L013",
+      "solution": "atomic",
+      "stage": 6,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 3,
+      "nodeCount": 9,
+      "zoom": 0.7,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L013",
+      "solution": "atomic",
+      "stage": 7,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 5,
+      "nodeCount": 10,
+      "zoom": 0.7,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L013",
+      "solution": "atomic",
+      "stage": 8,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 8,
+      "nodeCount": 11,
+      "zoom": 0.7,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L013",
+      "solution": "atomic",
+      "stage": 9,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 16,
+      "nodeCount": 13,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L013",
+      "solution": "atomic",
+      "stage": 10,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 5,
+      "nodeCount": 12,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L013",
+      "solution": "actor",
+      "stage": 1,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 2,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L013",
+      "solution": "actor",
+      "stage": 2,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 4,
+      "zoom": 0.8,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L013",
+      "solution": "actor",
+      "stage": 3,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 1,
+      "nodeCount": 6,
+      "zoom": 0.8,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L013",
+      "solution": "actor",
+      "stage": 4,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 5,
+      "nodeCount": 8,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L013",
+      "solution": "actor",
+      "stage": 5,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 5,
+      "nodeCount": 9,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L013",
+      "solution": "actor",
+      "stage": 6,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 16,
+      "nodeCount": 12,
+      "zoom": 0.8,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L013",
+      "solution": "actor",
+      "stage": 7,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 24,
+      "nodeCount": 13,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L013",
+      "solution": "actor",
+      "stage": 8,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 26,
+      "nodeCount": 14,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L013",
+      "solution": "actor",
+      "stage": 9,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 19,
+      "nodeCount": 13,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L014",
+      "solution": "host-workers",
+      "stage": 1,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 2,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L014",
+      "solution": "host-workers",
+      "stage": 2,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 4,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L014",
+      "solution": "host-workers",
+      "stage": 3,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 5,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L014",
+      "solution": "host-workers",
+      "stage": 4,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 6,
+      "zoom": 0.8,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L014",
+      "solution": "host-workers",
+      "stage": 5,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 6,
+      "nodeCount": 7,
+      "zoom": 0.8,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L014",
+      "solution": "host-workers",
+      "stage": 6,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 9,
+      "nodeCount": 9,
+      "zoom": 0.8,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L014",
+      "solution": "host-workers",
+      "stage": 7,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 15,
+      "nodeCount": 11,
+      "zoom": 0.8,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L014",
+      "solution": "host-workers",
+      "stage": 8,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 6,
+      "nodeCount": 10,
+      "zoom": 0.8,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L014",
+      "solution": "split-pipeline",
+      "stage": 1,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 2,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L014",
+      "solution": "split-pipeline",
+      "stage": 2,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 4,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L014",
+      "solution": "split-pipeline",
+      "stage": 3,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 5,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L014",
+      "solution": "split-pipeline",
+      "stage": 4,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 6,
+      "zoom": 0.8,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L014",
+      "solution": "split-pipeline",
+      "stage": 5,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 2,
+      "nodeCount": 7,
+      "zoom": 0.8,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L014",
+      "solution": "split-pipeline",
+      "stage": 6,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 6,
+      "nodeCount": 11,
+      "zoom": 0.8,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L014",
+      "solution": "split-pipeline",
+      "stage": 7,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 26,
+      "nodeCount": 13,
+      "zoom": 0.7,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L014",
+      "solution": "split-pipeline",
+      "stage": 8,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 29,
+      "nodeCount": 12,
+      "zoom": 0.7,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L032",
+      "solution": "server",
+      "stage": 1,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 2,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L032",
+      "solution": "server",
+      "stage": 2,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 4,
+      "zoom": 0.7,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L032",
+      "solution": "server",
+      "stage": 3,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 3,
+      "nodeCount": 6,
+      "zoom": 0.7,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L032",
+      "solution": "server",
+      "stage": 4,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 5,
+      "nodeCount": 7,
+      "zoom": 0.7,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L032",
+      "solution": "server",
+      "stage": 5,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 6,
+      "nodeCount": 9,
+      "zoom": 0.7,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L032",
+      "solution": "server",
+      "stage": 6,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 11,
+      "nodeCount": 10,
+      "zoom": 0.7,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L032",
+      "solution": "server",
+      "stage": 7,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 20,
+      "nodeCount": 11,
+      "zoom": 0.7,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L032",
+      "solution": "server",
+      "stage": 8,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 5,
+      "nodeCount": 9,
+      "zoom": 0.7,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L032",
+      "solution": "local-prefix",
+      "stage": 1,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 2,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L032",
+      "solution": "local-prefix",
+      "stage": 2,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 4,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L032",
+      "solution": "local-prefix",
+      "stage": 3,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 1,
+      "nodeCount": 6,
+      "zoom": 0.8,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L032",
+      "solution": "local-prefix",
+      "stage": 4,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 2,
+      "nodeCount": 7,
+      "zoom": 0.7,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L032",
+      "solution": "local-prefix",
+      "stage": 5,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 2,
+      "nodeCount": 9,
+      "zoom": 0.7,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L032",
+      "solution": "local-prefix",
+      "stage": 6,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 6,
+      "nodeCount": 10,
+      "zoom": 0.7,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L032",
+      "solution": "local-prefix",
+      "stage": 7,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 13,
+      "nodeCount": 11,
+      "zoom": 0.7,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L032",
+      "solution": "local-prefix",
+      "stage": 8,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 12,
+      "nodeCount": 10,
+      "zoom": 0.7,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L034",
+      "solution": "push",
+      "stage": 1,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 2,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L034",
+      "solution": "push",
+      "stage": 2,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 4,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L034",
+      "solution": "push",
+      "stage": 3,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 5,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L034",
+      "solution": "push",
+      "stage": 4,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 1,
+      "nodeCount": 8,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L034",
+      "solution": "push",
+      "stage": 5,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 5,
+      "nodeCount": 11,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L034",
+      "solution": "push",
+      "stage": 6,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 12,
+      "nodeCount": 12,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L034",
+      "solution": "push",
+      "stage": 7,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 16,
+      "nodeCount": 13,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L034",
+      "solution": "push",
+      "stage": 8,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 11,
+      "nodeCount": 11,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L034",
+      "solution": "lease-poll",
+      "stage": 1,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 2,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L034",
+      "solution": "lease-poll",
+      "stage": 2,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 4,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L034",
+      "solution": "lease-poll",
+      "stage": 3,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 0,
+      "nodeCount": 5,
+      "zoom": 0.8,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L034",
+      "solution": "lease-poll",
+      "stage": 4,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 1,
+      "nodeCount": 8,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L034",
+      "solution": "lease-poll",
+      "stage": 5,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 5,
+      "nodeCount": 11,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L034",
+      "solution": "lease-poll",
+      "stage": 6,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 10,
+      "nodeCount": 13,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L034",
+      "solution": "lease-poll",
+      "stage": 7,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 17,
+      "nodeCount": 14,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    },
+    {
+      "problem": "L034",
+      "solution": "lease-poll",
+      "stage": 8,
+      "ok": true,
+      "errors": [],
+      "overflow": [],
+      "crossings": 13,
+      "nodeCount": 12,
+      "zoom": 1,
+      "fonts": [
+        5
+      ]
+    }
+  ],
+  "screenshot": "artifacts/composable-study/chat-readable.png"
+}

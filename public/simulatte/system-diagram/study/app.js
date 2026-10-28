@@ -3,11 +3,11 @@
 // saved in this browser and exported with the untouched authored document.
 (function (root) {
   'use strict';
-  const {React, ReactDOM, ExcalidrawLib: X, SimulatteComposableStudy: Study, SimulatteStudyScene: Scene, SimulatteStudyWorkspace: Store, SimulatteStudyPanels: P} = root;
+  const {React, ReactDOM, ExcalidrawLib: X, SimulatteComposableStudy: Study, SimulatteStudyScene: Scene, SimulatteSpatialLayout: Spatial, SimulatteStudyWorkspace: Store, SimulatteStudyPanels: P} = root;
   for (const [name, value] of Object.entries({React, ReactDOM, X, Study, Scene, Store, P})) if (!value) throw Error(`Study workspace needs ${name} loaded first`);
   const {createElement: h, useState, useEffect, useRef, useCallback, useMemo} = React;
   const {Excalidraw, MainMenu, Footer, Sidebar} = X;
-  const DATA = new URL('../../../data/system-diagram/', root.location.href);
+  const DATA = new URL('../../../data/system-diagram/', document.baseURI);
   const THEME_KEY = 'simulatte.theme.v1', SIDEBAR = 'study', CONNECTED = '#1971c2';
   const TABS = [['stage', 'Stage'], ['inspect', 'Inspect'], ['approach', 'Approach'], ['problem', 'Problem'], ['file', 'File']];
 
@@ -29,7 +29,7 @@
   function writeQuery(ws) {
     const q = new URLSearchParams(root.location.search);
     q.set('problem', ws.document.problem.referenceId); q.set('approach', ws.view.solutionId); q.set('stage', String(ws.view.stageIndex + 1));
-    root.history.replaceState(null, '', `${root.location.pathname}?${q}`);
+    root.history.replaceState(null, '', `/lucyd?${q}`);
   }
   // Keys typed in study controls (pickers, stepper, sidebar) must not reach Excalidraw's canvas shortcuts,
   // which listen on its container. Escape still closes menus and the sidebar.
@@ -40,6 +40,7 @@
 
   function App() {
     const apiRef = useRef(null), wsRef = useRef(null), authoredRef = useRef([]), loadingRef = useRef(false), versionRef = useRef(-1);
+    const renderGeneration = useRef(0);
     const selectionRef = useRef(''), themeRef = useRef(initialTheme()), timers = useRef({}), publishedRef = useRef(new Map()), catalogueRef = useRef([]), fileInput = useRef(null), loadRef = useRef(0);
     const [api, setApi] = useState(null);
     const [catalogue, setCatalogue] = useState([]);
@@ -68,6 +69,7 @@
     // Draw the current stage: authored scene plus this stage's overlay. Navigation never enters undo history.
     const render = useCallback((next, {fit = false} = {}) => {
       const excalidraw = apiRef.current; if (!excalidraw || !next) return;
+      const generation = ++renderGeneration.current;
       const sol = solutionOf(next);
       const result = Scene.build(next.document, sol, next.view.stageIndex, {collapsed: next.view.collapsed, showRemoved: next.view.showRemoved});
       const authored = X.restoreElements(result.elements, null);
@@ -75,11 +77,18 @@
       authoredRef.current = authored;
       loadingRef.current = true;
       if (overlay?.files) excalidraw.addFiles(Object.values(overlay.files));
-      excalidraw.updateScene({elements: X.restoreElements(Scene.applyOverlay(authored, overlay), null), appState: {selectedElementIds: {}, editingElement: null, name: `${next.document.problem.referenceId} ${sol.title}`}, commitToHistory: false});
+      excalidraw.updateScene({elements: X.restoreElements(Scene.applyOverlay(authored, overlay), null), appState: {selectedElementIds: {}, editingTextElement: null, name: `${next.document.problem.referenceId} ${sol.title}`}, captureUpdate: X.CaptureUpdateAction.NEVER});
       excalidraw.history.clear();
       versionRef.current = X.getSceneVersion(excalidraw.getSceneElementsIncludingDeleted());
       loadingRef.current = false;
-      if (fit) root.requestAnimationFrame(() => excalidraw.scrollToContent(undefined, {fitToContent: true}));
+      if (fit) root.requestAnimationFrame(() => {
+        if (renderGeneration.current !== generation) return;
+        const minimum=Spatial.policy.layout.minimumReadingZoom,state=excalidraw.getAppState();
+        const boxes=authored.filter(e=>e.customData?.study?.role==='node');
+        const width=Math.max(...boxes.map(e=>e.x+e.width))-Math.min(...boxes.map(e=>e.x)),height=Math.max(...boxes.map(e=>e.y+e.height))-Math.min(...boxes.map(e=>e.y));
+        const changed=boxes.filter(e=>e.customData.study.change),wouldShrink=Math.min((state.width-150)/width,(state.height-180)/height)<minimum;
+        excalidraw.scrollToContent(wouldShrink&&changed.length?changed:undefined,{fitToContent:true,minZoom:minimum,maxZoom:1,animate:false});
+      });
       setBuilt(result); writeQuery(next);
     }, []);
 
@@ -114,7 +123,7 @@
       if (!wsRef.current) return;
       capture();
       const next = Store.withView(wsRef.current, patch);
-      setWs(next); render(next, options); save();
+      setWs(next); render(next, options || {fit: patch.stageIndex !== undefined || patch.solutionId !== undefined}); save();
     }, [capture, render, save]);
 
     // A problem load finishes asynchronously; only the newest load may replace the workspace, so a slow
@@ -135,6 +144,8 @@
           catch (error) { status = `Your saved workspace could not be read (${error.message}); showing the published version.`; }
         }
         next ||= Store.create(published);
+        await Spatial.prepare(next.document);
+        if (load !== loadRef.current) return;
         const sol = next.document.solutions.find(s => s.id === view.approach);
         if (sol) next = Store.withView(next, {solutionId: sol.id, stageIndex: Number.isInteger(view.stage) && view.stage >= 0 && view.stage <= sol.stages.length ? view.stage - 1 : 0});
         setWs(next); render(next, {fit: true}); setSaveStatus(status);
@@ -146,9 +157,10 @@
       if (!api) return;
       (async () => {
         try {
-          // Excalidraw 0.17 redraws only unbound text when a font arrives; every study label is bound, so load Virgil first.
-          await Promise.all(['16px Virgil', '14px Virgil'].map(font => document.fonts?.load(font))).catch(() => {});
-          const [manifest, problems] = await Promise.all([fetchText(new URL('composable-solutions/manifest.json', DATA)), fetchText(new URL('problems.json', DATA))].map(p => p.then(JSON.parse)));
+          // Use the same font for measured layout and the first restored canvas.
+          await Promise.all(['16px Excalifont', '14px Excalifont'].map(font => document.fonts.load(font)));
+          const [manifest, problems, policy, metrics] = await Promise.all(['composable-solutions/manifest.json','problems.json','spatial-policy.json','study-font-metrics.json'].map(p => fetchText(new URL(p, DATA)).then(JSON.parse)));
+          Spatial.configure(policy, metrics);
           const byRef = new Map(problems.problems.map(p => [p.referenceId, p]));
           const list = manifest.problems.map(p => ({...byRef.get(p.referenceId), referenceId: p.referenceId, path: p.path, title: byRef.get(p.referenceId)?.title || p.referenceId}));
           catalogueRef.current = list; setCatalogue(list);
@@ -159,7 +171,7 @@
     }, [api, openProblem]);
     useEffect(() => { document.documentElement.dataset.theme = themeRef.current; }, []);
 
-    // Excalidraw 0.17 drops the pointer on pointercancel but never ends the gesture, so the next tap
+    // Excalidraw drops the pointer on pointercancel without settling its draft, so the next tap
     // completes a stale draft. When the browser cancels a pointer (system gesture, palm rejection),
     // end the gesture here and discard the shape that was being created; nothing half-drawn remains.
     useEffect(() => {
@@ -167,13 +179,13 @@
       const container = document.querySelector('.excalidraw');
       const onCancel = event => {
         if (!event.isTrusted) return;
-        const draft = api.getAppState().draggingElement;
+        const state = api.getAppState(), draft = state.newElement;
         root.dispatchEvent(new PointerEvent('pointerup', {pointerId: event.pointerId, pointerType: event.pointerType, clientX: event.clientX, clientY: event.clientY, bubbles: true}));
         if (!draft) return;
         root.setTimeout(() => {
           const elements = api.getSceneElementsIncludingDeleted();
           if (!elements.some(el => el.id === draft.id && !el.isDeleted)) return;
-          api.updateScene({elements: elements.map(el => (el.id === draft.id ? X.newElementWith(el, {isDeleted: true}) : el)), appState: {selectedElementIds: {}, draggingElement: null}, commitToHistory: false});
+          api.updateScene({elements: elements.map(el => (el.id === draft.id ? X.newElementWith(el, {isDeleted: true}) : el)), appState: {selectedElementIds: {}, newElement: null, editingTextElement: null}, captureUpdate: X.CaptureUpdateAction.NEVER});
         }, 0);
       };
       container?.addEventListener('pointercancel', onCancel, true);
@@ -183,11 +195,11 @@
     const onFile = async event => {
       const file = event.target.files?.[0]; event.target.value = '';
       if (!file) return;
-      try { setPreview({parsed: Store.parse(await file.text()), name: file.name}); }
+      try { const parsed = Store.parse(await file.text()); await Spatial.prepare(parsed.workspace.document); setPreview({parsed, name:file.name}); }
       catch (error) { setNotice({title: `${file.name} was not imported`, message: `${error.message}. Your current workspace is unchanged.`}); }
     };
     const confirmImport = () => {
-      const {parsed} = preview; setPreview(null);
+      const {parsed} = preview; ++loadRef.current; setPreview(null);
       if (wsRef.current) capture();
       const next = parsed.workspace, ref = next.document.problem.referenceId;
       if (!catalogueRef.current.some(c => c.referenceId === ref)) { const list = [...catalogueRef.current, {referenceId: ref, title: `${next.document.problem.studyLabel} (imported)`}]; catalogueRef.current = list; setCatalogue(list); }
@@ -235,7 +247,7 @@
       const label = hasLabel ? null : X.restoreElements([Scene.labelFor(arrow, option.contractId, CONNECTED)], null)[0];
       const elements = excalidraw.getSceneElementsIncludingDeleted().map(el => el.id !== arrow.id ? el : X.newElementWith(el, {strokeColor: CONNECTED,
         customData: {...(el.customData || {}), studyConnection: {...option, mode: 'request-response', labelId: label?.id || null}}, boundElements: [...(el.boundElements || []), ...(label ? [{type: 'text', id: label.id}] : [])]}));
-      excalidraw.updateScene({elements: label ? [...elements, label] : elements, commitToHistory: true});
+      excalidraw.updateScene({elements: label ? [...elements, label] : elements, captureUpdate: X.CaptureUpdateAction.IMMEDIATELY});
     };
     const disconnect = () => {
       const excalidraw = apiRef.current, arrow = info?.element; if (!excalidraw || !arrow) return;
@@ -246,7 +258,7 @@
         const {studyConnection, ...rest} = el.customData || {};
         return X.newElementWith(el, {strokeColor: '#1e1e1e', customData: rest, boundElements: (el.boundElements || []).filter(b => b.id !== labelId)});
       });
-      excalidraw.updateScene({elements, commitToHistory: true});
+      excalidraw.updateScene({elements, captureUpdate: X.CaptureUpdateAction.IMMEDIATELY});
     };
 
     const stageIndex = ws?.view.stageIndex ?? 0, minIndex = solution?.initialGraph.nodes.length ? -1 : 0;
@@ -280,7 +292,7 @@
     return h('div', {className: 'sw-root'},
       h(Excalidraw, {
         excalidrawAPI: value => { if (value && apiRef.current !== value) { apiRef.current = value; setApi(value); } },
-        initialData: {elements: [], appState: {theme: themeRef.current, viewBackgroundColor: '#ffffff', currentItemFontFamily: 1}},
+        initialData: {elements: [], appState: {theme: themeRef.current, viewBackgroundColor: '#ffffff', currentItemFontFamily: 5}},
         onChange, autoFocus: true, name: 'Lucyd study',
         UIOptions: {canvasActions: {loadScene: false, saveToActiveFile: false, export: false}},
         renderTopRightUI: isMobile => (isMobile ? null : h('div', {className: 'sw-top', onKeyDown: isolateKeys}, pickers, trigger)),

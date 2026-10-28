@@ -5,20 +5,20 @@
       "command": "node --test tests/composable-study.test.cjs tests/composable-priority.test.cjs",
       "failed": 0,
       "outputPath": "artifacts/composable-study/contract-tests.tap",
-      "outputSha256": "c3db390742ae718d629dbb365ad914eea9e5b8dd578ca6da40380983bb0a24fc",
+      "outputSha256": "1c6557635bbe6ff59d55c0ab406dfce07be0e89eb1396cf0eb60bd04c7092e2f",
       "passed": 33,
       "tests": 33
     },
     "deployment": "not performed by this tool",
     "interfaceParser": {
-      "acceptedDocuments": 12,
+      "acceptedDocuments": 14,
       "path": "public/simulatte/system-diagram/study/composable-study.js",
       "scope": "data parsing only; not browser interaction",
       "sha256": "be949083f748d90722a5163542e7ea9dca831b7f52d4ae221e52788dbd9222a2"
     },
     "workspaceAdapter": {
       "path": "public/simulatte/system-diagram/study/workspace-store.js",
-      "roundTrippedDocuments": 12,
+      "roundTrippedDocuments": 14,
       "scope": "pure data adapter: independent overlays, authored metadata and Unicode notes; not browser gestures or download controls",
       "sha256": "2590f0aa187aacd51da2745b22642def4e4cf37ae71423a231b7fc0af76665b8"
     }
@@ -35,13 +35,13 @@
       "L013"
     ],
     "referenceTests": {
-      "command": "node --test tools/simulatte/study-reference/chat.test.mjs tools/simulatte/study-reference/comments.test.mjs tools/simulatte/study-reference/flashsale.test.mjs tools/simulatte/study-reference/pagination.test.mjs tools/simulatte/study-reference/timeline.test.mjs",
+      "command": "node --test tools/simulatte/study-reference/chat.test.mjs tools/simulatte/study-reference/comments.test.mjs tools/simulatte/study-reference/flashsale.test.mjs tools/simulatte/study-reference/notification-state.test.mjs tools/simulatte/study-reference/pagination.test.mjs tools/simulatte/study-reference/timeline.test.mjs",
       "failed": 0,
       "outputPath": "artifacts/composable-study/reference-tests.tap",
-      "outputSha256": "b37ed2c6b4950ec4c380de8b63d03dfd916aee906f6085fb88916cdab07e599a",
-      "passed": 56,
+      "outputSha256": "73b13f1e6ed6da5b2fd0aa4b886d69cf9f7c36e74b506d3ab9f3427fcc18f577",
+      "passed": 66,
       "scope": "bounded mechanism reference implementations; not distributed systems or latency qualification",
-      "tests": 56
+      "tests": 66
     },
     "status": "converted into the shared v2 contract"
   },
@@ -268,6 +268,54 @@
       ]
     },
     {
+      "referenceId": "L006",
+      "sha256": "a232bc2d3679ee17ffd2d4c170ba4394483ce3d326bbcfff503849faa196733b",
+      "solutions": [
+        {
+          "acceptanceCases": 5,
+          "acceptanceEvidence": "authored scenarios; no implementation execution claimed",
+          "componentInstancesByStage": [
+            2,
+            4,
+            5,
+            6,
+            9,
+            11,
+            12,
+            13
+          ],
+          "id": "scheduled",
+          "operations": {
+            "connect": 16,
+            "expand": 1,
+            "insert": 11
+          },
+          "stages": 8
+        },
+        {
+          "acceptanceCases": 5,
+          "acceptanceEvidence": "authored scenarios; no implementation execution claimed",
+          "componentInstancesByStage": [
+            2,
+            4,
+            6,
+            7,
+            10,
+            12,
+            13,
+            14
+          ],
+          "id": "change-driven",
+          "operations": {
+            "connect": 17,
+            "expand": 1,
+            "insert": 12
+          },
+          "stages": 8
+        }
+      ]
+    },
+    {
       "referenceId": "L007",
       "sha256": "19af8de64416ec45a8ef89ed4cf28821f58e7c2126a7be3e8f5cfe0a46a503d4",
       "solutions": [
@@ -314,6 +362,54 @@
             "expand": 1,
             "insert": 9,
             "merge": 1
+          },
+          "stages": 8
+        }
+      ]
+    },
+    {
+      "referenceId": "L008",
+      "sha256": "3d3bd3270d0332ac2b1505b45a1dacf2d75f2c339187db7645f7abc2f513ab2f",
+      "solutions": [
+        {
+          "acceptanceCases": 5,
+          "acceptanceEvidence": "authored scenarios; no implementation execution claimed",
+          "componentInstancesByStage": [
+            2,
+            4,
+            5,
+            7,
+            8,
+            9,
+            10,
+            11
+          ],
+          "id": "ledger",
+          "operations": {
+            "connect": 14,
+            "expand": 1,
+            "insert": 9
+          },
+          "stages": 8
+        },
+        {
+          "acceptanceCases": 5,
+          "acceptanceEvidence": "authored scenarios; no implementation execution claimed",
+          "componentInstancesByStage": [
+            2,
+            4,
+            5,
+            7,
+            8,
+            9,
+            10,
+            11
+          ],
+          "id": "workflow",
+          "operations": {
+            "connect": 14,
+            "expand": 1,
+            "insert": 9
           },
           "stages": 8
         }
@@ -709,7 +805,7 @@
   "sourceHashes": [
     {
       "path": "tests/composable-priority.test.cjs",
-      "sha256": "02b77968b898de7e28484479c62f574c5174d736846df7f81818b66b09639ca2"
+      "sha256": "56a16bb46165be3456009cd261ddec4bc6b1ceb36e071c6d1c16c471d1f4fca8"
     },
     {
       "path": "tests/composable-study.test.cjs",
@@ -721,7 +817,7 @@
     },
     {
       "path": "tools/simulatte/build-study-solutions.cjs",
-      "sha256": "1c26378d6d46177ba6e1db3a78dc0d71beaaeb5ef59d62a9865c225aed6408c3"
+      "sha256": "365e5cc04398591da56939215cbb8ede3df946d9a1790fdffed9976c126d6251"
     },
     {
       "path": "tools/simulatte/convert-priority-study.cjs",
@@ -754,6 +850,10 @@
     {
       "path": "tools/simulatte/study-content-delivery.cjs",
       "sha256": "0863d687a0725b39cc16fa1f9b763d346e7339a56523d111944534e0c3102b18"
+    },
+    {
+      "path": "tools/simulatte/study-content-notifications.cjs",
+      "sha256": "a97d7e71bad9068481baead65b7d5023a6097e91c61f347f959fc5772dfd0a49"
     },
     {
       "path": "tools/simulatte/study-content-platform.cjs",
@@ -810,6 +910,14 @@
     {
       "path": "tools/simulatte/study-reference/flashsale.test.mjs",
       "sha256": "33d6facafc77aaacd7affdb44347a26a1133ba5d3d1dde14e8ad69b37e40acf1"
+    },
+    {
+      "path": "tools/simulatte/study-reference/notification-state.mjs",
+      "sha256": "ff5d6aad53328cccc403913a00e3e9f91e0b1bbf5c3bf9a5413b378e060c925f"
+    },
+    {
+      "path": "tools/simulatte/study-reference/notification-state.test.mjs",
+      "sha256": "8ab128ba99f2c21bbdd97cdada86f63f0ae083a31120884eb42c499ce5074fcf"
     },
     {
       "path": "tools/simulatte/study-reference/pagination.mjs",

@@ -33,6 +33,7 @@ function runChecks(surface = TARGET_SURFACE) {
 
   // 2. World-specific runtime, plugins, catalog and dataset gates
   if (includeWorld) {
+    runStep('check:lucyd-spatial-proof', 'node tools/simulatte/build-study-solutions.cjs --check && node tools/simulatte/audit-study-spatial.cjs --check');
     runStep('plugins:check', 'node tools/simulatte/sync-model-source-hashes.mjs && node tools/simulatte/sync-tier-dataset-references.mjs && node tools/plugins/sync-plugin-integrity.mjs && node tools/plugins/sync-plugin-registry.mjs && node tools/plugins/check-plugin-boundaries.mjs');
     runStep('check:field-models', 'node tools/cached-check.mjs field-models');
     runStep('check:solar-drive-data', 'node tools/cached-check.mjs solar-drive-data');

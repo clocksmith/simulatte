@@ -1,0 +1,546 @@
+{
+  "schema": "simulatte.studyWorkspaceAcceptance.v1",
+  "started": "2026-10-28T00:06:53.388Z",
+  "url": "http://127.0.0.1:4173/lucyd",
+  "browser": "chromium 143.0.7499.4",
+  "viewports": {
+    "desktop": "1440x900",
+    "phone": "iPhone 13 emulation (touch)"
+  },
+  "scope": "Scripted browser interaction on one machine. Emulated touch is not a physical device; visual quality is judged separately.",
+  "summary": {
+    "checks": 42,
+    "passed": 38,
+    "failed": 4
+  },
+  "pageProblems": [],
+  "rows": [
+    {
+      "area": "drawing",
+      "check": "rectangle previews during the drag and commits on release",
+      "action": "R, then drag 160x90",
+      "observed": {
+        "duringDrag": [
+          {
+            "type": "rectangle",
+            "width": 80,
+            "height": 45
+          }
+        ],
+        "committed": [
+          [
+            "rectangle",
+            160,
+            90
+          ]
+        ],
+        "toolAfter": "selection",
+        "selected": 1
+      },
+      "result": "pass"
+    },
+    {
+      "area": "drawing",
+      "check": "Shift constrains proportions",
+      "action": "R, Shift-drag 120x60",
+      "observed": [
+        [
+          120,
+          120
+        ]
+      ],
+      "result": "pass"
+    },
+    {
+      "area": "drawing",
+      "check": "freehand stroke follows the pointer",
+      "action": "P, drag in 30 steps",
+      "observed": [
+        [
+          "freedraw",
+          32
+        ]
+      ],
+      "result": "pass"
+    },
+    {
+      "area": "drawing",
+      "check": "multipoint line by successive clicks",
+      "action": "L, click three points, Escape",
+      "observed": {
+        "created": [
+          [
+            "line",
+            3
+          ]
+        ],
+        "toolAfter": "selection"
+      },
+      "result": "pass"
+    },
+    {
+      "area": "drawing",
+      "check": "multipoint arrow by successive clicks",
+      "action": "A, click three points, Escape",
+      "observed": {
+        "created": [
+          [
+            "arrow",
+            3
+          ]
+        ],
+        "toolAfter": "selection"
+      },
+      "result": "pass"
+    },
+    {
+      "area": "drawing",
+      "check": "Q keeps the tool active between shapes",
+      "action": "Q, R, draw twice",
+      "observed": {
+        "created": 2,
+        "tool": "rectangle",
+        "locked": true
+      },
+      "result": "pass"
+    },
+    {
+      "area": "drawing",
+      "check": "Escape during a drag leaves no stuck gesture",
+      "action": "R, start a drag, Escape, release",
+      "observed": {
+        "created": [
+          [
+            60,
+            50
+          ]
+        ],
+        "tool": "selection",
+        "editing": null
+      },
+      "result": "pass"
+    },
+    {
+      "area": "shortcuts",
+      "check": "tool keys select their tools",
+      "action": "press each tool key on the canvas (9 opens the OS image picker and is not pressed)",
+      "observed": {
+        "0": "eraser",
+        "1": "selection",
+        "2": "rectangle",
+        "3": "diamond",
+        "4": "ellipse",
+        "5": "arrow",
+        "6": "line",
+        "7": "freedraw",
+        "8": "text",
+        "v": "selection",
+        "r": "rectangle",
+        "d": "diamond",
+        "o": "ellipse",
+        "a": "arrow",
+        "l": "line",
+        "p": "freedraw",
+        "t": "text",
+        "e": "eraser",
+        "h": "hand"
+      },
+      "result": "pass"
+    },
+    {
+      "area": "shortcuts",
+      "check": "typing in a study control does not switch tools",
+      "action": "focus the problem picker, type r and e",
+      "observed": {
+        "tool": "selection"
+      },
+      "result": "pass"
+    },
+    {
+      "area": "shortcuts",
+      "check": "typing in a label does not switch tools",
+      "action": "select a component, Enter, type r and e, Escape",
+      "observed": {
+        "toolWhileTyping": "selection",
+        "editing": false,
+        "label": "re"
+      },
+      "result": "fail"
+    },
+    {
+      "area": "shortcuts",
+      "check": "an open dialog suppresses drawing and delete shortcuts",
+      "action": "open the import error dialog, press r and Delete",
+      "observed": {
+        "tool": "selection",
+        "elementsUnchanged": true
+      },
+      "result": "pass"
+    },
+    {
+      "area": "editing",
+      "check": "copy and paste",
+      "action": "Cmd/Ctrl+C, Cmd/Ctrl+V",
+      "observed": {
+        "before": 17,
+        "after": 18
+      },
+      "result": "pass"
+    },
+    {
+      "area": "editing",
+      "check": "cut and paste",
+      "action": "Cmd/Ctrl+X, Cmd/Ctrl+V",
+      "observed": {
+        "before": 18,
+        "afterCut": 17,
+        "afterPaste": 18
+      },
+      "result": "pass"
+    },
+    {
+      "area": "editing",
+      "check": "duplicate",
+      "action": "Cmd/Ctrl+D",
+      "observed": {
+        "before": 18,
+        "after": 19,
+        "selectedIsCopy": true
+      },
+      "result": "pass"
+    },
+    {
+      "area": "editing",
+      "check": "delete removes the selection",
+      "action": "Delete the selected copy",
+      "observed": {
+        "copyPresent": false,
+        "originalPresent": true
+      },
+      "result": "pass"
+    },
+    {
+      "area": "editing",
+      "check": "Alt/Option-drag duplicates",
+      "action": "Alt-drag the rectangle 120 down",
+      "observed": {
+        "before": 18,
+        "after": 19,
+        "copyLeftAtOrigin": true,
+        "originalMoved": true
+      },
+      "result": "pass"
+    },
+    {
+      "area": "editing",
+      "check": "undo and redo",
+      "action": "Delete, undo, redo, undo",
+      "observed": {
+        "deleted": true,
+        "undone": true,
+        "redone": true,
+        "restored": true
+      },
+      "result": "pass"
+    },
+    {
+      "area": "editing",
+      "check": "group and ungroup",
+      "action": "marquee two rectangles, Cmd/Ctrl+G, Cmd/Ctrl+Shift+G",
+      "observed": {
+        "grouped": true,
+        "groupsAfterUngroup": [
+          0,
+          0
+        ]
+      },
+      "result": "pass"
+    },
+    {
+      "area": "editing",
+      "check": "layer order: bring forward and send backward",
+      "action": "select the lower rectangle, Cmd/Ctrl+], then Cmd/Ctrl+[",
+      "observed": {
+        "selected": true,
+        "index": [
+          20,
+          21,
+          20
+        ],
+        "aboveB": false
+      },
+      "result": "pass"
+    },
+    {
+      "area": "editing",
+      "check": "layer order: bring to front and send to back",
+      "action": "right-click → Bring to front, then Send to back",
+      "observed": {
+        "front": true,
+        "back": true
+      },
+      "result": "pass"
+    },
+    {
+      "area": "editing",
+      "check": "Help-listed Cmd+Option+] brings to front",
+      "action": "press Cmd/Ctrl+Option+] with the rectangle selected",
+      "observed": {
+        "indexBefore": 0,
+        "indexAfter": 21,
+        "last": 21
+      },
+      "result": "pass"
+    },
+    {
+      "area": "editing",
+      "check": "Help-listed Cmd+Option+[ sends to back",
+      "action": "press Cmd/Ctrl+Option+[ with the same rectangle selected",
+      "observed": {
+        "indexAfter": 0
+      },
+      "result": "pass"
+    },
+    {
+      "area": "editing",
+      "check": "grouping does not invent subsystem ownership",
+      "action": "group two authored components",
+      "observed": {
+        "authoredUnchanged": true,
+        "overlayFields": [
+          "groupIds"
+        ]
+      },
+      "result": "pass"
+    },
+    {
+      "area": "import/export",
+      "check": "an edit stays with its stage only",
+      "action": "move a component on stage 2, visit stage 3, return",
+      "observed": {
+        "stage3Unmoved": true,
+        "stage2Kept": false,
+        "editedBadge": true
+      },
+      "result": "fail"
+    },
+    {
+      "area": "import/export",
+      "check": "undo after changing stage stays within the stage",
+      "action": "edit stage 2, go to stage 3 and back, press undo",
+      "observed": {
+        "sceneUnchanged": true,
+        "editKept": false
+      },
+      "result": "fail"
+    },
+    {
+      "area": "import/export",
+      "check": "each approach keeps independent stage edits",
+      "action": "edit stage 2 of both approaches",
+      "observed": {
+        "overlays": {
+          "push": [
+            "push-s2"
+          ],
+          "lease-poll": [
+            "lease-poll-s2"
+          ]
+        }
+      },
+      "result": "pass"
+    },
+    {
+      "area": "import/export",
+      "check": "autosave reports status and restores after reload",
+      "action": "read the save status, reload the page",
+      "observed": {
+        "status": "Saved in this browser at 08:07:25 PM",
+        "restoredOverlays": true
+      },
+      "result": "pass"
+    },
+    {
+      "area": "import/export",
+      "check": "export writes the authored document, every stage edit and the view",
+      "action": "File → Export workspace",
+      "observed": {
+        "file": "l034-study-workspace.json",
+        "equal": true
+      },
+      "result": "pass"
+    },
+    {
+      "area": "import/export",
+      "check": "the authored document exports unchanged",
+      "action": "File → Export authored document only",
+      "observed": {
+        "sameAsPublished": true
+      },
+      "result": "pass"
+    },
+    {
+      "area": "import/export",
+      "check": "reimport previews, then restores everything including unknown fields",
+      "action": "import the export with an extra extension field, confirm",
+      "observed": {
+        "previewNamesProblem": true,
+        "previewCountsEdits": true,
+        "equal": true
+      },
+      "result": "pass"
+    },
+    {
+      "area": "import/export",
+      "check": "an invalid import names the location and keeps current work",
+      "action": "import a file whose overlay names a missing stage",
+      "observed": {
+        "message": "bad.json was not imported  overlays.push.no-such-stage: no such stage in this approach. Your current workspace is unchanged.",
+        "unchanged": true
+      },
+      "result": "pass"
+    },
+    {
+      "area": "import/export",
+      "check": "resetting a stage removes only that stage overlay",
+      "action": "press Edited · reset on lease-poll stage 2",
+      "observed": {
+        "overlays": {
+          "push": [
+            "push-s2"
+          ]
+        }
+      },
+      "result": "pass"
+    },
+    {
+      "area": "import/export",
+      "check": "an inserted image survives stage navigation and is saved with the stage",
+      "action": "drop a PNG file on the canvas, go to the next stage and back",
+      "observed": {
+        "placed": true,
+        "back": true,
+        "fileStored": true
+      },
+      "result": "pass"
+    },
+    {
+      "area": "import/export",
+      "check": "an image round-trips through export and reimport",
+      "action": "export, clear browser storage, reimport",
+      "observed": {
+        "restored": {
+          "type": "image",
+          "status": "pending",
+          "fileId": "fe12e1d89041cb0e09f475f01fcff94abcfaae4c"
+        },
+        "fileDataLoaded": true
+      },
+      "result": "pass"
+    },
+    {
+      "area": "performance",
+      "check": "a stage with 2,000 learner elements stays usable",
+      "action": "import a workspace with 2,000 rectangles on one stage, step away and back, drag a component",
+      "observed": {
+        "importMs": 122,
+        "stepAwayMs": 60,
+        "stepBackMs": 113,
+        "dragMs": 828,
+        "moved": true
+      },
+      "result": "pass"
+    },
+    {
+      "area": "touch",
+      "check": "controls are reachable on a phone",
+      "action": "iPhone 13 emulation: tools, undo and menu inside the viewport, nothing clipped",
+      "observed": {
+        "tools": true,
+        "undo": true,
+        "menu": true,
+        "nothingClipped": true
+      },
+      "result": "pass"
+    },
+    {
+      "area": "touch",
+      "check": "problem, approach and stage controls work by tap",
+      "action": "Menu → Study notes and stages, tap Next in the sidebar",
+      "observed": {
+        "sidebarControlsVisible": true,
+        "stageIndex": 3
+      },
+      "result": "pass"
+    },
+    {
+      "area": "touch",
+      "check": "a one-finger drag on empty canvas never creates or moves shapes",
+      "action": "swipe empty canvas with the selection tool",
+      "observed": {
+        "elementsUnchanged": true,
+        "scrolled": [
+          0,
+          0
+        ]
+      },
+      "result": "pass"
+    },
+    {
+      "area": "touch",
+      "check": "pinch zooms without drawing",
+      "action": "two-finger pinch outwards",
+      "observed": {
+        "zoom": [
+          0.7,
+          2.567
+        ],
+        "elementsAdded": 0
+      },
+      "result": "pass"
+    },
+    {
+      "area": "touch",
+      "check": "a touch drag draws with the chosen tool",
+      "action": "tap Rectangle, drag with one finger",
+      "observed": {
+        "tool": "rectangle",
+        "drawn": [
+          "rectangle",
+          27,
+          19
+        ]
+      },
+      "result": "pass"
+    },
+    {
+      "area": "touch",
+      "check": "resize handles are usable while zoomed",
+      "action": "drag the corner handle by touch at zoom 2.57",
+      "observed": {
+        "width": [
+          27,
+          43
+        ]
+      },
+      "result": "pass"
+    },
+    {
+      "area": "touch",
+      "check": "a cancelled touch leaves no phantom or stuck gesture",
+      "action": "Rectangle, touch-drag, then touchcancel, then tap empty canvas",
+      "observed": {
+        "leftover": [
+          [
+            "rectangle",
+            19,
+            14
+          ]
+        ],
+        "toolAfterCancel": "selection",
+        "selectedAfterTap": 1
+      },
+      "result": "fail"
+    }
+  ]
+}

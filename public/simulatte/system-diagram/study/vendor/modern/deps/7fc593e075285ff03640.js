@@ -1,0 +1,8 @@
+/**
+ * Bundled by jsDelivr using Rollup v4.62.2 and esbuild v0.28.1.
+ * Original file: /npm/use-sync-external-store@1.2.0/shim/index.js
+ *
+ * Do NOT use SRI with dynamically generated files! More information: https://www.jsdelivr.com/using-sri-with-dynamic-files
+ */
+import*as _ from"../react.js";function g(r){return r&&Object.prototype.hasOwnProperty.call(r,"default")?r.default:r}var a={exports:{}},c={},q=g(_);var f;function O(){if(f)return c;f=1;var r=q;function d(e,t){return e===t&&(e!==0||1/e===1/t)||e!==e&&t!==t}var l=typeof Object.is=="function"?Object.is:d,m=r.useState,v=r.useEffect,y=r.useLayoutEffect,h=r.useDebugValue;function x(e,t){var u=t(),i=m({inst:{value:u,getSnapshot:t}}),n=i[0].inst,s=i[1];return y(function(){n.value=u,n.getSnapshot=t,o(n)&&s({inst:n})},[e,u,t]),v(function(){return o(n)&&s({inst:n}),e(function(){o(n)&&s({inst:n})})},[e]),h(u),u}function o(e){var t=e.getSnapshot;e=e.value;try{var u=t();return!l(e,u)}catch{return!0}}function E(e,t){return t()}var w=typeof window>"u"||typeof window.document>"u"||typeof window.document.createElement>"u"?E:x;return c.useSyncExternalStore=r.useSyncExternalStore!==void 0?r.useSyncExternalStore:w,c}var S;function j(){return S||(S=1,a.exports=O()),a.exports}var p=j(),D=p.useSyncExternalStore;export{p as default,D as useSyncExternalStore};
+//# sourceMappingURL=/sm/baf7c0c1cbc5e74d684e8f4bc067cc466bda135ee28c7bfef8750a4039681d83.map

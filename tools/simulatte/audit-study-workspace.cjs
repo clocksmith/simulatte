@@ -19,9 +19,9 @@ const near = (a, b, tolerance = 2) => Math.abs(a - b) <= tolerance;
 function harness(page) {
   const h = {page};
   h.state = () => page.evaluate(() => { const s = SimulatteStudyInspector.appState(); return {tool: s.activeTool.type, locked: s.activeTool.locked, zoom: s.zoom.value, scrollX: s.scrollX, scrollY: s.scrollY, offsetLeft: s.offsetLeft, offsetTop: s.offsetTop, width: s.width, height: s.height,
-    selected: Object.keys(s.selectedElementIds).filter(k => s.selectedElementIds[k]), editing: s.editingElement?.id || null, suggested: (s.suggestedBindings || []).length, contextMenu: !!document.querySelector('.context-menu')}; });
+    selected: Object.keys(s.selectedElementIds).filter(k => s.selectedElementIds[k]), editing: s.editingTextElement?.id || null, suggested: (s.suggestedBindings || []).length, contextMenu: !!document.querySelector('.context-menu')}; });
   h.elements = () => page.evaluate(() => SimulatteStudyInspector.elements().map(e => ({id: e.id, type: e.type, x: e.x, y: e.y, width: e.width, height: e.height, angle: e.angle, text: e.text, originalText: e.originalText, containerId: e.containerId,
-    groupIds: e.groupIds, points: e.points, seed: e.seed, strokeColor: e.strokeColor, start: e.startBinding?.elementId || null, end: e.endBinding?.elementId || null, role: e.customData?.study?.role || null, connection: e.customData?.studyConnection || null})));
+    groupIds: e.groupIds, points: e.points, backgroundColor:e.backgroundColor, seed: e.seed, strokeColor: e.strokeColor, start: e.startBinding?.elementId || null, end: e.endBinding?.elementId || null, role: e.customData?.study?.role || null, connection: e.customData?.studyConnection || null})));
   h.workspace = () => page.evaluate(() => SimulatteStudyInspector.workspace());
   h.toScreen = async ([x, y]) => { const s = await h.state(); return [(x + s.scrollX) * s.zoom + s.offsetLeft, (y + s.scrollY) * s.zoom + s.offsetTop]; };
   h.toScene = async ([x, y]) => { const s = await h.state(); return [(x - s.offsetLeft) / s.zoom - s.scrollX, (y - s.offsetTop) / s.zoom - s.scrollY]; };
@@ -48,7 +48,15 @@ function harness(page) {
     const onCanvas = await page.evaluate(([w, hh]) => { const out = []; for (let y = 140; y < hh - 140; y += 40) for (let x = 120; x < w - 120; x += 40) if (document.elementFromPoint(x, y)?.matches('canvas.interactive')) out.push([x, y]); return out; }, [s.width, s.height]);
     for (const [x, y] of onCanvas) {
       const [sx, sy] = await h.toScene([x, y]);
-      if (!els.some(e => sx > Math.min(e.x, e.x + e.width) - 30 && sx < Math.max(e.x, e.x + e.width) + 30 && sy > Math.min(e.y, e.y + e.height) - 30 && sy < Math.max(e.y, e.y + e.height) + 30)) return [x, y];
+      const occupied = e => {
+        if (e.points?.length > 1) return e.points.slice(1).some((p,i) => {
+          const a=[e.x+e.points[i][0],e.y+e.points[i][1]],b=[e.x+p[0],e.y+p[1]],dx=b[0]-a[0],dy=b[1]-a[1],t=Math.max(0,Math.min(1,((sx-a[0])*dx+(sy-a[1])*dy)/(dx*dx+dy*dy||1)));
+          return Math.hypot(sx-a[0]-t*dx,sy-a[1]-t*dy)<30;
+        });
+        const inside=sx>e.x-30&&sx<e.x+Math.abs(e.width)+30&&sy>e.y-30&&sy<e.y+Math.abs(e.height)+30;
+        return inside && (e.role!=='boundary'||Math.min(Math.abs(sx-e.x),Math.abs(sx-e.x-e.width),Math.abs(sy-e.y),Math.abs(sy-e.y-e.height))<30);
+      };
+      if (!els.some(occupied)) return [x, y];
     }
     return [s.width - 150, s.height - 150];
   };
@@ -61,6 +69,16 @@ function harness(page) {
       if (s.zoom !== 1) await h.key(`${META}+0`);
     }
     throw Error('could not find an empty drawing area');
+  };
+  h.reveal = async id => {
+    await h.focusCanvas();
+    for(let i=0;i<16;i++){
+      const box=await h.box(id),s=await h.state();
+      if(box.c[0]>120&&box.c[0]<s.width-120&&box.c[1]>180&&box.c[1]<s.height-160)return;
+      const dx=Math.max(-s.width/3,Math.min(s.width/3,s.width/2-box.c[0])),dy=Math.max(-s.height/3,Math.min(s.height/3,s.height/2-box.c[1]));
+      await h.drag([s.width/2,s.height/2],[s.width/2+dx,s.height/2+dy],{mods:['Space'],steps:5});
+    }
+    throw Error('Could not pan component into view: '+id);
   };
   h.newest = async before => (await h.elements()).filter(e => !before.some(b => b.id === e.id));
   h.box = async id => { const e = (await h.elements()).find(x => x.id === id); const a = await h.toScreen([e.x, e.y]), z = await h.toScreen([e.x + e.width, e.y + e.height]); return {e, a, z, c: [(a[0] + z[0]) / 2, (a[1] + z[1]) / 2]}; };

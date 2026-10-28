@@ -1,0 +1,85 @@
+{
+  "entryUrl": "http://127.0.0.1:4173/simulatte/system-diagram/study/vendor/modern/index.js",
+  "entrySha256": "20b7cca37b36e004c8cb32e9d76b75d216d91c4c4deb0e47ecb2a4d7145e2363",
+  "localEntrySha256": "20b7cca37b36e004c8cb32e9d76b75d216d91c4c4deb0e47ecb2a4d7145e2363",
+  "schema": "simulatte.studyFontAudit.v1",
+  "url": "http://127.0.0.1:4173/lucyd",
+  "browser": "143.0.7499.4",
+  "excalidraw": "0.18.1",
+  "scope": "Native picker interactions, loaded browser fonts and workspace JSON round-trip. One desktop Chromium, no physical mobile proof.",
+  "externalRequests": [],
+  "pageProblems": [],
+  "rows": [
+    {
+      "name": "Nunito",
+      "expected": 6,
+      "fontFamily": 6,
+      "text": "New font sample: Cafe 123",
+      "fonts": [
+        "Assistant",
+        "Assistant",
+        "Assistant",
+        "Excalifont",
+        "Nunito"
+      ],
+      "pass": true
+    },
+    {
+      "name": "Comic Shanns",
+      "expected": 8,
+      "fontFamily": 8,
+      "text": "New font sample: Cafe 123",
+      "fonts": [
+        "Assistant",
+        "Assistant",
+        "Assistant",
+        "Comic Shanns",
+        "Excalifont",
+        "Nunito"
+      ],
+      "pass": true
+    },
+    {
+      "name": "Excalifont",
+      "expected": 5,
+      "fontFamily": 5,
+      "text": "New font sample: Cafe 123",
+      "fonts": [
+        "Assistant",
+        "Assistant",
+        "Assistant",
+        "Comic Shanns",
+        "Excalifont",
+        "Nunito"
+      ],
+      "pass": true
+    },
+    {
+      "name": "Lilita One",
+      "expected": 7,
+      "fontFamily": 7,
+      "pass": true
+    },
+    {
+      "name": "Legacy font 1",
+      "fontFamily": 1,
+      "pass": true
+    },
+    {
+      "name": "Legacy font 2",
+      "fontFamily": 2,
+      "pass": true
+    },
+    {
+      "name": "Legacy font 3",
+      "fontFamily": 3,
+      "pass": true
+    },
+    {
+      "name": "Workspace JSON preserves selected font",
+      "fontFamily": 7,
+      "pass": true
+    }
+  ],
+  "passed": true
+}

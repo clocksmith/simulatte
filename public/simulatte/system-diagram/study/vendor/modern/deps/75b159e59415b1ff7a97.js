@@ -1,0 +1,8 @@
+/**
+ * Bundled by jsDelivr using Rollup v4.62.2 and esbuild v0.28.1.
+ * Original file: /npm/@radix-ui/react-slot@1.1.2/dist/index.mjs
+ *
+ * Do NOT use SRI with dynamically generated files! More information: https://www.jsdelivr.com/using-sri-with-dynamic-files
+ */
+import*as o from"../react.js";import{composeRefs as m}from"./5d918110ab0c0816b220.js";import{jsx as c,Fragment as g}from"../jsx-runtime.js";var f=o.forwardRef((r,n)=>{const{children:e,...t}=r,l=o.Children.toArray(e),i=l.find(y);if(i){const s=i.props.children,a=l.map(u=>u===i?o.Children.count(s)>1?o.Children.only(null):o.isValidElement(s)?s.props.children:null:u);return c(p,{...t,ref:n,children:o.isValidElement(s)?o.cloneElement(s,void 0,a):null})}return c(p,{...t,ref:n,children:e})});f.displayName="Slot";var p=o.forwardRef((r,n)=>{const{children:e,...t}=r;if(o.isValidElement(e)){const l=R(e),i=h(t,e.props);return e.type!==o.Fragment&&(i.ref=n?m(n,l):l),o.cloneElement(e,i)}return o.Children.count(e)>1?o.Children.only(null):null});p.displayName="SlotClone";var d=({children:r})=>c(g,{children:r});function y(r){return o.isValidElement(r)&&r.type===d}function h(r,n){const e={...n};for(const t in n){const l=r[t],i=n[t];/^on[A-Z]/.test(t)?l&&i?e[t]=(...a)=>{i(...a),l(...a)}:l&&(e[t]=l):t==="style"?e[t]={...l,...i}:t==="className"&&(e[t]=[l,i].filter(Boolean).join(" "))}return{...r,...e}}function R(r){let n=Object.getOwnPropertyDescriptor(r.props,"ref")?.get,e=n&&"isReactWarning"in n&&n.isReactWarning;return e?r.ref:(n=Object.getOwnPropertyDescriptor(r,"ref")?.get,e=n&&"isReactWarning"in n&&n.isReactWarning,e?r.props.ref:r.props.ref||r.ref)}var C=f;export{C as Root,f as Slot,d as Slottable};
+//# sourceMappingURL=/sm/4d9cdf7484260745e3103bef0b8752ac771f9dbde9eb8fbffbb0069a6bd23990.map

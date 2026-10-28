@@ -1,0 +1,43 @@
+{
+  "schema": "simulatte.studySpatialPolicy.v1",
+  "version": 1,
+  "seed": 1,
+  "node": {
+    "fontSize": 16,
+    "labelWidth": 190,
+    "minWidth": 230,
+    "minHeight": 92,
+    "padding": 24
+  },
+  "boundary": {
+    "padding": 42,
+    "header": 60
+  },
+  "layout": {
+    "direction": "RIGHT",
+    "nodeGap": 100,
+    "layerGap": 160,
+    "aspectRatio": 1.6,
+    "minimumReadingZoom": 0.7
+  },
+  "routing": {
+    "clearance": 18,
+    "laneGap": 24,
+    "portGap": 20,
+    "bendCost": 32,
+    "crossingCost": 120,
+    "sharedSegmentCost": 1000,
+    "maxSearchStates": 60000
+  },
+  "label": {
+    "fontSize": 14,
+    "maxWidth": 112,
+    "padding": 4,
+    "lineHeight": 1.25
+  },
+  "limits": {
+    "maxNodes": 100,
+    "maxEdges": 300,
+    "maxStages": 32
+  }
+}
