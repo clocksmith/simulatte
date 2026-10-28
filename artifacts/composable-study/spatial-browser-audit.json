@@ -1,6 +1,6 @@
 {
   "schema": "simulatte.studySpatialBrowserAudit.v1",
-  "url": "http://127.0.0.1:4173/lucyd",
+  "url": "https://simulatte.world/lucyd",
   "inputHashes": [
     {
       "path": "public/data/system-diagram/composable-solutions/components.json",
