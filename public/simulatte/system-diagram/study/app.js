@@ -152,7 +152,7 @@
     // response can never undo navigation or a later choice made while it was in flight.
     const openProblem = useCallback(async (referenceId, view = {}) => {
       const load = ++loadRef.current;
-      if (wsRef.current) { capture(); clearTimeout(timers.current.save); try { storage.set(workspaceKey(wsRef.current.document.problem.referenceId), Store.serialize(wsRef.current)); } catch { /* reported on next save */ } }
+      if (wsRef.current && !READ_ONLY) { capture(); clearTimeout(timers.current.save); try { storage.set(workspaceKey(wsRef.current.document.problem.referenceId), Store.serialize(wsRef.current)); } catch { /* reported on next save */ } }
       const item = catalogueRef.current.find(c => c.referenceId === referenceId);
       try {
         if(!item?.path && storage.get(workspaceKey(referenceId))){const next=Store.parse(storage.get(workspaceKey(referenceId))).workspace;await Spatial.prepare(next.document);if(load!==loadRef.current)return;setWs(next);render(next,{fit:true});return;}
