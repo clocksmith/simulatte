@@ -933,7 +933,9 @@
 
   document.body.dataset.simulationProfile = profile.id;
   const requestedProblem = new URL(location.href).searchParams.get('problem');
-  if (requestedProblem) { const expected = model.diagram; interviewStepper.ready.then(() => { if (model.diagram === expected && !hasUnsavedChanges()) interviewStepper.setScenario(requestedProblem); }).catch(error => message(error.message, true)); }
+  // ?problem=L004&approach=<solution id> opens an approach directly, including study design approaches.
+  const requestedApproach = new URL(location.href).searchParams.get('approach');
+  if (requestedProblem) { const expected = model.diagram; interviewStepper.ready.then(async () => { if (model.diagram !== expected || hasUnsavedChanges()) return; interviewStepper.setScenario(requestedProblem); if (requestedApproach) { await interviewStepper.studyApproaches(); await interviewStepper.showSolution(requestedApproach); } }).catch(error => message(error.message, true)); }
   document.body.dataset.editorReady = 'true';
   message(recoveryError || 'Lucyd ready.', Boolean(recoveryError));
 })().catch(e => {

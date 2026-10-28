@@ -183,5 +183,6 @@
   "interviewJourneysPath": "/data/system-diagram/interview-journeys.json",
   "interviewProblemsPath": "/data/system-diagram/interview-problems.json",
   "interviewSolutionsPath": "/data/system-diagram/interview-solutions.json",
-  "problemsPath": "/data/system-diagram/problems.json"
+  "problemsPath": "/data/system-diagram/problems.json",
+  "studyManifestPath": "/data/system-diagram/composable-solutions/manifest.json"
 }
