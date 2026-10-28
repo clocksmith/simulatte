@@ -88,7 +88,7 @@
     }, []);
 
     // Draw the current stage: authored scene plus this stage's overlay. Navigation never enters undo history.
-    const render = useCallback((next, {fit = false} = {}) => {
+    const render = useCallback((next, {fit = false, overview = false} = {}) => {
       const excalidraw = apiRef.current; if (!excalidraw || !next) return;
       const generation = ++renderGeneration.current;
       const sol = solutionOf(next);
@@ -98,17 +98,18 @@
       authoredRef.current = authored;
       loadingRef.current = true;
       if (overlay?.files) excalidraw.addFiles(Object.values(overlay.files));
-      excalidraw.updateScene({elements: X.restoreElements(Scene.applyOverlay(authored, overlay), null, {repairBindings:true,refreshDimensions:true}), appState: {selectedElementIds: {}, editingTextElement: null, currentItemFontFamily: Spatial.metrics.fontFamily, name: `${next.document.problem.referenceId} ${sol.title}`}, captureUpdate: X.CaptureUpdateAction.NEVER});
+      const displayed=X.restoreElements(Scene.applyOverlay(authored, overlay), null, {repairBindings:true,refreshDimensions:true});
+      excalidraw.updateScene({elements: displayed, appState: {selectedElementIds: {}, editingTextElement: null, currentItemFontFamily: Spatial.metrics.fontFamily, name: `${next.document.problem.referenceId} ${sol.title}`}, captureUpdate: X.CaptureUpdateAction.NEVER});
       excalidraw.history.clear();
       versionRef.current = X.getSceneVersion(excalidraw.getSceneElementsIncludingDeleted());
       loadingRef.current = false;
       if (fit) root.requestAnimationFrame(() => {
         if (renderGeneration.current !== generation) return;
         const minimum=Spatial.policy.layout.minimumReadingZoom,state=excalidraw.getAppState();
-        const boxes=authored.filter(e=>e.customData?.study?.role==='node');
+        const boxes=displayed.filter(e=>e.customData?.study?.role==='node');
         const width=Math.max(...boxes.map(e=>e.x+e.width))-Math.min(...boxes.map(e=>e.x)),height=Math.max(...boxes.map(e=>e.y+e.height))-Math.min(...boxes.map(e=>e.y));
         const changed=boxes.filter(e=>e.customData.study.change),wouldShrink=Math.min((state.width-150)/width,(state.height-180)/height)<minimum;
-        excalidraw.scrollToContent(wouldShrink&&changed.length?changed:undefined,{fitToContent:true,minZoom:minimum,maxZoom:1,animate:false,canvasOffsets:{top:92,bottom:!COMPACT&&studyModeRef.current?300:76,left:20,right:document.querySelector('.sw-sidebar')?.getBoundingClientRect().width+20||20}});
+        excalidraw.scrollToContent(overview?displayed:wouldShrink&&changed.length?changed:undefined,{fitToContent:true,minZoom:overview?0.1:minimum,maxZoom:1,animate:false,canvasOffsets:{top:92,bottom:!COMPACT&&studyModeRef.current?300:76,left:20,right:document.querySelector('.sw-sidebar')?.getBoundingClientRect().width+20||20}});
       });
       setBuilt(result); writeQuery(next);
     }, []);
@@ -258,7 +259,7 @@
           if(!catalogueRef.current.some(c=>c.referenceId===ref)){
             const list=[...catalogueRef.current,{referenceId:ref,title:next.document.problem.studyLabel}];catalogueRef.current=list;setCatalogue(list);
           }
-          const first=!wsRef.current;revision=value.revision;setWs(next);render(next,{fit:first||!!value.fit});save();
+          const first=!wsRef.current;revision=value.revision;setWs(next);render(next,{fit:first||!!value.fit,overview:READ_ONLY&&!!value.overview});save();
           setSaveStatus('Live suggestions updated. Your stage edits are preserved.');send('lucyd.live.applied',{revision});
         }catch(error){send('lucyd.live.error',{message:error.message});}
       };

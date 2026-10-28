@@ -41,3 +41,5 @@ Observed by scripted mouse, keyboard and emulated touch input; rows cite [the au
 Stage navigation: Page Down advances and Page Up goes back within the selected approach. The buttons show PgUp/PgDn hints on desktop and tooltips include Mac laptop Fn+arrow equivalents. Typing, open dialogs, active drawing gestures and modified key combinations retain their native behavior.
 
 Problem and approach selections always start at stage 1, while retaining independent edits. Explicit stage links and imported workspace views remain exact. Study mode toggles a centered guide containing every stage title and the current rationale. Notes defaults to a viewport-bounded 480px panel with high-contrast tabs and body text.
+
+Embedded read-only observers may request `overview: true` with a `lucyd.live.workspace` message. This fits the complete displayed graph below the normal reading zoom for an architecture overview; ordinary study views retain their reading minimum. Camera fitting measures the displayed overlay geometry, so a screenshot reconstruction does not fit stale authored coordinates. This changes presentation only.
