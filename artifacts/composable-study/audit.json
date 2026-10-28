@@ -5,20 +5,20 @@
       "command": "node --test tests/composable-study.test.cjs tests/composable-priority.test.cjs",
       "failed": 0,
       "outputPath": "artifacts/composable-study/contract-tests.tap",
-      "outputSha256": "1c6557635bbe6ff59d55c0ab406dfce07be0e89eb1396cf0eb60bd04c7092e2f",
+      "outputSha256": "e5161157cbe18bb859ab760e0e40e648bc3b4c634c519ffc0d0888382fbead7d",
       "passed": 33,
       "tests": 33
     },
     "deployment": "not performed by this tool",
     "interfaceParser": {
-      "acceptedDocuments": 14,
+      "acceptedDocuments": 34,
       "path": "public/simulatte/system-diagram/study/composable-study.js",
       "scope": "data parsing only; not browser interaction",
       "sha256": "be949083f748d90722a5163542e7ea9dca831b7f52d4ae221e52788dbd9222a2"
     },
     "workspaceAdapter": {
       "path": "public/simulatte/system-diagram/study/workspace-store.js",
-      "roundTrippedDocuments": 14,
+      "roundTrippedDocuments": 34,
       "scope": "pure data adapter: independent overlays, authored metadata and Unicode notes; not browser gestures or download controls",
       "sha256": "2590f0aa187aacd51da2745b22642def4e4cf37ae71423a231b7fc0af76665b8"
     }
@@ -35,13 +35,13 @@
       "L013"
     ],
     "referenceTests": {
-      "command": "node --test tools/simulatte/study-reference/chat.test.mjs tools/simulatte/study-reference/comments.test.mjs tools/simulatte/study-reference/flashsale.test.mjs tools/simulatte/study-reference/notification-state.test.mjs tools/simulatte/study-reference/pagination.test.mjs tools/simulatte/study-reference/timeline.test.mjs",
+      "command": "node --test tools/simulatte/study-reference/batch-04-state.test.mjs tools/simulatte/study-reference/batch-05-state.test.mjs tools/simulatte/study-reference/batch-06-state.test.mjs tools/simulatte/study-reference/batch-07-mechanisms.test.mjs tools/simulatte/study-reference/batch-08-mechanisms.test.mjs tools/simulatte/study-reference/chat.test.mjs tools/simulatte/study-reference/comments.test.mjs tools/simulatte/study-reference/flashsale.test.mjs tools/simulatte/study-reference/notification-state.test.mjs tools/simulatte/study-reference/pagination.test.mjs tools/simulatte/study-reference/timeline.test.mjs",
       "failed": 0,
       "outputPath": "artifacts/composable-study/reference-tests.tap",
-      "outputSha256": "73b13f1e6ed6da5b2fd0aa4b886d69cf9f7c36e74b506d3ab9f3427fcc18f577",
-      "passed": 66,
+      "outputSha256": "54f1f72e6847c77dca7167bbad824704da3f082a09678fe4b32602e00c8e5399",
+      "passed": 88,
       "scope": "bounded mechanism reference implementations; not distributed systems or latency qualification",
-      "tests": 66
+      "tests": 88
     },
     "status": "converted into the shared v2 contract"
   },
@@ -92,6 +92,52 @@
             "expand": 1,
             "insert": 11,
             "merge": 1
+          },
+          "stages": 8
+        }
+      ]
+    },
+    {
+      "referenceId": "L002",
+      "sha256": "d84cc92bf85eca51023a29cddf91c9f66059bdca84d25a5bdfc640ca95d76ca7",
+      "solutions": [
+        {
+          "acceptanceCases": 2,
+          "acceptanceEvidence": "authored scenarios; no implementation execution claimed",
+          "componentInstancesByStage": [
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          "id": "synchronous",
+          "operations": {
+            "connect": 8,
+            "insert": 9
+          },
+          "stages": 8
+        },
+        {
+          "acceptanceCases": 2,
+          "acceptanceEvidence": "authored scenarios; no implementation execution claimed",
+          "componentInstancesByStage": [
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          "id": "durable-jobs",
+          "operations": {
+            "connect": 8,
+            "insert": 9
           },
           "stages": 8
         }
@@ -697,6 +743,402 @@
       ]
     },
     {
+      "referenceId": "L016",
+      "sha256": "146ff78804a1520be13705e8ae89d314c0448f88aadfaeca28ce4aadb1840dc4",
+      "solutions": [
+        {
+          "acceptanceCases": 3,
+          "acceptanceEvidence": "authored scenarios; no implementation execution claimed",
+          "componentInstancesByStage": [
+            2,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10
+          ],
+          "id": "cache-aside",
+          "operations": {
+            "connect": 7,
+            "expand": 1,
+            "insert": 8,
+            "rebind": 3
+          },
+          "stages": 8
+        },
+        {
+          "acceptanceCases": 3,
+          "acceptanceEvidence": "authored scenarios; no implementation execution claimed",
+          "componentInstancesByStage": [
+            2,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10
+          ],
+          "id": "cqrs",
+          "operations": {
+            "connect": 7,
+            "expand": 1,
+            "insert": 8,
+            "rebind": 1
+          },
+          "stages": 8
+        }
+      ]
+    },
+    {
+      "referenceId": "L019",
+      "sha256": "26e00df475b7341eee1e4c9aeec53ae70f32bf4da1c468417434783df1d41f0d",
+      "solutions": [
+        {
+          "acceptanceCases": 3,
+          "acceptanceEvidence": "authored scenarios; no implementation execution claimed",
+          "componentInstancesByStage": [
+            2,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10
+          ],
+          "id": "multi-cdn",
+          "operations": {
+            "connect": 7,
+            "expand": 1,
+            "insert": 8,
+            "rebind": 1
+          },
+          "stages": 8
+        },
+        {
+          "acceptanceCases": 3,
+          "acceptanceEvidence": "authored scenarios; no implementation execution claimed",
+          "componentInstancesByStage": [
+            2,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10
+          ],
+          "id": "peer-assisted",
+          "operations": {
+            "connect": 7,
+            "expand": 1,
+            "insert": 8,
+            "rebind": 2
+          },
+          "stages": 8
+        }
+      ]
+    },
+    {
+      "referenceId": "L023",
+      "sha256": "f7b89d96134ae02ab260db174b9f218751c2999cd249187358347c61122f98d9",
+      "solutions": [
+        {
+          "acceptanceCases": 3,
+          "acceptanceEvidence": "authored scenarios; no implementation execution claimed",
+          "componentInstancesByStage": [
+            2,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10
+          ],
+          "id": "transactional",
+          "operations": {
+            "connect": 7,
+            "expand": 1,
+            "insert": 8,
+            "rebind": 3
+          },
+          "stages": 8
+        },
+        {
+          "acceptanceCases": 3,
+          "acceptanceEvidence": "authored scenarios; no implementation execution claimed",
+          "componentInstancesByStage": [
+            2,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10
+          ],
+          "id": "capability",
+          "operations": {
+            "connect": 7,
+            "expand": 1,
+            "insert": 8,
+            "rebind": 2
+          },
+          "stages": 8
+        }
+      ]
+    },
+    {
+      "referenceId": "L024",
+      "sha256": "9dee97cdd2734f15ece62579ad68175d8770dd8c94f19f1bf9332ec681426fb5",
+      "solutions": [
+        {
+          "acceptanceCases": 3,
+          "acceptanceEvidence": "authored scenarios; no implementation execution claimed",
+          "componentInstancesByStage": [
+            2,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10
+          ],
+          "id": "frontier",
+          "operations": {
+            "connect": 7,
+            "expand": 1,
+            "insert": 8,
+            "rebind": 2
+          },
+          "stages": 8
+        },
+        {
+          "acceptanceCases": 3,
+          "acceptanceEvidence": "authored scenarios; no implementation execution claimed",
+          "componentInstancesByStage": [
+            2,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10
+          ],
+          "id": "manifest",
+          "operations": {
+            "connect": 7,
+            "expand": 1,
+            "insert": 8,
+            "rebind": 1
+          },
+          "stages": 8
+        }
+      ]
+    },
+    {
+      "referenceId": "L025",
+      "sha256": "a5e7c791a4a8e285ef22503b87abc4854453c875bcef29ea376480118824fe81",
+      "solutions": [
+        {
+          "acceptanceCases": 2,
+          "acceptanceEvidence": "authored scenarios; no implementation execution claimed",
+          "componentInstancesByStage": [
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          "id": "push-slots",
+          "operations": {
+            "connect": 8,
+            "insert": 9
+          },
+          "stages": 8
+        },
+        {
+          "acceptanceCases": 2,
+          "acceptanceEvidence": "authored scenarios; no implementation execution claimed",
+          "componentInstancesByStage": [
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          "id": "pull-cdn",
+          "operations": {
+            "connect": 8,
+            "insert": 9
+          },
+          "stages": 8
+        }
+      ]
+    },
+    {
+      "referenceId": "L026",
+      "sha256": "f6cbf20d9cc857f7f6ecb0092d99854871d002e670e18e90c0ef74590e162bfb",
+      "solutions": [
+        {
+          "acceptanceCases": 3,
+          "acceptanceEvidence": "authored scenarios; no implementation execution claimed",
+          "componentInstancesByStage": [
+            2,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10
+          ],
+          "id": "quorum-log",
+          "operations": {
+            "connect": 7,
+            "expand": 1,
+            "insert": 8,
+            "rebind": 2
+          },
+          "stages": 8
+        },
+        {
+          "acceptanceCases": 3,
+          "acceptanceEvidence": "authored scenarios; no implementation execution claimed",
+          "componentInstancesByStage": [
+            2,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10
+          ],
+          "id": "fenced-primary",
+          "operations": {
+            "connect": 7,
+            "expand": 1,
+            "insert": 8,
+            "rebind": 2
+          },
+          "stages": 8
+        }
+      ]
+    },
+    {
+      "referenceId": "L028",
+      "sha256": "9ea04a1f2d8a17a1b9a5585736044f9009a03783d1c362d2ba02d48c85842bf1",
+      "solutions": [
+        {
+          "acceptanceCases": 3,
+          "acceptanceEvidence": "authored scenarios; no implementation execution claimed",
+          "componentInstancesByStage": [
+            2,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10
+          ],
+          "id": "staged",
+          "operations": {
+            "connect": 7,
+            "expand": 1,
+            "insert": 8,
+            "rebind": 2
+          },
+          "stages": 8
+        },
+        {
+          "acceptanceCases": 3,
+          "acceptanceEvidence": "authored scenarios; no implementation execution claimed",
+          "componentInstancesByStage": [
+            2,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10
+          ],
+          "id": "entity-log",
+          "operations": {
+            "connect": 7,
+            "expand": 1,
+            "insert": 8,
+            "rebind": 3
+          },
+          "stages": 8
+        }
+      ]
+    },
+    {
+      "referenceId": "L029",
+      "sha256": "cc1be450044c1c2d9fbb7c60845384bdb473915ef9b20b0932e3d88c360136dd",
+      "solutions": [
+        {
+          "acceptanceCases": 3,
+          "acceptanceEvidence": "authored scenarios; no implementation execution claimed",
+          "componentInstancesByStage": [
+            2,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10
+          ],
+          "id": "keyed",
+          "operations": {
+            "connect": 7,
+            "expand": 1,
+            "insert": 8,
+            "rebind": 3
+          },
+          "stages": 8
+        },
+        {
+          "acceptanceCases": 3,
+          "acceptanceEvidence": "authored scenarios; no implementation execution claimed",
+          "componentInstancesByStage": [
+            2,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10
+          ],
+          "id": "batch-join",
+          "operations": {
+            "connect": 7,
+            "expand": 1,
+            "insert": 8,
+            "rebind": 1
+          },
+          "stages": 8
+        }
+      ]
+    },
+    {
       "referenceId": "L032",
       "sha256": "1f1f821062c81d7127fdc3a7536a7eb786f0629278fae79510c10e719115993c",
       "solutions": [
@@ -743,6 +1185,56 @@
             "expand": 1,
             "insert": 9,
             "merge": 1
+          },
+          "stages": 8
+        }
+      ]
+    },
+    {
+      "referenceId": "L033",
+      "sha256": "90ca98e3f83e4a89048cce12e04f994aeb22a9d7ecd02015ddccd577a7aced91",
+      "solutions": [
+        {
+          "acceptanceCases": 3,
+          "acceptanceEvidence": "authored scenarios; no implementation execution claimed",
+          "componentInstancesByStage": [
+            2,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10
+          ],
+          "id": "cursor",
+          "operations": {
+            "connect": 7,
+            "expand": 1,
+            "insert": 8,
+            "rebind": 3
+          },
+          "stages": 8
+        },
+        {
+          "acceptanceCases": 3,
+          "acceptanceEvidence": "authored scenarios; no implementation execution claimed",
+          "componentInstancesByStage": [
+            2,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10
+          ],
+          "id": "stream-spool",
+          "operations": {
+            "connect": 7,
+            "expand": 1,
+            "insert": 8,
+            "rebind": 3
           },
           "stages": 8
         }
@@ -799,6 +1291,482 @@
           "stages": 8
         }
       ]
+    },
+    {
+      "referenceId": "L035",
+      "sha256": "12e7a7d8580f6f6f737585a18b58027636e6673e618555e9c8eb332738adb320",
+      "solutions": [
+        {
+          "acceptanceCases": 4,
+          "acceptanceEvidence": "authored scenarios; no implementation execution claimed",
+          "componentInstancesByStage": [
+            2,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10
+          ],
+          "id": "global-lru",
+          "operations": {
+            "connect": 7,
+            "expand": 1,
+            "insert": 8,
+            "rebind": 2
+          },
+          "stages": 8
+        },
+        {
+          "acceptanceCases": 4,
+          "acceptanceEvidence": "authored scenarios; no implementation execution claimed",
+          "componentInstancesByStage": [
+            2,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10
+          ],
+          "id": "sharded",
+          "operations": {
+            "connect": 7,
+            "expand": 1,
+            "insert": 8,
+            "rebind": 2
+          },
+          "stages": 8
+        }
+      ]
+    },
+    {
+      "referenceId": "L036",
+      "sha256": "770532841f81af96a6a1848770b7c5b6c277a8ea0cf89594dafbdeae52a19172",
+      "solutions": [
+        {
+          "acceptanceCases": 2,
+          "acceptanceEvidence": "authored scenarios; no implementation execution claimed",
+          "componentInstancesByStage": [
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          "id": "fused-plan",
+          "operations": {
+            "connect": 8,
+            "insert": 9
+          },
+          "stages": 8
+        },
+        {
+          "acceptanceCases": 2,
+          "acceptanceEvidence": "authored scenarios; no implementation execution claimed",
+          "componentInstancesByStage": [
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          "id": "pull-cursors",
+          "operations": {
+            "connect": 8,
+            "insert": 9
+          },
+          "stages": 8
+        }
+      ]
+    },
+    {
+      "referenceId": "L037",
+      "sha256": "8e706b164f516a6035b9fbd2ab59c69f641569d9b60fb2bc3e478e8d92d0a98e",
+      "solutions": [
+        {
+          "acceptanceCases": 2,
+          "acceptanceEvidence": "authored scenarios; no implementation execution claimed",
+          "componentInstancesByStage": [
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          "id": "avl-rope",
+          "operations": {
+            "connect": 8,
+            "insert": 9
+          },
+          "stages": 8
+        },
+        {
+          "acceptanceCases": 2,
+          "acceptanceEvidence": "authored scenarios; no implementation execution claimed",
+          "componentInstancesByStage": [
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          "id": "implicit-treap",
+          "operations": {
+            "connect": 8,
+            "insert": 9
+          },
+          "stages": 8
+        }
+      ]
+    },
+    {
+      "referenceId": "L038",
+      "sha256": "aa6116837b1a2e06dce172875d491cb6bd9a149502c040a0a33d476d04300236",
+      "solutions": [
+        {
+          "acceptanceCases": 2,
+          "acceptanceEvidence": "authored scenarios; no implementation execution claimed",
+          "componentInstancesByStage": [
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          "id": "ordered-scan",
+          "operations": {
+            "connect": 8,
+            "insert": 9
+          },
+          "stages": 8
+        },
+        {
+          "acceptanceCases": 2,
+          "acceptanceEvidence": "authored scenarios; no implementation execution claimed",
+          "componentInstancesByStage": [
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          "id": "priority-trie",
+          "operations": {
+            "connect": 8,
+            "insert": 9
+          },
+          "stages": 8
+        }
+      ]
+    },
+    {
+      "referenceId": "L039",
+      "sha256": "431f1e626991ef8e689390224c3616d85646d22bdb4c0104daf353da7aca656d",
+      "solutions": [
+        {
+          "acceptanceCases": 2,
+          "acceptanceEvidence": "authored scenarios; no implementation execution claimed",
+          "componentInstancesByStage": [
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          "id": "stream-dfa",
+          "operations": {
+            "connect": 8,
+            "insert": 9
+          },
+          "stages": 8
+        },
+        {
+          "acceptanceCases": 2,
+          "acceptanceEvidence": "authored scenarios; no implementation execution claimed",
+          "componentInstancesByStage": [
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          "id": "span-scanner",
+          "operations": {
+            "connect": 8,
+            "insert": 9
+          },
+          "stages": 8
+        }
+      ]
+    },
+    {
+      "referenceId": "L040",
+      "sha256": "482e4bd9b1ed2337f31730950dd5c8ecd89ddc1489052bc89fd9fd0267a0564d",
+      "solutions": [
+        {
+          "acceptanceCases": 2,
+          "acceptanceEvidence": "authored scenarios; no implementation execution claimed",
+          "componentInstancesByStage": [
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          "id": "ring-monitor",
+          "operations": {
+            "connect": 8,
+            "insert": 9
+          },
+          "stages": 8
+        },
+        {
+          "acceptanceCases": 2,
+          "acceptanceEvidence": "authored scenarios; no implementation execution claimed",
+          "componentInstancesByStage": [
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          "id": "two-lock-linked",
+          "operations": {
+            "connect": 8,
+            "insert": 9
+          },
+          "stages": 8
+        }
+      ]
+    },
+    {
+      "referenceId": "L041",
+      "sha256": "b2350a5e8531d678727c4870540cabf5b7709aa2a67e123a0eeb008b4f9eccb7",
+      "solutions": [
+        {
+          "acceptanceCases": 2,
+          "acceptanceEvidence": "authored scenarios; no implementation execution claimed",
+          "componentInstancesByStage": [
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          "id": "striped-ring",
+          "operations": {
+            "connect": 8,
+            "insert": 9
+          },
+          "stages": 8
+        },
+        {
+          "acceptanceCases": 2,
+          "acceptanceEvidence": "authored scenarios; no implementation execution claimed",
+          "componentInstancesByStage": [
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          "id": "timestamp-deque",
+          "operations": {
+            "connect": 8,
+            "insert": 9
+          },
+          "stages": 8
+        }
+      ]
+    },
+    {
+      "referenceId": "L042",
+      "sha256": "3ec8fbf776efd312e79b3c53a80da881680be306f6e33ecfacc983e523f0d78a",
+      "solutions": [
+        {
+          "acceptanceCases": 3,
+          "acceptanceEvidence": "authored scenarios; no implementation execution claimed",
+          "componentInstancesByStage": [
+            2,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10
+          ],
+          "id": "heap",
+          "operations": {
+            "connect": 7,
+            "expand": 1,
+            "insert": 8,
+            "rebind": 4
+          },
+          "stages": 8
+        },
+        {
+          "acceptanceCases": 3,
+          "acceptanceEvidence": "authored scenarios; no implementation execution claimed",
+          "componentInstancesByStage": [
+            2,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10
+          ],
+          "id": "wheel",
+          "operations": {
+            "connect": 7,
+            "expand": 1,
+            "insert": 8,
+            "rebind": 2
+          },
+          "stages": 8
+        }
+      ]
+    },
+    {
+      "referenceId": "L043",
+      "sha256": "8a9989741b98430438372a8c26b51fb9416c37bfb447b36f19b278ef2abdcf09",
+      "solutions": [
+        {
+          "acceptanceCases": 3,
+          "acceptanceEvidence": "authored scenarios; no implementation execution claimed",
+          "componentInstancesByStage": [
+            2,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10
+          ],
+          "id": "sync",
+          "operations": {
+            "connect": 7,
+            "expand": 1,
+            "insert": 8,
+            "rebind": 2
+          },
+          "stages": 8
+        },
+        {
+          "acceptanceCases": 3,
+          "acceptanceEvidence": "authored scenarios; no implementation execution claimed",
+          "componentInstancesByStage": [
+            2,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10
+          ],
+          "id": "group",
+          "operations": {
+            "connect": 7,
+            "expand": 1,
+            "insert": 8,
+            "rebind": 2
+          },
+          "stages": 8
+        }
+      ]
+    },
+    {
+      "referenceId": "L046",
+      "sha256": "09f82681e094daefb300efd0747d22f5c4f906243115132e4e4f62fd87c091d3",
+      "solutions": [
+        {
+          "acceptanceCases": 3,
+          "acceptanceEvidence": "authored scenarios; no implementation execution claimed",
+          "componentInstancesByStage": [
+            2,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10
+          ],
+          "id": "central",
+          "operations": {
+            "connect": 7,
+            "expand": 1,
+            "insert": 8,
+            "rebind": 1
+          },
+          "stages": 8
+        },
+        {
+          "acceptanceCases": 3,
+          "acceptanceEvidence": "authored scenarios; no implementation execution claimed",
+          "componentInstancesByStage": [
+            2,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10
+          ],
+          "id": "hierarchical",
+          "operations": {
+            "connect": 7,
+            "expand": 1,
+            "insert": 8,
+            "rebind": 2
+          },
+          "stages": 8
+        }
+      ]
     }
   ],
   "schema": "simulatte.composableStudyAudit.v2",
@@ -817,7 +1785,7 @@
     },
     {
       "path": "tools/simulatte/build-study-solutions.cjs",
-      "sha256": "365e5cc04398591da56939215cbb8ede3df946d9a1790fdffed9976c126d6251"
+      "sha256": "ce819e7a571e15e4d03a77173f2fd88a14d7da0c7d70dfa02dab2a2be7382f34"
     },
     {
       "path": "tools/simulatte/convert-priority-study.cjs",
@@ -842,6 +1810,26 @@
     {
       "path": "tools/simulatte/priority-study-source/L013-flash-sale.cjs",
       "sha256": "200af2e4622c35bc90117f97c28896c407b81c74e379081aa0f63830db0111f8"
+    },
+    {
+      "path": "tools/simulatte/study-content-batch-04.cjs",
+      "sha256": "7c4c458cc2e872b2c5331b6a2e2587e9670faea7c3502bfff4335fee5f97decb"
+    },
+    {
+      "path": "tools/simulatte/study-content-batch-05.cjs",
+      "sha256": "680f3f5a6d020df6d95441d2a19c2635c55bade66756dcb8ba6146fe08065b11"
+    },
+    {
+      "path": "tools/simulatte/study-content-batch-06.cjs",
+      "sha256": "760c9d122387a79c4a6be19af603c0fe63fbb0f22478ac3e270b80f59bc21aea"
+    },
+    {
+      "path": "tools/simulatte/study-content-batch-07.cjs",
+      "sha256": "e970184ef6408a42b874aeda8466cecf366071f1640b700dd4417def5e32cb20"
+    },
+    {
+      "path": "tools/simulatte/study-content-batch-08.cjs",
+      "sha256": "2fd6b9e2badee0816ff74962eb9d53135ecb27495d2b134f1ed107dbd03726e7"
     },
     {
       "path": "tools/simulatte/study-content-client-state.cjs",
@@ -886,6 +1874,46 @@
     {
       "path": "tools/simulatte/study-priority-repairs.cjs",
       "sha256": "34760e183ad4f5a0542c2a4bf99a96cf953bb02b86e2b482a1dd6c31ecabca59"
+    },
+    {
+      "path": "tools/simulatte/study-reference/batch-04-state.mjs",
+      "sha256": "b9dd57854734adb419754fdb875bc2bf40f632b7e4064cfbaa4b74be4737f064"
+    },
+    {
+      "path": "tools/simulatte/study-reference/batch-04-state.test.mjs",
+      "sha256": "1354fa73be632238d2449f61ec51060b9410a91782a1a11a55077eeeaf9fca74"
+    },
+    {
+      "path": "tools/simulatte/study-reference/batch-05-state.mjs",
+      "sha256": "9b98461084f11f18063df05ad1e1dc87ceafa39f4b07728b9b9703bdb8542c8e"
+    },
+    {
+      "path": "tools/simulatte/study-reference/batch-05-state.test.mjs",
+      "sha256": "333ef7b911090b994107a9c93e03d0bbac5eefb60a1fcf4dcfce1815d60d84fb"
+    },
+    {
+      "path": "tools/simulatte/study-reference/batch-06-state.mjs",
+      "sha256": "c6ab38f09e51cd174989b8dd97fcb5df0d12fd76dfaa5bf8bfda08f2d748641f"
+    },
+    {
+      "path": "tools/simulatte/study-reference/batch-06-state.test.mjs",
+      "sha256": "a9a553b622c7cb443b7c4209168acc85cf693fd8ff2989038a40de86358c2ddb"
+    },
+    {
+      "path": "tools/simulatte/study-reference/batch-07-mechanisms.mjs",
+      "sha256": "402457e96ccfaacf000958d88750c367a465a1520a1ae53fac47d129533de866"
+    },
+    {
+      "path": "tools/simulatte/study-reference/batch-07-mechanisms.test.mjs",
+      "sha256": "5fcf083fda82d6dec3281b29a9ec65802e8f6f70312c3b538b971b4413b010e9"
+    },
+    {
+      "path": "tools/simulatte/study-reference/batch-08-mechanisms.mjs",
+      "sha256": "1adda09e2b5ee2f513ed7b4a4dc831242e0c12b9e67383161ae5e1c4a2df4210"
+    },
+    {
+      "path": "tools/simulatte/study-reference/batch-08-mechanisms.test.mjs",
+      "sha256": "575bd0fc63dd5b89b858af6bbb856c3c498c96c49038376fd9db511b6eea49c0"
     },
     {
       "path": "tools/simulatte/study-reference/chat.mjs",

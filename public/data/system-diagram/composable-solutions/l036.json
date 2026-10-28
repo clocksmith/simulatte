@@ -1,0 +1,3542 @@
+{
+  "components": [
+    {
+      "extends": {
+        "id": "core.client",
+        "version": 1
+      },
+      "id": "l036.fused-plan.caller",
+      "label": "Caller",
+      "ports": [
+        {
+          "contractId": "l036.fused-plan.command",
+          "direction": "out",
+          "id": "out-l036.fused-plan.command"
+        }
+      ],
+      "responsibility": "Invoke the documented API and retain returned outcomes.",
+      "stateOwnership": [
+        "caller-owned input"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l036.fused-plan.owner",
+      "label": "Plan facade",
+      "ports": [
+        {
+          "contractId": "l036.fused-plan.command",
+          "direction": "in",
+          "id": "in-l036.fused-plan.command"
+        },
+        {
+          "contractId": "l036.fused-plan.history",
+          "direction": "out",
+          "id": "out-l036.fused-plan.history"
+        },
+        {
+          "contractId": "l036.fused-plan.source",
+          "direction": "out",
+          "id": "out-l036.fused-plan.source"
+        }
+      ],
+      "responsibility": "Append one immutable operation cell; terminals compile the reversed history once and drive source values in order.",
+      "stateOwnership": [
+        "source snapshot",
+        "tail operation cell"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l036.fused-plan.history",
+      "label": "Persistent history",
+      "ports": [
+        {
+          "contractId": "l036.fused-plan.history",
+          "direction": "in",
+          "id": "in-l036.fused-plan.history"
+        },
+        {
+          "contractId": "l036.fused-plan.compiler",
+          "direction": "out",
+          "id": "out-l036.fused-plan.compiler"
+        }
+      ],
+      "responsibility": "Link a new {previous,kind,fn} cell to the prior tail; never append into an array shared by branches.",
+      "stateOwnership": [
+        "immutable operation cells"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l036.fused-plan.source",
+      "label": "Source snapshot",
+      "ports": [
+        {
+          "contractId": "l036.fused-plan.source",
+          "direction": "in",
+          "id": "in-l036.fused-plan.source"
+        }
+      ],
+      "responsibility": "Shallow-copy the source once; do not recopy on each intermediate call. Objects referenced by the copy are not deep frozen.",
+      "stateOwnership": [
+        "snapshot of element references"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l036.fused-plan.compiler",
+      "label": "Plan compiler",
+      "ports": [
+        {
+          "contractId": "l036.fused-plan.compiler",
+          "direction": "in",
+          "id": "in-l036.fused-plan.compiler"
+        },
+        {
+          "contractId": "l036.fused-plan.driver",
+          "direction": "out",
+          "id": "out-l036.fused-plan.driver"
+        }
+      ],
+      "responsibility": "Reverse the operation history once; coalesce only adjacent map descriptors into iterative map runs. Never hoist a filter or recursively nest a long composed function.",
+      "stateOwnership": [
+        "terminal-local compiled descriptors"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l036.fused-plan.driver",
+      "label": "Fused driver",
+      "ports": [
+        {
+          "contractId": "l036.fused-plan.driver",
+          "direction": "in",
+          "id": "in-l036.fused-plan.driver"
+        },
+        {
+          "contractId": "l036.fused-plan.terminal",
+          "direction": "out",
+          "id": "out-l036.fused-plan.terminal"
+        },
+        {
+          "contractId": "l036.fused-plan.failure",
+          "direction": "out",
+          "id": "out-l036.fused-plan.failure"
+        }
+      ],
+      "responsibility": "For each source item, thread one local value through map runs and filters; rejected items continue the outer source loop.",
+      "stateOwnership": [
+        "source index",
+        "current local value"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l036.fused-plan.terminal",
+      "label": "Output ordinal",
+      "ports": [
+        {
+          "contractId": "l036.fused-plan.terminal",
+          "direction": "in",
+          "id": "in-l036.fused-plan.terminal"
+        },
+        {
+          "contractId": "l036.fused-plan.restart",
+          "direction": "out",
+          "id": "out-l036.fused-plan.restart"
+        }
+      ],
+      "responsibility": "Increment output ordinal only after all filters pass; Object.is comparison returns immediately at the first match.",
+      "stateOwnership": [
+        "output ordinal"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l036.fused-plan.failure",
+      "label": "Exception boundary",
+      "ports": [
+        {
+          "contractId": "l036.fused-plan.failure",
+          "direction": "in",
+          "id": "in-l036.fused-plan.failure"
+        }
+      ],
+      "responsibility": "Use normal propagation through the terminal loop; discard the terminal-local accumulator and preserve the immutable plan.",
+      "stateOwnership": [
+        "no retained partial accumulator"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l036.fused-plan.restart",
+      "label": "Fresh traversal factory",
+      "ports": [
+        {
+          "contractId": "l036.fused-plan.restart",
+          "direction": "in",
+          "id": "in-l036.fused-plan.restart"
+        }
+      ],
+      "responsibility": "Create source and output counters per terminal; retain source snapshot and plan only, without caching results or sharing iteration state.",
+      "stateOwnership": [
+        "fresh per-terminal cursor"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.client",
+        "version": 1
+      },
+      "id": "l036.pull-cursors.caller",
+      "label": "Caller",
+      "ports": [
+        {
+          "contractId": "l036.pull-cursors.command",
+          "direction": "out",
+          "id": "out-l036.pull-cursors.command"
+        }
+      ],
+      "responsibility": "Invoke the documented API and retain returned outcomes.",
+      "stateOwnership": [
+        "caller-owned input"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l036.pull-cursors.owner",
+      "label": "Cursor factory",
+      "ports": [
+        {
+          "contractId": "l036.pull-cursors.command",
+          "direction": "in",
+          "id": "in-l036.pull-cursors.command"
+        },
+        {
+          "contractId": "l036.pull-cursors.descriptors",
+          "direction": "out",
+          "id": "out-l036.pull-cursors.descriptors"
+        }
+      ],
+      "responsibility": "Retain immutable operator descriptors; create a pull machine per consumer whose next() resumes at the next accepted output.",
+      "stateOwnership": [
+        "source snapshot",
+        "descriptor tail"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l036.pull-cursors.descriptors",
+      "label": "Descriptor spine",
+      "ports": [
+        {
+          "contractId": "l036.pull-cursors.descriptors",
+          "direction": "in",
+          "id": "in-l036.pull-cursors.descriptors"
+        },
+        {
+          "contractId": "l036.pull-cursors.factory",
+          "direction": "out",
+          "id": "out-l036.pull-cursors.factory"
+        }
+      ],
+      "responsibility": "Append a descriptor cell with a previous pointer; it describes a cursor factory and holds no live cursor.",
+      "stateOwnership": [
+        "immutable descriptor spine"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l036.pull-cursors.factory",
+      "label": "Cursor allocator",
+      "ports": [
+        {
+          "contractId": "l036.pull-cursors.factory",
+          "direction": "in",
+          "id": "in-l036.pull-cursors.factory"
+        },
+        {
+          "contractId": "l036.pull-cursors.pull",
+          "direction": "out",
+          "id": "out-l036.pull-cursors.pull"
+        }
+      ],
+      "responsibility": "Flatten descriptor spine once when opening a consumer; allocate source index and output ordinal privately.",
+      "stateOwnership": [
+        "source index",
+        "output ordinal"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l036.pull-cursors.pull",
+      "label": "next state machine",
+      "ports": [
+        {
+          "contractId": "l036.pull-cursors.pull",
+          "direction": "in",
+          "id": "in-l036.pull-cursors.pull"
+        },
+        {
+          "contractId": "l036.pull-cursors.fusion",
+          "direction": "out",
+          "id": "out-l036.pull-cursors.fusion"
+        },
+        {
+          "contractId": "l036.pull-cursors.search",
+          "direction": "out",
+          "id": "out-l036.pull-cursors.search"
+        },
+        {
+          "contractId": "l036.pull-cursors.collect",
+          "direction": "out",
+          "id": "out-l036.pull-cursors.collect"
+        }
+      ],
+      "responsibility": "next() loops source candidates and runs descriptors until one survives, then suspends with the next source index.",
+      "stateOwnership": [
+        "candidate value",
+        "program counter"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l036.pull-cursors.fusion",
+      "label": "Map-run executor",
+      "ports": [
+        {
+          "contractId": "l036.pull-cursors.fusion",
+          "direction": "in",
+          "id": "in-l036.pull-cursors.fusion"
+        }
+      ],
+      "responsibility": "Compile adjacent map descriptors into array runs; evaluate each user callback in order for only the pulled candidate.",
+      "stateOwnership": [
+        "map-run function references"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l036.pull-cursors.search",
+      "label": "Pull search",
+      "ports": [
+        {
+          "contractId": "l036.pull-cursors.search",
+          "direction": "in",
+          "id": "in-l036.pull-cursors.search"
+        },
+        {
+          "contractId": "l036.pull-cursors.close",
+          "direction": "out",
+          "id": "out-l036.pull-cursors.close"
+        }
+      ],
+      "responsibility": "indexOf calls next until Object.is succeeds, then closes that consumer; no extra next call is made.",
+      "stateOwnership": [
+        "matched output index"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l036.pull-cursors.close",
+      "label": "Cursor close",
+      "ports": [
+        {
+          "contractId": "l036.pull-cursors.close",
+          "direction": "in",
+          "id": "in-l036.pull-cursors.close"
+        }
+      ],
+      "responsibility": "Set closed before dropping retained temporary references; next after close returns done, while a new consumer remains valid.",
+      "stateOwnership": [
+        "closed flag"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l036.pull-cursors.collect",
+      "label": "Collector",
+      "ports": [
+        {
+          "contractId": "l036.pull-cursors.collect",
+          "direction": "in",
+          "id": "in-l036.pull-cursors.collect"
+        }
+      ],
+      "responsibility": "Collect repeatedly calls next into one terminal-owned output array; no map or filter owns an intermediate collection.",
+      "stateOwnership": [
+        "terminal output array"
+      ],
+      "version": 1
+    }
+  ],
+  "contracts": [
+    {
+      "id": "l036.fused-plan.command",
+      "request": {
+        "callback": "function(T)->U|boolean for intermediate operation",
+        "method": "map|filter|collect|indexOf",
+        "target": "value for indexOf"
+      },
+      "response": {
+        "intermediate": "new LazyArray<U> sharing immutable history",
+        "terminal": "U[] or transformed-output index; -1 if absent"
+      },
+      "version": 1
+    },
+    {
+      "id": "l036.fused-plan.history",
+      "request": {
+        "fn": "callback",
+        "kind": "map|filter",
+        "previous": "cell|null"
+      },
+      "response": {
+        "tail": "new immutable cell"
+      },
+      "version": 1
+    },
+    {
+      "id": "l036.fused-plan.source",
+      "request": {
+        "input": "T[]"
+      },
+      "response": {
+        "snapshot": "readonly T[]"
+      },
+      "version": 1
+    },
+    {
+      "id": "l036.fused-plan.compiler",
+      "request": {
+        "tail": "operation cell"
+      },
+      "response": {
+        "runs": "ordered map runs and filters"
+      },
+      "version": 1
+    },
+    {
+      "id": "l036.fused-plan.driver",
+      "request": {
+        "runs": "compiled descriptors",
+        "snapshot": "readonly T[]"
+      },
+      "response": {
+        "next": "accepted value or exhaustion"
+      },
+      "version": 1
+    },
+    {
+      "id": "l036.fused-plan.terminal",
+      "request": {
+        "ordinal": "integer >=0",
+        "target": "U",
+        "value": "accepted U"
+      },
+      "response": {
+        "result": "match index or continue"
+      },
+      "version": 1
+    },
+    {
+      "id": "l036.fused-plan.failure",
+      "request": {
+        "callbackResult": "U or thrown error"
+      },
+      "response": {
+        "outcome": "value or same error"
+      },
+      "version": 1
+    },
+    {
+      "id": "l036.fused-plan.restart",
+      "request": {
+        "terminal": "collect|indexOf"
+      },
+      "response": {
+        "cursor": "fresh traversal state"
+      },
+      "version": 1
+    },
+    {
+      "id": "l036.pull-cursors.command",
+      "request": {
+        "callback": "function(T)->U|boolean for intermediate operation",
+        "method": "map|filter|collect|indexOf",
+        "target": "value for indexOf"
+      },
+      "response": {
+        "intermediate": "new LazyArray<U> sharing immutable history",
+        "terminal": "U[] or transformed-output index; -1 if absent"
+      },
+      "version": 1
+    },
+    {
+      "id": "l036.pull-cursors.descriptors",
+      "request": {
+        "fn": "callback",
+        "operator": "map|filter",
+        "previous": "descriptor|null"
+      },
+      "response": {
+        "descriptor": "new tail"
+      },
+      "version": 1
+    },
+    {
+      "id": "l036.pull-cursors.factory",
+      "request": {
+        "source": "readonly T[]",
+        "tail": "descriptor"
+      },
+      "response": {
+        "cursor": "independent pull machine"
+      },
+      "version": 1
+    },
+    {
+      "id": "l036.pull-cursors.pull",
+      "request": {
+        "cursor": "pull state"
+      },
+      "response": {
+        "item": "{done:boolean,value?:U}"
+      },
+      "version": 1
+    },
+    {
+      "id": "l036.pull-cursors.fusion",
+      "request": {
+        "mapRun": "function[]",
+        "value": "T"
+      },
+      "response": {
+        "value": "U"
+      },
+      "version": 1
+    },
+    {
+      "id": "l036.pull-cursors.search",
+      "request": {
+        "next": "cursor.next",
+        "target": "U"
+      },
+      "response": {
+        "index": "integer or -1"
+      },
+      "version": 1
+    },
+    {
+      "id": "l036.pull-cursors.close",
+      "request": {
+        "cursorId": "terminal-local identity"
+      },
+      "response": {
+        "closed": "true"
+      },
+      "version": 1
+    },
+    {
+      "id": "l036.pull-cursors.collect",
+      "request": {
+        "next": "pull function"
+      },
+      "response": {
+        "output": "U[]"
+      },
+      "version": 1
+    }
+  ],
+  "execution": {
+    "implementation": null,
+    "kind": "conceptual-design"
+  },
+  "problem": {
+    "referenceId": "L036",
+    "requirements": [
+      {
+        "id": "r0",
+        "text": "map/filter append in O(1) without invoking user callbacks; branches cannot mutate another chain."
+      },
+      {
+        "id": "r1",
+        "text": "indexOf short-circuits in output order; collect traverses once with no intermediate arrays."
+      },
+      {
+        "id": "r2",
+        "text": "Fuse adjacent maps without moving callbacks across filters; define repeat consumption, callback exceptions and source ownership."
+      }
+    ],
+    "scope": "Authored implementation study of the catalogue LazyArray interface. Compare a persistent operation plan executed in one fused loop with immutable pull-cursor factories. No distributed components, implicit memoization or parallel evaluation. indexOf returns the index in the transformed, filtered output and uses Object.is equality; collect starts a fresh traversal.",
+    "studyLabel": "LazyArray: deferred pipelines and pull cursors"
+  },
+  "provenance": {
+    "kind": "authored-practice",
+    "note": "Authored interview preparation. Technical references support mechanisms, not the claim that a company asked this question."
+  },
+  "references": [
+    {
+      "id": "ref0",
+      "scope": "background",
+      "supports": "Lazy intermediate operations and short-circuit terminal consumption; the repeatable LazyArray policy is authored.",
+      "title": "Java stream operations",
+      "url": "https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/stream/package-summary.html"
+    }
+  ],
+  "schema": "simulatte.composableStudy.v2",
+  "solutions": [
+    {
+      "acceptanceCases": [
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-07-mechanisms.test.mjs",
+            "testName": "batch-07 lazy: deferred branching and exact short circuit"
+          },
+          "given": "A mapped/filtered source and counters on callbacks.",
+          "id": "behavior",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "No callback runs at construction; short circuit stops after the first output match; branches retain independent plans.",
+          "when": "Build two branches, consume indexOf on one, then collect the other."
+        },
+        {
+          "given": "Empty input, all elements filtered out, NaN target, and a throwing callback.",
+          "id": "boundary",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Return [] or -1 for absence; Object.is matches NaN; a throw stops traversal and later fresh traversal restarts.",
+          "when": "Consume repeatedly."
+        }
+      ],
+      "algorithms": [
+        {
+          "code": "map(fn) { return new Plan(source, {previous: tail, kind: \"map\", fn}); }\nfilter(fn) { return new Plan(source, {previous: tail, kind: \"filter\", fn}); }\nterminal(target, collect) {\n const ops = compileIteratively(tail); const output=[]; let ordinal=0;\n sourceLoop: for (const original of source) { let value=original;\n  for (const op of ops) { if (op.kind===\"filter\") { if (!op.fn(value)) continue sourceLoop; }\n   else for (const fn of op.mapRun) value=fn(value); }\n  if (!collect && Object.is(value,target)) return ordinal;\n  if (collect) output.push(value); ordinal++;\n } return collect ? output : -1;\n}",
+          "guarantees": [
+            "O(1) append; O(k) terminal compilation; no source element after a hit is evaluated."
+          ],
+          "id": "mechanism-0",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "owner"
+        }
+      ],
+      "apis": [
+        {
+          "errors": "TypeError nonfunction callback; callback exception propagates; no partial array returned",
+          "method": "CALL",
+          "ownerNodeId": "owner",
+          "path": "LazyArray.map/filter/collect/indexOf",
+          "request": "{\"method\":\"map|filter|collect|indexOf\",\"callback\":\"function(T)->U|boolean for intermediate operation\",\"target\":\"value for indexOf\"}",
+          "response": "{\"intermediate\":\"new LazyArray<U> sharing immutable history\",\"terminal\":\"U[] or transformed-output index; -1 if absent\"}"
+        }
+      ],
+      "assumptions": [
+        "Input array is shallow-copied at construction; object mutation remains visible. Callbacks may have effects; their original order is preserved.",
+        "All added requirements and walkthroughs are authored practice. Graphs specify design; reference tests prove only named bounded mechanisms."
+      ],
+      "chooseWhen": "Many short-lived branches share one source and terminals can pay O(k) plan compilation.",
+      "id": "fused-plan",
+      "initialGraph": {
+        "edges": [],
+        "nodes": []
+      },
+      "stages": [
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l036.fused-plan.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l036.fused-plan.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l036.fused-plan.command"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l036.fused-plan.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l036.fused-plan.owner",
+                "id": "owner",
+                "label": "Plan facade",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "fused-plan-s1",
+          "invariants": [
+            "Intermediate operations call no user code."
+          ],
+          "number": 1,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l036.fused-plan.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "l036.fused-plan.owner",
+                "id": "owner",
+                "label": "Plan facade",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l036.fused-plan.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l036.fused-plan.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l036.fused-plan.command"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What happens before a terminal consumes data?",
+          "reason": "Append one immutable operation cell; terminals compile the reversed history once and drive source values in order.",
+          "title": "Expose Plan facade"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l036.fused-plan.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l036.fused-plan.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l036.fused-plan.command"
+                }
+              },
+              {
+                "contractId": "l036.fused-plan.history",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l036.fused-plan.history"
+                },
+                "id": "use-history",
+                "label": "Record map/filter in O(1)",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "history",
+                  "portId": "in-l036.fused-plan.history"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l036.fused-plan.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l036.fused-plan.owner",
+                "id": "owner",
+                "label": "Plan facade",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l036.fused-plan.history",
+                "id": "history",
+                "label": "Persistent history",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "fused-plan-s2",
+          "invariants": [
+            "Each append allocates one cell and preserves earlier tails."
+          ],
+          "number": 2,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l036.fused-plan.history",
+                "id": "history",
+                "label": "Persistent history",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l036.fused-plan.history",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l036.fused-plan.history"
+                },
+                "id": "use-history",
+                "label": "Record map/filter in O(1)",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "history",
+                  "portId": "in-l036.fused-plan.history"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can adding a branch copy the entire pipeline?",
+          "reason": "Link a new {previous,kind,fn} cell to the prior tail; never append into an array shared by branches.",
+          "title": "Record map/filter in O(1)"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l036.fused-plan.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l036.fused-plan.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l036.fused-plan.command"
+                }
+              },
+              {
+                "contractId": "l036.fused-plan.history",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l036.fused-plan.history"
+                },
+                "id": "use-history",
+                "label": "Record map/filter in O(1)",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "history",
+                  "portId": "in-l036.fused-plan.history"
+                }
+              },
+              {
+                "contractId": "l036.fused-plan.source",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l036.fused-plan.source"
+                },
+                "id": "use-source",
+                "label": "Choose source ownership",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "source",
+                  "portId": "in-l036.fused-plan.source"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l036.fused-plan.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l036.fused-plan.owner",
+                "id": "owner",
+                "label": "Plan facade",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l036.fused-plan.history",
+                "id": "history",
+                "label": "Persistent history",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l036.fused-plan.source",
+                "id": "source",
+                "label": "Source snapshot",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "fused-plan-s3",
+          "invariants": [
+            "Chain construction adds O(1) work after source construction."
+          ],
+          "number": 3,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l036.fused-plan.source",
+                "id": "source",
+                "label": "Source snapshot",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l036.fused-plan.source",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l036.fused-plan.source"
+                },
+                "id": "use-source",
+                "label": "Choose source ownership",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "source",
+                  "portId": "in-l036.fused-plan.source"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What if the caller edits its original array?",
+          "reason": "Shallow-copy the source once; do not recopy on each intermediate call. Objects referenced by the copy are not deep frozen.",
+          "title": "Choose source ownership"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l036.fused-plan.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l036.fused-plan.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l036.fused-plan.command"
+                }
+              },
+              {
+                "contractId": "l036.fused-plan.history",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l036.fused-plan.history"
+                },
+                "id": "use-history",
+                "label": "Record map/filter in O(1)",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "history",
+                  "portId": "in-l036.fused-plan.history"
+                }
+              },
+              {
+                "contractId": "l036.fused-plan.source",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l036.fused-plan.source"
+                },
+                "id": "use-source",
+                "label": "Choose source ownership",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "source",
+                  "portId": "in-l036.fused-plan.source"
+                }
+              },
+              {
+                "contractId": "l036.fused-plan.compiler",
+                "from": {
+                  "nodeId": "history",
+                  "portId": "out-l036.fused-plan.compiler"
+                },
+                "id": "use-compiler",
+                "label": "Compile consecutive maps",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "compiler",
+                  "portId": "in-l036.fused-plan.compiler"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l036.fused-plan.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l036.fused-plan.owner",
+                "id": "owner",
+                "label": "Plan facade",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l036.fused-plan.history",
+                "id": "history",
+                "label": "Persistent history",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l036.fused-plan.source",
+                "id": "source",
+                "label": "Source snapshot",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l036.fused-plan.compiler",
+                "id": "compiler",
+                "label": "Plan compiler",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "fused-plan-s4",
+          "invariants": [
+            "A failed predicate prevents every later map for that element."
+          ],
+          "number": 4,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l036.fused-plan.compiler",
+                "id": "compiler",
+                "label": "Plan compiler",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l036.fused-plan.compiler",
+                "from": {
+                  "nodeId": "history",
+                  "portId": "out-l036.fused-plan.compiler"
+                },
+                "id": "use-compiler",
+                "label": "Compile consecutive maps",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "compiler",
+                  "portId": "in-l036.fused-plan.compiler"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Where can fusion change observable callback order?",
+          "reason": "Reverse the operation history once; coalesce only adjacent map descriptors into iterative map runs. Never hoist a filter or recursively nest a long composed function.",
+          "title": "Compile consecutive maps"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l036.fused-plan.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l036.fused-plan.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l036.fused-plan.command"
+                }
+              },
+              {
+                "contractId": "l036.fused-plan.history",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l036.fused-plan.history"
+                },
+                "id": "use-history",
+                "label": "Record map/filter in O(1)",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "history",
+                  "portId": "in-l036.fused-plan.history"
+                }
+              },
+              {
+                "contractId": "l036.fused-plan.source",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l036.fused-plan.source"
+                },
+                "id": "use-source",
+                "label": "Choose source ownership",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "source",
+                  "portId": "in-l036.fused-plan.source"
+                }
+              },
+              {
+                "contractId": "l036.fused-plan.compiler",
+                "from": {
+                  "nodeId": "history",
+                  "portId": "out-l036.fused-plan.compiler"
+                },
+                "id": "use-compiler",
+                "label": "Compile consecutive maps",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "compiler",
+                  "portId": "in-l036.fused-plan.compiler"
+                }
+              },
+              {
+                "contractId": "l036.fused-plan.driver",
+                "from": {
+                  "nodeId": "compiler",
+                  "portId": "out-l036.fused-plan.driver"
+                },
+                "id": "use-driver",
+                "label": "Traverse without intermediates",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "driver",
+                  "portId": "in-l036.fused-plan.driver"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l036.fused-plan.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l036.fused-plan.owner",
+                "id": "owner",
+                "label": "Plan facade",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l036.fused-plan.history",
+                "id": "history",
+                "label": "Persistent history",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l036.fused-plan.source",
+                "id": "source",
+                "label": "Source snapshot",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l036.fused-plan.compiler",
+                "id": "compiler",
+                "label": "Plan compiler",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l036.fused-plan.driver",
+                "id": "driver",
+                "label": "Fused driver",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "fused-plan-s5",
+          "invariants": [
+            "No intermediate output array exists between operators."
+          ],
+          "number": 5,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l036.fused-plan.driver",
+                "id": "driver",
+                "label": "Fused driver",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l036.fused-plan.driver",
+                "from": {
+                  "nodeId": "compiler",
+                  "portId": "out-l036.fused-plan.driver"
+                },
+                "id": "use-driver",
+                "label": "Traverse without intermediates",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "driver",
+                  "portId": "in-l036.fused-plan.driver"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can collect allocate one array per operation?",
+          "reason": "For each source item, thread one local value through map runs and filters; rejected items continue the outer source loop.",
+          "title": "Traverse without intermediates"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l036.fused-plan.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l036.fused-plan.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l036.fused-plan.command"
+                }
+              },
+              {
+                "contractId": "l036.fused-plan.history",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l036.fused-plan.history"
+                },
+                "id": "use-history",
+                "label": "Record map/filter in O(1)",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "history",
+                  "portId": "in-l036.fused-plan.history"
+                }
+              },
+              {
+                "contractId": "l036.fused-plan.source",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l036.fused-plan.source"
+                },
+                "id": "use-source",
+                "label": "Choose source ownership",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "source",
+                  "portId": "in-l036.fused-plan.source"
+                }
+              },
+              {
+                "contractId": "l036.fused-plan.compiler",
+                "from": {
+                  "nodeId": "history",
+                  "portId": "out-l036.fused-plan.compiler"
+                },
+                "id": "use-compiler",
+                "label": "Compile consecutive maps",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "compiler",
+                  "portId": "in-l036.fused-plan.compiler"
+                }
+              },
+              {
+                "contractId": "l036.fused-plan.driver",
+                "from": {
+                  "nodeId": "compiler",
+                  "portId": "out-l036.fused-plan.driver"
+                },
+                "id": "use-driver",
+                "label": "Traverse without intermediates",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "driver",
+                  "portId": "in-l036.fused-plan.driver"
+                }
+              },
+              {
+                "contractId": "l036.fused-plan.terminal",
+                "from": {
+                  "nodeId": "driver",
+                  "portId": "out-l036.fused-plan.terminal"
+                },
+                "id": "use-terminal",
+                "label": "Short circuit indexOf",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "terminal",
+                  "portId": "in-l036.fused-plan.terminal"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l036.fused-plan.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l036.fused-plan.owner",
+                "id": "owner",
+                "label": "Plan facade",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l036.fused-plan.history",
+                "id": "history",
+                "label": "Persistent history",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l036.fused-plan.source",
+                "id": "source",
+                "label": "Source snapshot",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l036.fused-plan.compiler",
+                "id": "compiler",
+                "label": "Plan compiler",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l036.fused-plan.driver",
+                "id": "driver",
+                "label": "Fused driver",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l036.fused-plan.terminal",
+                "id": "terminal",
+                "label": "Output ordinal",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "fused-plan-s6",
+          "invariants": [
+            "No callback runs for source elements after a terminal match."
+          ],
+          "number": 6,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l036.fused-plan.terminal",
+                "id": "terminal",
+                "label": "Output ordinal",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l036.fused-plan.terminal",
+                "from": {
+                  "nodeId": "driver",
+                  "portId": "out-l036.fused-plan.terminal"
+                },
+                "id": "use-terminal",
+                "label": "Short circuit indexOf",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "terminal",
+                  "portId": "in-l036.fused-plan.terminal"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Does a filtered-out item consume an output index?",
+          "reason": "Increment output ordinal only after all filters pass; Object.is comparison returns immediately at the first match.",
+          "title": "Short circuit indexOf"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l036.fused-plan.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l036.fused-plan.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l036.fused-plan.command"
+                }
+              },
+              {
+                "contractId": "l036.fused-plan.history",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l036.fused-plan.history"
+                },
+                "id": "use-history",
+                "label": "Record map/filter in O(1)",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "history",
+                  "portId": "in-l036.fused-plan.history"
+                }
+              },
+              {
+                "contractId": "l036.fused-plan.source",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l036.fused-plan.source"
+                },
+                "id": "use-source",
+                "label": "Choose source ownership",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "source",
+                  "portId": "in-l036.fused-plan.source"
+                }
+              },
+              {
+                "contractId": "l036.fused-plan.compiler",
+                "from": {
+                  "nodeId": "history",
+                  "portId": "out-l036.fused-plan.compiler"
+                },
+                "id": "use-compiler",
+                "label": "Compile consecutive maps",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "compiler",
+                  "portId": "in-l036.fused-plan.compiler"
+                }
+              },
+              {
+                "contractId": "l036.fused-plan.driver",
+                "from": {
+                  "nodeId": "compiler",
+                  "portId": "out-l036.fused-plan.driver"
+                },
+                "id": "use-driver",
+                "label": "Traverse without intermediates",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "driver",
+                  "portId": "in-l036.fused-plan.driver"
+                }
+              },
+              {
+                "contractId": "l036.fused-plan.terminal",
+                "from": {
+                  "nodeId": "driver",
+                  "portId": "out-l036.fused-plan.terminal"
+                },
+                "id": "use-terminal",
+                "label": "Short circuit indexOf",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "terminal",
+                  "portId": "in-l036.fused-plan.terminal"
+                }
+              },
+              {
+                "contractId": "l036.fused-plan.failure",
+                "from": {
+                  "nodeId": "driver",
+                  "portId": "out-l036.fused-plan.failure"
+                },
+                "id": "use-failure",
+                "label": "Stop on callback failure",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "failure",
+                  "portId": "in-l036.fused-plan.failure"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l036.fused-plan.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l036.fused-plan.owner",
+                "id": "owner",
+                "label": "Plan facade",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l036.fused-plan.history",
+                "id": "history",
+                "label": "Persistent history",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l036.fused-plan.source",
+                "id": "source",
+                "label": "Source snapshot",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l036.fused-plan.compiler",
+                "id": "compiler",
+                "label": "Plan compiler",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l036.fused-plan.driver",
+                "id": "driver",
+                "label": "Fused driver",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l036.fused-plan.terminal",
+                "id": "terminal",
+                "label": "Output ordinal",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l036.fused-plan.failure",
+                "id": "failure",
+                "label": "Exception boundary",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "fused-plan-s7",
+          "invariants": [
+            "An exception does not mark the reusable plan consumed."
+          ],
+          "number": 7,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l036.fused-plan.failure",
+                "id": "failure",
+                "label": "Exception boundary",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l036.fused-plan.failure",
+                "from": {
+                  "nodeId": "driver",
+                  "portId": "out-l036.fused-plan.failure"
+                },
+                "id": "use-failure",
+                "label": "Stop on callback failure",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "failure",
+                  "portId": "in-l036.fused-plan.failure"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can later callbacks run after an exception?",
+          "reason": "Use normal propagation through the terminal loop; discard the terminal-local accumulator and preserve the immutable plan.",
+          "title": "Stop on callback failure"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l036.fused-plan.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l036.fused-plan.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l036.fused-plan.command"
+                }
+              },
+              {
+                "contractId": "l036.fused-plan.history",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l036.fused-plan.history"
+                },
+                "id": "use-history",
+                "label": "Record map/filter in O(1)",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "history",
+                  "portId": "in-l036.fused-plan.history"
+                }
+              },
+              {
+                "contractId": "l036.fused-plan.source",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l036.fused-plan.source"
+                },
+                "id": "use-source",
+                "label": "Choose source ownership",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "source",
+                  "portId": "in-l036.fused-plan.source"
+                }
+              },
+              {
+                "contractId": "l036.fused-plan.compiler",
+                "from": {
+                  "nodeId": "history",
+                  "portId": "out-l036.fused-plan.compiler"
+                },
+                "id": "use-compiler",
+                "label": "Compile consecutive maps",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "compiler",
+                  "portId": "in-l036.fused-plan.compiler"
+                }
+              },
+              {
+                "contractId": "l036.fused-plan.driver",
+                "from": {
+                  "nodeId": "compiler",
+                  "portId": "out-l036.fused-plan.driver"
+                },
+                "id": "use-driver",
+                "label": "Traverse without intermediates",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "driver",
+                  "portId": "in-l036.fused-plan.driver"
+                }
+              },
+              {
+                "contractId": "l036.fused-plan.terminal",
+                "from": {
+                  "nodeId": "driver",
+                  "portId": "out-l036.fused-plan.terminal"
+                },
+                "id": "use-terminal",
+                "label": "Short circuit indexOf",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "terminal",
+                  "portId": "in-l036.fused-plan.terminal"
+                }
+              },
+              {
+                "contractId": "l036.fused-plan.failure",
+                "from": {
+                  "nodeId": "driver",
+                  "portId": "out-l036.fused-plan.failure"
+                },
+                "id": "use-failure",
+                "label": "Stop on callback failure",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "failure",
+                  "portId": "in-l036.fused-plan.failure"
+                }
+              },
+              {
+                "contractId": "l036.fused-plan.restart",
+                "from": {
+                  "nodeId": "terminal",
+                  "portId": "out-l036.fused-plan.restart"
+                },
+                "id": "use-restart",
+                "label": "Make repeated consumption explicit",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "restart",
+                  "portId": "in-l036.fused-plan.restart"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l036.fused-plan.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l036.fused-plan.owner",
+                "id": "owner",
+                "label": "Plan facade",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l036.fused-plan.history",
+                "id": "history",
+                "label": "Persistent history",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l036.fused-plan.source",
+                "id": "source",
+                "label": "Source snapshot",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l036.fused-plan.compiler",
+                "id": "compiler",
+                "label": "Plan compiler",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l036.fused-plan.driver",
+                "id": "driver",
+                "label": "Fused driver",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l036.fused-plan.terminal",
+                "id": "terminal",
+                "label": "Output ordinal",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l036.fused-plan.failure",
+                "id": "failure",
+                "label": "Exception boundary",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l036.fused-plan.restart",
+                "id": "restart",
+                "label": "Fresh traversal factory",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "fused-plan-s8",
+          "invariants": [
+            "Two consumers have independent positions and each reruns callbacks."
+          ],
+          "number": 8,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l036.fused-plan.restart",
+                "id": "restart",
+                "label": "Fresh traversal factory",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l036.fused-plan.restart",
+                "from": {
+                  "nodeId": "terminal",
+                  "portId": "out-l036.fused-plan.restart"
+                },
+                "id": "use-restart",
+                "label": "Make repeated consumption explicit",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "restart",
+                  "portId": "in-l036.fused-plan.restart"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can two terminals share cursor position?",
+          "reason": "Create source and output counters per terminal; retain source snapshot and plan only, without caching results or sharing iteration state.",
+          "title": "Make repeated consumption explicit"
+        }
+      ],
+      "title": "Persistent operation plan and fused loop",
+      "tradeoffs": [
+        "O(k) terminal setup and O(n*k) worst-case callback work.",
+        "Map fusion reduces dispatch and intermediate allocation, not the number of user map callbacks."
+      ]
+    },
+    {
+      "acceptanceCases": [
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-07-mechanisms.test.mjs",
+            "testName": "batch-07 lazy: deferred branching and exact short circuit"
+          },
+          "given": "A mapped/filtered source and counters on callbacks.",
+          "id": "behavior",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "No callback runs at construction; short circuit stops after the first output match; branches retain independent plans.",
+          "when": "Build two branches, consume indexOf on one, then collect the other."
+        },
+        {
+          "given": "Empty input, all elements filtered out, NaN target, and a throwing callback.",
+          "id": "boundary",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Return [] or -1 for absence; Object.is matches NaN; a throw stops traversal and later fresh traversal restarts.",
+          "when": "Consume repeatedly."
+        }
+      ],
+      "algorithms": [
+        {
+          "code": "append(kind, fn) { return new CursorFactory(source, {previous: tail, kind, fn}); }\nopen() { const ops=flattenAndFuse(tail); let i=0, closed=false;\n return { next() { if(closed) return {done:true};\n  outer: while(i<source.length) { let value=source[i++];\n   for(const op of ops) { if(op.kind===\"filter\") {if(!op.fn(value)) continue outer;}\n    else for(const fn of op.mapRun) value=fn(value); }\n   return {done:false,value}; } closed=true; return {done:true};\n }, close() {closed=true;} };\n}",
+          "guarantees": [
+            "Descriptor construction is O(1); consumers are independent; no eager prefetch."
+          ],
+          "id": "mechanism-0",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "owner"
+        }
+      ],
+      "apis": [
+        {
+          "errors": "TypeError nonfunction callback; callback exception propagates; no partial array returned",
+          "method": "CALL",
+          "ownerNodeId": "owner",
+          "path": "LazyArray.map/filter/collect/indexOf",
+          "request": "{\"method\":\"map|filter|collect|indexOf\",\"callback\":\"function(T)->U|boolean for intermediate operation\",\"target\":\"value for indexOf\"}",
+          "response": "{\"intermediate\":\"new LazyArray<U> sharing immutable history\",\"terminal\":\"U[] or transformed-output index; -1 if absent\"}"
+        }
+      ],
+      "assumptions": [
+        "Input array is shallow-copied at construction; object mutation remains visible. Callbacks may have effects; their original order is preserved.",
+        "All added requirements and walkthroughs are authored practice. Graphs specify design; reference tests prove only named bounded mechanisms."
+      ],
+      "chooseWhen": "Consumers need incremental next() as well as terminal methods, with independent cancellation.",
+      "id": "pull-cursors",
+      "initialGraph": {
+        "edges": [],
+        "nodes": []
+      },
+      "stages": [
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l036.pull-cursors.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l036.pull-cursors.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l036.pull-cursors.command"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l036.pull-cursors.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l036.pull-cursors.owner",
+                "id": "owner",
+                "label": "Cursor factory",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "pull-cursors-s1",
+          "invariants": [
+            "Each consumer owns its own cursor state."
+          ],
+          "number": 1,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l036.pull-cursors.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "l036.pull-cursors.owner",
+                "id": "owner",
+                "label": "Cursor factory",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l036.pull-cursors.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l036.pull-cursors.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l036.pull-cursors.command"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Who owns progress when consumers interleave?",
+          "reason": "Retain immutable operator descriptors; create a pull machine per consumer whose next() resumes at the next accepted output.",
+          "title": "Expose Cursor factory"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l036.pull-cursors.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l036.pull-cursors.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l036.pull-cursors.command"
+                }
+              },
+              {
+                "contractId": "l036.pull-cursors.descriptors",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l036.pull-cursors.descriptors"
+                },
+                "id": "use-descriptors",
+                "label": "Retain immutable cursor recipes",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "descriptors",
+                  "portId": "in-l036.pull-cursors.descriptors"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l036.pull-cursors.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l036.pull-cursors.owner",
+                "id": "owner",
+                "label": "Cursor factory",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l036.pull-cursors.descriptors",
+                "id": "descriptors",
+                "label": "Descriptor spine",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "pull-cursors-s2",
+          "invariants": [
+            "Descriptor append never calls next or a callback."
+          ],
+          "number": 2,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l036.pull-cursors.descriptors",
+                "id": "descriptors",
+                "label": "Descriptor spine",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l036.pull-cursors.descriptors",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l036.pull-cursors.descriptors"
+                },
+                "id": "use-descriptors",
+                "label": "Retain immutable cursor recipes",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "descriptors",
+                  "portId": "in-l036.pull-cursors.descriptors"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can two lazy branches share mutation?",
+          "reason": "Append a descriptor cell with a previous pointer; it describes a cursor factory and holds no live cursor.",
+          "title": "Retain immutable cursor recipes"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l036.pull-cursors.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l036.pull-cursors.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l036.pull-cursors.command"
+                }
+              },
+              {
+                "contractId": "l036.pull-cursors.descriptors",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l036.pull-cursors.descriptors"
+                },
+                "id": "use-descriptors",
+                "label": "Retain immutable cursor recipes",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "descriptors",
+                  "portId": "in-l036.pull-cursors.descriptors"
+                }
+              },
+              {
+                "contractId": "l036.pull-cursors.factory",
+                "from": {
+                  "nodeId": "descriptors",
+                  "portId": "out-l036.pull-cursors.factory"
+                },
+                "id": "use-factory",
+                "label": "Allocate independent pull state",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "factory",
+                  "portId": "in-l036.pull-cursors.factory"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l036.pull-cursors.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l036.pull-cursors.owner",
+                "id": "owner",
+                "label": "Cursor factory",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l036.pull-cursors.descriptors",
+                "id": "descriptors",
+                "label": "Descriptor spine",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l036.pull-cursors.factory",
+                "id": "factory",
+                "label": "Cursor allocator",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "pull-cursors-s3",
+          "invariants": [
+            "Opening a cursor evaluates no source elements."
+          ],
+          "number": 3,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l036.pull-cursors.factory",
+                "id": "factory",
+                "label": "Cursor allocator",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l036.pull-cursors.factory",
+                "from": {
+                  "nodeId": "descriptors",
+                  "portId": "out-l036.pull-cursors.factory"
+                },
+                "id": "use-factory",
+                "label": "Allocate independent pull state",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "factory",
+                  "portId": "in-l036.pull-cursors.factory"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can one terminal exhaust another?",
+          "reason": "Flatten descriptor spine once when opening a consumer; allocate source index and output ordinal privately.",
+          "title": "Allocate independent pull state"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l036.pull-cursors.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l036.pull-cursors.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l036.pull-cursors.command"
+                }
+              },
+              {
+                "contractId": "l036.pull-cursors.descriptors",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l036.pull-cursors.descriptors"
+                },
+                "id": "use-descriptors",
+                "label": "Retain immutable cursor recipes",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "descriptors",
+                  "portId": "in-l036.pull-cursors.descriptors"
+                }
+              },
+              {
+                "contractId": "l036.pull-cursors.factory",
+                "from": {
+                  "nodeId": "descriptors",
+                  "portId": "out-l036.pull-cursors.factory"
+                },
+                "id": "use-factory",
+                "label": "Allocate independent pull state",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "factory",
+                  "portId": "in-l036.pull-cursors.factory"
+                }
+              },
+              {
+                "contractId": "l036.pull-cursors.pull",
+                "from": {
+                  "nodeId": "factory",
+                  "portId": "out-l036.pull-cursors.pull"
+                },
+                "id": "use-pull",
+                "label": "Pull one surviving item",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "pull",
+                  "portId": "in-l036.pull-cursors.pull"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l036.pull-cursors.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l036.pull-cursors.owner",
+                "id": "owner",
+                "label": "Cursor factory",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l036.pull-cursors.descriptors",
+                "id": "descriptors",
+                "label": "Descriptor spine",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l036.pull-cursors.factory",
+                "id": "factory",
+                "label": "Cursor allocator",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l036.pull-cursors.pull",
+                "id": "pull",
+                "label": "next state machine",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "pull-cursors-s4",
+          "invariants": [
+            "One next call yields at most one output."
+          ],
+          "number": 4,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l036.pull-cursors.pull",
+                "id": "pull",
+                "label": "next state machine",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l036.pull-cursors.pull",
+                "from": {
+                  "nodeId": "factory",
+                  "portId": "out-l036.pull-cursors.pull"
+                },
+                "id": "use-pull",
+                "label": "Pull one surviving item",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "pull",
+                  "portId": "in-l036.pull-cursors.pull"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How does filter request another source value?",
+          "reason": "next() loops source candidates and runs descriptors until one survives, then suspends with the next source index.",
+          "title": "Pull one surviving item"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l036.pull-cursors.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l036.pull-cursors.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l036.pull-cursors.command"
+                }
+              },
+              {
+                "contractId": "l036.pull-cursors.descriptors",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l036.pull-cursors.descriptors"
+                },
+                "id": "use-descriptors",
+                "label": "Retain immutable cursor recipes",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "descriptors",
+                  "portId": "in-l036.pull-cursors.descriptors"
+                }
+              },
+              {
+                "contractId": "l036.pull-cursors.factory",
+                "from": {
+                  "nodeId": "descriptors",
+                  "portId": "out-l036.pull-cursors.factory"
+                },
+                "id": "use-factory",
+                "label": "Allocate independent pull state",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "factory",
+                  "portId": "in-l036.pull-cursors.factory"
+                }
+              },
+              {
+                "contractId": "l036.pull-cursors.pull",
+                "from": {
+                  "nodeId": "factory",
+                  "portId": "out-l036.pull-cursors.pull"
+                },
+                "id": "use-pull",
+                "label": "Pull one surviving item",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "pull",
+                  "portId": "in-l036.pull-cursors.pull"
+                }
+              },
+              {
+                "contractId": "l036.pull-cursors.fusion",
+                "from": {
+                  "nodeId": "pull",
+                  "portId": "out-l036.pull-cursors.fusion"
+                },
+                "id": "use-fusion",
+                "label": "Fuse map dispatch on pull",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "fusion",
+                  "portId": "in-l036.pull-cursors.fusion"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l036.pull-cursors.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l036.pull-cursors.owner",
+                "id": "owner",
+                "label": "Cursor factory",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l036.pull-cursors.descriptors",
+                "id": "descriptors",
+                "label": "Descriptor spine",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l036.pull-cursors.factory",
+                "id": "factory",
+                "label": "Cursor allocator",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l036.pull-cursors.pull",
+                "id": "pull",
+                "label": "next state machine",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l036.pull-cursors.fusion",
+                "id": "fusion",
+                "label": "Map-run executor",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "pull-cursors-s5",
+          "invariants": [
+            "Fusion preserves side-effect and throw order."
+          ],
+          "number": 5,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l036.pull-cursors.fusion",
+                "id": "fusion",
+                "label": "Map-run executor",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l036.pull-cursors.fusion",
+                "from": {
+                  "nodeId": "pull",
+                  "portId": "out-l036.pull-cursors.fusion"
+                },
+                "id": "use-fusion",
+                "label": "Fuse map dispatch on pull",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "fusion",
+                  "portId": "in-l036.pull-cursors.fusion"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "May fusion cross a filter?",
+          "reason": "Compile adjacent map descriptors into array runs; evaluate each user callback in order for only the pulled candidate.",
+          "title": "Fuse map dispatch on pull"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l036.pull-cursors.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l036.pull-cursors.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l036.pull-cursors.command"
+                }
+              },
+              {
+                "contractId": "l036.pull-cursors.descriptors",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l036.pull-cursors.descriptors"
+                },
+                "id": "use-descriptors",
+                "label": "Retain immutable cursor recipes",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "descriptors",
+                  "portId": "in-l036.pull-cursors.descriptors"
+                }
+              },
+              {
+                "contractId": "l036.pull-cursors.factory",
+                "from": {
+                  "nodeId": "descriptors",
+                  "portId": "out-l036.pull-cursors.factory"
+                },
+                "id": "use-factory",
+                "label": "Allocate independent pull state",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "factory",
+                  "portId": "in-l036.pull-cursors.factory"
+                }
+              },
+              {
+                "contractId": "l036.pull-cursors.pull",
+                "from": {
+                  "nodeId": "factory",
+                  "portId": "out-l036.pull-cursors.pull"
+                },
+                "id": "use-pull",
+                "label": "Pull one surviving item",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "pull",
+                  "portId": "in-l036.pull-cursors.pull"
+                }
+              },
+              {
+                "contractId": "l036.pull-cursors.fusion",
+                "from": {
+                  "nodeId": "pull",
+                  "portId": "out-l036.pull-cursors.fusion"
+                },
+                "id": "use-fusion",
+                "label": "Fuse map dispatch on pull",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "fusion",
+                  "portId": "in-l036.pull-cursors.fusion"
+                }
+              },
+              {
+                "contractId": "l036.pull-cursors.search",
+                "from": {
+                  "nodeId": "pull",
+                  "portId": "out-l036.pull-cursors.search"
+                },
+                "id": "use-search",
+                "label": "Stop the upstream cursor",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "search",
+                  "portId": "in-l036.pull-cursors.search"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l036.pull-cursors.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l036.pull-cursors.owner",
+                "id": "owner",
+                "label": "Cursor factory",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l036.pull-cursors.descriptors",
+                "id": "descriptors",
+                "label": "Descriptor spine",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l036.pull-cursors.factory",
+                "id": "factory",
+                "label": "Cursor allocator",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l036.pull-cursors.pull",
+                "id": "pull",
+                "label": "next state machine",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l036.pull-cursors.fusion",
+                "id": "fusion",
+                "label": "Map-run executor",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l036.pull-cursors.search",
+                "id": "search",
+                "label": "Pull search",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "pull-cursors-s6",
+          "invariants": [
+            "Short circuit is demand cessation, not source prefetch."
+          ],
+          "number": 6,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l036.pull-cursors.search",
+                "id": "search",
+                "label": "Pull search",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l036.pull-cursors.search",
+                "from": {
+                  "nodeId": "pull",
+                  "portId": "out-l036.pull-cursors.search"
+                },
+                "id": "use-search",
+                "label": "Stop the upstream cursor",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "search",
+                  "portId": "in-l036.pull-cursors.search"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How is a match propagated upstream?",
+          "reason": "indexOf calls next until Object.is succeeds, then closes that consumer; no extra next call is made.",
+          "title": "Stop the upstream cursor"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l036.pull-cursors.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l036.pull-cursors.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l036.pull-cursors.command"
+                }
+              },
+              {
+                "contractId": "l036.pull-cursors.descriptors",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l036.pull-cursors.descriptors"
+                },
+                "id": "use-descriptors",
+                "label": "Retain immutable cursor recipes",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "descriptors",
+                  "portId": "in-l036.pull-cursors.descriptors"
+                }
+              },
+              {
+                "contractId": "l036.pull-cursors.factory",
+                "from": {
+                  "nodeId": "descriptors",
+                  "portId": "out-l036.pull-cursors.factory"
+                },
+                "id": "use-factory",
+                "label": "Allocate independent pull state",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "factory",
+                  "portId": "in-l036.pull-cursors.factory"
+                }
+              },
+              {
+                "contractId": "l036.pull-cursors.pull",
+                "from": {
+                  "nodeId": "factory",
+                  "portId": "out-l036.pull-cursors.pull"
+                },
+                "id": "use-pull",
+                "label": "Pull one surviving item",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "pull",
+                  "portId": "in-l036.pull-cursors.pull"
+                }
+              },
+              {
+                "contractId": "l036.pull-cursors.fusion",
+                "from": {
+                  "nodeId": "pull",
+                  "portId": "out-l036.pull-cursors.fusion"
+                },
+                "id": "use-fusion",
+                "label": "Fuse map dispatch on pull",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "fusion",
+                  "portId": "in-l036.pull-cursors.fusion"
+                }
+              },
+              {
+                "contractId": "l036.pull-cursors.search",
+                "from": {
+                  "nodeId": "pull",
+                  "portId": "out-l036.pull-cursors.search"
+                },
+                "id": "use-search",
+                "label": "Stop the upstream cursor",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "search",
+                  "portId": "in-l036.pull-cursors.search"
+                }
+              },
+              {
+                "contractId": "l036.pull-cursors.close",
+                "from": {
+                  "nodeId": "search",
+                  "portId": "out-l036.pull-cursors.close"
+                },
+                "id": "use-close",
+                "label": "Release consumer state",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "close",
+                  "portId": "in-l036.pull-cursors.close"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l036.pull-cursors.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l036.pull-cursors.owner",
+                "id": "owner",
+                "label": "Cursor factory",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l036.pull-cursors.descriptors",
+                "id": "descriptors",
+                "label": "Descriptor spine",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l036.pull-cursors.factory",
+                "id": "factory",
+                "label": "Cursor allocator",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l036.pull-cursors.pull",
+                "id": "pull",
+                "label": "next state machine",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l036.pull-cursors.fusion",
+                "id": "fusion",
+                "label": "Map-run executor",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l036.pull-cursors.search",
+                "id": "search",
+                "label": "Pull search",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l036.pull-cursors.close",
+                "id": "close",
+                "label": "Cursor close",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "pull-cursors-s7",
+          "invariants": [
+            "Closing a consumer cannot mutate its parent descriptor recipe."
+          ],
+          "number": 7,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l036.pull-cursors.close",
+                "id": "close",
+                "label": "Cursor close",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l036.pull-cursors.close",
+                "from": {
+                  "nodeId": "search",
+                  "portId": "out-l036.pull-cursors.close"
+                },
+                "id": "use-close",
+                "label": "Release consumer state",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "close",
+                  "portId": "in-l036.pull-cursors.close"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can a closed cursor resume by accident?",
+          "reason": "Set closed before dropping retained temporary references; next after close returns done, while a new consumer remains valid.",
+          "title": "Release consumer state"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l036.pull-cursors.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l036.pull-cursors.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l036.pull-cursors.command"
+                }
+              },
+              {
+                "contractId": "l036.pull-cursors.descriptors",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l036.pull-cursors.descriptors"
+                },
+                "id": "use-descriptors",
+                "label": "Retain immutable cursor recipes",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "descriptors",
+                  "portId": "in-l036.pull-cursors.descriptors"
+                }
+              },
+              {
+                "contractId": "l036.pull-cursors.factory",
+                "from": {
+                  "nodeId": "descriptors",
+                  "portId": "out-l036.pull-cursors.factory"
+                },
+                "id": "use-factory",
+                "label": "Allocate independent pull state",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "factory",
+                  "portId": "in-l036.pull-cursors.factory"
+                }
+              },
+              {
+                "contractId": "l036.pull-cursors.pull",
+                "from": {
+                  "nodeId": "factory",
+                  "portId": "out-l036.pull-cursors.pull"
+                },
+                "id": "use-pull",
+                "label": "Pull one surviving item",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "pull",
+                  "portId": "in-l036.pull-cursors.pull"
+                }
+              },
+              {
+                "contractId": "l036.pull-cursors.fusion",
+                "from": {
+                  "nodeId": "pull",
+                  "portId": "out-l036.pull-cursors.fusion"
+                },
+                "id": "use-fusion",
+                "label": "Fuse map dispatch on pull",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "fusion",
+                  "portId": "in-l036.pull-cursors.fusion"
+                }
+              },
+              {
+                "contractId": "l036.pull-cursors.search",
+                "from": {
+                  "nodeId": "pull",
+                  "portId": "out-l036.pull-cursors.search"
+                },
+                "id": "use-search",
+                "label": "Stop the upstream cursor",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "search",
+                  "portId": "in-l036.pull-cursors.search"
+                }
+              },
+              {
+                "contractId": "l036.pull-cursors.close",
+                "from": {
+                  "nodeId": "search",
+                  "portId": "out-l036.pull-cursors.close"
+                },
+                "id": "use-close",
+                "label": "Release consumer state",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "close",
+                  "portId": "in-l036.pull-cursors.close"
+                }
+              },
+              {
+                "contractId": "l036.pull-cursors.collect",
+                "from": {
+                  "nodeId": "pull",
+                  "portId": "out-l036.pull-cursors.collect"
+                },
+                "id": "use-collect",
+                "label": "Materialize only at terminal",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "collect",
+                  "portId": "in-l036.pull-cursors.collect"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l036.pull-cursors.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l036.pull-cursors.owner",
+                "id": "owner",
+                "label": "Cursor factory",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l036.pull-cursors.descriptors",
+                "id": "descriptors",
+                "label": "Descriptor spine",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l036.pull-cursors.factory",
+                "id": "factory",
+                "label": "Cursor allocator",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l036.pull-cursors.pull",
+                "id": "pull",
+                "label": "next state machine",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l036.pull-cursors.fusion",
+                "id": "fusion",
+                "label": "Map-run executor",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l036.pull-cursors.search",
+                "id": "search",
+                "label": "Pull search",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l036.pull-cursors.close",
+                "id": "close",
+                "label": "Cursor close",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l036.pull-cursors.collect",
+                "id": "collect",
+                "label": "Collector",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "pull-cursors-s8",
+          "invariants": [
+            "Exceptions close this cursor and propagate without caching partial output."
+          ],
+          "number": 8,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l036.pull-cursors.collect",
+                "id": "collect",
+                "label": "Collector",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l036.pull-cursors.collect",
+                "from": {
+                  "nodeId": "pull",
+                  "portId": "out-l036.pull-cursors.collect"
+                },
+                "id": "use-collect",
+                "label": "Materialize only at terminal",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "collect",
+                  "portId": "in-l036.pull-cursors.collect"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Where does the result array live?",
+          "reason": "Collect repeatedly calls next into one terminal-owned output array; no map or filter owns an intermediate collection.",
+          "title": "Materialize only at terminal"
+        }
+      ],
+      "title": "Pull cursor factories over persistent descriptors",
+      "tradeoffs": [
+        "A pull cursor retains suspended traversal state.",
+        "Wrapper-per-operator recursion can overflow; flatten descriptor history before iterating."
+      ]
+    }
+  ],
+  "subsystems": [],
+  "version": 1
+}

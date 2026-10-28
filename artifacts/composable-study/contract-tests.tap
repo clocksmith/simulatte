@@ -2,199 +2,199 @@ TAP version 13
 # Subtest: chat converts both approaches without losing ordered teaching stages
 ok 1 - chat converts both approaches without losing ordered teaching stages
   ---
-  duration_ms: 73.062792
+  duration_ms: 31.376791
   type: 'test'
   ...
 # Subtest: pagination converts both approaches without losing ordered teaching stages
 ok 2 - pagination converts both approaches without losing ordered teaching stages
   ---
-  duration_ms: 23.159458
+  duration_ms: 12.043416
   type: 'test'
   ...
 # Subtest: comments converts both approaches without losing ordered teaching stages
 ok 3 - comments converts both approaches without losing ordered teaching stages
   ---
-  duration_ms: 26.902875
+  duration_ms: 13.290417
   type: 'test'
   ...
 # Subtest: timeline converts both approaches without losing ordered teaching stages
 ok 4 - timeline converts both approaches without losing ordered teaching stages
   ---
-  duration_ms: 31.909542
+  duration_ms: 20.058584
   type: 'test'
   ...
 # Subtest: inventory converts both approaches without losing ordered teaching stages
 ok 5 - inventory converts both approaches without losing ordered teaching stages
   ---
-  duration_ms: 36.849583
+  duration_ms: 16.947209
   type: 'test'
   ...
 # Subtest: published problems share the v2 format and two or more approaches
 ok 6 - published problems share the v2 format and two or more approaches
   ---
-  duration_ms: 278.317791
+  duration_ms: 196.046875
   type: 'test'
   ...
 # Subtest: v2 rebinding preserves the boundary and old binding definitions
 ok 7 - v2 rebinding preserves the boundary and old binding definitions
   ---
-  duration_ms: 17.6985
+  duration_ms: 15.031333
   type: 'test'
   ...
 # Subtest: v1 data without the v2 operations remains supported
 ok 8 - v1 data without the v2 operations remains supported
   ---
-  duration_ms: 3.926208
+  duration_ms: 3.227125
   type: 'test'
   ...
 # Subtest: component library identity and base versions cannot silently change
 ok 9 - component library identity and base versions cannot silently change
   ---
-  duration_ms: 12.651917
+  duration_ms: 10.798958
   type: 'test'
   ...
 # Subtest: a reused source API name becomes a distinct child while its boundary survives
 ok 10 - a reused source API name becomes a distinct child while its boundary survives
   ---
-  duration_ms: 20.463375
+  duration_ms: 13.219417
   type: 'test'
   ...
 # Subtest: client state merges stay inside the client and retain source ownership
 ok 11 - client state merges stay inside the client and retain source ownership
   ---
-  duration_ms: 18.890375
+  duration_ms: 10.680667
   type: 'test'
   ...
 # Subtest: unmapped labels and un-authored questions fail instead of inventing contracts
 ok 12 - unmapped labels and un-authored questions fail instead of inventing contracts
   ---
-  duration_ms: 3.46025
+  duration_ms: 0.909959
   type: 'test'
   ...
 # Subtest: an unrelated inserted relationship does not renumber existing edge identities
 ok 13 - an unrelated inserted relationship does not renumber existing edge identities
   ---
-  duration_ms: 33.180583
+  duration_ms: 21.608083
   type: 'test'
   ...
 # Subtest: every declared reference test resolves by its exact name to a tracked source path
 ok 14 - every declared reference test resolves by its exact name to a tracked source path
   ---
-  duration_ms: 69.069709
+  duration_ms: 49.123875
   type: 'test'
   ...
 # Subtest: corrections retain unqualified guarantees as authored cases rather than test evidence
 ok 15 - corrections retain unqualified guarantees as authored cases rather than test evidence
   ---
-  duration_ms: 18.147041
+  duration_ms: 14.040583
   type: 'test'
   ...
 # Subtest: repair authoring preserves raw intake while adding safety-critical boundaries
 ok 16 - repair authoring preserves raw intake while adding safety-critical boundaries
   ---
-  duration_ms: 1.166708
+  duration_ms: 0.793
   type: 'test'
   ...
 # Subtest: notebook has two complete typed progressions with exact graphs
 ok 17 - notebook has two complete typed progressions with exact graphs
   ---
-  duration_ms: 17.924208
+  duration_ms: 7.540291
   type: 'test'
   ...
 # Subtest: search has two complete typed progressions with exact graphs
 ok 18 - search has two complete typed progressions with exact graphs
   ---
-  duration_ms: 7.362209
+  duration_ms: 2.816042
   type: 'test'
   ...
 # Subtest: loadBalancer has two complete typed progressions with exact graphs
 ok 19 - loadBalancer has two complete typed progressions with exact graphs
   ---
-  duration_ms: 6.272292
+  duration_ms: 2.342333
   type: 'test'
   ...
 # Subtest: replication has two complete typed progressions with exact graphs
 ok 20 - replication has two complete typed progressions with exact graphs
   ---
-  duration_ms: 4.034541
+  duration_ms: 2.654
   type: 'test'
   ...
 # Subtest: database has two complete typed progressions with exact graphs
 ok 21 - database has two complete typed progressions with exact graphs
   ---
-  duration_ms: 5.676291
+  duration_ms: 2.701292
   type: 'test'
   ...
 # Subtest: video has two complete typed progressions with exact graphs
 ok 22 - video has two complete typed progressions with exact graphs
   ---
-  duration_ms: 5.122
+  duration_ms: 3.133208
   type: 'test'
   ...
 # Subtest: crawler has two complete typed progressions with exact graphs
 ok 23 - crawler has two complete typed progressions with exact graphs
   ---
-  duration_ms: 4.313375
+  duration_ms: 2.657875
   type: 'test'
   ...
 # Subtest: the generator does not mutate one author invocation through another
 ok 24 - the generator does not mutate one author invocation through another
   ---
-  duration_ms: 6.035583
+  duration_ms: 2.937625
   type: 'test'
   ...
 # Subtest: reject a missing dependency and a cross-typed endpoint
 ok 25 - reject a missing dependency and a cross-typed endpoint
   ---
-  duration_ms: 3.39225
+  duration_ms: 1.613792
   type: 'test'
   ...
 # Subtest: reject a stored graph edited outside the operation sequence
 ok 26 - reject a stored graph edited outside the operation sequence
   ---
-  duration_ms: 2.844959
+  duration_ms: 0.953459
   type: 'test'
   ...
 # Subtest: reject a disappearing subsystem parent or an exposed port aimed at a stranger
 ok 27 - reject a disappearing subsystem parent or an exposed port aimed at a stranger
   ---
-  duration_ms: 4.52675
+  duration_ms: 1.669334
   type: 'test'
   ...
 # Subtest: reject missing acceptance cases, lost requirements and optimistic execution claims
 ok 28 - reject missing acceptance cases, lost requirements and optimistic execution claims
   ---
-  duration_ms: 6.125666
+  duration_ms: 1.861375
   type: 'test'
   ...
 # Subtest: reject no-op padding and stale disconnect operations
 ok 29 - reject no-op padding and stale disconnect operations
   ---
-  duration_ms: 3.0525
+  duration_ms: 1.050875
   type: 'test'
   ...
 # Subtest: reconnect preserves an edge identity and rejects absent edges
 ok 30 - reconnect preserves an edge identity and rejects absent edges
   ---
-  duration_ms: 2.257042
+  duration_ms: 0.59175
   type: 'test'
   ...
 # Subtest: reject a merge that drops containment, source identities or compatible ports
 ok 31 - reject a merge that drops containment, source identities or compatible ports
   ---
-  duration_ms: 3.067
+  duration_ms: 1.164041
   type: 'test'
   ...
 # Subtest: strict metadata accepts stage explanations and pseudocode but rejects unknown root fields
 ok 32 - strict metadata accepts stage explanations and pseudocode but rejects unknown root fields
   ---
-  duration_ms: 6.761291
+  duration_ms: 3.039209
   type: 'test'
   ...
 # Subtest: background sources cannot imply verified company question provenance
 ok 33 - background sources cannot imply verified company question provenance
   ---
-  duration_ms: 2.321917
+  duration_ms: 1.425583
   type: 'test'
   ...
 1..33
@@ -205,4 +205,4 @@ ok 33 - background sources cannot imply verified company question provenance
 # cancelled 0
 # skipped 0
 # todo 0
-# duration_ms 731.674958
+# duration_ms 475.823041

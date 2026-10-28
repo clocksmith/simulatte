@@ -1,0 +1,4143 @@
+{
+  "components": [
+    {
+      "extends": {
+        "id": "core.client",
+        "version": 1
+      },
+      "id": "l033.cursor.caller",
+      "label": "Caller",
+      "ports": [
+        {
+          "contractId": "l033.cursor.command",
+          "direction": "out",
+          "id": "out-l033.cursor.command"
+        }
+      ],
+      "responsibility": "Submit the declared operation with stable identity and observe explicit completion.",
+      "stateOwnership": [
+        "caller request and retry identity"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l033.cursor.system",
+      "label": "Snapshot cursor pages",
+      "ports": [
+        {
+          "contractId": "l033.cursor.command",
+          "direction": "in",
+          "id": "in-l033.cursor.command"
+        },
+        {
+          "contractId": "l033.cursor.step3",
+          "direction": "out",
+          "id": "out-l033.cursor.step3-engine"
+        },
+        {
+          "contractId": "l033.cursor.step5",
+          "direction": "out",
+          "id": "out-l033.cursor.step5-engine"
+        },
+        {
+          "contractId": "l033.cursor.step7",
+          "direction": "out",
+          "id": "out-l033.cursor.step7-engine"
+        }
+      ],
+      "responsibility": "Preserve this stable boundary while refining its ownership and contracts.",
+      "stateOwnership": [
+        "logical operation state"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l033.cursor.engine",
+      "label": "Grid controller",
+      "ports": [
+        {
+          "contractId": "l033.cursor.command",
+          "direction": "out",
+          "id": "out-l033.cursor.command"
+        },
+        {
+          "contractId": "l033.cursor.command",
+          "direction": "in",
+          "id": "in-l033.cursor.command"
+        },
+        {
+          "contractId": "l033.cursor.step3",
+          "direction": "out",
+          "id": "out-l033.cursor.step3"
+        },
+        {
+          "contractId": "l033.cursor.step5",
+          "direction": "out",
+          "id": "out-l033.cursor.step5"
+        },
+        {
+          "contractId": "l033.cursor.step7",
+          "direction": "out",
+          "id": "out-l033.cursor.step7"
+        }
+      ],
+      "responsibility": "Own query generation and reject responses from old sorts or canceled queries.",
+      "stateOwnership": [
+        "active generation"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l033.cursor.state",
+      "label": "Page cache",
+      "ports": [
+        {
+          "contractId": "l033.cursor.command",
+          "direction": "in",
+          "id": "in-l033.cursor.command"
+        }
+      ],
+      "responsibility": "Own a bounded LRU of snapshot/cursor pages and retained-byte count.",
+      "stateOwnership": [
+        "page bytes and eviction order"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.service",
+        "version": 1
+      },
+      "id": "l033.cursor.n3",
+      "label": "Query submission",
+      "ports": [
+        {
+          "contractId": "l033.cursor.step3",
+          "direction": "in",
+          "id": "in-l033.cursor.step3"
+        },
+        {
+          "contractId": "l033.cursor.step4",
+          "direction": "out",
+          "id": "out-l033.cursor.step4"
+        }
+      ],
+      "responsibility": "Submit a stable request ID and receive one job/snapshot identity.",
+      "stateOwnership": [
+        "requestId, queryText"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.service",
+        "version": 1
+      },
+      "id": "l033.cursor.n4",
+      "label": "Snapshot paginator",
+      "ports": [
+        {
+          "contractId": "l033.cursor.step4",
+          "direction": "in",
+          "id": "in-l033.cursor.step4"
+        },
+        {
+          "contractId": "l033.cursor.step8",
+          "direction": "out",
+          "id": "out-l033.cursor.step8"
+        }
+      ],
+      "responsibility": "Order by selected keys plus a unique tie-breaker within one immutable result snapshot.",
+      "stateOwnership": [
+        "snapshotId, lastSortKey, lastRowId"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l033.cursor.n5",
+      "label": "Viewport calculator",
+      "ports": [
+        {
+          "contractId": "l033.cursor.step5",
+          "direction": "in",
+          "id": "in-l033.cursor.step5"
+        },
+        {
+          "contractId": "l033.cursor.step6",
+          "direction": "out",
+          "id": "out-l033.cursor.step6"
+        }
+      ],
+      "responsibility": "Compute half-open visible indices from scrollTop and fixed rowHeight, clamp and add bounded overscan.",
+      "stateOwnership": [
+        "scrollTop, rowHeight, viewportHeight"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l033.cursor.n6",
+      "label": "Virtual row renderer",
+      "ports": [
+        {
+          "contractId": "l033.cursor.step6",
+          "direction": "in",
+          "id": "in-l033.cursor.step6"
+        }
+      ],
+      "responsibility": "Render only the computed range with stable row keys and loading placeholders.",
+      "stateOwnership": [
+        "start, end, rowIds"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l033.cursor.n7",
+      "label": "Global sort/filter",
+      "ports": [
+        {
+          "contractId": "l033.cursor.step7",
+          "direction": "in",
+          "id": "in-l033.cursor.step7"
+        }
+      ],
+      "responsibility": "Push global ordering/filtering to the server and issue a new snapshot generation.",
+      "stateOwnership": [
+        "newGeneration, sortFilterHash"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l033.cursor.n8",
+      "label": "Cancellation gate",
+      "ports": [
+        {
+          "contractId": "l033.cursor.step8",
+          "direction": "in",
+          "id": "in-l033.cursor.step8"
+        }
+      ],
+      "responsibility": "Abort requests when possible and reject every response whose generation differs.",
+      "stateOwnership": [
+        "responseGeneration, currentGeneration"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.client",
+        "version": 1
+      },
+      "id": "l033.stream-spool.caller",
+      "label": "Caller",
+      "ports": [
+        {
+          "contractId": "l033.stream-spool.command",
+          "direction": "out",
+          "id": "out-l033.stream-spool.command"
+        }
+      ],
+      "responsibility": "Submit the declared operation with stable identity and observe explicit completion.",
+      "stateOwnership": [
+        "caller request and retry identity"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l033.stream-spool.system",
+      "label": "Credit-limited stream and result spool",
+      "ports": [
+        {
+          "contractId": "l033.stream-spool.command",
+          "direction": "in",
+          "id": "in-l033.stream-spool.command"
+        },
+        {
+          "contractId": "l033.stream-spool.step3",
+          "direction": "out",
+          "id": "out-l033.stream-spool.step3-engine"
+        },
+        {
+          "contractId": "l033.stream-spool.step6",
+          "direction": "out",
+          "id": "out-l033.stream-spool.step6-engine"
+        },
+        {
+          "contractId": "l033.stream-spool.step7",
+          "direction": "out",
+          "id": "out-l033.stream-spool.step7-engine"
+        }
+      ],
+      "responsibility": "Preserve this stable boundary while refining its ownership and contracts.",
+      "stateOwnership": [
+        "logical operation state"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l033.stream-spool.engine",
+      "label": "Stream controller",
+      "ports": [
+        {
+          "contractId": "l033.stream-spool.command",
+          "direction": "out",
+          "id": "out-l033.stream-spool.command"
+        },
+        {
+          "contractId": "l033.stream-spool.command",
+          "direction": "in",
+          "id": "in-l033.stream-spool.command"
+        },
+        {
+          "contractId": "l033.stream-spool.step3",
+          "direction": "out",
+          "id": "out-l033.stream-spool.step3"
+        },
+        {
+          "contractId": "l033.stream-spool.step6",
+          "direction": "out",
+          "id": "out-l033.stream-spool.step6"
+        },
+        {
+          "contractId": "l033.stream-spool.step7",
+          "direction": "out",
+          "id": "out-l033.stream-spool.step7"
+        }
+      ],
+      "responsibility": "Own query generation, granted byte credit and received chunk sequence.",
+      "stateOwnership": [
+        "active stream credit"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l033.stream-spool.state",
+      "label": "Bounded chunk cache",
+      "ports": [
+        {
+          "contractId": "l033.stream-spool.command",
+          "direction": "in",
+          "id": "in-l033.stream-spool.command"
+        }
+      ],
+      "responsibility": "Own retained decoded chunks under a total byte budget.",
+      "stateOwnership": [
+        "cached chunks"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l033.stream-spool.n3",
+      "label": "Result spool",
+      "ports": [
+        {
+          "contractId": "l033.stream-spool.step3",
+          "direction": "in",
+          "id": "in-l033.stream-spool.step3"
+        },
+        {
+          "contractId": "l033.stream-spool.step4",
+          "direction": "out",
+          "id": "out-l033.stream-spool.step4"
+        }
+      ],
+      "responsibility": "Persist immutable query result chunks keyed by query generation and sequence.",
+      "stateOwnership": [
+        "queryGeneration, chunkSeq, hash"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l033.stream-spool.n4",
+      "label": "Credit transport",
+      "ports": [
+        {
+          "contractId": "l033.stream-spool.step4",
+          "direction": "in",
+          "id": "in-l033.stream-spool.step4"
+        },
+        {
+          "contractId": "l033.stream-spool.step5",
+          "direction": "out",
+          "id": "out-l033.stream-spool.step5"
+        }
+      ],
+      "responsibility": "Send only chunks covered by explicit byte credit; grant more only after bounded admission or release.",
+      "stateOwnership": [
+        "creditBytes, chunkBytes"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l033.stream-spool.n5",
+      "label": "Chunk assembler",
+      "ports": [
+        {
+          "contractId": "l033.stream-spool.step5",
+          "direction": "in",
+          "id": "in-l033.stream-spool.step5"
+        },
+        {
+          "contractId": "l033.stream-spool.step8",
+          "direction": "out",
+          "id": "out-l033.stream-spool.step8"
+        }
+      ],
+      "responsibility": "Verify sequence/hash and retain a bounded reorder window; resume from acknowledged contiguous chunk.",
+      "stateOwnership": [
+        "chunkSeq, resumeAfter"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l033.stream-spool.n6",
+      "label": "Virtual viewport",
+      "ports": [
+        {
+          "contractId": "l033.stream-spool.step6",
+          "direction": "in",
+          "id": "in-l033.stream-spool.step6"
+        }
+      ],
+      "responsibility": "Project only the visible index range and use placeholders for unretained chunks.",
+      "stateOwnership": [
+        "visibleStart, visibleEnd"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l033.stream-spool.n7",
+      "label": "Query generation gate",
+      "ports": [
+        {
+          "contractId": "l033.stream-spool.step7",
+          "direction": "in",
+          "id": "in-l033.stream-spool.step7"
+        }
+      ],
+      "responsibility": "Cancel the old job, revoke its credit and create a new server-side query generation.",
+      "stateOwnership": [
+        "cancelGeneration, newGeneration"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l033.stream-spool.n8",
+      "label": "Resume reader",
+      "ports": [
+        {
+          "contractId": "l033.stream-spool.step8",
+          "direction": "in",
+          "id": "in-l033.stream-spool.step8"
+        }
+      ],
+      "responsibility": "Resume from the spool using snapshot/generation plus last contiguous sequence; fail explicitly if expired.",
+      "stateOwnership": [
+        "lastAckSeq, spoolExpiresAt"
+      ],
+      "version": 1
+    }
+  ],
+  "contracts": [
+    {
+      "id": "l033.cursor.command",
+      "request": {
+        "cursor": "opaque snapshot cursor|null",
+        "filter": "validated predicate",
+        "generation": "integer",
+        "limit": "bounded integer",
+        "queryId": "uuid",
+        "sort": "ordered column IDs and directions"
+      },
+      "response": {
+        "generation": "integer",
+        "nextCursor": "opaque|null",
+        "rows": "typed row[]",
+        "snapshotId": "uuid"
+      },
+      "version": 1
+    },
+    {
+      "id": "l033.cursor.step3",
+      "request": {
+        "queryText": "validated SQL",
+        "requestId": "uuid"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l033.cursor.step4",
+      "request": {
+        "lastRowId": "unique ID",
+        "lastSortKey": "tuple",
+        "snapshotId": "uuid"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l033.cursor.step5",
+      "request": {
+        "rowHeight": "positive pixels",
+        "scrollTop": "nonnegative pixels",
+        "viewportHeight": "pixels"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l033.cursor.step6",
+      "request": {
+        "end": "exclusive index",
+        "rowIds": "stable IDs",
+        "start": "inclusive index"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l033.cursor.step7",
+      "request": {
+        "newGeneration": "integer",
+        "sortFilterHash": "sha256"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l033.cursor.step8",
+      "request": {
+        "currentGeneration": "integer",
+        "responseGeneration": "integer"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l033.stream-spool.command",
+      "request": {
+        "cursor": "opaque snapshot cursor|null",
+        "filter": "validated predicate",
+        "generation": "integer",
+        "limit": "bounded integer",
+        "queryId": "uuid",
+        "sort": "ordered column IDs and directions"
+      },
+      "response": {
+        "generation": "integer",
+        "nextCursor": "opaque|null",
+        "rows": "typed row[]",
+        "snapshotId": "uuid"
+      },
+      "version": 1
+    },
+    {
+      "id": "l033.stream-spool.step3",
+      "request": {
+        "chunkSeq": "integer",
+        "hash": "sha256",
+        "queryGeneration": "integer"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l033.stream-spool.step4",
+      "request": {
+        "chunkBytes": "integer",
+        "creditBytes": "nonnegative integer"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l033.stream-spool.step5",
+      "request": {
+        "chunkSeq": "integer",
+        "resumeAfter": "integer"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l033.stream-spool.step6",
+      "request": {
+        "visibleEnd": "integer",
+        "visibleStart": "integer"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l033.stream-spool.step7",
+      "request": {
+        "cancelGeneration": "integer",
+        "newGeneration": "integer"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l033.stream-spool.step8",
+      "request": {
+        "lastAckSeq": "integer",
+        "spoolExpiresAt": "timestamp"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    }
+  ],
+  "execution": {
+    "implementation": null,
+    "kind": "conceptual-design"
+  },
+  "problem": {
+    "referenceId": "L033",
+    "requirements": [
+      {
+        "id": "r0",
+        "text": "Render only the viewport plus overscan while bounding retained rows and bytes."
+      },
+      {
+        "id": "r1",
+        "text": "Pin result snapshot and sort/filter generation; global operations execute on complete server data."
+      },
+      {
+        "id": "r2",
+        "text": "Cancel stale requests and use cursor or credit backpressure with reconnect semantics."
+      }
+    ],
+    "scope": "Full-stack authored design for 100k+ query rows. Compare snapshot cursor pages with credit-limited streaming to a persisted result spool. Rendering virtualization and total retained-byte bounds are independent; no browser performance numbers are asserted.",
+    "studyLabel": "Bounded query result grid"
+  },
+  "provenance": {
+    "kind": "authored-practice",
+    "note": "Authored interview preparation. Technical references support mechanisms, not the claim that a company asked this question."
+  },
+  "references": [
+    {
+      "id": "ref0",
+      "scope": "background",
+      "supports": "Viewport and scroll geometry interfaces; the cited draft is not a performance guarantee.",
+      "title": "Viewport geometry",
+      "url": "https://www.w3.org/TR/cssom-view-1/"
+    },
+    {
+      "id": "ref1",
+      "scope": "background",
+      "supports": "Transactions isolate concurrent authorization and mutation decisions; retries remain explicit.",
+      "title": "PostgreSQL isolation",
+      "url": "https://www.postgresql.org/docs/18/transaction-iso.html"
+    }
+  ],
+  "schema": "simulatte.composableStudy.v2",
+  "solutions": [
+    {
+      "acceptanceCases": [
+        {
+          "given": "A fixed-height grid has 100000 rows.",
+          "id": "case0",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Return clamped half-open ranges bounded by viewport plus overscan.",
+          "when": "Compute the viewport near the beginning, middle and end."
+        },
+        {
+          "given": "Sort generation 2 supersedes generation 1.",
+          "id": "case1",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Discard it and retain generation-2 snapshot identity.",
+          "when": "A generation-1 response arrives after cancellation."
+        },
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-06-state.test.mjs",
+            "testName": "viewport ranges are clamped and independent of full result size"
+          },
+          "given": "A fixed-height viewport has 100000 rows.",
+          "id": "bounded-mechanism",
+          "relatedRequirementIds": [
+            "r0"
+          ],
+          "then": "Return the bounded clamped half-open ranges in the deterministic geometry model.",
+          "when": "Compute visible ranges at start, middle and end."
+        }
+      ],
+      "algorithms": [
+        {
+          "code": "const generation = ++activeGeneration; cancelPriorRequests();\nconst job = submitUnique(requestId, sql, sort, filter);\nconst page = fetchPage(job.snapshotId,cursor,limit);\nif (page.generation !== activeGeneration) discard(page); else admitWithinByteBudget(page);\nstart=max(0,floor(scrollTop/rowHeight)-overscan); end=min(total,ceil((scrollTop+height)/rowHeight)+overscan);",
+          "guarantees": [
+            "A timed-out submit retry retains its request identity.",
+            "All pages share one snapshot and total ordering.",
+            "DOM row count depends on viewport, not total result size.",
+            "Selection uses row identity, never recycled DOM position.",
+            "Sorting one cached page never claims to sort all results.",
+            "Cancellation is best effort; generation comparison is mandatory."
+          ],
+          "id": "transition",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "engine"
+        }
+      ],
+      "apis": [
+        {
+          "errors": "Reject invalid input, stale versions and operations outside the declared boundary.",
+          "method": "CALL",
+          "ownerNodeId": "engine",
+          "path": "L033/cursor",
+          "request": "{\"queryId\":\"uuid\",\"generation\":\"integer\",\"sort\":\"ordered column IDs and directions\",\"filter\":\"validated predicate\",\"cursor\":\"opaque snapshot cursor|null\",\"limit\":\"bounded integer\"}",
+          "response": "{\"snapshotId\":\"uuid\",\"generation\":\"integer\",\"rows\":\"typed row[]\",\"nextCursor\":\"opaque|null\"}"
+        }
+      ],
+      "assumptions": [
+        "All added stages are authored practice extending the canonical prompt.",
+        "Graphs specify conceptual mechanisms; reference models do not prove cloud execution, latency, physical durability or distributed safety."
+      ],
+      "chooseWhen": "Users jump and scroll through a persisted result set with predictable page retrieval.",
+      "id": "cursor",
+      "initialGraph": {
+        "edges": [],
+        "nodes": []
+      },
+      "stages": [
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l033.cursor.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l033.cursor.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l033.cursor.command"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l033.cursor.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l033.cursor.system",
+                "id": "system",
+                "label": "Snapshot cursor pages",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "cursor-s1",
+          "invariants": [
+            "Render only the viewport plus overscan while bounding retained rows and bytes."
+          ],
+          "number": 1,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l033.cursor.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "l033.cursor.system",
+                "id": "system",
+                "label": "Snapshot cursor pages",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l033.cursor.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l033.cursor.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l033.cursor.command"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What does successful completion promise?",
+          "reason": "Render only the viewport plus overscan while bounding retained rows and bytes.",
+          "title": "Define the operation boundary"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l033.cursor.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l033.cursor.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l033.cursor.command"
+                }
+              },
+              {
+                "contractId": "l033.cursor.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l033.cursor.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l033.cursor.command"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l033.cursor.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l033.cursor.system",
+                "id": "system",
+                "label": "Snapshot cursor pages",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l033.cursor.binding-s2",
+                "version": 1
+              },
+              {
+                "definitionId": "l033.cursor.engine",
+                "id": "engine",
+                "label": "Grid controller",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l033.cursor.state",
+                "id": "state",
+                "label": "Page cache",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "cursor-s2",
+          "invariants": [
+            "active generation belongs to Grid controller; page bytes and eviction order belongs to Page cache."
+          ],
+          "number": 2,
+          "operations": [
+            {
+              "edges": [
+                {
+                  "contractId": "l033.cursor.command",
+                  "from": {
+                    "nodeId": "engine",
+                    "portId": "out-l033.cursor.command"
+                  },
+                  "id": "owned-state",
+                  "label": "Read or commit state",
+                  "mode": "storage",
+                  "to": {
+                    "nodeId": "state",
+                    "portId": "in-l033.cursor.command"
+                  }
+                }
+              ],
+              "nodeId": "system",
+              "nodes": [
+                {
+                  "definitionId": "l033.cursor.engine",
+                  "id": "engine",
+                  "label": "Grid controller",
+                  "position": {
+                    "x": 560,
+                    "y": 0
+                  },
+                  "version": 1
+                },
+                {
+                  "definitionId": "l033.cursor.state",
+                  "id": "state",
+                  "label": "Page cache",
+                  "position": {
+                    "x": 840,
+                    "y": 0
+                  },
+                  "version": 1
+                }
+              ],
+              "op": "expand",
+              "subsystemId": "l033.cursor.binding-s2"
+            }
+          ],
+          "question": "Which component owns the decision and its persistent or shared state?",
+          "reason": "Own query generation and reject responses from old sorts or canceled queries. Own a bounded LRU of snapshot/cursor pages and retained-byte count.",
+          "title": "Expose authority and state"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l033.cursor.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l033.cursor.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l033.cursor.command"
+                }
+              },
+              {
+                "contractId": "l033.cursor.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l033.cursor.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l033.cursor.command"
+                }
+              },
+              {
+                "contractId": "l033.cursor.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l033.cursor.step3-engine"
+                },
+                "id": "step3",
+                "label": "Query submission",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l033.cursor.step3"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l033.cursor.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l033.cursor.system",
+                "id": "system",
+                "label": "Snapshot cursor pages",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l033.cursor.binding-s3",
+                "version": 1
+              },
+              {
+                "definitionId": "l033.cursor.engine",
+                "id": "engine",
+                "label": "Grid controller",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l033.cursor.state",
+                "id": "state",
+                "label": "Page cache",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l033.cursor.n3",
+                "id": "n3",
+                "label": "Query submission",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "cursor-s3",
+          "invariants": [
+            "A timed-out submit retry retains its request identity."
+          ],
+          "number": 3,
+          "operations": [
+            {
+              "nodeId": "system",
+              "op": "rebind",
+              "reason": "Expose this new typed path without mutating earlier binding definitions.",
+              "subsystemId": "l033.cursor.binding-s3"
+            },
+            {
+              "node": {
+                "definitionId": "l033.cursor.n3",
+                "id": "n3",
+                "label": "Query submission",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l033.cursor.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l033.cursor.step3-engine"
+                },
+                "id": "step3",
+                "label": "Query submission",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l033.cursor.step3"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How does retry avoid duplicate jobs?",
+          "reason": "Submit a stable request ID and receive one job/snapshot identity.",
+          "title": "Query submission"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l033.cursor.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l033.cursor.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l033.cursor.command"
+                }
+              },
+              {
+                "contractId": "l033.cursor.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l033.cursor.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l033.cursor.command"
+                }
+              },
+              {
+                "contractId": "l033.cursor.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l033.cursor.step3-engine"
+                },
+                "id": "step3",
+                "label": "Query submission",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l033.cursor.step3"
+                }
+              },
+              {
+                "contractId": "l033.cursor.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l033.cursor.step4"
+                },
+                "id": "step4",
+                "label": "Snapshot paginator",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l033.cursor.step4"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l033.cursor.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l033.cursor.system",
+                "id": "system",
+                "label": "Snapshot cursor pages",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l033.cursor.binding-s3",
+                "version": 1
+              },
+              {
+                "definitionId": "l033.cursor.engine",
+                "id": "engine",
+                "label": "Grid controller",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l033.cursor.state",
+                "id": "state",
+                "label": "Page cache",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l033.cursor.n3",
+                "id": "n3",
+                "label": "Query submission",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l033.cursor.n4",
+                "id": "n4",
+                "label": "Snapshot paginator",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "cursor-s4",
+          "invariants": [
+            "All pages share one snapshot and total ordering."
+          ],
+          "number": 4,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l033.cursor.n4",
+                "id": "n4",
+                "label": "Snapshot paginator",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l033.cursor.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l033.cursor.step4"
+                },
+                "id": "step4",
+                "label": "Snapshot paginator",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l033.cursor.step4"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can rows move between pages?",
+          "reason": "Order by selected keys plus a unique tie-breaker within one immutable result snapshot.",
+          "title": "Snapshot paginator"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l033.cursor.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l033.cursor.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l033.cursor.command"
+                }
+              },
+              {
+                "contractId": "l033.cursor.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l033.cursor.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l033.cursor.command"
+                }
+              },
+              {
+                "contractId": "l033.cursor.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l033.cursor.step3-engine"
+                },
+                "id": "step3",
+                "label": "Query submission",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l033.cursor.step3"
+                }
+              },
+              {
+                "contractId": "l033.cursor.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l033.cursor.step4"
+                },
+                "id": "step4",
+                "label": "Snapshot paginator",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l033.cursor.step4"
+                }
+              },
+              {
+                "contractId": "l033.cursor.step5",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l033.cursor.step5-engine"
+                },
+                "id": "step5",
+                "label": "Viewport calculator",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l033.cursor.step5"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l033.cursor.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l033.cursor.system",
+                "id": "system",
+                "label": "Snapshot cursor pages",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l033.cursor.binding-s5",
+                "version": 1
+              },
+              {
+                "definitionId": "l033.cursor.engine",
+                "id": "engine",
+                "label": "Grid controller",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l033.cursor.state",
+                "id": "state",
+                "label": "Page cache",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l033.cursor.n3",
+                "id": "n3",
+                "label": "Query submission",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l033.cursor.n4",
+                "id": "n4",
+                "label": "Snapshot paginator",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l033.cursor.n5",
+                "id": "n5",
+                "label": "Viewport calculator",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "cursor-s5",
+          "invariants": [
+            "DOM row count depends on viewport, not total result size."
+          ],
+          "number": 5,
+          "operations": [
+            {
+              "nodeId": "system",
+              "op": "rebind",
+              "reason": "Expose this new typed path without mutating earlier binding definitions.",
+              "subsystemId": "l033.cursor.binding-s5"
+            },
+            {
+              "node": {
+                "definitionId": "l033.cursor.n5",
+                "id": "n5",
+                "label": "Viewport calculator",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l033.cursor.step5",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l033.cursor.step5-engine"
+                },
+                "id": "step5",
+                "label": "Viewport calculator",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l033.cursor.step5"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How many DOM rows are needed?",
+          "reason": "Compute half-open visible indices from scrollTop and fixed rowHeight, clamp and add bounded overscan.",
+          "title": "Viewport calculator"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l033.cursor.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l033.cursor.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l033.cursor.command"
+                }
+              },
+              {
+                "contractId": "l033.cursor.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l033.cursor.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l033.cursor.command"
+                }
+              },
+              {
+                "contractId": "l033.cursor.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l033.cursor.step3-engine"
+                },
+                "id": "step3",
+                "label": "Query submission",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l033.cursor.step3"
+                }
+              },
+              {
+                "contractId": "l033.cursor.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l033.cursor.step4"
+                },
+                "id": "step4",
+                "label": "Snapshot paginator",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l033.cursor.step4"
+                }
+              },
+              {
+                "contractId": "l033.cursor.step5",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l033.cursor.step5-engine"
+                },
+                "id": "step5",
+                "label": "Viewport calculator",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l033.cursor.step5"
+                }
+              },
+              {
+                "contractId": "l033.cursor.step6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l033.cursor.step6"
+                },
+                "id": "step6",
+                "label": "Virtual row renderer",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l033.cursor.step6"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l033.cursor.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l033.cursor.system",
+                "id": "system",
+                "label": "Snapshot cursor pages",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l033.cursor.binding-s5",
+                "version": 1
+              },
+              {
+                "definitionId": "l033.cursor.engine",
+                "id": "engine",
+                "label": "Grid controller",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l033.cursor.state",
+                "id": "state",
+                "label": "Page cache",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l033.cursor.n3",
+                "id": "n3",
+                "label": "Query submission",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l033.cursor.n4",
+                "id": "n4",
+                "label": "Snapshot paginator",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l033.cursor.n5",
+                "id": "n5",
+                "label": "Viewport calculator",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l033.cursor.n6",
+                "id": "n6",
+                "label": "Virtual row renderer",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "cursor-s6",
+          "invariants": [
+            "Selection uses row identity, never recycled DOM position."
+          ],
+          "number": 6,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l033.cursor.n6",
+                "id": "n6",
+                "label": "Virtual row renderer",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l033.cursor.step6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l033.cursor.step6"
+                },
+                "id": "step6",
+                "label": "Virtual row renderer",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l033.cursor.step6"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How are row nodes recycled safely?",
+          "reason": "Render only the computed range with stable row keys and loading placeholders.",
+          "title": "Virtual row renderer"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l033.cursor.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l033.cursor.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l033.cursor.command"
+                }
+              },
+              {
+                "contractId": "l033.cursor.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l033.cursor.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l033.cursor.command"
+                }
+              },
+              {
+                "contractId": "l033.cursor.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l033.cursor.step3-engine"
+                },
+                "id": "step3",
+                "label": "Query submission",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l033.cursor.step3"
+                }
+              },
+              {
+                "contractId": "l033.cursor.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l033.cursor.step4"
+                },
+                "id": "step4",
+                "label": "Snapshot paginator",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l033.cursor.step4"
+                }
+              },
+              {
+                "contractId": "l033.cursor.step5",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l033.cursor.step5-engine"
+                },
+                "id": "step5",
+                "label": "Viewport calculator",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l033.cursor.step5"
+                }
+              },
+              {
+                "contractId": "l033.cursor.step6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l033.cursor.step6"
+                },
+                "id": "step6",
+                "label": "Virtual row renderer",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l033.cursor.step6"
+                }
+              },
+              {
+                "contractId": "l033.cursor.step7",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l033.cursor.step7-engine"
+                },
+                "id": "step7",
+                "label": "Global sort/filter",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l033.cursor.step7"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l033.cursor.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l033.cursor.system",
+                "id": "system",
+                "label": "Snapshot cursor pages",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l033.cursor.binding-s7",
+                "version": 1
+              },
+              {
+                "definitionId": "l033.cursor.engine",
+                "id": "engine",
+                "label": "Grid controller",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l033.cursor.state",
+                "id": "state",
+                "label": "Page cache",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l033.cursor.n3",
+                "id": "n3",
+                "label": "Query submission",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l033.cursor.n4",
+                "id": "n4",
+                "label": "Snapshot paginator",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l033.cursor.n5",
+                "id": "n5",
+                "label": "Viewport calculator",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l033.cursor.n6",
+                "id": "n6",
+                "label": "Virtual row renderer",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l033.cursor.n7",
+                "id": "n7",
+                "label": "Global sort/filter",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "cursor-s7",
+          "invariants": [
+            "Sorting one cached page never claims to sort all results."
+          ],
+          "number": 7,
+          "operations": [
+            {
+              "nodeId": "system",
+              "op": "rebind",
+              "reason": "Expose this new typed path without mutating earlier binding definitions.",
+              "subsystemId": "l033.cursor.binding-s7"
+            },
+            {
+              "node": {
+                "definitionId": "l033.cursor.n7",
+                "id": "n7",
+                "label": "Global sort/filter",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l033.cursor.step7",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l033.cursor.step7-engine"
+                },
+                "id": "step7",
+                "label": "Global sort/filter",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l033.cursor.step7"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can a page be locally sorted as the whole result?",
+          "reason": "Push global ordering/filtering to the server and issue a new snapshot generation.",
+          "title": "Global sort/filter"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l033.cursor.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l033.cursor.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l033.cursor.command"
+                }
+              },
+              {
+                "contractId": "l033.cursor.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l033.cursor.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l033.cursor.command"
+                }
+              },
+              {
+                "contractId": "l033.cursor.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l033.cursor.step3-engine"
+                },
+                "id": "step3",
+                "label": "Query submission",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l033.cursor.step3"
+                }
+              },
+              {
+                "contractId": "l033.cursor.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l033.cursor.step4"
+                },
+                "id": "step4",
+                "label": "Snapshot paginator",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l033.cursor.step4"
+                }
+              },
+              {
+                "contractId": "l033.cursor.step5",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l033.cursor.step5-engine"
+                },
+                "id": "step5",
+                "label": "Viewport calculator",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l033.cursor.step5"
+                }
+              },
+              {
+                "contractId": "l033.cursor.step6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l033.cursor.step6"
+                },
+                "id": "step6",
+                "label": "Virtual row renderer",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l033.cursor.step6"
+                }
+              },
+              {
+                "contractId": "l033.cursor.step7",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l033.cursor.step7-engine"
+                },
+                "id": "step7",
+                "label": "Global sort/filter",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l033.cursor.step7"
+                }
+              },
+              {
+                "contractId": "l033.cursor.step8",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l033.cursor.step8"
+                },
+                "id": "step8",
+                "label": "Cancellation gate",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n8",
+                  "portId": "in-l033.cursor.step8"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l033.cursor.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l033.cursor.system",
+                "id": "system",
+                "label": "Snapshot cursor pages",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l033.cursor.binding-s7",
+                "version": 1
+              },
+              {
+                "definitionId": "l033.cursor.engine",
+                "id": "engine",
+                "label": "Grid controller",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l033.cursor.state",
+                "id": "state",
+                "label": "Page cache",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l033.cursor.n3",
+                "id": "n3",
+                "label": "Query submission",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l033.cursor.n4",
+                "id": "n4",
+                "label": "Snapshot paginator",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l033.cursor.n5",
+                "id": "n5",
+                "label": "Viewport calculator",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l033.cursor.n6",
+                "id": "n6",
+                "label": "Virtual row renderer",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l033.cursor.n7",
+                "id": "n7",
+                "label": "Global sort/filter",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l033.cursor.n8",
+                "id": "n8",
+                "label": "Cancellation gate",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "cursor-s8",
+          "invariants": [
+            "Cancellation is best effort; generation comparison is mandatory."
+          ],
+          "number": 8,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l033.cursor.n8",
+                "id": "n8",
+                "label": "Cancellation gate",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l033.cursor.step8",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l033.cursor.step8"
+                },
+                "id": "step8",
+                "label": "Cancellation gate",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n8",
+                  "portId": "in-l033.cursor.step8"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What if an old response arrives late?",
+          "reason": "Abort requests when possible and reject every response whose generation differs.",
+          "title": "Cancellation gate"
+        }
+      ],
+      "title": "Snapshot cursor pages",
+      "tradeoffs": [
+        "Snapshot retention consumes storage.",
+        "Random index jumps require an index-to-cursor facility or explicit unsupported navigation."
+      ]
+    },
+    {
+      "acceptanceCases": [
+        {
+          "given": "Chunks contain many more rows than the viewport.",
+          "id": "case0",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "DOM and decoded-byte bounds are enforced independently.",
+          "when": "Render the current range and evict distant chunks."
+        },
+        {
+          "given": "A reconnect or old stream delivers generation 1 after generation 2 begins.",
+          "id": "case1",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Discard stale chunks; expired spool yields explicit unavailable state.",
+          "when": "Validate chunk metadata."
+        },
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-06-state.test.mjs",
+            "testName": "viewport ranges are clamped and independent of full result size"
+          },
+          "given": "A fixed-height viewport has 100000 rows.",
+          "id": "bounded-mechanism",
+          "relatedRequirementIds": [
+            "r0"
+          ],
+          "then": "Return the bounded clamped half-open ranges in the deterministic geometry model.",
+          "when": "Compute visible ranges at start, middle and end."
+        }
+      ],
+      "algorithms": [
+        {
+          "code": "reserve(decodedBytes + inFlightBytes <= budget);\ngrantCredit(freeBytes); onChunk(c) { requireGeneration(c); verifyHash(c);\n if (c.seq <= ack) ignoreDuplicate(); else bufferWithinWindow(c); advanceContiguousAck(); }\nonDisconnect: resumeFromSpool(snapshotId,generation,ack);\nonSort: revokeCredit(); cancelJob(); createNewGeneration();",
+          "guarantees": [
+            "Spool retention and expiration are visible to clients.",
+            "Decoded and in-flight bytes count toward admission budget.",
+            "A missing chunk is never silently skipped.",
+            "Retained chunks and visible DOM rows have separate bounds.",
+            "Old chunks cannot enter the new grid.",
+            "Reconnect cannot pretend expired chunks still exist."
+          ],
+          "id": "transition",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "engine"
+        }
+      ],
+      "apis": [
+        {
+          "errors": "Reject invalid input, stale versions and operations outside the declared boundary.",
+          "method": "CALL",
+          "ownerNodeId": "engine",
+          "path": "L033/stream-spool",
+          "request": "{\"queryId\":\"uuid\",\"generation\":\"integer\",\"sort\":\"ordered column IDs and directions\",\"filter\":\"validated predicate\",\"cursor\":\"opaque snapshot cursor|null\",\"limit\":\"bounded integer\"}",
+          "response": "{\"snapshotId\":\"uuid\",\"generation\":\"integer\",\"rows\":\"typed row[]\",\"nextCursor\":\"opaque|null\"}"
+        }
+      ],
+      "assumptions": [
+        "All added stages are authored practice extending the canonical prompt.",
+        "Graphs specify conceptual mechanisms; reference models do not prove cloud execution, latency, physical durability or distributed safety."
+      ],
+      "chooseWhen": "Rows arrive progressively and a retained server spool supports reconnect and later scrolling.",
+      "id": "stream-spool",
+      "initialGraph": {
+        "edges": [],
+        "nodes": []
+      },
+      "stages": [
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l033.stream-spool.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l033.stream-spool.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l033.stream-spool.command"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l033.stream-spool.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l033.stream-spool.system",
+                "id": "system",
+                "label": "Credit-limited stream and result spool",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "stream-spool-s1",
+          "invariants": [
+            "Render only the viewport plus overscan while bounding retained rows and bytes."
+          ],
+          "number": 1,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l033.stream-spool.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "l033.stream-spool.system",
+                "id": "system",
+                "label": "Credit-limited stream and result spool",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l033.stream-spool.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l033.stream-spool.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l033.stream-spool.command"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What does successful completion promise?",
+          "reason": "Render only the viewport plus overscan while bounding retained rows and bytes.",
+          "title": "Define the operation boundary"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l033.stream-spool.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l033.stream-spool.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l033.stream-spool.command"
+                }
+              },
+              {
+                "contractId": "l033.stream-spool.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l033.stream-spool.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l033.stream-spool.command"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l033.stream-spool.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l033.stream-spool.system",
+                "id": "system",
+                "label": "Credit-limited stream and result spool",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l033.stream-spool.binding-s2",
+                "version": 1
+              },
+              {
+                "definitionId": "l033.stream-spool.engine",
+                "id": "engine",
+                "label": "Stream controller",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l033.stream-spool.state",
+                "id": "state",
+                "label": "Bounded chunk cache",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "stream-spool-s2",
+          "invariants": [
+            "active stream credit belongs to Stream controller; cached chunks belongs to Bounded chunk cache."
+          ],
+          "number": 2,
+          "operations": [
+            {
+              "edges": [
+                {
+                  "contractId": "l033.stream-spool.command",
+                  "from": {
+                    "nodeId": "engine",
+                    "portId": "out-l033.stream-spool.command"
+                  },
+                  "id": "owned-state",
+                  "label": "Read or commit state",
+                  "mode": "storage",
+                  "to": {
+                    "nodeId": "state",
+                    "portId": "in-l033.stream-spool.command"
+                  }
+                }
+              ],
+              "nodeId": "system",
+              "nodes": [
+                {
+                  "definitionId": "l033.stream-spool.engine",
+                  "id": "engine",
+                  "label": "Stream controller",
+                  "position": {
+                    "x": 560,
+                    "y": 0
+                  },
+                  "version": 1
+                },
+                {
+                  "definitionId": "l033.stream-spool.state",
+                  "id": "state",
+                  "label": "Bounded chunk cache",
+                  "position": {
+                    "x": 840,
+                    "y": 0
+                  },
+                  "version": 1
+                }
+              ],
+              "op": "expand",
+              "subsystemId": "l033.stream-spool.binding-s2"
+            }
+          ],
+          "question": "Which component owns the decision and its persistent or shared state?",
+          "reason": "Own query generation, granted byte credit and received chunk sequence. Own retained decoded chunks under a total byte budget.",
+          "title": "Expose authority and state"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l033.stream-spool.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l033.stream-spool.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l033.stream-spool.command"
+                }
+              },
+              {
+                "contractId": "l033.stream-spool.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l033.stream-spool.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l033.stream-spool.command"
+                }
+              },
+              {
+                "contractId": "l033.stream-spool.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l033.stream-spool.step3-engine"
+                },
+                "id": "step3",
+                "label": "Result spool",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l033.stream-spool.step3"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l033.stream-spool.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l033.stream-spool.system",
+                "id": "system",
+                "label": "Credit-limited stream and result spool",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l033.stream-spool.binding-s3",
+                "version": 1
+              },
+              {
+                "definitionId": "l033.stream-spool.engine",
+                "id": "engine",
+                "label": "Stream controller",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l033.stream-spool.state",
+                "id": "state",
+                "label": "Bounded chunk cache",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l033.stream-spool.n3",
+                "id": "n3",
+                "label": "Result spool",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "stream-spool-s3",
+          "invariants": [
+            "Spool retention and expiration are visible to clients."
+          ],
+          "number": 3,
+          "operations": [
+            {
+              "nodeId": "system",
+              "op": "rebind",
+              "reason": "Expose this new typed path without mutating earlier binding definitions.",
+              "subsystemId": "l033.stream-spool.binding-s3"
+            },
+            {
+              "node": {
+                "definitionId": "l033.stream-spool.n3",
+                "id": "n3",
+                "label": "Result spool",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l033.stream-spool.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l033.stream-spool.step3-engine"
+                },
+                "id": "step3",
+                "label": "Result spool",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l033.stream-spool.step3"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Where can evicted chunks be retrieved?",
+          "reason": "Persist immutable query result chunks keyed by query generation and sequence.",
+          "title": "Result spool"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l033.stream-spool.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l033.stream-spool.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l033.stream-spool.command"
+                }
+              },
+              {
+                "contractId": "l033.stream-spool.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l033.stream-spool.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l033.stream-spool.command"
+                }
+              },
+              {
+                "contractId": "l033.stream-spool.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l033.stream-spool.step3-engine"
+                },
+                "id": "step3",
+                "label": "Result spool",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l033.stream-spool.step3"
+                }
+              },
+              {
+                "contractId": "l033.stream-spool.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l033.stream-spool.step4"
+                },
+                "id": "step4",
+                "label": "Credit transport",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l033.stream-spool.step4"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l033.stream-spool.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l033.stream-spool.system",
+                "id": "system",
+                "label": "Credit-limited stream and result spool",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l033.stream-spool.binding-s3",
+                "version": 1
+              },
+              {
+                "definitionId": "l033.stream-spool.engine",
+                "id": "engine",
+                "label": "Stream controller",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l033.stream-spool.state",
+                "id": "state",
+                "label": "Bounded chunk cache",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l033.stream-spool.n3",
+                "id": "n3",
+                "label": "Result spool",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l033.stream-spool.n4",
+                "id": "n4",
+                "label": "Credit transport",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "stream-spool-s4",
+          "invariants": [
+            "Decoded and in-flight bytes count toward admission budget."
+          ],
+          "number": 4,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l033.stream-spool.n4",
+                "id": "n4",
+                "label": "Credit transport",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l033.stream-spool.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l033.stream-spool.step4"
+                },
+                "id": "step4",
+                "label": "Credit transport",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l033.stream-spool.step4"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How is a fast producer slowed?",
+          "reason": "Send only chunks covered by explicit byte credit; grant more only after bounded admission or release.",
+          "title": "Credit transport"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l033.stream-spool.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l033.stream-spool.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l033.stream-spool.command"
+                }
+              },
+              {
+                "contractId": "l033.stream-spool.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l033.stream-spool.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l033.stream-spool.command"
+                }
+              },
+              {
+                "contractId": "l033.stream-spool.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l033.stream-spool.step3-engine"
+                },
+                "id": "step3",
+                "label": "Result spool",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l033.stream-spool.step3"
+                }
+              },
+              {
+                "contractId": "l033.stream-spool.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l033.stream-spool.step4"
+                },
+                "id": "step4",
+                "label": "Credit transport",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l033.stream-spool.step4"
+                }
+              },
+              {
+                "contractId": "l033.stream-spool.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l033.stream-spool.step5"
+                },
+                "id": "step5",
+                "label": "Chunk assembler",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l033.stream-spool.step5"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l033.stream-spool.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l033.stream-spool.system",
+                "id": "system",
+                "label": "Credit-limited stream and result spool",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l033.stream-spool.binding-s3",
+                "version": 1
+              },
+              {
+                "definitionId": "l033.stream-spool.engine",
+                "id": "engine",
+                "label": "Stream controller",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l033.stream-spool.state",
+                "id": "state",
+                "label": "Bounded chunk cache",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l033.stream-spool.n3",
+                "id": "n3",
+                "label": "Result spool",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l033.stream-spool.n4",
+                "id": "n4",
+                "label": "Credit transport",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l033.stream-spool.n5",
+                "id": "n5",
+                "label": "Chunk assembler",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "stream-spool-s5",
+          "invariants": [
+            "A missing chunk is never silently skipped."
+          ],
+          "number": 5,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l033.stream-spool.n5",
+                "id": "n5",
+                "label": "Chunk assembler",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l033.stream-spool.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l033.stream-spool.step5"
+                },
+                "id": "step5",
+                "label": "Chunk assembler",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l033.stream-spool.step5"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can duplicate or out-of-order chunks corrupt rows?",
+          "reason": "Verify sequence/hash and retain a bounded reorder window; resume from acknowledged contiguous chunk.",
+          "title": "Chunk assembler"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l033.stream-spool.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l033.stream-spool.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l033.stream-spool.command"
+                }
+              },
+              {
+                "contractId": "l033.stream-spool.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l033.stream-spool.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l033.stream-spool.command"
+                }
+              },
+              {
+                "contractId": "l033.stream-spool.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l033.stream-spool.step3-engine"
+                },
+                "id": "step3",
+                "label": "Result spool",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l033.stream-spool.step3"
+                }
+              },
+              {
+                "contractId": "l033.stream-spool.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l033.stream-spool.step4"
+                },
+                "id": "step4",
+                "label": "Credit transport",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l033.stream-spool.step4"
+                }
+              },
+              {
+                "contractId": "l033.stream-spool.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l033.stream-spool.step5"
+                },
+                "id": "step5",
+                "label": "Chunk assembler",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l033.stream-spool.step5"
+                }
+              },
+              {
+                "contractId": "l033.stream-spool.step6",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l033.stream-spool.step6-engine"
+                },
+                "id": "step6",
+                "label": "Virtual viewport",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l033.stream-spool.step6"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l033.stream-spool.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l033.stream-spool.system",
+                "id": "system",
+                "label": "Credit-limited stream and result spool",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l033.stream-spool.binding-s6",
+                "version": 1
+              },
+              {
+                "definitionId": "l033.stream-spool.engine",
+                "id": "engine",
+                "label": "Stream controller",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l033.stream-spool.state",
+                "id": "state",
+                "label": "Bounded chunk cache",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l033.stream-spool.n3",
+                "id": "n3",
+                "label": "Result spool",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l033.stream-spool.n4",
+                "id": "n4",
+                "label": "Credit transport",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l033.stream-spool.n5",
+                "id": "n5",
+                "label": "Chunk assembler",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l033.stream-spool.n6",
+                "id": "n6",
+                "label": "Virtual viewport",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "stream-spool-s6",
+          "invariants": [
+            "Retained chunks and visible DOM rows have separate bounds."
+          ],
+          "number": 6,
+          "operations": [
+            {
+              "nodeId": "system",
+              "op": "rebind",
+              "reason": "Expose this new typed path without mutating earlier binding definitions.",
+              "subsystemId": "l033.stream-spool.binding-s6"
+            },
+            {
+              "node": {
+                "definitionId": "l033.stream-spool.n6",
+                "id": "n6",
+                "label": "Virtual viewport",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l033.stream-spool.step6",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l033.stream-spool.step6-engine"
+                },
+                "id": "step6",
+                "label": "Virtual viewport",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l033.stream-spool.step6"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Does streaming require rendering every row?",
+          "reason": "Project only the visible index range and use placeholders for unretained chunks.",
+          "title": "Virtual viewport"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l033.stream-spool.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l033.stream-spool.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l033.stream-spool.command"
+                }
+              },
+              {
+                "contractId": "l033.stream-spool.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l033.stream-spool.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l033.stream-spool.command"
+                }
+              },
+              {
+                "contractId": "l033.stream-spool.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l033.stream-spool.step3-engine"
+                },
+                "id": "step3",
+                "label": "Result spool",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l033.stream-spool.step3"
+                }
+              },
+              {
+                "contractId": "l033.stream-spool.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l033.stream-spool.step4"
+                },
+                "id": "step4",
+                "label": "Credit transport",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l033.stream-spool.step4"
+                }
+              },
+              {
+                "contractId": "l033.stream-spool.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l033.stream-spool.step5"
+                },
+                "id": "step5",
+                "label": "Chunk assembler",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l033.stream-spool.step5"
+                }
+              },
+              {
+                "contractId": "l033.stream-spool.step6",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l033.stream-spool.step6-engine"
+                },
+                "id": "step6",
+                "label": "Virtual viewport",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l033.stream-spool.step6"
+                }
+              },
+              {
+                "contractId": "l033.stream-spool.step7",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l033.stream-spool.step7-engine"
+                },
+                "id": "step7",
+                "label": "Query generation gate",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l033.stream-spool.step7"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l033.stream-spool.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l033.stream-spool.system",
+                "id": "system",
+                "label": "Credit-limited stream and result spool",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l033.stream-spool.binding-s7",
+                "version": 1
+              },
+              {
+                "definitionId": "l033.stream-spool.engine",
+                "id": "engine",
+                "label": "Stream controller",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l033.stream-spool.state",
+                "id": "state",
+                "label": "Bounded chunk cache",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l033.stream-spool.n3",
+                "id": "n3",
+                "label": "Result spool",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l033.stream-spool.n4",
+                "id": "n4",
+                "label": "Credit transport",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l033.stream-spool.n5",
+                "id": "n5",
+                "label": "Chunk assembler",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l033.stream-spool.n6",
+                "id": "n6",
+                "label": "Virtual viewport",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l033.stream-spool.n7",
+                "id": "n7",
+                "label": "Query generation gate",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "stream-spool-s7",
+          "invariants": [
+            "Old chunks cannot enter the new grid."
+          ],
+          "number": 7,
+          "operations": [
+            {
+              "nodeId": "system",
+              "op": "rebind",
+              "reason": "Expose this new typed path without mutating earlier binding definitions.",
+              "subsystemId": "l033.stream-spool.binding-s7"
+            },
+            {
+              "node": {
+                "definitionId": "l033.stream-spool.n7",
+                "id": "n7",
+                "label": "Query generation gate",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l033.stream-spool.step7",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l033.stream-spool.step7-engine"
+                },
+                "id": "step7",
+                "label": "Query generation gate",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l033.stream-spool.step7"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How does changing filter affect the stream?",
+          "reason": "Cancel the old job, revoke its credit and create a new server-side query generation.",
+          "title": "Query generation gate"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l033.stream-spool.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l033.stream-spool.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l033.stream-spool.command"
+                }
+              },
+              {
+                "contractId": "l033.stream-spool.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l033.stream-spool.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l033.stream-spool.command"
+                }
+              },
+              {
+                "contractId": "l033.stream-spool.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l033.stream-spool.step3-engine"
+                },
+                "id": "step3",
+                "label": "Result spool",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l033.stream-spool.step3"
+                }
+              },
+              {
+                "contractId": "l033.stream-spool.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l033.stream-spool.step4"
+                },
+                "id": "step4",
+                "label": "Credit transport",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l033.stream-spool.step4"
+                }
+              },
+              {
+                "contractId": "l033.stream-spool.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l033.stream-spool.step5"
+                },
+                "id": "step5",
+                "label": "Chunk assembler",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l033.stream-spool.step5"
+                }
+              },
+              {
+                "contractId": "l033.stream-spool.step6",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l033.stream-spool.step6-engine"
+                },
+                "id": "step6",
+                "label": "Virtual viewport",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l033.stream-spool.step6"
+                }
+              },
+              {
+                "contractId": "l033.stream-spool.step7",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l033.stream-spool.step7-engine"
+                },
+                "id": "step7",
+                "label": "Query generation gate",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l033.stream-spool.step7"
+                }
+              },
+              {
+                "contractId": "l033.stream-spool.step8",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l033.stream-spool.step8"
+                },
+                "id": "step8",
+                "label": "Resume reader",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n8",
+                  "portId": "in-l033.stream-spool.step8"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l033.stream-spool.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l033.stream-spool.system",
+                "id": "system",
+                "label": "Credit-limited stream and result spool",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l033.stream-spool.binding-s7",
+                "version": 1
+              },
+              {
+                "definitionId": "l033.stream-spool.engine",
+                "id": "engine",
+                "label": "Stream controller",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l033.stream-spool.state",
+                "id": "state",
+                "label": "Bounded chunk cache",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l033.stream-spool.n3",
+                "id": "n3",
+                "label": "Result spool",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l033.stream-spool.n4",
+                "id": "n4",
+                "label": "Credit transport",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l033.stream-spool.n5",
+                "id": "n5",
+                "label": "Chunk assembler",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l033.stream-spool.n6",
+                "id": "n6",
+                "label": "Virtual viewport",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l033.stream-spool.n7",
+                "id": "n7",
+                "label": "Query generation gate",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l033.stream-spool.n8",
+                "id": "n8",
+                "label": "Resume reader",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "stream-spool-s8",
+          "invariants": [
+            "Reconnect cannot pretend expired chunks still exist."
+          ],
+          "number": 8,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l033.stream-spool.n8",
+                "id": "n8",
+                "label": "Resume reader",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l033.stream-spool.step8",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l033.stream-spool.step8"
+                },
+                "id": "step8",
+                "label": "Resume reader",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n8",
+                  "portId": "in-l033.stream-spool.step8"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What if the connection drops?",
+          "reason": "Resume from the spool using snapshot/generation plus last contiguous sequence; fail explicitly if expired.",
+          "title": "Resume reader"
+        }
+      ],
+      "title": "Credit-limited stream and result spool",
+      "tradeoffs": [
+        "Streaming adds chunk sequencing, credit and resume state.",
+        "Client memory still needs eviction; virtualization alone does not bound row data."
+      ]
+    }
+  ],
+  "subsystems": [
+    {
+      "definitionId": "l033.cursor.system",
+      "id": "l033.cursor.binding-s2",
+      "ports": [
+        {
+          "contractId": "l033.cursor.command",
+          "direction": "in",
+          "id": "in-l033.cursor.command",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-l033.cursor.command"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l033.cursor.system",
+      "id": "l033.cursor.binding-s3",
+      "ports": [
+        {
+          "contractId": "l033.cursor.command",
+          "direction": "in",
+          "id": "in-l033.cursor.command",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-l033.cursor.command"
+          }
+        },
+        {
+          "contractId": "l033.cursor.step3",
+          "direction": "out",
+          "id": "out-l033.cursor.step3-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l033.cursor.step3"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l033.cursor.system",
+      "id": "l033.cursor.binding-s5",
+      "ports": [
+        {
+          "contractId": "l033.cursor.command",
+          "direction": "in",
+          "id": "in-l033.cursor.command",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-l033.cursor.command"
+          }
+        },
+        {
+          "contractId": "l033.cursor.step3",
+          "direction": "out",
+          "id": "out-l033.cursor.step3-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l033.cursor.step3"
+          }
+        },
+        {
+          "contractId": "l033.cursor.step5",
+          "direction": "out",
+          "id": "out-l033.cursor.step5-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l033.cursor.step5"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l033.cursor.system",
+      "id": "l033.cursor.binding-s7",
+      "ports": [
+        {
+          "contractId": "l033.cursor.command",
+          "direction": "in",
+          "id": "in-l033.cursor.command",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-l033.cursor.command"
+          }
+        },
+        {
+          "contractId": "l033.cursor.step3",
+          "direction": "out",
+          "id": "out-l033.cursor.step3-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l033.cursor.step3"
+          }
+        },
+        {
+          "contractId": "l033.cursor.step5",
+          "direction": "out",
+          "id": "out-l033.cursor.step5-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l033.cursor.step5"
+          }
+        },
+        {
+          "contractId": "l033.cursor.step7",
+          "direction": "out",
+          "id": "out-l033.cursor.step7-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l033.cursor.step7"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l033.stream-spool.system",
+      "id": "l033.stream-spool.binding-s2",
+      "ports": [
+        {
+          "contractId": "l033.stream-spool.command",
+          "direction": "in",
+          "id": "in-l033.stream-spool.command",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-l033.stream-spool.command"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l033.stream-spool.system",
+      "id": "l033.stream-spool.binding-s3",
+      "ports": [
+        {
+          "contractId": "l033.stream-spool.command",
+          "direction": "in",
+          "id": "in-l033.stream-spool.command",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-l033.stream-spool.command"
+          }
+        },
+        {
+          "contractId": "l033.stream-spool.step3",
+          "direction": "out",
+          "id": "out-l033.stream-spool.step3-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l033.stream-spool.step3"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l033.stream-spool.system",
+      "id": "l033.stream-spool.binding-s6",
+      "ports": [
+        {
+          "contractId": "l033.stream-spool.command",
+          "direction": "in",
+          "id": "in-l033.stream-spool.command",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-l033.stream-spool.command"
+          }
+        },
+        {
+          "contractId": "l033.stream-spool.step3",
+          "direction": "out",
+          "id": "out-l033.stream-spool.step3-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l033.stream-spool.step3"
+          }
+        },
+        {
+          "contractId": "l033.stream-spool.step6",
+          "direction": "out",
+          "id": "out-l033.stream-spool.step6-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l033.stream-spool.step6"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l033.stream-spool.system",
+      "id": "l033.stream-spool.binding-s7",
+      "ports": [
+        {
+          "contractId": "l033.stream-spool.command",
+          "direction": "in",
+          "id": "in-l033.stream-spool.command",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-l033.stream-spool.command"
+          }
+        },
+        {
+          "contractId": "l033.stream-spool.step3",
+          "direction": "out",
+          "id": "out-l033.stream-spool.step3-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l033.stream-spool.step3"
+          }
+        },
+        {
+          "contractId": "l033.stream-spool.step6",
+          "direction": "out",
+          "id": "out-l033.stream-spool.step6-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l033.stream-spool.step6"
+          }
+        },
+        {
+          "contractId": "l033.stream-spool.step7",
+          "direction": "out",
+          "id": "out-l033.stream-spool.step7-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l033.stream-spool.step7"
+          }
+        }
+      ],
+      "version": 1
+    }
+  ],
+  "version": 1
+}

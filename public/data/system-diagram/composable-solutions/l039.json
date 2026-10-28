@@ -1,0 +1,3550 @@
+{
+  "components": [
+    {
+      "extends": {
+        "id": "core.client",
+        "version": 1
+      },
+      "id": "l039.stream-dfa.caller",
+      "label": "Caller",
+      "ports": [
+        {
+          "contractId": "l039.stream-dfa.command",
+          "direction": "out",
+          "id": "out-l039.stream-dfa.command"
+        }
+      ],
+      "responsibility": "Invoke the documented API and retain returned outcomes.",
+      "stateOwnership": [
+        "caller-owned input"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l039.stream-dfa.owner",
+      "label": "Lexer state machine",
+      "ports": [
+        {
+          "contractId": "l039.stream-dfa.command",
+          "direction": "in",
+          "id": "in-l039.stream-dfa.command"
+        },
+        {
+          "contractId": "l039.stream-dfa.lookahead",
+          "direction": "out",
+          "id": "out-l039.stream-dfa.lookahead"
+        }
+      ],
+      "responsibility": "Consume characters once with state CODE, SINGLE, DOUBLE, LINE or BLOCK; preserve one pending delimiter character across chunks.",
+      "stateOwnership": [
+        "lexical state",
+        "pending character",
+        "escape flag"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l039.stream-dfa.lookahead",
+      "label": "Pending lookahead",
+      "ports": [
+        {
+          "contractId": "l039.stream-dfa.lookahead",
+          "direction": "in",
+          "id": "in-l039.stream-dfa.lookahead"
+        },
+        {
+          "contractId": "l039.stream-dfa.quote",
+          "direction": "out",
+          "id": "out-l039.stream-dfa.quote"
+        },
+        {
+          "contractId": "l039.stream-dfa.line",
+          "direction": "out",
+          "id": "out-l039.stream-dfa.line"
+        },
+        {
+          "contractId": "l039.stream-dfa.block",
+          "direction": "out",
+          "id": "out-l039.stream-dfa.block"
+        }
+      ],
+      "responsibility": "Hold at most one undecided /, -, quote or block-star until the next code unit or explicit EOF resolves it.",
+      "stateOwnership": [
+        "pending code unit"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l039.stream-dfa.quote",
+      "label": "Quote transitions",
+      "ports": [
+        {
+          "contractId": "l039.stream-dfa.quote",
+          "direction": "in",
+          "id": "in-l039.stream-dfa.quote"
+        },
+        {
+          "contractId": "l039.stream-dfa.escape",
+          "direction": "out",
+          "id": "out-l039.stream-dfa.escape"
+        }
+      ],
+      "responsibility": "Enter matching quote state from CODE; copy characters verbatim and treat delimiter bytes only as literal content while quoted.",
+      "stateOwnership": [
+        "quote kind"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l039.stream-dfa.escape",
+      "label": "Escape handling",
+      "ports": [
+        {
+          "contractId": "l039.stream-dfa.escape",
+          "direction": "in",
+          "id": "in-l039.stream-dfa.escape"
+        },
+        {
+          "contractId": "l039.stream-dfa.eof",
+          "direction": "out",
+          "id": "out-l039.stream-dfa.eof"
+        }
+      ],
+      "responsibility": "Backslash copies the following code unit literally; doubled matching quotes remain inside the same literal.",
+      "stateOwnership": [
+        "escape flag",
+        "pending quote"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l039.stream-dfa.line",
+      "label": "Line comment state",
+      "ports": [
+        {
+          "contractId": "l039.stream-dfa.line",
+          "direction": "in",
+          "id": "in-l039.stream-dfa.line"
+        }
+      ],
+      "responsibility": "On // or -- emit one separator then discard until CR or LF; copy newline code units and return to CODE.",
+      "stateOwnership": [
+        "LINE state"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l039.stream-dfa.block",
+      "label": "Block comment state",
+      "ports": [
+        {
+          "contractId": "l039.stream-dfa.block",
+          "direction": "in",
+          "id": "in-l039.stream-dfa.block"
+        },
+        {
+          "contractId": "l039.stream-dfa.separator",
+          "direction": "out",
+          "id": "out-l039.stream-dfa.separator"
+        }
+      ],
+      "responsibility": "After /* emit one separator, drop nonnewline content until first */; internal /* is plain comment content.",
+      "stateOwnership": [
+        "BLOCK state",
+        "star pending"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l039.stream-dfa.separator",
+      "label": "Output sink",
+      "ports": [
+        {
+          "contractId": "l039.stream-dfa.separator",
+          "direction": "in",
+          "id": "in-l039.stream-dfa.separator"
+        }
+      ],
+      "responsibility": "Append the opener separator and retained newlines to a terminal-owned output sink; never join lexical tokens across removed comments.",
+      "stateOwnership": [
+        "emitted output"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l039.stream-dfa.eof",
+      "label": "EOF transition",
+      "ports": [
+        {
+          "contractId": "l039.stream-dfa.eof",
+          "direction": "in",
+          "id": "in-l039.stream-dfa.eof"
+        }
+      ],
+      "responsibility": "Flush ordinary pending characters, finish a line comment at EOF, and reject BLOCK or unclosed quote state. Mark finished exactly once.",
+      "stateOwnership": [
+        "finished flag"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.client",
+        "version": 1
+      },
+      "id": "l039.span-scanner.caller",
+      "label": "Caller",
+      "ports": [
+        {
+          "contractId": "l039.span-scanner.command",
+          "direction": "out",
+          "id": "out-l039.span-scanner.command"
+        }
+      ],
+      "responsibility": "Invoke the documented API and retain returned outcomes.",
+      "stateOwnership": [
+        "caller-owned input"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l039.span-scanner.owner",
+      "label": "Span tokenizer",
+      "ports": [
+        {
+          "contractId": "l039.span-scanner.command",
+          "direction": "in",
+          "id": "in-l039.span-scanner.command"
+        },
+        {
+          "contractId": "l039.span-scanner.buffer",
+          "direction": "out",
+          "id": "out-l039.span-scanner.buffer"
+        }
+      ],
+      "responsibility": "Retain the source, tokenize nonoverlapping literal/comment/plain spans, then reconstruct from source slices and comment whitespace.",
+      "stateOwnership": [
+        "source buffer",
+        "span list"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l039.span-scanner.buffer",
+      "label": "Immutable source buffer",
+      "ports": [
+        {
+          "contractId": "l039.span-scanner.buffer",
+          "direction": "in",
+          "id": "in-l039.span-scanner.buffer"
+        },
+        {
+          "contractId": "l039.span-scanner.literal",
+          "direction": "out",
+          "id": "out-l039.span-scanner.literal"
+        },
+        {
+          "contractId": "l039.span-scanner.lineSpan",
+          "direction": "out",
+          "id": "out-l039.span-scanner.lineSpan"
+        },
+        {
+          "contractId": "l039.span-scanner.blockSpan",
+          "direction": "out",
+          "id": "out-l039.span-scanner.blockSpan"
+        }
+      ],
+      "responsibility": "Read the entire input into an immutable source and use half-open code-unit ranges.",
+      "stateOwnership": [
+        "source string"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l039.span-scanner.literal",
+      "label": "Literal-span scanner",
+      "ports": [
+        {
+          "contractId": "l039.span-scanner.literal",
+          "direction": "in",
+          "id": "in-l039.span-scanner.literal"
+        },
+        {
+          "contractId": "l039.span-scanner.spans",
+          "direction": "out",
+          "id": "out-l039.span-scanner.spans"
+        }
+      ],
+      "responsibility": "At a quote, scan matching delimiter with escapes/doubled-quote rules and emit a literal span without scanning its body for comments.",
+      "stateOwnership": [
+        "quote start",
+        "scan offset"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l039.span-scanner.lineSpan",
+      "label": "Line-span scanner",
+      "ports": [
+        {
+          "contractId": "l039.span-scanner.lineSpan",
+          "direction": "in",
+          "id": "in-l039.span-scanner.lineSpan"
+        }
+      ],
+      "responsibility": "At CODE // or -- record through the last nonnewline character; leave CR/LF to the next plain span.",
+      "stateOwnership": [
+        "line span endpoints"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l039.span-scanner.blockSpan",
+      "label": "Block-span scanner",
+      "ports": [
+        {
+          "contractId": "l039.span-scanner.blockSpan",
+          "direction": "in",
+          "id": "in-l039.span-scanner.blockSpan"
+        }
+      ],
+      "responsibility": "At CODE /* search the first */ while counting newlines for diagnostics; reject EOF with no closer.",
+      "stateOwnership": [
+        "block span endpoints"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l039.span-scanner.spans",
+      "label": "Ordered span list",
+      "ports": [
+        {
+          "contractId": "l039.span-scanner.spans",
+          "direction": "in",
+          "id": "in-l039.span-scanner.spans"
+        },
+        {
+          "contractId": "l039.span-scanner.render",
+          "direction": "out",
+          "id": "out-l039.span-scanner.render"
+        }
+      ],
+      "responsibility": "Append adjacent disjoint spans covering source exactly once; keep original start/end and span kind.",
+      "stateOwnership": [
+        "ordered spans"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l039.span-scanner.render",
+      "label": "Whitespace reconstruction",
+      "ports": [
+        {
+          "contractId": "l039.span-scanner.render",
+          "direction": "in",
+          "id": "in-l039.span-scanner.render"
+        },
+        {
+          "contractId": "l039.span-scanner.diagnostic",
+          "direction": "out",
+          "id": "out-l039.span-scanner.diagnostic"
+        }
+      ],
+      "responsibility": "Copy plain/literal slices; replace each comment with one space plus its original CR/LF code units. Record emitted intervals for source mapping.",
+      "stateOwnership": [
+        "output pieces",
+        "source map"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l039.span-scanner.diagnostic",
+      "label": "Atomic result boundary",
+      "ports": [
+        {
+          "contractId": "l039.span-scanner.diagnostic",
+          "direction": "in",
+          "id": "in-l039.span-scanner.diagnostic"
+        }
+      ],
+      "responsibility": "Validate every span and EOF state before joining output pieces; errors report original opener offset without returning a successful partial result.",
+      "stateOwnership": [
+        "diagnostic offset"
+      ],
+      "version": 1
+    }
+  ],
+  "contracts": [
+    {
+      "id": "l039.stream-dfa.command",
+      "request": {
+        "chunk": "string of Unicode code units",
+        "grammar": "fixed declared subset",
+        "operation": "feed|finish"
+      },
+      "response": {
+        "diagnostic": "unterminated block|string or none",
+        "output": "comment-free text preserving newlines and token separation"
+      },
+      "version": 1
+    },
+    {
+      "id": "l039.stream-dfa.lookahead",
+      "request": {
+        "chunk": "string",
+        "pending": "code unit|null"
+      },
+      "response": {
+        "ready": "resolved character pair"
+      },
+      "version": 1
+    },
+    {
+      "id": "l039.stream-dfa.quote",
+      "request": {
+        "char": "code unit",
+        "state": "CODE|SINGLE|DOUBLE"
+      },
+      "response": {
+        "emit": "literal bytes",
+        "state": "updated state"
+      },
+      "version": 1
+    },
+    {
+      "id": "l039.stream-dfa.escape",
+      "request": {
+        "next": "code unit",
+        "quote": "single|double"
+      },
+      "response": {
+        "closed": "boolean",
+        "emit": "unchanged bytes"
+      },
+      "version": 1
+    },
+    {
+      "id": "l039.stream-dfa.line",
+      "request": {
+        "char": "code unit",
+        "state": "LINE"
+      },
+      "response": {
+        "emit": "newline or empty",
+        "nextState": "LINE|CODE"
+      },
+      "version": 1
+    },
+    {
+      "id": "l039.stream-dfa.block",
+      "request": {
+        "pair": "two code units",
+        "state": "BLOCK"
+      },
+      "response": {
+        "closed": "boolean",
+        "emit": "newlines only"
+      },
+      "version": 1
+    },
+    {
+      "id": "l039.stream-dfa.separator",
+      "request": {
+        "fragment": "literal|separator|newline"
+      },
+      "response": {
+        "output": "append-only text"
+      },
+      "version": 1
+    },
+    {
+      "id": "l039.stream-dfa.eof",
+      "request": {
+        "pending": "code unit|null",
+        "state": "current state"
+      },
+      "response": {
+        "done": "true or SyntaxError"
+      },
+      "version": 1
+    },
+    {
+      "id": "l039.span-scanner.command",
+      "request": {
+        "chunk": "string of Unicode code units",
+        "grammar": "fixed declared subset",
+        "operation": "feed|finish"
+      },
+      "response": {
+        "diagnostic": "unterminated block|string or none",
+        "output": "comment-free text preserving newlines and token separation"
+      },
+      "version": 1
+    },
+    {
+      "id": "l039.span-scanner.buffer",
+      "request": {
+        "chunks": "string[]"
+      },
+      "response": {
+        "source": "immutable text"
+      },
+      "version": 1
+    },
+    {
+      "id": "l039.span-scanner.literal",
+      "request": {
+        "source": "text",
+        "start": "quote offset"
+      },
+      "response": {
+        "span": "literal [start,end)"
+      },
+      "version": 1
+    },
+    {
+      "id": "l039.span-scanner.lineSpan",
+      "request": {
+        "source": "text",
+        "start": "opener offset"
+      },
+      "response": {
+        "span": "comment [start,end)"
+      },
+      "version": 1
+    },
+    {
+      "id": "l039.span-scanner.blockSpan",
+      "request": {
+        "source": "text",
+        "start": "block opener offset"
+      },
+      "response": {
+        "span": "block [start,end)"
+      },
+      "version": 1
+    },
+    {
+      "id": "l039.span-scanner.spans",
+      "request": {
+        "span": "plain|literal|line|block with offsets"
+      },
+      "response": {
+        "spans": "complete ordered partition"
+      },
+      "version": 1
+    },
+    {
+      "id": "l039.span-scanner.render",
+      "request": {
+        "source": "original text",
+        "spans": "validated partition"
+      },
+      "response": {
+        "map": "source/output ranges",
+        "text": "stripped text"
+      },
+      "version": 1
+    },
+    {
+      "id": "l039.span-scanner.diagnostic",
+      "request": {
+        "pieces": "string[]",
+        "validation": "complete or failure"
+      },
+      "response": {
+        "result": "complete text or SyntaxError"
+      },
+      "version": 1
+    }
+  ],
+  "execution": {
+    "implementation": null,
+    "kind": "conceptual-design"
+  },
+  "problem": {
+    "referenceId": "L039",
+    "requirements": [
+      {
+        "id": "r0",
+        "text": "Keep comment-looking delimiters inside quoted literals unchanged; respect escaped and doubled quotes."
+      },
+      {
+        "id": "r1",
+        "text": "Carry block/quote/line state across chunks; two-character delimiters can straddle chunks."
+      },
+      {
+        "id": "r2",
+        "text": "Preserve line boundaries and token separation; reject unterminated block comments or quoted strings explicitly at EOF."
+      }
+    ],
+    "scope": "Authored local lexer for a deliberately small language: // and -- line comments, nonnested /* */ blocks, single/double quoted strings, backslash escapes and doubled quote escapes. Preserve newline characters and replace each comment with separating whitespace to prevent token joining. No regex literals, template interpolation, nested comments, dollar quoting or full SQL dialect claim.",
+    "studyLabel": "Comment stripping with explicit lexical states"
+  },
+  "provenance": {
+    "kind": "authored-practice",
+    "note": "Authored interview preparation. Technical references support mechanisms, not the claim that a company asked this question."
+  },
+  "references": [
+    {
+      "id": "ref0",
+      "scope": "background",
+      "supports": "SQL line/block delimiters and comments as whitespace. This authored lexer additionally supports // and backslash escapes.",
+      "title": "SQLite comments",
+      "url": "https://www.sqlite.org/lang_comment.html"
+    }
+  ],
+  "schema": "simulatte.composableStudy.v2",
+  "solutions": [
+    {
+      "acceptanceCases": [
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-07-mechanisms.test.mjs",
+            "testName": "batch-07 lexer: delimiters quotes chunks and token separation"
+          },
+          "given": "Quoted delimiters, escaped quotes, doubled quotes, // and -- lines, and multiline blocks.",
+          "id": "behavior",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Outputs match; strings remain byte-for-byte; comment text disappears while newlines and separating whitespace remain.",
+          "when": "Feed whole input and every possible two-chunk split to both implementations."
+        },
+        {
+          "given": "The sequences /*/, ///*, a*/b, and an unterminated string.",
+          "id": "boundary",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "/*/ reports unterminated block; ///* is a line comment; a*/b is ordinary text; unterminated strings report an error.",
+          "when": "Finish the lexer."
+        }
+      ],
+      "algorithms": [
+        {
+          "code": "feed(chunk) { appendToPending(chunk);\n while(canResolveNextCharacter()) {\n  if(inQuote) copyWithEscapeAndDoubledQuoteRules();\n  else if(inLine) discardExceptNewline();\n  else if(inBlock) discardUntilFirstStarSlashKeepingNewlines();\n  else if(nextPairIsCommentOpener()) {emit(\" \"); enterComment(); consumePair();}\n  else copyAndMaybeEnterQuote();\n }\n}\nfinish() { resolvePendingAtEOF(); if(inBlock||inQuote)throw SyntaxError(); finished=true; }",
+          "guarantees": [
+            "A single pass with bounded pending state; quoted content and newlines are preserved."
+          ],
+          "id": "mechanism-0",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "owner"
+        }
+      ],
+      "apis": [
+        {
+          "errors": "finish throws SyntaxError for unterminated block or quoted literal; feed after finish rejects",
+          "method": "CALL",
+          "ownerNodeId": "owner",
+          "path": "CommentStripper.feed/finish",
+          "request": "{\"operation\":\"feed|finish\",\"chunk\":\"string of Unicode code units\",\"grammar\":\"fixed declared subset\"}",
+          "response": "{\"output\":\"comment-free text preserving newlines and token separation\",\"diagnostic\":\"unterminated block|string or none\"}"
+        }
+      ],
+      "assumptions": [
+        "Text indices and source offsets use UTF-16 code units. No nested comment interpretation; block closes at the first */. Lexer subset is pinned, not guessed from file extension.",
+        "All added requirements and walkthroughs are authored practice. Graphs specify design; reference tests prove only named bounded mechanisms."
+      ],
+      "chooseWhen": "Streaming input must emit output without retaining the full source.",
+      "id": "stream-dfa",
+      "initialGraph": {
+        "edges": [],
+        "nodes": []
+      },
+      "stages": [
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l039.stream-dfa.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l039.stream-dfa.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l039.stream-dfa.command"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l039.stream-dfa.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l039.stream-dfa.owner",
+                "id": "owner",
+                "label": "Lexer state machine",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "stream-dfa-s1",
+          "invariants": [
+            "Only CODE state recognizes comment openers."
+          ],
+          "number": 1,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l039.stream-dfa.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "l039.stream-dfa.owner",
+                "id": "owner",
+                "label": "Lexer state machine",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l039.stream-dfa.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l039.stream-dfa.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l039.stream-dfa.command"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Which characters are allowed to open comments?",
+          "reason": "Consume characters once with state CODE, SINGLE, DOUBLE, LINE or BLOCK; preserve one pending delimiter character across chunks.",
+          "title": "Expose Lexer state machine"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l039.stream-dfa.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l039.stream-dfa.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l039.stream-dfa.command"
+                }
+              },
+              {
+                "contractId": "l039.stream-dfa.lookahead",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l039.stream-dfa.lookahead"
+                },
+                "id": "use-lookahead",
+                "label": "Delay ambiguous final characters",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "lookahead",
+                  "portId": "in-l039.stream-dfa.lookahead"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l039.stream-dfa.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l039.stream-dfa.owner",
+                "id": "owner",
+                "label": "Lexer state machine",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l039.stream-dfa.lookahead",
+                "id": "lookahead",
+                "label": "Pending lookahead",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "stream-dfa-s2",
+          "invariants": [
+            "feed boundaries cannot change output."
+          ],
+          "number": 2,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l039.stream-dfa.lookahead",
+                "id": "lookahead",
+                "label": "Pending lookahead",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l039.stream-dfa.lookahead",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l039.stream-dfa.lookahead"
+                },
+                "id": "use-lookahead",
+                "label": "Delay ambiguous final characters",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "lookahead",
+                  "portId": "in-l039.stream-dfa.lookahead"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What if a chunk ends with slash?",
+          "reason": "Hold at most one undecided /, -, quote or block-star until the next code unit or explicit EOF resolves it.",
+          "title": "Delay ambiguous final characters"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l039.stream-dfa.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l039.stream-dfa.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l039.stream-dfa.command"
+                }
+              },
+              {
+                "contractId": "l039.stream-dfa.lookahead",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l039.stream-dfa.lookahead"
+                },
+                "id": "use-lookahead",
+                "label": "Delay ambiguous final characters",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "lookahead",
+                  "portId": "in-l039.stream-dfa.lookahead"
+                }
+              },
+              {
+                "contractId": "l039.stream-dfa.quote",
+                "from": {
+                  "nodeId": "lookahead",
+                  "portId": "out-l039.stream-dfa.quote"
+                },
+                "id": "use-quote",
+                "label": "Protect quoted delimiters",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "quote",
+                  "portId": "in-l039.stream-dfa.quote"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l039.stream-dfa.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l039.stream-dfa.owner",
+                "id": "owner",
+                "label": "Lexer state machine",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l039.stream-dfa.lookahead",
+                "id": "lookahead",
+                "label": "Pending lookahead",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l039.stream-dfa.quote",
+                "id": "quote",
+                "label": "Quote transitions",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "stream-dfa-s3",
+          "invariants": [
+            "A delimiter inside a literal never changes comment state."
+          ],
+          "number": 3,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l039.stream-dfa.quote",
+                "id": "quote",
+                "label": "Quote transitions",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l039.stream-dfa.quote",
+                "from": {
+                  "nodeId": "lookahead",
+                  "portId": "out-l039.stream-dfa.quote"
+                },
+                "id": "use-quote",
+                "label": "Protect quoted delimiters",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "quote",
+                  "portId": "in-l039.stream-dfa.quote"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can /* inside a string open a block?",
+          "reason": "Enter matching quote state from CODE; copy characters verbatim and treat delimiter bytes only as literal content while quoted.",
+          "title": "Protect quoted delimiters"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l039.stream-dfa.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l039.stream-dfa.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l039.stream-dfa.command"
+                }
+              },
+              {
+                "contractId": "l039.stream-dfa.lookahead",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l039.stream-dfa.lookahead"
+                },
+                "id": "use-lookahead",
+                "label": "Delay ambiguous final characters",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "lookahead",
+                  "portId": "in-l039.stream-dfa.lookahead"
+                }
+              },
+              {
+                "contractId": "l039.stream-dfa.quote",
+                "from": {
+                  "nodeId": "lookahead",
+                  "portId": "out-l039.stream-dfa.quote"
+                },
+                "id": "use-quote",
+                "label": "Protect quoted delimiters",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "quote",
+                  "portId": "in-l039.stream-dfa.quote"
+                }
+              },
+              {
+                "contractId": "l039.stream-dfa.escape",
+                "from": {
+                  "nodeId": "quote",
+                  "portId": "out-l039.stream-dfa.escape"
+                },
+                "id": "use-escape",
+                "label": "Handle escaped and doubled quotes",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "escape",
+                  "portId": "in-l039.stream-dfa.escape"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l039.stream-dfa.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l039.stream-dfa.owner",
+                "id": "owner",
+                "label": "Lexer state machine",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l039.stream-dfa.lookahead",
+                "id": "lookahead",
+                "label": "Pending lookahead",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l039.stream-dfa.quote",
+                "id": "quote",
+                "label": "Quote transitions",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l039.stream-dfa.escape",
+                "id": "escape",
+                "label": "Escape handling",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "stream-dfa-s4",
+          "invariants": [
+            "Escapes preserve original bytes and do not reinterpret adjacent comment markers."
+          ],
+          "number": 4,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l039.stream-dfa.escape",
+                "id": "escape",
+                "label": "Escape handling",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l039.stream-dfa.escape",
+                "from": {
+                  "nodeId": "quote",
+                  "portId": "out-l039.stream-dfa.escape"
+                },
+                "id": "use-escape",
+                "label": "Handle escaped and doubled quotes",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "escape",
+                  "portId": "in-l039.stream-dfa.escape"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Does an escaped quote close the string?",
+          "reason": "Backslash copies the following code unit literally; doubled matching quotes remain inside the same literal.",
+          "title": "Handle escaped and doubled quotes"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l039.stream-dfa.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l039.stream-dfa.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l039.stream-dfa.command"
+                }
+              },
+              {
+                "contractId": "l039.stream-dfa.lookahead",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l039.stream-dfa.lookahead"
+                },
+                "id": "use-lookahead",
+                "label": "Delay ambiguous final characters",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "lookahead",
+                  "portId": "in-l039.stream-dfa.lookahead"
+                }
+              },
+              {
+                "contractId": "l039.stream-dfa.quote",
+                "from": {
+                  "nodeId": "lookahead",
+                  "portId": "out-l039.stream-dfa.quote"
+                },
+                "id": "use-quote",
+                "label": "Protect quoted delimiters",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "quote",
+                  "portId": "in-l039.stream-dfa.quote"
+                }
+              },
+              {
+                "contractId": "l039.stream-dfa.escape",
+                "from": {
+                  "nodeId": "quote",
+                  "portId": "out-l039.stream-dfa.escape"
+                },
+                "id": "use-escape",
+                "label": "Handle escaped and doubled quotes",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "escape",
+                  "portId": "in-l039.stream-dfa.escape"
+                }
+              },
+              {
+                "contractId": "l039.stream-dfa.line",
+                "from": {
+                  "nodeId": "lookahead",
+                  "portId": "out-l039.stream-dfa.line"
+                },
+                "id": "use-line",
+                "label": "Drop line payload",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "line",
+                  "portId": "in-l039.stream-dfa.line"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l039.stream-dfa.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l039.stream-dfa.owner",
+                "id": "owner",
+                "label": "Lexer state machine",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l039.stream-dfa.lookahead",
+                "id": "lookahead",
+                "label": "Pending lookahead",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l039.stream-dfa.quote",
+                "id": "quote",
+                "label": "Quote transitions",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l039.stream-dfa.escape",
+                "id": "escape",
+                "label": "Escape handling",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l039.stream-dfa.line",
+                "id": "line",
+                "label": "Line comment state",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "stream-dfa-s5",
+          "invariants": [
+            "Newlines survive exactly as supplied."
+          ],
+          "number": 5,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l039.stream-dfa.line",
+                "id": "line",
+                "label": "Line comment state",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l039.stream-dfa.line",
+                "from": {
+                  "nodeId": "lookahead",
+                  "portId": "out-l039.stream-dfa.line"
+                },
+                "id": "use-line",
+                "label": "Drop line payload",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "line",
+                  "portId": "in-l039.stream-dfa.line"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Does CRLF terminate one or two comments?",
+          "reason": "On // or -- emit one separator then discard until CR or LF; copy newline code units and return to CODE.",
+          "title": "Drop line payload"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l039.stream-dfa.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l039.stream-dfa.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l039.stream-dfa.command"
+                }
+              },
+              {
+                "contractId": "l039.stream-dfa.lookahead",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l039.stream-dfa.lookahead"
+                },
+                "id": "use-lookahead",
+                "label": "Delay ambiguous final characters",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "lookahead",
+                  "portId": "in-l039.stream-dfa.lookahead"
+                }
+              },
+              {
+                "contractId": "l039.stream-dfa.quote",
+                "from": {
+                  "nodeId": "lookahead",
+                  "portId": "out-l039.stream-dfa.quote"
+                },
+                "id": "use-quote",
+                "label": "Protect quoted delimiters",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "quote",
+                  "portId": "in-l039.stream-dfa.quote"
+                }
+              },
+              {
+                "contractId": "l039.stream-dfa.escape",
+                "from": {
+                  "nodeId": "quote",
+                  "portId": "out-l039.stream-dfa.escape"
+                },
+                "id": "use-escape",
+                "label": "Handle escaped and doubled quotes",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "escape",
+                  "portId": "in-l039.stream-dfa.escape"
+                }
+              },
+              {
+                "contractId": "l039.stream-dfa.line",
+                "from": {
+                  "nodeId": "lookahead",
+                  "portId": "out-l039.stream-dfa.line"
+                },
+                "id": "use-line",
+                "label": "Drop line payload",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "line",
+                  "portId": "in-l039.stream-dfa.line"
+                }
+              },
+              {
+                "contractId": "l039.stream-dfa.block",
+                "from": {
+                  "nodeId": "lookahead",
+                  "portId": "out-l039.stream-dfa.block"
+                },
+                "id": "use-block",
+                "label": "Close the first block terminator",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "block",
+                  "portId": "in-l039.stream-dfa.block"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l039.stream-dfa.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l039.stream-dfa.owner",
+                "id": "owner",
+                "label": "Lexer state machine",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l039.stream-dfa.lookahead",
+                "id": "lookahead",
+                "label": "Pending lookahead",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l039.stream-dfa.quote",
+                "id": "quote",
+                "label": "Quote transitions",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l039.stream-dfa.escape",
+                "id": "escape",
+                "label": "Escape handling",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l039.stream-dfa.line",
+                "id": "line",
+                "label": "Line comment state",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l039.stream-dfa.block",
+                "id": "block",
+                "label": "Block comment state",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "stream-dfa-s6",
+          "invariants": [
+            "/*/ cannot close itself because no complete */ follows the opener."
+          ],
+          "number": 6,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l039.stream-dfa.block",
+                "id": "block",
+                "label": "Block comment state",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l039.stream-dfa.block",
+                "from": {
+                  "nodeId": "lookahead",
+                  "portId": "out-l039.stream-dfa.block"
+                },
+                "id": "use-block",
+                "label": "Close the first block terminator",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "block",
+                  "portId": "in-l039.stream-dfa.block"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Does /* inside a block nest?",
+          "reason": "After /* emit one separator, drop nonnewline content until first */; internal /* is plain comment content.",
+          "title": "Close the first block terminator"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l039.stream-dfa.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l039.stream-dfa.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l039.stream-dfa.command"
+                }
+              },
+              {
+                "contractId": "l039.stream-dfa.lookahead",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l039.stream-dfa.lookahead"
+                },
+                "id": "use-lookahead",
+                "label": "Delay ambiguous final characters",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "lookahead",
+                  "portId": "in-l039.stream-dfa.lookahead"
+                }
+              },
+              {
+                "contractId": "l039.stream-dfa.quote",
+                "from": {
+                  "nodeId": "lookahead",
+                  "portId": "out-l039.stream-dfa.quote"
+                },
+                "id": "use-quote",
+                "label": "Protect quoted delimiters",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "quote",
+                  "portId": "in-l039.stream-dfa.quote"
+                }
+              },
+              {
+                "contractId": "l039.stream-dfa.escape",
+                "from": {
+                  "nodeId": "quote",
+                  "portId": "out-l039.stream-dfa.escape"
+                },
+                "id": "use-escape",
+                "label": "Handle escaped and doubled quotes",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "escape",
+                  "portId": "in-l039.stream-dfa.escape"
+                }
+              },
+              {
+                "contractId": "l039.stream-dfa.line",
+                "from": {
+                  "nodeId": "lookahead",
+                  "portId": "out-l039.stream-dfa.line"
+                },
+                "id": "use-line",
+                "label": "Drop line payload",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "line",
+                  "portId": "in-l039.stream-dfa.line"
+                }
+              },
+              {
+                "contractId": "l039.stream-dfa.block",
+                "from": {
+                  "nodeId": "lookahead",
+                  "portId": "out-l039.stream-dfa.block"
+                },
+                "id": "use-block",
+                "label": "Close the first block terminator",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "block",
+                  "portId": "in-l039.stream-dfa.block"
+                }
+              },
+              {
+                "contractId": "l039.stream-dfa.separator",
+                "from": {
+                  "nodeId": "block",
+                  "portId": "out-l039.stream-dfa.separator"
+                },
+                "id": "use-separator",
+                "label": "Prevent token concatenation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "separator",
+                  "portId": "in-l039.stream-dfa.separator"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l039.stream-dfa.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l039.stream-dfa.owner",
+                "id": "owner",
+                "label": "Lexer state machine",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l039.stream-dfa.lookahead",
+                "id": "lookahead",
+                "label": "Pending lookahead",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l039.stream-dfa.quote",
+                "id": "quote",
+                "label": "Quote transitions",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l039.stream-dfa.escape",
+                "id": "escape",
+                "label": "Escape handling",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l039.stream-dfa.line",
+                "id": "line",
+                "label": "Line comment state",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l039.stream-dfa.block",
+                "id": "block",
+                "label": "Block comment state",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l039.stream-dfa.separator",
+                "id": "separator",
+                "label": "Output sink",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "stream-dfa-s7",
+          "invariants": [
+            "a/**/b becomes a b."
+          ],
+          "number": 7,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l039.stream-dfa.separator",
+                "id": "separator",
+                "label": "Output sink",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l039.stream-dfa.separator",
+                "from": {
+                  "nodeId": "block",
+                  "portId": "out-l039.stream-dfa.separator"
+                },
+                "id": "use-separator",
+                "label": "Prevent token concatenation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "separator",
+                  "portId": "in-l039.stream-dfa.separator"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Does a/**/b become ab?",
+          "reason": "Append the opener separator and retained newlines to a terminal-owned output sink; never join lexical tokens across removed comments.",
+          "title": "Prevent token concatenation"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l039.stream-dfa.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l039.stream-dfa.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l039.stream-dfa.command"
+                }
+              },
+              {
+                "contractId": "l039.stream-dfa.lookahead",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l039.stream-dfa.lookahead"
+                },
+                "id": "use-lookahead",
+                "label": "Delay ambiguous final characters",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "lookahead",
+                  "portId": "in-l039.stream-dfa.lookahead"
+                }
+              },
+              {
+                "contractId": "l039.stream-dfa.quote",
+                "from": {
+                  "nodeId": "lookahead",
+                  "portId": "out-l039.stream-dfa.quote"
+                },
+                "id": "use-quote",
+                "label": "Protect quoted delimiters",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "quote",
+                  "portId": "in-l039.stream-dfa.quote"
+                }
+              },
+              {
+                "contractId": "l039.stream-dfa.escape",
+                "from": {
+                  "nodeId": "quote",
+                  "portId": "out-l039.stream-dfa.escape"
+                },
+                "id": "use-escape",
+                "label": "Handle escaped and doubled quotes",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "escape",
+                  "portId": "in-l039.stream-dfa.escape"
+                }
+              },
+              {
+                "contractId": "l039.stream-dfa.line",
+                "from": {
+                  "nodeId": "lookahead",
+                  "portId": "out-l039.stream-dfa.line"
+                },
+                "id": "use-line",
+                "label": "Drop line payload",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "line",
+                  "portId": "in-l039.stream-dfa.line"
+                }
+              },
+              {
+                "contractId": "l039.stream-dfa.block",
+                "from": {
+                  "nodeId": "lookahead",
+                  "portId": "out-l039.stream-dfa.block"
+                },
+                "id": "use-block",
+                "label": "Close the first block terminator",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "block",
+                  "portId": "in-l039.stream-dfa.block"
+                }
+              },
+              {
+                "contractId": "l039.stream-dfa.separator",
+                "from": {
+                  "nodeId": "block",
+                  "portId": "out-l039.stream-dfa.separator"
+                },
+                "id": "use-separator",
+                "label": "Prevent token concatenation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "separator",
+                  "portId": "in-l039.stream-dfa.separator"
+                }
+              },
+              {
+                "contractId": "l039.stream-dfa.eof",
+                "from": {
+                  "nodeId": "escape",
+                  "portId": "out-l039.stream-dfa.eof"
+                },
+                "id": "use-eof",
+                "label": "Validate final lexical state",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "eof",
+                  "portId": "in-l039.stream-dfa.eof"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l039.stream-dfa.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l039.stream-dfa.owner",
+                "id": "owner",
+                "label": "Lexer state machine",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l039.stream-dfa.lookahead",
+                "id": "lookahead",
+                "label": "Pending lookahead",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l039.stream-dfa.quote",
+                "id": "quote",
+                "label": "Quote transitions",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l039.stream-dfa.escape",
+                "id": "escape",
+                "label": "Escape handling",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l039.stream-dfa.line",
+                "id": "line",
+                "label": "Line comment state",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l039.stream-dfa.block",
+                "id": "block",
+                "label": "Block comment state",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l039.stream-dfa.separator",
+                "id": "separator",
+                "label": "Output sink",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l039.stream-dfa.eof",
+                "id": "eof",
+                "label": "EOF transition",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "stream-dfa-s8",
+          "invariants": [
+            "EOF is explicit and independent from chunk completion."
+          ],
+          "number": 8,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l039.stream-dfa.eof",
+                "id": "eof",
+                "label": "EOF transition",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l039.stream-dfa.eof",
+                "from": {
+                  "nodeId": "escape",
+                  "portId": "out-l039.stream-dfa.eof"
+                },
+                "id": "use-eof",
+                "label": "Validate final lexical state",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "eof",
+                  "portId": "in-l039.stream-dfa.eof"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Is an unterminated block silently accepted?",
+          "reason": "Flush ordinary pending characters, finish a line comment at EOF, and reject BLOCK or unclosed quote state. Mark finished exactly once.",
+          "title": "Validate final lexical state"
+        }
+      ],
+      "title": "Incremental deterministic character machine",
+      "tradeoffs": [
+        "Boundary handling is more intricate than a whole-buffer scan.",
+        "Memory is O(1) lexical state plus caller-owned output; emitted output cannot be rolled back after a late error."
+      ]
+    },
+    {
+      "acceptanceCases": [
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-07-mechanisms.test.mjs",
+            "testName": "batch-07 lexer: delimiters quotes chunks and token separation"
+          },
+          "given": "Quoted delimiters, escaped quotes, doubled quotes, // and -- lines, and multiline blocks.",
+          "id": "behavior",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Outputs match; strings remain byte-for-byte; comment text disappears while newlines and separating whitespace remain.",
+          "when": "Feed whole input and every possible two-chunk split to both implementations."
+        },
+        {
+          "given": "The sequences /*/, ///*, a*/b, and an unterminated string.",
+          "id": "boundary",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "/*/ reports unterminated block; ///* is a line comment; a*/b is ordinary text; unterminated strings report an error.",
+          "when": "Finish the lexer."
+        }
+      ],
+      "algorithms": [
+        {
+          "code": "strip(source) { const spans=[]; let i=0;\n while(i<source.length) {\n  if(isQuote(source[i])) {const end=scanQuoted(source,i); spans.push(literal(i,end));i=end;}\n  else if(isLineOpener(source,i)) {const end=scanToNewline(source,i+2);spans.push(comment(i,end));i=end;}\n  else if(source.startsWith(\"/*\",i)) {const end=scanFirstClosingPair(source,i+2);\n   if(end<0)throw SyntaxError(\"unterminated block at \"+i);spans.push(comment(i,end));i=end;}\n  else {spans.push(plain(i,i+1));i++;}\n }\n return spans.map(s=>s.comment?\" \"+newlines(source.slice(s.start,s.end)):source.slice(s.start,s.end)).join(\"\");\n}",
+          "guarantees": [
+            "Original offsets remain stable; memory O(n); no full-language parser claim."
+          ],
+          "id": "mechanism-0",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "owner"
+        }
+      ],
+      "apis": [
+        {
+          "errors": "finish throws SyntaxError for unterminated block or quoted literal; feed after finish rejects",
+          "method": "CALL",
+          "ownerNodeId": "owner",
+          "path": "CommentStripper.feed/finish",
+          "request": "{\"operation\":\"feed|finish\",\"chunk\":\"string of Unicode code units\",\"grammar\":\"fixed declared subset\"}",
+          "response": "{\"output\":\"comment-free text preserving newlines and token separation\",\"diagnostic\":\"unterminated block|string or none\"}"
+        }
+      ],
+      "assumptions": [
+        "Text indices and source offsets use UTF-16 code units. No nested comment interpretation; block closes at the first */. Lexer subset is pinned, not guessed from file extension.",
+        "All added requirements and walkthroughs are authored practice. Graphs specify design; reference tests prove only named bounded mechanisms."
+      ],
+      "chooseWhen": "Source mapping and diagnostics matter more than streaming memory.",
+      "id": "span-scanner",
+      "initialGraph": {
+        "edges": [],
+        "nodes": []
+      },
+      "stages": [
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l039.span-scanner.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l039.span-scanner.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l039.span-scanner.command"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l039.span-scanner.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l039.span-scanner.owner",
+                "id": "owner",
+                "label": "Span tokenizer",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "span-scanner-s1",
+          "invariants": [
+            "Comment deletion never changes scanner offsets in the original source."
+          ],
+          "number": 1,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l039.span-scanner.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "l039.span-scanner.owner",
+                "id": "owner",
+                "label": "Span tokenizer",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l039.span-scanner.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l039.span-scanner.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l039.span-scanner.command"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Why tokenize before deleting text?",
+          "reason": "Retain the source, tokenize nonoverlapping literal/comment/plain spans, then reconstruct from source slices and comment whitespace.",
+          "title": "Expose Span tokenizer"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l039.span-scanner.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l039.span-scanner.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l039.span-scanner.command"
+                }
+              },
+              {
+                "contractId": "l039.span-scanner.buffer",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l039.span-scanner.buffer"
+                },
+                "id": "use-buffer",
+                "label": "Retain stable offsets",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "buffer",
+                  "portId": "in-l039.span-scanner.buffer"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l039.span-scanner.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l039.span-scanner.owner",
+                "id": "owner",
+                "label": "Span tokenizer",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l039.span-scanner.buffer",
+                "id": "buffer",
+                "label": "Immutable source buffer",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "span-scanner-s2",
+          "invariants": [
+            "Every span refers to original input offsets."
+          ],
+          "number": 2,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l039.span-scanner.buffer",
+                "id": "buffer",
+                "label": "Immutable source buffer",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l039.span-scanner.buffer",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l039.span-scanner.buffer"
+                },
+                "id": "use-buffer",
+                "label": "Retain stable offsets",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "buffer",
+                  "portId": "in-l039.span-scanner.buffer"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can removing a block shift later diagnostics?",
+          "reason": "Read the entire input into an immutable source and use half-open code-unit ranges.",
+          "title": "Retain stable offsets"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l039.span-scanner.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l039.span-scanner.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l039.span-scanner.command"
+                }
+              },
+              {
+                "contractId": "l039.span-scanner.buffer",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l039.span-scanner.buffer"
+                },
+                "id": "use-buffer",
+                "label": "Retain stable offsets",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "buffer",
+                  "portId": "in-l039.span-scanner.buffer"
+                }
+              },
+              {
+                "contractId": "l039.span-scanner.literal",
+                "from": {
+                  "nodeId": "buffer",
+                  "portId": "out-l039.span-scanner.literal"
+                },
+                "id": "use-literal",
+                "label": "Skip complete quoted spans",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "literal",
+                  "portId": "in-l039.span-scanner.literal"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l039.span-scanner.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l039.span-scanner.owner",
+                "id": "owner",
+                "label": "Span tokenizer",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l039.span-scanner.buffer",
+                "id": "buffer",
+                "label": "Immutable source buffer",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l039.span-scanner.literal",
+                "id": "literal",
+                "label": "Literal-span scanner",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "span-scanner-s3",
+          "invariants": [
+            "Literal spans copy source bytes exactly."
+          ],
+          "number": 3,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l039.span-scanner.literal",
+                "id": "literal",
+                "label": "Literal-span scanner",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l039.span-scanner.literal",
+                "from": {
+                  "nodeId": "buffer",
+                  "portId": "out-l039.span-scanner.literal"
+                },
+                "id": "use-literal",
+                "label": "Skip complete quoted spans",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "literal",
+                  "portId": "in-l039.span-scanner.literal"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can a regex safely find every comment?",
+          "reason": "At a quote, scan matching delimiter with escapes/doubled-quote rules and emit a literal span without scanning its body for comments.",
+          "title": "Skip complete quoted spans"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l039.span-scanner.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l039.span-scanner.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l039.span-scanner.command"
+                }
+              },
+              {
+                "contractId": "l039.span-scanner.buffer",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l039.span-scanner.buffer"
+                },
+                "id": "use-buffer",
+                "label": "Retain stable offsets",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "buffer",
+                  "portId": "in-l039.span-scanner.buffer"
+                }
+              },
+              {
+                "contractId": "l039.span-scanner.literal",
+                "from": {
+                  "nodeId": "buffer",
+                  "portId": "out-l039.span-scanner.literal"
+                },
+                "id": "use-literal",
+                "label": "Skip complete quoted spans",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "literal",
+                  "portId": "in-l039.span-scanner.literal"
+                }
+              },
+              {
+                "contractId": "l039.span-scanner.lineSpan",
+                "from": {
+                  "nodeId": "buffer",
+                  "portId": "out-l039.span-scanner.lineSpan"
+                },
+                "id": "use-lineSpan",
+                "label": "Record line comments",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "lineSpan",
+                  "portId": "in-l039.span-scanner.lineSpan"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l039.span-scanner.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l039.span-scanner.owner",
+                "id": "owner",
+                "label": "Span tokenizer",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l039.span-scanner.buffer",
+                "id": "buffer",
+                "label": "Immutable source buffer",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l039.span-scanner.literal",
+                "id": "literal",
+                "label": "Literal-span scanner",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l039.span-scanner.lineSpan",
+                "id": "lineSpan",
+                "label": "Line-span scanner",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "span-scanner-s4",
+          "invariants": [
+            "A line comment may end at EOF without error."
+          ],
+          "number": 4,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l039.span-scanner.lineSpan",
+                "id": "lineSpan",
+                "label": "Line-span scanner",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l039.span-scanner.lineSpan",
+                "from": {
+                  "nodeId": "buffer",
+                  "portId": "out-l039.span-scanner.lineSpan"
+                },
+                "id": "use-lineSpan",
+                "label": "Record line comments",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "lineSpan",
+                  "portId": "in-l039.span-scanner.lineSpan"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Where does a line comment end?",
+          "reason": "At CODE // or -- record through the last nonnewline character; leave CR/LF to the next plain span.",
+          "title": "Record line comments"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l039.span-scanner.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l039.span-scanner.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l039.span-scanner.command"
+                }
+              },
+              {
+                "contractId": "l039.span-scanner.buffer",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l039.span-scanner.buffer"
+                },
+                "id": "use-buffer",
+                "label": "Retain stable offsets",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "buffer",
+                  "portId": "in-l039.span-scanner.buffer"
+                }
+              },
+              {
+                "contractId": "l039.span-scanner.literal",
+                "from": {
+                  "nodeId": "buffer",
+                  "portId": "out-l039.span-scanner.literal"
+                },
+                "id": "use-literal",
+                "label": "Skip complete quoted spans",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "literal",
+                  "portId": "in-l039.span-scanner.literal"
+                }
+              },
+              {
+                "contractId": "l039.span-scanner.lineSpan",
+                "from": {
+                  "nodeId": "buffer",
+                  "portId": "out-l039.span-scanner.lineSpan"
+                },
+                "id": "use-lineSpan",
+                "label": "Record line comments",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "lineSpan",
+                  "portId": "in-l039.span-scanner.lineSpan"
+                }
+              },
+              {
+                "contractId": "l039.span-scanner.blockSpan",
+                "from": {
+                  "nodeId": "buffer",
+                  "portId": "out-l039.span-scanner.blockSpan"
+                },
+                "id": "use-blockSpan",
+                "label": "Record nonnested blocks",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "blockSpan",
+                  "portId": "in-l039.span-scanner.blockSpan"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l039.span-scanner.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l039.span-scanner.owner",
+                "id": "owner",
+                "label": "Span tokenizer",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l039.span-scanner.buffer",
+                "id": "buffer",
+                "label": "Immutable source buffer",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l039.span-scanner.literal",
+                "id": "literal",
+                "label": "Literal-span scanner",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l039.span-scanner.lineSpan",
+                "id": "lineSpan",
+                "label": "Line-span scanner",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l039.span-scanner.blockSpan",
+                "id": "blockSpan",
+                "label": "Block-span scanner",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "span-scanner-s5",
+          "invariants": [
+            "No nested block grammar is inferred."
+          ],
+          "number": 5,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l039.span-scanner.blockSpan",
+                "id": "blockSpan",
+                "label": "Block-span scanner",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l039.span-scanner.blockSpan",
+                "from": {
+                  "nodeId": "buffer",
+                  "portId": "out-l039.span-scanner.blockSpan"
+                },
+                "id": "use-blockSpan",
+                "label": "Record nonnested blocks",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "blockSpan",
+                  "portId": "in-l039.span-scanner.blockSpan"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What happens to nested-looking delimiters?",
+          "reason": "At CODE /* search the first */ while counting newlines for diagnostics; reject EOF with no closer.",
+          "title": "Record nonnested blocks"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l039.span-scanner.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l039.span-scanner.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l039.span-scanner.command"
+                }
+              },
+              {
+                "contractId": "l039.span-scanner.buffer",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l039.span-scanner.buffer"
+                },
+                "id": "use-buffer",
+                "label": "Retain stable offsets",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "buffer",
+                  "portId": "in-l039.span-scanner.buffer"
+                }
+              },
+              {
+                "contractId": "l039.span-scanner.literal",
+                "from": {
+                  "nodeId": "buffer",
+                  "portId": "out-l039.span-scanner.literal"
+                },
+                "id": "use-literal",
+                "label": "Skip complete quoted spans",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "literal",
+                  "portId": "in-l039.span-scanner.literal"
+                }
+              },
+              {
+                "contractId": "l039.span-scanner.lineSpan",
+                "from": {
+                  "nodeId": "buffer",
+                  "portId": "out-l039.span-scanner.lineSpan"
+                },
+                "id": "use-lineSpan",
+                "label": "Record line comments",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "lineSpan",
+                  "portId": "in-l039.span-scanner.lineSpan"
+                }
+              },
+              {
+                "contractId": "l039.span-scanner.blockSpan",
+                "from": {
+                  "nodeId": "buffer",
+                  "portId": "out-l039.span-scanner.blockSpan"
+                },
+                "id": "use-blockSpan",
+                "label": "Record nonnested blocks",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "blockSpan",
+                  "portId": "in-l039.span-scanner.blockSpan"
+                }
+              },
+              {
+                "contractId": "l039.span-scanner.spans",
+                "from": {
+                  "nodeId": "literal",
+                  "portId": "out-l039.span-scanner.spans"
+                },
+                "id": "use-spans",
+                "label": "Check coverage before output",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "spans",
+                  "portId": "in-l039.span-scanner.spans"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l039.span-scanner.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l039.span-scanner.owner",
+                "id": "owner",
+                "label": "Span tokenizer",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l039.span-scanner.buffer",
+                "id": "buffer",
+                "label": "Immutable source buffer",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l039.span-scanner.literal",
+                "id": "literal",
+                "label": "Literal-span scanner",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l039.span-scanner.lineSpan",
+                "id": "lineSpan",
+                "label": "Line-span scanner",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l039.span-scanner.blockSpan",
+                "id": "blockSpan",
+                "label": "Block-span scanner",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l039.span-scanner.spans",
+                "id": "spans",
+                "label": "Ordered span list",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "span-scanner-s6",
+          "invariants": [
+            "No overlap, gap or reordered source interval is permitted."
+          ],
+          "number": 6,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l039.span-scanner.spans",
+                "id": "spans",
+                "label": "Ordered span list",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l039.span-scanner.spans",
+                "from": {
+                  "nodeId": "literal",
+                  "portId": "out-l039.span-scanner.spans"
+                },
+                "id": "use-spans",
+                "label": "Check coverage before output",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "spans",
+                  "portId": "in-l039.span-scanner.spans"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can a character be both literal and comment?",
+          "reason": "Append adjacent disjoint spans covering source exactly once; keep original start/end and span kind.",
+          "title": "Check coverage before output"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l039.span-scanner.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l039.span-scanner.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l039.span-scanner.command"
+                }
+              },
+              {
+                "contractId": "l039.span-scanner.buffer",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l039.span-scanner.buffer"
+                },
+                "id": "use-buffer",
+                "label": "Retain stable offsets",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "buffer",
+                  "portId": "in-l039.span-scanner.buffer"
+                }
+              },
+              {
+                "contractId": "l039.span-scanner.literal",
+                "from": {
+                  "nodeId": "buffer",
+                  "portId": "out-l039.span-scanner.literal"
+                },
+                "id": "use-literal",
+                "label": "Skip complete quoted spans",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "literal",
+                  "portId": "in-l039.span-scanner.literal"
+                }
+              },
+              {
+                "contractId": "l039.span-scanner.lineSpan",
+                "from": {
+                  "nodeId": "buffer",
+                  "portId": "out-l039.span-scanner.lineSpan"
+                },
+                "id": "use-lineSpan",
+                "label": "Record line comments",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "lineSpan",
+                  "portId": "in-l039.span-scanner.lineSpan"
+                }
+              },
+              {
+                "contractId": "l039.span-scanner.blockSpan",
+                "from": {
+                  "nodeId": "buffer",
+                  "portId": "out-l039.span-scanner.blockSpan"
+                },
+                "id": "use-blockSpan",
+                "label": "Record nonnested blocks",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "blockSpan",
+                  "portId": "in-l039.span-scanner.blockSpan"
+                }
+              },
+              {
+                "contractId": "l039.span-scanner.spans",
+                "from": {
+                  "nodeId": "literal",
+                  "portId": "out-l039.span-scanner.spans"
+                },
+                "id": "use-spans",
+                "label": "Check coverage before output",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "spans",
+                  "portId": "in-l039.span-scanner.spans"
+                }
+              },
+              {
+                "contractId": "l039.span-scanner.render",
+                "from": {
+                  "nodeId": "spans",
+                  "portId": "out-l039.span-scanner.render"
+                },
+                "id": "use-render",
+                "label": "Reconstruct without joining tokens",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "render",
+                  "portId": "in-l039.span-scanner.render"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l039.span-scanner.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l039.span-scanner.owner",
+                "id": "owner",
+                "label": "Span tokenizer",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l039.span-scanner.buffer",
+                "id": "buffer",
+                "label": "Immutable source buffer",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l039.span-scanner.literal",
+                "id": "literal",
+                "label": "Literal-span scanner",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l039.span-scanner.lineSpan",
+                "id": "lineSpan",
+                "label": "Line-span scanner",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l039.span-scanner.blockSpan",
+                "id": "blockSpan",
+                "label": "Block-span scanner",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l039.span-scanner.spans",
+                "id": "spans",
+                "label": "Ordered span list",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l039.span-scanner.render",
+                "id": "render",
+                "label": "Whitespace reconstruction",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "span-scanner-s7",
+          "invariants": [
+            "a/**/b retains a token boundary and line counts stay stable."
+          ],
+          "number": 7,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l039.span-scanner.render",
+                "id": "render",
+                "label": "Whitespace reconstruction",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l039.span-scanner.render",
+                "from": {
+                  "nodeId": "spans",
+                  "portId": "out-l039.span-scanner.render"
+                },
+                "id": "use-render",
+                "label": "Reconstruct without joining tokens",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "render",
+                  "portId": "in-l039.span-scanner.render"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How do source offsets map to output?",
+          "reason": "Copy plain/literal slices; replace each comment with one space plus its original CR/LF code units. Record emitted intervals for source mapping.",
+          "title": "Reconstruct without joining tokens"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l039.span-scanner.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l039.span-scanner.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l039.span-scanner.command"
+                }
+              },
+              {
+                "contractId": "l039.span-scanner.buffer",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l039.span-scanner.buffer"
+                },
+                "id": "use-buffer",
+                "label": "Retain stable offsets",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "buffer",
+                  "portId": "in-l039.span-scanner.buffer"
+                }
+              },
+              {
+                "contractId": "l039.span-scanner.literal",
+                "from": {
+                  "nodeId": "buffer",
+                  "portId": "out-l039.span-scanner.literal"
+                },
+                "id": "use-literal",
+                "label": "Skip complete quoted spans",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "literal",
+                  "portId": "in-l039.span-scanner.literal"
+                }
+              },
+              {
+                "contractId": "l039.span-scanner.lineSpan",
+                "from": {
+                  "nodeId": "buffer",
+                  "portId": "out-l039.span-scanner.lineSpan"
+                },
+                "id": "use-lineSpan",
+                "label": "Record line comments",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "lineSpan",
+                  "portId": "in-l039.span-scanner.lineSpan"
+                }
+              },
+              {
+                "contractId": "l039.span-scanner.blockSpan",
+                "from": {
+                  "nodeId": "buffer",
+                  "portId": "out-l039.span-scanner.blockSpan"
+                },
+                "id": "use-blockSpan",
+                "label": "Record nonnested blocks",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "blockSpan",
+                  "portId": "in-l039.span-scanner.blockSpan"
+                }
+              },
+              {
+                "contractId": "l039.span-scanner.spans",
+                "from": {
+                  "nodeId": "literal",
+                  "portId": "out-l039.span-scanner.spans"
+                },
+                "id": "use-spans",
+                "label": "Check coverage before output",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "spans",
+                  "portId": "in-l039.span-scanner.spans"
+                }
+              },
+              {
+                "contractId": "l039.span-scanner.render",
+                "from": {
+                  "nodeId": "spans",
+                  "portId": "out-l039.span-scanner.render"
+                },
+                "id": "use-render",
+                "label": "Reconstruct without joining tokens",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "render",
+                  "portId": "in-l039.span-scanner.render"
+                }
+              },
+              {
+                "contractId": "l039.span-scanner.diagnostic",
+                "from": {
+                  "nodeId": "render",
+                  "portId": "out-l039.span-scanner.diagnostic"
+                },
+                "id": "use-diagnostic",
+                "label": "Return only validated output",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "diagnostic",
+                  "portId": "in-l039.span-scanner.diagnostic"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l039.span-scanner.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l039.span-scanner.owner",
+                "id": "owner",
+                "label": "Span tokenizer",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l039.span-scanner.buffer",
+                "id": "buffer",
+                "label": "Immutable source buffer",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l039.span-scanner.literal",
+                "id": "literal",
+                "label": "Literal-span scanner",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l039.span-scanner.lineSpan",
+                "id": "lineSpan",
+                "label": "Line-span scanner",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l039.span-scanner.blockSpan",
+                "id": "blockSpan",
+                "label": "Block-span scanner",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l039.span-scanner.spans",
+                "id": "spans",
+                "label": "Ordered span list",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l039.span-scanner.render",
+                "id": "render",
+                "label": "Whitespace reconstruction",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l039.span-scanner.diagnostic",
+                "id": "diagnostic",
+                "label": "Atomic result boundary",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "span-scanner-s8",
+          "invariants": [
+            "Malformed input returns no successful output artifact."
+          ],
+          "number": 8,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l039.span-scanner.diagnostic",
+                "id": "diagnostic",
+                "label": "Atomic result boundary",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l039.span-scanner.diagnostic",
+                "from": {
+                  "nodeId": "render",
+                  "portId": "out-l039.span-scanner.diagnostic"
+                },
+                "id": "use-diagnostic",
+                "label": "Return only validated output",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "diagnostic",
+                  "portId": "in-l039.span-scanner.diagnostic"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can callers receive half a stripped file?",
+          "reason": "Validate every span and EOF state before joining output pieces; errors report original opener offset without returning a successful partial result.",
+          "title": "Return only validated output"
+        }
+      ],
+      "title": "Whole-buffer lexical spans and reconstruction",
+      "tradeoffs": [
+        "O(n) source and span retention.",
+        "Two-pass reconstruction simplifies mapping but delays output until lexical validation succeeds."
+      ]
+    }
+  ],
+  "subsystems": [],
+  "version": 1
+}

@@ -1,0 +1,4026 @@
+{
+  "components": [
+    {
+      "extends": {
+        "id": "core.client",
+        "version": 1
+      },
+      "id": "l029.keyed.caller",
+      "label": "Caller",
+      "ports": [
+        {
+          "contractId": "l029.keyed.command",
+          "direction": "out",
+          "id": "out-l029.keyed.command"
+        }
+      ],
+      "responsibility": "Submit the declared operation with stable identity and observe explicit completion.",
+      "stateOwnership": [
+        "caller request and retry identity"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l029.keyed.system",
+      "label": "Online keyed state machine",
+      "ports": [
+        {
+          "contractId": "l029.keyed.command",
+          "direction": "in",
+          "id": "in-l029.keyed.command"
+        },
+        {
+          "contractId": "l029.keyed.step3",
+          "direction": "out",
+          "id": "out-l029.keyed.step3-engine"
+        },
+        {
+          "contractId": "l029.keyed.step4",
+          "direction": "out",
+          "id": "out-l029.keyed.step4-engine"
+        },
+        {
+          "contractId": "l029.keyed.step7",
+          "direction": "out",
+          "id": "out-l029.keyed.step7-engine"
+        }
+      ],
+      "responsibility": "Preserve this stable boundary while refining its ownership and contracts.",
+      "stateOwnership": [
+        "logical operation state"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l029.keyed.engine",
+      "label": "Pair matcher",
+      "ports": [
+        {
+          "contractId": "l029.keyed.command",
+          "direction": "out",
+          "id": "out-l029.keyed.command"
+        },
+        {
+          "contractId": "l029.keyed.command",
+          "direction": "in",
+          "id": "in-l029.keyed.command"
+        },
+        {
+          "contractId": "l029.keyed.step3",
+          "direction": "out",
+          "id": "out-l029.keyed.step3"
+        },
+        {
+          "contractId": "l029.keyed.step4",
+          "direction": "out",
+          "id": "out-l029.keyed.step4"
+        },
+        {
+          "contractId": "l029.keyed.step7",
+          "direction": "out",
+          "id": "out-l029.keyed.step7"
+        }
+      ],
+      "responsibility": "Admit one immutable side value per key/revision.",
+      "stateOwnership": [
+        "current pair transition"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l029.keyed.state",
+      "label": "Pair state",
+      "ports": [
+        {
+          "contractId": "l029.keyed.command",
+          "direction": "in",
+          "id": "in-l029.keyed.command"
+        }
+      ],
+      "responsibility": "Own left/right receipts and terminal match identity.",
+      "stateOwnership": [
+        "key/revision records"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l029.keyed.n3",
+      "label": "Side inbox",
+      "ports": [
+        {
+          "contractId": "l029.keyed.step3",
+          "direction": "in",
+          "id": "in-l029.keyed.step3"
+        }
+      ],
+      "responsibility": "Deduplicate event IDs and reject conflicting side values.",
+      "stateOwnership": [
+        "side, value"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l029.keyed.n4",
+      "label": "Value comparator",
+      "ports": [
+        {
+          "contractId": "l029.keyed.step4",
+          "direction": "in",
+          "id": "in-l029.keyed.step4"
+        },
+        {
+          "contractId": "l029.keyed.step5",
+          "direction": "out",
+          "id": "out-l029.keyed.step5"
+        }
+      ],
+      "responsibility": "Use exact typed scalar equality after both sides arrive.",
+      "stateOwnership": [
+        "left, right"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l029.keyed.n5",
+      "label": "Result outbox",
+      "ports": [
+        {
+          "contractId": "l029.keyed.step5",
+          "direction": "in",
+          "id": "in-l029.keyed.step5"
+        },
+        {
+          "contractId": "l029.keyed.step6",
+          "direction": "out",
+          "id": "out-l029.keyed.step6"
+        }
+      ],
+      "responsibility": "Commit terminal state and one pair-result intent atomically.",
+      "stateOwnership": [
+        "pairId, state"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "l029.keyed.n6",
+      "label": "Result projection",
+      "ports": [
+        {
+          "contractId": "l029.keyed.step6",
+          "direction": "in",
+          "id": "in-l029.keyed.step6"
+        },
+        {
+          "contractId": "l029.keyed.step8",
+          "direction": "out",
+          "id": "out-l029.keyed.step8"
+        }
+      ],
+      "responsibility": "Apply pair ID once and preserve mismatch explanation.",
+      "stateOwnership": [
+        "pairId, reason"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l029.keyed.n7",
+      "label": "Missing-side timer",
+      "ports": [
+        {
+          "contractId": "l029.keyed.step7",
+          "direction": "in",
+          "id": "in-l029.keyed.step7"
+        }
+      ],
+      "responsibility": "Record deadline without fabricating a counterpart; late arrivals follow reopen/new-revision policy.",
+      "stateOwnership": [
+        "deadline, missingSide"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "l029.keyed.n8",
+      "label": "Reconciliation scan",
+      "ports": [
+        {
+          "contractId": "l029.keyed.step8",
+          "direction": "in",
+          "id": "in-l029.keyed.step8"
+        }
+      ],
+      "responsibility": "Scan durable terminal pairs against outbox/projection and repair missing publication.",
+      "stateOwnership": [
+        "cursor, repairId"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.client",
+        "version": 1
+      },
+      "id": "l029.batch-join.caller",
+      "label": "Caller",
+      "ports": [
+        {
+          "contractId": "l029.batch-join.command",
+          "direction": "out",
+          "id": "out-l029.batch-join.command"
+        }
+      ],
+      "responsibility": "Submit the declared operation with stable identity and observe explicit completion.",
+      "stateOwnership": [
+        "caller request and retry identity"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l029.batch-join.system",
+      "label": "Immutable snapshot full outer join",
+      "ports": [
+        {
+          "contractId": "l029.batch-join.command",
+          "direction": "in",
+          "id": "in-l029.batch-join.command"
+        },
+        {
+          "contractId": "l029.batch-join.step3",
+          "direction": "out",
+          "id": "out-l029.batch-join.step3-engine"
+        }
+      ],
+      "responsibility": "Preserve this stable boundary while refining its ownership and contracts.",
+      "stateOwnership": [
+        "logical operation state"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l029.batch-join.engine",
+      "label": "Join planner",
+      "ports": [
+        {
+          "contractId": "l029.batch-join.command",
+          "direction": "out",
+          "id": "out-l029.batch-join.command"
+        },
+        {
+          "contractId": "l029.batch-join.command",
+          "direction": "in",
+          "id": "in-l029.batch-join.command"
+        },
+        {
+          "contractId": "l029.batch-join.step3",
+          "direction": "out",
+          "id": "out-l029.batch-join.step3"
+        }
+      ],
+      "responsibility": "Freeze left and right manifest identities for a reconciliation run.",
+      "stateOwnership": [
+        "run identity"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l029.batch-join.state",
+      "label": "Input snapshots",
+      "ports": [
+        {
+          "contractId": "l029.batch-join.command",
+          "direction": "in",
+          "id": "in-l029.batch-join.command"
+        }
+      ],
+      "responsibility": "Own immutable left/right rows with source receipt hashes.",
+      "stateOwnership": [
+        "manifest hashes"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l029.batch-join.n3",
+      "label": "Duplicate classifier",
+      "ports": [
+        {
+          "contractId": "l029.batch-join.step3",
+          "direction": "in",
+          "id": "in-l029.batch-join.step3"
+        },
+        {
+          "contractId": "l029.batch-join.step4",
+          "direction": "out",
+          "id": "out-l029.batch-join.step4"
+        }
+      ],
+      "responsibility": "Group key/revision/side, collapse exact repeats and isolate conflicting values.",
+      "stateOwnership": [
+        "keyRevision, distinctValues"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "l029.batch-join.n4",
+      "label": "Partitioned join",
+      "ports": [
+        {
+          "contractId": "l029.batch-join.step4",
+          "direction": "in",
+          "id": "in-l029.batch-join.step4"
+        },
+        {
+          "contractId": "l029.batch-join.step5",
+          "direction": "out",
+          "id": "out-l029.batch-join.step5"
+        }
+      ],
+      "responsibility": "Hash partition both sides by the same key/revision function and full-outer join.",
+      "stateOwnership": [
+        "partition, seed"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l029.batch-join.n5",
+      "label": "Outcome table",
+      "ports": [
+        {
+          "contractId": "l029.batch-join.step5",
+          "direction": "in",
+          "id": "in-l029.batch-join.step5"
+        },
+        {
+          "contractId": "l029.batch-join.step6",
+          "direction": "out",
+          "id": "out-l029.batch-join.step6"
+        }
+      ],
+      "responsibility": "Write matched, mismatch, missing-left and missing-right rows explicitly.",
+      "stateOwnership": [
+        "status"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l029.batch-join.n6",
+      "label": "Completeness ledger",
+      "ports": [
+        {
+          "contractId": "l029.batch-join.step6",
+          "direction": "in",
+          "id": "in-l029.batch-join.step6"
+        },
+        {
+          "contractId": "l029.batch-join.step7",
+          "direction": "out",
+          "id": "out-l029.batch-join.step7"
+        }
+      ],
+      "responsibility": "Require every declared input and partition receipt before publication.",
+      "stateOwnership": [
+        "expected, completed"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l029.batch-join.n7",
+      "label": "Generation publisher",
+      "ports": [
+        {
+          "contractId": "l029.batch-join.step7",
+          "direction": "in",
+          "id": "in-l029.batch-join.step7"
+        },
+        {
+          "contractId": "l029.batch-join.step8",
+          "direction": "out",
+          "id": "out-l029.batch-join.step8"
+        }
+      ],
+      "responsibility": "Swap one active generation pointer after all outputs are committed.",
+      "stateOwnership": [
+        "generation, manifestHash"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "l029.batch-join.n8",
+      "label": "Late-arrival delta",
+      "ports": [
+        {
+          "contractId": "l029.batch-join.step8",
+          "direction": "in",
+          "id": "in-l029.batch-join.step8"
+        }
+      ],
+      "responsibility": "Create a linked new reconciliation generation and retain old missing evidence.",
+      "stateOwnership": [
+        "supersedes, lateEventIds"
+      ],
+      "version": 1
+    }
+  ],
+  "contracts": [
+    {
+      "id": "l029.keyed.command",
+      "request": {
+        "entityId": "uuid",
+        "eventId": "uuid",
+        "revision": "integer",
+        "side": "left|right",
+        "value": "integer"
+      },
+      "response": {
+        "pairId": "entity/revision identity",
+        "state": "waiting|matched|mismatch|conflict"
+      },
+      "version": 1
+    },
+    {
+      "id": "l029.keyed.step3",
+      "request": {
+        "side": "left|right",
+        "value": "integer"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l029.keyed.step4",
+      "request": {
+        "left": "integer",
+        "right": "integer"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l029.keyed.step5",
+      "request": {
+        "pairId": "string",
+        "state": "matched|mismatch"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l029.keyed.step6",
+      "request": {
+        "pairId": "string",
+        "reason": "string"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l029.keyed.step7",
+      "request": {
+        "deadline": "timestamp",
+        "missingSide": "left|right"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l029.keyed.step8",
+      "request": {
+        "cursor": "key/revision",
+        "repairId": "uuid"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l029.batch-join.command",
+      "request": {
+        "entityId": "uuid",
+        "eventId": "uuid",
+        "revision": "integer",
+        "side": "left|right",
+        "value": "integer"
+      },
+      "response": {
+        "pairId": "entity/revision identity",
+        "state": "waiting|matched|mismatch|conflict"
+      },
+      "version": 1
+    },
+    {
+      "id": "l029.batch-join.step3",
+      "request": {
+        "distinctValues": "integer[]",
+        "keyRevision": "string"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l029.batch-join.step4",
+      "request": {
+        "partition": "integer",
+        "seed": "fixed integer"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l029.batch-join.step5",
+      "request": {
+        "status": "matched|mismatch|missing-left|missing-right"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l029.batch-join.step6",
+      "request": {
+        "completed": "integer",
+        "expected": "integer"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l029.batch-join.step7",
+      "request": {
+        "generation": "integer",
+        "manifestHash": "sha256"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l029.batch-join.step8",
+      "request": {
+        "lateEventIds": "uuid[]",
+        "supersedes": "generation ID"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    }
+  ],
+  "execution": {
+    "implementation": null,
+    "kind": "conceptual-design"
+  },
+  "problem": {
+    "referenceId": "L029",
+    "requirements": [
+      {
+        "id": "r0",
+        "text": "Match only the same key and revision with equal scalar value."
+      },
+      {
+        "id": "r1",
+        "text": "Suppress duplicate sides and surface conflicting duplicate payloads."
+      },
+      {
+        "id": "r2",
+        "text": "Keep missing or mismatched counterparts visible with explicit late-arrival policy."
+      }
+    ],
+    "scope": "Authored scalar left/right records share an entity key and revision. Compare online keyed matching with immutable batch joins. This is not settlement, financial accounting or compliance.",
+    "studyLabel": "Paired-record reconciliation"
+  },
+  "provenance": {
+    "kind": "authored-practice",
+    "note": "Authored interview preparation. Technical references support mechanisms, not the claim that a company asked this question."
+  },
+  "references": [
+    {
+      "id": "ref0",
+      "scope": "background",
+      "supports": "Transactions isolate concurrent authorization and mutation decisions; retries remain explicit.",
+      "title": "PostgreSQL isolation",
+      "url": "https://www.postgresql.org/docs/18/transaction-iso.html"
+    }
+  ],
+  "schema": "simulatte.composableStudy.v2",
+  "solutions": [
+    {
+      "acceptanceCases": [
+        {
+          "given": "Left 7 arrives twice then right 7.",
+          "id": "case0",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Create one matched pair and one result intent.",
+          "when": "Process all receipts for one key/revision."
+        },
+        {
+          "given": "Only left 7 arrives before the deadline.",
+          "id": "case1",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Keep missing status, then apply explicit mismatch policy; never invent equality.",
+          "when": "Expire the timer and later receive right 8."
+        },
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-04-state.test.mjs",
+            "testName": "paired online and snapshot mechanisms preserve missing mismatch and duplicates"
+          },
+          "given": "Bounded typed scalar left/right records are supplied.",
+          "id": "bounded-mechanism",
+          "relatedRequirementIds": [
+            "r0"
+          ],
+          "then": "Retain missing and mismatched rows, collapse exact repeats and classify conflicting side values.",
+          "when": "Run keyed admission and a full outer snapshot join."
+        }
+      ],
+      "algorithms": [
+        {
+          "code": "transaction(() => { const pair = lockPair(entityId, revision);\n insertSideOrCheckEqual(pair, side, value, eventId);\n if (pair.hasBoth && !pair.terminal) { pair.state = pair.left === pair.right ? \"matched\" : \"mismatch\";\n insertResultUnique(pair.id, pair.state); } });",
+          "guarantees": [
+            "The first admitted side is immutable.",
+            "No tolerance or missing-value default is invented.",
+            "One key/revision produces one terminal result.",
+            "A mismatch is a visible terminal outcome.",
+            "Overdue is not matched.",
+            "Repair retains the original pair identity."
+          ],
+          "id": "transition",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "engine"
+        }
+      ],
+      "apis": [
+        {
+          "errors": "Reject invalid input, stale versions and operations outside the declared boundary.",
+          "method": "CALL",
+          "ownerNodeId": "engine",
+          "path": "L029/keyed",
+          "request": "{\"entityId\":\"uuid\",\"revision\":\"integer\",\"side\":\"left|right\",\"value\":\"integer\",\"eventId\":\"uuid\"}",
+          "response": "{\"state\":\"waiting|matched|mismatch|conflict\",\"pairId\":\"entity/revision identity\"}"
+        }
+      ],
+      "assumptions": [
+        "All added stages are authored practice extending the canonical prompt.",
+        "Graphs specify conceptual mechanisms; reference models do not prove cloud execution, latency, physical durability or distributed safety."
+      ],
+      "chooseWhen": "Low-latency pair status matters and entity keys partition naturally.",
+      "id": "keyed",
+      "initialGraph": {
+        "edges": [],
+        "nodes": []
+      },
+      "stages": [
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l029.keyed.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l029.keyed.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l029.keyed.command"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l029.keyed.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l029.keyed.system",
+                "id": "system",
+                "label": "Online keyed state machine",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "keyed-s1",
+          "invariants": [
+            "Match only the same key and revision with equal scalar value."
+          ],
+          "number": 1,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l029.keyed.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "l029.keyed.system",
+                "id": "system",
+                "label": "Online keyed state machine",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l029.keyed.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l029.keyed.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l029.keyed.command"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What does successful completion promise?",
+          "reason": "Match only the same key and revision with equal scalar value.",
+          "title": "Define the operation boundary"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l029.keyed.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l029.keyed.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l029.keyed.command"
+                }
+              },
+              {
+                "contractId": "l029.keyed.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l029.keyed.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l029.keyed.command"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l029.keyed.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l029.keyed.system",
+                "id": "system",
+                "label": "Online keyed state machine",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l029.keyed.binding-s2",
+                "version": 1
+              },
+              {
+                "definitionId": "l029.keyed.engine",
+                "id": "engine",
+                "label": "Pair matcher",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l029.keyed.state",
+                "id": "state",
+                "label": "Pair state",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "keyed-s2",
+          "invariants": [
+            "current pair transition belongs to Pair matcher; key/revision records belongs to Pair state."
+          ],
+          "number": 2,
+          "operations": [
+            {
+              "edges": [
+                {
+                  "contractId": "l029.keyed.command",
+                  "from": {
+                    "nodeId": "engine",
+                    "portId": "out-l029.keyed.command"
+                  },
+                  "id": "owned-state",
+                  "label": "Read or commit state",
+                  "mode": "storage",
+                  "to": {
+                    "nodeId": "state",
+                    "portId": "in-l029.keyed.command"
+                  }
+                }
+              ],
+              "nodeId": "system",
+              "nodes": [
+                {
+                  "definitionId": "l029.keyed.engine",
+                  "id": "engine",
+                  "label": "Pair matcher",
+                  "position": {
+                    "x": 560,
+                    "y": 0
+                  },
+                  "version": 1
+                },
+                {
+                  "definitionId": "l029.keyed.state",
+                  "id": "state",
+                  "label": "Pair state",
+                  "position": {
+                    "x": 840,
+                    "y": 0
+                  },
+                  "version": 1
+                }
+              ],
+              "op": "expand",
+              "subsystemId": "l029.keyed.binding-s2"
+            }
+          ],
+          "question": "Which component owns the decision and its persistent or shared state?",
+          "reason": "Admit one immutable side value per key/revision. Own left/right receipts and terminal match identity.",
+          "title": "Expose authority and state"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l029.keyed.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l029.keyed.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l029.keyed.command"
+                }
+              },
+              {
+                "contractId": "l029.keyed.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l029.keyed.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l029.keyed.command"
+                }
+              },
+              {
+                "contractId": "l029.keyed.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l029.keyed.step3-engine"
+                },
+                "id": "step3",
+                "label": "Side inbox",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l029.keyed.step3"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l029.keyed.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l029.keyed.system",
+                "id": "system",
+                "label": "Online keyed state machine",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l029.keyed.binding-s3",
+                "version": 1
+              },
+              {
+                "definitionId": "l029.keyed.engine",
+                "id": "engine",
+                "label": "Pair matcher",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l029.keyed.state",
+                "id": "state",
+                "label": "Pair state",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l029.keyed.n3",
+                "id": "n3",
+                "label": "Side inbox",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "keyed-s3",
+          "invariants": [
+            "The first admitted side is immutable."
+          ],
+          "number": 3,
+          "operations": [
+            {
+              "nodeId": "system",
+              "op": "rebind",
+              "reason": "Expose this new typed path without mutating earlier binding definitions.",
+              "subsystemId": "l029.keyed.binding-s3"
+            },
+            {
+              "node": {
+                "definitionId": "l029.keyed.n3",
+                "id": "n3",
+                "label": "Side inbox",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l029.keyed.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l029.keyed.step3-engine"
+                },
+                "id": "step3",
+                "label": "Side inbox",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l029.keyed.step3"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can repeated delivery replace a value?",
+          "reason": "Deduplicate event IDs and reject conflicting side values.",
+          "title": "Side inbox"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l029.keyed.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l029.keyed.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l029.keyed.command"
+                }
+              },
+              {
+                "contractId": "l029.keyed.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l029.keyed.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l029.keyed.command"
+                }
+              },
+              {
+                "contractId": "l029.keyed.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l029.keyed.step3-engine"
+                },
+                "id": "step3",
+                "label": "Side inbox",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l029.keyed.step3"
+                }
+              },
+              {
+                "contractId": "l029.keyed.step4",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l029.keyed.step4-engine"
+                },
+                "id": "step4",
+                "label": "Value comparator",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l029.keyed.step4"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l029.keyed.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l029.keyed.system",
+                "id": "system",
+                "label": "Online keyed state machine",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l029.keyed.binding-s4",
+                "version": 1
+              },
+              {
+                "definitionId": "l029.keyed.engine",
+                "id": "engine",
+                "label": "Pair matcher",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l029.keyed.state",
+                "id": "state",
+                "label": "Pair state",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l029.keyed.n3",
+                "id": "n3",
+                "label": "Side inbox",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l029.keyed.n4",
+                "id": "n4",
+                "label": "Value comparator",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "keyed-s4",
+          "invariants": [
+            "No tolerance or missing-value default is invented."
+          ],
+          "number": 4,
+          "operations": [
+            {
+              "nodeId": "system",
+              "op": "rebind",
+              "reason": "Expose this new typed path without mutating earlier binding definitions.",
+              "subsystemId": "l029.keyed.binding-s4"
+            },
+            {
+              "node": {
+                "definitionId": "l029.keyed.n4",
+                "id": "n4",
+                "label": "Value comparator",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l029.keyed.step4",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l029.keyed.step4-engine"
+                },
+                "id": "step4",
+                "label": "Value comparator",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l029.keyed.step4"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What counts as a match?",
+          "reason": "Use exact typed scalar equality after both sides arrive.",
+          "title": "Value comparator"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l029.keyed.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l029.keyed.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l029.keyed.command"
+                }
+              },
+              {
+                "contractId": "l029.keyed.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l029.keyed.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l029.keyed.command"
+                }
+              },
+              {
+                "contractId": "l029.keyed.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l029.keyed.step3-engine"
+                },
+                "id": "step3",
+                "label": "Side inbox",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l029.keyed.step3"
+                }
+              },
+              {
+                "contractId": "l029.keyed.step4",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l029.keyed.step4-engine"
+                },
+                "id": "step4",
+                "label": "Value comparator",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l029.keyed.step4"
+                }
+              },
+              {
+                "contractId": "l029.keyed.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l029.keyed.step5"
+                },
+                "id": "step5",
+                "label": "Result outbox",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l029.keyed.step5"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l029.keyed.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l029.keyed.system",
+                "id": "system",
+                "label": "Online keyed state machine",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l029.keyed.binding-s4",
+                "version": 1
+              },
+              {
+                "definitionId": "l029.keyed.engine",
+                "id": "engine",
+                "label": "Pair matcher",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l029.keyed.state",
+                "id": "state",
+                "label": "Pair state",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l029.keyed.n3",
+                "id": "n3",
+                "label": "Side inbox",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l029.keyed.n4",
+                "id": "n4",
+                "label": "Value comparator",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l029.keyed.n5",
+                "id": "n5",
+                "label": "Result outbox",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "keyed-s5",
+          "invariants": [
+            "One key/revision produces one terminal result."
+          ],
+          "number": 5,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l029.keyed.n5",
+                "id": "n5",
+                "label": "Result outbox",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l029.keyed.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l029.keyed.step5"
+                },
+                "id": "step5",
+                "label": "Result outbox",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l029.keyed.step5"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can a matching pair emit twice?",
+          "reason": "Commit terminal state and one pair-result intent atomically.",
+          "title": "Result outbox"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l029.keyed.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l029.keyed.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l029.keyed.command"
+                }
+              },
+              {
+                "contractId": "l029.keyed.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l029.keyed.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l029.keyed.command"
+                }
+              },
+              {
+                "contractId": "l029.keyed.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l029.keyed.step3-engine"
+                },
+                "id": "step3",
+                "label": "Side inbox",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l029.keyed.step3"
+                }
+              },
+              {
+                "contractId": "l029.keyed.step4",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l029.keyed.step4-engine"
+                },
+                "id": "step4",
+                "label": "Value comparator",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l029.keyed.step4"
+                }
+              },
+              {
+                "contractId": "l029.keyed.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l029.keyed.step5"
+                },
+                "id": "step5",
+                "label": "Result outbox",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l029.keyed.step5"
+                }
+              },
+              {
+                "contractId": "l029.keyed.step6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l029.keyed.step6"
+                },
+                "id": "step6",
+                "label": "Result projection",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l029.keyed.step6"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l029.keyed.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l029.keyed.system",
+                "id": "system",
+                "label": "Online keyed state machine",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l029.keyed.binding-s4",
+                "version": 1
+              },
+              {
+                "definitionId": "l029.keyed.engine",
+                "id": "engine",
+                "label": "Pair matcher",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l029.keyed.state",
+                "id": "state",
+                "label": "Pair state",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l029.keyed.n3",
+                "id": "n3",
+                "label": "Side inbox",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l029.keyed.n4",
+                "id": "n4",
+                "label": "Value comparator",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l029.keyed.n5",
+                "id": "n5",
+                "label": "Result outbox",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l029.keyed.n6",
+                "id": "n6",
+                "label": "Result projection",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "keyed-s6",
+          "invariants": [
+            "A mismatch is a visible terminal outcome."
+          ],
+          "number": 6,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l029.keyed.n6",
+                "id": "n6",
+                "label": "Result projection",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l029.keyed.step6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l029.keyed.step6"
+                },
+                "id": "step6",
+                "label": "Result projection",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l029.keyed.step6"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What if result delivery repeats?",
+          "reason": "Apply pair ID once and preserve mismatch explanation.",
+          "title": "Result projection"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l029.keyed.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l029.keyed.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l029.keyed.command"
+                }
+              },
+              {
+                "contractId": "l029.keyed.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l029.keyed.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l029.keyed.command"
+                }
+              },
+              {
+                "contractId": "l029.keyed.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l029.keyed.step3-engine"
+                },
+                "id": "step3",
+                "label": "Side inbox",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l029.keyed.step3"
+                }
+              },
+              {
+                "contractId": "l029.keyed.step4",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l029.keyed.step4-engine"
+                },
+                "id": "step4",
+                "label": "Value comparator",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l029.keyed.step4"
+                }
+              },
+              {
+                "contractId": "l029.keyed.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l029.keyed.step5"
+                },
+                "id": "step5",
+                "label": "Result outbox",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l029.keyed.step5"
+                }
+              },
+              {
+                "contractId": "l029.keyed.step6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l029.keyed.step6"
+                },
+                "id": "step6",
+                "label": "Result projection",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l029.keyed.step6"
+                }
+              },
+              {
+                "contractId": "l029.keyed.step7",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l029.keyed.step7-engine"
+                },
+                "id": "step7",
+                "label": "Missing-side timer",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l029.keyed.step7"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l029.keyed.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l029.keyed.system",
+                "id": "system",
+                "label": "Online keyed state machine",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l029.keyed.binding-s7",
+                "version": 1
+              },
+              {
+                "definitionId": "l029.keyed.engine",
+                "id": "engine",
+                "label": "Pair matcher",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l029.keyed.state",
+                "id": "state",
+                "label": "Pair state",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l029.keyed.n3",
+                "id": "n3",
+                "label": "Side inbox",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l029.keyed.n4",
+                "id": "n4",
+                "label": "Value comparator",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l029.keyed.n5",
+                "id": "n5",
+                "label": "Result outbox",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l029.keyed.n6",
+                "id": "n6",
+                "label": "Result projection",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l029.keyed.n7",
+                "id": "n7",
+                "label": "Missing-side timer",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "keyed-s7",
+          "invariants": [
+            "Overdue is not matched."
+          ],
+          "number": 7,
+          "operations": [
+            {
+              "nodeId": "system",
+              "op": "rebind",
+              "reason": "Expose this new typed path without mutating earlier binding definitions.",
+              "subsystemId": "l029.keyed.binding-s7"
+            },
+            {
+              "node": {
+                "definitionId": "l029.keyed.n7",
+                "id": "n7",
+                "label": "Missing-side timer",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l029.keyed.step7",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l029.keyed.step7-engine"
+                },
+                "id": "step7",
+                "label": "Missing-side timer",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l029.keyed.step7"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "When is waiting considered overdue?",
+          "reason": "Record deadline without fabricating a counterpart; late arrivals follow reopen/new-revision policy.",
+          "title": "Missing-side timer"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l029.keyed.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l029.keyed.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l029.keyed.command"
+                }
+              },
+              {
+                "contractId": "l029.keyed.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l029.keyed.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l029.keyed.command"
+                }
+              },
+              {
+                "contractId": "l029.keyed.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l029.keyed.step3-engine"
+                },
+                "id": "step3",
+                "label": "Side inbox",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l029.keyed.step3"
+                }
+              },
+              {
+                "contractId": "l029.keyed.step4",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l029.keyed.step4-engine"
+                },
+                "id": "step4",
+                "label": "Value comparator",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l029.keyed.step4"
+                }
+              },
+              {
+                "contractId": "l029.keyed.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l029.keyed.step5"
+                },
+                "id": "step5",
+                "label": "Result outbox",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l029.keyed.step5"
+                }
+              },
+              {
+                "contractId": "l029.keyed.step6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l029.keyed.step6"
+                },
+                "id": "step6",
+                "label": "Result projection",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l029.keyed.step6"
+                }
+              },
+              {
+                "contractId": "l029.keyed.step7",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l029.keyed.step7-engine"
+                },
+                "id": "step7",
+                "label": "Missing-side timer",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l029.keyed.step7"
+                }
+              },
+              {
+                "contractId": "l029.keyed.step8",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l029.keyed.step8"
+                },
+                "id": "step8",
+                "label": "Reconciliation scan",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n8",
+                  "portId": "in-l029.keyed.step8"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l029.keyed.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l029.keyed.system",
+                "id": "system",
+                "label": "Online keyed state machine",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l029.keyed.binding-s7",
+                "version": 1
+              },
+              {
+                "definitionId": "l029.keyed.engine",
+                "id": "engine",
+                "label": "Pair matcher",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l029.keyed.state",
+                "id": "state",
+                "label": "Pair state",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l029.keyed.n3",
+                "id": "n3",
+                "label": "Side inbox",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l029.keyed.n4",
+                "id": "n4",
+                "label": "Value comparator",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l029.keyed.n5",
+                "id": "n5",
+                "label": "Result outbox",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l029.keyed.n6",
+                "id": "n6",
+                "label": "Result projection",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l029.keyed.n7",
+                "id": "n7",
+                "label": "Missing-side timer",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l029.keyed.n8",
+                "id": "n8",
+                "label": "Reconciliation scan",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "keyed-s8",
+          "invariants": [
+            "Repair retains the original pair identity."
+          ],
+          "number": 8,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l029.keyed.n8",
+                "id": "n8",
+                "label": "Reconciliation scan",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l029.keyed.step8",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l029.keyed.step8"
+                },
+                "id": "step8",
+                "label": "Reconciliation scan",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n8",
+                  "portId": "in-l029.keyed.step8"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How are lost notifications found?",
+          "reason": "Scan durable terminal pairs against outbox/projection and repair missing publication.",
+          "title": "Reconciliation scan"
+        }
+      ],
+      "title": "Online keyed state machine",
+      "tradeoffs": [
+        "Retained unmatched state needs expiry and late policy.",
+        "Hot keys can serialize many revisions."
+      ]
+    },
+    {
+      "acceptanceCases": [
+        {
+          "given": "Both frozen sides contain equal values plus duplicate receipts.",
+          "id": "case0",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Emit one matched row.",
+          "when": "Full-outer join the normalized key/revision sets."
+        },
+        {
+          "given": "A frozen snapshot contains only one side.",
+          "id": "case1",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Publish missing evidence first; create a linked new generation for the late input.",
+          "when": "Publish then ingest a late counterpart."
+        },
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-04-state.test.mjs",
+            "testName": "paired online and snapshot mechanisms preserve missing mismatch and duplicates"
+          },
+          "given": "Bounded typed scalar left/right records are supplied.",
+          "id": "bounded-mechanism",
+          "relatedRequirementIds": [
+            "r0"
+          ],
+          "then": "Retain missing and mismatched rows, collapse exact repeats and classify conflicting side values.",
+          "when": "Run keyed admission and a full outer snapshot join."
+        }
+      ],
+      "algorithms": [
+        {
+          "code": "const run = freeze(leftManifest, rightManifest);\nconst classified = classifyExactAndConflictingDuplicates(run);\nfor (const key of fullOuterKeys(classified)) emit(classifyPair(key));\nrequireAllPartitionReceipts(); publishGeneration(run.id);",
+          "guarantees": [
+            "Conflicting duplicates do not become arbitrary winners.",
+            "Each key/revision belongs to exactly one join partition.",
+            "An inner join cannot hide unmatched records.",
+            "Run completeness and match rate are separate.",
+            "Readers never mix outputs from two runs.",
+            "Historical results remain attributable to their frozen inputs."
+          ],
+          "id": "transition",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "engine"
+        }
+      ],
+      "apis": [
+        {
+          "errors": "Reject invalid input, stale versions and operations outside the declared boundary.",
+          "method": "CALL",
+          "ownerNodeId": "engine",
+          "path": "L029/batch-join",
+          "request": "{\"entityId\":\"uuid\",\"revision\":\"integer\",\"side\":\"left|right\",\"value\":\"integer\",\"eventId\":\"uuid\"}",
+          "response": "{\"state\":\"waiting|matched|mismatch|conflict\",\"pairId\":\"entity/revision identity\"}"
+        }
+      ],
+      "assumptions": [
+        "All added stages are authored practice extending the canonical prompt.",
+        "Graphs specify conceptual mechanisms; reference models do not prove cloud execution, latency, physical durability or distributed safety."
+      ],
+      "chooseWhen": "Latency can be a bounded batch window and complete source manifests exist.",
+      "id": "batch-join",
+      "initialGraph": {
+        "edges": [],
+        "nodes": []
+      },
+      "stages": [
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l029.batch-join.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l029.batch-join.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l029.batch-join.command"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l029.batch-join.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l029.batch-join.system",
+                "id": "system",
+                "label": "Immutable snapshot full outer join",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "batch-join-s1",
+          "invariants": [
+            "Match only the same key and revision with equal scalar value."
+          ],
+          "number": 1,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l029.batch-join.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "l029.batch-join.system",
+                "id": "system",
+                "label": "Immutable snapshot full outer join",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l029.batch-join.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l029.batch-join.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l029.batch-join.command"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What does successful completion promise?",
+          "reason": "Match only the same key and revision with equal scalar value.",
+          "title": "Define the operation boundary"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l029.batch-join.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l029.batch-join.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l029.batch-join.command"
+                }
+              },
+              {
+                "contractId": "l029.batch-join.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l029.batch-join.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l029.batch-join.command"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l029.batch-join.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l029.batch-join.system",
+                "id": "system",
+                "label": "Immutable snapshot full outer join",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l029.batch-join.binding-s2",
+                "version": 1
+              },
+              {
+                "definitionId": "l029.batch-join.engine",
+                "id": "engine",
+                "label": "Join planner",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l029.batch-join.state",
+                "id": "state",
+                "label": "Input snapshots",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "batch-join-s2",
+          "invariants": [
+            "run identity belongs to Join planner; manifest hashes belongs to Input snapshots."
+          ],
+          "number": 2,
+          "operations": [
+            {
+              "edges": [
+                {
+                  "contractId": "l029.batch-join.command",
+                  "from": {
+                    "nodeId": "engine",
+                    "portId": "out-l029.batch-join.command"
+                  },
+                  "id": "owned-state",
+                  "label": "Read or commit state",
+                  "mode": "storage",
+                  "to": {
+                    "nodeId": "state",
+                    "portId": "in-l029.batch-join.command"
+                  }
+                }
+              ],
+              "nodeId": "system",
+              "nodes": [
+                {
+                  "definitionId": "l029.batch-join.engine",
+                  "id": "engine",
+                  "label": "Join planner",
+                  "position": {
+                    "x": 560,
+                    "y": 0
+                  },
+                  "version": 1
+                },
+                {
+                  "definitionId": "l029.batch-join.state",
+                  "id": "state",
+                  "label": "Input snapshots",
+                  "position": {
+                    "x": 840,
+                    "y": 0
+                  },
+                  "version": 1
+                }
+              ],
+              "op": "expand",
+              "subsystemId": "l029.batch-join.binding-s2"
+            }
+          ],
+          "question": "Which component owns the decision and its persistent or shared state?",
+          "reason": "Freeze left and right manifest identities for a reconciliation run. Own immutable left/right rows with source receipt hashes.",
+          "title": "Expose authority and state"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l029.batch-join.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l029.batch-join.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l029.batch-join.command"
+                }
+              },
+              {
+                "contractId": "l029.batch-join.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l029.batch-join.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l029.batch-join.command"
+                }
+              },
+              {
+                "contractId": "l029.batch-join.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l029.batch-join.step3-engine"
+                },
+                "id": "step3",
+                "label": "Duplicate classifier",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l029.batch-join.step3"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l029.batch-join.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l029.batch-join.system",
+                "id": "system",
+                "label": "Immutable snapshot full outer join",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l029.batch-join.binding-s3",
+                "version": 1
+              },
+              {
+                "definitionId": "l029.batch-join.engine",
+                "id": "engine",
+                "label": "Join planner",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l029.batch-join.state",
+                "id": "state",
+                "label": "Input snapshots",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l029.batch-join.n3",
+                "id": "n3",
+                "label": "Duplicate classifier",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "batch-join-s3",
+          "invariants": [
+            "Conflicting duplicates do not become arbitrary winners."
+          ],
+          "number": 3,
+          "operations": [
+            {
+              "nodeId": "system",
+              "op": "rebind",
+              "reason": "Expose this new typed path without mutating earlier binding definitions.",
+              "subsystemId": "l029.batch-join.binding-s3"
+            },
+            {
+              "node": {
+                "definitionId": "l029.batch-join.n3",
+                "id": "n3",
+                "label": "Duplicate classifier",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l029.batch-join.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l029.batch-join.step3-engine"
+                },
+                "id": "step3",
+                "label": "Duplicate classifier",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l029.batch-join.step3"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Which repeated side rows are valid?",
+          "reason": "Group key/revision/side, collapse exact repeats and isolate conflicting values.",
+          "title": "Duplicate classifier"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l029.batch-join.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l029.batch-join.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l029.batch-join.command"
+                }
+              },
+              {
+                "contractId": "l029.batch-join.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l029.batch-join.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l029.batch-join.command"
+                }
+              },
+              {
+                "contractId": "l029.batch-join.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l029.batch-join.step3-engine"
+                },
+                "id": "step3",
+                "label": "Duplicate classifier",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l029.batch-join.step3"
+                }
+              },
+              {
+                "contractId": "l029.batch-join.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l029.batch-join.step4"
+                },
+                "id": "step4",
+                "label": "Partitioned join",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l029.batch-join.step4"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l029.batch-join.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l029.batch-join.system",
+                "id": "system",
+                "label": "Immutable snapshot full outer join",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l029.batch-join.binding-s3",
+                "version": 1
+              },
+              {
+                "definitionId": "l029.batch-join.engine",
+                "id": "engine",
+                "label": "Join planner",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l029.batch-join.state",
+                "id": "state",
+                "label": "Input snapshots",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l029.batch-join.n3",
+                "id": "n3",
+                "label": "Duplicate classifier",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l029.batch-join.n4",
+                "id": "n4",
+                "label": "Partitioned join",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "batch-join-s4",
+          "invariants": [
+            "Each key/revision belongs to exactly one join partition."
+          ],
+          "number": 4,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l029.batch-join.n4",
+                "id": "n4",
+                "label": "Partitioned join",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l029.batch-join.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l029.batch-join.step4"
+                },
+                "id": "step4",
+                "label": "Partitioned join",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l029.batch-join.step4"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How is large input split safely?",
+          "reason": "Hash partition both sides by the same key/revision function and full-outer join.",
+          "title": "Partitioned join"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l029.batch-join.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l029.batch-join.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l029.batch-join.command"
+                }
+              },
+              {
+                "contractId": "l029.batch-join.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l029.batch-join.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l029.batch-join.command"
+                }
+              },
+              {
+                "contractId": "l029.batch-join.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l029.batch-join.step3-engine"
+                },
+                "id": "step3",
+                "label": "Duplicate classifier",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l029.batch-join.step3"
+                }
+              },
+              {
+                "contractId": "l029.batch-join.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l029.batch-join.step4"
+                },
+                "id": "step4",
+                "label": "Partitioned join",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l029.batch-join.step4"
+                }
+              },
+              {
+                "contractId": "l029.batch-join.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l029.batch-join.step5"
+                },
+                "id": "step5",
+                "label": "Outcome table",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l029.batch-join.step5"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l029.batch-join.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l029.batch-join.system",
+                "id": "system",
+                "label": "Immutable snapshot full outer join",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l029.batch-join.binding-s3",
+                "version": 1
+              },
+              {
+                "definitionId": "l029.batch-join.engine",
+                "id": "engine",
+                "label": "Join planner",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l029.batch-join.state",
+                "id": "state",
+                "label": "Input snapshots",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l029.batch-join.n3",
+                "id": "n3",
+                "label": "Duplicate classifier",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l029.batch-join.n4",
+                "id": "n4",
+                "label": "Partitioned join",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l029.batch-join.n5",
+                "id": "n5",
+                "label": "Outcome table",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "batch-join-s5",
+          "invariants": [
+            "An inner join cannot hide unmatched records."
+          ],
+          "number": 5,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l029.batch-join.n5",
+                "id": "n5",
+                "label": "Outcome table",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l029.batch-join.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l029.batch-join.step5"
+                },
+                "id": "step5",
+                "label": "Outcome table",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l029.batch-join.step5"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Where are missing records retained?",
+          "reason": "Write matched, mismatch, missing-left and missing-right rows explicitly.",
+          "title": "Outcome table"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l029.batch-join.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l029.batch-join.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l029.batch-join.command"
+                }
+              },
+              {
+                "contractId": "l029.batch-join.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l029.batch-join.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l029.batch-join.command"
+                }
+              },
+              {
+                "contractId": "l029.batch-join.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l029.batch-join.step3-engine"
+                },
+                "id": "step3",
+                "label": "Duplicate classifier",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l029.batch-join.step3"
+                }
+              },
+              {
+                "contractId": "l029.batch-join.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l029.batch-join.step4"
+                },
+                "id": "step4",
+                "label": "Partitioned join",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l029.batch-join.step4"
+                }
+              },
+              {
+                "contractId": "l029.batch-join.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l029.batch-join.step5"
+                },
+                "id": "step5",
+                "label": "Outcome table",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l029.batch-join.step5"
+                }
+              },
+              {
+                "contractId": "l029.batch-join.step6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l029.batch-join.step6"
+                },
+                "id": "step6",
+                "label": "Completeness ledger",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l029.batch-join.step6"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l029.batch-join.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l029.batch-join.system",
+                "id": "system",
+                "label": "Immutable snapshot full outer join",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l029.batch-join.binding-s3",
+                "version": 1
+              },
+              {
+                "definitionId": "l029.batch-join.engine",
+                "id": "engine",
+                "label": "Join planner",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l029.batch-join.state",
+                "id": "state",
+                "label": "Input snapshots",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l029.batch-join.n3",
+                "id": "n3",
+                "label": "Duplicate classifier",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l029.batch-join.n4",
+                "id": "n4",
+                "label": "Partitioned join",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l029.batch-join.n5",
+                "id": "n5",
+                "label": "Outcome table",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l029.batch-join.n6",
+                "id": "n6",
+                "label": "Completeness ledger",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "batch-join-s6",
+          "invariants": [
+            "Run completeness and match rate are separate."
+          ],
+          "number": 6,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l029.batch-join.n6",
+                "id": "n6",
+                "label": "Completeness ledger",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l029.batch-join.step6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l029.batch-join.step6"
+                },
+                "id": "step6",
+                "label": "Completeness ledger",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l029.batch-join.step6"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can incomplete sources look reconciled?",
+          "reason": "Require every declared input and partition receipt before publication.",
+          "title": "Completeness ledger"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l029.batch-join.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l029.batch-join.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l029.batch-join.command"
+                }
+              },
+              {
+                "contractId": "l029.batch-join.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l029.batch-join.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l029.batch-join.command"
+                }
+              },
+              {
+                "contractId": "l029.batch-join.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l029.batch-join.step3-engine"
+                },
+                "id": "step3",
+                "label": "Duplicate classifier",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l029.batch-join.step3"
+                }
+              },
+              {
+                "contractId": "l029.batch-join.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l029.batch-join.step4"
+                },
+                "id": "step4",
+                "label": "Partitioned join",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l029.batch-join.step4"
+                }
+              },
+              {
+                "contractId": "l029.batch-join.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l029.batch-join.step5"
+                },
+                "id": "step5",
+                "label": "Outcome table",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l029.batch-join.step5"
+                }
+              },
+              {
+                "contractId": "l029.batch-join.step6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l029.batch-join.step6"
+                },
+                "id": "step6",
+                "label": "Completeness ledger",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l029.batch-join.step6"
+                }
+              },
+              {
+                "contractId": "l029.batch-join.step7",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l029.batch-join.step7"
+                },
+                "id": "step7",
+                "label": "Generation publisher",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l029.batch-join.step7"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l029.batch-join.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l029.batch-join.system",
+                "id": "system",
+                "label": "Immutable snapshot full outer join",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l029.batch-join.binding-s3",
+                "version": 1
+              },
+              {
+                "definitionId": "l029.batch-join.engine",
+                "id": "engine",
+                "label": "Join planner",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l029.batch-join.state",
+                "id": "state",
+                "label": "Input snapshots",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l029.batch-join.n3",
+                "id": "n3",
+                "label": "Duplicate classifier",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l029.batch-join.n4",
+                "id": "n4",
+                "label": "Partitioned join",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l029.batch-join.n5",
+                "id": "n5",
+                "label": "Outcome table",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l029.batch-join.n6",
+                "id": "n6",
+                "label": "Completeness ledger",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l029.batch-join.n7",
+                "id": "n7",
+                "label": "Generation publisher",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "batch-join-s7",
+          "invariants": [
+            "Readers never mix outputs from two runs."
+          ],
+          "number": 7,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l029.batch-join.n7",
+                "id": "n7",
+                "label": "Generation publisher",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l029.batch-join.step7",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l029.batch-join.step7"
+                },
+                "id": "step7",
+                "label": "Generation publisher",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l029.batch-join.step7"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How do consumers see one consistent run?",
+          "reason": "Swap one active generation pointer after all outputs are committed.",
+          "title": "Generation publisher"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l029.batch-join.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l029.batch-join.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l029.batch-join.command"
+                }
+              },
+              {
+                "contractId": "l029.batch-join.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l029.batch-join.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l029.batch-join.command"
+                }
+              },
+              {
+                "contractId": "l029.batch-join.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l029.batch-join.step3-engine"
+                },
+                "id": "step3",
+                "label": "Duplicate classifier",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l029.batch-join.step3"
+                }
+              },
+              {
+                "contractId": "l029.batch-join.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l029.batch-join.step4"
+                },
+                "id": "step4",
+                "label": "Partitioned join",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l029.batch-join.step4"
+                }
+              },
+              {
+                "contractId": "l029.batch-join.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l029.batch-join.step5"
+                },
+                "id": "step5",
+                "label": "Outcome table",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l029.batch-join.step5"
+                }
+              },
+              {
+                "contractId": "l029.batch-join.step6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l029.batch-join.step6"
+                },
+                "id": "step6",
+                "label": "Completeness ledger",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l029.batch-join.step6"
+                }
+              },
+              {
+                "contractId": "l029.batch-join.step7",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l029.batch-join.step7"
+                },
+                "id": "step7",
+                "label": "Generation publisher",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l029.batch-join.step7"
+                }
+              },
+              {
+                "contractId": "l029.batch-join.step8",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l029.batch-join.step8"
+                },
+                "id": "step8",
+                "label": "Late-arrival delta",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n8",
+                  "portId": "in-l029.batch-join.step8"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l029.batch-join.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l029.batch-join.system",
+                "id": "system",
+                "label": "Immutable snapshot full outer join",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l029.batch-join.binding-s3",
+                "version": 1
+              },
+              {
+                "definitionId": "l029.batch-join.engine",
+                "id": "engine",
+                "label": "Join planner",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l029.batch-join.state",
+                "id": "state",
+                "label": "Input snapshots",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l029.batch-join.n3",
+                "id": "n3",
+                "label": "Duplicate classifier",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l029.batch-join.n4",
+                "id": "n4",
+                "label": "Partitioned join",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l029.batch-join.n5",
+                "id": "n5",
+                "label": "Outcome table",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l029.batch-join.n6",
+                "id": "n6",
+                "label": "Completeness ledger",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l029.batch-join.n7",
+                "id": "n7",
+                "label": "Generation publisher",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l029.batch-join.n8",
+                "id": "n8",
+                "label": "Late-arrival delta",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "batch-join-s8",
+          "invariants": [
+            "Historical results remain attributable to their frozen inputs."
+          ],
+          "number": 8,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l029.batch-join.n8",
+                "id": "n8",
+                "label": "Late-arrival delta",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l029.batch-join.step8",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l029.batch-join.step8"
+                },
+                "id": "step8",
+                "label": "Late-arrival delta",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n8",
+                  "portId": "in-l029.batch-join.step8"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What if the counterpart arrives next day?",
+          "reason": "Create a linked new reconciliation generation and retain old missing evidence.",
+          "title": "Late-arrival delta"
+        }
+      ],
+      "title": "Immutable snapshot full outer join",
+      "tradeoffs": [
+        "Publication waits for input completeness.",
+        "Late records create a new generation and require lineage rather than editing old output."
+      ]
+    }
+  ],
+  "subsystems": [
+    {
+      "definitionId": "l029.keyed.system",
+      "id": "l029.keyed.binding-s2",
+      "ports": [
+        {
+          "contractId": "l029.keyed.command",
+          "direction": "in",
+          "id": "in-l029.keyed.command",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-l029.keyed.command"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l029.keyed.system",
+      "id": "l029.keyed.binding-s3",
+      "ports": [
+        {
+          "contractId": "l029.keyed.command",
+          "direction": "in",
+          "id": "in-l029.keyed.command",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-l029.keyed.command"
+          }
+        },
+        {
+          "contractId": "l029.keyed.step3",
+          "direction": "out",
+          "id": "out-l029.keyed.step3-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l029.keyed.step3"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l029.keyed.system",
+      "id": "l029.keyed.binding-s4",
+      "ports": [
+        {
+          "contractId": "l029.keyed.command",
+          "direction": "in",
+          "id": "in-l029.keyed.command",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-l029.keyed.command"
+          }
+        },
+        {
+          "contractId": "l029.keyed.step3",
+          "direction": "out",
+          "id": "out-l029.keyed.step3-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l029.keyed.step3"
+          }
+        },
+        {
+          "contractId": "l029.keyed.step4",
+          "direction": "out",
+          "id": "out-l029.keyed.step4-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l029.keyed.step4"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l029.keyed.system",
+      "id": "l029.keyed.binding-s7",
+      "ports": [
+        {
+          "contractId": "l029.keyed.command",
+          "direction": "in",
+          "id": "in-l029.keyed.command",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-l029.keyed.command"
+          }
+        },
+        {
+          "contractId": "l029.keyed.step3",
+          "direction": "out",
+          "id": "out-l029.keyed.step3-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l029.keyed.step3"
+          }
+        },
+        {
+          "contractId": "l029.keyed.step4",
+          "direction": "out",
+          "id": "out-l029.keyed.step4-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l029.keyed.step4"
+          }
+        },
+        {
+          "contractId": "l029.keyed.step7",
+          "direction": "out",
+          "id": "out-l029.keyed.step7-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l029.keyed.step7"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l029.batch-join.system",
+      "id": "l029.batch-join.binding-s2",
+      "ports": [
+        {
+          "contractId": "l029.batch-join.command",
+          "direction": "in",
+          "id": "in-l029.batch-join.command",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-l029.batch-join.command"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l029.batch-join.system",
+      "id": "l029.batch-join.binding-s3",
+      "ports": [
+        {
+          "contractId": "l029.batch-join.command",
+          "direction": "in",
+          "id": "in-l029.batch-join.command",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-l029.batch-join.command"
+          }
+        },
+        {
+          "contractId": "l029.batch-join.step3",
+          "direction": "out",
+          "id": "out-l029.batch-join.step3-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l029.batch-join.step3"
+          }
+        }
+      ],
+      "version": 1
+    }
+  ],
+  "version": 1
+}

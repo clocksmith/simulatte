@@ -1,0 +1,3980 @@
+{
+  "components": [
+    {
+      "extends": {
+        "id": "core.client",
+        "version": 1
+      },
+      "id": "l024.frontier.caller",
+      "label": "Caller",
+      "ports": [
+        {
+          "contractId": "l024.frontier.command",
+          "direction": "out",
+          "id": "out-l024.frontier.command"
+        }
+      ],
+      "responsibility": "Submit the declared operation with stable identity and observe explicit completion.",
+      "stateOwnership": [
+        "caller request and retry identity"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l024.frontier.system",
+      "label": "Durable URL frontier",
+      "ports": [
+        {
+          "contractId": "l024.frontier.command",
+          "direction": "in",
+          "id": "in-l024.frontier.command"
+        },
+        {
+          "contractId": "l024.frontier.step3",
+          "direction": "out",
+          "id": "out-l024.frontier.step3-engine"
+        },
+        {
+          "contractId": "l024.frontier.step7",
+          "direction": "out",
+          "id": "out-l024.frontier.step7-engine"
+        }
+      ],
+      "responsibility": "Preserve this stable boundary while refining its ownership and contracts.",
+      "stateOwnership": [
+        "logical operation state"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l024.frontier.engine",
+      "label": "Run coordinator",
+      "ports": [
+        {
+          "contractId": "l024.frontier.command",
+          "direction": "out",
+          "id": "out-l024.frontier.command"
+        },
+        {
+          "contractId": "l024.frontier.command",
+          "direction": "in",
+          "id": "in-l024.frontier.command"
+        },
+        {
+          "contractId": "l024.frontier.step3",
+          "direction": "out",
+          "id": "out-l024.frontier.step3"
+        },
+        {
+          "contractId": "l024.frontier.step7",
+          "direction": "out",
+          "id": "out-l024.frontier.step7"
+        }
+      ],
+      "responsibility": "Create one run per schedule/instant and admit only configured origins.",
+      "stateOwnership": [
+        "run identity"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l024.frontier.state",
+      "label": "Frontier",
+      "ports": [
+        {
+          "contractId": "l024.frontier.command",
+          "direction": "in",
+          "id": "in-l024.frontier.command"
+        }
+      ],
+      "responsibility": "Own normalized URL/revision keys, lease owner, attempts and next eligible time.",
+      "stateOwnership": [
+        "URL leases"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l024.frontier.n3",
+      "label": "Origin permit",
+      "ports": [
+        {
+          "contractId": "l024.frontier.step3",
+          "direction": "in",
+          "id": "in-l024.frontier.step3"
+        },
+        {
+          "contractId": "l024.frontier.step4",
+          "direction": "out",
+          "id": "out-l024.frontier.step4"
+        }
+      ],
+      "responsibility": "Grant a bounded concurrent permit after robots and minimum-delay checks.",
+      "stateOwnership": [
+        "origin, eligibleAt"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "l024.frontier.n4",
+      "label": "Fetch executor",
+      "ports": [
+        {
+          "contractId": "l024.frontier.step4",
+          "direction": "in",
+          "id": "in-l024.frontier.step4"
+        },
+        {
+          "contractId": "l024.frontier.step5",
+          "direction": "out",
+          "id": "out-l024.frontier.step5"
+        }
+      ],
+      "responsibility": "Use finite response-size/time limits and conditional validators; retain status and receipt.",
+      "stateOwnership": [
+        "etag, bytes, status"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "l024.frontier.n5",
+      "label": "Versioned parser",
+      "ports": [
+        {
+          "contractId": "l024.frontier.step5",
+          "direction": "in",
+          "id": "in-l024.frontier.step5"
+        },
+        {
+          "contractId": "l024.frontier.step6",
+          "direction": "out",
+          "id": "out-l024.frontier.step6"
+        }
+      ],
+      "responsibility": "Parse retained bytes with a pinned parser version and emit schema errors to quarantine.",
+      "stateOwnership": [
+        "contentHash, parserVersion"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l024.frontier.n6",
+      "label": "Output transaction",
+      "ports": [
+        {
+          "contractId": "l024.frontier.step6",
+          "direction": "in",
+          "id": "in-l024.frontier.step6"
+        },
+        {
+          "contractId": "l024.frontier.step8",
+          "direction": "out",
+          "id": "out-l024.frontier.step8"
+        }
+      ],
+      "responsibility": "Commit unique source/revision/parser outputs and completion marker atomically.",
+      "stateOwnership": [
+        "sourceRevision, recordIds"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "l024.frontier.n7",
+      "label": "Lease recovery",
+      "ports": [
+        {
+          "contractId": "l024.frontier.step7",
+          "direction": "in",
+          "id": "in-l024.frontier.step7"
+        }
+      ],
+      "responsibility": "Fence expired lease holders and retry with the same run/revision identity.",
+      "stateOwnership": [
+        "leaseEpoch, retryAt"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l024.frontier.n8",
+      "label": "Provenance index",
+      "ports": [
+        {
+          "contractId": "l024.frontier.step8",
+          "direction": "in",
+          "id": "in-l024.frontier.step8"
+        }
+      ],
+      "responsibility": "Retain source URL, receipt hash, parser version, scheduled instant and terminal state.",
+      "stateOwnership": [
+        "sourceUrl, receiptHash"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.client",
+        "version": 1
+      },
+      "id": "l024.manifest.caller",
+      "label": "Caller",
+      "ports": [
+        {
+          "contractId": "l024.manifest.command",
+          "direction": "out",
+          "id": "out-l024.manifest.command"
+        }
+      ],
+      "responsibility": "Submit the declared operation with stable identity and observe explicit completion.",
+      "stateOwnership": [
+        "caller request and retry identity"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l024.manifest.system",
+      "label": "Snapshot manifests and partition jobs",
+      "ports": [
+        {
+          "contractId": "l024.manifest.command",
+          "direction": "in",
+          "id": "in-l024.manifest.command"
+        },
+        {
+          "contractId": "l024.manifest.step3",
+          "direction": "out",
+          "id": "out-l024.manifest.step3-engine"
+        }
+      ],
+      "responsibility": "Preserve this stable boundary while refining its ownership and contracts.",
+      "stateOwnership": [
+        "logical operation state"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l024.manifest.engine",
+      "label": "Snapshot planner",
+      "ports": [
+        {
+          "contractId": "l024.manifest.command",
+          "direction": "out",
+          "id": "out-l024.manifest.command"
+        },
+        {
+          "contractId": "l024.manifest.command",
+          "direction": "in",
+          "id": "in-l024.manifest.command"
+        },
+        {
+          "contractId": "l024.manifest.step3",
+          "direction": "out",
+          "id": "out-l024.manifest.step3"
+        }
+      ],
+      "responsibility": "Freeze an input manifest for one scheduled instant.",
+      "stateOwnership": [
+        "manifest identity"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l024.manifest.state",
+      "label": "Manifest store",
+      "ports": [
+        {
+          "contractId": "l024.manifest.command",
+          "direction": "in",
+          "id": "in-l024.manifest.command"
+        }
+      ],
+      "responsibility": "Own immutable source revision lists and partition bounds.",
+      "stateOwnership": [
+        "manifest hash and partitions"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l024.manifest.n3",
+      "label": "Partition planner",
+      "ports": [
+        {
+          "contractId": "l024.manifest.step3",
+          "direction": "in",
+          "id": "in-l024.manifest.step3"
+        },
+        {
+          "contractId": "l024.manifest.step4",
+          "direction": "out",
+          "id": "out-l024.manifest.step4"
+        }
+      ],
+      "responsibility": "Split the manifest by deterministic ranges with stable partition IDs.",
+      "stateOwnership": [
+        "manifestHash, range"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "l024.manifest.n4",
+      "label": "Partition workers",
+      "ports": [
+        {
+          "contractId": "l024.manifest.step4",
+          "direction": "in",
+          "id": "in-l024.manifest.step4"
+        },
+        {
+          "contractId": "l024.manifest.step5",
+          "direction": "out",
+          "id": "out-l024.manifest.step5"
+        }
+      ],
+      "responsibility": "Lease partitions and read their immutable input revision list.",
+      "stateOwnership": [
+        "partitionId, attempt"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "l024.manifest.n5",
+      "label": "Parse and quarantine",
+      "ports": [
+        {
+          "contractId": "l024.manifest.step5",
+          "direction": "in",
+          "id": "in-l024.manifest.step5"
+        },
+        {
+          "contractId": "l024.manifest.step6",
+          "direction": "out",
+          "id": "out-l024.manifest.step6"
+        }
+      ],
+      "responsibility": "Apply a pinned schema/parser and retain rejected inputs separately.",
+      "stateOwnership": [
+        "parserVersion, errors"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l024.manifest.n6",
+      "label": "Staging output",
+      "ports": [
+        {
+          "contractId": "l024.manifest.step6",
+          "direction": "in",
+          "id": "in-l024.manifest.step6"
+        },
+        {
+          "contractId": "l024.manifest.step7",
+          "direction": "out",
+          "id": "out-l024.manifest.step7"
+        }
+      ],
+      "responsibility": "Write partition outputs to a run-scoped namespace before publication.",
+      "stateOwnership": [
+        "runId, partitionId, hash"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l024.manifest.n7",
+      "label": "Atomic publication",
+      "ports": [
+        {
+          "contractId": "l024.manifest.step7",
+          "direction": "in",
+          "id": "in-l024.manifest.step7"
+        },
+        {
+          "contractId": "l024.manifest.step8",
+          "direction": "out",
+          "id": "out-l024.manifest.step8"
+        }
+      ],
+      "responsibility": "Compare every expected partition receipt and atomically swap the active manifest pointer.",
+      "stateOwnership": [
+        "expectedPartitions, generation"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "l024.manifest.n8",
+      "label": "Retention planner",
+      "ports": [
+        {
+          "contractId": "l024.manifest.step8",
+          "direction": "in",
+          "id": "in-l024.manifest.step8"
+        }
+      ],
+      "responsibility": "Delete abandoned staging only after lease expiry and retention; preserve published provenance.",
+      "stateOwnership": [
+        "runState, retainUntil"
+      ],
+      "version": 1
+    }
+  ],
+  "contracts": [
+    {
+      "id": "l024.frontier.command",
+      "request": {
+        "revision": "etag or content hash",
+        "scheduleId": "uuid",
+        "scheduledFor": "UTC timestamp",
+        "sourceId": "canonical origin/path"
+      },
+      "response": {
+        "runId": "schedule/instant identity",
+        "state": "queued|running|committed|quarantined"
+      },
+      "version": 1
+    },
+    {
+      "id": "l024.frontier.step3",
+      "request": {
+        "eligibleAt": "timestamp",
+        "origin": "scheme/host/port"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l024.frontier.step4",
+      "request": {
+        "bytes": "bounded byte[]",
+        "etag": "string|null",
+        "status": "integer"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l024.frontier.step5",
+      "request": {
+        "contentHash": "sha256",
+        "parserVersion": "integer"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l024.frontier.step6",
+      "request": {
+        "recordIds": "uuid[]",
+        "sourceRevision": "string"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l024.frontier.step7",
+      "request": {
+        "leaseEpoch": "integer",
+        "retryAt": "timestamp"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l024.frontier.step8",
+      "request": {
+        "receiptHash": "sha256",
+        "sourceUrl": "https URL"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l024.manifest.command",
+      "request": {
+        "revision": "etag or content hash",
+        "scheduleId": "uuid",
+        "scheduledFor": "UTC timestamp",
+        "sourceId": "canonical origin/path"
+      },
+      "response": {
+        "runId": "schedule/instant identity",
+        "state": "queued|running|committed|quarantined"
+      },
+      "version": 1
+    },
+    {
+      "id": "l024.manifest.step3",
+      "request": {
+        "manifestHash": "sha256",
+        "range": "half-open index range"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l024.manifest.step4",
+      "request": {
+        "attempt": "integer",
+        "partitionId": "uuid"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l024.manifest.step5",
+      "request": {
+        "errors": "string[]",
+        "parserVersion": "integer"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l024.manifest.step6",
+      "request": {
+        "hash": "sha256",
+        "partitionId": "uuid",
+        "runId": "uuid"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l024.manifest.step7",
+      "request": {
+        "expectedPartitions": "integer",
+        "generation": "integer"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l024.manifest.step8",
+      "request": {
+        "retainUntil": "timestamp",
+        "runState": "terminal state"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    }
+  ],
+  "execution": {
+    "implementation": null,
+    "kind": "conceptual-design"
+  },
+  "problem": {
+    "referenceId": "L024",
+    "requirements": [
+      {
+        "id": "r0",
+        "text": "Resolve schedules into stable run IDs and bound pending work per origin."
+      },
+      {
+        "id": "r1",
+        "text": "Deduplicate source revisions while retaining fetch provenance and parser version."
+      },
+      {
+        "id": "r2",
+        "text": "Recover partial runs without advancing progress past committed outputs."
+      }
+    ],
+    "scope": "Extend the synthetic collection exercise with scheduled run identity, origin politeness, deduplication and provenance. Inputs are authored URLs and synthetic records; no live crawler or extraction is claimed.",
+    "studyLabel": "Scheduled bounded ingestion"
+  },
+  "provenance": {
+    "kind": "authored-practice",
+    "note": "Authored interview preparation. Technical references support mechanisms, not the claim that a company asked this question."
+  },
+  "references": [
+    {
+      "id": "ref0",
+      "scope": "background",
+      "supports": "Transactions isolate concurrent authorization and mutation decisions; retries remain explicit.",
+      "title": "PostgreSQL isolation",
+      "url": "https://www.postgresql.org/docs/18/transaction-iso.html"
+    },
+    {
+      "id": "ref1",
+      "scope": "background",
+      "supports": "Robots policy governs crawler access; authorization and per-origin rate policy are separate.",
+      "title": "Robots protocol",
+      "url": "https://www.rfc-editor.org/rfc/rfc9309"
+    }
+  ],
+  "schema": "simulatte.composableStudy.v2",
+  "solutions": [
+    {
+      "acceptanceCases": [
+        {
+          "given": "A worker commits output but loses its acknowledgement.",
+          "id": "case0",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Retain one accepted output and the original provenance.",
+          "when": "Retry the same source revision under a new lease."
+        },
+        {
+          "given": "A parser rejects one fetched record.",
+          "id": "case1",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Keep the invalid receipt quarantined and never report it committed.",
+          "when": "Finish the bounded run."
+        },
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-04-state.test.mjs",
+            "testName": "manifest publication waits for committed partition coverage"
+          },
+          "given": "Two expected partitions have one committed and one quarantined receipt.",
+          "id": "bounded-mechanism",
+          "relatedRequirementIds": [
+            "r0"
+          ],
+          "then": "Retain the prior generation until both receipts are committed.",
+          "when": "Attempt generation publication then commit the second receipt."
+        }
+      ],
+      "algorithms": [
+        {
+          "code": "const run = insertRunIfAbsent(scheduleId, scheduledFor);\nconst claim = claimEligibleOriginLease(run); const bytes = boundedFetch(claim);\nconst records = parse(bytes, parserVersion); transaction(() => {\n assertLeaseEpoch(claim); insertOutputsUnique(sourceId, revision, parserVersion, records); markDone(claim); });",
+          "guarantees": [
+            "Retries consume the same per-origin budget.",
+            "A timeout is retryable intent, not evidence of an empty source.",
+            "Invalid records never enter the accepted output table.",
+            "The completion marker never outruns output commit.",
+            "A stale worker cannot complete a reassigned lease.",
+            "A record is attributable to immutable inputs."
+          ],
+          "id": "transition",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "engine"
+        }
+      ],
+      "apis": [
+        {
+          "errors": "Reject invalid input, stale versions and operations outside the declared boundary.",
+          "method": "CALL",
+          "ownerNodeId": "engine",
+          "path": "L024/frontier",
+          "request": "{\"scheduleId\":\"uuid\",\"scheduledFor\":\"UTC timestamp\",\"sourceId\":\"canonical origin/path\",\"revision\":\"etag or content hash\"}",
+          "response": "{\"runId\":\"schedule/instant identity\",\"state\":\"queued|running|committed|quarantined\"}"
+        }
+      ],
+      "assumptions": [
+        "All added stages are authored practice extending the canonical prompt.",
+        "Graphs specify conceptual mechanisms; reference models do not prove cloud execution, latency, physical durability or distributed safety."
+      ],
+      "chooseWhen": "Sources expose stable URLs and incremental crawl latency is acceptable.",
+      "id": "frontier",
+      "initialGraph": {
+        "edges": [],
+        "nodes": []
+      },
+      "stages": [
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l024.frontier.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l024.frontier.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l024.frontier.command"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l024.frontier.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l024.frontier.system",
+                "id": "system",
+                "label": "Durable URL frontier",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "frontier-s1",
+          "invariants": [
+            "Resolve schedules into stable run IDs and bound pending work per origin."
+          ],
+          "number": 1,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l024.frontier.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "l024.frontier.system",
+                "id": "system",
+                "label": "Durable URL frontier",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l024.frontier.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l024.frontier.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l024.frontier.command"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What does successful completion promise?",
+          "reason": "Resolve schedules into stable run IDs and bound pending work per origin.",
+          "title": "Define the operation boundary"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l024.frontier.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l024.frontier.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l024.frontier.command"
+                }
+              },
+              {
+                "contractId": "l024.frontier.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l024.frontier.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l024.frontier.command"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l024.frontier.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l024.frontier.system",
+                "id": "system",
+                "label": "Durable URL frontier",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l024.frontier.binding-s2",
+                "version": 1
+              },
+              {
+                "definitionId": "l024.frontier.engine",
+                "id": "engine",
+                "label": "Run coordinator",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l024.frontier.state",
+                "id": "state",
+                "label": "Frontier",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "frontier-s2",
+          "invariants": [
+            "run identity belongs to Run coordinator; URL leases belongs to Frontier."
+          ],
+          "number": 2,
+          "operations": [
+            {
+              "edges": [
+                {
+                  "contractId": "l024.frontier.command",
+                  "from": {
+                    "nodeId": "engine",
+                    "portId": "out-l024.frontier.command"
+                  },
+                  "id": "owned-state",
+                  "label": "Read or commit state",
+                  "mode": "storage",
+                  "to": {
+                    "nodeId": "state",
+                    "portId": "in-l024.frontier.command"
+                  }
+                }
+              ],
+              "nodeId": "system",
+              "nodes": [
+                {
+                  "definitionId": "l024.frontier.engine",
+                  "id": "engine",
+                  "label": "Run coordinator",
+                  "position": {
+                    "x": 560,
+                    "y": 0
+                  },
+                  "version": 1
+                },
+                {
+                  "definitionId": "l024.frontier.state",
+                  "id": "state",
+                  "label": "Frontier",
+                  "position": {
+                    "x": 840,
+                    "y": 0
+                  },
+                  "version": 1
+                }
+              ],
+              "op": "expand",
+              "subsystemId": "l024.frontier.binding-s2"
+            }
+          ],
+          "question": "Which component owns the decision and its persistent or shared state?",
+          "reason": "Create one run per schedule/instant and admit only configured origins. Own normalized URL/revision keys, lease owner, attempts and next eligible time.",
+          "title": "Expose authority and state"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l024.frontier.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l024.frontier.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l024.frontier.command"
+                }
+              },
+              {
+                "contractId": "l024.frontier.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l024.frontier.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l024.frontier.command"
+                }
+              },
+              {
+                "contractId": "l024.frontier.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l024.frontier.step3-engine"
+                },
+                "id": "step3",
+                "label": "Origin permit",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l024.frontier.step3"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l024.frontier.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l024.frontier.system",
+                "id": "system",
+                "label": "Durable URL frontier",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l024.frontier.binding-s3",
+                "version": 1
+              },
+              {
+                "definitionId": "l024.frontier.engine",
+                "id": "engine",
+                "label": "Run coordinator",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l024.frontier.state",
+                "id": "state",
+                "label": "Frontier",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l024.frontier.n3",
+                "id": "n3",
+                "label": "Origin permit",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "frontier-s3",
+          "invariants": [
+            "Retries consume the same per-origin budget."
+          ],
+          "number": 3,
+          "operations": [
+            {
+              "nodeId": "system",
+              "op": "rebind",
+              "reason": "Expose this new typed path without mutating earlier binding definitions.",
+              "subsystemId": "l024.frontier.binding-s3"
+            },
+            {
+              "node": {
+                "definitionId": "l024.frontier.n3",
+                "id": "n3",
+                "label": "Origin permit",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l024.frontier.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l024.frontier.step3-engine"
+                },
+                "id": "step3",
+                "label": "Origin permit",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l024.frontier.step3"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How is one busy site protected?",
+          "reason": "Grant a bounded concurrent permit after robots and minimum-delay checks.",
+          "title": "Origin permit"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l024.frontier.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l024.frontier.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l024.frontier.command"
+                }
+              },
+              {
+                "contractId": "l024.frontier.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l024.frontier.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l024.frontier.command"
+                }
+              },
+              {
+                "contractId": "l024.frontier.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l024.frontier.step3-engine"
+                },
+                "id": "step3",
+                "label": "Origin permit",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l024.frontier.step3"
+                }
+              },
+              {
+                "contractId": "l024.frontier.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l024.frontier.step4"
+                },
+                "id": "step4",
+                "label": "Fetch executor",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l024.frontier.step4"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l024.frontier.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l024.frontier.system",
+                "id": "system",
+                "label": "Durable URL frontier",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l024.frontier.binding-s3",
+                "version": 1
+              },
+              {
+                "definitionId": "l024.frontier.engine",
+                "id": "engine",
+                "label": "Run coordinator",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l024.frontier.state",
+                "id": "state",
+                "label": "Frontier",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l024.frontier.n3",
+                "id": "n3",
+                "label": "Origin permit",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l024.frontier.n4",
+                "id": "n4",
+                "label": "Fetch executor",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "frontier-s4",
+          "invariants": [
+            "A timeout is retryable intent, not evidence of an empty source."
+          ],
+          "number": 4,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l024.frontier.n4",
+                "id": "n4",
+                "label": "Fetch executor",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l024.frontier.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l024.frontier.step4"
+                },
+                "id": "step4",
+                "label": "Fetch executor",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l024.frontier.step4"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What if a fetch times out?",
+          "reason": "Use finite response-size/time limits and conditional validators; retain status and receipt.",
+          "title": "Fetch executor"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l024.frontier.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l024.frontier.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l024.frontier.command"
+                }
+              },
+              {
+                "contractId": "l024.frontier.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l024.frontier.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l024.frontier.command"
+                }
+              },
+              {
+                "contractId": "l024.frontier.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l024.frontier.step3-engine"
+                },
+                "id": "step3",
+                "label": "Origin permit",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l024.frontier.step3"
+                }
+              },
+              {
+                "contractId": "l024.frontier.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l024.frontier.step4"
+                },
+                "id": "step4",
+                "label": "Fetch executor",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l024.frontier.step4"
+                }
+              },
+              {
+                "contractId": "l024.frontier.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l024.frontier.step5"
+                },
+                "id": "step5",
+                "label": "Versioned parser",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l024.frontier.step5"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l024.frontier.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l024.frontier.system",
+                "id": "system",
+                "label": "Durable URL frontier",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l024.frontier.binding-s3",
+                "version": 1
+              },
+              {
+                "definitionId": "l024.frontier.engine",
+                "id": "engine",
+                "label": "Run coordinator",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l024.frontier.state",
+                "id": "state",
+                "label": "Frontier",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l024.frontier.n3",
+                "id": "n3",
+                "label": "Origin permit",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l024.frontier.n4",
+                "id": "n4",
+                "label": "Fetch executor",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l024.frontier.n5",
+                "id": "n5",
+                "label": "Versioned parser",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "frontier-s5",
+          "invariants": [
+            "Invalid records never enter the accepted output table."
+          ],
+          "number": 5,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l024.frontier.n5",
+                "id": "n5",
+                "label": "Versioned parser",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l024.frontier.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l024.frontier.step5"
+                },
+                "id": "step5",
+                "label": "Versioned parser",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l024.frontier.step5"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can a new parser reinterpret old content?",
+          "reason": "Parse retained bytes with a pinned parser version and emit schema errors to quarantine.",
+          "title": "Versioned parser"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l024.frontier.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l024.frontier.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l024.frontier.command"
+                }
+              },
+              {
+                "contractId": "l024.frontier.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l024.frontier.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l024.frontier.command"
+                }
+              },
+              {
+                "contractId": "l024.frontier.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l024.frontier.step3-engine"
+                },
+                "id": "step3",
+                "label": "Origin permit",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l024.frontier.step3"
+                }
+              },
+              {
+                "contractId": "l024.frontier.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l024.frontier.step4"
+                },
+                "id": "step4",
+                "label": "Fetch executor",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l024.frontier.step4"
+                }
+              },
+              {
+                "contractId": "l024.frontier.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l024.frontier.step5"
+                },
+                "id": "step5",
+                "label": "Versioned parser",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l024.frontier.step5"
+                }
+              },
+              {
+                "contractId": "l024.frontier.step6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l024.frontier.step6"
+                },
+                "id": "step6",
+                "label": "Output transaction",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l024.frontier.step6"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l024.frontier.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l024.frontier.system",
+                "id": "system",
+                "label": "Durable URL frontier",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l024.frontier.binding-s3",
+                "version": 1
+              },
+              {
+                "definitionId": "l024.frontier.engine",
+                "id": "engine",
+                "label": "Run coordinator",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l024.frontier.state",
+                "id": "state",
+                "label": "Frontier",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l024.frontier.n3",
+                "id": "n3",
+                "label": "Origin permit",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l024.frontier.n4",
+                "id": "n4",
+                "label": "Fetch executor",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l024.frontier.n5",
+                "id": "n5",
+                "label": "Versioned parser",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l024.frontier.n6",
+                "id": "n6",
+                "label": "Output transaction",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "frontier-s6",
+          "invariants": [
+            "The completion marker never outruns output commit."
+          ],
+          "number": 6,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l024.frontier.n6",
+                "id": "n6",
+                "label": "Output transaction",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l024.frontier.step6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l024.frontier.step6"
+                },
+                "id": "step6",
+                "label": "Output transaction",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l024.frontier.step6"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "When may the frontier advance?",
+          "reason": "Commit unique source/revision/parser outputs and completion marker atomically.",
+          "title": "Output transaction"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l024.frontier.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l024.frontier.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l024.frontier.command"
+                }
+              },
+              {
+                "contractId": "l024.frontier.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l024.frontier.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l024.frontier.command"
+                }
+              },
+              {
+                "contractId": "l024.frontier.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l024.frontier.step3-engine"
+                },
+                "id": "step3",
+                "label": "Origin permit",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l024.frontier.step3"
+                }
+              },
+              {
+                "contractId": "l024.frontier.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l024.frontier.step4"
+                },
+                "id": "step4",
+                "label": "Fetch executor",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l024.frontier.step4"
+                }
+              },
+              {
+                "contractId": "l024.frontier.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l024.frontier.step5"
+                },
+                "id": "step5",
+                "label": "Versioned parser",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l024.frontier.step5"
+                }
+              },
+              {
+                "contractId": "l024.frontier.step6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l024.frontier.step6"
+                },
+                "id": "step6",
+                "label": "Output transaction",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l024.frontier.step6"
+                }
+              },
+              {
+                "contractId": "l024.frontier.step7",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l024.frontier.step7-engine"
+                },
+                "id": "step7",
+                "label": "Lease recovery",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l024.frontier.step7"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l024.frontier.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l024.frontier.system",
+                "id": "system",
+                "label": "Durable URL frontier",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l024.frontier.binding-s7",
+                "version": 1
+              },
+              {
+                "definitionId": "l024.frontier.engine",
+                "id": "engine",
+                "label": "Run coordinator",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l024.frontier.state",
+                "id": "state",
+                "label": "Frontier",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l024.frontier.n3",
+                "id": "n3",
+                "label": "Origin permit",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l024.frontier.n4",
+                "id": "n4",
+                "label": "Fetch executor",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l024.frontier.n5",
+                "id": "n5",
+                "label": "Versioned parser",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l024.frontier.n6",
+                "id": "n6",
+                "label": "Output transaction",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l024.frontier.n7",
+                "id": "n7",
+                "label": "Lease recovery",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "frontier-s7",
+          "invariants": [
+            "A stale worker cannot complete a reassigned lease."
+          ],
+          "number": 7,
+          "operations": [
+            {
+              "nodeId": "system",
+              "op": "rebind",
+              "reason": "Expose this new typed path without mutating earlier binding definitions.",
+              "subsystemId": "l024.frontier.binding-s7"
+            },
+            {
+              "node": {
+                "definitionId": "l024.frontier.n7",
+                "id": "n7",
+                "label": "Lease recovery",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l024.frontier.step7",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l024.frontier.step7-engine"
+                },
+                "id": "step7",
+                "label": "Lease recovery",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l024.frontier.step7"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What if a worker dies mid-fetch?",
+          "reason": "Fence expired lease holders and retry with the same run/revision identity.",
+          "title": "Lease recovery"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l024.frontier.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l024.frontier.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l024.frontier.command"
+                }
+              },
+              {
+                "contractId": "l024.frontier.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l024.frontier.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l024.frontier.command"
+                }
+              },
+              {
+                "contractId": "l024.frontier.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l024.frontier.step3-engine"
+                },
+                "id": "step3",
+                "label": "Origin permit",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l024.frontier.step3"
+                }
+              },
+              {
+                "contractId": "l024.frontier.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l024.frontier.step4"
+                },
+                "id": "step4",
+                "label": "Fetch executor",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l024.frontier.step4"
+                }
+              },
+              {
+                "contractId": "l024.frontier.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l024.frontier.step5"
+                },
+                "id": "step5",
+                "label": "Versioned parser",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l024.frontier.step5"
+                }
+              },
+              {
+                "contractId": "l024.frontier.step6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l024.frontier.step6"
+                },
+                "id": "step6",
+                "label": "Output transaction",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l024.frontier.step6"
+                }
+              },
+              {
+                "contractId": "l024.frontier.step7",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l024.frontier.step7-engine"
+                },
+                "id": "step7",
+                "label": "Lease recovery",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l024.frontier.step7"
+                }
+              },
+              {
+                "contractId": "l024.frontier.step8",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l024.frontier.step8"
+                },
+                "id": "step8",
+                "label": "Provenance index",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n8",
+                  "portId": "in-l024.frontier.step8"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l024.frontier.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l024.frontier.system",
+                "id": "system",
+                "label": "Durable URL frontier",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l024.frontier.binding-s7",
+                "version": 1
+              },
+              {
+                "definitionId": "l024.frontier.engine",
+                "id": "engine",
+                "label": "Run coordinator",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l024.frontier.state",
+                "id": "state",
+                "label": "Frontier",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l024.frontier.n3",
+                "id": "n3",
+                "label": "Origin permit",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l024.frontier.n4",
+                "id": "n4",
+                "label": "Fetch executor",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l024.frontier.n5",
+                "id": "n5",
+                "label": "Versioned parser",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l024.frontier.n6",
+                "id": "n6",
+                "label": "Output transaction",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l024.frontier.n7",
+                "id": "n7",
+                "label": "Lease recovery",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l024.frontier.n8",
+                "id": "n8",
+                "label": "Provenance index",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "frontier-s8",
+          "invariants": [
+            "A record is attributable to immutable inputs."
+          ],
+          "number": 8,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l024.frontier.n8",
+                "id": "n8",
+                "label": "Provenance index",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l024.frontier.step8",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l024.frontier.step8"
+                },
+                "id": "step8",
+                "label": "Provenance index",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n8",
+                  "portId": "in-l024.frontier.step8"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How is one record explained?",
+          "reason": "Retain source URL, receipt hash, parser version, scheduled instant and terminal state.",
+          "title": "Provenance index"
+        }
+      ],
+      "title": "Durable URL frontier",
+      "tradeoffs": [
+        "Frontier leases and per-origin queues add state.",
+        "Content changes need revision-aware deduplication rather than URL-only suppression."
+      ]
+    },
+    {
+      "acceptanceCases": [
+        {
+          "given": "A partition output is complete but a worker restarts.",
+          "id": "case0",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Stable run/partition keys deduplicate output.",
+          "when": "Reprocess that partition."
+        },
+        {
+          "given": "One manifest partition is quarantined or missing.",
+          "id": "case1",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Refuse pointer swap and retain the prior generation.",
+          "when": "Attempt publication."
+        },
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-04-state.test.mjs",
+            "testName": "manifest publication waits for committed partition coverage"
+          },
+          "given": "Two expected partitions have one committed and one quarantined receipt.",
+          "id": "bounded-mechanism",
+          "relatedRequirementIds": [
+            "r0"
+          ],
+          "then": "Retain the prior generation until both receipts are committed.",
+          "when": "Attempt generation publication then commit the second receipt."
+        }
+      ],
+      "algorithms": [
+        {
+          "code": "const manifest = freezeSources(scheduledFor);\nfor (const range of partition(manifest)) enqueueUnique(manifest.hash, range);\nwriteStagingOutputsUnderLease();\ntransaction(() => { requireAllPartitionReceipts(manifest); compareAndSwapActiveGeneration(manifest.hash); });",
+          "guarantees": [
+            "Ranges are disjoint and cover exactly the frozen manifest.",
+            "A reassignment retains the same partition identity.",
+            "Quarantine counts remain visible in run completeness.",
+            "Readers cannot confuse staging rows with the published snapshot.",
+            "Only a complete accepted generation is published.",
+            "Cleanup never deletes the active generation."
+          ],
+          "id": "transition",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "engine"
+        }
+      ],
+      "apis": [
+        {
+          "errors": "Reject invalid input, stale versions and operations outside the declared boundary.",
+          "method": "CALL",
+          "ownerNodeId": "engine",
+          "path": "L024/manifest",
+          "request": "{\"scheduleId\":\"uuid\",\"scheduledFor\":\"UTC timestamp\",\"sourceId\":\"canonical origin/path\",\"revision\":\"etag or content hash\"}",
+          "response": "{\"runId\":\"schedule/instant identity\",\"state\":\"queued|running|committed|quarantined\"}"
+        }
+      ],
+      "assumptions": [
+        "All added stages are authored practice extending the canonical prompt.",
+        "Graphs specify conceptual mechanisms; reference models do not prove cloud execution, latency, physical durability or distributed safety."
+      ],
+      "chooseWhen": "A source can publish or synthesize complete immutable manifests.",
+      "id": "manifest",
+      "initialGraph": {
+        "edges": [],
+        "nodes": []
+      },
+      "stages": [
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l024.manifest.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l024.manifest.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l024.manifest.command"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l024.manifest.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l024.manifest.system",
+                "id": "system",
+                "label": "Snapshot manifests and partition jobs",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "manifest-s1",
+          "invariants": [
+            "Resolve schedules into stable run IDs and bound pending work per origin."
+          ],
+          "number": 1,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l024.manifest.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "l024.manifest.system",
+                "id": "system",
+                "label": "Snapshot manifests and partition jobs",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l024.manifest.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l024.manifest.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l024.manifest.command"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What does successful completion promise?",
+          "reason": "Resolve schedules into stable run IDs and bound pending work per origin.",
+          "title": "Define the operation boundary"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l024.manifest.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l024.manifest.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l024.manifest.command"
+                }
+              },
+              {
+                "contractId": "l024.manifest.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l024.manifest.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l024.manifest.command"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l024.manifest.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l024.manifest.system",
+                "id": "system",
+                "label": "Snapshot manifests and partition jobs",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l024.manifest.binding-s2",
+                "version": 1
+              },
+              {
+                "definitionId": "l024.manifest.engine",
+                "id": "engine",
+                "label": "Snapshot planner",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l024.manifest.state",
+                "id": "state",
+                "label": "Manifest store",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "manifest-s2",
+          "invariants": [
+            "manifest identity belongs to Snapshot planner; manifest hash and partitions belongs to Manifest store."
+          ],
+          "number": 2,
+          "operations": [
+            {
+              "edges": [
+                {
+                  "contractId": "l024.manifest.command",
+                  "from": {
+                    "nodeId": "engine",
+                    "portId": "out-l024.manifest.command"
+                  },
+                  "id": "owned-state",
+                  "label": "Read or commit state",
+                  "mode": "storage",
+                  "to": {
+                    "nodeId": "state",
+                    "portId": "in-l024.manifest.command"
+                  }
+                }
+              ],
+              "nodeId": "system",
+              "nodes": [
+                {
+                  "definitionId": "l024.manifest.engine",
+                  "id": "engine",
+                  "label": "Snapshot planner",
+                  "position": {
+                    "x": 560,
+                    "y": 0
+                  },
+                  "version": 1
+                },
+                {
+                  "definitionId": "l024.manifest.state",
+                  "id": "state",
+                  "label": "Manifest store",
+                  "position": {
+                    "x": 840,
+                    "y": 0
+                  },
+                  "version": 1
+                }
+              ],
+              "op": "expand",
+              "subsystemId": "l024.manifest.binding-s2"
+            }
+          ],
+          "question": "Which component owns the decision and its persistent or shared state?",
+          "reason": "Freeze an input manifest for one scheduled instant. Own immutable source revision lists and partition bounds.",
+          "title": "Expose authority and state"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l024.manifest.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l024.manifest.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l024.manifest.command"
+                }
+              },
+              {
+                "contractId": "l024.manifest.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l024.manifest.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l024.manifest.command"
+                }
+              },
+              {
+                "contractId": "l024.manifest.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l024.manifest.step3-engine"
+                },
+                "id": "step3",
+                "label": "Partition planner",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l024.manifest.step3"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l024.manifest.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l024.manifest.system",
+                "id": "system",
+                "label": "Snapshot manifests and partition jobs",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l024.manifest.binding-s3",
+                "version": 1
+              },
+              {
+                "definitionId": "l024.manifest.engine",
+                "id": "engine",
+                "label": "Snapshot planner",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l024.manifest.state",
+                "id": "state",
+                "label": "Manifest store",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l024.manifest.n3",
+                "id": "n3",
+                "label": "Partition planner",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "manifest-s3",
+          "invariants": [
+            "Ranges are disjoint and cover exactly the frozen manifest."
+          ],
+          "number": 3,
+          "operations": [
+            {
+              "nodeId": "system",
+              "op": "rebind",
+              "reason": "Expose this new typed path without mutating earlier binding definitions.",
+              "subsystemId": "l024.manifest.binding-s3"
+            },
+            {
+              "node": {
+                "definitionId": "l024.manifest.n3",
+                "id": "n3",
+                "label": "Partition planner",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l024.manifest.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l024.manifest.step3-engine"
+                },
+                "id": "step3",
+                "label": "Partition planner",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l024.manifest.step3"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How are large snapshots bounded?",
+          "reason": "Split the manifest by deterministic ranges with stable partition IDs.",
+          "title": "Partition planner"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l024.manifest.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l024.manifest.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l024.manifest.command"
+                }
+              },
+              {
+                "contractId": "l024.manifest.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l024.manifest.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l024.manifest.command"
+                }
+              },
+              {
+                "contractId": "l024.manifest.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l024.manifest.step3-engine"
+                },
+                "id": "step3",
+                "label": "Partition planner",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l024.manifest.step3"
+                }
+              },
+              {
+                "contractId": "l024.manifest.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l024.manifest.step4"
+                },
+                "id": "step4",
+                "label": "Partition workers",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l024.manifest.step4"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l024.manifest.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l024.manifest.system",
+                "id": "system",
+                "label": "Snapshot manifests and partition jobs",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l024.manifest.binding-s3",
+                "version": 1
+              },
+              {
+                "definitionId": "l024.manifest.engine",
+                "id": "engine",
+                "label": "Snapshot planner",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l024.manifest.state",
+                "id": "state",
+                "label": "Manifest store",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l024.manifest.n3",
+                "id": "n3",
+                "label": "Partition planner",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l024.manifest.n4",
+                "id": "n4",
+                "label": "Partition workers",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "manifest-s4",
+          "invariants": [
+            "A reassignment retains the same partition identity."
+          ],
+          "number": 4,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l024.manifest.n4",
+                "id": "n4",
+                "label": "Partition workers",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l024.manifest.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l024.manifest.step4"
+                },
+                "id": "step4",
+                "label": "Partition workers",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l024.manifest.step4"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can workers consume without duplicate output?",
+          "reason": "Lease partitions and read their immutable input revision list.",
+          "title": "Partition workers"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l024.manifest.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l024.manifest.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l024.manifest.command"
+                }
+              },
+              {
+                "contractId": "l024.manifest.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l024.manifest.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l024.manifest.command"
+                }
+              },
+              {
+                "contractId": "l024.manifest.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l024.manifest.step3-engine"
+                },
+                "id": "step3",
+                "label": "Partition planner",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l024.manifest.step3"
+                }
+              },
+              {
+                "contractId": "l024.manifest.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l024.manifest.step4"
+                },
+                "id": "step4",
+                "label": "Partition workers",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l024.manifest.step4"
+                }
+              },
+              {
+                "contractId": "l024.manifest.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l024.manifest.step5"
+                },
+                "id": "step5",
+                "label": "Parse and quarantine",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l024.manifest.step5"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l024.manifest.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l024.manifest.system",
+                "id": "system",
+                "label": "Snapshot manifests and partition jobs",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l024.manifest.binding-s3",
+                "version": 1
+              },
+              {
+                "definitionId": "l024.manifest.engine",
+                "id": "engine",
+                "label": "Snapshot planner",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l024.manifest.state",
+                "id": "state",
+                "label": "Manifest store",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l024.manifest.n3",
+                "id": "n3",
+                "label": "Partition planner",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l024.manifest.n4",
+                "id": "n4",
+                "label": "Partition workers",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l024.manifest.n5",
+                "id": "n5",
+                "label": "Parse and quarantine",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "manifest-s5",
+          "invariants": [
+            "Quarantine counts remain visible in run completeness."
+          ],
+          "number": 5,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l024.manifest.n5",
+                "id": "n5",
+                "label": "Parse and quarantine",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l024.manifest.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l024.manifest.step5"
+                },
+                "id": "step5",
+                "label": "Parse and quarantine",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l024.manifest.step5"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How are malformed inputs isolated?",
+          "reason": "Apply a pinned schema/parser and retain rejected inputs separately.",
+          "title": "Parse and quarantine"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l024.manifest.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l024.manifest.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l024.manifest.command"
+                }
+              },
+              {
+                "contractId": "l024.manifest.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l024.manifest.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l024.manifest.command"
+                }
+              },
+              {
+                "contractId": "l024.manifest.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l024.manifest.step3-engine"
+                },
+                "id": "step3",
+                "label": "Partition planner",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l024.manifest.step3"
+                }
+              },
+              {
+                "contractId": "l024.manifest.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l024.manifest.step4"
+                },
+                "id": "step4",
+                "label": "Partition workers",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l024.manifest.step4"
+                }
+              },
+              {
+                "contractId": "l024.manifest.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l024.manifest.step5"
+                },
+                "id": "step5",
+                "label": "Parse and quarantine",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l024.manifest.step5"
+                }
+              },
+              {
+                "contractId": "l024.manifest.step6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l024.manifest.step6"
+                },
+                "id": "step6",
+                "label": "Staging output",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l024.manifest.step6"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l024.manifest.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l024.manifest.system",
+                "id": "system",
+                "label": "Snapshot manifests and partition jobs",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l024.manifest.binding-s3",
+                "version": 1
+              },
+              {
+                "definitionId": "l024.manifest.engine",
+                "id": "engine",
+                "label": "Snapshot planner",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l024.manifest.state",
+                "id": "state",
+                "label": "Manifest store",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l024.manifest.n3",
+                "id": "n3",
+                "label": "Partition planner",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l024.manifest.n4",
+                "id": "n4",
+                "label": "Partition workers",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l024.manifest.n5",
+                "id": "n5",
+                "label": "Parse and quarantine",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l024.manifest.n6",
+                "id": "n6",
+                "label": "Staging output",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "manifest-s6",
+          "invariants": [
+            "Readers cannot confuse staging rows with the published snapshot."
+          ],
+          "number": 6,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l024.manifest.n6",
+                "id": "n6",
+                "label": "Staging output",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l024.manifest.step6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l024.manifest.step6"
+                },
+                "id": "step6",
+                "label": "Staging output",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l024.manifest.step6"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can a half run become visible?",
+          "reason": "Write partition outputs to a run-scoped namespace before publication.",
+          "title": "Staging output"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l024.manifest.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l024.manifest.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l024.manifest.command"
+                }
+              },
+              {
+                "contractId": "l024.manifest.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l024.manifest.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l024.manifest.command"
+                }
+              },
+              {
+                "contractId": "l024.manifest.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l024.manifest.step3-engine"
+                },
+                "id": "step3",
+                "label": "Partition planner",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l024.manifest.step3"
+                }
+              },
+              {
+                "contractId": "l024.manifest.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l024.manifest.step4"
+                },
+                "id": "step4",
+                "label": "Partition workers",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l024.manifest.step4"
+                }
+              },
+              {
+                "contractId": "l024.manifest.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l024.manifest.step5"
+                },
+                "id": "step5",
+                "label": "Parse and quarantine",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l024.manifest.step5"
+                }
+              },
+              {
+                "contractId": "l024.manifest.step6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l024.manifest.step6"
+                },
+                "id": "step6",
+                "label": "Staging output",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l024.manifest.step6"
+                }
+              },
+              {
+                "contractId": "l024.manifest.step7",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l024.manifest.step7"
+                },
+                "id": "step7",
+                "label": "Atomic publication",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l024.manifest.step7"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l024.manifest.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l024.manifest.system",
+                "id": "system",
+                "label": "Snapshot manifests and partition jobs",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l024.manifest.binding-s3",
+                "version": 1
+              },
+              {
+                "definitionId": "l024.manifest.engine",
+                "id": "engine",
+                "label": "Snapshot planner",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l024.manifest.state",
+                "id": "state",
+                "label": "Manifest store",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l024.manifest.n3",
+                "id": "n3",
+                "label": "Partition planner",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l024.manifest.n4",
+                "id": "n4",
+                "label": "Partition workers",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l024.manifest.n5",
+                "id": "n5",
+                "label": "Parse and quarantine",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l024.manifest.n6",
+                "id": "n6",
+                "label": "Staging output",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l024.manifest.n7",
+                "id": "n7",
+                "label": "Atomic publication",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "manifest-s7",
+          "invariants": [
+            "Only a complete accepted generation is published."
+          ],
+          "number": 7,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l024.manifest.n7",
+                "id": "n7",
+                "label": "Atomic publication",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l024.manifest.step7",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l024.manifest.step7"
+                },
+                "id": "step7",
+                "label": "Atomic publication",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l024.manifest.step7"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "When is a complete generation exposed?",
+          "reason": "Compare every expected partition receipt and atomically swap the active manifest pointer.",
+          "title": "Atomic publication"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l024.manifest.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l024.manifest.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l024.manifest.command"
+                }
+              },
+              {
+                "contractId": "l024.manifest.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l024.manifest.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l024.manifest.command"
+                }
+              },
+              {
+                "contractId": "l024.manifest.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l024.manifest.step3-engine"
+                },
+                "id": "step3",
+                "label": "Partition planner",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l024.manifest.step3"
+                }
+              },
+              {
+                "contractId": "l024.manifest.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l024.manifest.step4"
+                },
+                "id": "step4",
+                "label": "Partition workers",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l024.manifest.step4"
+                }
+              },
+              {
+                "contractId": "l024.manifest.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l024.manifest.step5"
+                },
+                "id": "step5",
+                "label": "Parse and quarantine",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l024.manifest.step5"
+                }
+              },
+              {
+                "contractId": "l024.manifest.step6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l024.manifest.step6"
+                },
+                "id": "step6",
+                "label": "Staging output",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l024.manifest.step6"
+                }
+              },
+              {
+                "contractId": "l024.manifest.step7",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l024.manifest.step7"
+                },
+                "id": "step7",
+                "label": "Atomic publication",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l024.manifest.step7"
+                }
+              },
+              {
+                "contractId": "l024.manifest.step8",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l024.manifest.step8"
+                },
+                "id": "step8",
+                "label": "Retention planner",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n8",
+                  "portId": "in-l024.manifest.step8"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l024.manifest.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l024.manifest.system",
+                "id": "system",
+                "label": "Snapshot manifests and partition jobs",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l024.manifest.binding-s3",
+                "version": 1
+              },
+              {
+                "definitionId": "l024.manifest.engine",
+                "id": "engine",
+                "label": "Snapshot planner",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l024.manifest.state",
+                "id": "state",
+                "label": "Manifest store",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l024.manifest.n3",
+                "id": "n3",
+                "label": "Partition planner",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l024.manifest.n4",
+                "id": "n4",
+                "label": "Partition workers",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l024.manifest.n5",
+                "id": "n5",
+                "label": "Parse and quarantine",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l024.manifest.n6",
+                "id": "n6",
+                "label": "Staging output",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l024.manifest.n7",
+                "id": "n7",
+                "label": "Atomic publication",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l024.manifest.n8",
+                "id": "n8",
+                "label": "Retention planner",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "manifest-s8",
+          "invariants": [
+            "Cleanup never deletes the active generation."
+          ],
+          "number": 8,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l024.manifest.n8",
+                "id": "n8",
+                "label": "Retention planner",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l024.manifest.step8",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l024.manifest.step8"
+                },
+                "id": "step8",
+                "label": "Retention planner",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n8",
+                  "portId": "in-l024.manifest.step8"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How do failures avoid unbounded staging?",
+          "reason": "Delete abandoned staging only after lease expiry and retention; preserve published provenance.",
+          "title": "Retention planner"
+        }
+      ],
+      "title": "Snapshot manifests and partition jobs",
+      "tradeoffs": [
+        "Snapshot creation delays freshness.",
+        "Large manifests need partition progress and explicit source completeness assertions."
+      ]
+    }
+  ],
+  "subsystems": [
+    {
+      "definitionId": "l024.frontier.system",
+      "id": "l024.frontier.binding-s2",
+      "ports": [
+        {
+          "contractId": "l024.frontier.command",
+          "direction": "in",
+          "id": "in-l024.frontier.command",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-l024.frontier.command"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l024.frontier.system",
+      "id": "l024.frontier.binding-s3",
+      "ports": [
+        {
+          "contractId": "l024.frontier.command",
+          "direction": "in",
+          "id": "in-l024.frontier.command",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-l024.frontier.command"
+          }
+        },
+        {
+          "contractId": "l024.frontier.step3",
+          "direction": "out",
+          "id": "out-l024.frontier.step3-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l024.frontier.step3"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l024.frontier.system",
+      "id": "l024.frontier.binding-s7",
+      "ports": [
+        {
+          "contractId": "l024.frontier.command",
+          "direction": "in",
+          "id": "in-l024.frontier.command",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-l024.frontier.command"
+          }
+        },
+        {
+          "contractId": "l024.frontier.step3",
+          "direction": "out",
+          "id": "out-l024.frontier.step3-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l024.frontier.step3"
+          }
+        },
+        {
+          "contractId": "l024.frontier.step7",
+          "direction": "out",
+          "id": "out-l024.frontier.step7-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l024.frontier.step7"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l024.manifest.system",
+      "id": "l024.manifest.binding-s2",
+      "ports": [
+        {
+          "contractId": "l024.manifest.command",
+          "direction": "in",
+          "id": "in-l024.manifest.command",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-l024.manifest.command"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l024.manifest.system",
+      "id": "l024.manifest.binding-s3",
+      "ports": [
+        {
+          "contractId": "l024.manifest.command",
+          "direction": "in",
+          "id": "in-l024.manifest.command",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-l024.manifest.command"
+          }
+        },
+        {
+          "contractId": "l024.manifest.step3",
+          "direction": "out",
+          "id": "out-l024.manifest.step3-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l024.manifest.step3"
+          }
+        }
+      ],
+      "version": 1
+    }
+  ],
+  "version": 1
+}

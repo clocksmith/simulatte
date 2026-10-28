@@ -1,0 +1,4352 @@
+{
+  "components": [
+    {
+      "extends": {
+        "id": "core.service",
+        "version": 1
+      },
+      "id": "l045.central.d0",
+      "label": "DAG planner",
+      "ports": [
+        {
+          "contractId": "l045.central.c0",
+          "direction": "in",
+          "id": "in-l045.central.c0"
+        },
+        {
+          "contractId": "l045.central.c2",
+          "direction": "out",
+          "id": "out-l045.central.c2-control"
+        },
+        {
+          "contractId": "l045.central.c1",
+          "direction": "in",
+          "id": "in-l045.central.c1-state"
+        }
+      ],
+      "responsibility": "Validate acyclicity and coalesce narrow dependencies while separating wide shuffle edges.",
+      "stateOwnership": [
+        "DAG and stage identities"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l045.central.d1",
+      "label": "Coordinator state",
+      "ports": [
+        {
+          "contractId": "l045.central.c1",
+          "direction": "in",
+          "id": "in-l045.central.c1"
+        }
+      ],
+      "responsibility": "Expand planner; persist remaining dependencies, attempt epochs and selected output receipts.",
+      "stateOwnership": [
+        "DAG state and epochs"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.queue",
+        "version": 1
+      },
+      "id": "l045.central.d2",
+      "label": "Ready queue",
+      "ports": [
+        {
+          "contractId": "l045.central.c2",
+          "direction": "in",
+          "id": "in-l045.central.c2"
+        },
+        {
+          "contractId": "l045.central.c3",
+          "direction": "out",
+          "id": "out-l045.central.c3"
+        }
+      ],
+      "responsibility": "Enqueue only when all distinct predecessor output receipts exist.",
+      "stateOwnership": [
+        "ready task identities"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.directory",
+        "version": 1
+      },
+      "id": "l045.central.d3",
+      "label": "Worker leases",
+      "ports": [
+        {
+          "contractId": "l045.central.c3",
+          "direction": "in",
+          "id": "in-l045.central.c3"
+        },
+        {
+          "contractId": "l045.central.c4",
+          "direction": "out",
+          "id": "out-l045.central.c4"
+        }
+      ],
+      "responsibility": "Assign tasks under epoch leases and record locality hints without confusing them with correctness authority.",
+      "stateOwnership": [
+        "worker lease and task attempt"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l045.central.d4",
+      "label": "Shuffle storage",
+      "ports": [
+        {
+          "contractId": "l045.central.c4",
+          "direction": "in",
+          "id": "in-l045.central.c4"
+        },
+        {
+          "contractId": "l045.central.c5",
+          "direction": "out",
+          "id": "out-l045.central.c5"
+        }
+      ],
+      "responsibility": "Retain partition blocks separately and enforce bounded spill and backpressure.",
+      "stateOwnership": [
+        "block checksums and spill manifests"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l045.central.d5",
+      "label": "Attempt selection",
+      "ports": [
+        {
+          "contractId": "l045.central.c5",
+          "direction": "in",
+          "id": "in-l045.central.c5"
+        },
+        {
+          "contractId": "l045.central.c6",
+          "direction": "out",
+          "id": "out-l045.central.c6"
+        }
+      ],
+      "responsibility": "Launch a bounded speculative attempt and atomically select the first valid successful result per logical task.",
+      "stateOwnership": [
+        "selected attempt ID"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l045.central.d6",
+      "label": "Dependency release",
+      "ports": [
+        {
+          "contractId": "l045.central.c6",
+          "direction": "in",
+          "id": "in-l045.central.c6"
+        },
+        {
+          "contractId": "l045.central.c2",
+          "direction": "out",
+          "id": "out-l045.central.c2"
+        }
+      ],
+      "responsibility": "Deduplicate selected predecessor completion before reducing child dependency counts.",
+      "stateOwnership": [
+        "completion receipts and counters"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "l045.central.d7",
+      "label": "Lineage rescheduler",
+      "ports": [
+        {
+          "contractId": "l045.central.c1",
+          "direction": "out",
+          "id": "out-l045.central.c1"
+        },
+        {
+          "contractId": "l045.central.c4",
+          "direction": "out",
+          "id": "out-l045.central.c4"
+        },
+        {
+          "contractId": "l045.central.c2",
+          "direction": "out",
+          "id": "out-l045.central.c2"
+        }
+      ],
+      "responsibility": "Fence failed attempts, retain valid artifacts, and regenerate only missing lineage; cancel losing speculative work.",
+      "stateOwnership": [
+        "recovery frontier"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.client",
+        "version": 1
+      },
+      "id": "l045.central.caller",
+      "label": "Caller",
+      "ports": [
+        {
+          "contractId": "l045.central.c0",
+          "direction": "out",
+          "id": "out-l045.central.c0"
+        }
+      ],
+      "responsibility": "Submit the declared operation with authenticated identity and preserve its retry identity.",
+      "stateOwnership": [
+        "request identity"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l045.central.control",
+      "label": "Command control",
+      "ports": [
+        {
+          "contractId": "l045.central.c1",
+          "direction": "out",
+          "id": "out-l045.central.c1"
+        },
+        {
+          "contractId": "l045.central.c0",
+          "direction": "in",
+          "id": "in-l045.central.c0"
+        },
+        {
+          "contractId": "l045.central.c2",
+          "direction": "out",
+          "id": "out-l045.central.c2"
+        }
+      ],
+      "responsibility": "Validate acyclicity and coalesce narrow dependencies while separating wide shuffle edges.",
+      "stateOwnership": [
+        "validated command and version"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.service",
+        "version": 1
+      },
+      "id": "l045.partitioned.d0",
+      "label": "DAG partitioner",
+      "ports": [
+        {
+          "contractId": "l045.partitioned.c0",
+          "direction": "in",
+          "id": "in-l045.partitioned.c0"
+        },
+        {
+          "contractId": "l045.partitioned.c2",
+          "direction": "out",
+          "id": "out-l045.partitioned.c2-state"
+        },
+        {
+          "contractId": "l045.partitioned.c7",
+          "direction": "out",
+          "id": "out-l045.partitioned.c7-state"
+        }
+      ],
+      "responsibility": "Validate graph and assign each stable task ID to one owner shard.",
+      "stateOwnership": [
+        "DAG hash and ownership map"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.log",
+        "version": 1
+      },
+      "id": "l045.partitioned.d1",
+      "label": "Task actor journal",
+      "ports": [
+        {
+          "contractId": "l045.partitioned.c1",
+          "direction": "in",
+          "id": "in-l045.partitioned.c1"
+        },
+        {
+          "contractId": "l045.partitioned.c2",
+          "direction": "out",
+          "id": "out-l045.partitioned.c2"
+        },
+        {
+          "contractId": "l045.partitioned.c7",
+          "direction": "out",
+          "id": "out-l045.partitioned.c7"
+        }
+      ],
+      "responsibility": "Expand partitioner with task transition logs and committed predecessor receipts.",
+      "stateOwnership": [
+        "task journal and ownership epoch"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l045.partitioned.d2",
+      "label": "Completion inbox",
+      "ports": [
+        {
+          "contractId": "l045.partitioned.c2",
+          "direction": "in",
+          "id": "in-l045.partitioned.c2"
+        },
+        {
+          "contractId": "l045.partitioned.c3",
+          "direction": "out",
+          "id": "out-l045.partitioned.c3"
+        }
+      ],
+      "responsibility": "Deduplicate prerequisite completion IDs at each child actor before emitting ready state.",
+      "stateOwnership": [
+        "child prerequisite set"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.queue",
+        "version": 1
+      },
+      "id": "l045.partitioned.d3",
+      "label": "Shard ready frontier",
+      "ports": [
+        {
+          "contractId": "l045.partitioned.c3",
+          "direction": "in",
+          "id": "in-l045.partitioned.c3"
+        },
+        {
+          "contractId": "l045.partitioned.c4",
+          "direction": "out",
+          "id": "out-l045.partitioned.c4"
+        }
+      ],
+      "responsibility": "Publish ready tasks under owner epoch and lease bounded work to executors.",
+      "stateOwnership": [
+        "frontier entries and leases"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l045.partitioned.d4",
+      "label": "Artifact exchange",
+      "ports": [
+        {
+          "contractId": "l045.partitioned.c4",
+          "direction": "in",
+          "id": "in-l045.partitioned.c4"
+        },
+        {
+          "contractId": "l045.partitioned.c5",
+          "direction": "out",
+          "id": "out-l045.partitioned.c5"
+        }
+      ],
+      "responsibility": "Route typed partition artifacts via checksum manifests with per-partition FIFO/backpressure and spill.",
+      "stateOwnership": [
+        "artifact manifests and spill budget"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l045.partitioned.d5",
+      "label": "Commit arbiter",
+      "ports": [
+        {
+          "contractId": "l045.partitioned.c5",
+          "direction": "in",
+          "id": "in-l045.partitioned.c5"
+        },
+        {
+          "contractId": "l045.partitioned.c6",
+          "direction": "out",
+          "id": "out-l045.partitioned.c6"
+        }
+      ],
+      "responsibility": "Each task owner atomically selects one valid artifact receipt and emits stable completion identity.",
+      "stateOwnership": [
+        "winner receipt and loser attempts"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "l045.partitioned.d6",
+      "label": "Completion fan-out",
+      "ports": [
+        {
+          "contractId": "l045.partitioned.c6",
+          "direction": "in",
+          "id": "in-l045.partitioned.c6"
+        },
+        {
+          "contractId": "l045.partitioned.c2",
+          "direction": "out",
+          "id": "out-l045.partitioned.c2"
+        }
+      ],
+      "responsibility": "Deliver selected task completion to dependent-owner inboxes through a durable replayable outbox.",
+      "stateOwnership": [
+        "completion outbox and delivery offsets"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "l045.partitioned.d7",
+      "label": "Shard recovery",
+      "ports": [
+        {
+          "contractId": "l045.partitioned.c7",
+          "direction": "in",
+          "id": "in-l045.partitioned.c7"
+        },
+        {
+          "contractId": "l045.partitioned.c6",
+          "direction": "out",
+          "id": "out-l045.partitioned.c6"
+        },
+        {
+          "contractId": "l045.partitioned.c3",
+          "direction": "out",
+          "id": "out-l045.partitioned.c3"
+        }
+      ],
+      "responsibility": "Advance owner epoch, replay journals and pending completion outboxes, and reschedule only artifacts missing from lineage.",
+      "stateOwnership": [
+        "shard recovery offsets"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.client",
+        "version": 1
+      },
+      "id": "l045.partitioned.caller",
+      "label": "Caller",
+      "ports": [
+        {
+          "contractId": "l045.partitioned.c0",
+          "direction": "out",
+          "id": "out-l045.partitioned.c0"
+        }
+      ],
+      "responsibility": "Submit the declared operation with authenticated identity and preserve its retry identity.",
+      "stateOwnership": [
+        "request identity"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l045.partitioned.control",
+      "label": "Command control",
+      "ports": [
+        {
+          "contractId": "l045.partitioned.c1",
+          "direction": "out",
+          "id": "out-l045.partitioned.c1"
+        },
+        {
+          "contractId": "l045.partitioned.c0",
+          "direction": "in",
+          "id": "in-l045.partitioned.c0"
+        }
+      ],
+      "responsibility": "Validate graph and assign each stable task ID to one owner shard.",
+      "stateOwnership": [
+        "validated command and version"
+      ],
+      "version": 1
+    }
+  ],
+  "contracts": [
+    {
+      "id": "l045.central.c0",
+      "request": {
+        "edges": "typed dependencies[]",
+        "tasks": "task definitions[]"
+      },
+      "response": {
+        "stages": "stage definitions[]"
+      },
+      "version": 1
+    },
+    {
+      "id": "l045.central.c1",
+      "request": {
+        "jobId": "uuid",
+        "taskId": "uuid"
+      },
+      "response": {
+        "state": "blocked|ready|running|done"
+      },
+      "version": 1
+    },
+    {
+      "id": "l045.central.c2",
+      "request": {
+        "remaining": "integer",
+        "taskId": "uuid"
+      },
+      "response": {
+        "queued": "boolean"
+      },
+      "version": 1
+    },
+    {
+      "id": "l045.central.c3",
+      "request": {
+        "attemptEpoch": "integer",
+        "workerId": "uuid"
+      },
+      "response": {
+        "leaseUntil": "timestamp"
+      },
+      "version": 1
+    },
+    {
+      "id": "l045.central.c4",
+      "request": {
+        "attempt": "integer",
+        "partitionId": "string"
+      },
+      "response": {
+        "artifactRef": "immutable ref"
+      },
+      "version": 1
+    },
+    {
+      "id": "l045.central.c5",
+      "request": {
+        "artifactHash": "sha256",
+        "attemptId": "uuid",
+        "taskId": "uuid"
+      },
+      "response": {
+        "selected": "boolean"
+      },
+      "version": 1
+    },
+    {
+      "id": "l045.central.c6",
+      "request": {
+        "childId": "uuid",
+        "parentId": "uuid"
+      },
+      "response": {
+        "remaining": "integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l045.central.c7",
+      "request": {
+        "lostArtifacts": "ref[]",
+        "lostWorker": "uuid|null"
+      },
+      "response": {
+        "readyTasks": "uuid[]"
+      },
+      "version": 1
+    },
+    {
+      "id": "l045.partitioned.c0",
+      "request": {
+        "dagId": "uuid",
+        "tasks": "task ids[]"
+      },
+      "response": {
+        "owners": "task/shard map"
+      },
+      "version": 1
+    },
+    {
+      "id": "l045.partitioned.c1",
+      "request": {
+        "ownerEpoch": "integer",
+        "taskId": "uuid"
+      },
+      "response": {
+        "version": "integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l045.partitioned.c2",
+      "request": {
+        "childId": "uuid",
+        "parentId": "uuid",
+        "receipt": "immutable ref"
+      },
+      "response": {
+        "remaining": "integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l045.partitioned.c3",
+      "request": {
+        "epoch": "integer",
+        "taskId": "uuid"
+      },
+      "response": {
+        "leaseId": "uuid"
+      },
+      "version": 1
+    },
+    {
+      "id": "l045.partitioned.c4",
+      "request": {
+        "partitionId": "integer",
+        "taskId": "uuid"
+      },
+      "response": {
+        "artifactRef": "immutable ref"
+      },
+      "version": 1
+    },
+    {
+      "id": "l045.partitioned.c5",
+      "request": {
+        "attemptId": "uuid",
+        "taskId": "uuid"
+      },
+      "response": {
+        "winner": "uuid"
+      },
+      "version": 1
+    },
+    {
+      "id": "l045.partitioned.c6",
+      "request": {
+        "children": "uuid[]",
+        "parentId": "uuid"
+      },
+      "response": {
+        "eventIds": "stable ids[]"
+      },
+      "version": 1
+    },
+    {
+      "id": "l045.partitioned.c7",
+      "request": {
+        "previousEpoch": "integer",
+        "shardId": "uuid"
+      },
+      "response": {
+        "newEpoch": "integer"
+      },
+      "version": 1
+    }
+  ],
+  "execution": {
+    "implementation": null,
+    "kind": "conceptual-design"
+  },
+  "problem": {
+    "referenceId": "L045",
+    "requirements": [
+      {
+        "id": "r0",
+        "text": "Reject cycles and schedule a task only after committed predecessor outputs."
+      },
+      {
+        "id": "r1",
+        "text": "Separate task attempts, worker liveness and retained shuffle/data ownership."
+      },
+      {
+        "id": "r2",
+        "text": "Bound shuffle/spill and select one committed result across retries/speculation."
+      }
+    ],
+    "scope": "Schedule a declared DAG, distinguish narrow transforms from shuffle boundaries, track worker leases and artifact lineage, and select one result from speculative attempts. Distributed scheduling and performance are design claims requiring implementation evidence.",
+    "studyLabel": "DAG scheduler and execution"
+  },
+  "provenance": {
+    "kind": "authored-practice",
+    "note": "Authored interview preparation. Technical references support mechanisms, not the claim that a company asked this question."
+  },
+  "references": [
+    {
+      "id": "ref0",
+      "scope": "background",
+      "supports": "Partitioned transforms, shuffle, spill and lineage recomputation.",
+      "title": "Spark RDD guide",
+      "url": "https://spark.apache.org/docs/latest/rdd-programming-guide.html"
+    },
+    {
+      "id": "ref1",
+      "scope": "background",
+      "supports": "Application/job scheduling concepts; this authored design is not a Spark implementation.",
+      "title": "Spark job scheduling",
+      "url": "https://spark.apache.org/docs/latest/job-scheduling.html"
+    }
+  ],
+  "schema": "simulatte.composableStudy.v2",
+  "solutions": [
+    {
+      "acceptanceCases": [
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-03-mechanisms.test.mjs",
+            "testName": "L045 bounded mechanism"
+          },
+          "given": "Two speculative attempts finish for one task whose child also depends on another predecessor.",
+          "id": "mechanism",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Exactly one attempt is selected; the child becomes ready only after both distinct predecessor receipts exist.",
+          "when": "Select a winner and deliver duplicate selected completion, then the other predecessor."
+        },
+        {
+          "given": "A task graph contains a cycle or a child lacks one committed parent output.",
+          "id": "dag",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Reject the cycle and keep the incomplete child blocked.",
+          "when": "Compile and schedule."
+        },
+        {
+          "given": "Two attempts finish successfully for one logical task.",
+          "id": "speculation",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Publish one selected artifact and decrement each child prerequisite once.",
+          "when": "Compare-and-set the winner and deliver completion twice."
+        },
+        {
+          "given": "A compute worker is lost but shuffle persists; later a block is deleted.",
+          "id": "loss",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Reuse retained blocks after CPU loss and recompute only missing artifact lineage; bounded spill preserves the declared memory limit.",
+          "when": "Recover each fault separately."
+        }
+      ],
+      "algorithms": [
+        {
+          "code": "if (!allPredecessorReceiptsPresent(task)) return \"blocked\";\nif (task.winner) return task.winner;\nassert(validArtifact(attempt.artifact));\nreturn compareAndSetWinner(task.id, null, attempt.id);\n// Only the selected receipt emits completion; losing attempts never decrement children again.",
+          "guarantees": [
+            "The code states the bounded decision rule; unimplemented helpers remain pseudocode.",
+            "External effects, distributed failure and latency require separate execution evidence."
+          ],
+          "id": "bounded-rule",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "n5"
+        },
+        {
+          "code": "for (const failed of expiredAttemptLeases(now)) fenceAttempt(failed);\nfor (const artifact of missingArtifactManifest()) enqueueLineageProducer(artifact);\nfor (const task of tasksWithWinner()) cancelNonWinningAttempts(task);\n// CPU heartbeat loss does not delete separately retained shuffle; only selected outputs release children.",
+          "guarantees": [
+            "Fence failed attempts, retain valid artifacts, and regenerate only missing lineage; cancel losing speculative work."
+          ],
+          "id": "recover",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "n7"
+        }
+      ],
+      "apis": [
+        {
+          "errors": "401 unauthenticated; 409 stale identity/version; 429 bounded capacity; 503 unavailable authority",
+          "method": "POST",
+          "ownerNodeId": "control",
+          "path": "/l045/central",
+          "request": "{\"tasks\":\"task definitions[]\",\"edges\":\"typed dependencies[]\"}",
+          "response": "{\"stages\":\"stage definitions[]\"}"
+        },
+        {
+          "errors": "403 unauthorized scope; 404 absent identity; 410 expired retained history",
+          "method": "GET",
+          "ownerNodeId": "state",
+          "path": "/l045/central/state",
+          "request": "{\"jobId\":\"uuid\",\"taskId\":\"uuid\"}",
+          "response": "{\"state\":\"blocked|ready|running|done\"}"
+        }
+      ],
+      "assumptions": [
+        "Completion is an immutable output receipt, not a worker heartbeat."
+      ],
+      "chooseWhen": "A single durable owner can track the DAG and locality across a bounded cluster.",
+      "id": "central",
+      "initialGraph": {
+        "edges": [],
+        "nodes": []
+      },
+      "stages": [
+        {
+          "checkIds": [
+            "mechanism",
+            "dag",
+            "speculation",
+            "loss"
+          ],
+          "explanation": "Validate acyclicity and coalesce narrow dependencies while separating wide shuffle edges. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l045.central.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l045.central.c0"
+                },
+                "id": "request",
+                "label": "submit dag scheduler and execution",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l045.central.c0"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l045.central.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l045.central.d0",
+                "id": "boundary",
+                "label": "DAG planner",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "central-s1",
+          "invariants": [
+            "Validate acyclicity and coalesce narrow dependencies while separating wide shuffle edges. State owner: DAG planner (DAG and stage identities)."
+          ],
+          "number": 1,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l045.central.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "l045.central.d0",
+                "id": "boundary",
+                "label": "DAG planner",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l045.central.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l045.central.c0"
+                },
+                "id": "request",
+                "label": "submit dag scheduler and execution",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l045.central.c0"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Where are stage boundaries?",
+          "reason": "Validate acyclicity and coalesce narrow dependencies while separating wide shuffle edges.",
+          "title": "DAG planner"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "dag",
+            "speculation",
+            "loss"
+          ],
+          "explanation": "Expand planner; persist remaining dependencies, attempt epochs and selected output receipts. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l045.central.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l045.central.c0"
+                },
+                "id": "request",
+                "label": "submit dag scheduler and execution",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l045.central.c0"
+                }
+              },
+              {
+                "contractId": "l045.central.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l045.central.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l045.central.c1"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l045.central.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l045.central.d0",
+                "id": "boundary",
+                "label": "DAG planner",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l045-central-boundary-binding-1",
+                "version": 1
+              },
+              {
+                "definitionId": "l045.central.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l045.central.d1",
+                "id": "state",
+                "label": "Coordinator state",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "central-s2",
+          "invariants": [
+            "Expand planner; persist remaining dependencies, attempt epochs and selected output receipts. State owner: Coordinator state (DAG state and epochs)."
+          ],
+          "number": 2,
+          "operations": [
+            {
+              "edges": [
+                {
+                  "contractId": "l045.central.c1",
+                  "from": {
+                    "nodeId": "control",
+                    "portId": "out-l045.central.c1"
+                  },
+                  "id": "commit",
+                  "label": "commit versioned state",
+                  "mode": "storage",
+                  "to": {
+                    "nodeId": "state",
+                    "portId": "in-l045.central.c1"
+                  }
+                }
+              ],
+              "nodeId": "boundary",
+              "nodes": [
+                {
+                  "definitionId": "l045.central.control",
+                  "id": "control",
+                  "label": "Command control",
+                  "position": {
+                    "x": 560,
+                    "y": 0
+                  },
+                  "version": 1
+                },
+                {
+                  "definitionId": "l045.central.d1",
+                  "id": "state",
+                  "label": "Coordinator state",
+                  "position": {
+                    "x": 840,
+                    "y": 0
+                  },
+                  "version": 1
+                }
+              ],
+              "op": "expand",
+              "subsystemId": "l045-central-boundary-binding-1"
+            }
+          ],
+          "question": "What survives scheduler loss?",
+          "reason": "Expand planner; persist remaining dependencies, attempt epochs and selected output receipts.",
+          "title": "Coordinator state"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "dag",
+            "speculation",
+            "loss"
+          ],
+          "explanation": "Enqueue only when all distinct predecessor output receipts exist. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l045.central.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l045.central.c0"
+                },
+                "id": "request",
+                "label": "submit dag scheduler and execution",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l045.central.c0"
+                }
+              },
+              {
+                "contractId": "l045.central.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l045.central.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l045.central.c1"
+                }
+              },
+              {
+                "contractId": "l045.central.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l045.central.c2-control"
+                },
+                "id": "ready",
+                "label": "enqueue satisfied task",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l045.central.c2"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l045.central.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l045.central.d0",
+                "id": "boundary",
+                "label": "DAG planner",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l045-central-boundary-binding-2",
+                "version": 1
+              },
+              {
+                "definitionId": "l045.central.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l045.central.d1",
+                "id": "state",
+                "label": "Coordinator state",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l045.central.d2",
+                "id": "n2",
+                "label": "Ready queue",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "central-s3",
+          "invariants": [
+            "Enqueue only when all distinct predecessor output receipts exist. State owner: Ready queue (ready task identities)."
+          ],
+          "number": 3,
+          "operations": [
+            {
+              "nodeId": "boundary",
+              "op": "rebind",
+              "reason": "Select a new immutable exposure binding before connecting the added responsibility; prior stage binding remains unchanged.",
+              "subsystemId": "l045-central-boundary-binding-2"
+            },
+            {
+              "node": {
+                "definitionId": "l045.central.d2",
+                "id": "n2",
+                "label": "Ready queue",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l045.central.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l045.central.c2-control"
+                },
+                "id": "ready",
+                "label": "enqueue satisfied task",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l045.central.c2"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "When does a task become runnable?",
+          "reason": "Enqueue only when all distinct predecessor output receipts exist.",
+          "title": "Ready queue"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "dag",
+            "speculation",
+            "loss"
+          ],
+          "explanation": "Assign tasks under epoch leases and record locality hints without confusing them with correctness authority. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l045.central.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l045.central.c0"
+                },
+                "id": "request",
+                "label": "submit dag scheduler and execution",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l045.central.c0"
+                }
+              },
+              {
+                "contractId": "l045.central.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l045.central.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l045.central.c1"
+                }
+              },
+              {
+                "contractId": "l045.central.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l045.central.c2-control"
+                },
+                "id": "ready",
+                "label": "enqueue satisfied task",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l045.central.c2"
+                }
+              },
+              {
+                "contractId": "l045.central.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l045.central.c3"
+                },
+                "id": "lease",
+                "label": "lease task to live worker",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l045.central.c3"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l045.central.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l045.central.d0",
+                "id": "boundary",
+                "label": "DAG planner",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l045-central-boundary-binding-2",
+                "version": 1
+              },
+              {
+                "definitionId": "l045.central.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l045.central.d1",
+                "id": "state",
+                "label": "Coordinator state",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l045.central.d2",
+                "id": "n2",
+                "label": "Ready queue",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l045.central.d3",
+                "id": "n3",
+                "label": "Worker leases",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "central-s4",
+          "invariants": [
+            "Assign tasks under epoch leases and record locality hints without confusing them with correctness authority. State owner: Worker leases (worker lease and task attempt)."
+          ],
+          "number": 4,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l045.central.d3",
+                "id": "n3",
+                "label": "Worker leases",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l045.central.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l045.central.c3"
+                },
+                "id": "lease",
+                "label": "lease task to live worker",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l045.central.c3"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Does heartbeat imply completion?",
+          "reason": "Assign tasks under epoch leases and record locality hints without confusing them with correctness authority.",
+          "title": "Worker leases"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "dag",
+            "speculation",
+            "loss"
+          ],
+          "explanation": "Retain partition blocks separately and enforce bounded spill and backpressure. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l045.central.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l045.central.c0"
+                },
+                "id": "request",
+                "label": "submit dag scheduler and execution",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l045.central.c0"
+                }
+              },
+              {
+                "contractId": "l045.central.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l045.central.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l045.central.c1"
+                }
+              },
+              {
+                "contractId": "l045.central.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l045.central.c2-control"
+                },
+                "id": "ready",
+                "label": "enqueue satisfied task",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l045.central.c2"
+                }
+              },
+              {
+                "contractId": "l045.central.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l045.central.c3"
+                },
+                "id": "lease",
+                "label": "lease task to live worker",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l045.central.c3"
+                }
+              },
+              {
+                "contractId": "l045.central.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l045.central.c4"
+                },
+                "id": "artifact",
+                "label": "persist partition artifacts",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l045.central.c4"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l045.central.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l045.central.d0",
+                "id": "boundary",
+                "label": "DAG planner",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l045-central-boundary-binding-2",
+                "version": 1
+              },
+              {
+                "definitionId": "l045.central.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l045.central.d1",
+                "id": "state",
+                "label": "Coordinator state",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l045.central.d2",
+                "id": "n2",
+                "label": "Ready queue",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l045.central.d3",
+                "id": "n3",
+                "label": "Worker leases",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l045.central.d4",
+                "id": "n4",
+                "label": "Shuffle storage",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "central-s5",
+          "invariants": [
+            "Retain partition blocks separately and enforce bounded spill and backpressure. State owner: Shuffle storage (block checksums and spill manifests)."
+          ],
+          "number": 5,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l045.central.d4",
+                "id": "n4",
+                "label": "Shuffle storage",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l045.central.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l045.central.c4"
+                },
+                "id": "artifact",
+                "label": "persist partition artifacts",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l045.central.c4"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What survives executor death?",
+          "reason": "Retain partition blocks separately and enforce bounded spill and backpressure.",
+          "title": "Shuffle storage"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "dag",
+            "speculation",
+            "loss"
+          ],
+          "explanation": "Launch a bounded speculative attempt and atomically select the first valid successful result per logical task. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l045.central.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l045.central.c0"
+                },
+                "id": "request",
+                "label": "submit dag scheduler and execution",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l045.central.c0"
+                }
+              },
+              {
+                "contractId": "l045.central.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l045.central.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l045.central.c1"
+                }
+              },
+              {
+                "contractId": "l045.central.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l045.central.c2-control"
+                },
+                "id": "ready",
+                "label": "enqueue satisfied task",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l045.central.c2"
+                }
+              },
+              {
+                "contractId": "l045.central.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l045.central.c3"
+                },
+                "id": "lease",
+                "label": "lease task to live worker",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l045.central.c3"
+                }
+              },
+              {
+                "contractId": "l045.central.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l045.central.c4"
+                },
+                "id": "artifact",
+                "label": "persist partition artifacts",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l045.central.c4"
+                }
+              },
+              {
+                "contractId": "l045.central.c5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l045.central.c5"
+                },
+                "id": "select",
+                "label": "select explicit instance upgrade",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l045.central.c5"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l045.central.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l045.central.d0",
+                "id": "boundary",
+                "label": "DAG planner",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l045-central-boundary-binding-2",
+                "version": 1
+              },
+              {
+                "definitionId": "l045.central.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l045.central.d1",
+                "id": "state",
+                "label": "Coordinator state",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l045.central.d2",
+                "id": "n2",
+                "label": "Ready queue",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l045.central.d3",
+                "id": "n3",
+                "label": "Worker leases",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l045.central.d4",
+                "id": "n4",
+                "label": "Shuffle storage",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l045.central.d5",
+                "id": "n5",
+                "label": "Attempt selection",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "central-s6",
+          "invariants": [
+            "Launch a bounded speculative attempt and atomically select the first valid successful result per logical task. State owner: Attempt selection (selected attempt ID)."
+          ],
+          "number": 6,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l045.central.d5",
+                "id": "n5",
+                "label": "Attempt selection",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l045.central.c5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l045.central.c5"
+                },
+                "id": "select",
+                "label": "select explicit instance upgrade",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l045.central.c5"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can speculation produce two outputs?",
+          "reason": "Launch a bounded speculative attempt and atomically select the first valid successful result per logical task.",
+          "title": "Attempt selection"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "dag",
+            "speculation",
+            "loss"
+          ],
+          "explanation": "Deduplicate selected predecessor completion before reducing child dependency counts. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l045.central.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l045.central.c0"
+                },
+                "id": "request",
+                "label": "submit dag scheduler and execution",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l045.central.c0"
+                }
+              },
+              {
+                "contractId": "l045.central.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l045.central.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l045.central.c1"
+                }
+              },
+              {
+                "contractId": "l045.central.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l045.central.c2-control"
+                },
+                "id": "ready",
+                "label": "enqueue satisfied task",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l045.central.c2"
+                }
+              },
+              {
+                "contractId": "l045.central.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l045.central.c3"
+                },
+                "id": "lease",
+                "label": "lease task to live worker",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l045.central.c3"
+                }
+              },
+              {
+                "contractId": "l045.central.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l045.central.c4"
+                },
+                "id": "artifact",
+                "label": "persist partition artifacts",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l045.central.c4"
+                }
+              },
+              {
+                "contractId": "l045.central.c5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l045.central.c5"
+                },
+                "id": "select",
+                "label": "select explicit instance upgrade",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l045.central.c5"
+                }
+              },
+              {
+                "contractId": "l045.central.c6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l045.central.c6"
+                },
+                "id": "complete",
+                "label": "release child dependency",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l045.central.c6"
+                }
+              },
+              {
+                "contractId": "l045.central.c2",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l045.central.c2"
+                },
+                "id": "enqueue-child",
+                "label": "enqueue newly ready child",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l045.central.c2"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l045.central.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l045.central.d0",
+                "id": "boundary",
+                "label": "DAG planner",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l045-central-boundary-binding-2",
+                "version": 1
+              },
+              {
+                "definitionId": "l045.central.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l045.central.d1",
+                "id": "state",
+                "label": "Coordinator state",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l045.central.d2",
+                "id": "n2",
+                "label": "Ready queue",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l045.central.d3",
+                "id": "n3",
+                "label": "Worker leases",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l045.central.d4",
+                "id": "n4",
+                "label": "Shuffle storage",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l045.central.d5",
+                "id": "n5",
+                "label": "Attempt selection",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l045.central.d6",
+                "id": "n6",
+                "label": "Dependency release",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "central-s7",
+          "invariants": [
+            "Deduplicate selected predecessor completion before reducing child dependency counts. State owner: Dependency release (completion receipts and counters)."
+          ],
+          "number": 7,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l045.central.d6",
+                "id": "n6",
+                "label": "Dependency release",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l045.central.c6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l045.central.c6"
+                },
+                "id": "complete",
+                "label": "release child dependency",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l045.central.c6"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l045.central.c2",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l045.central.c2"
+                },
+                "id": "enqueue-child",
+                "label": "enqueue newly ready child",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l045.central.c2"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How do children start once?",
+          "reason": "Deduplicate selected predecessor completion before reducing child dependency counts.",
+          "title": "Dependency release"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "dag",
+            "speculation",
+            "loss"
+          ],
+          "explanation": "Fence failed attempts, retain valid artifacts, and regenerate only missing lineage; cancel losing speculative work. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l045.central.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l045.central.c0"
+                },
+                "id": "request",
+                "label": "submit dag scheduler and execution",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l045.central.c0"
+                }
+              },
+              {
+                "contractId": "l045.central.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l045.central.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l045.central.c1"
+                }
+              },
+              {
+                "contractId": "l045.central.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l045.central.c2-control"
+                },
+                "id": "ready",
+                "label": "enqueue satisfied task",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l045.central.c2"
+                }
+              },
+              {
+                "contractId": "l045.central.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l045.central.c3"
+                },
+                "id": "lease",
+                "label": "lease task to live worker",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l045.central.c3"
+                }
+              },
+              {
+                "contractId": "l045.central.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l045.central.c4"
+                },
+                "id": "artifact",
+                "label": "persist partition artifacts",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l045.central.c4"
+                }
+              },
+              {
+                "contractId": "l045.central.c5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l045.central.c5"
+                },
+                "id": "select",
+                "label": "select explicit instance upgrade",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l045.central.c5"
+                }
+              },
+              {
+                "contractId": "l045.central.c6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l045.central.c6"
+                },
+                "id": "complete",
+                "label": "release child dependency",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l045.central.c6"
+                }
+              },
+              {
+                "contractId": "l045.central.c2",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l045.central.c2"
+                },
+                "id": "enqueue-child",
+                "label": "enqueue newly ready child",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l045.central.c2"
+                }
+              },
+              {
+                "contractId": "l045.central.c1",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l045.central.c1"
+                },
+                "id": "lineage",
+                "label": "read task lineage",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l045.central.c1-state"
+                }
+              },
+              {
+                "contractId": "l045.central.c4",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l045.central.c4"
+                },
+                "id": "retained",
+                "label": "verify retained artifacts",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l045.central.c4"
+                }
+              },
+              {
+                "contractId": "l045.central.c2",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l045.central.c2"
+                },
+                "id": "retry",
+                "label": "reschedule missing work",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l045.central.c2"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l045.central.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l045.central.d0",
+                "id": "boundary",
+                "label": "DAG planner",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l045-central-boundary-binding-3",
+                "version": 1
+              },
+              {
+                "definitionId": "l045.central.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l045.central.d1",
+                "id": "state",
+                "label": "Coordinator state",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l045.central.d2",
+                "id": "n2",
+                "label": "Ready queue",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l045.central.d3",
+                "id": "n3",
+                "label": "Worker leases",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l045.central.d4",
+                "id": "n4",
+                "label": "Shuffle storage",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l045.central.d5",
+                "id": "n5",
+                "label": "Attempt selection",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l045.central.d6",
+                "id": "n6",
+                "label": "Dependency release",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l045.central.d7",
+                "id": "n7",
+                "label": "Lineage rescheduler",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "central-s8",
+          "invariants": [
+            "Fence failed attempts, retain valid artifacts, and regenerate only missing lineage; cancel losing speculative work. State owner: Lineage rescheduler (recovery frontier)."
+          ],
+          "number": 8,
+          "operations": [
+            {
+              "nodeId": "boundary",
+              "op": "rebind",
+              "reason": "Select a new immutable exposure binding before connecting the added responsibility; prior stage binding remains unchanged.",
+              "subsystemId": "l045-central-boundary-binding-3"
+            },
+            {
+              "node": {
+                "definitionId": "l045.central.d7",
+                "id": "n7",
+                "label": "Lineage rescheduler",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l045.central.c1",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l045.central.c1"
+                },
+                "id": "lineage",
+                "label": "read task lineage",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l045.central.c1-state"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l045.central.c4",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l045.central.c4"
+                },
+                "id": "retained",
+                "label": "verify retained artifacts",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l045.central.c4"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l045.central.c2",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l045.central.c2"
+                },
+                "id": "retry",
+                "label": "reschedule missing work",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l045.central.c2"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What is recomputed after loss?",
+          "reason": "Fence failed attempts, retain valid artifacts, and regenerate only missing lineage; cancel losing speculative work.",
+          "title": "Lineage rescheduler"
+        }
+      ],
+      "title": "Central DAG coordinator with ready queues",
+      "tradeoffs": [
+        "Central coordination can limit scale; failover must fence stale schedulers and retain decisions."
+      ]
+    },
+    {
+      "acceptanceCases": [
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-03-mechanisms.test.mjs",
+            "testName": "L045 bounded mechanism"
+          },
+          "given": "Two speculative attempts finish for one task whose child also depends on another predecessor.",
+          "id": "mechanism",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Exactly one attempt is selected; the child becomes ready only after both distinct predecessor receipts exist.",
+          "when": "Select a winner and deliver duplicate selected completion, then the other predecessor."
+        },
+        {
+          "given": "Task partitioning receives a cycle or an unknown parent ID.",
+          "id": "dag",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Reject the graph without partially releasing a ready frontier.",
+          "when": "Validate before assigning owner shards."
+        },
+        {
+          "given": "Two attempts and duplicate completion events reach different shards.",
+          "id": "speculation",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "One immutable receipt wins; each child deduplicates predecessor ID independently.",
+          "when": "Choose a winner under task-owner epoch and apply child inbox transitions."
+        },
+        {
+          "given": "A shard owner fails after publishing only part of its completion outbox.",
+          "id": "loss",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Resume stable event identities, fence stale owners and recompute only absent artifact lineage.",
+          "when": "Advance epoch and replay pending events."
+        }
+      ],
+      "algorithms": [
+        {
+          "code": "if (!allPredecessorReceiptsPresent(task)) return \"blocked\";\nif (task.winner) return task.winner;\nassert(validArtifact(attempt.artifact));\nreturn compareAndSetWinner(task.id, null, attempt.id);\n// Only the selected receipt emits completion; losing attempts never decrement children again.",
+          "guarantees": [
+            "The code states the bounded decision rule; unimplemented helpers remain pseudocode.",
+            "External effects, distributed failure and latency require separate execution evidence."
+          ],
+          "id": "bounded-rule",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "n5"
+        },
+        {
+          "code": "const epoch = advanceShardEpoch(shardId);\nconst tasks = replayTaskJournal(shardId);\nfor (const task of tasks) {\n resendPendingCompletionIds(task.outbox);\n if (!task.winner && allPredecessorReceiptsPresent(task)) leaseReadyTask(task, epoch);\n}\n// Child inbox deduplication tolerates replay; old-owner completion cannot overwrite current attempt state.",
+          "guarantees": [
+            "Advance owner epoch, replay journals and pending completion outboxes, and reschedule only artifacts missing from lineage."
+          ],
+          "id": "recover",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "n7"
+        }
+      ],
+      "apis": [
+        {
+          "errors": "401 unauthenticated; 409 stale identity/version; 429 bounded capacity; 503 unavailable authority",
+          "method": "POST",
+          "ownerNodeId": "control",
+          "path": "/l045/partitioned",
+          "request": "{\"dagId\":\"uuid\",\"tasks\":\"task ids[]\"}",
+          "response": "{\"owners\":\"task/shard map\"}"
+        },
+        {
+          "errors": "403 unauthorized scope; 404 absent identity; 410 expired retained history",
+          "method": "GET",
+          "ownerNodeId": "state",
+          "path": "/l045/partitioned/state",
+          "request": "{\"taskId\":\"uuid\",\"ownerEpoch\":\"integer\"}",
+          "response": "{\"version\":\"integer\"}"
+        }
+      ],
+      "assumptions": [
+        "Partition-local ordering is sufficient when each child deduplicates predecessor identities."
+      ],
+      "chooseWhen": "Large DAGs justify sharding task state and ready-frontier ownership.",
+      "id": "partitioned",
+      "initialGraph": {
+        "edges": [],
+        "nodes": []
+      },
+      "stages": [
+        {
+          "checkIds": [
+            "mechanism",
+            "dag",
+            "speculation",
+            "loss"
+          ],
+          "explanation": "Validate graph and assign each stable task ID to one owner shard. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l045.partitioned.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l045.partitioned.c0"
+                },
+                "id": "request",
+                "label": "submit dag scheduler and execution",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l045.partitioned.c0"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l045.partitioned.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l045.partitioned.d0",
+                "id": "boundary",
+                "label": "DAG partitioner",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "partitioned-s1",
+          "invariants": [
+            "Validate graph and assign each stable task ID to one owner shard. State owner: DAG partitioner (DAG hash and ownership map)."
+          ],
+          "number": 1,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l045.partitioned.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "l045.partitioned.d0",
+                "id": "boundary",
+                "label": "DAG partitioner",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l045.partitioned.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l045.partitioned.c0"
+                },
+                "id": "request",
+                "label": "submit dag scheduler and execution",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l045.partitioned.c0"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Which shard owns a task?",
+          "reason": "Validate graph and assign each stable task ID to one owner shard.",
+          "title": "DAG partitioner"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "dag",
+            "speculation",
+            "loss"
+          ],
+          "explanation": "Expand partitioner with task transition logs and committed predecessor receipts. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l045.partitioned.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l045.partitioned.c0"
+                },
+                "id": "request",
+                "label": "submit dag scheduler and execution",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l045.partitioned.c0"
+                }
+              },
+              {
+                "contractId": "l045.partitioned.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l045.partitioned.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l045.partitioned.c1"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l045.partitioned.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l045.partitioned.d0",
+                "id": "boundary",
+                "label": "DAG partitioner",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l045-partitioned-boundary-binding-1",
+                "version": 1
+              },
+              {
+                "definitionId": "l045.partitioned.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l045.partitioned.d1",
+                "id": "state",
+                "label": "Task actor journal",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "partitioned-s2",
+          "invariants": [
+            "Expand partitioner with task transition logs and committed predecessor receipts. State owner: Task actor journal (task journal and ownership epoch)."
+          ],
+          "number": 2,
+          "operations": [
+            {
+              "edges": [
+                {
+                  "contractId": "l045.partitioned.c1",
+                  "from": {
+                    "nodeId": "control",
+                    "portId": "out-l045.partitioned.c1"
+                  },
+                  "id": "commit",
+                  "label": "commit versioned state",
+                  "mode": "storage",
+                  "to": {
+                    "nodeId": "state",
+                    "portId": "in-l045.partitioned.c1"
+                  }
+                }
+              ],
+              "nodeId": "boundary",
+              "nodes": [
+                {
+                  "definitionId": "l045.partitioned.control",
+                  "id": "control",
+                  "label": "Command control",
+                  "position": {
+                    "x": 560,
+                    "y": 0
+                  },
+                  "version": 1
+                },
+                {
+                  "definitionId": "l045.partitioned.d1",
+                  "id": "state",
+                  "label": "Task actor journal",
+                  "position": {
+                    "x": 840,
+                    "y": 0
+                  },
+                  "version": 1
+                }
+              ],
+              "op": "expand",
+              "subsystemId": "l045-partitioned-boundary-binding-1"
+            }
+          ],
+          "question": "What can a shard replay?",
+          "reason": "Expand partitioner with task transition logs and committed predecessor receipts.",
+          "title": "Task actor journal"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "dag",
+            "speculation",
+            "loss"
+          ],
+          "explanation": "Deduplicate prerequisite completion IDs at each child actor before emitting ready state. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l045.partitioned.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l045.partitioned.c0"
+                },
+                "id": "request",
+                "label": "submit dag scheduler and execution",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l045.partitioned.c0"
+                }
+              },
+              {
+                "contractId": "l045.partitioned.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l045.partitioned.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l045.partitioned.c1"
+                }
+              },
+              {
+                "contractId": "l045.partitioned.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l045.partitioned.c2-state"
+                },
+                "id": "inbox",
+                "label": "replay predecessor receipts",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l045.partitioned.c2"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l045.partitioned.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l045.partitioned.d0",
+                "id": "boundary",
+                "label": "DAG partitioner",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l045-partitioned-boundary-binding-2",
+                "version": 1
+              },
+              {
+                "definitionId": "l045.partitioned.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l045.partitioned.d1",
+                "id": "state",
+                "label": "Task actor journal",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l045.partitioned.d2",
+                "id": "n2",
+                "label": "Completion inbox",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "partitioned-s3",
+          "invariants": [
+            "Deduplicate prerequisite completion IDs at each child actor before emitting ready state. State owner: Completion inbox (child prerequisite set)."
+          ],
+          "number": 3,
+          "operations": [
+            {
+              "nodeId": "boundary",
+              "op": "rebind",
+              "reason": "Select a new immutable exposure binding before connecting the added responsibility; prior stage binding remains unchanged.",
+              "subsystemId": "l045-partitioned-boundary-binding-2"
+            },
+            {
+              "node": {
+                "definitionId": "l045.partitioned.d2",
+                "id": "n2",
+                "label": "Completion inbox",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l045.partitioned.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l045.partitioned.c2-state"
+                },
+                "id": "inbox",
+                "label": "replay predecessor receipts",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l045.partitioned.c2"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can delivery release twice?",
+          "reason": "Deduplicate prerequisite completion IDs at each child actor before emitting ready state.",
+          "title": "Completion inbox"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "dag",
+            "speculation",
+            "loss"
+          ],
+          "explanation": "Publish ready tasks under owner epoch and lease bounded work to executors. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l045.partitioned.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l045.partitioned.c0"
+                },
+                "id": "request",
+                "label": "submit dag scheduler and execution",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l045.partitioned.c0"
+                }
+              },
+              {
+                "contractId": "l045.partitioned.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l045.partitioned.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l045.partitioned.c1"
+                }
+              },
+              {
+                "contractId": "l045.partitioned.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l045.partitioned.c2-state"
+                },
+                "id": "inbox",
+                "label": "replay predecessor receipts",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l045.partitioned.c2"
+                }
+              },
+              {
+                "contractId": "l045.partitioned.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l045.partitioned.c3"
+                },
+                "id": "ready",
+                "label": "publish ready frontier",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l045.partitioned.c3"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l045.partitioned.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l045.partitioned.d0",
+                "id": "boundary",
+                "label": "DAG partitioner",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l045-partitioned-boundary-binding-2",
+                "version": 1
+              },
+              {
+                "definitionId": "l045.partitioned.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l045.partitioned.d1",
+                "id": "state",
+                "label": "Task actor journal",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l045.partitioned.d2",
+                "id": "n2",
+                "label": "Completion inbox",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l045.partitioned.d3",
+                "id": "n3",
+                "label": "Shard ready frontier",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "partitioned-s4",
+          "invariants": [
+            "Publish ready tasks under owner epoch and lease bounded work to executors. State owner: Shard ready frontier (frontier entries and leases)."
+          ],
+          "number": 4,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l045.partitioned.d3",
+                "id": "n3",
+                "label": "Shard ready frontier",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l045.partitioned.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l045.partitioned.c3"
+                },
+                "id": "ready",
+                "label": "publish ready frontier",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l045.partitioned.c3"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How are runnable tasks offered?",
+          "reason": "Publish ready tasks under owner epoch and lease bounded work to executors.",
+          "title": "Shard ready frontier"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "dag",
+            "speculation",
+            "loss"
+          ],
+          "explanation": "Route typed partition artifacts via checksum manifests with per-partition FIFO/backpressure and spill. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l045.partitioned.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l045.partitioned.c0"
+                },
+                "id": "request",
+                "label": "submit dag scheduler and execution",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l045.partitioned.c0"
+                }
+              },
+              {
+                "contractId": "l045.partitioned.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l045.partitioned.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l045.partitioned.c1"
+                }
+              },
+              {
+                "contractId": "l045.partitioned.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l045.partitioned.c2-state"
+                },
+                "id": "inbox",
+                "label": "replay predecessor receipts",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l045.partitioned.c2"
+                }
+              },
+              {
+                "contractId": "l045.partitioned.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l045.partitioned.c3"
+                },
+                "id": "ready",
+                "label": "publish ready frontier",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l045.partitioned.c3"
+                }
+              },
+              {
+                "contractId": "l045.partitioned.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l045.partitioned.c4"
+                },
+                "id": "exchange",
+                "label": "persist typed partition artifact",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l045.partitioned.c4"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l045.partitioned.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l045.partitioned.d0",
+                "id": "boundary",
+                "label": "DAG partitioner",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l045-partitioned-boundary-binding-2",
+                "version": 1
+              },
+              {
+                "definitionId": "l045.partitioned.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l045.partitioned.d1",
+                "id": "state",
+                "label": "Task actor journal",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l045.partitioned.d2",
+                "id": "n2",
+                "label": "Completion inbox",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l045.partitioned.d3",
+                "id": "n3",
+                "label": "Shard ready frontier",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l045.partitioned.d4",
+                "id": "n4",
+                "label": "Artifact exchange",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "partitioned-s5",
+          "invariants": [
+            "Route typed partition artifacts via checksum manifests with per-partition FIFO/backpressure and spill. State owner: Artifact exchange (artifact manifests and spill budget)."
+          ],
+          "number": 5,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l045.partitioned.d4",
+                "id": "n4",
+                "label": "Artifact exchange",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l045.partitioned.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l045.partitioned.c4"
+                },
+                "id": "exchange",
+                "label": "persist typed partition artifact",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l045.partitioned.c4"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How does shuffle span shards?",
+          "reason": "Route typed partition artifacts via checksum manifests with per-partition FIFO/backpressure and spill.",
+          "title": "Artifact exchange"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "dag",
+            "speculation",
+            "loss"
+          ],
+          "explanation": "Each task owner atomically selects one valid artifact receipt and emits stable completion identity. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l045.partitioned.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l045.partitioned.c0"
+                },
+                "id": "request",
+                "label": "submit dag scheduler and execution",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l045.partitioned.c0"
+                }
+              },
+              {
+                "contractId": "l045.partitioned.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l045.partitioned.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l045.partitioned.c1"
+                }
+              },
+              {
+                "contractId": "l045.partitioned.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l045.partitioned.c2-state"
+                },
+                "id": "inbox",
+                "label": "replay predecessor receipts",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l045.partitioned.c2"
+                }
+              },
+              {
+                "contractId": "l045.partitioned.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l045.partitioned.c3"
+                },
+                "id": "ready",
+                "label": "publish ready frontier",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l045.partitioned.c3"
+                }
+              },
+              {
+                "contractId": "l045.partitioned.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l045.partitioned.c4"
+                },
+                "id": "exchange",
+                "label": "persist typed partition artifact",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l045.partitioned.c4"
+                }
+              },
+              {
+                "contractId": "l045.partitioned.c5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l045.partitioned.c5"
+                },
+                "id": "arbitrate",
+                "label": "select owner-fenced winner",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l045.partitioned.c5"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l045.partitioned.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l045.partitioned.d0",
+                "id": "boundary",
+                "label": "DAG partitioner",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l045-partitioned-boundary-binding-2",
+                "version": 1
+              },
+              {
+                "definitionId": "l045.partitioned.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l045.partitioned.d1",
+                "id": "state",
+                "label": "Task actor journal",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l045.partitioned.d2",
+                "id": "n2",
+                "label": "Completion inbox",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l045.partitioned.d3",
+                "id": "n3",
+                "label": "Shard ready frontier",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l045.partitioned.d4",
+                "id": "n4",
+                "label": "Artifact exchange",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l045.partitioned.d5",
+                "id": "n5",
+                "label": "Commit arbiter",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "partitioned-s6",
+          "invariants": [
+            "Each task owner atomically selects one valid artifact receipt and emits stable completion identity. State owner: Commit arbiter (winner receipt and loser attempts)."
+          ],
+          "number": 6,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l045.partitioned.d5",
+                "id": "n5",
+                "label": "Commit arbiter",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l045.partitioned.c5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l045.partitioned.c5"
+                },
+                "id": "arbitrate",
+                "label": "select owner-fenced winner",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l045.partitioned.c5"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How is a speculative winner chosen?",
+          "reason": "Each task owner atomically selects one valid artifact receipt and emits stable completion identity.",
+          "title": "Commit arbiter"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "dag",
+            "speculation",
+            "loss"
+          ],
+          "explanation": "Deliver selected task completion to dependent-owner inboxes through a durable replayable outbox. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l045.partitioned.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l045.partitioned.c0"
+                },
+                "id": "request",
+                "label": "submit dag scheduler and execution",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l045.partitioned.c0"
+                }
+              },
+              {
+                "contractId": "l045.partitioned.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l045.partitioned.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l045.partitioned.c1"
+                }
+              },
+              {
+                "contractId": "l045.partitioned.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l045.partitioned.c2-state"
+                },
+                "id": "inbox",
+                "label": "replay predecessor receipts",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l045.partitioned.c2"
+                }
+              },
+              {
+                "contractId": "l045.partitioned.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l045.partitioned.c3"
+                },
+                "id": "ready",
+                "label": "publish ready frontier",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l045.partitioned.c3"
+                }
+              },
+              {
+                "contractId": "l045.partitioned.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l045.partitioned.c4"
+                },
+                "id": "exchange",
+                "label": "persist typed partition artifact",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l045.partitioned.c4"
+                }
+              },
+              {
+                "contractId": "l045.partitioned.c5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l045.partitioned.c5"
+                },
+                "id": "arbitrate",
+                "label": "select owner-fenced winner",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l045.partitioned.c5"
+                }
+              },
+              {
+                "contractId": "l045.partitioned.c6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l045.partitioned.c6"
+                },
+                "id": "fanout",
+                "label": "emit selected completion",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l045.partitioned.c6"
+                }
+              },
+              {
+                "contractId": "l045.partitioned.c2",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l045.partitioned.c2"
+                },
+                "id": "deliver",
+                "label": "deliver child prerequisite receipt",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l045.partitioned.c2"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l045.partitioned.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l045.partitioned.d0",
+                "id": "boundary",
+                "label": "DAG partitioner",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l045-partitioned-boundary-binding-2",
+                "version": 1
+              },
+              {
+                "definitionId": "l045.partitioned.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l045.partitioned.d1",
+                "id": "state",
+                "label": "Task actor journal",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l045.partitioned.d2",
+                "id": "n2",
+                "label": "Completion inbox",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l045.partitioned.d3",
+                "id": "n3",
+                "label": "Shard ready frontier",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l045.partitioned.d4",
+                "id": "n4",
+                "label": "Artifact exchange",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l045.partitioned.d5",
+                "id": "n5",
+                "label": "Commit arbiter",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l045.partitioned.d6",
+                "id": "n6",
+                "label": "Completion fan-out",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "partitioned-s7",
+          "invariants": [
+            "Deliver selected task completion to dependent-owner inboxes through a durable replayable outbox. State owner: Completion fan-out (completion outbox and delivery offsets)."
+          ],
+          "number": 7,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l045.partitioned.d6",
+                "id": "n6",
+                "label": "Completion fan-out",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l045.partitioned.c6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l045.partitioned.c6"
+                },
+                "id": "fanout",
+                "label": "emit selected completion",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l045.partitioned.c6"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l045.partitioned.c2",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l045.partitioned.c2"
+                },
+                "id": "deliver",
+                "label": "deliver child prerequisite receipt",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l045.partitioned.c2"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How are downstream shards notified?",
+          "reason": "Deliver selected task completion to dependent-owner inboxes through a durable replayable outbox.",
+          "title": "Completion fan-out"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "dag",
+            "speculation",
+            "loss"
+          ],
+          "explanation": "Advance owner epoch, replay journals and pending completion outboxes, and reschedule only artifacts missing from lineage. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l045.partitioned.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l045.partitioned.c0"
+                },
+                "id": "request",
+                "label": "submit dag scheduler and execution",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l045.partitioned.c0"
+                }
+              },
+              {
+                "contractId": "l045.partitioned.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l045.partitioned.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l045.partitioned.c1"
+                }
+              },
+              {
+                "contractId": "l045.partitioned.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l045.partitioned.c2-state"
+                },
+                "id": "inbox",
+                "label": "replay predecessor receipts",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l045.partitioned.c2"
+                }
+              },
+              {
+                "contractId": "l045.partitioned.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l045.partitioned.c3"
+                },
+                "id": "ready",
+                "label": "publish ready frontier",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l045.partitioned.c3"
+                }
+              },
+              {
+                "contractId": "l045.partitioned.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l045.partitioned.c4"
+                },
+                "id": "exchange",
+                "label": "persist typed partition artifact",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l045.partitioned.c4"
+                }
+              },
+              {
+                "contractId": "l045.partitioned.c5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l045.partitioned.c5"
+                },
+                "id": "arbitrate",
+                "label": "select owner-fenced winner",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l045.partitioned.c5"
+                }
+              },
+              {
+                "contractId": "l045.partitioned.c6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l045.partitioned.c6"
+                },
+                "id": "fanout",
+                "label": "emit selected completion",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l045.partitioned.c6"
+                }
+              },
+              {
+                "contractId": "l045.partitioned.c2",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l045.partitioned.c2"
+                },
+                "id": "deliver",
+                "label": "deliver child prerequisite receipt",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l045.partitioned.c2"
+                }
+              },
+              {
+                "contractId": "l045.partitioned.c7",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l045.partitioned.c7-state"
+                },
+                "id": "replay",
+                "label": "replay task owner journal",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l045.partitioned.c7"
+                }
+              },
+              {
+                "contractId": "l045.partitioned.c6",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l045.partitioned.c6"
+                },
+                "id": "resume",
+                "label": "resume completion outbox",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l045.partitioned.c6"
+                }
+              },
+              {
+                "contractId": "l045.partitioned.c3",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l045.partitioned.c3"
+                },
+                "id": "frontier",
+                "label": "restore ready frontier",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l045.partitioned.c3"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l045.partitioned.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l045.partitioned.d0",
+                "id": "boundary",
+                "label": "DAG partitioner",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l045-partitioned-boundary-binding-3",
+                "version": 1
+              },
+              {
+                "definitionId": "l045.partitioned.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l045.partitioned.d1",
+                "id": "state",
+                "label": "Task actor journal",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l045.partitioned.d2",
+                "id": "n2",
+                "label": "Completion inbox",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l045.partitioned.d3",
+                "id": "n3",
+                "label": "Shard ready frontier",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l045.partitioned.d4",
+                "id": "n4",
+                "label": "Artifact exchange",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l045.partitioned.d5",
+                "id": "n5",
+                "label": "Commit arbiter",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l045.partitioned.d6",
+                "id": "n6",
+                "label": "Completion fan-out",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l045.partitioned.d7",
+                "id": "n7",
+                "label": "Shard recovery",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "partitioned-s8",
+          "invariants": [
+            "Advance owner epoch, replay journals and pending completion outboxes, and reschedule only artifacts missing from lineage. State owner: Shard recovery (shard recovery offsets)."
+          ],
+          "number": 8,
+          "operations": [
+            {
+              "nodeId": "boundary",
+              "op": "rebind",
+              "reason": "Select a new immutable exposure binding before connecting the added responsibility; prior stage binding remains unchanged.",
+              "subsystemId": "l045-partitioned-boundary-binding-3"
+            },
+            {
+              "node": {
+                "definitionId": "l045.partitioned.d7",
+                "id": "n7",
+                "label": "Shard recovery",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l045.partitioned.c7",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l045.partitioned.c7-state"
+                },
+                "id": "replay",
+                "label": "replay task owner journal",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l045.partitioned.c7"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l045.partitioned.c6",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l045.partitioned.c6"
+                },
+                "id": "resume",
+                "label": "resume completion outbox",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l045.partitioned.c6"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l045.partitioned.c3",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l045.partitioned.c3"
+                },
+                "id": "frontier",
+                "label": "restore ready frontier",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l045.partitioned.c3"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What happens after owner failover?",
+          "reason": "Advance owner epoch, replay journals and pending completion outboxes, and reschedule only artifacts missing from lineage.",
+          "title": "Shard recovery"
+        }
+      ],
+      "title": "Partitioned task actors and durable completion events",
+      "tradeoffs": [
+        "Cross-shard dependency events need deduplication; per-task ownership and job cancellation require fencing."
+      ]
+    }
+  ],
+  "subsystems": [
+    {
+      "definitionId": "l045.central.d0",
+      "id": "l045-central-boundary-binding-1",
+      "ports": [
+        {
+          "contractId": "l045.central.c0",
+          "direction": "in",
+          "id": "in-l045.central.c0",
+          "target": {
+            "nodeId": "control",
+            "portId": "in-l045.central.c0"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l045.central.d0",
+      "id": "l045-central-boundary-binding-2",
+      "ports": [
+        {
+          "contractId": "l045.central.c0",
+          "direction": "in",
+          "id": "in-l045.central.c0",
+          "target": {
+            "nodeId": "control",
+            "portId": "in-l045.central.c0"
+          }
+        },
+        {
+          "contractId": "l045.central.c2",
+          "direction": "out",
+          "id": "out-l045.central.c2-control",
+          "target": {
+            "nodeId": "control",
+            "portId": "out-l045.central.c2"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l045.central.d0",
+      "id": "l045-central-boundary-binding-3",
+      "ports": [
+        {
+          "contractId": "l045.central.c0",
+          "direction": "in",
+          "id": "in-l045.central.c0",
+          "target": {
+            "nodeId": "control",
+            "portId": "in-l045.central.c0"
+          }
+        },
+        {
+          "contractId": "l045.central.c2",
+          "direction": "out",
+          "id": "out-l045.central.c2-control",
+          "target": {
+            "nodeId": "control",
+            "portId": "out-l045.central.c2"
+          }
+        },
+        {
+          "contractId": "l045.central.c1",
+          "direction": "in",
+          "id": "in-l045.central.c1-state",
+          "target": {
+            "nodeId": "state",
+            "portId": "in-l045.central.c1"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l045.partitioned.d0",
+      "id": "l045-partitioned-boundary-binding-1",
+      "ports": [
+        {
+          "contractId": "l045.partitioned.c0",
+          "direction": "in",
+          "id": "in-l045.partitioned.c0",
+          "target": {
+            "nodeId": "control",
+            "portId": "in-l045.partitioned.c0"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l045.partitioned.d0",
+      "id": "l045-partitioned-boundary-binding-2",
+      "ports": [
+        {
+          "contractId": "l045.partitioned.c0",
+          "direction": "in",
+          "id": "in-l045.partitioned.c0",
+          "target": {
+            "nodeId": "control",
+            "portId": "in-l045.partitioned.c0"
+          }
+        },
+        {
+          "contractId": "l045.partitioned.c2",
+          "direction": "out",
+          "id": "out-l045.partitioned.c2-state",
+          "target": {
+            "nodeId": "state",
+            "portId": "out-l045.partitioned.c2"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l045.partitioned.d0",
+      "id": "l045-partitioned-boundary-binding-3",
+      "ports": [
+        {
+          "contractId": "l045.partitioned.c0",
+          "direction": "in",
+          "id": "in-l045.partitioned.c0",
+          "target": {
+            "nodeId": "control",
+            "portId": "in-l045.partitioned.c0"
+          }
+        },
+        {
+          "contractId": "l045.partitioned.c2",
+          "direction": "out",
+          "id": "out-l045.partitioned.c2-state",
+          "target": {
+            "nodeId": "state",
+            "portId": "out-l045.partitioned.c2"
+          }
+        },
+        {
+          "contractId": "l045.partitioned.c7",
+          "direction": "out",
+          "id": "out-l045.partitioned.c7-state",
+          "target": {
+            "nodeId": "state",
+            "portId": "out-l045.partitioned.c7"
+          }
+        }
+      ],
+      "version": 1
+    }
+  ],
+  "version": 1
+}

@@ -1,0 +1,3540 @@
+{
+  "components": [
+    {
+      "extends": {
+        "id": "core.client",
+        "version": 1
+      },
+      "id": "l038.ordered-scan.caller",
+      "label": "Caller",
+      "ports": [
+        {
+          "contractId": "l038.ordered-scan.command",
+          "direction": "out",
+          "id": "out-l038.ordered-scan.command"
+        }
+      ],
+      "responsibility": "Invoke the documented API and retain returned outcomes.",
+      "stateOwnership": [
+        "caller-owned input"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l038.ordered-scan.owner",
+      "label": "Rule-array firewall",
+      "ports": [
+        {
+          "contractId": "l038.ordered-scan.command",
+          "direction": "in",
+          "id": "in-l038.ordered-scan.command"
+        },
+        {
+          "contractId": "l038.ordered-scan.parser",
+          "direction": "out",
+          "id": "out-l038.ordered-scan.parser"
+        }
+      ],
+      "responsibility": "Parse once, normalize network and mask, then test immutable rules in original order until a match.",
+      "stateOwnership": [
+        "active rule array",
+        "policy version"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l038.ordered-scan.parser",
+      "label": "IPv4 parser",
+      "ports": [
+        {
+          "contractId": "l038.ordered-scan.parser",
+          "direction": "in",
+          "id": "in-l038.ordered-scan.parser"
+        },
+        {
+          "contractId": "l038.ordered-scan.mask",
+          "direction": "out",
+          "id": "out-l038.ordered-scan.mask"
+        }
+      ],
+      "responsibility": "Require exactly four canonical decimal octets in 0..255 and accumulate an unsigned 32-bit integer.",
+      "stateOwnership": [
+        "no retained state"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l038.ordered-scan.mask",
+      "label": "CIDR normalizer",
+      "ports": [
+        {
+          "contractId": "l038.ordered-scan.mask",
+          "direction": "in",
+          "id": "in-l038.ordered-scan.mask"
+        },
+        {
+          "contractId": "l038.ordered-scan.array",
+          "direction": "out",
+          "id": "out-l038.ordered-scan.array"
+        },
+        {
+          "contractId": "l038.ordered-scan.candidate",
+          "direction": "out",
+          "id": "out-l038.ordered-scan.candidate"
+        }
+      ],
+      "responsibility": "Validate prefix length; /0 has mask zero, /32 all bits, otherwise construct an unsigned high-bit mask; clear host bits.",
+      "stateOwnership": [
+        "normalized mask/network"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l038.ordered-scan.array",
+      "label": "Compiled rule array",
+      "ports": [
+        {
+          "contractId": "l038.ordered-scan.array",
+          "direction": "in",
+          "id": "in-l038.ordered-scan.array"
+        },
+        {
+          "contractId": "l038.ordered-scan.match",
+          "direction": "out",
+          "id": "out-l038.ordered-scan.match"
+        }
+      ],
+      "responsibility": "Keep rule ordinal with normalized network, mask and action; do not sort by prefix length.",
+      "stateOwnership": [
+        "ordered compiled rules"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l038.ordered-scan.match",
+      "label": "Bitwise matcher",
+      "ports": [
+        {
+          "contractId": "l038.ordered-scan.match",
+          "direction": "in",
+          "id": "in-l038.ordered-scan.match"
+        },
+        {
+          "contractId": "l038.ordered-scan.default",
+          "direction": "out",
+          "id": "out-l038.ordered-scan.default"
+        }
+      ],
+      "responsibility": "Compare unsigned (ip & mask) with unsigned network; short circuit at the first hit.",
+      "stateOwnership": [
+        "current array ordinal"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l038.ordered-scan.default",
+      "label": "Explicit default",
+      "ports": [
+        {
+          "contractId": "l038.ordered-scan.default",
+          "direction": "in",
+          "id": "in-l038.ordered-scan.default"
+        }
+      ],
+      "responsibility": "Return DENY with no rule ordinal and the current policy version; malformed input takes a separate deny reason.",
+      "stateOwnership": [
+        "default policy constant"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l038.ordered-scan.candidate",
+      "label": "Policy compiler",
+      "ports": [
+        {
+          "contractId": "l038.ordered-scan.candidate",
+          "direction": "in",
+          "id": "in-l038.ordered-scan.candidate"
+        },
+        {
+          "contractId": "l038.ordered-scan.publish",
+          "direction": "out",
+          "id": "out-l038.ordered-scan.publish"
+        }
+      ],
+      "responsibility": "Build and validate a candidate array privately; require every action and CIDR to parse before publication.",
+      "stateOwnership": [
+        "candidate array"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l038.ordered-scan.publish",
+      "label": "Atomic version slot",
+      "ports": [
+        {
+          "contractId": "l038.ordered-scan.publish",
+          "direction": "in",
+          "id": "in-l038.ordered-scan.publish"
+        }
+      ],
+      "responsibility": "Swap the immutable array/version pair once; readers pin one pair for their entire scan.",
+      "stateOwnership": [
+        "active pair",
+        "retired reader references"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.client",
+        "version": 1
+      },
+      "id": "l038.priority-trie.caller",
+      "label": "Caller",
+      "ports": [
+        {
+          "contractId": "l038.priority-trie.command",
+          "direction": "out",
+          "id": "out-l038.priority-trie.command"
+        }
+      ],
+      "responsibility": "Invoke the documented API and retain returned outcomes.",
+      "stateOwnership": [
+        "caller-owned input"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l038.priority-trie.owner",
+      "label": "Trie firewall",
+      "ports": [
+        {
+          "contractId": "l038.priority-trie.command",
+          "direction": "in",
+          "id": "in-l038.priority-trie.command"
+        },
+        {
+          "contractId": "l038.priority-trie.decode",
+          "direction": "out",
+          "id": "out-l038.priority-trie.decode"
+        }
+      ],
+      "responsibility": "Store each prefix at its bit-depth node; traverse the address path and select minimum original ordinal over all matching ancestor prefixes.",
+      "stateOwnership": [
+        "active trie root/version"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l038.priority-trie.decode",
+      "label": "Strict address decoder",
+      "ports": [
+        {
+          "contractId": "l038.priority-trie.decode",
+          "direction": "in",
+          "id": "in-l038.priority-trie.decode"
+        },
+        {
+          "contractId": "l038.priority-trie.root",
+          "direction": "out",
+          "id": "out-l038.priority-trie.root"
+        }
+      ],
+      "responsibility": "Canonical dotted-decimal parser produces one uint32; invalid input fails closed before traversal.",
+      "stateOwnership": [
+        "no independent state"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l038.priority-trie.root",
+      "label": "Prefix-zero root",
+      "ports": [
+        {
+          "contractId": "l038.priority-trie.root",
+          "direction": "in",
+          "id": "in-l038.priority-trie.root"
+        },
+        {
+          "contractId": "l038.priority-trie.insert",
+          "direction": "out",
+          "id": "out-l038.priority-trie.insert"
+        },
+        {
+          "contractId": "l038.priority-trie.walk",
+          "direction": "out",
+          "id": "out-l038.priority-trie.walk"
+        }
+      ],
+      "responsibility": "Root stores earliest /0 candidate; each rule descends exactly prefixLength bits after masking network host bits.",
+      "stateOwnership": [
+        "root candidate",
+        "child zero/one pointers"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l038.priority-trie.insert",
+      "label": "Ordinal-aware insertion",
+      "ports": [
+        {
+          "contractId": "l038.priority-trie.insert",
+          "direction": "in",
+          "id": "in-l038.priority-trie.insert"
+        },
+        {
+          "contractId": "l038.priority-trie.build",
+          "direction": "out",
+          "id": "out-l038.priority-trie.build"
+        }
+      ],
+      "responsibility": "At a prefix node retain the candidate with lowest ordinal, including its action; do not overwrite with a later conflicting action.",
+      "stateOwnership": [
+        "candidate ordinal/action"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l038.priority-trie.walk",
+      "label": "Address-path walker",
+      "ports": [
+        {
+          "contractId": "l038.priority-trie.walk",
+          "direction": "in",
+          "id": "in-l038.priority-trie.walk"
+        },
+        {
+          "contractId": "l038.priority-trie.decision",
+          "direction": "out",
+          "id": "out-l038.priority-trie.decision"
+        }
+      ],
+      "responsibility": "Visit root and at most 32 nodes following each address bit; update best when candidate ordinal is lower.",
+      "stateOwnership": [
+        "depth",
+        "best candidate"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l038.priority-trie.decision",
+      "label": "Priority reducer",
+      "ports": [
+        {
+          "contractId": "l038.priority-trie.decision",
+          "direction": "in",
+          "id": "in-l038.priority-trie.decision"
+        }
+      ],
+      "responsibility": "Choose lowest ordinal among root/path candidates; deny if none. Do not use longest-prefix APIs as a substitute.",
+      "stateOwnership": [
+        "selected ordinal"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l038.priority-trie.build",
+      "label": "Private trie builder",
+      "ports": [
+        {
+          "contractId": "l038.priority-trie.build",
+          "direction": "in",
+          "id": "in-l038.priority-trie.build"
+        },
+        {
+          "contractId": "l038.priority-trie.swap",
+          "direction": "out",
+          "id": "out-l038.priority-trie.swap"
+        }
+      ],
+      "responsibility": "Construct the entire next trie privately and validate counts/ordinals; never mutate the pinned active root.",
+      "stateOwnership": [
+        "candidate root"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l038.priority-trie.swap",
+      "label": "Root-version publication",
+      "ports": [
+        {
+          "contractId": "l038.priority-trie.swap",
+          "direction": "in",
+          "id": "in-l038.priority-trie.swap"
+        }
+      ],
+      "responsibility": "Publish a root/version pair atomically and retain old immutable nodes until pinned readers complete.",
+      "stateOwnership": [
+        "root pair",
+        "reader references"
+      ],
+      "version": 1
+    }
+  ],
+  "contracts": [
+    {
+      "id": "l038.ordered-scan.command",
+      "request": {
+        "address": "strict dotted-decimal IPv4",
+        "operation": "check|replaceRules",
+        "rules": "ordered [{action:ALLOW|DENY,cidr:string}]"
+      },
+      "response": {
+        "decision": "ALLOW|DENY",
+        "policyVersion": "integer",
+        "ruleOrdinal": "integer|null"
+      },
+      "version": 1
+    },
+    {
+      "id": "l038.ordered-scan.parser",
+      "request": {
+        "address": "string"
+      },
+      "response": {
+        "ip": "uint32 or invalid"
+      },
+      "version": 1
+    },
+    {
+      "id": "l038.ordered-scan.mask",
+      "request": {
+        "cidr": "address/prefix"
+      },
+      "response": {
+        "mask": "uint32",
+        "network": "uint32"
+      },
+      "version": 1
+    },
+    {
+      "id": "l038.ordered-scan.array",
+      "request": {
+        "rules": "validated Rule[]"
+      },
+      "response": {
+        "compiled": "{network,mask,action,ordinal}[]"
+      },
+      "version": 1
+    },
+    {
+      "id": "l038.ordered-scan.match",
+      "request": {
+        "compiled": "ordered rules",
+        "ip": "uint32"
+      },
+      "response": {
+        "matched": "first ordinal or none"
+      },
+      "version": 1
+    },
+    {
+      "id": "l038.ordered-scan.default",
+      "request": {
+        "match": "ordinal|null"
+      },
+      "response": {
+        "decision": "ALLOW|DENY",
+        "reason": "rule|unmatched|invalid"
+      },
+      "version": 1
+    },
+    {
+      "id": "l038.ordered-scan.candidate",
+      "request": {
+        "newRules": "Rule[]"
+      },
+      "response": {
+        "candidate": "validated immutable array"
+      },
+      "version": 1
+    },
+    {
+      "id": "l038.ordered-scan.publish",
+      "request": {
+        "candidate": "compiled array"
+      },
+      "response": {
+        "version": "new integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l038.priority-trie.command",
+      "request": {
+        "address": "strict dotted-decimal IPv4",
+        "operation": "check|replaceRules",
+        "rules": "ordered [{action:ALLOW|DENY,cidr:string}]"
+      },
+      "response": {
+        "decision": "ALLOW|DENY",
+        "policyVersion": "integer",
+        "ruleOrdinal": "integer|null"
+      },
+      "version": 1
+    },
+    {
+      "id": "l038.priority-trie.decode",
+      "request": {
+        "address": "strict IPv4 string"
+      },
+      "response": {
+        "ip": "uint32 or invalid"
+      },
+      "version": 1
+    },
+    {
+      "id": "l038.priority-trie.root",
+      "request": {
+        "rules": "validated ordered rules"
+      },
+      "response": {
+        "root": "trie"
+      },
+      "version": 1
+    },
+    {
+      "id": "l038.priority-trie.insert",
+      "request": {
+        "node": "prefix node",
+        "rule": "{ordinal,action,prefix}"
+      },
+      "response": {
+        "candidate": "minimum ordinal"
+      },
+      "version": 1
+    },
+    {
+      "id": "l038.priority-trie.walk",
+      "request": {
+        "ip": "uint32",
+        "root": "immutable trie"
+      },
+      "response": {
+        "best": "minimum ordinal or none"
+      },
+      "version": 1
+    },
+    {
+      "id": "l038.priority-trie.decision",
+      "request": {
+        "candidates": "matching path candidates"
+      },
+      "response": {
+        "decision": "ALLOW|DENY",
+        "ordinal": "integer|null"
+      },
+      "version": 1
+    },
+    {
+      "id": "l038.priority-trie.build",
+      "request": {
+        "rules": "ordered Rule[]"
+      },
+      "response": {
+        "candidate": "complete trie/version"
+      },
+      "version": 1
+    },
+    {
+      "id": "l038.priority-trie.swap",
+      "request": {
+        "candidate": "root pair"
+      },
+      "response": {
+        "active": "published pair"
+      },
+      "version": 1
+    }
+  ],
+  "execution": {
+    "implementation": null,
+    "kind": "conceptual-design"
+  },
+  "problem": {
+    "referenceId": "L038",
+    "requirements": [
+      {
+        "id": "r0",
+        "text": "Parse exactly four decimal octets and prefix length 0..32, normalizing network host bits."
+      },
+      {
+        "id": "r1",
+        "text": "Return the minimum original rule ordinal among all matching prefixes."
+      },
+      {
+        "id": "r2",
+        "text": "Publish complete immutable rule versions; malformed updates cannot partially replace active policy."
+      }
+    ],
+    "scope": "Authored implementation study of ordered ALLOW/DENY IPv4 CIDR rules. First match in original rule order wins; this is deliberately different from longest-prefix routing. Invalid input fails closed; no matching rule defaults to DENY. IPv6, packet transport and stateful firewall connection tracking are out of scope.",
+    "studyLabel": "Ordered IPv4 firewall: scan and priority trie"
+  },
+  "provenance": {
+    "kind": "authored-practice",
+    "note": "Authored interview preparation. Technical references support mechanisms, not the claim that a company asked this question."
+  },
+  "references": [
+    {
+      "id": "ref0",
+      "scope": "background",
+      "supports": "IPv4 prefix addressing; first-rule priority is the explicit authored firewall policy, not longest-prefix routing.",
+      "title": "RFC 4632 CIDR",
+      "url": "https://www.rfc-editor.org/rfc/rfc4632"
+    }
+  ],
+  "schema": "simulatte.composableStudy.v2",
+  "solutions": [
+    {
+      "acceptanceCases": [
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-07-mechanisms.test.mjs",
+            "testName": "batch-07 firewall: priority trie agrees with ordered scan"
+          },
+          "given": "An early /8 DENY and later /32 ALLOW cover one address, followed by reversed order.",
+          "id": "behavior",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Minimum original ordinal wins, regardless of prefix specificity.",
+          "when": "Check both immutable versions with linear and trie lookup."
+        },
+        {
+          "given": "/0, /32, 255.255.255.255, malformed input and no matching prefix.",
+          "id": "boundary",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Unsigned comparisons and explicit /0 work; malformed or unmatched input is denied; failed updates preserve old version.",
+          "when": "Parse and check each address."
+        }
+      ],
+      "algorithms": [
+        {
+          "code": "check(address) { const snapshot=active; const ip=parseStrictIPv4(address);\n if(ip===INVALID)return deny(\"invalid\",snapshot.version);\n for(const r of snapshot.rules) if(unsigned(ip&r.mask)===r.network)\n  return {decision:r.action,ruleOrdinal:r.ordinal,policyVersion:snapshot.version};\n return deny(\"unmatched\",snapshot.version);\n}\nreplaceRules(rules) { const candidate=rules.map(compileChecked);\n active=immutablePair(candidate,active.version+1); }",
+          "guarantees": [
+            "O(r) lookup; original priority and complete policy snapshots are preserved."
+          ],
+          "id": "mechanism-0",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "owner"
+        }
+      ],
+      "apis": [
+        {
+          "errors": "Malformed address returns DENY with invalid-input reason; invalid policy replacement rejects without publication",
+          "method": "CALL",
+          "ownerNodeId": "owner",
+          "path": "IpFirewall.check/replaceRules",
+          "request": "{\"operation\":\"check|replaceRules\",\"address\":\"strict dotted-decimal IPv4\",\"rules\":\"ordered [{action:ALLOW|DENY,cidr:string}]\"}",
+          "response": "{\"decision\":\"ALLOW|DENY\",\"ruleOrdinal\":\"integer|null\",\"policyVersion\":\"integer\"}"
+        }
+      ],
+      "assumptions": [
+        "Unsigned 32-bit arithmetic; /0 is handled explicitly because shift by 32 is language-dependent. Leading zeros are rejected except the octet 0.",
+        "All added requirements and walkthroughs are authored practice. Graphs specify design; reference tests prove only named bounded mechanisms."
+      ],
+      "chooseWhen": "Rule lists are small or updates are frequent and predictable O(r) checks are acceptable.",
+      "id": "ordered-scan",
+      "initialGraph": {
+        "edges": [],
+        "nodes": []
+      },
+      "stages": [
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l038.ordered-scan.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l038.ordered-scan.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l038.ordered-scan.command"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l038.ordered-scan.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l038.ordered-scan.owner",
+                "id": "owner",
+                "label": "Rule-array firewall",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "ordered-scan-s1",
+          "invariants": [
+            "The first matching array entry determines the action."
+          ],
+          "number": 1,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l038.ordered-scan.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "l038.ordered-scan.owner",
+                "id": "owner",
+                "label": "Rule-array firewall",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l038.ordered-scan.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l038.ordered-scan.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l038.ordered-scan.command"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Which rule wins when prefixes overlap?",
+          "reason": "Parse once, normalize network and mask, then test immutable rules in original order until a match.",
+          "title": "Expose Rule-array firewall"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l038.ordered-scan.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l038.ordered-scan.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l038.ordered-scan.command"
+                }
+              },
+              {
+                "contractId": "l038.ordered-scan.parser",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l038.ordered-scan.parser"
+                },
+                "id": "use-parser",
+                "label": "Parse strict unsigned IPv4",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "parser",
+                  "portId": "in-l038.ordered-scan.parser"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l038.ordered-scan.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l038.ordered-scan.owner",
+                "id": "owner",
+                "label": "Rule-array firewall",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l038.ordered-scan.parser",
+                "id": "parser",
+                "label": "IPv4 parser",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "ordered-scan-s2",
+          "invariants": [
+            "Reject whitespace, signs, shorthand and extra components."
+          ],
+          "number": 2,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l038.ordered-scan.parser",
+                "id": "parser",
+                "label": "IPv4 parser",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l038.ordered-scan.parser",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l038.ordered-scan.parser"
+                },
+                "id": "use-parser",
+                "label": "Parse strict unsigned IPv4",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "parser",
+                  "portId": "in-l038.ordered-scan.parser"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can octal or signed parsing change an address?",
+          "reason": "Require exactly four canonical decimal octets in 0..255 and accumulate an unsigned 32-bit integer.",
+          "title": "Parse strict unsigned IPv4"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l038.ordered-scan.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l038.ordered-scan.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l038.ordered-scan.command"
+                }
+              },
+              {
+                "contractId": "l038.ordered-scan.parser",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l038.ordered-scan.parser"
+                },
+                "id": "use-parser",
+                "label": "Parse strict unsigned IPv4",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "parser",
+                  "portId": "in-l038.ordered-scan.parser"
+                }
+              },
+              {
+                "contractId": "l038.ordered-scan.mask",
+                "from": {
+                  "nodeId": "parser",
+                  "portId": "out-l038.ordered-scan.mask"
+                },
+                "id": "use-mask",
+                "label": "Normalize network prefixes",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "mask",
+                  "portId": "in-l038.ordered-scan.mask"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l038.ordered-scan.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l038.ordered-scan.owner",
+                "id": "owner",
+                "label": "Rule-array firewall",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l038.ordered-scan.parser",
+                "id": "parser",
+                "label": "IPv4 parser",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l038.ordered-scan.mask",
+                "id": "mask",
+                "label": "CIDR normalizer",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "ordered-scan-s3",
+          "invariants": [
+            "A host address in a CIDR rule is normalized, not interpreted as a different prefix."
+          ],
+          "number": 3,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l038.ordered-scan.mask",
+                "id": "mask",
+                "label": "CIDR normalizer",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l038.ordered-scan.mask",
+                "from": {
+                  "nodeId": "parser",
+                  "portId": "out-l038.ordered-scan.mask"
+                },
+                "id": "use-mask",
+                "label": "Normalize network prefixes",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "mask",
+                  "portId": "in-l038.ordered-scan.mask"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How is /0 evaluated?",
+          "reason": "Validate prefix length; /0 has mask zero, /32 all bits, otherwise construct an unsigned high-bit mask; clear host bits.",
+          "title": "Normalize network prefixes"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l038.ordered-scan.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l038.ordered-scan.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l038.ordered-scan.command"
+                }
+              },
+              {
+                "contractId": "l038.ordered-scan.parser",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l038.ordered-scan.parser"
+                },
+                "id": "use-parser",
+                "label": "Parse strict unsigned IPv4",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "parser",
+                  "portId": "in-l038.ordered-scan.parser"
+                }
+              },
+              {
+                "contractId": "l038.ordered-scan.mask",
+                "from": {
+                  "nodeId": "parser",
+                  "portId": "out-l038.ordered-scan.mask"
+                },
+                "id": "use-mask",
+                "label": "Normalize network prefixes",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "mask",
+                  "portId": "in-l038.ordered-scan.mask"
+                }
+              },
+              {
+                "contractId": "l038.ordered-scan.array",
+                "from": {
+                  "nodeId": "mask",
+                  "portId": "out-l038.ordered-scan.array"
+                },
+                "id": "use-array",
+                "label": "Retain original priority",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "array",
+                  "portId": "in-l038.ordered-scan.array"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l038.ordered-scan.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l038.ordered-scan.owner",
+                "id": "owner",
+                "label": "Rule-array firewall",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l038.ordered-scan.parser",
+                "id": "parser",
+                "label": "IPv4 parser",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l038.ordered-scan.mask",
+                "id": "mask",
+                "label": "CIDR normalizer",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l038.ordered-scan.array",
+                "id": "array",
+                "label": "Compiled rule array",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "ordered-scan-s4",
+          "invariants": [
+            "Original rule order remains authoritative."
+          ],
+          "number": 4,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l038.ordered-scan.array",
+                "id": "array",
+                "label": "Compiled rule array",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l038.ordered-scan.array",
+                "from": {
+                  "nodeId": "mask",
+                  "portId": "out-l038.ordered-scan.array"
+                },
+                "id": "use-array",
+                "label": "Retain original priority",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "array",
+                  "portId": "in-l038.ordered-scan.array"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can sorting improve speed without changing behavior?",
+          "reason": "Keep rule ordinal with normalized network, mask and action; do not sort by prefix length.",
+          "title": "Retain original priority"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l038.ordered-scan.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l038.ordered-scan.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l038.ordered-scan.command"
+                }
+              },
+              {
+                "contractId": "l038.ordered-scan.parser",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l038.ordered-scan.parser"
+                },
+                "id": "use-parser",
+                "label": "Parse strict unsigned IPv4",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "parser",
+                  "portId": "in-l038.ordered-scan.parser"
+                }
+              },
+              {
+                "contractId": "l038.ordered-scan.mask",
+                "from": {
+                  "nodeId": "parser",
+                  "portId": "out-l038.ordered-scan.mask"
+                },
+                "id": "use-mask",
+                "label": "Normalize network prefixes",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "mask",
+                  "portId": "in-l038.ordered-scan.mask"
+                }
+              },
+              {
+                "contractId": "l038.ordered-scan.array",
+                "from": {
+                  "nodeId": "mask",
+                  "portId": "out-l038.ordered-scan.array"
+                },
+                "id": "use-array",
+                "label": "Retain original priority",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "array",
+                  "portId": "in-l038.ordered-scan.array"
+                }
+              },
+              {
+                "contractId": "l038.ordered-scan.match",
+                "from": {
+                  "nodeId": "array",
+                  "portId": "out-l038.ordered-scan.match"
+                },
+                "id": "use-match",
+                "label": "Match without allocation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "match",
+                  "portId": "in-l038.ordered-scan.match"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l038.ordered-scan.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l038.ordered-scan.owner",
+                "id": "owner",
+                "label": "Rule-array firewall",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l038.ordered-scan.parser",
+                "id": "parser",
+                "label": "IPv4 parser",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l038.ordered-scan.mask",
+                "id": "mask",
+                "label": "CIDR normalizer",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l038.ordered-scan.array",
+                "id": "array",
+                "label": "Compiled rule array",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l038.ordered-scan.match",
+                "id": "match",
+                "label": "Bitwise matcher",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "ordered-scan-s5",
+          "invariants": [
+            "One check reads exactly one policy version."
+          ],
+          "number": 5,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l038.ordered-scan.match",
+                "id": "match",
+                "label": "Bitwise matcher",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l038.ordered-scan.match",
+                "from": {
+                  "nodeId": "array",
+                  "portId": "out-l038.ordered-scan.match"
+                },
+                "id": "use-match",
+                "label": "Match without allocation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "match",
+                  "portId": "in-l038.ordered-scan.match"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What arithmetic must be unsigned?",
+          "reason": "Compare unsigned (ip & mask) with unsigned network; short circuit at the first hit.",
+          "title": "Match without allocation"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l038.ordered-scan.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l038.ordered-scan.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l038.ordered-scan.command"
+                }
+              },
+              {
+                "contractId": "l038.ordered-scan.parser",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l038.ordered-scan.parser"
+                },
+                "id": "use-parser",
+                "label": "Parse strict unsigned IPv4",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "parser",
+                  "portId": "in-l038.ordered-scan.parser"
+                }
+              },
+              {
+                "contractId": "l038.ordered-scan.mask",
+                "from": {
+                  "nodeId": "parser",
+                  "portId": "out-l038.ordered-scan.mask"
+                },
+                "id": "use-mask",
+                "label": "Normalize network prefixes",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "mask",
+                  "portId": "in-l038.ordered-scan.mask"
+                }
+              },
+              {
+                "contractId": "l038.ordered-scan.array",
+                "from": {
+                  "nodeId": "mask",
+                  "portId": "out-l038.ordered-scan.array"
+                },
+                "id": "use-array",
+                "label": "Retain original priority",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "array",
+                  "portId": "in-l038.ordered-scan.array"
+                }
+              },
+              {
+                "contractId": "l038.ordered-scan.match",
+                "from": {
+                  "nodeId": "array",
+                  "portId": "out-l038.ordered-scan.match"
+                },
+                "id": "use-match",
+                "label": "Match without allocation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "match",
+                  "portId": "in-l038.ordered-scan.match"
+                }
+              },
+              {
+                "contractId": "l038.ordered-scan.default",
+                "from": {
+                  "nodeId": "match",
+                  "portId": "out-l038.ordered-scan.default"
+                },
+                "id": "use-default",
+                "label": "Deny unmatched addresses",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "default",
+                  "portId": "in-l038.ordered-scan.default"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l038.ordered-scan.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l038.ordered-scan.owner",
+                "id": "owner",
+                "label": "Rule-array firewall",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l038.ordered-scan.parser",
+                "id": "parser",
+                "label": "IPv4 parser",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l038.ordered-scan.mask",
+                "id": "mask",
+                "label": "CIDR normalizer",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l038.ordered-scan.array",
+                "id": "array",
+                "label": "Compiled rule array",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l038.ordered-scan.match",
+                "id": "match",
+                "label": "Bitwise matcher",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l038.ordered-scan.default",
+                "id": "default",
+                "label": "Explicit default",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "ordered-scan-s6",
+          "invariants": [
+            "Absence never silently becomes ALLOW."
+          ],
+          "number": 6,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l038.ordered-scan.default",
+                "id": "default",
+                "label": "Explicit default",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l038.ordered-scan.default",
+                "from": {
+                  "nodeId": "match",
+                  "portId": "out-l038.ordered-scan.default"
+                },
+                "id": "use-default",
+                "label": "Deny unmatched addresses",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "default",
+                  "portId": "in-l038.ordered-scan.default"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What if no rule covers an address?",
+          "reason": "Return DENY with no rule ordinal and the current policy version; malformed input takes a separate deny reason.",
+          "title": "Deny unmatched addresses"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l038.ordered-scan.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l038.ordered-scan.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l038.ordered-scan.command"
+                }
+              },
+              {
+                "contractId": "l038.ordered-scan.parser",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l038.ordered-scan.parser"
+                },
+                "id": "use-parser",
+                "label": "Parse strict unsigned IPv4",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "parser",
+                  "portId": "in-l038.ordered-scan.parser"
+                }
+              },
+              {
+                "contractId": "l038.ordered-scan.mask",
+                "from": {
+                  "nodeId": "parser",
+                  "portId": "out-l038.ordered-scan.mask"
+                },
+                "id": "use-mask",
+                "label": "Normalize network prefixes",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "mask",
+                  "portId": "in-l038.ordered-scan.mask"
+                }
+              },
+              {
+                "contractId": "l038.ordered-scan.array",
+                "from": {
+                  "nodeId": "mask",
+                  "portId": "out-l038.ordered-scan.array"
+                },
+                "id": "use-array",
+                "label": "Retain original priority",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "array",
+                  "portId": "in-l038.ordered-scan.array"
+                }
+              },
+              {
+                "contractId": "l038.ordered-scan.match",
+                "from": {
+                  "nodeId": "array",
+                  "portId": "out-l038.ordered-scan.match"
+                },
+                "id": "use-match",
+                "label": "Match without allocation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "match",
+                  "portId": "in-l038.ordered-scan.match"
+                }
+              },
+              {
+                "contractId": "l038.ordered-scan.default",
+                "from": {
+                  "nodeId": "match",
+                  "portId": "out-l038.ordered-scan.default"
+                },
+                "id": "use-default",
+                "label": "Deny unmatched addresses",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "default",
+                  "portId": "in-l038.ordered-scan.default"
+                }
+              },
+              {
+                "contractId": "l038.ordered-scan.candidate",
+                "from": {
+                  "nodeId": "mask",
+                  "portId": "out-l038.ordered-scan.candidate"
+                },
+                "id": "use-candidate",
+                "label": "Reject partial updates",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "candidate",
+                  "portId": "in-l038.ordered-scan.candidate"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l038.ordered-scan.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l038.ordered-scan.owner",
+                "id": "owner",
+                "label": "Rule-array firewall",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l038.ordered-scan.parser",
+                "id": "parser",
+                "label": "IPv4 parser",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l038.ordered-scan.mask",
+                "id": "mask",
+                "label": "CIDR normalizer",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l038.ordered-scan.array",
+                "id": "array",
+                "label": "Compiled rule array",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l038.ordered-scan.match",
+                "id": "match",
+                "label": "Bitwise matcher",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l038.ordered-scan.default",
+                "id": "default",
+                "label": "Explicit default",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l038.ordered-scan.candidate",
+                "id": "candidate",
+                "label": "Policy compiler",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "ordered-scan-s7",
+          "invariants": [
+            "Compilation failure cannot alter active rules."
+          ],
+          "number": 7,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l038.ordered-scan.candidate",
+                "id": "candidate",
+                "label": "Policy compiler",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l038.ordered-scan.candidate",
+                "from": {
+                  "nodeId": "mask",
+                  "portId": "out-l038.ordered-scan.candidate"
+                },
+                "id": "use-candidate",
+                "label": "Reject partial updates",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "candidate",
+                  "portId": "in-l038.ordered-scan.candidate"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can one invalid rule leave half a policy active?",
+          "reason": "Build and validate a candidate array privately; require every action and CIDR to parse before publication.",
+          "title": "Reject partial updates"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l038.ordered-scan.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l038.ordered-scan.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l038.ordered-scan.command"
+                }
+              },
+              {
+                "contractId": "l038.ordered-scan.parser",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l038.ordered-scan.parser"
+                },
+                "id": "use-parser",
+                "label": "Parse strict unsigned IPv4",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "parser",
+                  "portId": "in-l038.ordered-scan.parser"
+                }
+              },
+              {
+                "contractId": "l038.ordered-scan.mask",
+                "from": {
+                  "nodeId": "parser",
+                  "portId": "out-l038.ordered-scan.mask"
+                },
+                "id": "use-mask",
+                "label": "Normalize network prefixes",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "mask",
+                  "portId": "in-l038.ordered-scan.mask"
+                }
+              },
+              {
+                "contractId": "l038.ordered-scan.array",
+                "from": {
+                  "nodeId": "mask",
+                  "portId": "out-l038.ordered-scan.array"
+                },
+                "id": "use-array",
+                "label": "Retain original priority",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "array",
+                  "portId": "in-l038.ordered-scan.array"
+                }
+              },
+              {
+                "contractId": "l038.ordered-scan.match",
+                "from": {
+                  "nodeId": "array",
+                  "portId": "out-l038.ordered-scan.match"
+                },
+                "id": "use-match",
+                "label": "Match without allocation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "match",
+                  "portId": "in-l038.ordered-scan.match"
+                }
+              },
+              {
+                "contractId": "l038.ordered-scan.default",
+                "from": {
+                  "nodeId": "match",
+                  "portId": "out-l038.ordered-scan.default"
+                },
+                "id": "use-default",
+                "label": "Deny unmatched addresses",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "default",
+                  "portId": "in-l038.ordered-scan.default"
+                }
+              },
+              {
+                "contractId": "l038.ordered-scan.candidate",
+                "from": {
+                  "nodeId": "mask",
+                  "portId": "out-l038.ordered-scan.candidate"
+                },
+                "id": "use-candidate",
+                "label": "Reject partial updates",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "candidate",
+                  "portId": "in-l038.ordered-scan.candidate"
+                }
+              },
+              {
+                "contractId": "l038.ordered-scan.publish",
+                "from": {
+                  "nodeId": "candidate",
+                  "portId": "out-l038.ordered-scan.publish"
+                },
+                "id": "use-publish",
+                "label": "Publish one complete version",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "publish",
+                  "portId": "in-l038.ordered-scan.publish"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l038.ordered-scan.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l038.ordered-scan.owner",
+                "id": "owner",
+                "label": "Rule-array firewall",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l038.ordered-scan.parser",
+                "id": "parser",
+                "label": "IPv4 parser",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l038.ordered-scan.mask",
+                "id": "mask",
+                "label": "CIDR normalizer",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l038.ordered-scan.array",
+                "id": "array",
+                "label": "Compiled rule array",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l038.ordered-scan.match",
+                "id": "match",
+                "label": "Bitwise matcher",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l038.ordered-scan.default",
+                "id": "default",
+                "label": "Explicit default",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l038.ordered-scan.candidate",
+                "id": "candidate",
+                "label": "Policy compiler",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l038.ordered-scan.publish",
+                "id": "publish",
+                "label": "Atomic version slot",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "ordered-scan-s8",
+          "invariants": [
+            "Policy ordinal and result version refer to the same snapshot."
+          ],
+          "number": 8,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l038.ordered-scan.publish",
+                "id": "publish",
+                "label": "Atomic version slot",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l038.ordered-scan.publish",
+                "from": {
+                  "nodeId": "candidate",
+                  "portId": "out-l038.ordered-scan.publish"
+                },
+                "id": "use-publish",
+                "label": "Publish one complete version",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "publish",
+                  "portId": "in-l038.ordered-scan.publish"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can a reader combine two updates?",
+          "reason": "Swap the immutable array/version pair once; readers pin one pair for their entire scan.",
+          "title": "Publish one complete version"
+        }
+      ],
+      "title": "Precompiled ordered rule array",
+      "tradeoffs": [
+        "Lookup is O(r) in the number of rules.",
+        "Simple contiguous storage is easy to audit; no speculative throughput claim."
+      ]
+    },
+    {
+      "acceptanceCases": [
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-07-mechanisms.test.mjs",
+            "testName": "batch-07 firewall: priority trie agrees with ordered scan"
+          },
+          "given": "An early /8 DENY and later /32 ALLOW cover one address, followed by reversed order.",
+          "id": "behavior",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Minimum original ordinal wins, regardless of prefix specificity.",
+          "when": "Check both immutable versions with linear and trie lookup."
+        },
+        {
+          "given": "/0, /32, 255.255.255.255, malformed input and no matching prefix.",
+          "id": "boundary",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Unsigned comparisons and explicit /0 work; malformed or unmatched input is denied; failed updates preserve old version.",
+          "when": "Parse and check each address."
+        }
+      ],
+      "algorithms": [
+        {
+          "code": "lookup(ip) { let node=active.root, best=null;\n for(let depth=0; node && depth<=32; depth++) {\n  if(node.candidate && (!best || node.candidate.ordinal<best.ordinal)) best=node.candidate;\n  if(depth===32)break; node=node.child[(ip >>> (31-depth)) & 1];\n } return best ?? DEFAULT_DENY;\n}\n// During build, root handles /0; exact prefix duplicates retain minimum ordinal.\n// Publish the entire root/version pair only after every rule parses.",
+          "guarantees": [
+            "At most 33 nodes visited; first-match semantics agree with ordered scan."
+          ],
+          "id": "mechanism-0",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "owner"
+        }
+      ],
+      "apis": [
+        {
+          "errors": "Malformed address returns DENY with invalid-input reason; invalid policy replacement rejects without publication",
+          "method": "CALL",
+          "ownerNodeId": "owner",
+          "path": "IpFirewall.check/replaceRules",
+          "request": "{\"operation\":\"check|replaceRules\",\"address\":\"strict dotted-decimal IPv4\",\"rules\":\"ordered [{action:ALLOW|DENY,cidr:string}]\"}",
+          "response": "{\"decision\":\"ALLOW|DENY\",\"ruleOrdinal\":\"integer|null\",\"policyVersion\":\"integer\"}"
+        }
+      ],
+      "assumptions": [
+        "Unsigned 32-bit arithmetic; /0 is handled explicitly because shift by 32 is language-dependent. Leading zeros are rejected except the octet 0.",
+        "All added requirements and walkthroughs are authored practice. Graphs specify design; reference tests prove only named bounded mechanisms."
+      ],
+      "chooseWhen": "Lookup volume dominates updates and O(32) bit traversal justifies additional memory.",
+      "id": "priority-trie",
+      "initialGraph": {
+        "edges": [],
+        "nodes": []
+      },
+      "stages": [
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l038.priority-trie.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l038.priority-trie.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l038.priority-trie.command"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l038.priority-trie.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l038.priority-trie.owner",
+                "id": "owner",
+                "label": "Trie firewall",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "priority-trie-s1",
+          "invariants": [
+            "The winning rule has smallest ordinal, not greatest depth."
+          ],
+          "number": 1,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l038.priority-trie.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "l038.priority-trie.owner",
+                "id": "owner",
+                "label": "Trie firewall",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l038.priority-trie.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l038.priority-trie.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l038.priority-trie.command"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Why is deepest-prefix selection wrong?",
+          "reason": "Store each prefix at its bit-depth node; traverse the address path and select minimum original ordinal over all matching ancestor prefixes.",
+          "title": "Expose Trie firewall"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l038.priority-trie.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l038.priority-trie.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l038.priority-trie.command"
+                }
+              },
+              {
+                "contractId": "l038.priority-trie.decode",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l038.priority-trie.decode"
+                },
+                "id": "use-decode",
+                "label": "Validate the bit path",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "decode",
+                  "portId": "in-l038.priority-trie.decode"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l038.priority-trie.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l038.priority-trie.owner",
+                "id": "owner",
+                "label": "Trie firewall",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l038.priority-trie.decode",
+                "id": "decode",
+                "label": "Strict address decoder",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "priority-trie-s2",
+          "invariants": [
+            "Bit 31 is handled as an unsigned network-order bit."
+          ],
+          "number": 2,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l038.priority-trie.decode",
+                "id": "decode",
+                "label": "Strict address decoder",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l038.priority-trie.decode",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l038.priority-trie.decode"
+                },
+                "id": "use-decode",
+                "label": "Validate the bit path",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "decode",
+                  "portId": "in-l038.priority-trie.decode"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "May malformed input enter the trie?",
+          "reason": "Canonical dotted-decimal parser produces one uint32; invalid input fails closed before traversal.",
+          "title": "Validate the bit path"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l038.priority-trie.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l038.priority-trie.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l038.priority-trie.command"
+                }
+              },
+              {
+                "contractId": "l038.priority-trie.decode",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l038.priority-trie.decode"
+                },
+                "id": "use-decode",
+                "label": "Validate the bit path",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "decode",
+                  "portId": "in-l038.priority-trie.decode"
+                }
+              },
+              {
+                "contractId": "l038.priority-trie.root",
+                "from": {
+                  "nodeId": "decode",
+                  "portId": "out-l038.priority-trie.root"
+                },
+                "id": "use-root",
+                "label": "Represent /0 at the root",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "root",
+                  "portId": "in-l038.priority-trie.root"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l038.priority-trie.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l038.priority-trie.owner",
+                "id": "owner",
+                "label": "Trie firewall",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l038.priority-trie.decode",
+                "id": "decode",
+                "label": "Strict address decoder",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l038.priority-trie.root",
+                "id": "root",
+                "label": "Prefix-zero root",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "priority-trie-s3",
+          "invariants": [
+            "A /0 candidate participates in every valid lookup."
+          ],
+          "number": 3,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l038.priority-trie.root",
+                "id": "root",
+                "label": "Prefix-zero root",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l038.priority-trie.root",
+                "from": {
+                  "nodeId": "decode",
+                  "portId": "out-l038.priority-trie.root"
+                },
+                "id": "use-root",
+                "label": "Represent /0 at the root",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "root",
+                  "portId": "in-l038.priority-trie.root"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Where does a catch-all rule live?",
+          "reason": "Root stores earliest /0 candidate; each rule descends exactly prefixLength bits after masking network host bits.",
+          "title": "Represent /0 at the root"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l038.priority-trie.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l038.priority-trie.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l038.priority-trie.command"
+                }
+              },
+              {
+                "contractId": "l038.priority-trie.decode",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l038.priority-trie.decode"
+                },
+                "id": "use-decode",
+                "label": "Validate the bit path",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "decode",
+                  "portId": "in-l038.priority-trie.decode"
+                }
+              },
+              {
+                "contractId": "l038.priority-trie.root",
+                "from": {
+                  "nodeId": "decode",
+                  "portId": "out-l038.priority-trie.root"
+                },
+                "id": "use-root",
+                "label": "Represent /0 at the root",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "root",
+                  "portId": "in-l038.priority-trie.root"
+                }
+              },
+              {
+                "contractId": "l038.priority-trie.insert",
+                "from": {
+                  "nodeId": "root",
+                  "portId": "out-l038.priority-trie.insert"
+                },
+                "id": "use-insert",
+                "label": "Retain duplicate prefix priority",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "insert",
+                  "portId": "in-l038.priority-trie.insert"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l038.priority-trie.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l038.priority-trie.owner",
+                "id": "owner",
+                "label": "Trie firewall",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l038.priority-trie.decode",
+                "id": "decode",
+                "label": "Strict address decoder",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l038.priority-trie.root",
+                "id": "root",
+                "label": "Prefix-zero root",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l038.priority-trie.insert",
+                "id": "insert",
+                "label": "Ordinal-aware insertion",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "priority-trie-s4",
+          "invariants": [
+            "A trie node candidate is earliest for that exact prefix."
+          ],
+          "number": 4,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l038.priority-trie.insert",
+                "id": "insert",
+                "label": "Ordinal-aware insertion",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l038.priority-trie.insert",
+                "from": {
+                  "nodeId": "root",
+                  "portId": "out-l038.priority-trie.insert"
+                },
+                "id": "use-insert",
+                "label": "Retain duplicate prefix priority",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "insert",
+                  "portId": "in-l038.priority-trie.insert"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can a later exact prefix replace an earlier one?",
+          "reason": "At a prefix node retain the candidate with lowest ordinal, including its action; do not overwrite with a later conflicting action.",
+          "title": "Retain duplicate prefix priority"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l038.priority-trie.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l038.priority-trie.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l038.priority-trie.command"
+                }
+              },
+              {
+                "contractId": "l038.priority-trie.decode",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l038.priority-trie.decode"
+                },
+                "id": "use-decode",
+                "label": "Validate the bit path",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "decode",
+                  "portId": "in-l038.priority-trie.decode"
+                }
+              },
+              {
+                "contractId": "l038.priority-trie.root",
+                "from": {
+                  "nodeId": "decode",
+                  "portId": "out-l038.priority-trie.root"
+                },
+                "id": "use-root",
+                "label": "Represent /0 at the root",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "root",
+                  "portId": "in-l038.priority-trie.root"
+                }
+              },
+              {
+                "contractId": "l038.priority-trie.insert",
+                "from": {
+                  "nodeId": "root",
+                  "portId": "out-l038.priority-trie.insert"
+                },
+                "id": "use-insert",
+                "label": "Retain duplicate prefix priority",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "insert",
+                  "portId": "in-l038.priority-trie.insert"
+                }
+              },
+              {
+                "contractId": "l038.priority-trie.walk",
+                "from": {
+                  "nodeId": "root",
+                  "portId": "out-l038.priority-trie.walk"
+                },
+                "id": "use-walk",
+                "label": "Collect ancestor matches",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "walk",
+                  "portId": "in-l038.priority-trie.walk"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l038.priority-trie.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l038.priority-trie.owner",
+                "id": "owner",
+                "label": "Trie firewall",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l038.priority-trie.decode",
+                "id": "decode",
+                "label": "Strict address decoder",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l038.priority-trie.root",
+                "id": "root",
+                "label": "Prefix-zero root",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l038.priority-trie.insert",
+                "id": "insert",
+                "label": "Ordinal-aware insertion",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l038.priority-trie.walk",
+                "id": "walk",
+                "label": "Address-path walker",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "priority-trie-s5",
+          "invariants": [
+            "Unvisited sibling prefixes cannot match the address."
+          ],
+          "number": 5,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l038.priority-trie.walk",
+                "id": "walk",
+                "label": "Address-path walker",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l038.priority-trie.walk",
+                "from": {
+                  "nodeId": "root",
+                  "portId": "out-l038.priority-trie.walk"
+                },
+                "id": "use-walk",
+                "label": "Collect ancestor matches",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "walk",
+                  "portId": "in-l038.priority-trie.walk"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Which trie nodes can match an IPv4 address?",
+          "reason": "Visit root and at most 32 nodes following each address bit; update best when candidate ordinal is lower.",
+          "title": "Collect ancestor matches"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l038.priority-trie.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l038.priority-trie.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l038.priority-trie.command"
+                }
+              },
+              {
+                "contractId": "l038.priority-trie.decode",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l038.priority-trie.decode"
+                },
+                "id": "use-decode",
+                "label": "Validate the bit path",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "decode",
+                  "portId": "in-l038.priority-trie.decode"
+                }
+              },
+              {
+                "contractId": "l038.priority-trie.root",
+                "from": {
+                  "nodeId": "decode",
+                  "portId": "out-l038.priority-trie.root"
+                },
+                "id": "use-root",
+                "label": "Represent /0 at the root",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "root",
+                  "portId": "in-l038.priority-trie.root"
+                }
+              },
+              {
+                "contractId": "l038.priority-trie.insert",
+                "from": {
+                  "nodeId": "root",
+                  "portId": "out-l038.priority-trie.insert"
+                },
+                "id": "use-insert",
+                "label": "Retain duplicate prefix priority",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "insert",
+                  "portId": "in-l038.priority-trie.insert"
+                }
+              },
+              {
+                "contractId": "l038.priority-trie.walk",
+                "from": {
+                  "nodeId": "root",
+                  "portId": "out-l038.priority-trie.walk"
+                },
+                "id": "use-walk",
+                "label": "Collect ancestor matches",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "walk",
+                  "portId": "in-l038.priority-trie.walk"
+                }
+              },
+              {
+                "contractId": "l038.priority-trie.decision",
+                "from": {
+                  "nodeId": "walk",
+                  "portId": "out-l038.priority-trie.decision"
+                },
+                "id": "use-decision",
+                "label": "Prefer order over specificity",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "decision",
+                  "portId": "in-l038.priority-trie.decision"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l038.priority-trie.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l038.priority-trie.owner",
+                "id": "owner",
+                "label": "Trie firewall",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l038.priority-trie.decode",
+                "id": "decode",
+                "label": "Strict address decoder",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l038.priority-trie.root",
+                "id": "root",
+                "label": "Prefix-zero root",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l038.priority-trie.insert",
+                "id": "insert",
+                "label": "Ordinal-aware insertion",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l038.priority-trie.walk",
+                "id": "walk",
+                "label": "Address-path walker",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l038.priority-trie.decision",
+                "id": "decision",
+                "label": "Priority reducer",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "priority-trie-s6",
+          "invariants": [
+            "Trie and ordered scan agree for the same policy."
+          ],
+          "number": 6,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l038.priority-trie.decision",
+                "id": "decision",
+                "label": "Priority reducer",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l038.priority-trie.decision",
+                "from": {
+                  "nodeId": "walk",
+                  "portId": "out-l038.priority-trie.decision"
+                },
+                "id": "use-decision",
+                "label": "Prefer order over specificity",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "decision",
+                  "portId": "in-l038.priority-trie.decision"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What if a /8 appears before a /32?",
+          "reason": "Choose lowest ordinal among root/path candidates; deny if none. Do not use longest-prefix APIs as a substitute.",
+          "title": "Prefer order over specificity"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l038.priority-trie.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l038.priority-trie.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l038.priority-trie.command"
+                }
+              },
+              {
+                "contractId": "l038.priority-trie.decode",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l038.priority-trie.decode"
+                },
+                "id": "use-decode",
+                "label": "Validate the bit path",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "decode",
+                  "portId": "in-l038.priority-trie.decode"
+                }
+              },
+              {
+                "contractId": "l038.priority-trie.root",
+                "from": {
+                  "nodeId": "decode",
+                  "portId": "out-l038.priority-trie.root"
+                },
+                "id": "use-root",
+                "label": "Represent /0 at the root",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "root",
+                  "portId": "in-l038.priority-trie.root"
+                }
+              },
+              {
+                "contractId": "l038.priority-trie.insert",
+                "from": {
+                  "nodeId": "root",
+                  "portId": "out-l038.priority-trie.insert"
+                },
+                "id": "use-insert",
+                "label": "Retain duplicate prefix priority",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "insert",
+                  "portId": "in-l038.priority-trie.insert"
+                }
+              },
+              {
+                "contractId": "l038.priority-trie.walk",
+                "from": {
+                  "nodeId": "root",
+                  "portId": "out-l038.priority-trie.walk"
+                },
+                "id": "use-walk",
+                "label": "Collect ancestor matches",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "walk",
+                  "portId": "in-l038.priority-trie.walk"
+                }
+              },
+              {
+                "contractId": "l038.priority-trie.decision",
+                "from": {
+                  "nodeId": "walk",
+                  "portId": "out-l038.priority-trie.decision"
+                },
+                "id": "use-decision",
+                "label": "Prefer order over specificity",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "decision",
+                  "portId": "in-l038.priority-trie.decision"
+                }
+              },
+              {
+                "contractId": "l038.priority-trie.build",
+                "from": {
+                  "nodeId": "insert",
+                  "portId": "out-l038.priority-trie.build"
+                },
+                "id": "use-build",
+                "label": "Build replacement versions",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "build",
+                  "portId": "in-l038.priority-trie.build"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l038.priority-trie.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l038.priority-trie.owner",
+                "id": "owner",
+                "label": "Trie firewall",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l038.priority-trie.decode",
+                "id": "decode",
+                "label": "Strict address decoder",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l038.priority-trie.root",
+                "id": "root",
+                "label": "Prefix-zero root",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l038.priority-trie.insert",
+                "id": "insert",
+                "label": "Ordinal-aware insertion",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l038.priority-trie.walk",
+                "id": "walk",
+                "label": "Address-path walker",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l038.priority-trie.decision",
+                "id": "decision",
+                "label": "Priority reducer",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l038.priority-trie.build",
+                "id": "build",
+                "label": "Private trie builder",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "priority-trie-s7",
+          "invariants": [
+            "An invalid CIDR aborts the complete replacement."
+          ],
+          "number": 7,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l038.priority-trie.build",
+                "id": "build",
+                "label": "Private trie builder",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l038.priority-trie.build",
+                "from": {
+                  "nodeId": "insert",
+                  "portId": "out-l038.priority-trie.build"
+                },
+                "id": "use-build",
+                "label": "Build replacement versions",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "build",
+                  "portId": "in-l038.priority-trie.build"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can concurrent readers see partially inserted prefixes?",
+          "reason": "Construct the entire next trie privately and validate counts/ordinals; never mutate the pinned active root.",
+          "title": "Build replacement versions"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l038.priority-trie.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l038.priority-trie.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l038.priority-trie.command"
+                }
+              },
+              {
+                "contractId": "l038.priority-trie.decode",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l038.priority-trie.decode"
+                },
+                "id": "use-decode",
+                "label": "Validate the bit path",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "decode",
+                  "portId": "in-l038.priority-trie.decode"
+                }
+              },
+              {
+                "contractId": "l038.priority-trie.root",
+                "from": {
+                  "nodeId": "decode",
+                  "portId": "out-l038.priority-trie.root"
+                },
+                "id": "use-root",
+                "label": "Represent /0 at the root",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "root",
+                  "portId": "in-l038.priority-trie.root"
+                }
+              },
+              {
+                "contractId": "l038.priority-trie.insert",
+                "from": {
+                  "nodeId": "root",
+                  "portId": "out-l038.priority-trie.insert"
+                },
+                "id": "use-insert",
+                "label": "Retain duplicate prefix priority",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "insert",
+                  "portId": "in-l038.priority-trie.insert"
+                }
+              },
+              {
+                "contractId": "l038.priority-trie.walk",
+                "from": {
+                  "nodeId": "root",
+                  "portId": "out-l038.priority-trie.walk"
+                },
+                "id": "use-walk",
+                "label": "Collect ancestor matches",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "walk",
+                  "portId": "in-l038.priority-trie.walk"
+                }
+              },
+              {
+                "contractId": "l038.priority-trie.decision",
+                "from": {
+                  "nodeId": "walk",
+                  "portId": "out-l038.priority-trie.decision"
+                },
+                "id": "use-decision",
+                "label": "Prefer order over specificity",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "decision",
+                  "portId": "in-l038.priority-trie.decision"
+                }
+              },
+              {
+                "contractId": "l038.priority-trie.build",
+                "from": {
+                  "nodeId": "insert",
+                  "portId": "out-l038.priority-trie.build"
+                },
+                "id": "use-build",
+                "label": "Build replacement versions",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "build",
+                  "portId": "in-l038.priority-trie.build"
+                }
+              },
+              {
+                "contractId": "l038.priority-trie.swap",
+                "from": {
+                  "nodeId": "build",
+                  "portId": "out-l038.priority-trie.swap"
+                },
+                "id": "use-swap",
+                "label": "Swap the policy snapshot",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "swap",
+                  "portId": "in-l038.priority-trie.swap"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l038.priority-trie.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l038.priority-trie.owner",
+                "id": "owner",
+                "label": "Trie firewall",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l038.priority-trie.decode",
+                "id": "decode",
+                "label": "Strict address decoder",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l038.priority-trie.root",
+                "id": "root",
+                "label": "Prefix-zero root",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l038.priority-trie.insert",
+                "id": "insert",
+                "label": "Ordinal-aware insertion",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l038.priority-trie.walk",
+                "id": "walk",
+                "label": "Address-path walker",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l038.priority-trie.decision",
+                "id": "decision",
+                "label": "Priority reducer",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l038.priority-trie.build",
+                "id": "build",
+                "label": "Private trie builder",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l038.priority-trie.swap",
+                "id": "swap",
+                "label": "Root-version publication",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "priority-trie-s8",
+          "invariants": [
+            "One check reports exactly one policy version."
+          ],
+          "number": 8,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l038.priority-trie.swap",
+                "id": "swap",
+                "label": "Root-version publication",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l038.priority-trie.swap",
+                "from": {
+                  "nodeId": "build",
+                  "portId": "out-l038.priority-trie.swap"
+                },
+                "id": "use-swap",
+                "label": "Swap the policy snapshot",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "swap",
+                  "portId": "in-l038.priority-trie.swap"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How are old readers released?",
+          "reason": "Publish a root/version pair atomically and retain old immutable nodes until pinned readers complete.",
+          "title": "Swap the policy snapshot"
+        }
+      ],
+      "title": "Binary prefix trie with minimum-ordinal selection",
+      "tradeoffs": [
+        "Up to O(32*r) nodes before path compression.",
+        "Update builds cost more and duplicate prefixes must retain the earliest ordinal."
+      ]
+    }
+  ],
+  "subsystems": [],
+  "version": 1
+}

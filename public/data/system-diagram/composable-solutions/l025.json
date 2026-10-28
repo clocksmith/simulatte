@@ -1,0 +1,3558 @@
+{
+  "components": [
+    {
+      "extends": {
+        "id": "core.client",
+        "version": 1
+      },
+      "id": "l025.push-slots.caller",
+      "label": "Chunk producer",
+      "ports": [
+        {
+          "contractId": "l025.push-slots.command",
+          "direction": "out",
+          "id": "out-l025.push-slots.command"
+        }
+      ],
+      "responsibility": "Invoke the documented API and retain returned outcomes.",
+      "stateOwnership": [
+        "caller-owned input"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l025.push-slots.owner",
+      "label": "Push coordinator",
+      "ports": [
+        {
+          "contractId": "l025.push-slots.command",
+          "direction": "in",
+          "id": "in-l025.push-slots.command"
+        },
+        {
+          "contractId": "l025.push-slots.batch",
+          "direction": "out",
+          "id": "out-l025.push-slots.batch"
+        }
+      ],
+      "responsibility": "Admit finite chunk work, execute bounded GPU batches and retain separate per-subscriber outstanding identities until acknowledged.",
+      "stateOwnership": [
+        "stream chunk identities",
+        "subscriber sessions"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.queue",
+        "version": 1
+      },
+      "id": "l025.push-slots.batch",
+      "label": "GPU batch queue",
+      "ports": [
+        {
+          "contractId": "l025.push-slots.batch",
+          "direction": "in",
+          "id": "in-l025.push-slots.batch"
+        },
+        {
+          "contractId": "l025.push-slots.gpu",
+          "direction": "out",
+          "id": "out-l025.push-slots.gpu"
+        }
+      ],
+      "responsibility": "Admit into a finite queue by chunk identity; reject when full and never treat rejection as completed work.",
+      "stateOwnership": [
+        "queued chunk IDs",
+        "batch capacity"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l025.push-slots.gpu",
+      "label": "Synthetic batch worker",
+      "ports": [
+        {
+          "contractId": "l025.push-slots.gpu",
+          "direction": "in",
+          "id": "in-l025.push-slots.gpu"
+        },
+        {
+          "contractId": "l025.push-slots.slots",
+          "direction": "out",
+          "id": "out-l025.push-slots.slots"
+        }
+      ],
+      "responsibility": "Claim a batch with stable chunk IDs; record modeled compute completion before fan-out. Batching speed is a parameter, not measured hardware proof.",
+      "stateOwnership": [
+        "active batch",
+        "compute receipts"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l025.push-slots.slots",
+      "label": "Subscriber ACK slots",
+      "ports": [
+        {
+          "contractId": "l025.push-slots.slots",
+          "direction": "in",
+          "id": "in-l025.push-slots.slots"
+        },
+        {
+          "contractId": "l025.push-slots.cache",
+          "direction": "out",
+          "id": "out-l025.push-slots.cache"
+        },
+        {
+          "contractId": "l025.push-slots.ack",
+          "direction": "out",
+          "id": "out-l025.push-slots.ack"
+        }
+      ],
+      "responsibility": "Track outstanding chunk IDs per subscriber/session with a fixed window; full subscribers receive a visible refusal or disconnection.",
+      "stateOwnership": [
+        "subscriber/session outstanding sets"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l025.push-slots.cache",
+      "label": "Coalescing CDN fill",
+      "ports": [
+        {
+          "contractId": "l025.push-slots.cache",
+          "direction": "in",
+          "id": "in-l025.push-slots.cache"
+        }
+      ],
+      "responsibility": "Maintain immutable content-key cache and single in-flight promise per key; bound distinct fill concurrency and waiter count.",
+      "stateOwnership": [
+        "cache keys",
+        "in-flight fills"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l025.push-slots.ack",
+      "label": "Session ACK reducer",
+      "ports": [
+        {
+          "contractId": "l025.push-slots.ack",
+          "direction": "in",
+          "id": "in-l025.push-slots.ack"
+        },
+        {
+          "contractId": "l025.push-slots.cancel",
+          "direction": "out",
+          "id": "out-l025.push-slots.cancel"
+        }
+      ],
+      "responsibility": "Verify subscriber, session epoch and outstanding chunk ID; delete once. Unknown or duplicate ACKs change no occupancy.",
+      "stateOwnership": [
+        "ACK receipts",
+        "session epoch"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l025.push-slots.cancel",
+      "label": "Slow-session policy",
+      "ports": [
+        {
+          "contractId": "l025.push-slots.cancel",
+          "direction": "in",
+          "id": "in-l025.push-slots.cancel"
+        },
+        {
+          "contractId": "l025.push-slots.account",
+          "direction": "out",
+          "id": "out-l025.push-slots.account"
+        }
+      ],
+      "responsibility": "Expire or disconnect a session under declared deadline, release its local slots and retain explicit undelivered IDs; do not count them as acknowledged.",
+      "stateOwnership": [
+        "terminal session state",
+        "undelivered IDs"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l025.push-slots.account",
+      "label": "Conservation ledger",
+      "ports": [
+        {
+          "contractId": "l025.push-slots.account",
+          "direction": "in",
+          "id": "in-l025.push-slots.account"
+        }
+      ],
+      "responsibility": "For every submitted chunk and subscriber record delivered/ACKed/rejected/unfinished outcome; separate compute totals from fan-out totals.",
+      "stateOwnership": [
+        "finite input set",
+        "outcome receipts"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.client",
+        "version": 1
+      },
+      "id": "l025.pull-cdn.caller",
+      "label": "Chunk producer",
+      "ports": [
+        {
+          "contractId": "l025.pull-cdn.command",
+          "direction": "out",
+          "id": "out-l025.pull-cdn.command"
+        }
+      ],
+      "responsibility": "Invoke the documented API and retain returned outcomes.",
+      "stateOwnership": [
+        "caller-owned input"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l025.pull-cdn.owner",
+      "label": "Manifest publisher",
+      "ports": [
+        {
+          "contractId": "l025.pull-cdn.command",
+          "direction": "in",
+          "id": "in-l025.pull-cdn.command"
+        },
+        {
+          "contractId": "l025.pull-cdn.jobs",
+          "direction": "out",
+          "id": "out-l025.pull-cdn.jobs"
+        }
+      ],
+      "responsibility": "Compute finite immutable chunks once, publish a committed manifest, and let each subscriber pull at its own rate through the CDN.",
+      "stateOwnership": [
+        "manifest version",
+        "chunk retention boundary"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.queue",
+        "version": 1
+      },
+      "id": "l025.pull-cdn.jobs",
+      "label": "Bounded batch admission",
+      "ports": [
+        {
+          "contractId": "l025.pull-cdn.jobs",
+          "direction": "in",
+          "id": "in-l025.pull-cdn.jobs"
+        },
+        {
+          "contractId": "l025.pull-cdn.compute",
+          "direction": "out",
+          "id": "out-l025.pull-cdn.compute"
+        }
+      ],
+      "responsibility": "Admit source chunks into a finite deduplicated batch queue independent of subscriber demand; expose rejected identities.",
+      "stateOwnership": [
+        "finite jobs",
+        "queue bound"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l025.pull-cdn.compute",
+      "label": "GPU chunk writer",
+      "ports": [
+        {
+          "contractId": "l025.pull-cdn.compute",
+          "direction": "in",
+          "id": "in-l025.pull-cdn.compute"
+        },
+        {
+          "contractId": "l025.pull-cdn.spool",
+          "direction": "out",
+          "id": "out-l025.pull-cdn.spool"
+        }
+      ],
+      "responsibility": "Finish modeled batch output, hash bytes and store immutable chunk before publishing its manifest entry.",
+      "stateOwnership": [
+        "active batch",
+        "write receipts"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l025.pull-cdn.spool",
+      "label": "Immutable chunk spool",
+      "ports": [
+        {
+          "contractId": "l025.pull-cdn.spool",
+          "direction": "in",
+          "id": "in-l025.pull-cdn.spool"
+        },
+        {
+          "contractId": "l025.pull-cdn.manifest",
+          "direction": "out",
+          "id": "out-l025.pull-cdn.manifest"
+        }
+      ],
+      "responsibility": "Store immutable content keys with explicit retained sequence floor and per-stream byte budget; pruning never silently rewrites an old key.",
+      "stateOwnership": [
+        "chunk bytes",
+        "retention floor"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l025.pull-cdn.manifest",
+      "label": "Versioned manifest",
+      "ports": [
+        {
+          "contractId": "l025.pull-cdn.manifest",
+          "direction": "in",
+          "id": "in-l025.pull-cdn.manifest"
+        },
+        {
+          "contractId": "l025.pull-cdn.cursor",
+          "direction": "out",
+          "id": "out-l025.pull-cdn.cursor"
+        }
+      ],
+      "responsibility": "Publish sorted committed chunk identities and explicit gaps/rejections in an immutable version; consumer advances only past declared outcomes.",
+      "stateOwnership": [
+        "manifest versions",
+        "committed prefix/gaps"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l025.pull-cdn.cursor",
+      "label": "Subscriber pull cursor",
+      "ports": [
+        {
+          "contractId": "l025.pull-cdn.cursor",
+          "direction": "in",
+          "id": "in-l025.pull-cdn.cursor"
+        },
+        {
+          "contractId": "l025.pull-cdn.cdn",
+          "direction": "out",
+          "id": "out-l025.pull-cdn.cdn"
+        }
+      ],
+      "responsibility": "Subscriber requests next identity with bounded concurrency and advances after its own successful receipt; publisher has no per-chunk push wait.",
+      "stateOwnership": [
+        "subscriber next sequence"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l025.pull-cdn.cdn",
+      "label": "Coalesced CDN reader",
+      "ports": [
+        {
+          "contractId": "l025.pull-cdn.cdn",
+          "direction": "in",
+          "id": "in-l025.pull-cdn.cdn"
+        },
+        {
+          "contractId": "l025.pull-cdn.expiry",
+          "direction": "out",
+          "id": "out-l025.pull-cdn.expiry"
+        }
+      ],
+      "responsibility": "Coalesce identical content-key misses; cap distinct fills and waiters, verify payload hash, and keep fill cancellation independent per waiter.",
+      "stateOwnership": [
+        "content cache",
+        "in-flight key map"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l025.pull-cdn.expiry",
+      "label": "Retention reset",
+      "ports": [
+        {
+          "contractId": "l025.pull-cdn.expiry",
+          "direction": "in",
+          "id": "in-l025.pull-cdn.expiry"
+        }
+      ],
+      "responsibility": "Return 410 with current floor and manifest version; require an explicit skip/reset or archived recovery source rather than claiming continuous delivery.",
+      "stateOwnership": [
+        "reset receipts"
+      ],
+      "version": 1
+    }
+  ],
+  "contracts": [
+    {
+      "id": "l025.push-slots.command",
+      "request": {
+        "chunkId": "monotonic finite chunk sequence",
+        "payloadHash": "hash of immutable bytes",
+        "streamId": "stable finite stream ID",
+        "subscriberId": "recipient identity"
+      },
+      "response": {
+        "chunkId": "same immutable identity",
+        "reason": "explicit failure or none",
+        "state": "queued|computed|delivered|acked|rejected|expired"
+      },
+      "version": 1
+    },
+    {
+      "id": "l025.push-slots.batch",
+      "request": {
+        "chunkId": "identity",
+        "payloadHash": "hash"
+      },
+      "response": {
+        "admitted": "boolean",
+        "queuePosition": "integer|null"
+      },
+      "version": 1
+    },
+    {
+      "id": "l025.push-slots.gpu",
+      "request": {
+        "batch": "bounded chunk IDs"
+      },
+      "response": {
+        "outputs": "immutable chunks"
+      },
+      "version": 1
+    },
+    {
+      "id": "l025.push-slots.slots",
+      "request": {
+        "chunkId": "identity",
+        "sessionId": "epoch",
+        "subscriberId": "identity"
+      },
+      "response": {
+        "reason": "full|closed|none",
+        "sent": "boolean"
+      },
+      "version": 1
+    },
+    {
+      "id": "l025.push-slots.cache",
+      "request": {
+        "contentKey": "hash-addressed chunk"
+      },
+      "response": {
+        "bytes": "matching immutable payload"
+      },
+      "version": 1
+    },
+    {
+      "id": "l025.push-slots.ack",
+      "request": {
+        "chunkId": "identity",
+        "sessionId": "epoch"
+      },
+      "response": {
+        "released": "boolean"
+      },
+      "version": 1
+    },
+    {
+      "id": "l025.push-slots.cancel",
+      "request": {
+        "reason": "timeout|client-close",
+        "sessionId": "epoch"
+      },
+      "response": {
+        "undelivered": "chunk IDs"
+      },
+      "version": 1
+    },
+    {
+      "id": "l025.push-slots.account",
+      "request": {
+        "receipts": "outcome records",
+        "submitted": "finite chunk IDs"
+      },
+      "response": {
+        "missing": "explicit unfinished IDs"
+      },
+      "version": 1
+    },
+    {
+      "id": "l025.pull-cdn.command",
+      "request": {
+        "chunkId": "monotonic finite chunk sequence",
+        "payloadHash": "hash of immutable bytes",
+        "streamId": "stable finite stream ID",
+        "subscriberId": "recipient identity"
+      },
+      "response": {
+        "chunkId": "same immutable identity",
+        "reason": "explicit failure or none",
+        "state": "queued|computed|delivered|acked|rejected|expired"
+      },
+      "version": 1
+    },
+    {
+      "id": "l025.pull-cdn.jobs",
+      "request": {
+        "chunkId": "sequence",
+        "streamId": "identity"
+      },
+      "response": {
+        "admitted": "boolean"
+      },
+      "version": 1
+    },
+    {
+      "id": "l025.pull-cdn.compute",
+      "request": {
+        "batch": "chunk IDs"
+      },
+      "response": {
+        "written": "content keys"
+      },
+      "version": 1
+    },
+    {
+      "id": "l025.pull-cdn.spool",
+      "request": {
+        "bytes": "payload",
+        "contentKey": "hash"
+      },
+      "response": {
+        "stored": "boolean"
+      },
+      "version": 1
+    },
+    {
+      "id": "l025.pull-cdn.manifest",
+      "request": {
+        "writes": "durable spool receipts"
+      },
+      "response": {
+        "manifest": "versioned IDs/hashes/outcomes"
+      },
+      "version": 1
+    },
+    {
+      "id": "l025.pull-cdn.cursor",
+      "request": {
+        "lastReceived": "sequence",
+        "manifestVersion": "integer"
+      },
+      "response": {
+        "nextRequest": "chunk ID or wait"
+      },
+      "version": 1
+    },
+    {
+      "id": "l025.pull-cdn.cdn",
+      "request": {
+        "contentKey": "hash",
+        "waiterId": "identity"
+      },
+      "response": {
+        "bytes": "verified chunk"
+      },
+      "version": 1
+    },
+    {
+      "id": "l025.pull-cdn.expiry",
+      "request": {
+        "requestedSequence": "integer",
+        "retainedFloor": "integer"
+      },
+      "response": {
+        "resetFloor": "integer",
+        "state": "available|expired"
+      },
+      "version": 1
+    }
+  ],
+  "execution": {
+    "implementation": null,
+    "kind": "conceptual-design"
+  },
+  "problem": {
+    "referenceId": "L025",
+    "requirements": [
+      {
+        "id": "r0",
+        "text": "Bound GPU batch queue, fan-out slots and cache-fill work; retain explicit rejected and unfinished chunks."
+      },
+      {
+        "id": "r1",
+        "text": "Acknowledge per-subscriber delivery separately from compute completion; a slow subscriber cannot silently consume unbounded memory."
+      },
+      {
+        "id": "r2",
+        "text": "Coalesce concurrent same-chunk CDN misses; define cancellation, retry identity and retained-history expiry."
+      }
+    ],
+    "scope": "Authored bounded streaming study retaining the catalogue scope: synthetic finite video chunks, GPU batch work, acknowledged fan-out slots, coalescing CDN cache and one slow consumer. Compare push fan-out with bounded rejection against pull delivery from immutable CDN chunks. No codec, player, real GPU speedup, production sizing or infinite-stream claim.",
+    "studyLabel": "Finite streaming burst with a slow subscriber"
+  },
+  "provenance": {
+    "kind": "authored-practice",
+    "note": "Authored interview preparation. Technical references support mechanisms, not the claim that a company asked this question."
+  },
+  "references": [
+    {
+      "id": "ref0",
+      "scope": "background",
+      "supports": "Writable buffering and backpressure; this synthetic acknowledged-slot policy is authored.",
+      "title": "Node stream backpressure",
+      "url": "https://nodejs.org/api/stream.html"
+    }
+  ],
+  "schema": "simulatte.composableStudy.v2",
+  "solutions": [
+    {
+      "acceptanceCases": [
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-08-mechanisms.test.mjs",
+            "testName": "batch-08 streaming: bounded slots and coalesced fill"
+          },
+          "given": "Two consumers, capacity one per subscriber, one ACK withheld.",
+          "id": "behavior",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Fast consumer progresses; slow outstanding slots stay bounded; rejection/reset is visible; stale-session ACK cannot free a new slot.",
+          "when": "Send two chunks, duplicate ACK, disconnect/reconnect the slow consumer."
+        },
+        {
+          "given": "Two simultaneous cache misses request the same immutable chunk.",
+          "id": "boundary",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "One fill executes, live waiter receives matching bytes, canceled waiter receives no completion, and failures release in-flight entries.",
+          "when": "Start both fills, cancel one waiter, then complete the fill."
+        }
+      ],
+      "algorithms": [
+        {
+          "code": "for(const chunk of finiteInput) {\n if(!gpuQueue.tryPut(chunk)) {record(chunk,\"rejected-compute\");continue;}\n const bytes=await computeBatch(chunk);\n for(const session of currentSessions) {\n  if(session.outstanding.size>=window) {record(chunk,session,\"rejected-slow\");continue;}\n  session.outstanding.add(chunk.id);send(session,await cache.getOrFill(chunk.hash,bytes));\n }\n}\nonAck(sessionEpoch,chunkId) { const s=currentSession(sessionEpoch);\n if(s)s.outstanding.delete(chunkId); }\n// Completion report retains every rejected and outstanding identity.",
+          "guarantees": [
+            "Per-session occupancy is bounded; ACK and compute completion are not conflated."
+          ],
+          "id": "mechanism-0",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "owner"
+        }
+      ],
+      "apis": [
+        {
+          "errors": "429 bounded queue full; 409 same chunk identity different bytes; 410 requested chunk expired; disconnected acknowledgements do not release another session slot",
+          "method": "POST",
+          "ownerNodeId": "owner",
+          "path": "/streams/{streamId}/chunks",
+          "request": "{\"streamId\":\"stable finite stream ID\",\"chunkId\":\"monotonic finite chunk sequence\",\"payloadHash\":\"hash of immutable bytes\",\"subscriberId\":\"recipient identity\"}",
+          "response": "{\"state\":\"queued|computed|delivered|acked|rejected|expired\",\"chunkId\":\"same immutable identity\",\"reason\":\"explicit failure or none\"}"
+        }
+      ],
+      "assumptions": [
+        "Only a declared finite set of chunks exists. ACK is an application protocol event, not proof of playback. Retry uses stream/chunk/subscriber/session identities.",
+        "All added requirements and walkthroughs are authored practice. Graphs specify design; reference tests prove only named bounded mechanisms."
+      ],
+      "chooseWhen": "Low delivery latency matters and slow consumers may be rejected or disconnected under explicit policy.",
+      "id": "push-slots",
+      "initialGraph": {
+        "edges": [],
+        "nodes": []
+      },
+      "stages": [
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l025.push-slots.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l025.push-slots.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l025.push-slots.command"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l025.push-slots.caller",
+                "id": "caller",
+                "label": "Chunk producer",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l025.push-slots.owner",
+                "id": "owner",
+                "label": "Push coordinator",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "push-slots-s1",
+          "invariants": [
+            "GPU completion and each subscriber ACK are separate states."
+          ],
+          "number": 1,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l025.push-slots.caller",
+                "id": "caller",
+                "label": "Chunk producer",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "l025.push-slots.owner",
+                "id": "owner",
+                "label": "Push coordinator",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l025.push-slots.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l025.push-slots.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l025.push-slots.command"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Does computed mean delivered?",
+          "reason": "Admit finite chunk work, execute bounded GPU batches and retain separate per-subscriber outstanding identities until acknowledged.",
+          "title": "Expose Push coordinator"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l025.push-slots.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l025.push-slots.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l025.push-slots.command"
+                }
+              },
+              {
+                "contractId": "l025.push-slots.batch",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l025.push-slots.batch"
+                },
+                "id": "use-batch",
+                "label": "Bound pending compute",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "batch",
+                  "portId": "in-l025.push-slots.batch"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l025.push-slots.caller",
+                "id": "caller",
+                "label": "Chunk producer",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l025.push-slots.owner",
+                "id": "owner",
+                "label": "Push coordinator",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l025.push-slots.batch",
+                "id": "batch",
+                "label": "GPU batch queue",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "push-slots-s2",
+          "invariants": [
+            "Every submitted chunk is queued, rejected or explicitly unfinished."
+          ],
+          "number": 2,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l025.push-slots.batch",
+                "id": "batch",
+                "label": "GPU batch queue",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l025.push-slots.batch",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l025.push-slots.batch"
+                },
+                "id": "use-batch",
+                "label": "Bound pending compute",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "batch",
+                  "portId": "in-l025.push-slots.batch"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What if production outruns GPU batch completion?",
+          "reason": "Admit into a finite queue by chunk identity; reject when full and never treat rejection as completed work.",
+          "title": "Bound pending compute"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l025.push-slots.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l025.push-slots.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l025.push-slots.command"
+                }
+              },
+              {
+                "contractId": "l025.push-slots.batch",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l025.push-slots.batch"
+                },
+                "id": "use-batch",
+                "label": "Bound pending compute",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "batch",
+                  "portId": "in-l025.push-slots.batch"
+                }
+              },
+              {
+                "contractId": "l025.push-slots.gpu",
+                "from": {
+                  "nodeId": "batch",
+                  "portId": "out-l025.push-slots.gpu"
+                },
+                "id": "use-gpu",
+                "label": "Complete one finite batch",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "gpu",
+                  "portId": "in-l025.push-slots.gpu"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l025.push-slots.caller",
+                "id": "caller",
+                "label": "Chunk producer",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l025.push-slots.owner",
+                "id": "owner",
+                "label": "Push coordinator",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l025.push-slots.batch",
+                "id": "batch",
+                "label": "GPU batch queue",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l025.push-slots.gpu",
+                "id": "gpu",
+                "label": "Synthetic batch worker",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "push-slots-s3",
+          "invariants": [
+            "A duplicate chunk identity cannot change immutable output bytes."
+          ],
+          "number": 3,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l025.push-slots.gpu",
+                "id": "gpu",
+                "label": "Synthetic batch worker",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l025.push-slots.gpu",
+                "from": {
+                  "nodeId": "batch",
+                  "portId": "out-l025.push-slots.gpu"
+                },
+                "id": "use-gpu",
+                "label": "Complete one finite batch",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "gpu",
+                  "portId": "in-l025.push-slots.gpu"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can one timed-out request duplicate compute identity?",
+          "reason": "Claim a batch with stable chunk IDs; record modeled compute completion before fan-out. Batching speed is a parameter, not measured hardware proof.",
+          "title": "Complete one finite batch"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l025.push-slots.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l025.push-slots.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l025.push-slots.command"
+                }
+              },
+              {
+                "contractId": "l025.push-slots.batch",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l025.push-slots.batch"
+                },
+                "id": "use-batch",
+                "label": "Bound pending compute",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "batch",
+                  "portId": "in-l025.push-slots.batch"
+                }
+              },
+              {
+                "contractId": "l025.push-slots.gpu",
+                "from": {
+                  "nodeId": "batch",
+                  "portId": "out-l025.push-slots.gpu"
+                },
+                "id": "use-gpu",
+                "label": "Complete one finite batch",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "gpu",
+                  "portId": "in-l025.push-slots.gpu"
+                }
+              },
+              {
+                "contractId": "l025.push-slots.slots",
+                "from": {
+                  "nodeId": "gpu",
+                  "portId": "out-l025.push-slots.slots"
+                },
+                "id": "use-slots",
+                "label": "Allocate independent windows",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "slots",
+                  "portId": "in-l025.push-slots.slots"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l025.push-slots.caller",
+                "id": "caller",
+                "label": "Chunk producer",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l025.push-slots.owner",
+                "id": "owner",
+                "label": "Push coordinator",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l025.push-slots.batch",
+                "id": "batch",
+                "label": "GPU batch queue",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l025.push-slots.gpu",
+                "id": "gpu",
+                "label": "Synthetic batch worker",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l025.push-slots.slots",
+                "id": "slots",
+                "label": "Subscriber ACK slots",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "push-slots-s4",
+          "invariants": [
+            "No subscriber holds more than its configured window."
+          ],
+          "number": 4,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l025.push-slots.slots",
+                "id": "slots",
+                "label": "Subscriber ACK slots",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l025.push-slots.slots",
+                "from": {
+                  "nodeId": "gpu",
+                  "portId": "out-l025.push-slots.slots"
+                },
+                "id": "use-slots",
+                "label": "Allocate independent windows",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "slots",
+                  "portId": "in-l025.push-slots.slots"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Why should one slow subscriber not block all recipients?",
+          "reason": "Track outstanding chunk IDs per subscriber/session with a fixed window; full subscribers receive a visible refusal or disconnection.",
+          "title": "Allocate independent windows"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l025.push-slots.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l025.push-slots.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l025.push-slots.command"
+                }
+              },
+              {
+                "contractId": "l025.push-slots.batch",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l025.push-slots.batch"
+                },
+                "id": "use-batch",
+                "label": "Bound pending compute",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "batch",
+                  "portId": "in-l025.push-slots.batch"
+                }
+              },
+              {
+                "contractId": "l025.push-slots.gpu",
+                "from": {
+                  "nodeId": "batch",
+                  "portId": "out-l025.push-slots.gpu"
+                },
+                "id": "use-gpu",
+                "label": "Complete one finite batch",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "gpu",
+                  "portId": "in-l025.push-slots.gpu"
+                }
+              },
+              {
+                "contractId": "l025.push-slots.slots",
+                "from": {
+                  "nodeId": "gpu",
+                  "portId": "out-l025.push-slots.slots"
+                },
+                "id": "use-slots",
+                "label": "Allocate independent windows",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "slots",
+                  "portId": "in-l025.push-slots.slots"
+                }
+              },
+              {
+                "contractId": "l025.push-slots.cache",
+                "from": {
+                  "nodeId": "slots",
+                  "portId": "out-l025.push-slots.cache"
+                },
+                "id": "use-cache",
+                "label": "Share a cache miss",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "cache",
+                  "portId": "in-l025.push-slots.cache"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l025.push-slots.caller",
+                "id": "caller",
+                "label": "Chunk producer",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l025.push-slots.owner",
+                "id": "owner",
+                "label": "Push coordinator",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l025.push-slots.batch",
+                "id": "batch",
+                "label": "GPU batch queue",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l025.push-slots.gpu",
+                "id": "gpu",
+                "label": "Synthetic batch worker",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l025.push-slots.slots",
+                "id": "slots",
+                "label": "Subscriber ACK slots",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l025.push-slots.cache",
+                "id": "cache",
+                "label": "Coalescing CDN fill",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "push-slots-s5",
+          "invariants": [
+            "A fill failure clears the in-flight entry so a later explicit retry may proceed."
+          ],
+          "number": 5,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l025.push-slots.cache",
+                "id": "cache",
+                "label": "Coalescing CDN fill",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l025.push-slots.cache",
+                "from": {
+                  "nodeId": "slots",
+                  "portId": "out-l025.push-slots.cache"
+                },
+                "id": "use-cache",
+                "label": "Share a cache miss",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "cache",
+                  "portId": "in-l025.push-slots.cache"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can simultaneous subscribers trigger duplicate origin work?",
+          "reason": "Maintain immutable content-key cache and single in-flight promise per key; bound distinct fill concurrency and waiter count.",
+          "title": "Share a cache miss"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l025.push-slots.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l025.push-slots.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l025.push-slots.command"
+                }
+              },
+              {
+                "contractId": "l025.push-slots.batch",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l025.push-slots.batch"
+                },
+                "id": "use-batch",
+                "label": "Bound pending compute",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "batch",
+                  "portId": "in-l025.push-slots.batch"
+                }
+              },
+              {
+                "contractId": "l025.push-slots.gpu",
+                "from": {
+                  "nodeId": "batch",
+                  "portId": "out-l025.push-slots.gpu"
+                },
+                "id": "use-gpu",
+                "label": "Complete one finite batch",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "gpu",
+                  "portId": "in-l025.push-slots.gpu"
+                }
+              },
+              {
+                "contractId": "l025.push-slots.slots",
+                "from": {
+                  "nodeId": "gpu",
+                  "portId": "out-l025.push-slots.slots"
+                },
+                "id": "use-slots",
+                "label": "Allocate independent windows",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "slots",
+                  "portId": "in-l025.push-slots.slots"
+                }
+              },
+              {
+                "contractId": "l025.push-slots.cache",
+                "from": {
+                  "nodeId": "slots",
+                  "portId": "out-l025.push-slots.cache"
+                },
+                "id": "use-cache",
+                "label": "Share a cache miss",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "cache",
+                  "portId": "in-l025.push-slots.cache"
+                }
+              },
+              {
+                "contractId": "l025.push-slots.ack",
+                "from": {
+                  "nodeId": "slots",
+                  "portId": "out-l025.push-slots.ack"
+                },
+                "id": "use-ack",
+                "label": "Release only a matching slot",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "ack",
+                  "portId": "in-l025.push-slots.ack"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l025.push-slots.caller",
+                "id": "caller",
+                "label": "Chunk producer",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l025.push-slots.owner",
+                "id": "owner",
+                "label": "Push coordinator",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l025.push-slots.batch",
+                "id": "batch",
+                "label": "GPU batch queue",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l025.push-slots.gpu",
+                "id": "gpu",
+                "label": "Synthetic batch worker",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l025.push-slots.slots",
+                "id": "slots",
+                "label": "Subscriber ACK slots",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l025.push-slots.cache",
+                "id": "cache",
+                "label": "Coalescing CDN fill",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l025.push-slots.ack",
+                "id": "ack",
+                "label": "Session ACK reducer",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "push-slots-s6",
+          "invariants": [
+            "An old session cannot free a new-session outstanding chunk."
+          ],
+          "number": 6,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l025.push-slots.ack",
+                "id": "ack",
+                "label": "Session ACK reducer",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l025.push-slots.ack",
+                "from": {
+                  "nodeId": "slots",
+                  "portId": "out-l025.push-slots.ack"
+                },
+                "id": "use-ack",
+                "label": "Release only a matching slot",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "ack",
+                  "portId": "in-l025.push-slots.ack"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What if old ACKs arrive after reconnect?",
+          "reason": "Verify subscriber, session epoch and outstanding chunk ID; delete once. Unknown or duplicate ACKs change no occupancy.",
+          "title": "Release only a matching slot"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l025.push-slots.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l025.push-slots.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l025.push-slots.command"
+                }
+              },
+              {
+                "contractId": "l025.push-slots.batch",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l025.push-slots.batch"
+                },
+                "id": "use-batch",
+                "label": "Bound pending compute",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "batch",
+                  "portId": "in-l025.push-slots.batch"
+                }
+              },
+              {
+                "contractId": "l025.push-slots.gpu",
+                "from": {
+                  "nodeId": "batch",
+                  "portId": "out-l025.push-slots.gpu"
+                },
+                "id": "use-gpu",
+                "label": "Complete one finite batch",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "gpu",
+                  "portId": "in-l025.push-slots.gpu"
+                }
+              },
+              {
+                "contractId": "l025.push-slots.slots",
+                "from": {
+                  "nodeId": "gpu",
+                  "portId": "out-l025.push-slots.slots"
+                },
+                "id": "use-slots",
+                "label": "Allocate independent windows",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "slots",
+                  "portId": "in-l025.push-slots.slots"
+                }
+              },
+              {
+                "contractId": "l025.push-slots.cache",
+                "from": {
+                  "nodeId": "slots",
+                  "portId": "out-l025.push-slots.cache"
+                },
+                "id": "use-cache",
+                "label": "Share a cache miss",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "cache",
+                  "portId": "in-l025.push-slots.cache"
+                }
+              },
+              {
+                "contractId": "l025.push-slots.ack",
+                "from": {
+                  "nodeId": "slots",
+                  "portId": "out-l025.push-slots.ack"
+                },
+                "id": "use-ack",
+                "label": "Release only a matching slot",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "ack",
+                  "portId": "in-l025.push-slots.ack"
+                }
+              },
+              {
+                "contractId": "l025.push-slots.cancel",
+                "from": {
+                  "nodeId": "ack",
+                  "portId": "out-l025.push-slots.cancel"
+                },
+                "id": "use-cancel",
+                "label": "Terminate held resources",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "cancel",
+                  "portId": "in-l025.push-slots.cancel"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l025.push-slots.caller",
+                "id": "caller",
+                "label": "Chunk producer",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l025.push-slots.owner",
+                "id": "owner",
+                "label": "Push coordinator",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l025.push-slots.batch",
+                "id": "batch",
+                "label": "GPU batch queue",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l025.push-slots.gpu",
+                "id": "gpu",
+                "label": "Synthetic batch worker",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l025.push-slots.slots",
+                "id": "slots",
+                "label": "Subscriber ACK slots",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l025.push-slots.cache",
+                "id": "cache",
+                "label": "Coalescing CDN fill",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l025.push-slots.ack",
+                "id": "ack",
+                "label": "Session ACK reducer",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l025.push-slots.cancel",
+                "id": "cancel",
+                "label": "Slow-session policy",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "push-slots-s7",
+          "invariants": [
+            "Resource reclamation is not delivery success."
+          ],
+          "number": 7,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l025.push-slots.cancel",
+                "id": "cancel",
+                "label": "Slow-session policy",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l025.push-slots.cancel",
+                "from": {
+                  "nodeId": "ack",
+                  "portId": "out-l025.push-slots.cancel"
+                },
+                "id": "use-cancel",
+                "label": "Terminate held resources",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "cancel",
+                  "portId": "in-l025.push-slots.cancel"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What if ACK never arrives?",
+          "reason": "Expire or disconnect a session under declared deadline, release its local slots and retain explicit undelivered IDs; do not count them as acknowledged.",
+          "title": "Terminate held resources"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l025.push-slots.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l025.push-slots.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l025.push-slots.command"
+                }
+              },
+              {
+                "contractId": "l025.push-slots.batch",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l025.push-slots.batch"
+                },
+                "id": "use-batch",
+                "label": "Bound pending compute",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "batch",
+                  "portId": "in-l025.push-slots.batch"
+                }
+              },
+              {
+                "contractId": "l025.push-slots.gpu",
+                "from": {
+                  "nodeId": "batch",
+                  "portId": "out-l025.push-slots.gpu"
+                },
+                "id": "use-gpu",
+                "label": "Complete one finite batch",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "gpu",
+                  "portId": "in-l025.push-slots.gpu"
+                }
+              },
+              {
+                "contractId": "l025.push-slots.slots",
+                "from": {
+                  "nodeId": "gpu",
+                  "portId": "out-l025.push-slots.slots"
+                },
+                "id": "use-slots",
+                "label": "Allocate independent windows",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "slots",
+                  "portId": "in-l025.push-slots.slots"
+                }
+              },
+              {
+                "contractId": "l025.push-slots.cache",
+                "from": {
+                  "nodeId": "slots",
+                  "portId": "out-l025.push-slots.cache"
+                },
+                "id": "use-cache",
+                "label": "Share a cache miss",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "cache",
+                  "portId": "in-l025.push-slots.cache"
+                }
+              },
+              {
+                "contractId": "l025.push-slots.ack",
+                "from": {
+                  "nodeId": "slots",
+                  "portId": "out-l025.push-slots.ack"
+                },
+                "id": "use-ack",
+                "label": "Release only a matching slot",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "ack",
+                  "portId": "in-l025.push-slots.ack"
+                }
+              },
+              {
+                "contractId": "l025.push-slots.cancel",
+                "from": {
+                  "nodeId": "ack",
+                  "portId": "out-l025.push-slots.cancel"
+                },
+                "id": "use-cancel",
+                "label": "Terminate held resources",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "cancel",
+                  "portId": "in-l025.push-slots.cancel"
+                }
+              },
+              {
+                "contractId": "l025.push-slots.account",
+                "from": {
+                  "nodeId": "cancel",
+                  "portId": "out-l025.push-slots.account"
+                },
+                "id": "use-account",
+                "label": "Reconcile finite outcomes",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "account",
+                  "portId": "in-l025.push-slots.account"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l025.push-slots.caller",
+                "id": "caller",
+                "label": "Chunk producer",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l025.push-slots.owner",
+                "id": "owner",
+                "label": "Push coordinator",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l025.push-slots.batch",
+                "id": "batch",
+                "label": "GPU batch queue",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l025.push-slots.gpu",
+                "id": "gpu",
+                "label": "Synthetic batch worker",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l025.push-slots.slots",
+                "id": "slots",
+                "label": "Subscriber ACK slots",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l025.push-slots.cache",
+                "id": "cache",
+                "label": "Coalescing CDN fill",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l025.push-slots.ack",
+                "id": "ack",
+                "label": "Session ACK reducer",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l025.push-slots.cancel",
+                "id": "cancel",
+                "label": "Slow-session policy",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l025.push-slots.account",
+                "id": "account",
+                "label": "Conservation ledger",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "push-slots-s8",
+          "invariants": [
+            "The finite input ledger balances without inventing completion."
+          ],
+          "number": 8,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l025.push-slots.account",
+                "id": "account",
+                "label": "Conservation ledger",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l025.push-slots.account",
+                "from": {
+                  "nodeId": "cancel",
+                  "portId": "out-l025.push-slots.account"
+                },
+                "id": "use-account",
+                "label": "Reconcile finite outcomes",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "account",
+                  "portId": "in-l025.push-slots.account"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can rejected chunks disappear from the result?",
+          "reason": "For every submitted chunk and subscriber record delivered/ACKed/rejected/unfinished outcome; separate compute totals from fan-out totals.",
+          "title": "Reconcile finite outcomes"
+        }
+      ],
+      "title": "Bounded push fan-out with per-subscriber ACK windows",
+      "tradeoffs": [
+        "Per-subscriber outstanding state grows with subscriber count times configured window.",
+        "Reject/drop policy must be visible; a slow subscriber cannot be promised lossless infinite retention."
+      ]
+    },
+    {
+      "acceptanceCases": [
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-08-mechanisms.test.mjs",
+            "testName": "batch-08 streaming: bounded slots and coalesced fill"
+          },
+          "given": "Two consumers, capacity one per subscriber, one ACK withheld.",
+          "id": "behavior",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Fast consumer progresses; slow outstanding slots stay bounded; rejection/reset is visible; stale-session ACK cannot free a new slot.",
+          "when": "Send two chunks, duplicate ACK, disconnect/reconnect the slow consumer."
+        },
+        {
+          "given": "Two simultaneous cache misses request the same immutable chunk.",
+          "id": "boundary",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "One fill executes, live waiter receives matching bytes, canceled waiter receives no completion, and failures release in-flight entries.",
+          "when": "Start both fills, cancel one waiter, then complete the fill."
+        }
+      ],
+      "algorithms": [
+        {
+          "code": "publishChunk(chunk) {\n if(!queue.tryPutUnique(chunk.id))return recordRejected(chunk.id);\n const bytes=computeFiniteBatch(chunk);const key=hash(bytes);\n spool.putImmutable(key,bytes);manifest.commitEntry(chunk.id,key);\n}\nasync pull(cursor) { const m=manifest.snapshot();\n if(cursor.next<m.floor)throw Expired(m.floor,m.version);\n const entry=m.entry(cursor.next);if(!entry)return NotReadyOrExplicitGap(m);\n const bytes=await cdn.getOrFill(entry.hash,()=>spool.read(entry.hash));\n verifyHash(bytes,entry.hash);return {chunkId:entry.id,bytes,next:entry.id+1};\n}",
+          "guarantees": [
+            "Pull demand is independent; retained history is bounded and expiration is explicit."
+          ],
+          "id": "mechanism-0",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "owner"
+        }
+      ],
+      "apis": [
+        {
+          "errors": "429 bounded queue full; 409 same chunk identity different bytes; 410 requested chunk expired; disconnected acknowledgements do not release another session slot",
+          "method": "POST",
+          "ownerNodeId": "owner",
+          "path": "/streams/{streamId}/chunks",
+          "request": "{\"streamId\":\"stable finite stream ID\",\"chunkId\":\"monotonic finite chunk sequence\",\"payloadHash\":\"hash of immutable bytes\",\"subscriberId\":\"recipient identity\"}",
+          "response": "{\"state\":\"queued|computed|delivered|acked|rejected|expired\",\"chunkId\":\"same immutable identity\",\"reason\":\"explicit failure or none\"}"
+        }
+      ],
+      "assumptions": [
+        "Only a declared finite set of chunks exists. ACK is an application protocol event, not proof of playback. Retry uses stream/chunk/subscriber/session identities.",
+        "All added requirements and walkthroughs are authored practice. Graphs specify design; reference tests prove only named bounded mechanisms."
+      ],
+      "chooseWhen": "Consumers may lag independently and storage retention can absorb a bounded burst.",
+      "id": "pull-cdn",
+      "initialGraph": {
+        "edges": [],
+        "nodes": []
+      },
+      "stages": [
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l025.pull-cdn.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l025.pull-cdn.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l025.pull-cdn.command"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l025.pull-cdn.caller",
+                "id": "caller",
+                "label": "Chunk producer",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l025.pull-cdn.owner",
+                "id": "owner",
+                "label": "Manifest publisher",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "pull-cdn-s1",
+          "invariants": [
+            "Each subscriber requests the next chunk only when it is ready."
+          ],
+          "number": 1,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l025.pull-cdn.caller",
+                "id": "caller",
+                "label": "Chunk producer",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "l025.pull-cdn.owner",
+                "id": "owner",
+                "label": "Manifest publisher",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l025.pull-cdn.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l025.pull-cdn.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l025.pull-cdn.command"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Who decides when the slow consumer receives the next chunk?",
+          "reason": "Compute finite immutable chunks once, publish a committed manifest, and let each subscriber pull at its own rate through the CDN.",
+          "title": "Expose Manifest publisher"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l025.pull-cdn.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l025.pull-cdn.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l025.pull-cdn.command"
+                }
+              },
+              {
+                "contractId": "l025.pull-cdn.jobs",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l025.pull-cdn.jobs"
+                },
+                "id": "use-jobs",
+                "label": "Admit finite compute work",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "jobs",
+                  "portId": "in-l025.pull-cdn.jobs"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l025.pull-cdn.caller",
+                "id": "caller",
+                "label": "Chunk producer",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l025.pull-cdn.owner",
+                "id": "owner",
+                "label": "Manifest publisher",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l025.pull-cdn.jobs",
+                "id": "jobs",
+                "label": "Bounded batch admission",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "pull-cdn-s2",
+          "invariants": [
+            "Repeated pulls cannot schedule duplicate chunk computation."
+          ],
+          "number": 2,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l025.pull-cdn.jobs",
+                "id": "jobs",
+                "label": "Bounded batch admission",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l025.pull-cdn.jobs",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l025.pull-cdn.jobs"
+                },
+                "id": "use-jobs",
+                "label": "Admit finite compute work",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "jobs",
+                  "portId": "in-l025.pull-cdn.jobs"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can pull traffic create unlimited GPU work?",
+          "reason": "Admit source chunks into a finite deduplicated batch queue independent of subscriber demand; expose rejected identities.",
+          "title": "Admit finite compute work"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l025.pull-cdn.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l025.pull-cdn.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l025.pull-cdn.command"
+                }
+              },
+              {
+                "contractId": "l025.pull-cdn.jobs",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l025.pull-cdn.jobs"
+                },
+                "id": "use-jobs",
+                "label": "Admit finite compute work",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "jobs",
+                  "portId": "in-l025.pull-cdn.jobs"
+                }
+              },
+              {
+                "contractId": "l025.pull-cdn.compute",
+                "from": {
+                  "nodeId": "jobs",
+                  "portId": "out-l025.pull-cdn.compute"
+                },
+                "id": "use-compute",
+                "label": "Write immutable outputs",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "compute",
+                  "portId": "in-l025.pull-cdn.compute"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l025.pull-cdn.caller",
+                "id": "caller",
+                "label": "Chunk producer",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l025.pull-cdn.owner",
+                "id": "owner",
+                "label": "Manifest publisher",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l025.pull-cdn.jobs",
+                "id": "jobs",
+                "label": "Bounded batch admission",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l025.pull-cdn.compute",
+                "id": "compute",
+                "label": "GPU chunk writer",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "pull-cdn-s3",
+          "invariants": [
+            "No advertised entry points to an uncommitted output."
+          ],
+          "number": 3,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l025.pull-cdn.compute",
+                "id": "compute",
+                "label": "GPU chunk writer",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l025.pull-cdn.compute",
+                "from": {
+                  "nodeId": "jobs",
+                  "portId": "out-l025.pull-cdn.compute"
+                },
+                "id": "use-compute",
+                "label": "Write immutable outputs",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "compute",
+                  "portId": "in-l025.pull-cdn.compute"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "When may a manifest advertise a chunk?",
+          "reason": "Finish modeled batch output, hash bytes and store immutable chunk before publishing its manifest entry.",
+          "title": "Write immutable outputs"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l025.pull-cdn.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l025.pull-cdn.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l025.pull-cdn.command"
+                }
+              },
+              {
+                "contractId": "l025.pull-cdn.jobs",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l025.pull-cdn.jobs"
+                },
+                "id": "use-jobs",
+                "label": "Admit finite compute work",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "jobs",
+                  "portId": "in-l025.pull-cdn.jobs"
+                }
+              },
+              {
+                "contractId": "l025.pull-cdn.compute",
+                "from": {
+                  "nodeId": "jobs",
+                  "portId": "out-l025.pull-cdn.compute"
+                },
+                "id": "use-compute",
+                "label": "Write immutable outputs",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "compute",
+                  "portId": "in-l025.pull-cdn.compute"
+                }
+              },
+              {
+                "contractId": "l025.pull-cdn.spool",
+                "from": {
+                  "nodeId": "compute",
+                  "portId": "out-l025.pull-cdn.spool"
+                },
+                "id": "use-spool",
+                "label": "Retain a finite replay window",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "spool",
+                  "portId": "in-l025.pull-cdn.spool"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l025.pull-cdn.caller",
+                "id": "caller",
+                "label": "Chunk producer",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l025.pull-cdn.owner",
+                "id": "owner",
+                "label": "Manifest publisher",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l025.pull-cdn.jobs",
+                "id": "jobs",
+                "label": "Bounded batch admission",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l025.pull-cdn.compute",
+                "id": "compute",
+                "label": "GPU chunk writer",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l025.pull-cdn.spool",
+                "id": "spool",
+                "label": "Immutable chunk spool",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "pull-cdn-s4",
+          "invariants": [
+            "A pruned chunk returns expired, never a different chunk under the same identity."
+          ],
+          "number": 4,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l025.pull-cdn.spool",
+                "id": "spool",
+                "label": "Immutable chunk spool",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l025.pull-cdn.spool",
+                "from": {
+                  "nodeId": "compute",
+                  "portId": "out-l025.pull-cdn.spool"
+                },
+                "id": "use-spool",
+                "label": "Retain a finite replay window",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "spool",
+                  "portId": "in-l025.pull-cdn.spool"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What if a subscriber pauses?",
+          "reason": "Store immutable content keys with explicit retained sequence floor and per-stream byte budget; pruning never silently rewrites an old key.",
+          "title": "Retain a finite replay window"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l025.pull-cdn.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l025.pull-cdn.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l025.pull-cdn.command"
+                }
+              },
+              {
+                "contractId": "l025.pull-cdn.jobs",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l025.pull-cdn.jobs"
+                },
+                "id": "use-jobs",
+                "label": "Admit finite compute work",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "jobs",
+                  "portId": "in-l025.pull-cdn.jobs"
+                }
+              },
+              {
+                "contractId": "l025.pull-cdn.compute",
+                "from": {
+                  "nodeId": "jobs",
+                  "portId": "out-l025.pull-cdn.compute"
+                },
+                "id": "use-compute",
+                "label": "Write immutable outputs",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "compute",
+                  "portId": "in-l025.pull-cdn.compute"
+                }
+              },
+              {
+                "contractId": "l025.pull-cdn.spool",
+                "from": {
+                  "nodeId": "compute",
+                  "portId": "out-l025.pull-cdn.spool"
+                },
+                "id": "use-spool",
+                "label": "Retain a finite replay window",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "spool",
+                  "portId": "in-l025.pull-cdn.spool"
+                }
+              },
+              {
+                "contractId": "l025.pull-cdn.manifest",
+                "from": {
+                  "nodeId": "spool",
+                  "portId": "out-l025.pull-cdn.manifest"
+                },
+                "id": "use-manifest",
+                "label": "Publish committed sequence",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "manifest",
+                  "portId": "in-l025.pull-cdn.manifest"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l025.pull-cdn.caller",
+                "id": "caller",
+                "label": "Chunk producer",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l025.pull-cdn.owner",
+                "id": "owner",
+                "label": "Manifest publisher",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l025.pull-cdn.jobs",
+                "id": "jobs",
+                "label": "Bounded batch admission",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l025.pull-cdn.compute",
+                "id": "compute",
+                "label": "GPU chunk writer",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l025.pull-cdn.spool",
+                "id": "spool",
+                "label": "Immutable chunk spool",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l025.pull-cdn.manifest",
+                "id": "manifest",
+                "label": "Versioned manifest",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "pull-cdn-s5",
+          "invariants": [
+            "A higher manifest version never changes old content hashes."
+          ],
+          "number": 5,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l025.pull-cdn.manifest",
+                "id": "manifest",
+                "label": "Versioned manifest",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l025.pull-cdn.manifest",
+                "from": {
+                  "nodeId": "spool",
+                  "portId": "out-l025.pull-cdn.manifest"
+                },
+                "id": "use-manifest",
+                "label": "Publish committed sequence",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "manifest",
+                  "portId": "in-l025.pull-cdn.manifest"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can a subscriber skip a failed chunk?",
+          "reason": "Publish sorted committed chunk identities and explicit gaps/rejections in an immutable version; consumer advances only past declared outcomes.",
+          "title": "Publish committed sequence"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l025.pull-cdn.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l025.pull-cdn.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l025.pull-cdn.command"
+                }
+              },
+              {
+                "contractId": "l025.pull-cdn.jobs",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l025.pull-cdn.jobs"
+                },
+                "id": "use-jobs",
+                "label": "Admit finite compute work",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "jobs",
+                  "portId": "in-l025.pull-cdn.jobs"
+                }
+              },
+              {
+                "contractId": "l025.pull-cdn.compute",
+                "from": {
+                  "nodeId": "jobs",
+                  "portId": "out-l025.pull-cdn.compute"
+                },
+                "id": "use-compute",
+                "label": "Write immutable outputs",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "compute",
+                  "portId": "in-l025.pull-cdn.compute"
+                }
+              },
+              {
+                "contractId": "l025.pull-cdn.spool",
+                "from": {
+                  "nodeId": "compute",
+                  "portId": "out-l025.pull-cdn.spool"
+                },
+                "id": "use-spool",
+                "label": "Retain a finite replay window",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "spool",
+                  "portId": "in-l025.pull-cdn.spool"
+                }
+              },
+              {
+                "contractId": "l025.pull-cdn.manifest",
+                "from": {
+                  "nodeId": "spool",
+                  "portId": "out-l025.pull-cdn.manifest"
+                },
+                "id": "use-manifest",
+                "label": "Publish committed sequence",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "manifest",
+                  "portId": "in-l025.pull-cdn.manifest"
+                }
+              },
+              {
+                "contractId": "l025.pull-cdn.cursor",
+                "from": {
+                  "nodeId": "manifest",
+                  "portId": "out-l025.pull-cdn.cursor"
+                },
+                "id": "use-cursor",
+                "label": "Decouple slow demand",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "cursor",
+                  "portId": "in-l025.pull-cdn.cursor"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l025.pull-cdn.caller",
+                "id": "caller",
+                "label": "Chunk producer",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l025.pull-cdn.owner",
+                "id": "owner",
+                "label": "Manifest publisher",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l025.pull-cdn.jobs",
+                "id": "jobs",
+                "label": "Bounded batch admission",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l025.pull-cdn.compute",
+                "id": "compute",
+                "label": "GPU chunk writer",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l025.pull-cdn.spool",
+                "id": "spool",
+                "label": "Immutable chunk spool",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l025.pull-cdn.manifest",
+                "id": "manifest",
+                "label": "Versioned manifest",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l025.pull-cdn.cursor",
+                "id": "cursor",
+                "label": "Subscriber pull cursor",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "pull-cdn-s6",
+          "invariants": [
+            "One slow cursor does not allocate publisher-side unbounded buffered chunks."
+          ],
+          "number": 6,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l025.pull-cdn.cursor",
+                "id": "cursor",
+                "label": "Subscriber pull cursor",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l025.pull-cdn.cursor",
+                "from": {
+                  "nodeId": "manifest",
+                  "portId": "out-l025.pull-cdn.cursor"
+                },
+                "id": "use-cursor",
+                "label": "Decouple slow demand",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "cursor",
+                  "portId": "in-l025.pull-cdn.cursor"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Does the publisher hold an ACK slot while a subscriber sleeps?",
+          "reason": "Subscriber requests next identity with bounded concurrency and advances after its own successful receipt; publisher has no per-chunk push wait.",
+          "title": "Decouple slow demand"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l025.pull-cdn.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l025.pull-cdn.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l025.pull-cdn.command"
+                }
+              },
+              {
+                "contractId": "l025.pull-cdn.jobs",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l025.pull-cdn.jobs"
+                },
+                "id": "use-jobs",
+                "label": "Admit finite compute work",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "jobs",
+                  "portId": "in-l025.pull-cdn.jobs"
+                }
+              },
+              {
+                "contractId": "l025.pull-cdn.compute",
+                "from": {
+                  "nodeId": "jobs",
+                  "portId": "out-l025.pull-cdn.compute"
+                },
+                "id": "use-compute",
+                "label": "Write immutable outputs",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "compute",
+                  "portId": "in-l025.pull-cdn.compute"
+                }
+              },
+              {
+                "contractId": "l025.pull-cdn.spool",
+                "from": {
+                  "nodeId": "compute",
+                  "portId": "out-l025.pull-cdn.spool"
+                },
+                "id": "use-spool",
+                "label": "Retain a finite replay window",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "spool",
+                  "portId": "in-l025.pull-cdn.spool"
+                }
+              },
+              {
+                "contractId": "l025.pull-cdn.manifest",
+                "from": {
+                  "nodeId": "spool",
+                  "portId": "out-l025.pull-cdn.manifest"
+                },
+                "id": "use-manifest",
+                "label": "Publish committed sequence",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "manifest",
+                  "portId": "in-l025.pull-cdn.manifest"
+                }
+              },
+              {
+                "contractId": "l025.pull-cdn.cursor",
+                "from": {
+                  "nodeId": "manifest",
+                  "portId": "out-l025.pull-cdn.cursor"
+                },
+                "id": "use-cursor",
+                "label": "Decouple slow demand",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "cursor",
+                  "portId": "in-l025.pull-cdn.cursor"
+                }
+              },
+              {
+                "contractId": "l025.pull-cdn.cdn",
+                "from": {
+                  "nodeId": "cursor",
+                  "portId": "out-l025.pull-cdn.cdn"
+                },
+                "id": "use-cdn",
+                "label": "Bound cache fill work",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "cdn",
+                  "portId": "in-l025.pull-cdn.cdn"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l025.pull-cdn.caller",
+                "id": "caller",
+                "label": "Chunk producer",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l025.pull-cdn.owner",
+                "id": "owner",
+                "label": "Manifest publisher",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l025.pull-cdn.jobs",
+                "id": "jobs",
+                "label": "Bounded batch admission",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l025.pull-cdn.compute",
+                "id": "compute",
+                "label": "GPU chunk writer",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l025.pull-cdn.spool",
+                "id": "spool",
+                "label": "Immutable chunk spool",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l025.pull-cdn.manifest",
+                "id": "manifest",
+                "label": "Versioned manifest",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l025.pull-cdn.cursor",
+                "id": "cursor",
+                "label": "Subscriber pull cursor",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l025.pull-cdn.cdn",
+                "id": "cdn",
+                "label": "Coalesced CDN reader",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "pull-cdn-s7",
+          "invariants": [
+            "Canceling one waiter does not cancel a fill still needed by others."
+          ],
+          "number": 7,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l025.pull-cdn.cdn",
+                "id": "cdn",
+                "label": "Coalesced CDN reader",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l025.pull-cdn.cdn",
+                "from": {
+                  "nodeId": "cursor",
+                  "portId": "out-l025.pull-cdn.cdn"
+                },
+                "id": "use-cdn",
+                "label": "Bound cache fill work",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "cdn",
+                  "portId": "in-l025.pull-cdn.cdn"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What if many cursors miss one chunk?",
+          "reason": "Coalesce identical content-key misses; cap distinct fills and waiters, verify payload hash, and keep fill cancellation independent per waiter.",
+          "title": "Bound cache fill work"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l025.pull-cdn.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l025.pull-cdn.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l025.pull-cdn.command"
+                }
+              },
+              {
+                "contractId": "l025.pull-cdn.jobs",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l025.pull-cdn.jobs"
+                },
+                "id": "use-jobs",
+                "label": "Admit finite compute work",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "jobs",
+                  "portId": "in-l025.pull-cdn.jobs"
+                }
+              },
+              {
+                "contractId": "l025.pull-cdn.compute",
+                "from": {
+                  "nodeId": "jobs",
+                  "portId": "out-l025.pull-cdn.compute"
+                },
+                "id": "use-compute",
+                "label": "Write immutable outputs",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "compute",
+                  "portId": "in-l025.pull-cdn.compute"
+                }
+              },
+              {
+                "contractId": "l025.pull-cdn.spool",
+                "from": {
+                  "nodeId": "compute",
+                  "portId": "out-l025.pull-cdn.spool"
+                },
+                "id": "use-spool",
+                "label": "Retain a finite replay window",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "spool",
+                  "portId": "in-l025.pull-cdn.spool"
+                }
+              },
+              {
+                "contractId": "l025.pull-cdn.manifest",
+                "from": {
+                  "nodeId": "spool",
+                  "portId": "out-l025.pull-cdn.manifest"
+                },
+                "id": "use-manifest",
+                "label": "Publish committed sequence",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "manifest",
+                  "portId": "in-l025.pull-cdn.manifest"
+                }
+              },
+              {
+                "contractId": "l025.pull-cdn.cursor",
+                "from": {
+                  "nodeId": "manifest",
+                  "portId": "out-l025.pull-cdn.cursor"
+                },
+                "id": "use-cursor",
+                "label": "Decouple slow demand",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "cursor",
+                  "portId": "in-l025.pull-cdn.cursor"
+                }
+              },
+              {
+                "contractId": "l025.pull-cdn.cdn",
+                "from": {
+                  "nodeId": "cursor",
+                  "portId": "out-l025.pull-cdn.cdn"
+                },
+                "id": "use-cdn",
+                "label": "Bound cache fill work",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "cdn",
+                  "portId": "in-l025.pull-cdn.cdn"
+                }
+              },
+              {
+                "contractId": "l025.pull-cdn.expiry",
+                "from": {
+                  "nodeId": "cdn",
+                  "portId": "out-l025.pull-cdn.expiry"
+                },
+                "id": "use-expiry",
+                "label": "Expose irrecoverable lag",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "expiry",
+                  "portId": "in-l025.pull-cdn.expiry"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l025.pull-cdn.caller",
+                "id": "caller",
+                "label": "Chunk producer",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l025.pull-cdn.owner",
+                "id": "owner",
+                "label": "Manifest publisher",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l025.pull-cdn.jobs",
+                "id": "jobs",
+                "label": "Bounded batch admission",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l025.pull-cdn.compute",
+                "id": "compute",
+                "label": "GPU chunk writer",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l025.pull-cdn.spool",
+                "id": "spool",
+                "label": "Immutable chunk spool",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l025.pull-cdn.manifest",
+                "id": "manifest",
+                "label": "Versioned manifest",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l025.pull-cdn.cursor",
+                "id": "cursor",
+                "label": "Subscriber pull cursor",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l025.pull-cdn.cdn",
+                "id": "cdn",
+                "label": "Coalesced CDN reader",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l025.pull-cdn.expiry",
+                "id": "expiry",
+                "label": "Retention reset",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "pull-cdn-s8",
+          "invariants": [
+            "Retention loss remains a visible gap in finite-stream accounting."
+          ],
+          "number": 8,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l025.pull-cdn.expiry",
+                "id": "expiry",
+                "label": "Retention reset",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l025.pull-cdn.expiry",
+                "from": {
+                  "nodeId": "cdn",
+                  "portId": "out-l025.pull-cdn.expiry"
+                },
+                "id": "use-expiry",
+                "label": "Expose irrecoverable lag",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "expiry",
+                  "portId": "in-l025.pull-cdn.expiry"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can a cursor resume below the retained floor?",
+          "reason": "Return 410 with current floor and manifest version; require an explicit skip/reset or archived recovery source rather than claiming continuous delivery.",
+          "title": "Expose irrecoverable lag"
+        }
+      ],
+      "title": "Immutable chunk spool and subscriber pull cursors",
+      "tradeoffs": [
+        "Spool/CDN storage replaces per-subscriber push buffering.",
+        "A lagging cursor outside retention gets explicit expiry/reset; publication latency and polling are visible costs."
+      ]
+    }
+  ],
+  "subsystems": [],
+  "version": 1
+}

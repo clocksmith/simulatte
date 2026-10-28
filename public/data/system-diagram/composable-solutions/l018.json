@@ -1,0 +1,4434 @@
+{
+  "components": [
+    {
+      "extends": {
+        "id": "core.service",
+        "version": 1
+      },
+      "id": "l018.online.d0",
+      "label": "Answer gateway",
+      "ports": [
+        {
+          "contractId": "l018.online.c0",
+          "direction": "in",
+          "id": "in-l018.online.c0"
+        },
+        {
+          "contractId": "l018.online.c2",
+          "direction": "out",
+          "id": "out-l018.online.c2-control"
+        },
+        {
+          "contractId": "l018.online.c1",
+          "direction": "in",
+          "id": "in-l018.online.c1-state"
+        }
+      ],
+      "responsibility": "Authenticate tenant and accept a bounded question with an explicit deadline.",
+      "stateOwnership": [
+        "query identity and deadline"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l018.online.d1",
+      "label": "Document authority",
+      "ports": [
+        {
+          "contractId": "l018.online.c1",
+          "direction": "in",
+          "id": "in-l018.online.c1"
+        }
+      ],
+      "responsibility": "Expand gateway; retain immutable source revisions and current ACL epochs.",
+      "stateOwnership": [
+        "document revision and ACL"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "l018.online.d2",
+      "label": "Embedding lane",
+      "ports": [
+        {
+          "contractId": "l018.online.c2",
+          "direction": "in",
+          "id": "in-l018.online.c2"
+        },
+        {
+          "contractId": "l018.online.c3",
+          "direction": "out",
+          "id": "out-l018.online.c3"
+        }
+      ],
+      "responsibility": "Pin embedding model, dimensions and normalization to the selected index version.",
+      "stateOwnership": [
+        "embedding compatibility identity"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l018.online.d3",
+      "label": "Candidate retrieval",
+      "ports": [
+        {
+          "contractId": "l018.online.c3",
+          "direction": "in",
+          "id": "in-l018.online.c3"
+        },
+        {
+          "contractId": "l018.online.c4",
+          "direction": "out",
+          "id": "out-l018.online.c4"
+        }
+      ],
+      "responsibility": "Union lexical and vector candidates with provenance and bounded recall-tested k.",
+      "stateOwnership": [
+        "candidate scores and source versions"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l018.online.d4",
+      "label": "ACL and freshness",
+      "ports": [
+        {
+          "contractId": "l018.online.c4",
+          "direction": "in",
+          "id": "in-l018.online.c4"
+        },
+        {
+          "contractId": "l018.online.c1",
+          "direction": "out",
+          "id": "out-l018.online.c1"
+        },
+        {
+          "contractId": "l018.online.c5",
+          "direction": "out",
+          "id": "out-l018.online.c5"
+        }
+      ],
+      "responsibility": "Filter candidates against current source ACL and revision before model context assembly.",
+      "stateOwnership": [
+        "current source eligibility"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "l018.online.d5",
+      "label": "Cross-encoder",
+      "ports": [
+        {
+          "contractId": "l018.online.c5",
+          "direction": "in",
+          "id": "in-l018.online.c5"
+        },
+        {
+          "contractId": "l018.online.c6",
+          "direction": "out",
+          "id": "out-l018.online.c6"
+        }
+      ],
+      "responsibility": "Rerank eligible candidates within token/deadline budgets; retain rejected-score evidence.",
+      "stateOwnership": [
+        "ranked candidate receipt"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "l018.online.d6",
+      "label": "Grounded generation",
+      "ports": [
+        {
+          "contractId": "l018.online.c6",
+          "direction": "in",
+          "id": "in-l018.online.c6"
+        },
+        {
+          "contractId": "l018.online.c7",
+          "direction": "out",
+          "id": "out-l018.online.c7"
+        }
+      ],
+      "responsibility": "Generate a typed answer tied to supplied span IDs, then validate shape and citation membership.",
+      "stateOwnership": [
+        "answer draft and validation status"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l018.online.d7",
+      "label": "Evidence gate",
+      "ports": [
+        {
+          "contractId": "l018.online.c7",
+          "direction": "in",
+          "id": "in-l018.online.c7"
+        },
+        {
+          "contractId": "l018.online.c1",
+          "direction": "out",
+          "id": "out-l018.online.c1"
+        }
+      ],
+      "responsibility": "Check support and stale sources before release; record unsupported claims rather than inventing citations.",
+      "stateOwnership": [
+        "support verdict and phase timings"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.client",
+        "version": 1
+      },
+      "id": "l018.online.caller",
+      "label": "Caller",
+      "ports": [
+        {
+          "contractId": "l018.online.c0",
+          "direction": "out",
+          "id": "out-l018.online.c0"
+        }
+      ],
+      "responsibility": "Submit the declared operation with authenticated identity and preserve its retry identity.",
+      "stateOwnership": [
+        "request identity"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l018.online.control",
+      "label": "Command control",
+      "ports": [
+        {
+          "contractId": "l018.online.c1",
+          "direction": "out",
+          "id": "out-l018.online.c1"
+        },
+        {
+          "contractId": "l018.online.c0",
+          "direction": "in",
+          "id": "in-l018.online.c0"
+        },
+        {
+          "contractId": "l018.online.c2",
+          "direction": "out",
+          "id": "out-l018.online.c2"
+        }
+      ],
+      "responsibility": "Authenticate tenant and accept a bounded question with an explicit deadline.",
+      "stateOwnership": [
+        "validated command and version"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.service",
+        "version": 1
+      },
+      "id": "l018.materialized.d0",
+      "label": "Pack request",
+      "ports": [
+        {
+          "contractId": "l018.materialized.c0",
+          "direction": "in",
+          "id": "in-l018.materialized.c0"
+        },
+        {
+          "contractId": "l018.materialized.c2",
+          "direction": "out",
+          "id": "out-l018.materialized.c2-control"
+        },
+        {
+          "contractId": "l018.materialized.c1",
+          "direction": "in",
+          "id": "in-l018.materialized.c1-state"
+        },
+        {
+          "contractId": "l018.materialized.c7",
+          "direction": "in",
+          "id": "in-l018.materialized.c7-state"
+        }
+      ],
+      "responsibility": "Classify against declared intent IDs and refuse unsupported questions explicitly.",
+      "stateOwnership": [
+        "intent classification receipt"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l018.materialized.d1",
+      "label": "Pack manifest",
+      "ports": [
+        {
+          "contractId": "l018.materialized.c1",
+          "direction": "in",
+          "id": "in-l018.materialized.c1"
+        },
+        {
+          "contractId": "l018.materialized.c7",
+          "direction": "in",
+          "id": "in-l018.materialized.c7"
+        }
+      ],
+      "responsibility": "Expand request boundary; retain content hashes, source revisions and pack schema version.",
+      "stateOwnership": [
+        "pack versions and source hashes"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "l018.materialized.d2",
+      "label": "Ingest snapshot",
+      "ports": [
+        {
+          "contractId": "l018.materialized.c2",
+          "direction": "in",
+          "id": "in-l018.materialized.c2"
+        },
+        {
+          "contractId": "l018.materialized.c3",
+          "direction": "out",
+          "id": "out-l018.materialized.c3"
+        }
+      ],
+      "responsibility": "Freeze source revisions and normalize exact citation spans before constructing a new pack.",
+      "stateOwnership": [
+        "ingestion snapshot"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "l018.materialized.d3",
+      "label": "Offline retrieval",
+      "ports": [
+        {
+          "contractId": "l018.materialized.c3",
+          "direction": "in",
+          "id": "in-l018.materialized.c3"
+        },
+        {
+          "contractId": "l018.materialized.c4",
+          "direction": "out",
+          "id": "out-l018.materialized.c4"
+        }
+      ],
+      "responsibility": "Evaluate lexical/dense recall against labeled intent questions before promoting candidate sets.",
+      "stateOwnership": [
+        "retrieval evaluation receipt"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "l018.materialized.d4",
+      "label": "Pack compiler",
+      "ports": [
+        {
+          "contractId": "l018.materialized.c4",
+          "direction": "in",
+          "id": "in-l018.materialized.c4"
+        },
+        {
+          "contractId": "l018.materialized.c5",
+          "direction": "out",
+          "id": "out-l018.materialized.c5"
+        }
+      ],
+      "responsibility": "Build schema-validated answer templates with explicit claim-to-span bindings.",
+      "stateOwnership": [
+        "compiled answer pack"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l018.materialized.d5",
+      "label": "Atomic publication",
+      "ports": [
+        {
+          "contractId": "l018.materialized.c5",
+          "direction": "in",
+          "id": "in-l018.materialized.c5"
+        },
+        {
+          "contractId": "l018.materialized.c1",
+          "direction": "out",
+          "id": "out-l018.materialized.c1"
+        }
+      ],
+      "responsibility": "Publish one immutable manifest only after pack bytes and dependencies are complete.",
+      "stateOwnership": [
+        "active manifest pointer"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l018.materialized.d6",
+      "label": "Online verification",
+      "ports": [
+        {
+          "contractId": "l018.materialized.c6",
+          "direction": "in",
+          "id": "in-l018.materialized.c6"
+        },
+        {
+          "contractId": "l018.materialized.c1",
+          "direction": "out",
+          "id": "out-l018.materialized.c1"
+        }
+      ],
+      "responsibility": "Verify current ACL/revisions and fill only typed allowed slots before returning citations.",
+      "stateOwnership": [
+        "online eligibility verdict"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "l018.materialized.d7",
+      "label": "Invalidation repair",
+      "ports": [
+        {
+          "contractId": "l018.materialized.c7",
+          "direction": "out",
+          "id": "out-l018.materialized.c7"
+        },
+        {
+          "contractId": "l018.materialized.c2",
+          "direction": "out",
+          "id": "out-l018.materialized.c2"
+        }
+      ],
+      "responsibility": "Invalidate affected packs, expose freshness and rebuild; do not reuse invalid support while rebuilding.",
+      "stateOwnership": [
+        "invalidation cursor"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.client",
+        "version": 1
+      },
+      "id": "l018.materialized.caller",
+      "label": "Caller",
+      "ports": [
+        {
+          "contractId": "l018.materialized.c0",
+          "direction": "out",
+          "id": "out-l018.materialized.c0"
+        },
+        {
+          "contractId": "l018.materialized.c6",
+          "direction": "out",
+          "id": "out-l018.materialized.c6"
+        }
+      ],
+      "responsibility": "Submit the declared operation with authenticated identity and preserve its retry identity.",
+      "stateOwnership": [
+        "request identity"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l018.materialized.control",
+      "label": "Command control",
+      "ports": [
+        {
+          "contractId": "l018.materialized.c1",
+          "direction": "out",
+          "id": "out-l018.materialized.c1"
+        },
+        {
+          "contractId": "l018.materialized.c0",
+          "direction": "in",
+          "id": "in-l018.materialized.c0"
+        },
+        {
+          "contractId": "l018.materialized.c2",
+          "direction": "out",
+          "id": "out-l018.materialized.c2"
+        }
+      ],
+      "responsibility": "Classify against declared intent IDs and refuse unsupported questions explicitly.",
+      "stateOwnership": [
+        "validated command and version"
+      ],
+      "version": 1
+    }
+  ],
+  "contracts": [
+    {
+      "id": "l018.online.c0",
+      "request": {
+        "queryId": "uuid",
+        "question": "string",
+        "tenantId": "uuid"
+      },
+      "response": {
+        "state": "accepted|rejected"
+      },
+      "version": 1
+    },
+    {
+      "id": "l018.online.c1",
+      "request": {
+        "documentId": "uuid",
+        "revision": "integer"
+      },
+      "response": {
+        "aclEpoch": "integer",
+        "contentHash": "sha256"
+      },
+      "version": 1
+    },
+    {
+      "id": "l018.online.c2",
+      "request": {
+        "modelVersion": "string",
+        "question": "string"
+      },
+      "response": {
+        "vector": "float[d]"
+      },
+      "version": 1
+    },
+    {
+      "id": "l018.online.c3",
+      "request": {
+        "k": "integer",
+        "terms": "string[]",
+        "vector": "float[d]"
+      },
+      "response": {
+        "candidates": "versioned spans[]"
+      },
+      "version": 1
+    },
+    {
+      "id": "l018.online.c4",
+      "request": {
+        "actorId": "uuid",
+        "candidateIds": "versioned span ids[]"
+      },
+      "response": {
+        "eligible": "span ids[]"
+      },
+      "version": 1
+    },
+    {
+      "id": "l018.online.c5",
+      "request": {
+        "candidates": "spans[]",
+        "question": "string"
+      },
+      "response": {
+        "ranked": "scored spans[]"
+      },
+      "version": 1
+    },
+    {
+      "id": "l018.online.c6",
+      "request": {
+        "context": "authorized spans[]",
+        "schemaVersion": "integer"
+      },
+      "response": {
+        "answer": "typed object",
+        "citations": "span ids[]"
+      },
+      "version": 1
+    },
+    {
+      "id": "l018.online.c7",
+      "request": {
+        "answer": "typed object",
+        "currentRevision": "integer"
+      },
+      "response": {
+        "status": "release|abstain|retry"
+      },
+      "version": 1
+    },
+    {
+      "id": "l018.materialized.c0",
+      "request": {
+        "question": "string",
+        "tenantId": "uuid"
+      },
+      "response": {
+        "intentId": "string|unsupported"
+      },
+      "version": 1
+    },
+    {
+      "id": "l018.materialized.c1",
+      "request": {
+        "intentId": "string",
+        "packVersion": "integer"
+      },
+      "response": {
+        "schemaVersion": "integer",
+        "sourceRevisions": "map"
+      },
+      "version": 1
+    },
+    {
+      "id": "l018.materialized.c2",
+      "request": {
+        "revision": "integer",
+        "sourceIds": "uuid[]"
+      },
+      "response": {
+        "spans": "versioned text spans[]"
+      },
+      "version": 1
+    },
+    {
+      "id": "l018.materialized.c3",
+      "request": {
+        "corpusSnapshot": "uuid",
+        "intentId": "string"
+      },
+      "response": {
+        "candidateSpans": "span ids[]"
+      },
+      "version": 1
+    },
+    {
+      "id": "l018.materialized.c4",
+      "request": {
+        "candidates": "spans[]",
+        "schemaVersion": "integer"
+      },
+      "response": {
+        "packHash": "sha256"
+      },
+      "version": 1
+    },
+    {
+      "id": "l018.materialized.c5",
+      "request": {
+        "expectedPackVersion": "integer",
+        "newPackHash": "sha256"
+      },
+      "response": {
+        "publishedVersion": "integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l018.materialized.c6",
+      "request": {
+        "actorId": "uuid",
+        "packHash": "sha256"
+      },
+      "response": {
+        "answer": "typed object|abstain"
+      },
+      "version": 1
+    },
+    {
+      "id": "l018.materialized.c7",
+      "request": {
+        "newRevision": "integer",
+        "sourceId": "uuid"
+      },
+      "response": {
+        "invalidated": "pack hashes[]"
+      },
+      "version": 1
+    }
+  ],
+  "execution": {
+    "implementation": null,
+    "kind": "conceptual-design"
+  },
+  "problem": {
+    "referenceId": "L018",
+    "requirements": [
+      {
+        "id": "r0",
+        "text": "Retrieve only authorized, current document versions and cite exact spans."
+      },
+      {
+        "id": "r1",
+        "text": "Separate syntactic response validation from evidence/entailment checks."
+      },
+      {
+        "id": "r2",
+        "text": "Bound retrieval/rerank/generation work and surface stale or missing evidence."
+      }
+    ],
+    "scope": "Versioned ACL-aware retrieval, reranking and schema-checked answers. The prompt under-200ms target is a budget to measure per phase, not a promise for arbitrary corpus/model/hardware. Measure retrieval latency, time-to-first-token and full response completion separately; under 200ms is an unverified retrieval/initial-response objective, never an established completion bound.",
+    "studyLabel": "Grounded enterprise retrieval"
+  },
+  "provenance": {
+    "kind": "authored-practice",
+    "note": "Authored interview preparation. Technical references support mechanisms, not the claim that a company asked this question."
+  },
+  "references": [
+    {
+      "id": "ref0",
+      "scope": "background",
+      "supports": "Response shape validation; semantic grounding remains a separate check.",
+      "title": "JSON Schema validation",
+      "url": "https://json-schema.org/draft/2020-12/json-schema-validation"
+    },
+    {
+      "id": "ref1",
+      "scope": "background",
+      "supports": "Combining lexical and vector retrieval; ranking choices need recall evaluation.",
+      "title": "Elasticsearch hybrid search",
+      "url": "https://www.elastic.co/docs/solutions/search/hybrid-search"
+    }
+  ],
+  "schema": "simulatte.composableStudy.v2",
+  "solutions": [
+    {
+      "acceptanceCases": [
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-02-mechanisms.test.mjs",
+            "testName": "L018 bounded mechanism"
+          },
+          "given": "An answer names one allowed current span and another stale or cross-tenant span.",
+          "id": "mechanism",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Reject the stale/cross-tenant citation; accepting shape and membership alone makes no claim of semantic entailment.",
+          "when": "Run the bounded citation eligibility gate."
+        },
+        {
+          "given": "A retrieved document is revoked before context assembly.",
+          "id": "acl",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Exclude it from model context and refuse answers requiring its evidence.",
+          "when": "Check its current ACL and revision."
+        },
+        {
+          "given": "Reranking cannot complete before the request deadline.",
+          "id": "budget",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Abstain or return an explicitly incomplete result, never claim the under-200ms target was met.",
+          "when": "Exhaust the phase budget."
+        },
+        {
+          "given": "An answer is valid JSON but cites an absent span.",
+          "id": "support",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Reject the citation; passing membership still requires a separate semantic support verdict.",
+          "when": "Validate shape and citation membership."
+        }
+      ],
+      "algorithms": [
+        {
+          "code": "const eligible = spans.filter(s => s.aclEpoch === currentAcl && s.revision === currentRevision && allowedIds.has(s.id));\nif (!answer.citations.every(id => eligible.some(s => s.id === id))) return {status:\"abstain\"};\nreturn {status:\"shape-and-membership-accepted\"}; // This is not entailment proof.",
+          "guarantees": [
+            "The code states the bounded decision rule; unimplemented helpers remain pseudocode.",
+            "External effects, distributed failure and latency require separate execution evidence."
+          ],
+          "id": "bounded-rule",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "n7"
+        },
+        {
+          "code": "for (const claim of draft.claims) {\n if (!claim.citations.length || !claim.citations.every(currentAuthorizedSpan)) return abstain(claim);\n if (!supportCheck(claim, claim.citations)) return abstain(claim);\n}\nreturn releaseWithPhaseTimings(draft);\n// Support checking is a specified gate; the bounded reference test checks only citation membership.",
+          "guarantees": [
+            "Check support and stale sources before release; record unsupported claims rather than inventing citations."
+          ],
+          "id": "recover",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "n7"
+        }
+      ],
+      "apis": [
+        {
+          "errors": "401 unauthenticated; 409 stale identity/version; 429 bounded capacity; 503 unavailable authority",
+          "method": "POST",
+          "ownerNodeId": "control",
+          "path": "/l018/online",
+          "request": "{\"tenantId\":\"uuid\",\"queryId\":\"uuid\",\"question\":\"string\"}",
+          "response": "{\"state\":\"accepted|rejected\"}"
+        },
+        {
+          "errors": "403 unauthorized scope; 404 absent identity; 410 expired retained history",
+          "method": "GET",
+          "ownerNodeId": "state",
+          "path": "/l018/online/state",
+          "request": "{\"documentId\":\"uuid\",\"revision\":\"integer\"}",
+          "response": "{\"contentHash\":\"sha256\",\"aclEpoch\":\"integer\"}"
+        }
+      ],
+      "assumptions": [
+        "Source versions and ACL epochs are authoritative; model output is untrusted."
+      ],
+      "chooseWhen": "Fresh per-query context and flexible questions dominate.",
+      "id": "online",
+      "initialGraph": {
+        "edges": [],
+        "nodes": []
+      },
+      "stages": [
+        {
+          "checkIds": [
+            "mechanism",
+            "acl",
+            "budget",
+            "support"
+          ],
+          "explanation": "Authenticate tenant and accept a bounded question with an explicit deadline. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l018.online.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l018.online.c0"
+                },
+                "id": "request",
+                "label": "submit grounded enterprise retrieval",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l018.online.c0"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l018.online.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l018.online.d0",
+                "id": "boundary",
+                "label": "Answer gateway",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "online-s1",
+          "invariants": [
+            "Authenticate tenant and accept a bounded question with an explicit deadline. State owner: Answer gateway (query identity and deadline)."
+          ],
+          "number": 1,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l018.online.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "l018.online.d0",
+                "id": "boundary",
+                "label": "Answer gateway",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l018.online.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l018.online.c0"
+                },
+                "id": "request",
+                "label": "submit grounded enterprise retrieval",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l018.online.c0"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What can the assistant promise?",
+          "reason": "Authenticate tenant and accept a bounded question with an explicit deadline.",
+          "title": "Answer gateway"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "acl",
+            "budget",
+            "support"
+          ],
+          "explanation": "Expand gateway; retain immutable source revisions and current ACL epochs. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l018.online.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l018.online.c0"
+                },
+                "id": "request",
+                "label": "submit grounded enterprise retrieval",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l018.online.c0"
+                }
+              },
+              {
+                "contractId": "l018.online.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l018.online.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l018.online.c1"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l018.online.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l018.online.d0",
+                "id": "boundary",
+                "label": "Answer gateway",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l018-online-boundary-binding-1",
+                "version": 1
+              },
+              {
+                "definitionId": "l018.online.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l018.online.d1",
+                "id": "state",
+                "label": "Document authority",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "online-s2",
+          "invariants": [
+            "Expand gateway; retain immutable source revisions and current ACL epochs. State owner: Document authority (document revision and ACL)."
+          ],
+          "number": 2,
+          "operations": [
+            {
+              "edges": [
+                {
+                  "contractId": "l018.online.c1",
+                  "from": {
+                    "nodeId": "control",
+                    "portId": "out-l018.online.c1"
+                  },
+                  "id": "commit",
+                  "label": "commit versioned state",
+                  "mode": "storage",
+                  "to": {
+                    "nodeId": "state",
+                    "portId": "in-l018.online.c1"
+                  }
+                }
+              ],
+              "nodeId": "boundary",
+              "nodes": [
+                {
+                  "definitionId": "l018.online.control",
+                  "id": "control",
+                  "label": "Command control",
+                  "position": {
+                    "x": 560,
+                    "y": 0
+                  },
+                  "version": 1
+                },
+                {
+                  "definitionId": "l018.online.d1",
+                  "id": "state",
+                  "label": "Document authority",
+                  "position": {
+                    "x": 840,
+                    "y": 0
+                  },
+                  "version": 1
+                }
+              ],
+              "op": "expand",
+              "subsystemId": "l018-online-boundary-binding-1"
+            }
+          ],
+          "question": "Which source version is truth?",
+          "reason": "Expand gateway; retain immutable source revisions and current ACL epochs.",
+          "title": "Document authority"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "acl",
+            "budget",
+            "support"
+          ],
+          "explanation": "Pin embedding model, dimensions and normalization to the selected index version. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l018.online.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l018.online.c0"
+                },
+                "id": "request",
+                "label": "submit grounded enterprise retrieval",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l018.online.c0"
+                }
+              },
+              {
+                "contractId": "l018.online.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l018.online.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l018.online.c1"
+                }
+              },
+              {
+                "contractId": "l018.online.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l018.online.c2-control"
+                },
+                "id": "embed",
+                "label": "embed query with pinned model",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l018.online.c2"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l018.online.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l018.online.d0",
+                "id": "boundary",
+                "label": "Answer gateway",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l018-online-boundary-binding-2",
+                "version": 1
+              },
+              {
+                "definitionId": "l018.online.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l018.online.d1",
+                "id": "state",
+                "label": "Document authority",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l018.online.d2",
+                "id": "n2",
+                "label": "Embedding lane",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "online-s3",
+          "invariants": [
+            "Pin embedding model, dimensions and normalization to the selected index version. State owner: Embedding lane (embedding compatibility identity)."
+          ],
+          "number": 3,
+          "operations": [
+            {
+              "nodeId": "boundary",
+              "op": "rebind",
+              "reason": "Select a new immutable exposure binding before connecting the added responsibility; prior stage binding remains unchanged.",
+              "subsystemId": "l018-online-boundary-binding-2"
+            },
+            {
+              "node": {
+                "definitionId": "l018.online.d2",
+                "id": "n2",
+                "label": "Embedding lane",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l018.online.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l018.online.c2-control"
+                },
+                "id": "embed",
+                "label": "embed query with pinned model",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l018.online.c2"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can incompatible vectors mix?",
+          "reason": "Pin embedding model, dimensions and normalization to the selected index version.",
+          "title": "Embedding lane"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "acl",
+            "budget",
+            "support"
+          ],
+          "explanation": "Union lexical and vector candidates with provenance and bounded recall-tested k. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l018.online.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l018.online.c0"
+                },
+                "id": "request",
+                "label": "submit grounded enterprise retrieval",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l018.online.c0"
+                }
+              },
+              {
+                "contractId": "l018.online.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l018.online.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l018.online.c1"
+                }
+              },
+              {
+                "contractId": "l018.online.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l018.online.c2-control"
+                },
+                "id": "embed",
+                "label": "embed query with pinned model",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l018.online.c2"
+                }
+              },
+              {
+                "contractId": "l018.online.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l018.online.c3"
+                },
+                "id": "retrieve",
+                "label": "retrieve hybrid candidates",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l018.online.c3"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l018.online.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l018.online.d0",
+                "id": "boundary",
+                "label": "Answer gateway",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l018-online-boundary-binding-2",
+                "version": 1
+              },
+              {
+                "definitionId": "l018.online.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l018.online.d1",
+                "id": "state",
+                "label": "Document authority",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l018.online.d2",
+                "id": "n2",
+                "label": "Embedding lane",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l018.online.d3",
+                "id": "n3",
+                "label": "Candidate retrieval",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "online-s4",
+          "invariants": [
+            "Union lexical and vector candidates with provenance and bounded recall-tested k. State owner: Candidate retrieval (candidate scores and source versions)."
+          ],
+          "number": 4,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l018.online.d3",
+                "id": "n3",
+                "label": "Candidate retrieval",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l018.online.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l018.online.c3"
+                },
+                "id": "retrieve",
+                "label": "retrieve hybrid candidates",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l018.online.c3"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What if dense search misses a term?",
+          "reason": "Union lexical and vector candidates with provenance and bounded recall-tested k.",
+          "title": "Candidate retrieval"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "acl",
+            "budget",
+            "support"
+          ],
+          "explanation": "Filter candidates against current source ACL and revision before model context assembly. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l018.online.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l018.online.c0"
+                },
+                "id": "request",
+                "label": "submit grounded enterprise retrieval",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l018.online.c0"
+                }
+              },
+              {
+                "contractId": "l018.online.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l018.online.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l018.online.c1"
+                }
+              },
+              {
+                "contractId": "l018.online.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l018.online.c2-control"
+                },
+                "id": "embed",
+                "label": "embed query with pinned model",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l018.online.c2"
+                }
+              },
+              {
+                "contractId": "l018.online.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l018.online.c3"
+                },
+                "id": "retrieve",
+                "label": "retrieve hybrid candidates",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l018.online.c3"
+                }
+              },
+              {
+                "contractId": "l018.online.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l018.online.c4"
+                },
+                "id": "eligibility",
+                "label": "filter source eligibility",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l018.online.c4"
+                }
+              },
+              {
+                "contractId": "l018.online.c1",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l018.online.c1"
+                },
+                "id": "authority",
+                "label": "check current ACL and revision",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l018.online.c1-state"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l018.online.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l018.online.d0",
+                "id": "boundary",
+                "label": "Answer gateway",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l018-online-boundary-binding-3",
+                "version": 1
+              },
+              {
+                "definitionId": "l018.online.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l018.online.d1",
+                "id": "state",
+                "label": "Document authority",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l018.online.d2",
+                "id": "n2",
+                "label": "Embedding lane",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l018.online.d3",
+                "id": "n3",
+                "label": "Candidate retrieval",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l018.online.d4",
+                "id": "n4",
+                "label": "ACL and freshness",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "online-s5",
+          "invariants": [
+            "Filter candidates against current source ACL and revision before model context assembly. State owner: ACL and freshness (current source eligibility)."
+          ],
+          "number": 5,
+          "operations": [
+            {
+              "nodeId": "boundary",
+              "op": "rebind",
+              "reason": "Select a new immutable exposure binding before connecting the added responsibility; prior stage binding remains unchanged.",
+              "subsystemId": "l018-online-boundary-binding-3"
+            },
+            {
+              "node": {
+                "definitionId": "l018.online.d4",
+                "id": "n4",
+                "label": "ACL and freshness",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l018.online.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l018.online.c4"
+                },
+                "id": "eligibility",
+                "label": "filter source eligibility",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l018.online.c4"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l018.online.c1",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l018.online.c1"
+                },
+                "id": "authority",
+                "label": "check current ACL and revision",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l018.online.c1-state"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can stale index permissions leak text?",
+          "reason": "Filter candidates against current source ACL and revision before model context assembly.",
+          "title": "ACL and freshness"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "acl",
+            "budget",
+            "support"
+          ],
+          "explanation": "Rerank eligible candidates within token/deadline budgets; retain rejected-score evidence. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l018.online.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l018.online.c0"
+                },
+                "id": "request",
+                "label": "submit grounded enterprise retrieval",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l018.online.c0"
+                }
+              },
+              {
+                "contractId": "l018.online.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l018.online.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l018.online.c1"
+                }
+              },
+              {
+                "contractId": "l018.online.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l018.online.c2-control"
+                },
+                "id": "embed",
+                "label": "embed query with pinned model",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l018.online.c2"
+                }
+              },
+              {
+                "contractId": "l018.online.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l018.online.c3"
+                },
+                "id": "retrieve",
+                "label": "retrieve hybrid candidates",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l018.online.c3"
+                }
+              },
+              {
+                "contractId": "l018.online.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l018.online.c4"
+                },
+                "id": "eligibility",
+                "label": "filter source eligibility",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l018.online.c4"
+                }
+              },
+              {
+                "contractId": "l018.online.c1",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l018.online.c1"
+                },
+                "id": "authority",
+                "label": "check current ACL and revision",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l018.online.c1-state"
+                }
+              },
+              {
+                "contractId": "l018.online.c5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l018.online.c5"
+                },
+                "id": "rerank",
+                "label": "rerank authorized candidates",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l018.online.c5"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l018.online.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l018.online.d0",
+                "id": "boundary",
+                "label": "Answer gateway",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l018-online-boundary-binding-3",
+                "version": 1
+              },
+              {
+                "definitionId": "l018.online.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l018.online.d1",
+                "id": "state",
+                "label": "Document authority",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l018.online.d2",
+                "id": "n2",
+                "label": "Embedding lane",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l018.online.d3",
+                "id": "n3",
+                "label": "Candidate retrieval",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l018.online.d4",
+                "id": "n4",
+                "label": "ACL and freshness",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l018.online.d5",
+                "id": "n5",
+                "label": "Cross-encoder",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "online-s6",
+          "invariants": [
+            "Rerank eligible candidates within token/deadline budgets; retain rejected-score evidence. State owner: Cross-encoder (ranked candidate receipt)."
+          ],
+          "number": 6,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l018.online.d5",
+                "id": "n5",
+                "label": "Cross-encoder",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l018.online.c5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l018.online.c5"
+                },
+                "id": "rerank",
+                "label": "rerank authorized candidates",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l018.online.c5"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Which candidates deserve context?",
+          "reason": "Rerank eligible candidates within token/deadline budgets; retain rejected-score evidence.",
+          "title": "Cross-encoder"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "acl",
+            "budget",
+            "support"
+          ],
+          "explanation": "Generate a typed answer tied to supplied span IDs, then validate shape and citation membership. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l018.online.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l018.online.c0"
+                },
+                "id": "request",
+                "label": "submit grounded enterprise retrieval",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l018.online.c0"
+                }
+              },
+              {
+                "contractId": "l018.online.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l018.online.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l018.online.c1"
+                }
+              },
+              {
+                "contractId": "l018.online.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l018.online.c2-control"
+                },
+                "id": "embed",
+                "label": "embed query with pinned model",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l018.online.c2"
+                }
+              },
+              {
+                "contractId": "l018.online.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l018.online.c3"
+                },
+                "id": "retrieve",
+                "label": "retrieve hybrid candidates",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l018.online.c3"
+                }
+              },
+              {
+                "contractId": "l018.online.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l018.online.c4"
+                },
+                "id": "eligibility",
+                "label": "filter source eligibility",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l018.online.c4"
+                }
+              },
+              {
+                "contractId": "l018.online.c1",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l018.online.c1"
+                },
+                "id": "authority",
+                "label": "check current ACL and revision",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l018.online.c1-state"
+                }
+              },
+              {
+                "contractId": "l018.online.c5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l018.online.c5"
+                },
+                "id": "rerank",
+                "label": "rerank authorized candidates",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l018.online.c5"
+                }
+              },
+              {
+                "contractId": "l018.online.c6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l018.online.c6"
+                },
+                "id": "generate",
+                "label": "assemble grounded answer",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l018.online.c6"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l018.online.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l018.online.d0",
+                "id": "boundary",
+                "label": "Answer gateway",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l018-online-boundary-binding-3",
+                "version": 1
+              },
+              {
+                "definitionId": "l018.online.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l018.online.d1",
+                "id": "state",
+                "label": "Document authority",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l018.online.d2",
+                "id": "n2",
+                "label": "Embedding lane",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l018.online.d3",
+                "id": "n3",
+                "label": "Candidate retrieval",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l018.online.d4",
+                "id": "n4",
+                "label": "ACL and freshness",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l018.online.d5",
+                "id": "n5",
+                "label": "Cross-encoder",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l018.online.d6",
+                "id": "n6",
+                "label": "Grounded generation",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "online-s7",
+          "invariants": [
+            "Generate a typed answer tied to supplied span IDs, then validate shape and citation membership. State owner: Grounded generation (answer draft and validation status)."
+          ],
+          "number": 7,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l018.online.d6",
+                "id": "n6",
+                "label": "Grounded generation",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l018.online.c6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l018.online.c6"
+                },
+                "id": "generate",
+                "label": "assemble grounded answer",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l018.online.c6"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Is valid JSON necessarily correct?",
+          "reason": "Generate a typed answer tied to supplied span IDs, then validate shape and citation membership.",
+          "title": "Grounded generation"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "acl",
+            "budget",
+            "support"
+          ],
+          "explanation": "Check support and stale sources before release; record unsupported claims rather than inventing citations. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l018.online.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l018.online.c0"
+                },
+                "id": "request",
+                "label": "submit grounded enterprise retrieval",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l018.online.c0"
+                }
+              },
+              {
+                "contractId": "l018.online.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l018.online.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l018.online.c1"
+                }
+              },
+              {
+                "contractId": "l018.online.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l018.online.c2-control"
+                },
+                "id": "embed",
+                "label": "embed query with pinned model",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l018.online.c2"
+                }
+              },
+              {
+                "contractId": "l018.online.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l018.online.c3"
+                },
+                "id": "retrieve",
+                "label": "retrieve hybrid candidates",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l018.online.c3"
+                }
+              },
+              {
+                "contractId": "l018.online.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l018.online.c4"
+                },
+                "id": "eligibility",
+                "label": "filter source eligibility",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l018.online.c4"
+                }
+              },
+              {
+                "contractId": "l018.online.c1",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l018.online.c1"
+                },
+                "id": "authority",
+                "label": "check current ACL and revision",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l018.online.c1-state"
+                }
+              },
+              {
+                "contractId": "l018.online.c5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l018.online.c5"
+                },
+                "id": "rerank",
+                "label": "rerank authorized candidates",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l018.online.c5"
+                }
+              },
+              {
+                "contractId": "l018.online.c6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l018.online.c6"
+                },
+                "id": "generate",
+                "label": "assemble grounded answer",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l018.online.c6"
+                }
+              },
+              {
+                "contractId": "l018.online.c7",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l018.online.c7"
+                },
+                "id": "gate",
+                "label": "validate support before release",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l018.online.c7"
+                }
+              },
+              {
+                "contractId": "l018.online.c1",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l018.online.c1"
+                },
+                "id": "source-check",
+                "label": "recheck cited revisions",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l018.online.c1-state"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l018.online.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l018.online.d0",
+                "id": "boundary",
+                "label": "Answer gateway",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l018-online-boundary-binding-3",
+                "version": 1
+              },
+              {
+                "definitionId": "l018.online.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l018.online.d1",
+                "id": "state",
+                "label": "Document authority",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l018.online.d2",
+                "id": "n2",
+                "label": "Embedding lane",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l018.online.d3",
+                "id": "n3",
+                "label": "Candidate retrieval",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l018.online.d4",
+                "id": "n4",
+                "label": "ACL and freshness",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l018.online.d5",
+                "id": "n5",
+                "label": "Cross-encoder",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l018.online.d6",
+                "id": "n6",
+                "label": "Grounded generation",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l018.online.d7",
+                "id": "n7",
+                "label": "Evidence gate",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "online-s8",
+          "invariants": [
+            "Check support and stale sources before release; record unsupported claims rather than inventing citations. State owner: Evidence gate (support verdict and phase timings)."
+          ],
+          "number": 8,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l018.online.d7",
+                "id": "n7",
+                "label": "Evidence gate",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l018.online.c7",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l018.online.c7"
+                },
+                "id": "gate",
+                "label": "validate support before release",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l018.online.c7"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l018.online.c1",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l018.online.c1"
+                },
+                "id": "source-check",
+                "label": "recheck cited revisions",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l018.online.c1-state"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "When should the assistant abstain?",
+          "reason": "Check support and stale sources before release; record unsupported claims rather than inventing citations.",
+          "title": "Evidence gate"
+        }
+      ],
+      "title": "Online retrieve-rerank-generate orchestration",
+      "tradeoffs": [
+        "Cross-encoder and model work add latency; top-k reductions require measured recall support."
+      ]
+    },
+    {
+      "acceptanceCases": [
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-02-mechanisms.test.mjs",
+            "testName": "L018 bounded mechanism"
+          },
+          "given": "An answer names one allowed current span and another stale or cross-tenant span.",
+          "id": "mechanism",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Reject the stale/cross-tenant citation; accepting shape and membership alone makes no claim of semantic entailment.",
+          "when": "Run the bounded citation eligibility gate."
+        },
+        {
+          "given": "A pack was compiled for a tenant whose source ACL changes.",
+          "id": "acl",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Current ACL and exact source revision are rechecked; unauthorized cached text is withheld.",
+          "when": "Serve a cached intent."
+        },
+        {
+          "given": "A question is outside the pack intent catalogue.",
+          "id": "budget",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Return unsupported/abstain rather than making a cached answer fit a different question.",
+          "when": "Classify and attempt lookup."
+        },
+        {
+          "given": "A pack manifest is published before one dependent blob exists.",
+          "id": "support",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Refuse activation until all hashes and schema bindings resolve.",
+          "when": "Validate publication readiness."
+        }
+      ],
+      "algorithms": [
+        {
+          "code": "const eligible = spans.filter(s => s.aclEpoch === currentAcl && s.revision === currentRevision && allowedIds.has(s.id));\nif (!answer.citations.every(id => eligible.some(s => s.id === id))) return {status:\"abstain\"};\nreturn {status:\"shape-and-membership-accepted\"}; // This is not entailment proof.",
+          "guarantees": [
+            "The code states the bounded decision rule; unimplemented helpers remain pseudocode.",
+            "External effects, distributed failure and latency require separate execution evidence."
+          ],
+          "id": "bounded-rule",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "n6"
+        },
+        {
+          "code": "for (const packId of dependencyIndex.packsUsing(sourceId)) {\n invalidate(packId, newRevision);\n enqueueRebuild(packId, newRevision);\n}\n// Online verification compares every cited source revision and current ACL before using cached bytes.",
+          "guarantees": [
+            "Invalidate affected packs, expose freshness and rebuild; do not reuse invalid support while rebuilding."
+          ],
+          "id": "recover",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "n7"
+        }
+      ],
+      "apis": [
+        {
+          "errors": "401 unauthenticated; 409 stale identity/version; 429 bounded capacity; 503 unavailable authority",
+          "method": "POST",
+          "ownerNodeId": "control",
+          "path": "/l018/materialized",
+          "request": "{\"tenantId\":\"uuid\",\"question\":\"string\"}",
+          "response": "{\"intentId\":\"string|unsupported\"}"
+        },
+        {
+          "errors": "403 unauthorized scope; 404 absent identity; 410 expired retained history",
+          "method": "GET",
+          "ownerNodeId": "state",
+          "path": "/l018/materialized/state",
+          "request": "{\"intentId\":\"string\",\"packVersion\":\"integer\"}",
+          "response": "{\"sourceRevisions\":\"map\",\"schemaVersion\":\"integer\"}"
+        }
+      ],
+      "assumptions": [
+        "Packs carry source hashes and ACL scope; cache hits do not bypass current authorization."
+      ],
+      "chooseWhen": "Queries repeat over a controlled domain and reviewed packs can cover common intents.",
+      "id": "materialized",
+      "initialGraph": {
+        "edges": [],
+        "nodes": []
+      },
+      "stages": [
+        {
+          "checkIds": [
+            "mechanism",
+            "acl",
+            "budget",
+            "support"
+          ],
+          "explanation": "Classify against declared intent IDs and refuse unsupported questions explicitly. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l018.materialized.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l018.materialized.c0"
+                },
+                "id": "request",
+                "label": "submit grounded enterprise retrieval",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l018.materialized.c0"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l018.materialized.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l018.materialized.d0",
+                "id": "boundary",
+                "label": "Pack request",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "materialized-s1",
+          "invariants": [
+            "Classify against declared intent IDs and refuse unsupported questions explicitly. State owner: Pack request (intent classification receipt)."
+          ],
+          "number": 1,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l018.materialized.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "l018.materialized.d0",
+                "id": "boundary",
+                "label": "Pack request",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l018.materialized.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l018.materialized.c0"
+                },
+                "id": "request",
+                "label": "submit grounded enterprise retrieval",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l018.materialized.c0"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What is the supported query domain?",
+          "reason": "Classify against declared intent IDs and refuse unsupported questions explicitly.",
+          "title": "Pack request"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "acl",
+            "budget",
+            "support"
+          ],
+          "explanation": "Expand request boundary; retain content hashes, source revisions and pack schema version. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l018.materialized.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l018.materialized.c0"
+                },
+                "id": "request",
+                "label": "submit grounded enterprise retrieval",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l018.materialized.c0"
+                }
+              },
+              {
+                "contractId": "l018.materialized.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l018.materialized.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l018.materialized.c1"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l018.materialized.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l018.materialized.d0",
+                "id": "boundary",
+                "label": "Pack request",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l018-materialized-boundary-binding-1",
+                "version": 1
+              },
+              {
+                "definitionId": "l018.materialized.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l018.materialized.d1",
+                "id": "state",
+                "label": "Pack manifest",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "materialized-s2",
+          "invariants": [
+            "Expand request boundary; retain content hashes, source revisions and pack schema version. State owner: Pack manifest (pack versions and source hashes)."
+          ],
+          "number": 2,
+          "operations": [
+            {
+              "edges": [
+                {
+                  "contractId": "l018.materialized.c1",
+                  "from": {
+                    "nodeId": "control",
+                    "portId": "out-l018.materialized.c1"
+                  },
+                  "id": "commit",
+                  "label": "commit versioned state",
+                  "mode": "storage",
+                  "to": {
+                    "nodeId": "state",
+                    "portId": "in-l018.materialized.c1"
+                  }
+                }
+              ],
+              "nodeId": "boundary",
+              "nodes": [
+                {
+                  "definitionId": "l018.materialized.control",
+                  "id": "control",
+                  "label": "Command control",
+                  "position": {
+                    "x": 560,
+                    "y": 0
+                  },
+                  "version": 1
+                },
+                {
+                  "definitionId": "l018.materialized.d1",
+                  "id": "state",
+                  "label": "Pack manifest",
+                  "position": {
+                    "x": 840,
+                    "y": 0
+                  },
+                  "version": 1
+                }
+              ],
+              "op": "expand",
+              "subsystemId": "l018-materialized-boundary-binding-1"
+            }
+          ],
+          "question": "Which facts produced an answer?",
+          "reason": "Expand request boundary; retain content hashes, source revisions and pack schema version.",
+          "title": "Pack manifest"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "acl",
+            "budget",
+            "support"
+          ],
+          "explanation": "Freeze source revisions and normalize exact citation spans before constructing a new pack. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l018.materialized.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l018.materialized.c0"
+                },
+                "id": "request",
+                "label": "submit grounded enterprise retrieval",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l018.materialized.c0"
+                }
+              },
+              {
+                "contractId": "l018.materialized.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l018.materialized.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l018.materialized.c1"
+                }
+              },
+              {
+                "contractId": "l018.materialized.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l018.materialized.c2-control"
+                },
+                "id": "ingest",
+                "label": "freeze source revisions",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l018.materialized.c2"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l018.materialized.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l018.materialized.d0",
+                "id": "boundary",
+                "label": "Pack request",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l018-materialized-boundary-binding-2",
+                "version": 1
+              },
+              {
+                "definitionId": "l018.materialized.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l018.materialized.d1",
+                "id": "state",
+                "label": "Pack manifest",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l018.materialized.d2",
+                "id": "n2",
+                "label": "Ingest snapshot",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "materialized-s3",
+          "invariants": [
+            "Freeze source revisions and normalize exact citation spans before constructing a new pack. State owner: Ingest snapshot (ingestion snapshot)."
+          ],
+          "number": 3,
+          "operations": [
+            {
+              "nodeId": "boundary",
+              "op": "rebind",
+              "reason": "Select a new immutable exposure binding before connecting the added responsibility; prior stage binding remains unchanged.",
+              "subsystemId": "l018-materialized-boundary-binding-2"
+            },
+            {
+              "node": {
+                "definitionId": "l018.materialized.d2",
+                "id": "n2",
+                "label": "Ingest snapshot",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l018.materialized.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l018.materialized.c2-control"
+                },
+                "id": "ingest",
+                "label": "freeze source revisions",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l018.materialized.c2"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How are changing sources staged?",
+          "reason": "Freeze source revisions and normalize exact citation spans before constructing a new pack.",
+          "title": "Ingest snapshot"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "acl",
+            "budget",
+            "support"
+          ],
+          "explanation": "Evaluate lexical/dense recall against labeled intent questions before promoting candidate sets. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l018.materialized.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l018.materialized.c0"
+                },
+                "id": "request",
+                "label": "submit grounded enterprise retrieval",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l018.materialized.c0"
+                }
+              },
+              {
+                "contractId": "l018.materialized.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l018.materialized.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l018.materialized.c1"
+                }
+              },
+              {
+                "contractId": "l018.materialized.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l018.materialized.c2-control"
+                },
+                "id": "ingest",
+                "label": "freeze source revisions",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l018.materialized.c2"
+                }
+              },
+              {
+                "contractId": "l018.materialized.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l018.materialized.c3"
+                },
+                "id": "retrieve",
+                "label": "evaluate pack retrieval",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l018.materialized.c3"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l018.materialized.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l018.materialized.d0",
+                "id": "boundary",
+                "label": "Pack request",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l018-materialized-boundary-binding-2",
+                "version": 1
+              },
+              {
+                "definitionId": "l018.materialized.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l018.materialized.d1",
+                "id": "state",
+                "label": "Pack manifest",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l018.materialized.d2",
+                "id": "n2",
+                "label": "Ingest snapshot",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l018.materialized.d3",
+                "id": "n3",
+                "label": "Offline retrieval",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "materialized-s4",
+          "invariants": [
+            "Evaluate lexical/dense recall against labeled intent questions before promoting candidate sets. State owner: Offline retrieval (retrieval evaluation receipt)."
+          ],
+          "number": 4,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l018.materialized.d3",
+                "id": "n3",
+                "label": "Offline retrieval",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l018.materialized.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l018.materialized.c3"
+                },
+                "id": "retrieve",
+                "label": "evaluate pack retrieval",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l018.materialized.c3"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can a pack omit evidence?",
+          "reason": "Evaluate lexical/dense recall against labeled intent questions before promoting candidate sets.",
+          "title": "Offline retrieval"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "acl",
+            "budget",
+            "support"
+          ],
+          "explanation": "Build schema-validated answer templates with explicit claim-to-span bindings. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l018.materialized.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l018.materialized.c0"
+                },
+                "id": "request",
+                "label": "submit grounded enterprise retrieval",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l018.materialized.c0"
+                }
+              },
+              {
+                "contractId": "l018.materialized.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l018.materialized.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l018.materialized.c1"
+                }
+              },
+              {
+                "contractId": "l018.materialized.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l018.materialized.c2-control"
+                },
+                "id": "ingest",
+                "label": "freeze source revisions",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l018.materialized.c2"
+                }
+              },
+              {
+                "contractId": "l018.materialized.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l018.materialized.c3"
+                },
+                "id": "retrieve",
+                "label": "evaluate pack retrieval",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l018.materialized.c3"
+                }
+              },
+              {
+                "contractId": "l018.materialized.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l018.materialized.c4"
+                },
+                "id": "compile",
+                "label": "compile claim and span bindings",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l018.materialized.c4"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l018.materialized.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l018.materialized.d0",
+                "id": "boundary",
+                "label": "Pack request",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l018-materialized-boundary-binding-2",
+                "version": 1
+              },
+              {
+                "definitionId": "l018.materialized.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l018.materialized.d1",
+                "id": "state",
+                "label": "Pack manifest",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l018.materialized.d2",
+                "id": "n2",
+                "label": "Ingest snapshot",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l018.materialized.d3",
+                "id": "n3",
+                "label": "Offline retrieval",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l018.materialized.d4",
+                "id": "n4",
+                "label": "Pack compiler",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "materialized-s5",
+          "invariants": [
+            "Build schema-validated answer templates with explicit claim-to-span bindings. State owner: Pack compiler (compiled answer pack)."
+          ],
+          "number": 5,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l018.materialized.d4",
+                "id": "n4",
+                "label": "Pack compiler",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l018.materialized.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l018.materialized.c4"
+                },
+                "id": "compile",
+                "label": "compile claim and span bindings",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l018.materialized.c4"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What is generated ahead of time?",
+          "reason": "Build schema-validated answer templates with explicit claim-to-span bindings.",
+          "title": "Pack compiler"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "acl",
+            "budget",
+            "support"
+          ],
+          "explanation": "Publish one immutable manifest only after pack bytes and dependencies are complete. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l018.materialized.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l018.materialized.c0"
+                },
+                "id": "request",
+                "label": "submit grounded enterprise retrieval",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l018.materialized.c0"
+                }
+              },
+              {
+                "contractId": "l018.materialized.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l018.materialized.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l018.materialized.c1"
+                }
+              },
+              {
+                "contractId": "l018.materialized.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l018.materialized.c2-control"
+                },
+                "id": "ingest",
+                "label": "freeze source revisions",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l018.materialized.c2"
+                }
+              },
+              {
+                "contractId": "l018.materialized.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l018.materialized.c3"
+                },
+                "id": "retrieve",
+                "label": "evaluate pack retrieval",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l018.materialized.c3"
+                }
+              },
+              {
+                "contractId": "l018.materialized.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l018.materialized.c4"
+                },
+                "id": "compile",
+                "label": "compile claim and span bindings",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l018.materialized.c4"
+                }
+              },
+              {
+                "contractId": "l018.materialized.c5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l018.materialized.c5"
+                },
+                "id": "publish",
+                "label": "publish immutable pack manifest",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l018.materialized.c5"
+                }
+              },
+              {
+                "contractId": "l018.materialized.c1",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l018.materialized.c1"
+                },
+                "id": "activate",
+                "label": "compare active pack version",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l018.materialized.c1-state"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l018.materialized.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l018.materialized.d0",
+                "id": "boundary",
+                "label": "Pack request",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l018-materialized-boundary-binding-3",
+                "version": 1
+              },
+              {
+                "definitionId": "l018.materialized.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l018.materialized.d1",
+                "id": "state",
+                "label": "Pack manifest",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l018.materialized.d2",
+                "id": "n2",
+                "label": "Ingest snapshot",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l018.materialized.d3",
+                "id": "n3",
+                "label": "Offline retrieval",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l018.materialized.d4",
+                "id": "n4",
+                "label": "Pack compiler",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l018.materialized.d5",
+                "id": "n5",
+                "label": "Atomic publication",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "materialized-s6",
+          "invariants": [
+            "Publish one immutable manifest only after pack bytes and dependencies are complete. State owner: Atomic publication (active manifest pointer)."
+          ],
+          "number": 6,
+          "operations": [
+            {
+              "nodeId": "boundary",
+              "op": "rebind",
+              "reason": "Select a new immutable exposure binding before connecting the added responsibility; prior stage binding remains unchanged.",
+              "subsystemId": "l018-materialized-boundary-binding-3"
+            },
+            {
+              "node": {
+                "definitionId": "l018.materialized.d5",
+                "id": "n5",
+                "label": "Atomic publication",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l018.materialized.c5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l018.materialized.c5"
+                },
+                "id": "publish",
+                "label": "publish immutable pack manifest",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l018.materialized.c5"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l018.materialized.c1",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l018.materialized.c1"
+                },
+                "id": "activate",
+                "label": "compare active pack version",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l018.materialized.c1-state"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can readers see half a pack?",
+          "reason": "Publish one immutable manifest only after pack bytes and dependencies are complete.",
+          "title": "Atomic publication"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "acl",
+            "budget",
+            "support"
+          ],
+          "explanation": "Verify current ACL/revisions and fill only typed allowed slots before returning citations. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l018.materialized.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l018.materialized.c0"
+                },
+                "id": "request",
+                "label": "submit grounded enterprise retrieval",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l018.materialized.c0"
+                }
+              },
+              {
+                "contractId": "l018.materialized.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l018.materialized.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l018.materialized.c1"
+                }
+              },
+              {
+                "contractId": "l018.materialized.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l018.materialized.c2-control"
+                },
+                "id": "ingest",
+                "label": "freeze source revisions",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l018.materialized.c2"
+                }
+              },
+              {
+                "contractId": "l018.materialized.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l018.materialized.c3"
+                },
+                "id": "retrieve",
+                "label": "evaluate pack retrieval",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l018.materialized.c3"
+                }
+              },
+              {
+                "contractId": "l018.materialized.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l018.materialized.c4"
+                },
+                "id": "compile",
+                "label": "compile claim and span bindings",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l018.materialized.c4"
+                }
+              },
+              {
+                "contractId": "l018.materialized.c5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l018.materialized.c5"
+                },
+                "id": "publish",
+                "label": "publish immutable pack manifest",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l018.materialized.c5"
+                }
+              },
+              {
+                "contractId": "l018.materialized.c1",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l018.materialized.c1"
+                },
+                "id": "activate",
+                "label": "compare active pack version",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l018.materialized.c1-state"
+                }
+              },
+              {
+                "contractId": "l018.materialized.c6",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l018.materialized.c6"
+                },
+                "id": "query",
+                "label": "resolve supported intent",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l018.materialized.c6"
+                }
+              },
+              {
+                "contractId": "l018.materialized.c1",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l018.materialized.c1"
+                },
+                "id": "manifest",
+                "label": "read pinned pack metadata",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l018.materialized.c1-state"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l018.materialized.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l018.materialized.d0",
+                "id": "boundary",
+                "label": "Pack request",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l018-materialized-boundary-binding-3",
+                "version": 1
+              },
+              {
+                "definitionId": "l018.materialized.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l018.materialized.d1",
+                "id": "state",
+                "label": "Pack manifest",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l018.materialized.d2",
+                "id": "n2",
+                "label": "Ingest snapshot",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l018.materialized.d3",
+                "id": "n3",
+                "label": "Offline retrieval",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l018.materialized.d4",
+                "id": "n4",
+                "label": "Pack compiler",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l018.materialized.d5",
+                "id": "n5",
+                "label": "Atomic publication",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l018.materialized.d6",
+                "id": "n6",
+                "label": "Online verification",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "materialized-s7",
+          "invariants": [
+            "Verify current ACL/revisions and fill only typed allowed slots before returning citations. State owner: Online verification (online eligibility verdict)."
+          ],
+          "number": 7,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l018.materialized.d6",
+                "id": "n6",
+                "label": "Online verification",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l018.materialized.c6",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l018.materialized.c6"
+                },
+                "id": "query",
+                "label": "resolve supported intent",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l018.materialized.c6"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l018.materialized.c1",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l018.materialized.c1"
+                },
+                "id": "manifest",
+                "label": "read pinned pack metadata",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l018.materialized.c1-state"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Does a cache hit preserve access?",
+          "reason": "Verify current ACL/revisions and fill only typed allowed slots before returning citations.",
+          "title": "Online verification"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "acl",
+            "budget",
+            "support"
+          ],
+          "explanation": "Invalidate affected packs, expose freshness and rebuild; do not reuse invalid support while rebuilding. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l018.materialized.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l018.materialized.c0"
+                },
+                "id": "request",
+                "label": "submit grounded enterprise retrieval",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l018.materialized.c0"
+                }
+              },
+              {
+                "contractId": "l018.materialized.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l018.materialized.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l018.materialized.c1"
+                }
+              },
+              {
+                "contractId": "l018.materialized.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l018.materialized.c2-control"
+                },
+                "id": "ingest",
+                "label": "freeze source revisions",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l018.materialized.c2"
+                }
+              },
+              {
+                "contractId": "l018.materialized.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l018.materialized.c3"
+                },
+                "id": "retrieve",
+                "label": "evaluate pack retrieval",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l018.materialized.c3"
+                }
+              },
+              {
+                "contractId": "l018.materialized.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l018.materialized.c4"
+                },
+                "id": "compile",
+                "label": "compile claim and span bindings",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l018.materialized.c4"
+                }
+              },
+              {
+                "contractId": "l018.materialized.c5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l018.materialized.c5"
+                },
+                "id": "publish",
+                "label": "publish immutable pack manifest",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l018.materialized.c5"
+                }
+              },
+              {
+                "contractId": "l018.materialized.c1",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l018.materialized.c1"
+                },
+                "id": "activate",
+                "label": "compare active pack version",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l018.materialized.c1-state"
+                }
+              },
+              {
+                "contractId": "l018.materialized.c6",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l018.materialized.c6"
+                },
+                "id": "query",
+                "label": "resolve supported intent",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l018.materialized.c6"
+                }
+              },
+              {
+                "contractId": "l018.materialized.c1",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l018.materialized.c1"
+                },
+                "id": "manifest",
+                "label": "read pinned pack metadata",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l018.materialized.c1-state"
+                }
+              },
+              {
+                "contractId": "l018.materialized.c7",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l018.materialized.c7"
+                },
+                "id": "invalidate",
+                "label": "invalidate affected pack versions",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l018.materialized.c7-state"
+                }
+              },
+              {
+                "contractId": "l018.materialized.c2",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l018.materialized.c2"
+                },
+                "id": "rebuild",
+                "label": "rebuild source snapshot",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l018.materialized.c2"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l018.materialized.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l018.materialized.d0",
+                "id": "boundary",
+                "label": "Pack request",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l018-materialized-boundary-binding-4",
+                "version": 1
+              },
+              {
+                "definitionId": "l018.materialized.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l018.materialized.d1",
+                "id": "state",
+                "label": "Pack manifest",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l018.materialized.d2",
+                "id": "n2",
+                "label": "Ingest snapshot",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l018.materialized.d3",
+                "id": "n3",
+                "label": "Offline retrieval",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l018.materialized.d4",
+                "id": "n4",
+                "label": "Pack compiler",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l018.materialized.d5",
+                "id": "n5",
+                "label": "Atomic publication",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l018.materialized.d6",
+                "id": "n6",
+                "label": "Online verification",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l018.materialized.d7",
+                "id": "n7",
+                "label": "Invalidation repair",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "materialized-s8",
+          "invariants": [
+            "Invalidate affected packs, expose freshness and rebuild; do not reuse invalid support while rebuilding. State owner: Invalidation repair (invalidation cursor)."
+          ],
+          "number": 8,
+          "operations": [
+            {
+              "nodeId": "boundary",
+              "op": "rebind",
+              "reason": "Select a new immutable exposure binding before connecting the added responsibility; prior stage binding remains unchanged.",
+              "subsystemId": "l018-materialized-boundary-binding-4"
+            },
+            {
+              "node": {
+                "definitionId": "l018.materialized.d7",
+                "id": "n7",
+                "label": "Invalidation repair",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l018.materialized.c7",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l018.materialized.c7"
+                },
+                "id": "invalidate",
+                "label": "invalidate affected pack versions",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l018.materialized.c7-state"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l018.materialized.c2",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l018.materialized.c2"
+                },
+                "id": "rebuild",
+                "label": "rebuild source snapshot",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l018.materialized.c2"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What if a source is revoked?",
+          "reason": "Invalidate affected packs, expose freshness and rebuild; do not reuse invalid support while rebuilding.",
+          "title": "Invalidation repair"
+        }
+      ],
+      "title": "Versioned answer packs with online verification",
+      "tradeoffs": [
+        "Precomputation uses storage and can lag source updates; arbitrary questions need abstention or a separate path."
+      ]
+    }
+  ],
+  "subsystems": [
+    {
+      "definitionId": "l018.online.d0",
+      "id": "l018-online-boundary-binding-1",
+      "ports": [
+        {
+          "contractId": "l018.online.c0",
+          "direction": "in",
+          "id": "in-l018.online.c0",
+          "target": {
+            "nodeId": "control",
+            "portId": "in-l018.online.c0"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l018.online.d0",
+      "id": "l018-online-boundary-binding-2",
+      "ports": [
+        {
+          "contractId": "l018.online.c0",
+          "direction": "in",
+          "id": "in-l018.online.c0",
+          "target": {
+            "nodeId": "control",
+            "portId": "in-l018.online.c0"
+          }
+        },
+        {
+          "contractId": "l018.online.c2",
+          "direction": "out",
+          "id": "out-l018.online.c2-control",
+          "target": {
+            "nodeId": "control",
+            "portId": "out-l018.online.c2"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l018.online.d0",
+      "id": "l018-online-boundary-binding-3",
+      "ports": [
+        {
+          "contractId": "l018.online.c0",
+          "direction": "in",
+          "id": "in-l018.online.c0",
+          "target": {
+            "nodeId": "control",
+            "portId": "in-l018.online.c0"
+          }
+        },
+        {
+          "contractId": "l018.online.c2",
+          "direction": "out",
+          "id": "out-l018.online.c2-control",
+          "target": {
+            "nodeId": "control",
+            "portId": "out-l018.online.c2"
+          }
+        },
+        {
+          "contractId": "l018.online.c1",
+          "direction": "in",
+          "id": "in-l018.online.c1-state",
+          "target": {
+            "nodeId": "state",
+            "portId": "in-l018.online.c1"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l018.materialized.d0",
+      "id": "l018-materialized-boundary-binding-1",
+      "ports": [
+        {
+          "contractId": "l018.materialized.c0",
+          "direction": "in",
+          "id": "in-l018.materialized.c0",
+          "target": {
+            "nodeId": "control",
+            "portId": "in-l018.materialized.c0"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l018.materialized.d0",
+      "id": "l018-materialized-boundary-binding-2",
+      "ports": [
+        {
+          "contractId": "l018.materialized.c0",
+          "direction": "in",
+          "id": "in-l018.materialized.c0",
+          "target": {
+            "nodeId": "control",
+            "portId": "in-l018.materialized.c0"
+          }
+        },
+        {
+          "contractId": "l018.materialized.c2",
+          "direction": "out",
+          "id": "out-l018.materialized.c2-control",
+          "target": {
+            "nodeId": "control",
+            "portId": "out-l018.materialized.c2"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l018.materialized.d0",
+      "id": "l018-materialized-boundary-binding-3",
+      "ports": [
+        {
+          "contractId": "l018.materialized.c0",
+          "direction": "in",
+          "id": "in-l018.materialized.c0",
+          "target": {
+            "nodeId": "control",
+            "portId": "in-l018.materialized.c0"
+          }
+        },
+        {
+          "contractId": "l018.materialized.c2",
+          "direction": "out",
+          "id": "out-l018.materialized.c2-control",
+          "target": {
+            "nodeId": "control",
+            "portId": "out-l018.materialized.c2"
+          }
+        },
+        {
+          "contractId": "l018.materialized.c1",
+          "direction": "in",
+          "id": "in-l018.materialized.c1-state",
+          "target": {
+            "nodeId": "state",
+            "portId": "in-l018.materialized.c1"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l018.materialized.d0",
+      "id": "l018-materialized-boundary-binding-4",
+      "ports": [
+        {
+          "contractId": "l018.materialized.c0",
+          "direction": "in",
+          "id": "in-l018.materialized.c0",
+          "target": {
+            "nodeId": "control",
+            "portId": "in-l018.materialized.c0"
+          }
+        },
+        {
+          "contractId": "l018.materialized.c2",
+          "direction": "out",
+          "id": "out-l018.materialized.c2-control",
+          "target": {
+            "nodeId": "control",
+            "portId": "out-l018.materialized.c2"
+          }
+        },
+        {
+          "contractId": "l018.materialized.c1",
+          "direction": "in",
+          "id": "in-l018.materialized.c1-state",
+          "target": {
+            "nodeId": "state",
+            "portId": "in-l018.materialized.c1"
+          }
+        },
+        {
+          "contractId": "l018.materialized.c7",
+          "direction": "in",
+          "id": "in-l018.materialized.c7-state",
+          "target": {
+            "nodeId": "state",
+            "portId": "in-l018.materialized.c7"
+          }
+        }
+      ],
+      "version": 1
+    }
+  ],
+  "version": 1
+}

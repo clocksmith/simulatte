@@ -1,0 +1,3984 @@
+{
+  "components": [
+    {
+      "extends": {
+        "id": "core.client",
+        "version": 1
+      },
+      "id": "l046.central.caller",
+      "label": "Caller",
+      "ports": [
+        {
+          "contractId": "l046.central.command",
+          "direction": "out",
+          "id": "out-l046.central.command"
+        }
+      ],
+      "responsibility": "Submit the declared operation with stable identity and observe explicit completion.",
+      "stateOwnership": [
+        "caller request and retry identity"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l046.central.system",
+      "label": "Central transactional reservation ledger",
+      "ports": [
+        {
+          "contractId": "l046.central.command",
+          "direction": "in",
+          "id": "in-l046.central.command"
+        },
+        {
+          "contractId": "l046.central.step3",
+          "direction": "out",
+          "id": "out-l046.central.step3-engine"
+        }
+      ],
+      "responsibility": "Preserve this stable boundary while refining its ownership and contracts.",
+      "stateOwnership": [
+        "logical operation state"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l046.central.engine",
+      "label": "Admission controller",
+      "ports": [
+        {
+          "contractId": "l046.central.command",
+          "direction": "out",
+          "id": "out-l046.central.command"
+        },
+        {
+          "contractId": "l046.central.command",
+          "direction": "in",
+          "id": "in-l046.central.command"
+        },
+        {
+          "contractId": "l046.central.step3",
+          "direction": "out",
+          "id": "out-l046.central.step3"
+        }
+      ],
+      "responsibility": "Authenticate tenant and atomically reserve quota plus physical capacity.",
+      "stateOwnership": [
+        "reservation decision"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l046.central.state",
+      "label": "Quota ledger",
+      "ports": [
+        {
+          "contractId": "l046.central.command",
+          "direction": "in",
+          "id": "in-l046.central.command"
+        }
+      ],
+      "responsibility": "Own tenant limits, active reservations and cluster free capacity.",
+      "stateOwnership": [
+        "resource vectors"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.queue",
+        "version": 1
+      },
+      "id": "l046.central.n3",
+      "label": "Fair queue",
+      "ports": [
+        {
+          "contractId": "l046.central.step3",
+          "direction": "in",
+          "id": "in-l046.central.step3"
+        },
+        {
+          "contractId": "l046.central.step4",
+          "direction": "out",
+          "id": "out-l046.central.step4"
+        }
+      ],
+      "responsibility": "Queue by declared weighted-share policy with bounded per-tenant pending requests.",
+      "stateOwnership": [
+        "weight, queuedAt"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "l046.central.n4",
+      "label": "Node allocator",
+      "ports": [
+        {
+          "contractId": "l046.central.step4",
+          "direction": "in",
+          "id": "in-l046.central.step4"
+        },
+        {
+          "contractId": "l046.central.step5",
+          "direction": "out",
+          "id": "out-l046.central.step5"
+        },
+        {
+          "contractId": "l046.central.step7",
+          "direction": "out",
+          "id": "out-l046.central.step7"
+        }
+      ],
+      "responsibility": "Assign one resource vector and lease epoch; reject stale allocation commands.",
+      "stateOwnership": [
+        "nodeId, allocationFence"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l046.central.n5",
+      "label": "Runtime isolation",
+      "ports": [
+        {
+          "contractId": "l046.central.step5",
+          "direction": "in",
+          "id": "in-l046.central.step5"
+        },
+        {
+          "contractId": "l046.central.step6",
+          "direction": "out",
+          "id": "out-l046.central.step6"
+        }
+      ],
+      "responsibility": "Install cgroup CPU/memory and supported device/network controls before starting user code.",
+      "stateOwnership": [
+        "memoryMax, cpuMax"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.log",
+        "version": 1
+      },
+      "id": "l046.central.n6",
+      "label": "Usage journal",
+      "ports": [
+        {
+          "contractId": "l046.central.step6",
+          "direction": "in",
+          "id": "in-l046.central.step6"
+        },
+        {
+          "contractId": "l046.central.step8",
+          "direction": "out",
+          "id": "out-l046.central.step8"
+        }
+      ],
+      "responsibility": "Record monotonic start/end intervals with allocation/fence and sequence; deduplicate retries.",
+      "stateOwnership": [
+        "sequence, elapsedMs"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l046.central.n7",
+      "label": "Idle pool planner",
+      "ports": [
+        {
+          "contractId": "l046.central.step7",
+          "direction": "in",
+          "id": "in-l046.central.step7"
+        }
+      ],
+      "responsibility": "Keep warm capacity under an explicit idle budget; stop only after fenced idle timeout and drain.",
+      "stateOwnership": [
+        "idleSince, warmLimit"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "l046.central.n8",
+      "label": "Reservation reconciler",
+      "ports": [
+        {
+          "contractId": "l046.central.step8",
+          "direction": "in",
+          "id": "in-l046.central.step8"
+        }
+      ],
+      "responsibility": "Compare node leases and ledger reservations; fence the old allocation before releasing reusable capacity.",
+      "stateOwnership": [
+        "lastLease, releaseId"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.client",
+        "version": 1
+      },
+      "id": "l046.hierarchical.caller",
+      "label": "Caller",
+      "ports": [
+        {
+          "contractId": "l046.hierarchical.command",
+          "direction": "out",
+          "id": "out-l046.hierarchical.command"
+        }
+      ],
+      "responsibility": "Submit the declared operation with stable identity and observe explicit completion.",
+      "stateOwnership": [
+        "caller request and retry identity"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l046.hierarchical.system",
+      "label": "Hierarchical expiring token leases",
+      "ports": [
+        {
+          "contractId": "l046.hierarchical.command",
+          "direction": "in",
+          "id": "in-l046.hierarchical.command"
+        },
+        {
+          "contractId": "l046.hierarchical.step3",
+          "direction": "out",
+          "id": "out-l046.hierarchical.step3-engine"
+        },
+        {
+          "contractId": "l046.hierarchical.step7",
+          "direction": "out",
+          "id": "out-l046.hierarchical.step7-engine"
+        }
+      ],
+      "responsibility": "Preserve this stable boundary while refining its ownership and contracts.",
+      "stateOwnership": [
+        "logical operation state"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l046.hierarchical.engine",
+      "label": "Global quota issuer",
+      "ports": [
+        {
+          "contractId": "l046.hierarchical.command",
+          "direction": "out",
+          "id": "out-l046.hierarchical.command"
+        },
+        {
+          "contractId": "l046.hierarchical.command",
+          "direction": "in",
+          "id": "in-l046.hierarchical.command"
+        },
+        {
+          "contractId": "l046.hierarchical.step3",
+          "direction": "out",
+          "id": "out-l046.hierarchical.step3"
+        },
+        {
+          "contractId": "l046.hierarchical.step7",
+          "direction": "out",
+          "id": "out-l046.hierarchical.step7"
+        }
+      ],
+      "responsibility": "Partition quota into nonoverlapping expiring resource leases.",
+      "stateOwnership": [
+        "issued resource tokens"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l046.hierarchical.state",
+      "label": "Global lease ledger",
+      "ports": [
+        {
+          "contractId": "l046.hierarchical.command",
+          "direction": "in",
+          "id": "in-l046.hierarchical.command"
+        }
+      ],
+      "responsibility": "Own token amounts, holder, epoch and revocation state.",
+      "stateOwnership": [
+        "outstanding grants"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l046.hierarchical.n3",
+      "label": "Regional quota cache",
+      "ports": [
+        {
+          "contractId": "l046.hierarchical.step3",
+          "direction": "in",
+          "id": "in-l046.hierarchical.step3"
+        },
+        {
+          "contractId": "l046.hierarchical.step4",
+          "direction": "out",
+          "id": "out-l046.hierarchical.step4"
+        }
+      ],
+      "responsibility": "Spend only within a region-held resource lease and persist each allocation deduction.",
+      "stateOwnership": [
+        "leaseId, remaining"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "l046.hierarchical.n4",
+      "label": "Local scheduler",
+      "ports": [
+        {
+          "contractId": "l046.hierarchical.step4",
+          "direction": "in",
+          "id": "in-l046.hierarchical.step4"
+        },
+        {
+          "contractId": "l046.hierarchical.step5",
+          "direction": "out",
+          "id": "out-l046.hierarchical.step5"
+        },
+        {
+          "contractId": "l046.hierarchical.step8",
+          "direction": "out",
+          "id": "out-l046.hierarchical.step8"
+        }
+      ],
+      "responsibility": "Serialize per-lease vector deductions and bounded weighted local queues.",
+      "stateOwnership": [
+        "allocationId, leaseEpoch"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l046.hierarchical.n5",
+      "label": "Fenced runtime",
+      "ports": [
+        {
+          "contractId": "l046.hierarchical.step5",
+          "direction": "in",
+          "id": "in-l046.hierarchical.step5"
+        },
+        {
+          "contractId": "l046.hierarchical.step6",
+          "direction": "out",
+          "id": "out-l046.hierarchical.step6"
+        }
+      ],
+      "responsibility": "Stop or renew allocations before lease safety deadline and enforce epochs at runtime.",
+      "stateOwnership": [
+        "stopBefore, epoch"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.log",
+        "version": 1
+      },
+      "id": "l046.hierarchical.n6",
+      "label": "Usage aggregation",
+      "ports": [
+        {
+          "contractId": "l046.hierarchical.step6",
+          "direction": "in",
+          "id": "in-l046.hierarchical.step6"
+        }
+      ],
+      "responsibility": "Deduplicate interval sequences by allocation/epoch before rolling up tenant totals.",
+      "stateOwnership": [
+        "intervalSeq, usedMs"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l046.hierarchical.n7",
+      "label": "Lease rebalancer",
+      "ports": [
+        {
+          "contractId": "l046.hierarchical.step7",
+          "direction": "in",
+          "id": "in-l046.hierarchical.step7"
+        }
+      ],
+      "responsibility": "Reissue only after revoke/ack or safe expiry/fence, never by assuming a disconnected holder stopped.",
+      "stateOwnership": [
+        "revokedLease, replacementEpoch"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l046.hierarchical.n8",
+      "label": "Warm-pool governor",
+      "ports": [
+        {
+          "contractId": "l046.hierarchical.step8",
+          "direction": "in",
+          "id": "in-l046.hierarchical.step8"
+        }
+      ],
+      "responsibility": "Reserve a bounded warm subset under the same regional grant and reclaim on idle policy.",
+      "stateOwnership": [
+        "warmVector, idleDeadline"
+      ],
+      "version": 1
+    }
+  ],
+  "contracts": [
+    {
+      "id": "l046.central.command",
+      "request": {
+        "allocationId": "uuid",
+        "cpuMilli": "integer",
+        "durationMs": "integer",
+        "gpuCount": "integer",
+        "memoryBytes": "integer",
+        "tenantId": "uuid"
+      },
+      "response": {
+        "chargedMs": "integer",
+        "fence": "integer",
+        "state": "reserved|running|released|rejected"
+      },
+      "version": 1
+    },
+    {
+      "id": "l046.central.step3",
+      "request": {
+        "queuedAt": "timestamp",
+        "weight": "positive integer"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l046.central.step4",
+      "request": {
+        "allocationFence": "integer",
+        "nodeId": "uuid"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l046.central.step5",
+      "request": {
+        "cpuMax": "quota/period",
+        "memoryMax": "bytes"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l046.central.step6",
+      "request": {
+        "elapsedMs": "nonnegative integer",
+        "sequence": "integer"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l046.central.step7",
+      "request": {
+        "idleSince": "monotonic timestamp",
+        "warmLimit": "integer"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l046.central.step8",
+      "request": {
+        "lastLease": "integer",
+        "releaseId": "uuid"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l046.hierarchical.command",
+      "request": {
+        "allocationId": "uuid",
+        "cpuMilli": "integer",
+        "durationMs": "integer",
+        "gpuCount": "integer",
+        "memoryBytes": "integer",
+        "tenantId": "uuid"
+      },
+      "response": {
+        "chargedMs": "integer",
+        "fence": "integer",
+        "state": "reserved|running|released|rejected"
+      },
+      "version": 1
+    },
+    {
+      "id": "l046.hierarchical.step3",
+      "request": {
+        "leaseId": "uuid",
+        "remaining": "resource vector"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l046.hierarchical.step4",
+      "request": {
+        "allocationId": "uuid",
+        "leaseEpoch": "integer"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l046.hierarchical.step5",
+      "request": {
+        "epoch": "integer",
+        "stopBefore": "monotonic timestamp"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l046.hierarchical.step6",
+      "request": {
+        "intervalSeq": "integer",
+        "usedMs": "integer"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l046.hierarchical.step7",
+      "request": {
+        "replacementEpoch": "integer",
+        "revokedLease": "uuid"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l046.hierarchical.step8",
+      "request": {
+        "idleDeadline": "timestamp",
+        "warmVector": "resource vector"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    }
+  ],
+  "execution": {
+    "implementation": null,
+    "kind": "conceptual-design"
+  },
+  "problem": {
+    "referenceId": "L046",
+    "requirements": [
+      {
+        "id": "r0",
+        "text": "Admit only resources covered by tenant quota and cluster capacity."
+      },
+      {
+        "id": "r1",
+        "text": "Enforce runtime isolation independently of admission and prevent noisy-neighbor budget theft."
+      },
+      {
+        "id": "r2",
+        "text": "Reclaim failed allocations and account usage once per fenced measurement interval."
+      }
+    ],
+    "scope": "Allocate CPU/GPU capacity with admission, runtime isolation and measured accounting as separate authorities. Compare central reservations with bounded hierarchical token leases. Millisecond units are an accounting representation, not a promise of measurement accuracy.",
+    "studyLabel": "Tenant compute quotas and budgets"
+  },
+  "provenance": {
+    "kind": "authored-practice",
+    "note": "Authored interview preparation. Technical references support mechanisms, not the claim that a company asked this question."
+  },
+  "references": [
+    {
+      "id": "ref0",
+      "scope": "background",
+      "supports": "Aggregate admission limits differ from runtime resource isolation.",
+      "title": "Kubernetes ResourceQuota",
+      "url": "https://kubernetes.io/docs/concepts/policy/resource-quotas/"
+    },
+    {
+      "id": "ref1",
+      "scope": "background",
+      "supports": "Runtime CPU/memory controls and resource accounting differ from quota admission.",
+      "title": "Linux cgroup v2",
+      "url": "https://docs.kernel.org/admin-guide/cgroup-v2.html"
+    }
+  ],
+  "schema": "simulatte.composableStudy.v2",
+  "solutions": [
+    {
+      "acceptanceCases": [
+        {
+          "given": "Two admissions each ask for the final free GPU.",
+          "id": "case0",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "At most one reservation fits the remaining vector.",
+          "when": "Serialize reservations in the central ledger."
+        },
+        {
+          "given": "A node reports the same allocation interval twice.",
+          "id": "case1",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Charge the interval and release capacity once in the bounded model.",
+          "when": "Reconcile and release the reservation twice."
+        },
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-05-state.test.mjs",
+            "testName": "resource vectors and interval identities prevent local overspend and double charge"
+          },
+          "given": "One GPU remains and usage reports carry allocation/epoch/sequence.",
+          "id": "bounded-mechanism",
+          "relatedRequirementIds": [
+            "r0"
+          ],
+          "then": "Reject overspend and count one interval per identity in this sequential model.",
+          "when": "Reserve twice and repeat one usage identity."
+        }
+      ],
+      "algorithms": [
+        {
+          "code": "transaction(() => { lockTenantAndCapacity(); if (!fits(request, free, quotaRemaining)) reject();\n reserveUnique(allocationId, resourceVector, fence); });\nnode: installIsolationBeforeStart(); emitUsageIntervals(sequence,monotonicElapsed);\nrelease: fenceOldAllocation(); transaction(() => { releaseOnce(allocationId); chargeIntervalsUnique(); });",
+          "guarantees": [
+            "Quota limit is not a fairness guarantee.",
+            "One reservation cannot be placed twice.",
+            "GPU scheduling isolation needs its own supported mechanism; quota alone is insufficient.",
+            "Wall-clock changes cannot create negative or duplicate elapsed usage.",
+            "A queued new request prevents unsafe idle teardown.",
+            "Lease expiry without fencing cannot safely free capacity."
+          ],
+          "id": "transition",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "engine"
+        }
+      ],
+      "apis": [
+        {
+          "errors": "Reject invalid input, stale versions and operations outside the declared boundary.",
+          "method": "CALL",
+          "ownerNodeId": "engine",
+          "path": "L046/central",
+          "request": "{\"tenantId\":\"uuid\",\"allocationId\":\"uuid\",\"cpuMilli\":\"integer\",\"memoryBytes\":\"integer\",\"gpuCount\":\"integer\",\"durationMs\":\"integer\"}",
+          "response": "{\"state\":\"reserved|running|released|rejected\",\"fence\":\"integer\",\"chargedMs\":\"integer\"}"
+        }
+      ],
+      "assumptions": [
+        "All added stages are authored practice extending the canonical prompt.",
+        "Graphs specify conceptual mechanisms; reference models do not prove cloud execution, latency, physical durability or distributed safety."
+      ],
+      "chooseWhen": "Global quota precision matters more than partition availability.",
+      "id": "central",
+      "initialGraph": {
+        "edges": [],
+        "nodes": []
+      },
+      "stages": [
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l046.central.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l046.central.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l046.central.command"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l046.central.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l046.central.system",
+                "id": "system",
+                "label": "Central transactional reservation ledger",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "central-s1",
+          "invariants": [
+            "Admit only resources covered by tenant quota and cluster capacity."
+          ],
+          "number": 1,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l046.central.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "l046.central.system",
+                "id": "system",
+                "label": "Central transactional reservation ledger",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l046.central.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l046.central.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l046.central.command"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What does successful completion promise?",
+          "reason": "Admit only resources covered by tenant quota and cluster capacity.",
+          "title": "Define the operation boundary"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l046.central.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l046.central.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l046.central.command"
+                }
+              },
+              {
+                "contractId": "l046.central.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l046.central.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l046.central.command"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l046.central.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l046.central.system",
+                "id": "system",
+                "label": "Central transactional reservation ledger",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l046.central.binding-s2",
+                "version": 1
+              },
+              {
+                "definitionId": "l046.central.engine",
+                "id": "engine",
+                "label": "Admission controller",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l046.central.state",
+                "id": "state",
+                "label": "Quota ledger",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "central-s2",
+          "invariants": [
+            "reservation decision belongs to Admission controller; resource vectors belongs to Quota ledger."
+          ],
+          "number": 2,
+          "operations": [
+            {
+              "edges": [
+                {
+                  "contractId": "l046.central.command",
+                  "from": {
+                    "nodeId": "engine",
+                    "portId": "out-l046.central.command"
+                  },
+                  "id": "owned-state",
+                  "label": "Read or commit state",
+                  "mode": "storage",
+                  "to": {
+                    "nodeId": "state",
+                    "portId": "in-l046.central.command"
+                  }
+                }
+              ],
+              "nodeId": "system",
+              "nodes": [
+                {
+                  "definitionId": "l046.central.engine",
+                  "id": "engine",
+                  "label": "Admission controller",
+                  "position": {
+                    "x": 560,
+                    "y": 0
+                  },
+                  "version": 1
+                },
+                {
+                  "definitionId": "l046.central.state",
+                  "id": "state",
+                  "label": "Quota ledger",
+                  "position": {
+                    "x": 840,
+                    "y": 0
+                  },
+                  "version": 1
+                }
+              ],
+              "op": "expand",
+              "subsystemId": "l046.central.binding-s2"
+            }
+          ],
+          "question": "Which component owns the decision and its persistent or shared state?",
+          "reason": "Authenticate tenant and atomically reserve quota plus physical capacity. Own tenant limits, active reservations and cluster free capacity.",
+          "title": "Expose authority and state"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l046.central.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l046.central.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l046.central.command"
+                }
+              },
+              {
+                "contractId": "l046.central.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l046.central.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l046.central.command"
+                }
+              },
+              {
+                "contractId": "l046.central.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l046.central.step3-engine"
+                },
+                "id": "step3",
+                "label": "Fair queue",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l046.central.step3"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l046.central.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l046.central.system",
+                "id": "system",
+                "label": "Central transactional reservation ledger",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l046.central.binding-s3",
+                "version": 1
+              },
+              {
+                "definitionId": "l046.central.engine",
+                "id": "engine",
+                "label": "Admission controller",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l046.central.state",
+                "id": "state",
+                "label": "Quota ledger",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l046.central.n3",
+                "id": "n3",
+                "label": "Fair queue",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "central-s3",
+          "invariants": [
+            "Quota limit is not a fairness guarantee."
+          ],
+          "number": 3,
+          "operations": [
+            {
+              "nodeId": "system",
+              "op": "rebind",
+              "reason": "Expose this new typed path without mutating earlier binding definitions.",
+              "subsystemId": "l046.central.binding-s3"
+            },
+            {
+              "node": {
+                "definitionId": "l046.central.n3",
+                "id": "n3",
+                "label": "Fair queue",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l046.central.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l046.central.step3-engine"
+                },
+                "id": "step3",
+                "label": "Fair queue",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l046.central.step3"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Who receives scarce GPUs next?",
+          "reason": "Queue by declared weighted-share policy with bounded per-tenant pending requests.",
+          "title": "Fair queue"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l046.central.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l046.central.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l046.central.command"
+                }
+              },
+              {
+                "contractId": "l046.central.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l046.central.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l046.central.command"
+                }
+              },
+              {
+                "contractId": "l046.central.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l046.central.step3-engine"
+                },
+                "id": "step3",
+                "label": "Fair queue",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l046.central.step3"
+                }
+              },
+              {
+                "contractId": "l046.central.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l046.central.step4"
+                },
+                "id": "step4",
+                "label": "Node allocator",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l046.central.step4"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l046.central.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l046.central.system",
+                "id": "system",
+                "label": "Central transactional reservation ledger",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l046.central.binding-s3",
+                "version": 1
+              },
+              {
+                "definitionId": "l046.central.engine",
+                "id": "engine",
+                "label": "Admission controller",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l046.central.state",
+                "id": "state",
+                "label": "Quota ledger",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l046.central.n3",
+                "id": "n3",
+                "label": "Fair queue",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l046.central.n4",
+                "id": "n4",
+                "label": "Node allocator",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "central-s4",
+          "invariants": [
+            "One reservation cannot be placed twice."
+          ],
+          "number": 4,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l046.central.n4",
+                "id": "n4",
+                "label": "Node allocator",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l046.central.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l046.central.step4"
+                },
+                "id": "step4",
+                "label": "Node allocator",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l046.central.step4"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How is a reservation bound to a machine?",
+          "reason": "Assign one resource vector and lease epoch; reject stale allocation commands.",
+          "title": "Node allocator"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l046.central.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l046.central.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l046.central.command"
+                }
+              },
+              {
+                "contractId": "l046.central.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l046.central.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l046.central.command"
+                }
+              },
+              {
+                "contractId": "l046.central.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l046.central.step3-engine"
+                },
+                "id": "step3",
+                "label": "Fair queue",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l046.central.step3"
+                }
+              },
+              {
+                "contractId": "l046.central.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l046.central.step4"
+                },
+                "id": "step4",
+                "label": "Node allocator",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l046.central.step4"
+                }
+              },
+              {
+                "contractId": "l046.central.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l046.central.step5"
+                },
+                "id": "step5",
+                "label": "Runtime isolation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l046.central.step5"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l046.central.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l046.central.system",
+                "id": "system",
+                "label": "Central transactional reservation ledger",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l046.central.binding-s3",
+                "version": 1
+              },
+              {
+                "definitionId": "l046.central.engine",
+                "id": "engine",
+                "label": "Admission controller",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l046.central.state",
+                "id": "state",
+                "label": "Quota ledger",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l046.central.n3",
+                "id": "n3",
+                "label": "Fair queue",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l046.central.n4",
+                "id": "n4",
+                "label": "Node allocator",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l046.central.n5",
+                "id": "n5",
+                "label": "Runtime isolation",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "central-s5",
+          "invariants": [
+            "GPU scheduling isolation needs its own supported mechanism; quota alone is insufficient."
+          ],
+          "number": 5,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l046.central.n5",
+                "id": "n5",
+                "label": "Runtime isolation",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l046.central.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l046.central.step5"
+                },
+                "id": "step5",
+                "label": "Runtime isolation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l046.central.step5"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can admitted work exceed its limit?",
+          "reason": "Install cgroup CPU/memory and supported device/network controls before starting user code.",
+          "title": "Runtime isolation"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l046.central.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l046.central.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l046.central.command"
+                }
+              },
+              {
+                "contractId": "l046.central.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l046.central.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l046.central.command"
+                }
+              },
+              {
+                "contractId": "l046.central.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l046.central.step3-engine"
+                },
+                "id": "step3",
+                "label": "Fair queue",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l046.central.step3"
+                }
+              },
+              {
+                "contractId": "l046.central.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l046.central.step4"
+                },
+                "id": "step4",
+                "label": "Node allocator",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l046.central.step4"
+                }
+              },
+              {
+                "contractId": "l046.central.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l046.central.step5"
+                },
+                "id": "step5",
+                "label": "Runtime isolation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l046.central.step5"
+                }
+              },
+              {
+                "contractId": "l046.central.step6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l046.central.step6"
+                },
+                "id": "step6",
+                "label": "Usage journal",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l046.central.step6"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l046.central.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l046.central.system",
+                "id": "system",
+                "label": "Central transactional reservation ledger",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l046.central.binding-s3",
+                "version": 1
+              },
+              {
+                "definitionId": "l046.central.engine",
+                "id": "engine",
+                "label": "Admission controller",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l046.central.state",
+                "id": "state",
+                "label": "Quota ledger",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l046.central.n3",
+                "id": "n3",
+                "label": "Fair queue",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l046.central.n4",
+                "id": "n4",
+                "label": "Node allocator",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l046.central.n5",
+                "id": "n5",
+                "label": "Runtime isolation",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l046.central.n6",
+                "id": "n6",
+                "label": "Usage journal",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "central-s6",
+          "invariants": [
+            "Wall-clock changes cannot create negative or duplicate elapsed usage."
+          ],
+          "number": 6,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l046.central.n6",
+                "id": "n6",
+                "label": "Usage journal",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l046.central.step6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l046.central.step6"
+                },
+                "id": "step6",
+                "label": "Usage journal",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l046.central.step6"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How are milliseconds charged?",
+          "reason": "Record monotonic start/end intervals with allocation/fence and sequence; deduplicate retries.",
+          "title": "Usage journal"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l046.central.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l046.central.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l046.central.command"
+                }
+              },
+              {
+                "contractId": "l046.central.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l046.central.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l046.central.command"
+                }
+              },
+              {
+                "contractId": "l046.central.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l046.central.step3-engine"
+                },
+                "id": "step3",
+                "label": "Fair queue",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l046.central.step3"
+                }
+              },
+              {
+                "contractId": "l046.central.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l046.central.step4"
+                },
+                "id": "step4",
+                "label": "Node allocator",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l046.central.step4"
+                }
+              },
+              {
+                "contractId": "l046.central.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l046.central.step5"
+                },
+                "id": "step5",
+                "label": "Runtime isolation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l046.central.step5"
+                }
+              },
+              {
+                "contractId": "l046.central.step6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l046.central.step6"
+                },
+                "id": "step6",
+                "label": "Usage journal",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l046.central.step6"
+                }
+              },
+              {
+                "contractId": "l046.central.step7",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l046.central.step7"
+                },
+                "id": "step7",
+                "label": "Idle pool planner",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l046.central.step7"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l046.central.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l046.central.system",
+                "id": "system",
+                "label": "Central transactional reservation ledger",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l046.central.binding-s3",
+                "version": 1
+              },
+              {
+                "definitionId": "l046.central.engine",
+                "id": "engine",
+                "label": "Admission controller",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l046.central.state",
+                "id": "state",
+                "label": "Quota ledger",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l046.central.n3",
+                "id": "n3",
+                "label": "Fair queue",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l046.central.n4",
+                "id": "n4",
+                "label": "Node allocator",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l046.central.n5",
+                "id": "n5",
+                "label": "Runtime isolation",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l046.central.n6",
+                "id": "n6",
+                "label": "Usage journal",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l046.central.n7",
+                "id": "n7",
+                "label": "Idle pool planner",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "central-s7",
+          "invariants": [
+            "A queued new request prevents unsafe idle teardown."
+          ],
+          "number": 7,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l046.central.n7",
+                "id": "n7",
+                "label": "Idle pool planner",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l046.central.step7",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l046.central.step7"
+                },
+                "id": "step7",
+                "label": "Idle pool planner",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l046.central.step7"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What does scale-to-zero reclaim?",
+          "reason": "Keep warm capacity under an explicit idle budget; stop only after fenced idle timeout and drain.",
+          "title": "Idle pool planner"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l046.central.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l046.central.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l046.central.command"
+                }
+              },
+              {
+                "contractId": "l046.central.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l046.central.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l046.central.command"
+                }
+              },
+              {
+                "contractId": "l046.central.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l046.central.step3-engine"
+                },
+                "id": "step3",
+                "label": "Fair queue",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l046.central.step3"
+                }
+              },
+              {
+                "contractId": "l046.central.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l046.central.step4"
+                },
+                "id": "step4",
+                "label": "Node allocator",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l046.central.step4"
+                }
+              },
+              {
+                "contractId": "l046.central.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l046.central.step5"
+                },
+                "id": "step5",
+                "label": "Runtime isolation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l046.central.step5"
+                }
+              },
+              {
+                "contractId": "l046.central.step6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l046.central.step6"
+                },
+                "id": "step6",
+                "label": "Usage journal",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l046.central.step6"
+                }
+              },
+              {
+                "contractId": "l046.central.step7",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l046.central.step7"
+                },
+                "id": "step7",
+                "label": "Idle pool planner",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l046.central.step7"
+                }
+              },
+              {
+                "contractId": "l046.central.step8",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l046.central.step8"
+                },
+                "id": "step8",
+                "label": "Reservation reconciler",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n8",
+                  "portId": "in-l046.central.step8"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l046.central.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l046.central.system",
+                "id": "system",
+                "label": "Central transactional reservation ledger",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l046.central.binding-s3",
+                "version": 1
+              },
+              {
+                "definitionId": "l046.central.engine",
+                "id": "engine",
+                "label": "Admission controller",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l046.central.state",
+                "id": "state",
+                "label": "Quota ledger",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l046.central.n3",
+                "id": "n3",
+                "label": "Fair queue",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l046.central.n4",
+                "id": "n4",
+                "label": "Node allocator",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l046.central.n5",
+                "id": "n5",
+                "label": "Runtime isolation",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l046.central.n6",
+                "id": "n6",
+                "label": "Usage journal",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l046.central.n7",
+                "id": "n7",
+                "label": "Idle pool planner",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l046.central.n8",
+                "id": "n8",
+                "label": "Reservation reconciler",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "central-s8",
+          "invariants": [
+            "Lease expiry without fencing cannot safely free capacity."
+          ],
+          "number": 8,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l046.central.n8",
+                "id": "n8",
+                "label": "Reservation reconciler",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l046.central.step8",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l046.central.step8"
+                },
+                "id": "step8",
+                "label": "Reservation reconciler",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n8",
+                  "portId": "in-l046.central.step8"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What if a node disappears?",
+          "reason": "Compare node leases and ledger reservations; fence the old allocation before releasing reusable capacity.",
+          "title": "Reservation reconciler"
+        }
+      ],
+      "title": "Central transactional reservation ledger",
+      "tradeoffs": [
+        "The central ledger can become an admission bottleneck.",
+        "Warm pools consume budget even while idle under an explicit cost policy."
+      ]
+    },
+    {
+      "acceptanceCases": [
+        {
+          "given": "Regional grants consume all global quota.",
+          "id": "case0",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Refuse the overlapping grant.",
+          "when": "A third region asks for another grant before revocation completes."
+        },
+        {
+          "given": "A region retries one usage interval after reconnect.",
+          "id": "case1",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Count the measured interval once; this does not prove runtime measurement accuracy.",
+          "when": "Aggregate the same allocation/epoch/sequence twice."
+        },
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-05-state.test.mjs",
+            "testName": "resource vectors and interval identities prevent local overspend and double charge"
+          },
+          "given": "One GPU remains and usage reports carry allocation/epoch/sequence.",
+          "id": "bounded-mechanism",
+          "relatedRequirementIds": [
+            "r0"
+          ],
+          "then": "Reject overspend and count one interval per identity in this sequential model.",
+          "when": "Reserve twice and repeat one usage identity."
+        }
+      ],
+      "algorithms": [
+        {
+          "code": "global: issueDisjointLeasesWithinQuota();\nregional transaction: requireUnexpiredLease(); deductVectorOnce(allocationId);\nruntime: enforceEpochAndStopDeadline(); reportIntervalsUnique(allocationId,epoch,seq);\nrebalance: waitForFencedRevocationOrSafeExpiry(); then issueNewLease();",
+          "guarantees": [
+            "Regional grants sum to no more than global quota.",
+            "Every local allocation has one unique deduction.",
+            "An expired grant cannot continue consuming reclaimed capacity.",
+            "Aggregation is idempotent for repeated interval reports.",
+            "Old and replacement resource rights must not overlap.",
+            "Warm capacity is charged against the regional lease."
+          ],
+          "id": "transition",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "engine"
+        }
+      ],
+      "apis": [
+        {
+          "errors": "Reject invalid input, stale versions and operations outside the declared boundary.",
+          "method": "CALL",
+          "ownerNodeId": "engine",
+          "path": "L046/hierarchical",
+          "request": "{\"tenantId\":\"uuid\",\"allocationId\":\"uuid\",\"cpuMilli\":\"integer\",\"memoryBytes\":\"integer\",\"gpuCount\":\"integer\",\"durationMs\":\"integer\"}",
+          "response": "{\"state\":\"reserved|running|released|rejected\",\"fence\":\"integer\",\"chargedMs\":\"integer\"}"
+        }
+      ],
+      "assumptions": [
+        "All added stages are authored practice extending the canonical prompt.",
+        "Graphs specify conceptual mechanisms; reference models do not prove cloud execution, latency, physical durability or distributed safety."
+      ],
+      "chooseWhen": "Many regions need low-latency local admission within bounded global allocations.",
+      "id": "hierarchical",
+      "initialGraph": {
+        "edges": [],
+        "nodes": []
+      },
+      "stages": [
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l046.hierarchical.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l046.hierarchical.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l046.hierarchical.command"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l046.hierarchical.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l046.hierarchical.system",
+                "id": "system",
+                "label": "Hierarchical expiring token leases",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "hierarchical-s1",
+          "invariants": [
+            "Admit only resources covered by tenant quota and cluster capacity."
+          ],
+          "number": 1,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l046.hierarchical.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "l046.hierarchical.system",
+                "id": "system",
+                "label": "Hierarchical expiring token leases",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l046.hierarchical.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l046.hierarchical.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l046.hierarchical.command"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What does successful completion promise?",
+          "reason": "Admit only resources covered by tenant quota and cluster capacity.",
+          "title": "Define the operation boundary"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l046.hierarchical.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l046.hierarchical.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l046.hierarchical.command"
+                }
+              },
+              {
+                "contractId": "l046.hierarchical.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l046.hierarchical.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l046.hierarchical.command"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l046.hierarchical.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l046.hierarchical.system",
+                "id": "system",
+                "label": "Hierarchical expiring token leases",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l046.hierarchical.binding-s2",
+                "version": 1
+              },
+              {
+                "definitionId": "l046.hierarchical.engine",
+                "id": "engine",
+                "label": "Global quota issuer",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l046.hierarchical.state",
+                "id": "state",
+                "label": "Global lease ledger",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "hierarchical-s2",
+          "invariants": [
+            "issued resource tokens belongs to Global quota issuer; outstanding grants belongs to Global lease ledger."
+          ],
+          "number": 2,
+          "operations": [
+            {
+              "edges": [
+                {
+                  "contractId": "l046.hierarchical.command",
+                  "from": {
+                    "nodeId": "engine",
+                    "portId": "out-l046.hierarchical.command"
+                  },
+                  "id": "owned-state",
+                  "label": "Read or commit state",
+                  "mode": "storage",
+                  "to": {
+                    "nodeId": "state",
+                    "portId": "in-l046.hierarchical.command"
+                  }
+                }
+              ],
+              "nodeId": "system",
+              "nodes": [
+                {
+                  "definitionId": "l046.hierarchical.engine",
+                  "id": "engine",
+                  "label": "Global quota issuer",
+                  "position": {
+                    "x": 560,
+                    "y": 0
+                  },
+                  "version": 1
+                },
+                {
+                  "definitionId": "l046.hierarchical.state",
+                  "id": "state",
+                  "label": "Global lease ledger",
+                  "position": {
+                    "x": 840,
+                    "y": 0
+                  },
+                  "version": 1
+                }
+              ],
+              "op": "expand",
+              "subsystemId": "l046.hierarchical.binding-s2"
+            }
+          ],
+          "question": "Which component owns the decision and its persistent or shared state?",
+          "reason": "Partition quota into nonoverlapping expiring resource leases. Own token amounts, holder, epoch and revocation state.",
+          "title": "Expose authority and state"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l046.hierarchical.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l046.hierarchical.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l046.hierarchical.command"
+                }
+              },
+              {
+                "contractId": "l046.hierarchical.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l046.hierarchical.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l046.hierarchical.command"
+                }
+              },
+              {
+                "contractId": "l046.hierarchical.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l046.hierarchical.step3-engine"
+                },
+                "id": "step3",
+                "label": "Regional quota cache",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l046.hierarchical.step3"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l046.hierarchical.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l046.hierarchical.system",
+                "id": "system",
+                "label": "Hierarchical expiring token leases",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l046.hierarchical.binding-s3",
+                "version": 1
+              },
+              {
+                "definitionId": "l046.hierarchical.engine",
+                "id": "engine",
+                "label": "Global quota issuer",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l046.hierarchical.state",
+                "id": "state",
+                "label": "Global lease ledger",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l046.hierarchical.n3",
+                "id": "n3",
+                "label": "Regional quota cache",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "hierarchical-s3",
+          "invariants": [
+            "Regional grants sum to no more than global quota."
+          ],
+          "number": 3,
+          "operations": [
+            {
+              "nodeId": "system",
+              "op": "rebind",
+              "reason": "Expose this new typed path without mutating earlier binding definitions.",
+              "subsystemId": "l046.hierarchical.binding-s3"
+            },
+            {
+              "node": {
+                "definitionId": "l046.hierarchical.n3",
+                "id": "n3",
+                "label": "Regional quota cache",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l046.hierarchical.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l046.hierarchical.step3-engine"
+                },
+                "id": "step3",
+                "label": "Regional quota cache",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l046.hierarchical.step3"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How can admission avoid global round trips?",
+          "reason": "Spend only within a region-held resource lease and persist each allocation deduction.",
+          "title": "Regional quota cache"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l046.hierarchical.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l046.hierarchical.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l046.hierarchical.command"
+                }
+              },
+              {
+                "contractId": "l046.hierarchical.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l046.hierarchical.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l046.hierarchical.command"
+                }
+              },
+              {
+                "contractId": "l046.hierarchical.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l046.hierarchical.step3-engine"
+                },
+                "id": "step3",
+                "label": "Regional quota cache",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l046.hierarchical.step3"
+                }
+              },
+              {
+                "contractId": "l046.hierarchical.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l046.hierarchical.step4"
+                },
+                "id": "step4",
+                "label": "Local scheduler",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l046.hierarchical.step4"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l046.hierarchical.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l046.hierarchical.system",
+                "id": "system",
+                "label": "Hierarchical expiring token leases",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l046.hierarchical.binding-s3",
+                "version": 1
+              },
+              {
+                "definitionId": "l046.hierarchical.engine",
+                "id": "engine",
+                "label": "Global quota issuer",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l046.hierarchical.state",
+                "id": "state",
+                "label": "Global lease ledger",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l046.hierarchical.n3",
+                "id": "n3",
+                "label": "Regional quota cache",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l046.hierarchical.n4",
+                "id": "n4",
+                "label": "Local scheduler",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "hierarchical-s4",
+          "invariants": [
+            "Every local allocation has one unique deduction."
+          ],
+          "number": 4,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l046.hierarchical.n4",
+                "id": "n4",
+                "label": "Local scheduler",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l046.hierarchical.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l046.hierarchical.step4"
+                },
+                "id": "step4",
+                "label": "Local scheduler",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l046.hierarchical.step4"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can concurrent local requests overspend?",
+          "reason": "Serialize per-lease vector deductions and bounded weighted local queues.",
+          "title": "Local scheduler"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l046.hierarchical.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l046.hierarchical.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l046.hierarchical.command"
+                }
+              },
+              {
+                "contractId": "l046.hierarchical.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l046.hierarchical.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l046.hierarchical.command"
+                }
+              },
+              {
+                "contractId": "l046.hierarchical.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l046.hierarchical.step3-engine"
+                },
+                "id": "step3",
+                "label": "Regional quota cache",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l046.hierarchical.step3"
+                }
+              },
+              {
+                "contractId": "l046.hierarchical.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l046.hierarchical.step4"
+                },
+                "id": "step4",
+                "label": "Local scheduler",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l046.hierarchical.step4"
+                }
+              },
+              {
+                "contractId": "l046.hierarchical.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l046.hierarchical.step5"
+                },
+                "id": "step5",
+                "label": "Fenced runtime",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l046.hierarchical.step5"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l046.hierarchical.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l046.hierarchical.system",
+                "id": "system",
+                "label": "Hierarchical expiring token leases",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l046.hierarchical.binding-s3",
+                "version": 1
+              },
+              {
+                "definitionId": "l046.hierarchical.engine",
+                "id": "engine",
+                "label": "Global quota issuer",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l046.hierarchical.state",
+                "id": "state",
+                "label": "Global lease ledger",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l046.hierarchical.n3",
+                "id": "n3",
+                "label": "Regional quota cache",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l046.hierarchical.n4",
+                "id": "n4",
+                "label": "Local scheduler",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l046.hierarchical.n5",
+                "id": "n5",
+                "label": "Fenced runtime",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "hierarchical-s5",
+          "invariants": [
+            "An expired grant cannot continue consuming reclaimed capacity."
+          ],
+          "number": 5,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l046.hierarchical.n5",
+                "id": "n5",
+                "label": "Fenced runtime",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l046.hierarchical.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l046.hierarchical.step5"
+                },
+                "id": "step5",
+                "label": "Fenced runtime",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l046.hierarchical.step5"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What if a region remains partitioned?",
+          "reason": "Stop or renew allocations before lease safety deadline and enforce epochs at runtime.",
+          "title": "Fenced runtime"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l046.hierarchical.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l046.hierarchical.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l046.hierarchical.command"
+                }
+              },
+              {
+                "contractId": "l046.hierarchical.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l046.hierarchical.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l046.hierarchical.command"
+                }
+              },
+              {
+                "contractId": "l046.hierarchical.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l046.hierarchical.step3-engine"
+                },
+                "id": "step3",
+                "label": "Regional quota cache",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l046.hierarchical.step3"
+                }
+              },
+              {
+                "contractId": "l046.hierarchical.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l046.hierarchical.step4"
+                },
+                "id": "step4",
+                "label": "Local scheduler",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l046.hierarchical.step4"
+                }
+              },
+              {
+                "contractId": "l046.hierarchical.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l046.hierarchical.step5"
+                },
+                "id": "step5",
+                "label": "Fenced runtime",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l046.hierarchical.step5"
+                }
+              },
+              {
+                "contractId": "l046.hierarchical.step6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l046.hierarchical.step6"
+                },
+                "id": "step6",
+                "label": "Usage aggregation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l046.hierarchical.step6"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l046.hierarchical.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l046.hierarchical.system",
+                "id": "system",
+                "label": "Hierarchical expiring token leases",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l046.hierarchical.binding-s3",
+                "version": 1
+              },
+              {
+                "definitionId": "l046.hierarchical.engine",
+                "id": "engine",
+                "label": "Global quota issuer",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l046.hierarchical.state",
+                "id": "state",
+                "label": "Global lease ledger",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l046.hierarchical.n3",
+                "id": "n3",
+                "label": "Regional quota cache",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l046.hierarchical.n4",
+                "id": "n4",
+                "label": "Local scheduler",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l046.hierarchical.n5",
+                "id": "n5",
+                "label": "Fenced runtime",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l046.hierarchical.n6",
+                "id": "n6",
+                "label": "Usage aggregation",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "hierarchical-s6",
+          "invariants": [
+            "Aggregation is idempotent for repeated interval reports."
+          ],
+          "number": 6,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l046.hierarchical.n6",
+                "id": "n6",
+                "label": "Usage aggregation",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l046.hierarchical.step6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l046.hierarchical.step6"
+                },
+                "id": "step6",
+                "label": "Usage aggregation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l046.hierarchical.step6"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How are local measurements billed?",
+          "reason": "Deduplicate interval sequences by allocation/epoch before rolling up tenant totals.",
+          "title": "Usage aggregation"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l046.hierarchical.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l046.hierarchical.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l046.hierarchical.command"
+                }
+              },
+              {
+                "contractId": "l046.hierarchical.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l046.hierarchical.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l046.hierarchical.command"
+                }
+              },
+              {
+                "contractId": "l046.hierarchical.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l046.hierarchical.step3-engine"
+                },
+                "id": "step3",
+                "label": "Regional quota cache",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l046.hierarchical.step3"
+                }
+              },
+              {
+                "contractId": "l046.hierarchical.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l046.hierarchical.step4"
+                },
+                "id": "step4",
+                "label": "Local scheduler",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l046.hierarchical.step4"
+                }
+              },
+              {
+                "contractId": "l046.hierarchical.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l046.hierarchical.step5"
+                },
+                "id": "step5",
+                "label": "Fenced runtime",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l046.hierarchical.step5"
+                }
+              },
+              {
+                "contractId": "l046.hierarchical.step6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l046.hierarchical.step6"
+                },
+                "id": "step6",
+                "label": "Usage aggregation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l046.hierarchical.step6"
+                }
+              },
+              {
+                "contractId": "l046.hierarchical.step7",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l046.hierarchical.step7-engine"
+                },
+                "id": "step7",
+                "label": "Lease rebalancer",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l046.hierarchical.step7"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l046.hierarchical.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l046.hierarchical.system",
+                "id": "system",
+                "label": "Hierarchical expiring token leases",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l046.hierarchical.binding-s7",
+                "version": 1
+              },
+              {
+                "definitionId": "l046.hierarchical.engine",
+                "id": "engine",
+                "label": "Global quota issuer",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l046.hierarchical.state",
+                "id": "state",
+                "label": "Global lease ledger",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l046.hierarchical.n3",
+                "id": "n3",
+                "label": "Regional quota cache",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l046.hierarchical.n4",
+                "id": "n4",
+                "label": "Local scheduler",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l046.hierarchical.n5",
+                "id": "n5",
+                "label": "Fenced runtime",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l046.hierarchical.n6",
+                "id": "n6",
+                "label": "Usage aggregation",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l046.hierarchical.n7",
+                "id": "n7",
+                "label": "Lease rebalancer",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "hierarchical-s7",
+          "invariants": [
+            "Old and replacement resource rights must not overlap."
+          ],
+          "number": 7,
+          "operations": [
+            {
+              "nodeId": "system",
+              "op": "rebind",
+              "reason": "Expose this new typed path without mutating earlier binding definitions.",
+              "subsystemId": "l046.hierarchical.binding-s7"
+            },
+            {
+              "node": {
+                "definitionId": "l046.hierarchical.n7",
+                "id": "n7",
+                "label": "Lease rebalancer",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l046.hierarchical.step7",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l046.hierarchical.step7-engine"
+                },
+                "id": "step7",
+                "label": "Lease rebalancer",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l046.hierarchical.step7"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How is stranded capacity moved?",
+          "reason": "Reissue only after revoke/ack or safe expiry/fence, never by assuming a disconnected holder stopped.",
+          "title": "Lease rebalancer"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l046.hierarchical.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l046.hierarchical.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l046.hierarchical.command"
+                }
+              },
+              {
+                "contractId": "l046.hierarchical.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l046.hierarchical.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l046.hierarchical.command"
+                }
+              },
+              {
+                "contractId": "l046.hierarchical.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l046.hierarchical.step3-engine"
+                },
+                "id": "step3",
+                "label": "Regional quota cache",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l046.hierarchical.step3"
+                }
+              },
+              {
+                "contractId": "l046.hierarchical.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l046.hierarchical.step4"
+                },
+                "id": "step4",
+                "label": "Local scheduler",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l046.hierarchical.step4"
+                }
+              },
+              {
+                "contractId": "l046.hierarchical.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l046.hierarchical.step5"
+                },
+                "id": "step5",
+                "label": "Fenced runtime",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l046.hierarchical.step5"
+                }
+              },
+              {
+                "contractId": "l046.hierarchical.step6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l046.hierarchical.step6"
+                },
+                "id": "step6",
+                "label": "Usage aggregation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l046.hierarchical.step6"
+                }
+              },
+              {
+                "contractId": "l046.hierarchical.step7",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l046.hierarchical.step7-engine"
+                },
+                "id": "step7",
+                "label": "Lease rebalancer",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l046.hierarchical.step7"
+                }
+              },
+              {
+                "contractId": "l046.hierarchical.step8",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l046.hierarchical.step8"
+                },
+                "id": "step8",
+                "label": "Warm-pool governor",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n8",
+                  "portId": "in-l046.hierarchical.step8"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l046.hierarchical.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l046.hierarchical.system",
+                "id": "system",
+                "label": "Hierarchical expiring token leases",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l046.hierarchical.binding-s7",
+                "version": 1
+              },
+              {
+                "definitionId": "l046.hierarchical.engine",
+                "id": "engine",
+                "label": "Global quota issuer",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l046.hierarchical.state",
+                "id": "state",
+                "label": "Global lease ledger",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l046.hierarchical.n3",
+                "id": "n3",
+                "label": "Regional quota cache",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l046.hierarchical.n4",
+                "id": "n4",
+                "label": "Local scheduler",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l046.hierarchical.n5",
+                "id": "n5",
+                "label": "Fenced runtime",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l046.hierarchical.n6",
+                "id": "n6",
+                "label": "Usage aggregation",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l046.hierarchical.n7",
+                "id": "n7",
+                "label": "Lease rebalancer",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l046.hierarchical.n8",
+                "id": "n8",
+                "label": "Warm-pool governor",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "hierarchical-s8",
+          "invariants": [
+            "Warm capacity is charged against the regional lease."
+          ],
+          "number": 8,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l046.hierarchical.n8",
+                "id": "n8",
+                "label": "Warm-pool governor",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l046.hierarchical.step8",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l046.hierarchical.step8"
+                },
+                "id": "step8",
+                "label": "Warm-pool governor",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n8",
+                  "portId": "in-l046.hierarchical.step8"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Who pays for idle leased compute?",
+          "reason": "Reserve a bounded warm subset under the same regional grant and reclaim on idle policy.",
+          "title": "Warm-pool governor"
+        }
+      ],
+      "title": "Hierarchical expiring token leases",
+      "tradeoffs": [
+        "Unused leases strand capacity temporarily.",
+        "Disconnection trades availability against token expiry and clock/fencing assumptions."
+      ]
+    }
+  ],
+  "subsystems": [
+    {
+      "definitionId": "l046.central.system",
+      "id": "l046.central.binding-s2",
+      "ports": [
+        {
+          "contractId": "l046.central.command",
+          "direction": "in",
+          "id": "in-l046.central.command",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-l046.central.command"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l046.central.system",
+      "id": "l046.central.binding-s3",
+      "ports": [
+        {
+          "contractId": "l046.central.command",
+          "direction": "in",
+          "id": "in-l046.central.command",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-l046.central.command"
+          }
+        },
+        {
+          "contractId": "l046.central.step3",
+          "direction": "out",
+          "id": "out-l046.central.step3-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l046.central.step3"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l046.hierarchical.system",
+      "id": "l046.hierarchical.binding-s2",
+      "ports": [
+        {
+          "contractId": "l046.hierarchical.command",
+          "direction": "in",
+          "id": "in-l046.hierarchical.command",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-l046.hierarchical.command"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l046.hierarchical.system",
+      "id": "l046.hierarchical.binding-s3",
+      "ports": [
+        {
+          "contractId": "l046.hierarchical.command",
+          "direction": "in",
+          "id": "in-l046.hierarchical.command",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-l046.hierarchical.command"
+          }
+        },
+        {
+          "contractId": "l046.hierarchical.step3",
+          "direction": "out",
+          "id": "out-l046.hierarchical.step3-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l046.hierarchical.step3"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l046.hierarchical.system",
+      "id": "l046.hierarchical.binding-s7",
+      "ports": [
+        {
+          "contractId": "l046.hierarchical.command",
+          "direction": "in",
+          "id": "in-l046.hierarchical.command",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-l046.hierarchical.command"
+          }
+        },
+        {
+          "contractId": "l046.hierarchical.step3",
+          "direction": "out",
+          "id": "out-l046.hierarchical.step3-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l046.hierarchical.step3"
+          }
+        },
+        {
+          "contractId": "l046.hierarchical.step7",
+          "direction": "out",
+          "id": "out-l046.hierarchical.step7-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l046.hierarchical.step7"
+          }
+        }
+      ],
+      "version": 1
+    }
+  ],
+  "version": 1
+}

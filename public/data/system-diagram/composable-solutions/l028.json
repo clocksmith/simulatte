@@ -1,0 +1,4070 @@
+{
+  "components": [
+    {
+      "extends": {
+        "id": "core.client",
+        "version": 1
+      },
+      "id": "l028.staged.caller",
+      "label": "Caller",
+      "ports": [
+        {
+          "contractId": "l028.staged.command",
+          "direction": "out",
+          "id": "out-l028.staged.command"
+        }
+      ],
+      "responsibility": "Submit the declared operation with stable identity and observe explicit completion.",
+      "stateOwnership": [
+        "caller request and retry identity"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l028.staged.system",
+      "label": "Staged relational approval",
+      "ports": [
+        {
+          "contractId": "l028.staged.command",
+          "direction": "in",
+          "id": "in-l028.staged.command"
+        },
+        {
+          "contractId": "l028.staged.step3",
+          "direction": "out",
+          "id": "out-l028.staged.step3-engine"
+        },
+        {
+          "contractId": "l028.staged.step7",
+          "direction": "out",
+          "id": "out-l028.staged.step7-engine"
+        }
+      ],
+      "responsibility": "Preserve this stable boundary while refining its ownership and contracts.",
+      "stateOwnership": [
+        "logical operation state"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l028.staged.engine",
+      "label": "Ingest coordinator",
+      "ports": [
+        {
+          "contractId": "l028.staged.command",
+          "direction": "out",
+          "id": "out-l028.staged.command"
+        },
+        {
+          "contractId": "l028.staged.command",
+          "direction": "in",
+          "id": "in-l028.staged.command"
+        },
+        {
+          "contractId": "l028.staged.step3",
+          "direction": "out",
+          "id": "out-l028.staged.step3"
+        },
+        {
+          "contractId": "l028.staged.step7",
+          "direction": "out",
+          "id": "out-l028.staged.step7"
+        }
+      ],
+      "responsibility": "Validate event envelopes before accepting workflow intent.",
+      "stateOwnership": [
+        "event receipt identity"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l028.staged.state",
+      "label": "Staging ledger",
+      "ports": [
+        {
+          "contractId": "l028.staged.command",
+          "direction": "in",
+          "id": "in-l028.staged.command"
+        }
+      ],
+      "responsibility": "Own immutable raw event hashes and revision state.",
+      "stateOwnership": [
+        "event IDs and states"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l028.staged.n3",
+      "label": "Schema validator",
+      "ports": [
+        {
+          "contractId": "l028.staged.step3",
+          "direction": "in",
+          "id": "in-l028.staged.step3"
+        },
+        {
+          "contractId": "l028.staged.step4",
+          "direction": "out",
+          "id": "out-l028.staged.step4"
+        }
+      ],
+      "responsibility": "Pin schema version and store rejected raw input hashes.",
+      "stateOwnership": [
+        "schemaVersion, errorCodes"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l028.staged.n4",
+      "label": "Identity resolver",
+      "ports": [
+        {
+          "contractId": "l028.staged.step4",
+          "direction": "in",
+          "id": "in-l028.staged.step4"
+        },
+        {
+          "contractId": "l028.staged.step5",
+          "direction": "out",
+          "id": "out-l028.staged.step5"
+        }
+      ],
+      "responsibility": "Require a unique stable match or quarantine; retain candidate reasons.",
+      "stateOwnership": [
+        "candidates, identityPolicy"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.queue",
+        "version": 1
+      },
+      "id": "l028.staged.n5",
+      "label": "Approval queue",
+      "ports": [
+        {
+          "contractId": "l028.staged.step5",
+          "direction": "in",
+          "id": "in-l028.staged.step5"
+        },
+        {
+          "contractId": "l028.staged.step6",
+          "direction": "out",
+          "id": "out-l028.staged.step6"
+        }
+      ],
+      "responsibility": "Freeze entity ID, revision, payload hash and policy version in review intent.",
+      "stateOwnership": [
+        "approvalId, payloadHash"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l028.staged.n6",
+      "label": "Commit transaction",
+      "ports": [
+        {
+          "contractId": "l028.staged.step6",
+          "direction": "in",
+          "id": "in-l028.staged.step6"
+        },
+        {
+          "contractId": "l028.staged.step8",
+          "direction": "out",
+          "id": "out-l028.staged.step8"
+        }
+      ],
+      "responsibility": "Compare expected entity revision and current approval binding atomically.",
+      "stateOwnership": [
+        "expectedRevision, approvedHash"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l028.staged.n7",
+      "label": "Idempotency inbox",
+      "ports": [
+        {
+          "contractId": "l028.staged.step7",
+          "direction": "in",
+          "id": "in-l028.staged.step7"
+        }
+      ],
+      "responsibility": "Uniquely admit event ID and detect the same ID with conflicting bytes.",
+      "stateOwnership": [
+        "eventId, payloadHash"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.log",
+        "version": 1
+      },
+      "id": "l028.staged.n8",
+      "label": "Decision provenance",
+      "ports": [
+        {
+          "contractId": "l028.staged.step8",
+          "direction": "in",
+          "id": "in-l028.staged.step8"
+        }
+      ],
+      "responsibility": "Append actor, decision, policy version and source receipt for each terminal transition.",
+      "stateOwnership": [
+        "decisionId, sourceHash"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.client",
+        "version": 1
+      },
+      "id": "l028.entity-log.caller",
+      "label": "Caller",
+      "ports": [
+        {
+          "contractId": "l028.entity-log.command",
+          "direction": "out",
+          "id": "out-l028.entity-log.command"
+        }
+      ],
+      "responsibility": "Submit the declared operation with stable identity and observe explicit completion.",
+      "stateOwnership": [
+        "caller request and retry identity"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l028.entity-log.system",
+      "label": "Entity-partitioned approval log",
+      "ports": [
+        {
+          "contractId": "l028.entity-log.command",
+          "direction": "in",
+          "id": "in-l028.entity-log.command"
+        },
+        {
+          "contractId": "l028.entity-log.step3",
+          "direction": "out",
+          "id": "out-l028.entity-log.step3-engine"
+        },
+        {
+          "contractId": "l028.entity-log.step4",
+          "direction": "out",
+          "id": "out-l028.entity-log.step4-engine"
+        },
+        {
+          "contractId": "l028.entity-log.step6",
+          "direction": "out",
+          "id": "out-l028.entity-log.step6-state"
+        }
+      ],
+      "responsibility": "Preserve this stable boundary while refining its ownership and contracts.",
+      "stateOwnership": [
+        "logical operation state"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l028.entity-log.engine",
+      "label": "Envelope router",
+      "ports": [
+        {
+          "contractId": "l028.entity-log.command",
+          "direction": "out",
+          "id": "out-l028.entity-log.command"
+        },
+        {
+          "contractId": "l028.entity-log.command",
+          "direction": "in",
+          "id": "in-l028.entity-log.command"
+        },
+        {
+          "contractId": "l028.entity-log.step3",
+          "direction": "out",
+          "id": "out-l028.entity-log.step3"
+        },
+        {
+          "contractId": "l028.entity-log.step4",
+          "direction": "out",
+          "id": "out-l028.entity-log.step4"
+        }
+      ],
+      "responsibility": "Validate and route resolved identities into one entity partition.",
+      "stateOwnership": [
+        "routing generation"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l028.entity-log.state",
+      "label": "Entity event log",
+      "ports": [
+        {
+          "contractId": "l028.entity-log.command",
+          "direction": "in",
+          "id": "in-l028.entity-log.command"
+        },
+        {
+          "contractId": "l028.entity-log.step6",
+          "direction": "out",
+          "id": "out-l028.entity-log.step6"
+        }
+      ],
+      "responsibility": "Own immutable ordered pending and approved event records.",
+      "stateOwnership": [
+        "partition offsets"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.queue",
+        "version": 1
+      },
+      "id": "l028.entity-log.n3",
+      "label": "Quarantine branch",
+      "ports": [
+        {
+          "contractId": "l028.entity-log.step3",
+          "direction": "in",
+          "id": "in-l028.entity-log.step3"
+        }
+      ],
+      "responsibility": "Route invalid or ambiguous envelopes into a separately inspectable queue.",
+      "stateOwnership": [
+        "reason, candidates"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.log",
+        "version": 1
+      },
+      "id": "l028.entity-log.n4",
+      "label": "Identity decision log",
+      "ports": [
+        {
+          "contractId": "l028.entity-log.step4",
+          "direction": "in",
+          "id": "in-l028.entity-log.step4"
+        },
+        {
+          "contractId": "l028.entity-log.step5",
+          "direction": "out",
+          "id": "out-l028.entity-log.step5"
+        }
+      ],
+      "responsibility": "Append versioned mapping decisions rather than editing old events.",
+      "stateOwnership": [
+        "mappingVersion, sourceIdentity"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l028.entity-log.n5",
+      "label": "Approval commands",
+      "ports": [
+        {
+          "contractId": "l028.entity-log.step5",
+          "direction": "in",
+          "id": "in-l028.entity-log.step5"
+        }
+      ],
+      "responsibility": "Buffer bounded commands keyed by event ID; require the referenced hash before applying.",
+      "stateOwnership": [
+        "eventId, approvedHash"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "l028.entity-log.n6",
+      "label": "Entity reducer",
+      "ports": [
+        {
+          "contractId": "l028.entity-log.step6",
+          "direction": "in",
+          "id": "in-l028.entity-log.step6"
+        },
+        {
+          "contractId": "l028.entity-log.step7",
+          "direction": "out",
+          "id": "out-l028.entity-log.step7"
+        }
+      ],
+      "responsibility": "Consume one partition epoch and apply allowed state transitions to the next revision.",
+      "stateOwnership": [
+        "offset, leaseEpoch"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l028.entity-log.n7",
+      "label": "Accepted projection",
+      "ports": [
+        {
+          "contractId": "l028.entity-log.step7",
+          "direction": "in",
+          "id": "in-l028.entity-log.step7"
+        },
+        {
+          "contractId": "l028.entity-log.step8",
+          "direction": "out",
+          "id": "out-l028.entity-log.step8"
+        }
+      ],
+      "responsibility": "Upsert by entity/revision/event ID with checkpoint in one transaction.",
+      "stateOwnership": [
+        "entityRevision, eventId"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "l028.entity-log.n8",
+      "label": "Replay verifier",
+      "ports": [
+        {
+          "contractId": "l028.entity-log.step8",
+          "direction": "in",
+          "id": "in-l028.entity-log.step8"
+        }
+      ],
+      "responsibility": "Build a new projection generation and compare before explicit publication.",
+      "stateOwnership": [
+        "generation, differences"
+      ],
+      "version": 1
+    }
+  ],
+  "contracts": [
+    {
+      "id": "l028.staged.command",
+      "request": {
+        "entityHint": "synthetic identifier",
+        "eventId": "uuid",
+        "payloadHash": "sha256",
+        "revision": "integer"
+      },
+      "response": {
+        "entityId": "uuid|null",
+        "status": "quarantined|awaiting-approval|committed|duplicate"
+      },
+      "version": 1
+    },
+    {
+      "id": "l028.staged.step3",
+      "request": {
+        "errorCodes": "string[]",
+        "schemaVersion": "integer"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l028.staged.step4",
+      "request": {
+        "candidates": "uuid[]",
+        "identityPolicy": "integer"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l028.staged.step5",
+      "request": {
+        "approvalId": "uuid",
+        "payloadHash": "sha256"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l028.staged.step6",
+      "request": {
+        "approvedHash": "sha256",
+        "expectedRevision": "integer"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l028.staged.step7",
+      "request": {
+        "eventId": "uuid",
+        "payloadHash": "sha256"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l028.staged.step8",
+      "request": {
+        "decisionId": "uuid",
+        "sourceHash": "sha256"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l028.entity-log.command",
+      "request": {
+        "entityHint": "synthetic identifier",
+        "eventId": "uuid",
+        "payloadHash": "sha256",
+        "revision": "integer"
+      },
+      "response": {
+        "entityId": "uuid|null",
+        "status": "quarantined|awaiting-approval|committed|duplicate"
+      },
+      "version": 1
+    },
+    {
+      "id": "l028.entity-log.step3",
+      "request": {
+        "candidates": "uuid[]",
+        "reason": "schema|identity"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l028.entity-log.step4",
+      "request": {
+        "mappingVersion": "integer",
+        "sourceIdentity": "string"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l028.entity-log.step5",
+      "request": {
+        "approvedHash": "sha256",
+        "eventId": "uuid"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l028.entity-log.step6",
+      "request": {
+        "leaseEpoch": "integer",
+        "offset": "integer"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l028.entity-log.step7",
+      "request": {
+        "entityRevision": "integer",
+        "eventId": "uuid"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l028.entity-log.step8",
+      "request": {
+        "differences": "record[]",
+        "generation": "integer"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    }
+  ],
+  "execution": {
+    "implementation": null,
+    "kind": "conceptual-design"
+  },
+  "problem": {
+    "referenceId": "L028",
+    "requirements": [
+      {
+        "id": "r0",
+        "text": "Validate schema and quarantine ambiguous identity without guessing."
+      },
+      {
+        "id": "r1",
+        "text": "Bind approval to an immutable entity/revision and serialize accepted revisions."
+      },
+      {
+        "id": "r2",
+        "text": "Deduplicate events and retain decision provenance through retries."
+      }
+    ],
+    "scope": "Deidentified authored records exercise schema validation, identity resolution, ordered approval and idempotent commit. This is an ingestion pattern with no patient data, clinical rules or clinical decisions.",
+    "studyLabel": "Synthetic identity and approval"
+  },
+  "provenance": {
+    "kind": "authored-practice",
+    "note": "Authored interview preparation. Technical references support mechanisms, not the claim that a company asked this question."
+  },
+  "references": [
+    {
+      "id": "ref0",
+      "scope": "background",
+      "supports": "Transactions isolate concurrent authorization and mutation decisions; retries remain explicit.",
+      "title": "PostgreSQL isolation",
+      "url": "https://www.postgresql.org/docs/18/transaction-iso.html"
+    }
+  ],
+  "schema": "simulatte.composableStudy.v2",
+  "solutions": [
+    {
+      "acceptanceCases": [
+        {
+          "given": "Approval names revision 2 hash A.",
+          "id": "case0",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Reject stale or mismatched approval without changing accepted state.",
+          "when": "Submit revision 2 hash B or revision 1 after revision 2 commits."
+        },
+        {
+          "given": "One synthetic event arrives twice.",
+          "id": "case1",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Apply once; conflicting bytes under the same ID are quarantined.",
+          "when": "Admit and approve both deliveries."
+        },
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-04-state.test.mjs",
+            "testName": "approval binds identity revision hash and next transition"
+          },
+          "given": "An entity is at revision 1 and an approval names revision 2 hash A.",
+          "id": "bounded-mechanism",
+          "relatedRequirementIds": [
+            "r0"
+          ],
+          "then": "Accept only the first hash-A next-revision transition in this deterministic model.",
+          "when": "Try hash B, then A, then duplicate and skipped revision."
+        }
+      ],
+      "algorithms": [
+        {
+          "code": "transaction(() => { const receipt = insertEventUnique(eventId, payloadHash);\n if (receipt.hash !== payloadHash) rejectConflict(); });\nconst identity = resolveUniqueOrQuarantine(payload);\ntransaction(() => { lockEntity(identity.id); requireApproval(entityId, revision, payloadHash);\n requireNextRevision(revision); commitRecord(); appendDecision(); });",
+          "guarantees": [
+            "Validation failure cannot become accepted data.",
+            "Ambiguity never silently merges identities.",
+            "Any payload change requires a new approval.",
+            "Out-of-order revisions remain pending or rejected.",
+            "Conflicting reuse of an event ID is an error.",
+            "Audit preserves denied and superseded decisions."
+          ],
+          "id": "transition",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "engine"
+        }
+      ],
+      "apis": [
+        {
+          "errors": "Reject invalid input, stale versions and operations outside the declared boundary.",
+          "method": "CALL",
+          "ownerNodeId": "engine",
+          "path": "L028/staged",
+          "request": "{\"eventId\":\"uuid\",\"entityHint\":\"synthetic identifier\",\"revision\":\"integer\",\"payloadHash\":\"sha256\"}",
+          "response": "{\"status\":\"quarantined|awaiting-approval|committed|duplicate\",\"entityId\":\"uuid|null\"}"
+        }
+      ],
+      "assumptions": [
+        "All added stages are authored practice extending the canonical prompt.",
+        "Graphs specify conceptual mechanisms; reference models do not prove cloud execution, latency, physical durability or distributed safety."
+      ],
+      "chooseWhen": "Approval volume is modest and a single transactional authority is available.",
+      "id": "staged",
+      "initialGraph": {
+        "edges": [],
+        "nodes": []
+      },
+      "stages": [
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l028.staged.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l028.staged.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l028.staged.command"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l028.staged.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l028.staged.system",
+                "id": "system",
+                "label": "Staged relational approval",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "staged-s1",
+          "invariants": [
+            "Validate schema and quarantine ambiguous identity without guessing."
+          ],
+          "number": 1,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l028.staged.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "l028.staged.system",
+                "id": "system",
+                "label": "Staged relational approval",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l028.staged.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l028.staged.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l028.staged.command"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What does successful completion promise?",
+          "reason": "Validate schema and quarantine ambiguous identity without guessing.",
+          "title": "Define the operation boundary"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l028.staged.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l028.staged.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l028.staged.command"
+                }
+              },
+              {
+                "contractId": "l028.staged.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l028.staged.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l028.staged.command"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l028.staged.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l028.staged.system",
+                "id": "system",
+                "label": "Staged relational approval",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l028.staged.binding-s2",
+                "version": 1
+              },
+              {
+                "definitionId": "l028.staged.engine",
+                "id": "engine",
+                "label": "Ingest coordinator",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l028.staged.state",
+                "id": "state",
+                "label": "Staging ledger",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "staged-s2",
+          "invariants": [
+            "event receipt identity belongs to Ingest coordinator; event IDs and states belongs to Staging ledger."
+          ],
+          "number": 2,
+          "operations": [
+            {
+              "edges": [
+                {
+                  "contractId": "l028.staged.command",
+                  "from": {
+                    "nodeId": "engine",
+                    "portId": "out-l028.staged.command"
+                  },
+                  "id": "owned-state",
+                  "label": "Read or commit state",
+                  "mode": "storage",
+                  "to": {
+                    "nodeId": "state",
+                    "portId": "in-l028.staged.command"
+                  }
+                }
+              ],
+              "nodeId": "system",
+              "nodes": [
+                {
+                  "definitionId": "l028.staged.engine",
+                  "id": "engine",
+                  "label": "Ingest coordinator",
+                  "position": {
+                    "x": 560,
+                    "y": 0
+                  },
+                  "version": 1
+                },
+                {
+                  "definitionId": "l028.staged.state",
+                  "id": "state",
+                  "label": "Staging ledger",
+                  "position": {
+                    "x": 840,
+                    "y": 0
+                  },
+                  "version": 1
+                }
+              ],
+              "op": "expand",
+              "subsystemId": "l028.staged.binding-s2"
+            }
+          ],
+          "question": "Which component owns the decision and its persistent or shared state?",
+          "reason": "Validate event envelopes before accepting workflow intent. Own immutable raw event hashes and revision state.",
+          "title": "Expose authority and state"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l028.staged.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l028.staged.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l028.staged.command"
+                }
+              },
+              {
+                "contractId": "l028.staged.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l028.staged.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l028.staged.command"
+                }
+              },
+              {
+                "contractId": "l028.staged.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l028.staged.step3-engine"
+                },
+                "id": "step3",
+                "label": "Schema validator",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l028.staged.step3"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l028.staged.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l028.staged.system",
+                "id": "system",
+                "label": "Staged relational approval",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l028.staged.binding-s3",
+                "version": 1
+              },
+              {
+                "definitionId": "l028.staged.engine",
+                "id": "engine",
+                "label": "Ingest coordinator",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l028.staged.state",
+                "id": "state",
+                "label": "Staging ledger",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l028.staged.n3",
+                "id": "n3",
+                "label": "Schema validator",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "staged-s3",
+          "invariants": [
+            "Validation failure cannot become accepted data."
+          ],
+          "number": 3,
+          "operations": [
+            {
+              "nodeId": "system",
+              "op": "rebind",
+              "reason": "Expose this new typed path without mutating earlier binding definitions.",
+              "subsystemId": "l028.staged.binding-s3"
+            },
+            {
+              "node": {
+                "definitionId": "l028.staged.n3",
+                "id": "n3",
+                "label": "Schema validator",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l028.staged.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l028.staged.step3-engine"
+                },
+                "id": "step3",
+                "label": "Schema validator",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l028.staged.step3"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can malformed records reach review?",
+          "reason": "Pin schema version and store rejected raw input hashes.",
+          "title": "Schema validator"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l028.staged.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l028.staged.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l028.staged.command"
+                }
+              },
+              {
+                "contractId": "l028.staged.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l028.staged.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l028.staged.command"
+                }
+              },
+              {
+                "contractId": "l028.staged.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l028.staged.step3-engine"
+                },
+                "id": "step3",
+                "label": "Schema validator",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l028.staged.step3"
+                }
+              },
+              {
+                "contractId": "l028.staged.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l028.staged.step4"
+                },
+                "id": "step4",
+                "label": "Identity resolver",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l028.staged.step4"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l028.staged.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l028.staged.system",
+                "id": "system",
+                "label": "Staged relational approval",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l028.staged.binding-s3",
+                "version": 1
+              },
+              {
+                "definitionId": "l028.staged.engine",
+                "id": "engine",
+                "label": "Ingest coordinator",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l028.staged.state",
+                "id": "state",
+                "label": "Staging ledger",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l028.staged.n3",
+                "id": "n3",
+                "label": "Schema validator",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l028.staged.n4",
+                "id": "n4",
+                "label": "Identity resolver",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "staged-s4",
+          "invariants": [
+            "Ambiguity never silently merges identities."
+          ],
+          "number": 4,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l028.staged.n4",
+                "id": "n4",
+                "label": "Identity resolver",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l028.staged.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l028.staged.step4"
+                },
+                "id": "step4",
+                "label": "Identity resolver",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l028.staged.step4"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What if two entities match?",
+          "reason": "Require a unique stable match or quarantine; retain candidate reasons.",
+          "title": "Identity resolver"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l028.staged.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l028.staged.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l028.staged.command"
+                }
+              },
+              {
+                "contractId": "l028.staged.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l028.staged.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l028.staged.command"
+                }
+              },
+              {
+                "contractId": "l028.staged.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l028.staged.step3-engine"
+                },
+                "id": "step3",
+                "label": "Schema validator",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l028.staged.step3"
+                }
+              },
+              {
+                "contractId": "l028.staged.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l028.staged.step4"
+                },
+                "id": "step4",
+                "label": "Identity resolver",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l028.staged.step4"
+                }
+              },
+              {
+                "contractId": "l028.staged.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l028.staged.step5"
+                },
+                "id": "step5",
+                "label": "Approval queue",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l028.staged.step5"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l028.staged.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l028.staged.system",
+                "id": "system",
+                "label": "Staged relational approval",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l028.staged.binding-s3",
+                "version": 1
+              },
+              {
+                "definitionId": "l028.staged.engine",
+                "id": "engine",
+                "label": "Ingest coordinator",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l028.staged.state",
+                "id": "state",
+                "label": "Staging ledger",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l028.staged.n3",
+                "id": "n3",
+                "label": "Schema validator",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l028.staged.n4",
+                "id": "n4",
+                "label": "Identity resolver",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l028.staged.n5",
+                "id": "n5",
+                "label": "Approval queue",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "staged-s5",
+          "invariants": [
+            "Any payload change requires a new approval."
+          ],
+          "number": 5,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l028.staged.n5",
+                "id": "n5",
+                "label": "Approval queue",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l028.staged.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l028.staged.step5"
+                },
+                "id": "step5",
+                "label": "Approval queue",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l028.staged.step5"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What exactly does a reviewer approve?",
+          "reason": "Freeze entity ID, revision, payload hash and policy version in review intent.",
+          "title": "Approval queue"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l028.staged.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l028.staged.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l028.staged.command"
+                }
+              },
+              {
+                "contractId": "l028.staged.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l028.staged.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l028.staged.command"
+                }
+              },
+              {
+                "contractId": "l028.staged.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l028.staged.step3-engine"
+                },
+                "id": "step3",
+                "label": "Schema validator",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l028.staged.step3"
+                }
+              },
+              {
+                "contractId": "l028.staged.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l028.staged.step4"
+                },
+                "id": "step4",
+                "label": "Identity resolver",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l028.staged.step4"
+                }
+              },
+              {
+                "contractId": "l028.staged.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l028.staged.step5"
+                },
+                "id": "step5",
+                "label": "Approval queue",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l028.staged.step5"
+                }
+              },
+              {
+                "contractId": "l028.staged.step6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l028.staged.step6"
+                },
+                "id": "step6",
+                "label": "Commit transaction",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l028.staged.step6"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l028.staged.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l028.staged.system",
+                "id": "system",
+                "label": "Staged relational approval",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l028.staged.binding-s3",
+                "version": 1
+              },
+              {
+                "definitionId": "l028.staged.engine",
+                "id": "engine",
+                "label": "Ingest coordinator",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l028.staged.state",
+                "id": "state",
+                "label": "Staging ledger",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l028.staged.n3",
+                "id": "n3",
+                "label": "Schema validator",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l028.staged.n4",
+                "id": "n4",
+                "label": "Identity resolver",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l028.staged.n5",
+                "id": "n5",
+                "label": "Approval queue",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l028.staged.n6",
+                "id": "n6",
+                "label": "Commit transaction",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "staged-s6",
+          "invariants": [
+            "Out-of-order revisions remain pending or rejected."
+          ],
+          "number": 6,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l028.staged.n6",
+                "id": "n6",
+                "label": "Commit transaction",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l028.staged.step6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l028.staged.step6"
+                },
+                "id": "step6",
+                "label": "Commit transaction",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l028.staged.step6"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can an old approval overwrite newer data?",
+          "reason": "Compare expected entity revision and current approval binding atomically.",
+          "title": "Commit transaction"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l028.staged.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l028.staged.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l028.staged.command"
+                }
+              },
+              {
+                "contractId": "l028.staged.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l028.staged.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l028.staged.command"
+                }
+              },
+              {
+                "contractId": "l028.staged.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l028.staged.step3-engine"
+                },
+                "id": "step3",
+                "label": "Schema validator",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l028.staged.step3"
+                }
+              },
+              {
+                "contractId": "l028.staged.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l028.staged.step4"
+                },
+                "id": "step4",
+                "label": "Identity resolver",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l028.staged.step4"
+                }
+              },
+              {
+                "contractId": "l028.staged.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l028.staged.step5"
+                },
+                "id": "step5",
+                "label": "Approval queue",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l028.staged.step5"
+                }
+              },
+              {
+                "contractId": "l028.staged.step6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l028.staged.step6"
+                },
+                "id": "step6",
+                "label": "Commit transaction",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l028.staged.step6"
+                }
+              },
+              {
+                "contractId": "l028.staged.step7",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l028.staged.step7-engine"
+                },
+                "id": "step7",
+                "label": "Idempotency inbox",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l028.staged.step7"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l028.staged.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l028.staged.system",
+                "id": "system",
+                "label": "Staged relational approval",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l028.staged.binding-s7",
+                "version": 1
+              },
+              {
+                "definitionId": "l028.staged.engine",
+                "id": "engine",
+                "label": "Ingest coordinator",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l028.staged.state",
+                "id": "state",
+                "label": "Staging ledger",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l028.staged.n3",
+                "id": "n3",
+                "label": "Schema validator",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l028.staged.n4",
+                "id": "n4",
+                "label": "Identity resolver",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l028.staged.n5",
+                "id": "n5",
+                "label": "Approval queue",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l028.staged.n6",
+                "id": "n6",
+                "label": "Commit transaction",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l028.staged.n7",
+                "id": "n7",
+                "label": "Idempotency inbox",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "staged-s7",
+          "invariants": [
+            "Conflicting reuse of an event ID is an error."
+          ],
+          "number": 7,
+          "operations": [
+            {
+              "nodeId": "system",
+              "op": "rebind",
+              "reason": "Expose this new typed path without mutating earlier binding definitions.",
+              "subsystemId": "l028.staged.binding-s7"
+            },
+            {
+              "node": {
+                "definitionId": "l028.staged.n7",
+                "id": "n7",
+                "label": "Idempotency inbox",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l028.staged.step7",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l028.staged.step7-engine"
+                },
+                "id": "step7",
+                "label": "Idempotency inbox",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l028.staged.step7"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How are repeated source deliveries handled?",
+          "reason": "Uniquely admit event ID and detect the same ID with conflicting bytes.",
+          "title": "Idempotency inbox"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l028.staged.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l028.staged.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l028.staged.command"
+                }
+              },
+              {
+                "contractId": "l028.staged.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l028.staged.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l028.staged.command"
+                }
+              },
+              {
+                "contractId": "l028.staged.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l028.staged.step3-engine"
+                },
+                "id": "step3",
+                "label": "Schema validator",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l028.staged.step3"
+                }
+              },
+              {
+                "contractId": "l028.staged.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l028.staged.step4"
+                },
+                "id": "step4",
+                "label": "Identity resolver",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l028.staged.step4"
+                }
+              },
+              {
+                "contractId": "l028.staged.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l028.staged.step5"
+                },
+                "id": "step5",
+                "label": "Approval queue",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l028.staged.step5"
+                }
+              },
+              {
+                "contractId": "l028.staged.step6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l028.staged.step6"
+                },
+                "id": "step6",
+                "label": "Commit transaction",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l028.staged.step6"
+                }
+              },
+              {
+                "contractId": "l028.staged.step7",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l028.staged.step7-engine"
+                },
+                "id": "step7",
+                "label": "Idempotency inbox",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l028.staged.step7"
+                }
+              },
+              {
+                "contractId": "l028.staged.step8",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l028.staged.step8"
+                },
+                "id": "step8",
+                "label": "Decision provenance",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n8",
+                  "portId": "in-l028.staged.step8"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l028.staged.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l028.staged.system",
+                "id": "system",
+                "label": "Staged relational approval",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l028.staged.binding-s7",
+                "version": 1
+              },
+              {
+                "definitionId": "l028.staged.engine",
+                "id": "engine",
+                "label": "Ingest coordinator",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l028.staged.state",
+                "id": "state",
+                "label": "Staging ledger",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l028.staged.n3",
+                "id": "n3",
+                "label": "Schema validator",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l028.staged.n4",
+                "id": "n4",
+                "label": "Identity resolver",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l028.staged.n5",
+                "id": "n5",
+                "label": "Approval queue",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l028.staged.n6",
+                "id": "n6",
+                "label": "Commit transaction",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l028.staged.n7",
+                "id": "n7",
+                "label": "Idempotency inbox",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l028.staged.n8",
+                "id": "n8",
+                "label": "Decision provenance",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "staged-s8",
+          "invariants": [
+            "Audit preserves denied and superseded decisions."
+          ],
+          "number": 8,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l028.staged.n8",
+                "id": "n8",
+                "label": "Decision provenance",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l028.staged.step8",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l028.staged.step8"
+                },
+                "id": "step8",
+                "label": "Decision provenance",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n8",
+                  "portId": "in-l028.staged.step8"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can reviewers explain accepted data?",
+          "reason": "Append actor, decision, policy version and source receipt for each terminal transition.",
+          "title": "Decision provenance"
+        }
+      ],
+      "title": "Staged relational approval",
+      "tradeoffs": [
+        "Review queues can grow without explicit admission limits.",
+        "Identity policy revisions require deliberate backfills."
+      ]
+    },
+    {
+      "acceptanceCases": [
+        {
+          "given": "An approval arrives before its matching event.",
+          "id": "case0",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Keep it unbound; no accepted record appears.",
+          "when": "Replay with a mismatched payload hash."
+        },
+        {
+          "given": "A partition consumer replays a committed event.",
+          "id": "case1",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Retain one entity/revision record.",
+          "when": "Apply the event and checkpoint again."
+        },
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-04-state.test.mjs",
+            "testName": "approval binds identity revision hash and next transition"
+          },
+          "given": "An entity is at revision 1 and an approval names revision 2 hash A.",
+          "id": "bounded-mechanism",
+          "relatedRequirementIds": [
+            "r0"
+          ],
+          "then": "Accept only the first hash-A next-revision transition in this deterministic model.",
+          "when": "Try hash B, then A, then duplicate and skipped revision."
+        }
+      ],
+      "algorithms": [
+        {
+          "code": "validateEnvelope(); const resolved = identityAtVersion(mappingVersion);\nif (!resolved.unique) quarantine(); else appendEntityEvent(resolved.entityId, event);\nfor (const e of orderedPartition()) transaction(() => {\n assertLeaseEpoch(); requireBoundApproval(e.id, e.hash); applyNextRevision(e); saveCheckpoint(e.offset); });",
+          "guarantees": [
+            "Unresolved identity has no accepted entity partition.",
+            "Replay uses the original mapping version.",
+            "An unbound approval is never a commit.",
+            "Offsets advance only with persisted reducer state.",
+            "Replay is idempotent for accepted revisions.",
+            "A new mapping cannot mutate historic decisions in place."
+          ],
+          "id": "transition",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "engine"
+        }
+      ],
+      "apis": [
+        {
+          "errors": "Reject invalid input, stale versions and operations outside the declared boundary.",
+          "method": "CALL",
+          "ownerNodeId": "engine",
+          "path": "L028/entity-log",
+          "request": "{\"eventId\":\"uuid\",\"entityHint\":\"synthetic identifier\",\"revision\":\"integer\",\"payloadHash\":\"sha256\"}",
+          "response": "{\"status\":\"quarantined|awaiting-approval|committed|duplicate\",\"entityId\":\"uuid|null\"}"
+        }
+      ],
+      "assumptions": [
+        "All added stages are authored practice extending the canonical prompt.",
+        "Graphs specify conceptual mechanisms; reference models do not prove cloud execution, latency, physical durability or distributed safety."
+      ],
+      "chooseWhen": "High per-entity event volume benefits from ordered append and replay.",
+      "id": "entity-log",
+      "initialGraph": {
+        "edges": [],
+        "nodes": []
+      },
+      "stages": [
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l028.entity-log.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l028.entity-log.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l028.entity-log.command"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l028.entity-log.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l028.entity-log.system",
+                "id": "system",
+                "label": "Entity-partitioned approval log",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "entity-log-s1",
+          "invariants": [
+            "Validate schema and quarantine ambiguous identity without guessing."
+          ],
+          "number": 1,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l028.entity-log.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "l028.entity-log.system",
+                "id": "system",
+                "label": "Entity-partitioned approval log",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l028.entity-log.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l028.entity-log.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l028.entity-log.command"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What does successful completion promise?",
+          "reason": "Validate schema and quarantine ambiguous identity without guessing.",
+          "title": "Define the operation boundary"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l028.entity-log.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l028.entity-log.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l028.entity-log.command"
+                }
+              },
+              {
+                "contractId": "l028.entity-log.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l028.entity-log.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l028.entity-log.command"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l028.entity-log.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l028.entity-log.system",
+                "id": "system",
+                "label": "Entity-partitioned approval log",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l028.entity-log.binding-s2",
+                "version": 1
+              },
+              {
+                "definitionId": "l028.entity-log.engine",
+                "id": "engine",
+                "label": "Envelope router",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l028.entity-log.state",
+                "id": "state",
+                "label": "Entity event log",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "entity-log-s2",
+          "invariants": [
+            "routing generation belongs to Envelope router; partition offsets belongs to Entity event log."
+          ],
+          "number": 2,
+          "operations": [
+            {
+              "edges": [
+                {
+                  "contractId": "l028.entity-log.command",
+                  "from": {
+                    "nodeId": "engine",
+                    "portId": "out-l028.entity-log.command"
+                  },
+                  "id": "owned-state",
+                  "label": "Read or commit state",
+                  "mode": "storage",
+                  "to": {
+                    "nodeId": "state",
+                    "portId": "in-l028.entity-log.command"
+                  }
+                }
+              ],
+              "nodeId": "system",
+              "nodes": [
+                {
+                  "definitionId": "l028.entity-log.engine",
+                  "id": "engine",
+                  "label": "Envelope router",
+                  "position": {
+                    "x": 560,
+                    "y": 0
+                  },
+                  "version": 1
+                },
+                {
+                  "definitionId": "l028.entity-log.state",
+                  "id": "state",
+                  "label": "Entity event log",
+                  "position": {
+                    "x": 840,
+                    "y": 0
+                  },
+                  "version": 1
+                }
+              ],
+              "op": "expand",
+              "subsystemId": "l028.entity-log.binding-s2"
+            }
+          ],
+          "question": "Which component owns the decision and its persistent or shared state?",
+          "reason": "Validate and route resolved identities into one entity partition. Own immutable ordered pending and approved event records.",
+          "title": "Expose authority and state"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l028.entity-log.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l028.entity-log.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l028.entity-log.command"
+                }
+              },
+              {
+                "contractId": "l028.entity-log.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l028.entity-log.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l028.entity-log.command"
+                }
+              },
+              {
+                "contractId": "l028.entity-log.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l028.entity-log.step3-engine"
+                },
+                "id": "step3",
+                "label": "Quarantine branch",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l028.entity-log.step3"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l028.entity-log.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l028.entity-log.system",
+                "id": "system",
+                "label": "Entity-partitioned approval log",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l028.entity-log.binding-s3",
+                "version": 1
+              },
+              {
+                "definitionId": "l028.entity-log.engine",
+                "id": "engine",
+                "label": "Envelope router",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l028.entity-log.state",
+                "id": "state",
+                "label": "Entity event log",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l028.entity-log.n3",
+                "id": "n3",
+                "label": "Quarantine branch",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "entity-log-s3",
+          "invariants": [
+            "Unresolved identity has no accepted entity partition."
+          ],
+          "number": 3,
+          "operations": [
+            {
+              "nodeId": "system",
+              "op": "rebind",
+              "reason": "Expose this new typed path without mutating earlier binding definitions.",
+              "subsystemId": "l028.entity-log.binding-s3"
+            },
+            {
+              "node": {
+                "definitionId": "l028.entity-log.n3",
+                "id": "n3",
+                "label": "Quarantine branch",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l028.entity-log.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l028.entity-log.step3-engine"
+                },
+                "id": "step3",
+                "label": "Quarantine branch",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l028.entity-log.step3"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Where do unresolved identities go?",
+          "reason": "Route invalid or ambiguous envelopes into a separately inspectable queue.",
+          "title": "Quarantine branch"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l028.entity-log.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l028.entity-log.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l028.entity-log.command"
+                }
+              },
+              {
+                "contractId": "l028.entity-log.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l028.entity-log.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l028.entity-log.command"
+                }
+              },
+              {
+                "contractId": "l028.entity-log.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l028.entity-log.step3-engine"
+                },
+                "id": "step3",
+                "label": "Quarantine branch",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l028.entity-log.step3"
+                }
+              },
+              {
+                "contractId": "l028.entity-log.step4",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l028.entity-log.step4-engine"
+                },
+                "id": "step4",
+                "label": "Identity decision log",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l028.entity-log.step4"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l028.entity-log.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l028.entity-log.system",
+                "id": "system",
+                "label": "Entity-partitioned approval log",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l028.entity-log.binding-s4",
+                "version": 1
+              },
+              {
+                "definitionId": "l028.entity-log.engine",
+                "id": "engine",
+                "label": "Envelope router",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l028.entity-log.state",
+                "id": "state",
+                "label": "Entity event log",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l028.entity-log.n3",
+                "id": "n3",
+                "label": "Quarantine branch",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l028.entity-log.n4",
+                "id": "n4",
+                "label": "Identity decision log",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "entity-log-s4",
+          "invariants": [
+            "Replay uses the original mapping version."
+          ],
+          "number": 4,
+          "operations": [
+            {
+              "nodeId": "system",
+              "op": "rebind",
+              "reason": "Expose this new typed path without mutating earlier binding definitions.",
+              "subsystemId": "l028.entity-log.binding-s4"
+            },
+            {
+              "node": {
+                "definitionId": "l028.entity-log.n4",
+                "id": "n4",
+                "label": "Identity decision log",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l028.entity-log.step4",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l028.entity-log.step4-engine"
+                },
+                "id": "step4",
+                "label": "Identity decision log",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l028.entity-log.step4"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can a later mapping reinterpret history?",
+          "reason": "Append versioned mapping decisions rather than editing old events.",
+          "title": "Identity decision log"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l028.entity-log.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l028.entity-log.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l028.entity-log.command"
+                }
+              },
+              {
+                "contractId": "l028.entity-log.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l028.entity-log.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l028.entity-log.command"
+                }
+              },
+              {
+                "contractId": "l028.entity-log.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l028.entity-log.step3-engine"
+                },
+                "id": "step3",
+                "label": "Quarantine branch",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l028.entity-log.step3"
+                }
+              },
+              {
+                "contractId": "l028.entity-log.step4",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l028.entity-log.step4-engine"
+                },
+                "id": "step4",
+                "label": "Identity decision log",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l028.entity-log.step4"
+                }
+              },
+              {
+                "contractId": "l028.entity-log.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l028.entity-log.step5"
+                },
+                "id": "step5",
+                "label": "Approval commands",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l028.entity-log.step5"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l028.entity-log.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l028.entity-log.system",
+                "id": "system",
+                "label": "Entity-partitioned approval log",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l028.entity-log.binding-s4",
+                "version": 1
+              },
+              {
+                "definitionId": "l028.entity-log.engine",
+                "id": "engine",
+                "label": "Envelope router",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l028.entity-log.state",
+                "id": "state",
+                "label": "Entity event log",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l028.entity-log.n3",
+                "id": "n3",
+                "label": "Quarantine branch",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l028.entity-log.n4",
+                "id": "n4",
+                "label": "Identity decision log",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l028.entity-log.n5",
+                "id": "n5",
+                "label": "Approval commands",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "entity-log-s5",
+          "invariants": [
+            "An unbound approval is never a commit."
+          ],
+          "number": 5,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l028.entity-log.n5",
+                "id": "n5",
+                "label": "Approval commands",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l028.entity-log.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l028.entity-log.step5"
+                },
+                "id": "step5",
+                "label": "Approval commands",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l028.entity-log.step5"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can approval arrive before its event?",
+          "reason": "Buffer bounded commands keyed by event ID; require the referenced hash before applying.",
+          "title": "Approval commands"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l028.entity-log.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l028.entity-log.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l028.entity-log.command"
+                }
+              },
+              {
+                "contractId": "l028.entity-log.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l028.entity-log.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l028.entity-log.command"
+                }
+              },
+              {
+                "contractId": "l028.entity-log.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l028.entity-log.step3-engine"
+                },
+                "id": "step3",
+                "label": "Quarantine branch",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l028.entity-log.step3"
+                }
+              },
+              {
+                "contractId": "l028.entity-log.step4",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l028.entity-log.step4-engine"
+                },
+                "id": "step4",
+                "label": "Identity decision log",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l028.entity-log.step4"
+                }
+              },
+              {
+                "contractId": "l028.entity-log.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l028.entity-log.step5"
+                },
+                "id": "step5",
+                "label": "Approval commands",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l028.entity-log.step5"
+                }
+              },
+              {
+                "contractId": "l028.entity-log.step6",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l028.entity-log.step6-state"
+                },
+                "id": "step6",
+                "label": "Entity reducer",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l028.entity-log.step6"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l028.entity-log.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l028.entity-log.system",
+                "id": "system",
+                "label": "Entity-partitioned approval log",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l028.entity-log.binding-s6",
+                "version": 1
+              },
+              {
+                "definitionId": "l028.entity-log.engine",
+                "id": "engine",
+                "label": "Envelope router",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l028.entity-log.state",
+                "id": "state",
+                "label": "Entity event log",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l028.entity-log.n3",
+                "id": "n3",
+                "label": "Quarantine branch",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l028.entity-log.n4",
+                "id": "n4",
+                "label": "Identity decision log",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l028.entity-log.n5",
+                "id": "n5",
+                "label": "Approval commands",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l028.entity-log.n6",
+                "id": "n6",
+                "label": "Entity reducer",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "entity-log-s6",
+          "invariants": [
+            "Offsets advance only with persisted reducer state."
+          ],
+          "number": 6,
+          "operations": [
+            {
+              "nodeId": "system",
+              "op": "rebind",
+              "reason": "Expose this new typed path without mutating earlier binding definitions.",
+              "subsystemId": "l028.entity-log.binding-s6"
+            },
+            {
+              "node": {
+                "definitionId": "l028.entity-log.n6",
+                "id": "n6",
+                "label": "Entity reducer",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l028.entity-log.step6",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l028.entity-log.step6-state"
+                },
+                "id": "step6",
+                "label": "Entity reducer",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l028.entity-log.step6"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How is per-entity order enforced?",
+          "reason": "Consume one partition epoch and apply allowed state transitions to the next revision.",
+          "title": "Entity reducer"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l028.entity-log.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l028.entity-log.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l028.entity-log.command"
+                }
+              },
+              {
+                "contractId": "l028.entity-log.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l028.entity-log.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l028.entity-log.command"
+                }
+              },
+              {
+                "contractId": "l028.entity-log.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l028.entity-log.step3-engine"
+                },
+                "id": "step3",
+                "label": "Quarantine branch",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l028.entity-log.step3"
+                }
+              },
+              {
+                "contractId": "l028.entity-log.step4",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l028.entity-log.step4-engine"
+                },
+                "id": "step4",
+                "label": "Identity decision log",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l028.entity-log.step4"
+                }
+              },
+              {
+                "contractId": "l028.entity-log.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l028.entity-log.step5"
+                },
+                "id": "step5",
+                "label": "Approval commands",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l028.entity-log.step5"
+                }
+              },
+              {
+                "contractId": "l028.entity-log.step6",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l028.entity-log.step6-state"
+                },
+                "id": "step6",
+                "label": "Entity reducer",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l028.entity-log.step6"
+                }
+              },
+              {
+                "contractId": "l028.entity-log.step7",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l028.entity-log.step7"
+                },
+                "id": "step7",
+                "label": "Accepted projection",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l028.entity-log.step7"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l028.entity-log.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l028.entity-log.system",
+                "id": "system",
+                "label": "Entity-partitioned approval log",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l028.entity-log.binding-s6",
+                "version": 1
+              },
+              {
+                "definitionId": "l028.entity-log.engine",
+                "id": "engine",
+                "label": "Envelope router",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l028.entity-log.state",
+                "id": "state",
+                "label": "Entity event log",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l028.entity-log.n3",
+                "id": "n3",
+                "label": "Quarantine branch",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l028.entity-log.n4",
+                "id": "n4",
+                "label": "Identity decision log",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l028.entity-log.n5",
+                "id": "n5",
+                "label": "Approval commands",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l028.entity-log.n6",
+                "id": "n6",
+                "label": "Entity reducer",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l028.entity-log.n7",
+                "id": "n7",
+                "label": "Accepted projection",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "entity-log-s7",
+          "invariants": [
+            "Replay is idempotent for accepted revisions."
+          ],
+          "number": 7,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l028.entity-log.n7",
+                "id": "n7",
+                "label": "Accepted projection",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l028.entity-log.step7",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l028.entity-log.step7"
+                },
+                "id": "step7",
+                "label": "Accepted projection",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l028.entity-log.step7"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can replay duplicate an accepted record?",
+          "reason": "Upsert by entity/revision/event ID with checkpoint in one transaction.",
+          "title": "Accepted projection"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l028.entity-log.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l028.entity-log.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l028.entity-log.command"
+                }
+              },
+              {
+                "contractId": "l028.entity-log.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l028.entity-log.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l028.entity-log.command"
+                }
+              },
+              {
+                "contractId": "l028.entity-log.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l028.entity-log.step3-engine"
+                },
+                "id": "step3",
+                "label": "Quarantine branch",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l028.entity-log.step3"
+                }
+              },
+              {
+                "contractId": "l028.entity-log.step4",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l028.entity-log.step4-engine"
+                },
+                "id": "step4",
+                "label": "Identity decision log",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l028.entity-log.step4"
+                }
+              },
+              {
+                "contractId": "l028.entity-log.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l028.entity-log.step5"
+                },
+                "id": "step5",
+                "label": "Approval commands",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l028.entity-log.step5"
+                }
+              },
+              {
+                "contractId": "l028.entity-log.step6",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l028.entity-log.step6-state"
+                },
+                "id": "step6",
+                "label": "Entity reducer",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l028.entity-log.step6"
+                }
+              },
+              {
+                "contractId": "l028.entity-log.step7",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l028.entity-log.step7"
+                },
+                "id": "step7",
+                "label": "Accepted projection",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l028.entity-log.step7"
+                }
+              },
+              {
+                "contractId": "l028.entity-log.step8",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l028.entity-log.step8"
+                },
+                "id": "step8",
+                "label": "Replay verifier",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n8",
+                  "portId": "in-l028.entity-log.step8"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l028.entity-log.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l028.entity-log.system",
+                "id": "system",
+                "label": "Entity-partitioned approval log",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l028.entity-log.binding-s6",
+                "version": 1
+              },
+              {
+                "definitionId": "l028.entity-log.engine",
+                "id": "engine",
+                "label": "Envelope router",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l028.entity-log.state",
+                "id": "state",
+                "label": "Entity event log",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l028.entity-log.n3",
+                "id": "n3",
+                "label": "Quarantine branch",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l028.entity-log.n4",
+                "id": "n4",
+                "label": "Identity decision log",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l028.entity-log.n5",
+                "id": "n5",
+                "label": "Approval commands",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l028.entity-log.n6",
+                "id": "n6",
+                "label": "Entity reducer",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l028.entity-log.n7",
+                "id": "n7",
+                "label": "Accepted projection",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l028.entity-log.n8",
+                "id": "n8",
+                "label": "Replay verifier",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "entity-log-s8",
+          "invariants": [
+            "A new mapping cannot mutate historic decisions in place."
+          ],
+          "number": 8,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l028.entity-log.n8",
+                "id": "n8",
+                "label": "Replay verifier",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l028.entity-log.step8",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l028.entity-log.step8"
+                },
+                "id": "step8",
+                "label": "Replay verifier",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n8",
+                  "portId": "in-l028.entity-log.step8"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How are repaired identity rules evaluated?",
+          "reason": "Build a new projection generation and compare before explicit publication.",
+          "title": "Replay verifier"
+        }
+      ],
+      "title": "Entity-partitioned approval log",
+      "tradeoffs": [
+        "Partition reassignment requires fencing and checkpoints.",
+        "A log orders events but does not resolve ambiguous identity automatically."
+      ]
+    }
+  ],
+  "subsystems": [
+    {
+      "definitionId": "l028.staged.system",
+      "id": "l028.staged.binding-s2",
+      "ports": [
+        {
+          "contractId": "l028.staged.command",
+          "direction": "in",
+          "id": "in-l028.staged.command",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-l028.staged.command"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l028.staged.system",
+      "id": "l028.staged.binding-s3",
+      "ports": [
+        {
+          "contractId": "l028.staged.command",
+          "direction": "in",
+          "id": "in-l028.staged.command",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-l028.staged.command"
+          }
+        },
+        {
+          "contractId": "l028.staged.step3",
+          "direction": "out",
+          "id": "out-l028.staged.step3-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l028.staged.step3"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l028.staged.system",
+      "id": "l028.staged.binding-s7",
+      "ports": [
+        {
+          "contractId": "l028.staged.command",
+          "direction": "in",
+          "id": "in-l028.staged.command",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-l028.staged.command"
+          }
+        },
+        {
+          "contractId": "l028.staged.step3",
+          "direction": "out",
+          "id": "out-l028.staged.step3-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l028.staged.step3"
+          }
+        },
+        {
+          "contractId": "l028.staged.step7",
+          "direction": "out",
+          "id": "out-l028.staged.step7-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l028.staged.step7"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l028.entity-log.system",
+      "id": "l028.entity-log.binding-s2",
+      "ports": [
+        {
+          "contractId": "l028.entity-log.command",
+          "direction": "in",
+          "id": "in-l028.entity-log.command",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-l028.entity-log.command"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l028.entity-log.system",
+      "id": "l028.entity-log.binding-s3",
+      "ports": [
+        {
+          "contractId": "l028.entity-log.command",
+          "direction": "in",
+          "id": "in-l028.entity-log.command",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-l028.entity-log.command"
+          }
+        },
+        {
+          "contractId": "l028.entity-log.step3",
+          "direction": "out",
+          "id": "out-l028.entity-log.step3-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l028.entity-log.step3"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l028.entity-log.system",
+      "id": "l028.entity-log.binding-s4",
+      "ports": [
+        {
+          "contractId": "l028.entity-log.command",
+          "direction": "in",
+          "id": "in-l028.entity-log.command",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-l028.entity-log.command"
+          }
+        },
+        {
+          "contractId": "l028.entity-log.step3",
+          "direction": "out",
+          "id": "out-l028.entity-log.step3-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l028.entity-log.step3"
+          }
+        },
+        {
+          "contractId": "l028.entity-log.step4",
+          "direction": "out",
+          "id": "out-l028.entity-log.step4-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l028.entity-log.step4"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l028.entity-log.system",
+      "id": "l028.entity-log.binding-s6",
+      "ports": [
+        {
+          "contractId": "l028.entity-log.command",
+          "direction": "in",
+          "id": "in-l028.entity-log.command",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-l028.entity-log.command"
+          }
+        },
+        {
+          "contractId": "l028.entity-log.step3",
+          "direction": "out",
+          "id": "out-l028.entity-log.step3-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l028.entity-log.step3"
+          }
+        },
+        {
+          "contractId": "l028.entity-log.step4",
+          "direction": "out",
+          "id": "out-l028.entity-log.step4-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l028.entity-log.step4"
+          }
+        },
+        {
+          "contractId": "l028.entity-log.step6",
+          "direction": "out",
+          "id": "out-l028.entity-log.step6-state",
+          "target": {
+            "nodeId": "state",
+            "portId": "out-l028.entity-log.step6"
+          }
+        }
+      ],
+      "version": 1
+    }
+  ],
+  "version": 1
+}

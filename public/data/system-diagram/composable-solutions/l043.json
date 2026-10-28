@@ -1,0 +1,4028 @@
+{
+  "components": [
+    {
+      "extends": {
+        "id": "core.client",
+        "version": 1
+      },
+      "id": "l043.sync.caller",
+      "label": "Caller",
+      "ports": [
+        {
+          "contractId": "l043.sync.command",
+          "direction": "out",
+          "id": "out-l043.sync.command"
+        }
+      ],
+      "responsibility": "Submit the declared operation with stable identity and observe explicit completion.",
+      "stateOwnership": [
+        "caller request and retry identity"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l043.sync.system",
+      "label": "Per-write fsync and copy-on-write checkpoint",
+      "ports": [
+        {
+          "contractId": "l043.sync.command",
+          "direction": "in",
+          "id": "in-l043.sync.command"
+        },
+        {
+          "contractId": "l043.sync.step3",
+          "direction": "out",
+          "id": "out-l043.sync.step3-engine"
+        },
+        {
+          "contractId": "l043.sync.step5",
+          "direction": "out",
+          "id": "out-l043.sync.step5-state"
+        }
+      ],
+      "responsibility": "Preserve this stable boundary while refining its ownership and contracts.",
+      "stateOwnership": [
+        "logical operation state"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l043.sync.engine",
+      "label": "Write mutex",
+      "ports": [
+        {
+          "contractId": "l043.sync.command",
+          "direction": "out",
+          "id": "out-l043.sync.command"
+        },
+        {
+          "contractId": "l043.sync.command",
+          "direction": "in",
+          "id": "in-l043.sync.command"
+        },
+        {
+          "contractId": "l043.sync.step3",
+          "direction": "out",
+          "id": "out-l043.sync.step3"
+        }
+      ],
+      "responsibility": "Serialize command IDs and LSN assignment before append.",
+      "stateOwnership": [
+        "next LSN and duplicate receipts"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l043.sync.state",
+      "label": "Memory map",
+      "ports": [
+        {
+          "contractId": "l043.sync.command",
+          "direction": "in",
+          "id": "in-l043.sync.command"
+        },
+        {
+          "contractId": "l043.sync.step5",
+          "direction": "out",
+          "id": "out-l043.sync.step5"
+        }
+      ],
+      "responsibility": "Own applied key/value versions and last applied LSN.",
+      "stateOwnership": [
+        "in-memory values"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.log",
+        "version": 1
+      },
+      "id": "l043.sync.n3",
+      "label": "Framed WAL writer",
+      "ports": [
+        {
+          "contractId": "l043.sync.step3",
+          "direction": "in",
+          "id": "in-l043.sync.step3"
+        },
+        {
+          "contractId": "l043.sync.step4",
+          "direction": "out",
+          "id": "out-l043.sync.step4"
+        }
+      ],
+      "responsibility": "Append length, LSN, operation, payload and checksum, looping for short writes.",
+      "stateOwnership": [
+        "length, lsn, checksum"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l043.sync.n4",
+      "label": "Sync acknowledgement",
+      "ports": [
+        {
+          "contractId": "l043.sync.step4",
+          "direction": "in",
+          "id": "in-l043.sync.step4"
+        }
+      ],
+      "responsibility": "Call fsync/fdatasync according to the declared platform contract before applying and acknowledging.",
+      "stateOwnership": [
+        "syncedLsn, ioError"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l043.sync.n5",
+      "label": "Snapshot pin",
+      "ports": [
+        {
+          "contractId": "l043.sync.step5",
+          "direction": "in",
+          "id": "in-l043.sync.step5"
+        },
+        {
+          "contractId": "l043.sync.step6",
+          "direction": "out",
+          "id": "out-l043.sync.step6"
+        }
+      ],
+      "responsibility": "Pin an immutable/copy-on-write root at cut LSN while later writes continue in a retained suffix.",
+      "stateOwnership": [
+        "cutLsn, rootVersion"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l043.sync.n6",
+      "label": "Checkpoint publisher",
+      "ports": [
+        {
+          "contractId": "l043.sync.step6",
+          "direction": "in",
+          "id": "in-l043.sync.step6"
+        },
+        {
+          "contractId": "l043.sync.step7",
+          "direction": "out",
+          "id": "out-l043.sync.step7"
+        },
+        {
+          "contractId": "l043.sync.step8",
+          "direction": "out",
+          "id": "out-l043.sync.step8"
+        }
+      ],
+      "responsibility": "Write temporary snapshot, sync it, rename, sync directory and publish/sync generation manifest.",
+      "stateOwnership": [
+        "generation, snapshotHash, cutLsn"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l043.sync.n7",
+      "label": "Recovery scanner",
+      "ports": [
+        {
+          "contractId": "l043.sync.step7",
+          "direction": "in",
+          "id": "in-l043.sync.step7"
+        }
+      ],
+      "responsibility": "Verify snapshot hash; replay contiguous framed suffix above cut, tolerate incomplete final frame only.",
+      "stateOwnership": [
+        "expectedLsn, recordChecksum"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l043.sync.n8",
+      "label": "Safe log reclamation",
+      "ports": [
+        {
+          "contractId": "l043.sync.step8",
+          "direction": "in",
+          "id": "in-l043.sync.step8"
+        }
+      ],
+      "responsibility": "Delete only generations covered by the durable checkpoint manifest and fsync directory changes.",
+      "stateOwnership": [
+        "coveredThrough, retainedGenerations"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.client",
+        "version": 1
+      },
+      "id": "l043.group.caller",
+      "label": "Caller",
+      "ports": [
+        {
+          "contractId": "l043.group.command",
+          "direction": "out",
+          "id": "out-l043.group.command"
+        }
+      ],
+      "responsibility": "Submit the declared operation with stable identity and observe explicit completion.",
+      "stateOwnership": [
+        "caller request and retry identity"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l043.group.system",
+      "label": "Group commit and rotated generation checkpoints",
+      "ports": [
+        {
+          "contractId": "l043.group.command",
+          "direction": "in",
+          "id": "in-l043.group.command"
+        },
+        {
+          "contractId": "l043.group.step3",
+          "direction": "out",
+          "id": "out-l043.group.step3-engine"
+        },
+        {
+          "contractId": "l043.group.step6",
+          "direction": "out",
+          "id": "out-l043.group.step6-state"
+        }
+      ],
+      "responsibility": "Preserve this stable boundary while refining its ownership and contracts.",
+      "stateOwnership": [
+        "logical operation state"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l043.group.engine",
+      "label": "Commit coordinator",
+      "ports": [
+        {
+          "contractId": "l043.group.command",
+          "direction": "out",
+          "id": "out-l043.group.command"
+        },
+        {
+          "contractId": "l043.group.command",
+          "direction": "in",
+          "id": "in-l043.group.command"
+        },
+        {
+          "contractId": "l043.group.step3",
+          "direction": "out",
+          "id": "out-l043.group.step3"
+        }
+      ],
+      "responsibility": "Queue bounded commands and assign ordered LSNs to one append batch.",
+      "stateOwnership": [
+        "batch membership and ack waiters"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l043.group.state",
+      "label": "Applied map",
+      "ports": [
+        {
+          "contractId": "l043.group.command",
+          "direction": "in",
+          "id": "in-l043.group.command"
+        },
+        {
+          "contractId": "l043.group.step6",
+          "direction": "out",
+          "id": "out-l043.group.step6"
+        }
+      ],
+      "responsibility": "Own committed values and applied watermark.",
+      "stateOwnership": [
+        "committed LSN"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.log",
+        "version": 1
+      },
+      "id": "l043.group.n3",
+      "label": "Batch WAL segments",
+      "ports": [
+        {
+          "contractId": "l043.group.step3",
+          "direction": "in",
+          "id": "in-l043.group.step3"
+        },
+        {
+          "contractId": "l043.group.step4",
+          "direction": "out",
+          "id": "out-l043.group.step4"
+        },
+        {
+          "contractId": "l043.group.step5",
+          "direction": "out",
+          "id": "out-l043.group.step5"
+        }
+      ],
+      "responsibility": "Use one sequencer to append complete frames to the current segment, preserving command identity.",
+      "stateOwnership": [
+        "batchFirst, batchLast, generation"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l043.group.n4",
+      "label": "Group sync gate",
+      "ports": [
+        {
+          "contractId": "l043.group.step4",
+          "direction": "in",
+          "id": "in-l043.group.step4"
+        }
+      ],
+      "responsibility": "Sync the batch once, advance durableThrough and release only waiters at or below that watermark.",
+      "stateOwnership": [
+        "durableThrough, waiterLsn"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l043.group.n5",
+      "label": "Generation rotation",
+      "ports": [
+        {
+          "contractId": "l043.group.step5",
+          "direction": "in",
+          "id": "in-l043.group.step5"
+        }
+      ],
+      "responsibility": "Pause append briefly, seal segment at cut LSN and start a new generation before copying state.",
+      "stateOwnership": [
+        "sealedLsn, newGeneration"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l043.group.n6",
+      "label": "Snapshot worker",
+      "ports": [
+        {
+          "contractId": "l043.group.step6",
+          "direction": "in",
+          "id": "in-l043.group.step6"
+        },
+        {
+          "contractId": "l043.group.step7",
+          "direction": "out",
+          "id": "out-l043.group.step7"
+        }
+      ],
+      "responsibility": "Snapshot a pinned root through the sealed cut, with later mutations isolated by copy-on-write.",
+      "stateOwnership": [
+        "snapshotCut, rootHash"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l043.group.n7",
+      "label": "Manifest commit",
+      "ports": [
+        {
+          "contractId": "l043.group.step7",
+          "direction": "in",
+          "id": "in-l043.group.step7"
+        },
+        {
+          "contractId": "l043.group.step8",
+          "direction": "out",
+          "id": "out-l043.group.step8"
+        }
+      ],
+      "responsibility": "Publish one synced manifest naming snapshot hash/cut and exact replay segment set.",
+      "stateOwnership": [
+        "snapshotFile, replayGenerations"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l043.group.n8",
+      "label": "Replay and compact",
+      "ports": [
+        {
+          "contractId": "l043.group.step8",
+          "direction": "in",
+          "id": "in-l043.group.step8"
+        }
+      ],
+      "responsibility": "Recover the cut plus suffix; compact only under a new equivalent checkpoint and retain tombstones until older sources are excluded.",
+      "stateOwnership": [
+        "cutLsn, tombstoneLsn"
+      ],
+      "version": 1
+    }
+  ],
+  "contracts": [
+    {
+      "id": "l043.sync.command",
+      "request": {
+        "commandId": "uuid",
+        "key": "string",
+        "operation": "put|delete",
+        "value": "bytes|null"
+      },
+      "response": {
+        "ackPolicy": "always|group|periodic|os-buffered",
+        "durableThrough": "integer",
+        "lsn": "monotonic integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l043.sync.step3",
+      "request": {
+        "checksum": "sha256",
+        "length": "bounded integer",
+        "lsn": "integer"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l043.sync.step4",
+      "request": {
+        "ioError": "optional failure",
+        "syncedLsn": "integer"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l043.sync.step5",
+      "request": {
+        "cutLsn": "integer",
+        "rootVersion": "integer"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l043.sync.step6",
+      "request": {
+        "cutLsn": "integer",
+        "generation": "integer",
+        "snapshotHash": "sha256"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l043.sync.step7",
+      "request": {
+        "expectedLsn": "integer",
+        "recordChecksum": "sha256"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l043.sync.step8",
+      "request": {
+        "coveredThrough": "integer",
+        "retainedGenerations": "integer[]"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l043.group.command",
+      "request": {
+        "commandId": "uuid",
+        "key": "string",
+        "operation": "put|delete",
+        "value": "bytes|null"
+      },
+      "response": {
+        "ackPolicy": "always|group|periodic|os-buffered",
+        "durableThrough": "integer",
+        "lsn": "monotonic integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l043.group.step3",
+      "request": {
+        "batchFirst": "integer",
+        "batchLast": "integer",
+        "generation": "integer"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l043.group.step4",
+      "request": {
+        "durableThrough": "integer",
+        "waiterLsn": "integer"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l043.group.step5",
+      "request": {
+        "newGeneration": "integer",
+        "sealedLsn": "integer"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l043.group.step6",
+      "request": {
+        "rootHash": "sha256",
+        "snapshotCut": "integer"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l043.group.step7",
+      "request": {
+        "replayGenerations": "integer[]",
+        "snapshotFile": "path"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l043.group.step8",
+      "request": {
+        "cutLsn": "integer",
+        "tombstoneLsn": "integer"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    }
+  ],
+  "execution": {
+    "implementation": null,
+    "kind": "conceptual-design"
+  },
+  "problem": {
+    "referenceId": "L043",
+    "requirements": [
+      {
+        "id": "r0",
+        "text": "Append framed checksummed records before applying writes; acknowledge only at the selected sync boundary."
+      },
+      {
+        "id": "r1",
+        "text": "Recover a verified snapshot and contiguous WAL suffix, stopping only at a torn tail and rejecting interior corruption."
+      },
+      {
+        "id": "r2",
+        "text": "Publish checkpoints atomically with a cut LSN and retain WAL generations until the new manifest is durable."
+      }
+    ],
+    "scope": "Systems-coding design for a single-process in-memory key/value store. Compare synchronous per-write WAL with group commit and generation checkpoints. Physical power-loss guarantees depend on filesystem/device behavior and require fault injection beyond bounded reference models.",
+    "studyLabel": "WAL and checkpoint recovery"
+  },
+  "provenance": {
+    "kind": "authored-practice",
+    "note": "Authored interview preparation. Technical references support mechanisms, not the claim that a company asked this question."
+  },
+  "references": [
+    {
+      "id": "ref0",
+      "scope": "background",
+      "supports": "Append-only persistence, snapshots, rewrite and fsync tradeoffs.",
+      "title": "Redis persistence",
+      "url": "https://redis.io/docs/latest/operate/oss_and_stack/management/persistence/"
+    },
+    {
+      "id": "ref1",
+      "scope": "background",
+      "supports": "Synchronizing file data and metadata; directory entries require their own synchronization.",
+      "title": "Linux fsync",
+      "url": "https://man7.org/linux/man-pages/man2/fsync.2.html"
+    }
+  ],
+  "schema": "simulatte.composableStudy.v2",
+  "solutions": [
+    {
+      "acceptanceCases": [
+        {
+          "given": "A WAL record is appended but sync fails.",
+          "id": "case0",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Fail the write acknowledgement and retain uncertainty; do not claim durable success.",
+          "when": "Attempt always-sync acknowledgement."
+        },
+        {
+          "given": "A snapshot ends at LSN 2 and suffix contains 3,4 plus an incomplete tail.",
+          "id": "case1",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Apply 3 and 4 once; stop at tail, but reject interior corruption or a sequence gap.",
+          "when": "Replay with checksum and sequence validation."
+        },
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-06-state.test.mjs",
+            "testName": "WAL framed suffix preserves tombstones rejects gaps and separates sync watermark"
+          },
+          "given": "Snapshot cut is 2 with a key later deleted.",
+          "id": "bounded-mechanism",
+          "relatedRequirementIds": [
+            "r0"
+          ],
+          "then": "Preserve delete, stop at incomplete tail, reject checksum/gap, and release only waiters within the sync watermark; physical durability is untested.",
+          "when": "Replay complete frames 3/4 and torn frame 5, then corrupt a frame and try a gap."
+        }
+      ],
+      "algorithms": [
+        {
+          "code": "underWriteMutex: deduplicate(commandId); lsn=next(); appendAll(frame(lsn,{commandId,command,resultIdentity},checksum));\nfsync(wal); applyToMemory(command,lsn); acknowledge(lsn,resultIdentity);\ncheckpoint: pinRootAt(cut); writeAndSyncSnapshot(); renameAndSyncDirectory();\npublishAndSyncManifest(generation,cut,hash); onlyThenReclaimCoveredWal();\nrecover: verifySnapshot(); scanContiguousSuffix(); stopAtIncompleteFinalFrame(); rejectInteriorCorruption();",
+          "guarantees": [
+            "A short write is retried or fails; it is never assumed complete.",
+            "OS-buffered append alone cannot satisfy always-sync acknowledgement.",
+            "The snapshot contains exactly state through its cut.",
+            "The old manifest and logs remain until publication is durable.",
+            "Interior checksum failure is a surfaced error, not skipped data.",
+            "No acknowledged suffix is removed before a recoverable checkpoint exists."
+          ],
+          "id": "transition",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "engine"
+        }
+      ],
+      "apis": [
+        {
+          "errors": "Reject invalid input, stale versions and operations outside the declared boundary.",
+          "method": "METHOD",
+          "ownerNodeId": "engine",
+          "path": "Store.put(key,value) / Store.delete(key)",
+          "request": "{\"commandId\":\"uuid\",\"operation\":\"put|delete\",\"key\":\"string\",\"value\":\"bytes|null\"}",
+          "response": "{\"lsn\":\"monotonic integer\",\"ackPolicy\":\"always|group|periodic|os-buffered\",\"durableThrough\":\"integer\"}"
+        }
+      ],
+      "assumptions": [
+        "All added stages are authored practice extending the canonical prompt.",
+        "Graphs specify conceptual mechanisms; reference models do not prove cloud execution, latency, physical durability or distributed safety."
+      ],
+      "chooseWhen": "The workload values a narrow acknowledged-loss window over maximum throughput.",
+      "id": "sync",
+      "initialGraph": {
+        "edges": [],
+        "nodes": []
+      },
+      "stages": [
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l043.sync.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l043.sync.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l043.sync.command"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l043.sync.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l043.sync.system",
+                "id": "system",
+                "label": "Per-write fsync and copy-on-write checkpoint",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "sync-s1",
+          "invariants": [
+            "Append framed checksummed records before applying writes; acknowledge only at the selected sync boundary."
+          ],
+          "number": 1,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l043.sync.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "l043.sync.system",
+                "id": "system",
+                "label": "Per-write fsync and copy-on-write checkpoint",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l043.sync.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l043.sync.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l043.sync.command"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What does successful completion promise?",
+          "reason": "Append framed checksummed records before applying writes; acknowledge only at the selected sync boundary.",
+          "title": "Define the operation boundary"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l043.sync.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l043.sync.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l043.sync.command"
+                }
+              },
+              {
+                "contractId": "l043.sync.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l043.sync.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l043.sync.command"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l043.sync.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l043.sync.system",
+                "id": "system",
+                "label": "Per-write fsync and copy-on-write checkpoint",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l043.sync.binding-s2",
+                "version": 1
+              },
+              {
+                "definitionId": "l043.sync.engine",
+                "id": "engine",
+                "label": "Write mutex",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l043.sync.state",
+                "id": "state",
+                "label": "Memory map",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "sync-s2",
+          "invariants": [
+            "next LSN and duplicate receipts belongs to Write mutex; in-memory values belongs to Memory map."
+          ],
+          "number": 2,
+          "operations": [
+            {
+              "edges": [
+                {
+                  "contractId": "l043.sync.command",
+                  "from": {
+                    "nodeId": "engine",
+                    "portId": "out-l043.sync.command"
+                  },
+                  "id": "owned-state",
+                  "label": "Read or commit state",
+                  "mode": "storage",
+                  "to": {
+                    "nodeId": "state",
+                    "portId": "in-l043.sync.command"
+                  }
+                }
+              ],
+              "nodeId": "system",
+              "nodes": [
+                {
+                  "definitionId": "l043.sync.engine",
+                  "id": "engine",
+                  "label": "Write mutex",
+                  "position": {
+                    "x": 560,
+                    "y": 0
+                  },
+                  "version": 1
+                },
+                {
+                  "definitionId": "l043.sync.state",
+                  "id": "state",
+                  "label": "Memory map",
+                  "position": {
+                    "x": 840,
+                    "y": 0
+                  },
+                  "version": 1
+                }
+              ],
+              "op": "expand",
+              "subsystemId": "l043.sync.binding-s2"
+            }
+          ],
+          "question": "Which component owns the decision and its persistent or shared state?",
+          "reason": "Serialize command IDs and LSN assignment before append. Own applied key/value versions and last applied LSN.",
+          "title": "Expose authority and state"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l043.sync.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l043.sync.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l043.sync.command"
+                }
+              },
+              {
+                "contractId": "l043.sync.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l043.sync.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l043.sync.command"
+                }
+              },
+              {
+                "contractId": "l043.sync.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l043.sync.step3-engine"
+                },
+                "id": "step3",
+                "label": "Framed WAL writer",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l043.sync.step3"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l043.sync.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l043.sync.system",
+                "id": "system",
+                "label": "Per-write fsync and copy-on-write checkpoint",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l043.sync.binding-s3",
+                "version": 1
+              },
+              {
+                "definitionId": "l043.sync.engine",
+                "id": "engine",
+                "label": "Write mutex",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l043.sync.state",
+                "id": "state",
+                "label": "Memory map",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l043.sync.n3",
+                "id": "n3",
+                "label": "Framed WAL writer",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "sync-s3",
+          "invariants": [
+            "A short write is retried or fails; it is never assumed complete."
+          ],
+          "number": 3,
+          "operations": [
+            {
+              "nodeId": "system",
+              "op": "rebind",
+              "reason": "Expose this new typed path without mutating earlier binding definitions.",
+              "subsystemId": "l043.sync.binding-s3"
+            },
+            {
+              "node": {
+                "definitionId": "l043.sync.n3",
+                "id": "n3",
+                "label": "Framed WAL writer",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l043.sync.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l043.sync.step3-engine"
+                },
+                "id": "step3",
+                "label": "Framed WAL writer",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l043.sync.step3"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How are partial writes detected?",
+          "reason": "Append length, LSN, operation, payload and checksum, looping for short writes.",
+          "title": "Framed WAL writer"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l043.sync.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l043.sync.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l043.sync.command"
+                }
+              },
+              {
+                "contractId": "l043.sync.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l043.sync.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l043.sync.command"
+                }
+              },
+              {
+                "contractId": "l043.sync.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l043.sync.step3-engine"
+                },
+                "id": "step3",
+                "label": "Framed WAL writer",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l043.sync.step3"
+                }
+              },
+              {
+                "contractId": "l043.sync.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l043.sync.step4"
+                },
+                "id": "step4",
+                "label": "Sync acknowledgement",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l043.sync.step4"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l043.sync.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l043.sync.system",
+                "id": "system",
+                "label": "Per-write fsync and copy-on-write checkpoint",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l043.sync.binding-s3",
+                "version": 1
+              },
+              {
+                "definitionId": "l043.sync.engine",
+                "id": "engine",
+                "label": "Write mutex",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l043.sync.state",
+                "id": "state",
+                "label": "Memory map",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l043.sync.n3",
+                "id": "n3",
+                "label": "Framed WAL writer",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l043.sync.n4",
+                "id": "n4",
+                "label": "Sync acknowledgement",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "sync-s4",
+          "invariants": [
+            "OS-buffered append alone cannot satisfy always-sync acknowledgement."
+          ],
+          "number": 4,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l043.sync.n4",
+                "id": "n4",
+                "label": "Sync acknowledgement",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l043.sync.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l043.sync.step4"
+                },
+                "id": "step4",
+                "label": "Sync acknowledgement",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l043.sync.step4"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "When is a write called durable?",
+          "reason": "Call fsync/fdatasync according to the declared platform contract before applying and acknowledging.",
+          "title": "Sync acknowledgement"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l043.sync.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l043.sync.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l043.sync.command"
+                }
+              },
+              {
+                "contractId": "l043.sync.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l043.sync.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l043.sync.command"
+                }
+              },
+              {
+                "contractId": "l043.sync.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l043.sync.step3-engine"
+                },
+                "id": "step3",
+                "label": "Framed WAL writer",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l043.sync.step3"
+                }
+              },
+              {
+                "contractId": "l043.sync.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l043.sync.step4"
+                },
+                "id": "step4",
+                "label": "Sync acknowledgement",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l043.sync.step4"
+                }
+              },
+              {
+                "contractId": "l043.sync.step5",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l043.sync.step5-state"
+                },
+                "id": "step5",
+                "label": "Snapshot pin",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l043.sync.step5"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l043.sync.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l043.sync.system",
+                "id": "system",
+                "label": "Per-write fsync and copy-on-write checkpoint",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l043.sync.binding-s5",
+                "version": 1
+              },
+              {
+                "definitionId": "l043.sync.engine",
+                "id": "engine",
+                "label": "Write mutex",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l043.sync.state",
+                "id": "state",
+                "label": "Memory map",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l043.sync.n3",
+                "id": "n3",
+                "label": "Framed WAL writer",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l043.sync.n4",
+                "id": "n4",
+                "label": "Sync acknowledgement",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l043.sync.n5",
+                "id": "n5",
+                "label": "Snapshot pin",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "sync-s5",
+          "invariants": [
+            "The snapshot contains exactly state through its cut."
+          ],
+          "number": 5,
+          "operations": [
+            {
+              "nodeId": "system",
+              "op": "rebind",
+              "reason": "Expose this new typed path without mutating earlier binding definitions.",
+              "subsystemId": "l043.sync.binding-s5"
+            },
+            {
+              "node": {
+                "definitionId": "l043.sync.n5",
+                "id": "n5",
+                "label": "Snapshot pin",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l043.sync.step5",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l043.sync.step5-state"
+                },
+                "id": "step5",
+                "label": "Snapshot pin",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l043.sync.step5"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How are concurrent writes excluded from the snapshot cut?",
+          "reason": "Pin an immutable/copy-on-write root at cut LSN while later writes continue in a retained suffix.",
+          "title": "Snapshot pin"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l043.sync.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l043.sync.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l043.sync.command"
+                }
+              },
+              {
+                "contractId": "l043.sync.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l043.sync.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l043.sync.command"
+                }
+              },
+              {
+                "contractId": "l043.sync.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l043.sync.step3-engine"
+                },
+                "id": "step3",
+                "label": "Framed WAL writer",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l043.sync.step3"
+                }
+              },
+              {
+                "contractId": "l043.sync.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l043.sync.step4"
+                },
+                "id": "step4",
+                "label": "Sync acknowledgement",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l043.sync.step4"
+                }
+              },
+              {
+                "contractId": "l043.sync.step5",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l043.sync.step5-state"
+                },
+                "id": "step5",
+                "label": "Snapshot pin",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l043.sync.step5"
+                }
+              },
+              {
+                "contractId": "l043.sync.step6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l043.sync.step6"
+                },
+                "id": "step6",
+                "label": "Checkpoint publisher",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l043.sync.step6"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l043.sync.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l043.sync.system",
+                "id": "system",
+                "label": "Per-write fsync and copy-on-write checkpoint",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l043.sync.binding-s5",
+                "version": 1
+              },
+              {
+                "definitionId": "l043.sync.engine",
+                "id": "engine",
+                "label": "Write mutex",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l043.sync.state",
+                "id": "state",
+                "label": "Memory map",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l043.sync.n3",
+                "id": "n3",
+                "label": "Framed WAL writer",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l043.sync.n4",
+                "id": "n4",
+                "label": "Sync acknowledgement",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l043.sync.n5",
+                "id": "n5",
+                "label": "Snapshot pin",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l043.sync.n6",
+                "id": "n6",
+                "label": "Checkpoint publisher",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "sync-s6",
+          "invariants": [
+            "The old manifest and logs remain until publication is durable."
+          ],
+          "number": 6,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l043.sync.n6",
+                "id": "n6",
+                "label": "Checkpoint publisher",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l043.sync.step6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l043.sync.step6"
+                },
+                "id": "step6",
+                "label": "Checkpoint publisher",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l043.sync.step6"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can a crash expose a half-written snapshot?",
+          "reason": "Write temporary snapshot, sync it, rename, sync directory and publish/sync generation manifest.",
+          "title": "Checkpoint publisher"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l043.sync.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l043.sync.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l043.sync.command"
+                }
+              },
+              {
+                "contractId": "l043.sync.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l043.sync.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l043.sync.command"
+                }
+              },
+              {
+                "contractId": "l043.sync.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l043.sync.step3-engine"
+                },
+                "id": "step3",
+                "label": "Framed WAL writer",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l043.sync.step3"
+                }
+              },
+              {
+                "contractId": "l043.sync.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l043.sync.step4"
+                },
+                "id": "step4",
+                "label": "Sync acknowledgement",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l043.sync.step4"
+                }
+              },
+              {
+                "contractId": "l043.sync.step5",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l043.sync.step5-state"
+                },
+                "id": "step5",
+                "label": "Snapshot pin",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l043.sync.step5"
+                }
+              },
+              {
+                "contractId": "l043.sync.step6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l043.sync.step6"
+                },
+                "id": "step6",
+                "label": "Checkpoint publisher",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l043.sync.step6"
+                }
+              },
+              {
+                "contractId": "l043.sync.step7",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l043.sync.step7"
+                },
+                "id": "step7",
+                "label": "Recovery scanner",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l043.sync.step7"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l043.sync.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l043.sync.system",
+                "id": "system",
+                "label": "Per-write fsync and copy-on-write checkpoint",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l043.sync.binding-s5",
+                "version": 1
+              },
+              {
+                "definitionId": "l043.sync.engine",
+                "id": "engine",
+                "label": "Write mutex",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l043.sync.state",
+                "id": "state",
+                "label": "Memory map",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l043.sync.n3",
+                "id": "n3",
+                "label": "Framed WAL writer",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l043.sync.n4",
+                "id": "n4",
+                "label": "Sync acknowledgement",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l043.sync.n5",
+                "id": "n5",
+                "label": "Snapshot pin",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l043.sync.n6",
+                "id": "n6",
+                "label": "Checkpoint publisher",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l043.sync.n7",
+                "id": "n7",
+                "label": "Recovery scanner",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "sync-s7",
+          "invariants": [
+            "Interior checksum failure is a surfaced error, not skipped data."
+          ],
+          "number": 7,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l043.sync.n7",
+                "id": "n7",
+                "label": "Recovery scanner",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l043.sync.step7",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l043.sync.step7"
+                },
+                "id": "step7",
+                "label": "Recovery scanner",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l043.sync.step7"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How are torn tails distinguished from corruption?",
+          "reason": "Verify snapshot hash; replay contiguous framed suffix above cut, tolerate incomplete final frame only.",
+          "title": "Recovery scanner"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l043.sync.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l043.sync.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l043.sync.command"
+                }
+              },
+              {
+                "contractId": "l043.sync.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l043.sync.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l043.sync.command"
+                }
+              },
+              {
+                "contractId": "l043.sync.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l043.sync.step3-engine"
+                },
+                "id": "step3",
+                "label": "Framed WAL writer",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l043.sync.step3"
+                }
+              },
+              {
+                "contractId": "l043.sync.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l043.sync.step4"
+                },
+                "id": "step4",
+                "label": "Sync acknowledgement",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l043.sync.step4"
+                }
+              },
+              {
+                "contractId": "l043.sync.step5",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l043.sync.step5-state"
+                },
+                "id": "step5",
+                "label": "Snapshot pin",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l043.sync.step5"
+                }
+              },
+              {
+                "contractId": "l043.sync.step6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l043.sync.step6"
+                },
+                "id": "step6",
+                "label": "Checkpoint publisher",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l043.sync.step6"
+                }
+              },
+              {
+                "contractId": "l043.sync.step7",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l043.sync.step7"
+                },
+                "id": "step7",
+                "label": "Recovery scanner",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l043.sync.step7"
+                }
+              },
+              {
+                "contractId": "l043.sync.step8",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l043.sync.step8"
+                },
+                "id": "step8",
+                "label": "Safe log reclamation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n8",
+                  "portId": "in-l043.sync.step8"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l043.sync.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l043.sync.system",
+                "id": "system",
+                "label": "Per-write fsync and copy-on-write checkpoint",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l043.sync.binding-s5",
+                "version": 1
+              },
+              {
+                "definitionId": "l043.sync.engine",
+                "id": "engine",
+                "label": "Write mutex",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l043.sync.state",
+                "id": "state",
+                "label": "Memory map",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l043.sync.n3",
+                "id": "n3",
+                "label": "Framed WAL writer",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l043.sync.n4",
+                "id": "n4",
+                "label": "Sync acknowledgement",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l043.sync.n5",
+                "id": "n5",
+                "label": "Snapshot pin",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l043.sync.n6",
+                "id": "n6",
+                "label": "Checkpoint publisher",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l043.sync.n7",
+                "id": "n7",
+                "label": "Recovery scanner",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l043.sync.n8",
+                "id": "n8",
+                "label": "Safe log reclamation",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "sync-s8",
+          "invariants": [
+            "No acknowledged suffix is removed before a recoverable checkpoint exists."
+          ],
+          "number": 8,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l043.sync.n8",
+                "id": "n8",
+                "label": "Safe log reclamation",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l043.sync.step8",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l043.sync.step8"
+                },
+                "id": "step8",
+                "label": "Safe log reclamation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n8",
+                  "portId": "in-l043.sync.step8"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "When may old WAL be deleted?",
+          "reason": "Delete only generations covered by the durable checkpoint manifest and fsync directory changes.",
+          "title": "Safe log reclamation"
+        }
+      ],
+      "title": "Per-write fsync and copy-on-write checkpoint",
+      "tradeoffs": [
+        "Each acknowledgement waits for a sync call.",
+        "Copy-on-write snapshot memory and write amplification need explicit limits."
+      ]
+    },
+    {
+      "acceptanceCases": [
+        {
+          "given": "Batch A synced through 4; batch B appended through 7 but is unsynced.",
+          "id": "case0",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Only waiters through 4 are eligible.",
+          "when": "Release group-commit waiters."
+        },
+        {
+          "given": "The manifest names cut 2 and suffix generations containing 3 and 4.",
+          "id": "case1",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Retain delete semantics and the contiguous verified suffix; no hardware durability is inferred.",
+          "when": "Recover with a torn last frame and a deleted key tombstone."
+        },
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-06-state.test.mjs",
+            "testName": "WAL framed suffix preserves tombstones rejects gaps and separates sync watermark"
+          },
+          "given": "Snapshot cut is 2 with a key later deleted.",
+          "id": "bounded-mechanism",
+          "relatedRequirementIds": [
+            "r0"
+          ],
+          "then": "Preserve delete, stop at incomplete tail, reject checksum/gap, and release only waiters within the sync watermark; physical durability is untested.",
+          "when": "Replay complete frames 3/4 and torn frame 5, then corrupt a frame and try a gap."
+        }
+      ],
+      "algorithms": [
+        {
+          "code": "batch = drainWithinByteAndDelayBudget(); appendFramesInLsnOrder(batch);\nif(policy===\"group\") { fsync(segment); durableThrough=batch.lastLsn; }\napplyBatchInOrder(); releaseOnlyEligibleAckWaiters(policy,durableThrough);\nrotateAtCut(); pinRoot(); snapshotAndSync(); publishSyncedGenerationManifest();\n// periodic and OS-buffered acknowledgements explicitly permit loss beyond syncedLsn.",
+          "guarantees": [
+            "Concurrent threads never interleave frame bytes.",
+            "A later unsynced batch cannot borrow an earlier sync receipt.",
+            "Rotation does not discard the uncheckpointed new generation.",
+            "All post-cut writes remain in retained WAL suffix.",
+            "A crash chooses a complete old or new manifest, never mixed generations.",
+            "Compaction preserves deletes and the acknowledged logical state."
+          ],
+          "id": "transition",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "engine"
+        }
+      ],
+      "apis": [
+        {
+          "errors": "Reject invalid input, stale versions and operations outside the declared boundary.",
+          "method": "METHOD",
+          "ownerNodeId": "engine",
+          "path": "Store.put(key,value) / Store.delete(key)",
+          "request": "{\"commandId\":\"uuid\",\"operation\":\"put|delete\",\"key\":\"string\",\"value\":\"bytes|null\"}",
+          "response": "{\"lsn\":\"monotonic integer\",\"ackPolicy\":\"always|group|periodic|os-buffered\",\"durableThrough\":\"integer\"}"
+        }
+      ],
+      "assumptions": [
+        "All added stages are authored practice extending the canonical prompt.",
+        "Graphs specify conceptual mechanisms; reference models do not prove cloud execution, latency, physical durability or distributed safety."
+      ],
+      "chooseWhen": "Many concurrent writes can share sync cost within an explicit latency bound.",
+      "id": "group",
+      "initialGraph": {
+        "edges": [],
+        "nodes": []
+      },
+      "stages": [
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l043.group.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l043.group.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l043.group.command"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l043.group.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l043.group.system",
+                "id": "system",
+                "label": "Group commit and rotated generation checkpoints",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "group-s1",
+          "invariants": [
+            "Append framed checksummed records before applying writes; acknowledge only at the selected sync boundary."
+          ],
+          "number": 1,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l043.group.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "l043.group.system",
+                "id": "system",
+                "label": "Group commit and rotated generation checkpoints",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l043.group.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l043.group.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l043.group.command"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What does successful completion promise?",
+          "reason": "Append framed checksummed records before applying writes; acknowledge only at the selected sync boundary.",
+          "title": "Define the operation boundary"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l043.group.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l043.group.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l043.group.command"
+                }
+              },
+              {
+                "contractId": "l043.group.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l043.group.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l043.group.command"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l043.group.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l043.group.system",
+                "id": "system",
+                "label": "Group commit and rotated generation checkpoints",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l043.group.binding-s2",
+                "version": 1
+              },
+              {
+                "definitionId": "l043.group.engine",
+                "id": "engine",
+                "label": "Commit coordinator",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l043.group.state",
+                "id": "state",
+                "label": "Applied map",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "group-s2",
+          "invariants": [
+            "batch membership and ack waiters belongs to Commit coordinator; committed LSN belongs to Applied map."
+          ],
+          "number": 2,
+          "operations": [
+            {
+              "edges": [
+                {
+                  "contractId": "l043.group.command",
+                  "from": {
+                    "nodeId": "engine",
+                    "portId": "out-l043.group.command"
+                  },
+                  "id": "owned-state",
+                  "label": "Read or commit state",
+                  "mode": "storage",
+                  "to": {
+                    "nodeId": "state",
+                    "portId": "in-l043.group.command"
+                  }
+                }
+              ],
+              "nodeId": "system",
+              "nodes": [
+                {
+                  "definitionId": "l043.group.engine",
+                  "id": "engine",
+                  "label": "Commit coordinator",
+                  "position": {
+                    "x": 560,
+                    "y": 0
+                  },
+                  "version": 1
+                },
+                {
+                  "definitionId": "l043.group.state",
+                  "id": "state",
+                  "label": "Applied map",
+                  "position": {
+                    "x": 840,
+                    "y": 0
+                  },
+                  "version": 1
+                }
+              ],
+              "op": "expand",
+              "subsystemId": "l043.group.binding-s2"
+            }
+          ],
+          "question": "Which component owns the decision and its persistent or shared state?",
+          "reason": "Queue bounded commands and assign ordered LSNs to one append batch. Own committed values and applied watermark.",
+          "title": "Expose authority and state"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l043.group.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l043.group.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l043.group.command"
+                }
+              },
+              {
+                "contractId": "l043.group.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l043.group.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l043.group.command"
+                }
+              },
+              {
+                "contractId": "l043.group.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l043.group.step3-engine"
+                },
+                "id": "step3",
+                "label": "Batch WAL segments",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l043.group.step3"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l043.group.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l043.group.system",
+                "id": "system",
+                "label": "Group commit and rotated generation checkpoints",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l043.group.binding-s3",
+                "version": 1
+              },
+              {
+                "definitionId": "l043.group.engine",
+                "id": "engine",
+                "label": "Commit coordinator",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l043.group.state",
+                "id": "state",
+                "label": "Applied map",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l043.group.n3",
+                "id": "n3",
+                "label": "Batch WAL segments",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "group-s3",
+          "invariants": [
+            "Concurrent threads never interleave frame bytes."
+          ],
+          "number": 3,
+          "operations": [
+            {
+              "nodeId": "system",
+              "op": "rebind",
+              "reason": "Expose this new typed path without mutating earlier binding definitions.",
+              "subsystemId": "l043.group.binding-s3"
+            },
+            {
+              "node": {
+                "definitionId": "l043.group.n3",
+                "id": "n3",
+                "label": "Batch WAL segments",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l043.group.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l043.group.step3-engine"
+                },
+                "id": "step3",
+                "label": "Batch WAL segments",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l043.group.step3"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How are concurrent records appended?",
+          "reason": "Use one sequencer to append complete frames to the current segment, preserving command identity.",
+          "title": "Batch WAL segments"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l043.group.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l043.group.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l043.group.command"
+                }
+              },
+              {
+                "contractId": "l043.group.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l043.group.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l043.group.command"
+                }
+              },
+              {
+                "contractId": "l043.group.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l043.group.step3-engine"
+                },
+                "id": "step3",
+                "label": "Batch WAL segments",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l043.group.step3"
+                }
+              },
+              {
+                "contractId": "l043.group.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l043.group.step4"
+                },
+                "id": "step4",
+                "label": "Group sync gate",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l043.group.step4"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l043.group.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l043.group.system",
+                "id": "system",
+                "label": "Group commit and rotated generation checkpoints",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l043.group.binding-s3",
+                "version": 1
+              },
+              {
+                "definitionId": "l043.group.engine",
+                "id": "engine",
+                "label": "Commit coordinator",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l043.group.state",
+                "id": "state",
+                "label": "Applied map",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l043.group.n3",
+                "id": "n3",
+                "label": "Batch WAL segments",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l043.group.n4",
+                "id": "n4",
+                "label": "Group sync gate",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "group-s4",
+          "invariants": [
+            "A later unsynced batch cannot borrow an earlier sync receipt."
+          ],
+          "number": 4,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l043.group.n4",
+                "id": "n4",
+                "label": "Group sync gate",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l043.group.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l043.group.step4"
+                },
+                "id": "step4",
+                "label": "Group sync gate",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l043.group.step4"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Which callers may be released together?",
+          "reason": "Sync the batch once, advance durableThrough and release only waiters at or below that watermark.",
+          "title": "Group sync gate"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l043.group.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l043.group.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l043.group.command"
+                }
+              },
+              {
+                "contractId": "l043.group.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l043.group.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l043.group.command"
+                }
+              },
+              {
+                "contractId": "l043.group.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l043.group.step3-engine"
+                },
+                "id": "step3",
+                "label": "Batch WAL segments",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l043.group.step3"
+                }
+              },
+              {
+                "contractId": "l043.group.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l043.group.step4"
+                },
+                "id": "step4",
+                "label": "Group sync gate",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l043.group.step4"
+                }
+              },
+              {
+                "contractId": "l043.group.step5",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l043.group.step5"
+                },
+                "id": "step5",
+                "label": "Generation rotation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l043.group.step5"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l043.group.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l043.group.system",
+                "id": "system",
+                "label": "Group commit and rotated generation checkpoints",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l043.group.binding-s3",
+                "version": 1
+              },
+              {
+                "definitionId": "l043.group.engine",
+                "id": "engine",
+                "label": "Commit coordinator",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l043.group.state",
+                "id": "state",
+                "label": "Applied map",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l043.group.n3",
+                "id": "n3",
+                "label": "Batch WAL segments",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l043.group.n4",
+                "id": "n4",
+                "label": "Group sync gate",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l043.group.n5",
+                "id": "n5",
+                "label": "Generation rotation",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "group-s5",
+          "invariants": [
+            "Rotation does not discard the uncheckpointed new generation."
+          ],
+          "number": 5,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l043.group.n5",
+                "id": "n5",
+                "label": "Generation rotation",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l043.group.step5",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l043.group.step5"
+                },
+                "id": "step5",
+                "label": "Generation rotation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l043.group.step5"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How is checkpoint cut isolated?",
+          "reason": "Pause append briefly, seal segment at cut LSN and start a new generation before copying state.",
+          "title": "Generation rotation"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l043.group.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l043.group.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l043.group.command"
+                }
+              },
+              {
+                "contractId": "l043.group.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l043.group.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l043.group.command"
+                }
+              },
+              {
+                "contractId": "l043.group.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l043.group.step3-engine"
+                },
+                "id": "step3",
+                "label": "Batch WAL segments",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l043.group.step3"
+                }
+              },
+              {
+                "contractId": "l043.group.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l043.group.step4"
+                },
+                "id": "step4",
+                "label": "Group sync gate",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l043.group.step4"
+                }
+              },
+              {
+                "contractId": "l043.group.step5",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l043.group.step5"
+                },
+                "id": "step5",
+                "label": "Generation rotation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l043.group.step5"
+                }
+              },
+              {
+                "contractId": "l043.group.step6",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l043.group.step6-state"
+                },
+                "id": "step6",
+                "label": "Snapshot worker",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l043.group.step6"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l043.group.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l043.group.system",
+                "id": "system",
+                "label": "Group commit and rotated generation checkpoints",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l043.group.binding-s6",
+                "version": 1
+              },
+              {
+                "definitionId": "l043.group.engine",
+                "id": "engine",
+                "label": "Commit coordinator",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l043.group.state",
+                "id": "state",
+                "label": "Applied map",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l043.group.n3",
+                "id": "n3",
+                "label": "Batch WAL segments",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l043.group.n4",
+                "id": "n4",
+                "label": "Group sync gate",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l043.group.n5",
+                "id": "n5",
+                "label": "Generation rotation",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l043.group.n6",
+                "id": "n6",
+                "label": "Snapshot worker",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "group-s6",
+          "invariants": [
+            "All post-cut writes remain in retained WAL suffix."
+          ],
+          "number": 6,
+          "operations": [
+            {
+              "nodeId": "system",
+              "op": "rebind",
+              "reason": "Expose this new typed path without mutating earlier binding definitions.",
+              "subsystemId": "l043.group.binding-s6"
+            },
+            {
+              "node": {
+                "definitionId": "l043.group.n6",
+                "id": "n6",
+                "label": "Snapshot worker",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l043.group.step6",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l043.group.step6-state"
+                },
+                "id": "step6",
+                "label": "Snapshot worker",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l043.group.step6"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can writes continue during the snapshot?",
+          "reason": "Snapshot a pinned root through the sealed cut, with later mutations isolated by copy-on-write.",
+          "title": "Snapshot worker"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l043.group.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l043.group.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l043.group.command"
+                }
+              },
+              {
+                "contractId": "l043.group.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l043.group.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l043.group.command"
+                }
+              },
+              {
+                "contractId": "l043.group.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l043.group.step3-engine"
+                },
+                "id": "step3",
+                "label": "Batch WAL segments",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l043.group.step3"
+                }
+              },
+              {
+                "contractId": "l043.group.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l043.group.step4"
+                },
+                "id": "step4",
+                "label": "Group sync gate",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l043.group.step4"
+                }
+              },
+              {
+                "contractId": "l043.group.step5",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l043.group.step5"
+                },
+                "id": "step5",
+                "label": "Generation rotation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l043.group.step5"
+                }
+              },
+              {
+                "contractId": "l043.group.step6",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l043.group.step6-state"
+                },
+                "id": "step6",
+                "label": "Snapshot worker",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l043.group.step6"
+                }
+              },
+              {
+                "contractId": "l043.group.step7",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l043.group.step7"
+                },
+                "id": "step7",
+                "label": "Manifest commit",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l043.group.step7"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l043.group.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l043.group.system",
+                "id": "system",
+                "label": "Group commit and rotated generation checkpoints",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l043.group.binding-s6",
+                "version": 1
+              },
+              {
+                "definitionId": "l043.group.engine",
+                "id": "engine",
+                "label": "Commit coordinator",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l043.group.state",
+                "id": "state",
+                "label": "Applied map",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l043.group.n3",
+                "id": "n3",
+                "label": "Batch WAL segments",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l043.group.n4",
+                "id": "n4",
+                "label": "Group sync gate",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l043.group.n5",
+                "id": "n5",
+                "label": "Generation rotation",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l043.group.n6",
+                "id": "n6",
+                "label": "Snapshot worker",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l043.group.n7",
+                "id": "n7",
+                "label": "Manifest commit",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "group-s7",
+          "invariants": [
+            "A crash chooses a complete old or new manifest, never mixed generations."
+          ],
+          "number": 7,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l043.group.n7",
+                "id": "n7",
+                "label": "Manifest commit",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l043.group.step7",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l043.group.step7"
+                },
+                "id": "step7",
+                "label": "Manifest commit",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l043.group.step7"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How do snapshot and WAL generations agree?",
+          "reason": "Publish one synced manifest naming snapshot hash/cut and exact replay segment set.",
+          "title": "Manifest commit"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l043.group.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l043.group.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l043.group.command"
+                }
+              },
+              {
+                "contractId": "l043.group.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l043.group.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l043.group.command"
+                }
+              },
+              {
+                "contractId": "l043.group.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l043.group.step3-engine"
+                },
+                "id": "step3",
+                "label": "Batch WAL segments",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l043.group.step3"
+                }
+              },
+              {
+                "contractId": "l043.group.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l043.group.step4"
+                },
+                "id": "step4",
+                "label": "Group sync gate",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l043.group.step4"
+                }
+              },
+              {
+                "contractId": "l043.group.step5",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l043.group.step5"
+                },
+                "id": "step5",
+                "label": "Generation rotation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l043.group.step5"
+                }
+              },
+              {
+                "contractId": "l043.group.step6",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l043.group.step6-state"
+                },
+                "id": "step6",
+                "label": "Snapshot worker",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l043.group.step6"
+                }
+              },
+              {
+                "contractId": "l043.group.step7",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l043.group.step7"
+                },
+                "id": "step7",
+                "label": "Manifest commit",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l043.group.step7"
+                }
+              },
+              {
+                "contractId": "l043.group.step8",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l043.group.step8"
+                },
+                "id": "step8",
+                "label": "Replay and compact",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n8",
+                  "portId": "in-l043.group.step8"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l043.group.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l043.group.system",
+                "id": "system",
+                "label": "Group commit and rotated generation checkpoints",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l043.group.binding-s6",
+                "version": 1
+              },
+              {
+                "definitionId": "l043.group.engine",
+                "id": "engine",
+                "label": "Commit coordinator",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l043.group.state",
+                "id": "state",
+                "label": "Applied map",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l043.group.n3",
+                "id": "n3",
+                "label": "Batch WAL segments",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l043.group.n4",
+                "id": "n4",
+                "label": "Group sync gate",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l043.group.n5",
+                "id": "n5",
+                "label": "Generation rotation",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l043.group.n6",
+                "id": "n6",
+                "label": "Snapshot worker",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l043.group.n7",
+                "id": "n7",
+                "label": "Manifest commit",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l043.group.n8",
+                "id": "n8",
+                "label": "Replay and compact",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "group-s8",
+          "invariants": [
+            "Compaction preserves deletes and the acknowledged logical state."
+          ],
+          "number": 8,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l043.group.n8",
+                "id": "n8",
+                "label": "Replay and compact",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l043.group.step8",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l043.group.step8"
+                },
+                "id": "step8",
+                "label": "Replay and compact",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n8",
+                  "portId": "in-l043.group.step8"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can overwritten keys remove needed history?",
+          "reason": "Recover the cut plus suffix; compact only under a new equivalent checkpoint and retain tombstones until older sources are excluded.",
+          "title": "Replay and compact"
+        }
+      ],
+      "title": "Group commit and rotated generation checkpoints",
+      "tradeoffs": [
+        "Batching adds acknowledgement latency and queue admission.",
+        "Periodic/OS-default modes must explicitly expose their possible acknowledged-loss window."
+      ]
+    }
+  ],
+  "subsystems": [
+    {
+      "definitionId": "l043.sync.system",
+      "id": "l043.sync.binding-s2",
+      "ports": [
+        {
+          "contractId": "l043.sync.command",
+          "direction": "in",
+          "id": "in-l043.sync.command",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-l043.sync.command"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l043.sync.system",
+      "id": "l043.sync.binding-s3",
+      "ports": [
+        {
+          "contractId": "l043.sync.command",
+          "direction": "in",
+          "id": "in-l043.sync.command",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-l043.sync.command"
+          }
+        },
+        {
+          "contractId": "l043.sync.step3",
+          "direction": "out",
+          "id": "out-l043.sync.step3-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l043.sync.step3"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l043.sync.system",
+      "id": "l043.sync.binding-s5",
+      "ports": [
+        {
+          "contractId": "l043.sync.command",
+          "direction": "in",
+          "id": "in-l043.sync.command",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-l043.sync.command"
+          }
+        },
+        {
+          "contractId": "l043.sync.step3",
+          "direction": "out",
+          "id": "out-l043.sync.step3-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l043.sync.step3"
+          }
+        },
+        {
+          "contractId": "l043.sync.step5",
+          "direction": "out",
+          "id": "out-l043.sync.step5-state",
+          "target": {
+            "nodeId": "state",
+            "portId": "out-l043.sync.step5"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l043.group.system",
+      "id": "l043.group.binding-s2",
+      "ports": [
+        {
+          "contractId": "l043.group.command",
+          "direction": "in",
+          "id": "in-l043.group.command",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-l043.group.command"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l043.group.system",
+      "id": "l043.group.binding-s3",
+      "ports": [
+        {
+          "contractId": "l043.group.command",
+          "direction": "in",
+          "id": "in-l043.group.command",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-l043.group.command"
+          }
+        },
+        {
+          "contractId": "l043.group.step3",
+          "direction": "out",
+          "id": "out-l043.group.step3-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l043.group.step3"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l043.group.system",
+      "id": "l043.group.binding-s6",
+      "ports": [
+        {
+          "contractId": "l043.group.command",
+          "direction": "in",
+          "id": "in-l043.group.command",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-l043.group.command"
+          }
+        },
+        {
+          "contractId": "l043.group.step3",
+          "direction": "out",
+          "id": "out-l043.group.step3-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l043.group.step3"
+          }
+        },
+        {
+          "contractId": "l043.group.step6",
+          "direction": "out",
+          "id": "out-l043.group.step6-state",
+          "target": {
+            "nodeId": "state",
+            "portId": "out-l043.group.step6"
+          }
+        }
+      ],
+      "version": 1
+    }
+  ],
+  "version": 1
+}

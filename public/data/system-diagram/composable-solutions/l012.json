@@ -1,0 +1,4747 @@
+{
+  "components": [
+    {
+      "extends": {
+        "id": "core.service",
+        "version": 1
+      },
+      "id": "l012.pull.d0",
+      "label": "Stories API",
+      "ports": [
+        {
+          "contractId": "l012.pull.c0",
+          "direction": "in",
+          "id": "in-l012.pull.c0"
+        },
+        {
+          "contractId": "l012.pull.c2",
+          "direction": "out",
+          "id": "out-l012.pull.c2-control"
+        },
+        {
+          "contractId": "l012.pull.c1",
+          "direction": "in",
+          "id": "in-l012.pull.c1-state"
+        },
+        {
+          "contractId": "l012.pull.c3",
+          "direction": "out",
+          "id": "out-l012.pull.c3-control"
+        }
+      ],
+      "responsibility": "Start with upload intent; publication requires verified immutable media.",
+      "stateOwnership": [
+        "story command identities"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l012.pull.d1",
+      "label": "Story ledger",
+      "ports": [
+        {
+          "contractId": "l012.pull.c1",
+          "direction": "in",
+          "id": "in-l012.pull.c1"
+        }
+      ],
+      "responsibility": "Expand the API into command handling and a versioned metadata authority.",
+      "stateOwnership": [
+        "owner, expiry, media digest"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "l012.pull.d2",
+      "label": "Media finalize",
+      "ports": [
+        {
+          "contractId": "l012.pull.c2",
+          "direction": "in",
+          "id": "in-l012.pull.c2"
+        },
+        {
+          "contractId": "l012.pull.c1",
+          "direction": "out",
+          "id": "out-l012.pull.c1"
+        },
+        {
+          "contractId": "l012.pull.c7",
+          "direction": "in",
+          "id": "in-l012.pull.c7"
+        }
+      ],
+      "responsibility": "Validate size, digest and codec output before publishing a rendition manifest.",
+      "stateOwnership": [
+        "upload receipts"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.service",
+        "version": 1
+      },
+      "id": "l012.pull.d3",
+      "label": "Audience join",
+      "ports": [
+        {
+          "contractId": "l012.pull.c3",
+          "direction": "in",
+          "id": "in-l012.pull.c3"
+        },
+        {
+          "contractId": "l012.pull.c1",
+          "direction": "out",
+          "id": "out-l012.pull.c1"
+        }
+      ],
+      "responsibility": "Join current audience epoch on each read before issuing bounded access.",
+      "stateOwnership": [
+        "audience epochs"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l012.pull.d4",
+      "label": "Tray cursor",
+      "ports": [
+        {
+          "contractId": "l012.pull.c4",
+          "direction": "in",
+          "id": "in-l012.pull.c4"
+        },
+        {
+          "contractId": "l012.pull.c3",
+          "direction": "out",
+          "id": "out-l012.pull.c3"
+        },
+        {
+          "contractId": "l012.pull.c6",
+          "direction": "out",
+          "id": "out-l012.pull.c6"
+        }
+      ],
+      "responsibility": "Use a stable story publication cursor and filter expired entries at the server.",
+      "stateOwnership": [
+        "publication cursor"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l012.pull.d5",
+      "label": "Viewed register",
+      "ports": [
+        {
+          "contractId": "l012.pull.c5",
+          "direction": "in",
+          "id": "in-l012.pull.c5"
+        }
+      ],
+      "responsibility": "Union viewed identities per user and story; a read retry is idempotent.",
+      "stateOwnership": [
+        "viewed story set"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l012.pull.d6",
+      "label": "Expiry guard",
+      "ports": [
+        {
+          "contractId": "l012.pull.c6",
+          "direction": "in",
+          "id": "in-l012.pull.c6"
+        }
+      ],
+      "responsibility": "Check now < expiresAt while authorizing every metadata and media response.",
+      "stateOwnership": [
+        "authorization clock policy"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "l012.pull.d7",
+      "label": "Purge sweeper",
+      "ports": [
+        {
+          "contractId": "l012.pull.c1",
+          "direction": "out",
+          "id": "out-l012.pull.c1"
+        },
+        {
+          "contractId": "l012.pull.c7",
+          "direction": "out",
+          "id": "out-l012.pull.c7"
+        }
+      ],
+      "responsibility": "Reconcile expired metadata with media deletion receipts; retain explicit backup policy.",
+      "stateOwnership": [
+        "purge cursor and receipts"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.client",
+        "version": 1
+      },
+      "id": "l012.pull.caller",
+      "label": "Caller",
+      "ports": [
+        {
+          "contractId": "l012.pull.c0",
+          "direction": "out",
+          "id": "out-l012.pull.c0"
+        },
+        {
+          "contractId": "l012.pull.c4",
+          "direction": "out",
+          "id": "out-l012.pull.c4"
+        },
+        {
+          "contractId": "l012.pull.c5",
+          "direction": "out",
+          "id": "out-l012.pull.c5"
+        }
+      ],
+      "responsibility": "Submit the declared operation with authenticated identity and preserve its retry identity.",
+      "stateOwnership": [
+        "request identity"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l012.pull.control",
+      "label": "Command control",
+      "ports": [
+        {
+          "contractId": "l012.pull.c1",
+          "direction": "out",
+          "id": "out-l012.pull.c1"
+        },
+        {
+          "contractId": "l012.pull.c0",
+          "direction": "in",
+          "id": "in-l012.pull.c0"
+        },
+        {
+          "contractId": "l012.pull.c2",
+          "direction": "out",
+          "id": "out-l012.pull.c2"
+        },
+        {
+          "contractId": "l012.pull.c3",
+          "direction": "out",
+          "id": "out-l012.pull.c3"
+        }
+      ],
+      "responsibility": "Start with upload intent; publication requires verified immutable media.",
+      "stateOwnership": [
+        "validated command and version"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.service",
+        "version": 1
+      },
+      "id": "l012.push.d0",
+      "label": "Publish gateway",
+      "ports": [
+        {
+          "contractId": "l012.push.c0",
+          "direction": "in",
+          "id": "in-l012.push.c0"
+        },
+        {
+          "contractId": "l012.push.c2",
+          "direction": "out",
+          "id": "out-l012.push.c2-control"
+        },
+        {
+          "contractId": "l012.push.c1",
+          "direction": "in",
+          "id": "in-l012.push.c1-state"
+        },
+        {
+          "contractId": "l012.push.c3",
+          "direction": "out",
+          "id": "out-l012.push.c3-state"
+        }
+      ],
+      "responsibility": "Accept a stable story identity and retain pending upload status.",
+      "stateOwnership": [
+        "publication receipts"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l012.push.d1",
+      "label": "Publish outbox",
+      "ports": [
+        {
+          "contractId": "l012.push.c1",
+          "direction": "in",
+          "id": "in-l012.push.c1"
+        },
+        {
+          "contractId": "l012.push.c3",
+          "direction": "out",
+          "id": "out-l012.push.c3"
+        }
+      ],
+      "responsibility": "Expand the gateway; commit immutable story metadata and outbox intent together.",
+      "stateOwnership": [
+        "story metadata and outbox"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "l012.push.d2",
+      "label": "Transcode queue",
+      "ports": [
+        {
+          "contractId": "l012.push.c2",
+          "direction": "in",
+          "id": "in-l012.push.c2"
+        },
+        {
+          "contractId": "l012.push.c1",
+          "direction": "out",
+          "id": "out-l012.push.c1"
+        },
+        {
+          "contractId": "l012.push.c7",
+          "direction": "in",
+          "id": "in-l012.push.c7"
+        }
+      ],
+      "responsibility": "Write deterministic rendition keys and verify completion before releasing publication.",
+      "stateOwnership": [
+        "rendition attempts"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.log",
+        "version": 1
+      },
+      "id": "l012.push.d3",
+      "label": "Fan-out log",
+      "ports": [
+        {
+          "contractId": "l012.push.c3",
+          "direction": "in",
+          "id": "in-l012.push.c3"
+        },
+        {
+          "contractId": "l012.push.c4",
+          "direction": "out",
+          "id": "out-l012.push.c4"
+        }
+      ],
+      "responsibility": "Retain recipient pages and deduplicate inbox insertion by viewer/story.",
+      "stateOwnership": [
+        "recipient page checkpoints"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l012.push.d4",
+      "label": "Viewer inbox",
+      "ports": [
+        {
+          "contractId": "l012.push.c4",
+          "direction": "in",
+          "id": "in-l012.push.c4"
+        },
+        {
+          "contractId": "l012.push.c7",
+          "direction": "in",
+          "id": "in-l012.push.c7"
+        }
+      ],
+      "responsibility": "Store ranked pointers with expiry and source version, not media ownership.",
+      "stateOwnership": [
+        "unique viewer/story pointers"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.service",
+        "version": 1
+      },
+      "id": "l012.push.d5",
+      "label": "Read authorization",
+      "ports": [
+        {
+          "contractId": "l012.push.c5",
+          "direction": "in",
+          "id": "in-l012.push.c5"
+        },
+        {
+          "contractId": "l012.push.c4",
+          "direction": "out",
+          "id": "out-l012.push.c4"
+        },
+        {
+          "contractId": "l012.push.c1",
+          "direction": "out",
+          "id": "out-l012.push.c1"
+        }
+      ],
+      "responsibility": "Recheck current audience and expiry when dereferencing inbox pointers.",
+      "stateOwnership": [
+        "current authorization epoch"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l012.push.d6",
+      "label": "View merge",
+      "ports": [
+        {
+          "contractId": "l012.push.c6",
+          "direction": "in",
+          "id": "in-l012.push.c6"
+        }
+      ],
+      "responsibility": "Merge viewed identities independently from feed order; duplicates do not reset progress.",
+      "stateOwnership": [
+        "viewed identities"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "l012.push.d7",
+      "label": "Expiry reconciliation",
+      "ports": [
+        {
+          "contractId": "l012.push.c7",
+          "direction": "out",
+          "id": "out-l012.push.c7"
+        }
+      ],
+      "responsibility": "Read-time expiry is authoritative; sweep derived inbox pointers and objects asynchronously.",
+      "stateOwnership": [
+        "sweep checkpoints"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.client",
+        "version": 1
+      },
+      "id": "l012.push.caller",
+      "label": "Caller",
+      "ports": [
+        {
+          "contractId": "l012.push.c0",
+          "direction": "out",
+          "id": "out-l012.push.c0"
+        },
+        {
+          "contractId": "l012.push.c5",
+          "direction": "out",
+          "id": "out-l012.push.c5"
+        },
+        {
+          "contractId": "l012.push.c6",
+          "direction": "out",
+          "id": "out-l012.push.c6"
+        }
+      ],
+      "responsibility": "Submit the declared operation with authenticated identity and preserve its retry identity.",
+      "stateOwnership": [
+        "request identity"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l012.push.control",
+      "label": "Command control",
+      "ports": [
+        {
+          "contractId": "l012.push.c1",
+          "direction": "out",
+          "id": "out-l012.push.c1"
+        },
+        {
+          "contractId": "l012.push.c0",
+          "direction": "in",
+          "id": "in-l012.push.c0"
+        },
+        {
+          "contractId": "l012.push.c2",
+          "direction": "out",
+          "id": "out-l012.push.c2"
+        }
+      ],
+      "responsibility": "Accept a stable story identity and retain pending upload status.",
+      "stateOwnership": [
+        "validated command and version"
+      ],
+      "version": 1
+    }
+  ],
+  "contracts": [
+    {
+      "id": "l012.pull.c0",
+      "request": {
+        "actorId": "authenticated user",
+        "expiresAt": "UTC timestamp",
+        "storyId": "uuid"
+      },
+      "response": {
+        "state": "pending|published|expired"
+      },
+      "version": 1
+    },
+    {
+      "id": "l012.pull.c1",
+      "request": {
+        "expectedVersion": "integer",
+        "storyId": "uuid"
+      },
+      "response": {
+        "version": "integer",
+        "visible": "boolean"
+      },
+      "version": 1
+    },
+    {
+      "id": "l012.pull.c2",
+      "request": {
+        "digest": "sha256",
+        "uploadId": "uuid"
+      },
+      "response": {
+        "renditions": "immutable object keys[]"
+      },
+      "version": 1
+    },
+    {
+      "id": "l012.pull.c3",
+      "request": {
+        "storyId": "uuid",
+        "viewerId": "uuid"
+      },
+      "response": {
+        "allowed": "boolean",
+        "epoch": "integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l012.pull.c4",
+      "request": {
+        "after": "cursor",
+        "limit": "1..100"
+      },
+      "response": {
+        "next": "cursor|null",
+        "storyIds": "uuid[]"
+      },
+      "version": 1
+    },
+    {
+      "id": "l012.pull.c5",
+      "request": {
+        "storyId": "uuid",
+        "viewerId": "uuid"
+      },
+      "response": {
+        "viewed": "true"
+      },
+      "version": 1
+    },
+    {
+      "id": "l012.pull.c6",
+      "request": {
+        "expiresAt": "UTC timestamp",
+        "now": "UTC timestamp"
+      },
+      "response": {
+        "visible": "boolean"
+      },
+      "version": 1
+    },
+    {
+      "id": "l012.pull.c7",
+      "request": {
+        "cursor": "string",
+        "cutoff": "UTC timestamp"
+      },
+      "response": {
+        "deleted": "object keys[]",
+        "pending": "object keys[]"
+      },
+      "version": 1
+    },
+    {
+      "id": "l012.push.c0",
+      "request": {
+        "actorId": "uuid",
+        "storyId": "uuid"
+      },
+      "response": {
+        "accepted": "boolean"
+      },
+      "version": 1
+    },
+    {
+      "id": "l012.push.c1",
+      "request": {
+        "digest": "sha256",
+        "storyId": "uuid"
+      },
+      "response": {
+        "outboxId": "uuid",
+        "version": "integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l012.push.c2",
+      "request": {
+        "codecVersion": "integer",
+        "storyId": "uuid"
+      },
+      "response": {
+        "manifest": "verified rendition keys[]"
+      },
+      "version": 1
+    },
+    {
+      "id": "l012.push.c3",
+      "request": {
+        "audienceEpoch": "integer",
+        "storyId": "uuid"
+      },
+      "response": {
+        "pageCursor": "string|null"
+      },
+      "version": 1
+    },
+    {
+      "id": "l012.push.c4",
+      "request": {
+        "expiresAt": "timestamp",
+        "storyId": "uuid",
+        "viewerId": "uuid"
+      },
+      "response": {
+        "inserted": "boolean"
+      },
+      "version": 1
+    },
+    {
+      "id": "l012.push.c5",
+      "request": {
+        "storyId": "uuid",
+        "viewerId": "uuid"
+      },
+      "response": {
+        "allowed": "boolean"
+      },
+      "version": 1
+    },
+    {
+      "id": "l012.push.c6",
+      "request": {
+        "storyId": "uuid",
+        "viewerId": "uuid"
+      },
+      "response": {
+        "viewed": "true"
+      },
+      "version": 1
+    },
+    {
+      "id": "l012.push.c7",
+      "request": {
+        "cursor": "string",
+        "now": "timestamp"
+      },
+      "response": {
+        "pending": "integer",
+        "removed": "integer"
+      },
+      "version": 1
+    }
+  ],
+  "execution": {
+    "implementation": null,
+    "kind": "conceptual-design"
+  },
+  "problem": {
+    "referenceId": "L012",
+    "requirements": [
+      {
+        "id": "r0",
+        "text": "Publish only complete media renditions with owner and immutable expiration."
+      },
+      {
+        "id": "r1",
+        "text": "Enforce current audience membership and monotonic viewed state."
+      },
+      {
+        "id": "r2",
+        "text": "Hide expired stories at read time and reconcile asynchronous purge."
+      }
+    ],
+    "scope": "Photo/video publishing, audience checks, viewing and a 24-hour visibility lifetime. Authored practice extends the catalogue; physical deletion and backup retention are separate from visibility expiry.",
+    "studyLabel": "Ephemeral stories"
+  },
+  "provenance": {
+    "kind": "authored-practice",
+    "note": "Authored interview preparation. Technical references support mechanisms, not the claim that a company asked this question."
+  },
+  "references": [
+    {
+      "id": "ref0",
+      "scope": "background",
+      "supports": "Conditional creation and compare-and-swap object writes; backend-specific preconditions.",
+      "title": "S3 conditional writes",
+      "url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/conditional-writes.html"
+    },
+    {
+      "id": "ref1",
+      "scope": "background",
+      "supports": "Versioned transactions and retrying serialization conflicts.",
+      "title": "PostgreSQL isolation",
+      "url": "https://www.postgresql.org/docs/18/transaction-iso.html"
+    }
+  ],
+  "schema": "simulatte.composableStudy.v2",
+  "solutions": [
+    {
+      "acceptanceCases": [
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-01-mechanisms.test.mjs",
+            "testName": "L012 bounded mechanism"
+          },
+          "given": "A published story expires at time 100 and its viewer remains allowed.",
+          "id": "mechanism",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Only the time-99 allowed read succeeds; expiry does not claim immediate byte erasure.",
+          "when": "Authorize at times 99 and 100, then revoke the viewer."
+        },
+        {
+          "given": "A story expires at 100 but deletion is delayed.",
+          "id": "expiry",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Reject visibility; report pending byte deletion separately.",
+          "when": "Read at 100 through tray and media authorization."
+        },
+        {
+          "given": "A friend loses access after a tray cursor is issued.",
+          "id": "acl",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Recheck current audience and deny the revoked viewer.",
+          "when": "Dereference the old pointer."
+        },
+        {
+          "given": "Two devices record the same story view in reverse order.",
+          "id": "views",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Viewed remains true and no retry clears it.",
+          "when": "Merge their viewed sets."
+        }
+      ],
+      "algorithms": [
+        {
+          "code": "const visible = actorAllowed && now < story.expiresAt;\nif (!visible) return {status:403};\nreturn {status:200, storyId:story.id};",
+          "guarantees": [
+            "The code states the bounded decision rule; unimplemented helpers remain pseudocode.",
+            "External effects, distributed failure and latency require separate execution evidence."
+          ],
+          "id": "bounded-rule",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "n6"
+        },
+        {
+          "code": "for (const story of scanExpired(now, cursor)) {\n hideMetadata(story.id, story.version);\n for (const key of story.renditionKeys) recordDeletionReceipt(await objectStore.delete(key));\n advanceCursorOnlyAfterRecordingPendingKeys(story.id);\n}\n// Read-time expiry remains authoritative while deletion or backups lag.",
+          "guarantees": [
+            "Reconcile expired metadata with media deletion receipts; retain explicit backup policy."
+          ],
+          "id": "recover",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "n7"
+        }
+      ],
+      "apis": [
+        {
+          "errors": "401 unauthenticated; 409 stale identity/version; 429 bounded capacity; 503 unavailable authority",
+          "method": "POST",
+          "ownerNodeId": "control",
+          "path": "/l012/pull",
+          "request": "{\"storyId\":\"uuid\",\"actorId\":\"authenticated user\",\"expiresAt\":\"UTC timestamp\"}",
+          "response": "{\"state\":\"pending|published|expired\"}"
+        },
+        {
+          "errors": "403 unauthorized scope; 404 absent identity; 410 expired retained history",
+          "method": "GET",
+          "ownerNodeId": "state",
+          "path": "/l012/pull/state",
+          "request": "{\"storyId\":\"uuid\",\"expectedVersion\":\"integer\"}",
+          "response": "{\"version\":\"integer\",\"visible\":\"boolean\"}"
+        }
+      ],
+      "assumptions": [
+        "Server time defines the half-open visibility interval; CDN tokens cannot outlive it."
+      ],
+      "chooseWhen": "Fan-out would be expensive for large or volatile audiences.",
+      "id": "pull",
+      "initialGraph": {
+        "edges": [],
+        "nodes": []
+      },
+      "stages": [
+        {
+          "checkIds": [
+            "mechanism",
+            "expiry",
+            "acl",
+            "views"
+          ],
+          "explanation": "Start with upload intent; publication requires verified immutable media. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l012.pull.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l012.pull.c0"
+                },
+                "id": "request",
+                "label": "submit ephemeral stories",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l012.pull.c0"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l012.pull.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l012.pull.d0",
+                "id": "boundary",
+                "label": "Stories API",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "pull-s1",
+          "invariants": [
+            "Start with upload intent; publication requires verified immutable media. State owner: Stories API (story command identities)."
+          ],
+          "number": 1,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l012.pull.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "l012.pull.d0",
+                "id": "boundary",
+                "label": "Stories API",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l012.pull.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l012.pull.c0"
+                },
+                "id": "request",
+                "label": "submit ephemeral stories",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l012.pull.c0"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "When does a story become visible?",
+          "reason": "Start with upload intent; publication requires verified immutable media.",
+          "title": "Stories API"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "expiry",
+            "acl",
+            "views"
+          ],
+          "explanation": "Expand the API into command handling and a versioned metadata authority. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l012.pull.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l012.pull.c0"
+                },
+                "id": "request",
+                "label": "submit ephemeral stories",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l012.pull.c0"
+                }
+              },
+              {
+                "contractId": "l012.pull.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l012.pull.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l012.pull.c1"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l012.pull.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l012.pull.d0",
+                "id": "boundary",
+                "label": "Stories API",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l012-pull-boundary-binding-1",
+                "version": 1
+              },
+              {
+                "definitionId": "l012.pull.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l012.pull.d1",
+                "id": "state",
+                "label": "Story ledger",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "pull-s2",
+          "invariants": [
+            "Expand the API into command handling and a versioned metadata authority. State owner: Story ledger (owner, expiry, media digest)."
+          ],
+          "number": 2,
+          "operations": [
+            {
+              "edges": [
+                {
+                  "contractId": "l012.pull.c1",
+                  "from": {
+                    "nodeId": "control",
+                    "portId": "out-l012.pull.c1"
+                  },
+                  "id": "commit",
+                  "label": "commit versioned state",
+                  "mode": "storage",
+                  "to": {
+                    "nodeId": "state",
+                    "portId": "in-l012.pull.c1"
+                  }
+                }
+              ],
+              "nodeId": "boundary",
+              "nodes": [
+                {
+                  "definitionId": "l012.pull.control",
+                  "id": "control",
+                  "label": "Command control",
+                  "position": {
+                    "x": 560,
+                    "y": 0
+                  },
+                  "version": 1
+                },
+                {
+                  "definitionId": "l012.pull.d1",
+                  "id": "state",
+                  "label": "Story ledger",
+                  "position": {
+                    "x": 840,
+                    "y": 0
+                  },
+                  "version": 1
+                }
+              ],
+              "op": "expand",
+              "subsystemId": "l012-pull-boundary-binding-1"
+            }
+          ],
+          "question": "Who owns visibility?",
+          "reason": "Expand the API into command handling and a versioned metadata authority.",
+          "title": "Story ledger"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "expiry",
+            "acl",
+            "views"
+          ],
+          "explanation": "Validate size, digest and codec output before publishing a rendition manifest. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l012.pull.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l012.pull.c0"
+                },
+                "id": "request",
+                "label": "submit ephemeral stories",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l012.pull.c0"
+                }
+              },
+              {
+                "contractId": "l012.pull.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l012.pull.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l012.pull.c1"
+                }
+              },
+              {
+                "contractId": "l012.pull.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l012.pull.c2-control"
+                },
+                "id": "upload",
+                "label": "finalize upload",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l012.pull.c2"
+                }
+              },
+              {
+                "contractId": "l012.pull.c1",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l012.pull.c1"
+                },
+                "id": "publish",
+                "label": "publish verified media",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l012.pull.c1-state"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l012.pull.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l012.pull.d0",
+                "id": "boundary",
+                "label": "Stories API",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l012-pull-boundary-binding-2",
+                "version": 1
+              },
+              {
+                "definitionId": "l012.pull.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l012.pull.d1",
+                "id": "state",
+                "label": "Story ledger",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l012.pull.d2",
+                "id": "n2",
+                "label": "Media finalize",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "pull-s3",
+          "invariants": [
+            "Validate size, digest and codec output before publishing a rendition manifest. State owner: Media finalize (upload receipts)."
+          ],
+          "number": 3,
+          "operations": [
+            {
+              "nodeId": "boundary",
+              "op": "rebind",
+              "reason": "Select a new immutable exposure binding before connecting the added responsibility; prior stage binding remains unchanged.",
+              "subsystemId": "l012-pull-boundary-binding-2"
+            },
+            {
+              "node": {
+                "definitionId": "l012.pull.d2",
+                "id": "n2",
+                "label": "Media finalize",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l012.pull.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l012.pull.c2-control"
+                },
+                "id": "upload",
+                "label": "finalize upload",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l012.pull.c2"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l012.pull.c1",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l012.pull.c1"
+                },
+                "id": "publish",
+                "label": "publish verified media",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l012.pull.c1-state"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can partial uploads appear?",
+          "reason": "Validate size, digest and codec output before publishing a rendition manifest.",
+          "title": "Media finalize"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "expiry",
+            "acl",
+            "views"
+          ],
+          "explanation": "Join current audience epoch on each read before issuing bounded access. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l012.pull.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l012.pull.c0"
+                },
+                "id": "request",
+                "label": "submit ephemeral stories",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l012.pull.c0"
+                }
+              },
+              {
+                "contractId": "l012.pull.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l012.pull.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l012.pull.c1"
+                }
+              },
+              {
+                "contractId": "l012.pull.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l012.pull.c2-control"
+                },
+                "id": "upload",
+                "label": "finalize upload",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l012.pull.c2"
+                }
+              },
+              {
+                "contractId": "l012.pull.c1",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l012.pull.c1"
+                },
+                "id": "publish",
+                "label": "publish verified media",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l012.pull.c1-state"
+                }
+              },
+              {
+                "contractId": "l012.pull.c3",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l012.pull.c3-control"
+                },
+                "id": "authorize",
+                "label": "check current audience",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l012.pull.c3"
+                }
+              },
+              {
+                "contractId": "l012.pull.c1",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l012.pull.c1"
+                },
+                "id": "metadata",
+                "label": "read story version",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l012.pull.c1-state"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l012.pull.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l012.pull.d0",
+                "id": "boundary",
+                "label": "Stories API",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l012-pull-boundary-binding-3",
+                "version": 1
+              },
+              {
+                "definitionId": "l012.pull.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l012.pull.d1",
+                "id": "state",
+                "label": "Story ledger",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l012.pull.d2",
+                "id": "n2",
+                "label": "Media finalize",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l012.pull.d3",
+                "id": "n3",
+                "label": "Audience join",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "pull-s4",
+          "invariants": [
+            "Join current audience epoch on each read before issuing bounded access. State owner: Audience join (audience epochs)."
+          ],
+          "number": 4,
+          "operations": [
+            {
+              "nodeId": "boundary",
+              "op": "rebind",
+              "reason": "Select a new immutable exposure binding before connecting the added responsibility; prior stage binding remains unchanged.",
+              "subsystemId": "l012-pull-boundary-binding-3"
+            },
+            {
+              "node": {
+                "definitionId": "l012.pull.d3",
+                "id": "n3",
+                "label": "Audience join",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l012.pull.c3",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l012.pull.c3-control"
+                },
+                "id": "authorize",
+                "label": "check current audience",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l012.pull.c3"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l012.pull.c1",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l012.pull.c1"
+                },
+                "id": "metadata",
+                "label": "read story version",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l012.pull.c1-state"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What if friendship is revoked?",
+          "reason": "Join current audience epoch on each read before issuing bounded access.",
+          "title": "Audience join"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "expiry",
+            "acl",
+            "views"
+          ],
+          "explanation": "Use a stable story publication cursor and filter expired entries at the server. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l012.pull.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l012.pull.c0"
+                },
+                "id": "request",
+                "label": "submit ephemeral stories",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l012.pull.c0"
+                }
+              },
+              {
+                "contractId": "l012.pull.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l012.pull.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l012.pull.c1"
+                }
+              },
+              {
+                "contractId": "l012.pull.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l012.pull.c2-control"
+                },
+                "id": "upload",
+                "label": "finalize upload",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l012.pull.c2"
+                }
+              },
+              {
+                "contractId": "l012.pull.c1",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l012.pull.c1"
+                },
+                "id": "publish",
+                "label": "publish verified media",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l012.pull.c1-state"
+                }
+              },
+              {
+                "contractId": "l012.pull.c3",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l012.pull.c3-control"
+                },
+                "id": "authorize",
+                "label": "check current audience",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l012.pull.c3"
+                }
+              },
+              {
+                "contractId": "l012.pull.c1",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l012.pull.c1"
+                },
+                "id": "metadata",
+                "label": "read story version",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l012.pull.c1-state"
+                }
+              },
+              {
+                "contractId": "l012.pull.c4",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l012.pull.c4"
+                },
+                "id": "tray",
+                "label": "page story tray",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l012.pull.c4"
+                }
+              },
+              {
+                "contractId": "l012.pull.c3",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l012.pull.c3"
+                },
+                "id": "audience",
+                "label": "filter current audience",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l012.pull.c3"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l012.pull.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l012.pull.d0",
+                "id": "boundary",
+                "label": "Stories API",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l012-pull-boundary-binding-3",
+                "version": 1
+              },
+              {
+                "definitionId": "l012.pull.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l012.pull.d1",
+                "id": "state",
+                "label": "Story ledger",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l012.pull.d2",
+                "id": "n2",
+                "label": "Media finalize",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l012.pull.d3",
+                "id": "n3",
+                "label": "Audience join",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l012.pull.d4",
+                "id": "n4",
+                "label": "Tray cursor",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "pull-s5",
+          "invariants": [
+            "Use a stable story publication cursor and filter expired entries at the server. State owner: Tray cursor (publication cursor)."
+          ],
+          "number": 5,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l012.pull.d4",
+                "id": "n4",
+                "label": "Tray cursor",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l012.pull.c4",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l012.pull.c4"
+                },
+                "id": "tray",
+                "label": "page story tray",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l012.pull.c4"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l012.pull.c3",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l012.pull.c3"
+                },
+                "id": "audience",
+                "label": "filter current audience",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l012.pull.c3"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How are trays paged consistently?",
+          "reason": "Use a stable story publication cursor and filter expired entries at the server.",
+          "title": "Tray cursor"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "expiry",
+            "acl",
+            "views"
+          ],
+          "explanation": "Union viewed identities per user and story; a read retry is idempotent. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l012.pull.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l012.pull.c0"
+                },
+                "id": "request",
+                "label": "submit ephemeral stories",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l012.pull.c0"
+                }
+              },
+              {
+                "contractId": "l012.pull.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l012.pull.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l012.pull.c1"
+                }
+              },
+              {
+                "contractId": "l012.pull.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l012.pull.c2-control"
+                },
+                "id": "upload",
+                "label": "finalize upload",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l012.pull.c2"
+                }
+              },
+              {
+                "contractId": "l012.pull.c1",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l012.pull.c1"
+                },
+                "id": "publish",
+                "label": "publish verified media",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l012.pull.c1-state"
+                }
+              },
+              {
+                "contractId": "l012.pull.c3",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l012.pull.c3-control"
+                },
+                "id": "authorize",
+                "label": "check current audience",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l012.pull.c3"
+                }
+              },
+              {
+                "contractId": "l012.pull.c1",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l012.pull.c1"
+                },
+                "id": "metadata",
+                "label": "read story version",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l012.pull.c1-state"
+                }
+              },
+              {
+                "contractId": "l012.pull.c4",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l012.pull.c4"
+                },
+                "id": "tray",
+                "label": "page story tray",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l012.pull.c4"
+                }
+              },
+              {
+                "contractId": "l012.pull.c3",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l012.pull.c3"
+                },
+                "id": "audience",
+                "label": "filter current audience",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l012.pull.c3"
+                }
+              },
+              {
+                "contractId": "l012.pull.c5",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l012.pull.c5"
+                },
+                "id": "view",
+                "label": "record viewed story",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l012.pull.c5"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l012.pull.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l012.pull.d0",
+                "id": "boundary",
+                "label": "Stories API",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l012-pull-boundary-binding-3",
+                "version": 1
+              },
+              {
+                "definitionId": "l012.pull.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l012.pull.d1",
+                "id": "state",
+                "label": "Story ledger",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l012.pull.d2",
+                "id": "n2",
+                "label": "Media finalize",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l012.pull.d3",
+                "id": "n3",
+                "label": "Audience join",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l012.pull.d4",
+                "id": "n4",
+                "label": "Tray cursor",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l012.pull.d5",
+                "id": "n5",
+                "label": "Viewed register",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "pull-s6",
+          "invariants": [
+            "Union viewed identities per user and story; a read retry is idempotent. State owner: Viewed register (viewed story set)."
+          ],
+          "number": 6,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l012.pull.d5",
+                "id": "n5",
+                "label": "Viewed register",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l012.pull.c5",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l012.pull.c5"
+                },
+                "id": "view",
+                "label": "record viewed story",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l012.pull.c5"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can old devices clear viewed state?",
+          "reason": "Union viewed identities per user and story; a read retry is idempotent.",
+          "title": "Viewed register"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "expiry",
+            "acl",
+            "views"
+          ],
+          "explanation": "Check now < expiresAt while authorizing every metadata and media response. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l012.pull.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l012.pull.c0"
+                },
+                "id": "request",
+                "label": "submit ephemeral stories",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l012.pull.c0"
+                }
+              },
+              {
+                "contractId": "l012.pull.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l012.pull.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l012.pull.c1"
+                }
+              },
+              {
+                "contractId": "l012.pull.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l012.pull.c2-control"
+                },
+                "id": "upload",
+                "label": "finalize upload",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l012.pull.c2"
+                }
+              },
+              {
+                "contractId": "l012.pull.c1",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l012.pull.c1"
+                },
+                "id": "publish",
+                "label": "publish verified media",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l012.pull.c1-state"
+                }
+              },
+              {
+                "contractId": "l012.pull.c3",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l012.pull.c3-control"
+                },
+                "id": "authorize",
+                "label": "check current audience",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l012.pull.c3"
+                }
+              },
+              {
+                "contractId": "l012.pull.c1",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l012.pull.c1"
+                },
+                "id": "metadata",
+                "label": "read story version",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l012.pull.c1-state"
+                }
+              },
+              {
+                "contractId": "l012.pull.c4",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l012.pull.c4"
+                },
+                "id": "tray",
+                "label": "page story tray",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l012.pull.c4"
+                }
+              },
+              {
+                "contractId": "l012.pull.c3",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l012.pull.c3"
+                },
+                "id": "audience",
+                "label": "filter current audience",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l012.pull.c3"
+                }
+              },
+              {
+                "contractId": "l012.pull.c5",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l012.pull.c5"
+                },
+                "id": "view",
+                "label": "record viewed story",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l012.pull.c5"
+                }
+              },
+              {
+                "contractId": "l012.pull.c6",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l012.pull.c6"
+                },
+                "id": "expiry",
+                "label": "check visibility deadline",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l012.pull.c6"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l012.pull.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l012.pull.d0",
+                "id": "boundary",
+                "label": "Stories API",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l012-pull-boundary-binding-3",
+                "version": 1
+              },
+              {
+                "definitionId": "l012.pull.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l012.pull.d1",
+                "id": "state",
+                "label": "Story ledger",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l012.pull.d2",
+                "id": "n2",
+                "label": "Media finalize",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l012.pull.d3",
+                "id": "n3",
+                "label": "Audience join",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l012.pull.d4",
+                "id": "n4",
+                "label": "Tray cursor",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l012.pull.d5",
+                "id": "n5",
+                "label": "Viewed register",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l012.pull.d6",
+                "id": "n6",
+                "label": "Expiry guard",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "pull-s7",
+          "invariants": [
+            "Check now < expiresAt while authorizing every metadata and media response. State owner: Expiry guard (authorization clock policy)."
+          ],
+          "number": 7,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l012.pull.d6",
+                "id": "n6",
+                "label": "Expiry guard",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l012.pull.c6",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l012.pull.c6"
+                },
+                "id": "expiry",
+                "label": "check visibility deadline",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l012.pull.c6"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Does a delayed timer leak a story?",
+          "reason": "Check now < expiresAt while authorizing every metadata and media response.",
+          "title": "Expiry guard"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "expiry",
+            "acl",
+            "views"
+          ],
+          "explanation": "Reconcile expired metadata with media deletion receipts; retain explicit backup policy. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l012.pull.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l012.pull.c0"
+                },
+                "id": "request",
+                "label": "submit ephemeral stories",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l012.pull.c0"
+                }
+              },
+              {
+                "contractId": "l012.pull.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l012.pull.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l012.pull.c1"
+                }
+              },
+              {
+                "contractId": "l012.pull.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l012.pull.c2-control"
+                },
+                "id": "upload",
+                "label": "finalize upload",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l012.pull.c2"
+                }
+              },
+              {
+                "contractId": "l012.pull.c1",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l012.pull.c1"
+                },
+                "id": "publish",
+                "label": "publish verified media",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l012.pull.c1-state"
+                }
+              },
+              {
+                "contractId": "l012.pull.c3",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l012.pull.c3-control"
+                },
+                "id": "authorize",
+                "label": "check current audience",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l012.pull.c3"
+                }
+              },
+              {
+                "contractId": "l012.pull.c1",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l012.pull.c1"
+                },
+                "id": "metadata",
+                "label": "read story version",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l012.pull.c1-state"
+                }
+              },
+              {
+                "contractId": "l012.pull.c4",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l012.pull.c4"
+                },
+                "id": "tray",
+                "label": "page story tray",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l012.pull.c4"
+                }
+              },
+              {
+                "contractId": "l012.pull.c3",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l012.pull.c3"
+                },
+                "id": "audience",
+                "label": "filter current audience",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l012.pull.c3"
+                }
+              },
+              {
+                "contractId": "l012.pull.c5",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l012.pull.c5"
+                },
+                "id": "view",
+                "label": "record viewed story",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l012.pull.c5"
+                }
+              },
+              {
+                "contractId": "l012.pull.c6",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l012.pull.c6"
+                },
+                "id": "expiry",
+                "label": "check visibility deadline",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l012.pull.c6"
+                }
+              },
+              {
+                "contractId": "l012.pull.c1",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l012.pull.c1"
+                },
+                "id": "expired",
+                "label": "scan expired metadata",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l012.pull.c1-state"
+                }
+              },
+              {
+                "contractId": "l012.pull.c7",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l012.pull.c7"
+                },
+                "id": "delete",
+                "label": "delete expired media",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l012.pull.c7"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l012.pull.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l012.pull.d0",
+                "id": "boundary",
+                "label": "Stories API",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l012-pull-boundary-binding-3",
+                "version": 1
+              },
+              {
+                "definitionId": "l012.pull.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l012.pull.d1",
+                "id": "state",
+                "label": "Story ledger",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l012.pull.d2",
+                "id": "n2",
+                "label": "Media finalize",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l012.pull.d3",
+                "id": "n3",
+                "label": "Audience join",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l012.pull.d4",
+                "id": "n4",
+                "label": "Tray cursor",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l012.pull.d5",
+                "id": "n5",
+                "label": "Viewed register",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l012.pull.d6",
+                "id": "n6",
+                "label": "Expiry guard",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l012.pull.d7",
+                "id": "n7",
+                "label": "Purge sweeper",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "pull-s8",
+          "invariants": [
+            "Reconcile expired metadata with media deletion receipts; retain explicit backup policy. State owner: Purge sweeper (purge cursor and receipts)."
+          ],
+          "number": 8,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l012.pull.d7",
+                "id": "n7",
+                "label": "Purge sweeper",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l012.pull.c1",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l012.pull.c1"
+                },
+                "id": "expired",
+                "label": "scan expired metadata",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l012.pull.c1-state"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l012.pull.c7",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l012.pull.c7"
+                },
+                "id": "delete",
+                "label": "delete expired media",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l012.pull.c7"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "When are bytes deleted?",
+          "reason": "Reconcile expired metadata with media deletion receipts; retain explicit backup policy.",
+          "title": "Purge sweeper"
+        }
+      ],
+      "title": "Read-time audience join",
+      "tradeoffs": [
+        "Reads join audience and story state; tray latency needs bounded pagination."
+      ]
+    },
+    {
+      "acceptanceCases": [
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-01-mechanisms.test.mjs",
+            "testName": "L012 bounded mechanism"
+          },
+          "given": "A published story expires at time 100 and its viewer remains allowed.",
+          "id": "mechanism",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Only the time-99 allowed read succeeds; expiry does not claim immediate byte erasure.",
+          "when": "Authorize at times 99 and 100, then revoke the viewer."
+        },
+        {
+          "given": "Fan-out is delayed past the original expiry.",
+          "id": "expiry",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Drop the expired insert and deny the read even before sweep completion.",
+          "when": "Retry inbox insertion and read an old cached pointer."
+        },
+        {
+          "given": "A recipient is removed after fan-out.",
+          "id": "acl",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Current authorization denies access; inbox presence cannot override it.",
+          "when": "Read the materialized pointer."
+        },
+        {
+          "given": "Two devices submit duplicate view identities.",
+          "id": "views",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Persist one viewed identity without modifying feed ordering.",
+          "when": "Merge view events."
+        }
+      ],
+      "algorithms": [
+        {
+          "code": "const visible = actorAllowed && now < story.expiresAt;\nif (!visible) return {status:403};\nreturn {status:200, storyId:story.id};",
+          "guarantees": [
+            "The code states the bounded decision rule; unimplemented helpers remain pseudocode.",
+            "External effects, distributed failure and latency require separate execution evidence."
+          ],
+          "id": "bounded-rule",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "n5"
+        },
+        {
+          "code": "for (const row of inbox.scanExpiryAtMost(now)) {\n inbox.removeIfVersion(row.viewerId, row.storyId, row.sourceVersion);\n markPurgePending(row.storyId);\n}\n// Late fan-out checks original expiresAt before reinserting; a pointer is never an authorization grant.",
+          "guarantees": [
+            "Read-time expiry is authoritative; sweep derived inbox pointers and objects asynchronously."
+          ],
+          "id": "recover",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "n7"
+        }
+      ],
+      "apis": [
+        {
+          "errors": "401 unauthenticated; 409 stale identity/version; 429 bounded capacity; 503 unavailable authority",
+          "method": "POST",
+          "ownerNodeId": "control",
+          "path": "/l012/push",
+          "request": "{\"storyId\":\"uuid\",\"actorId\":\"uuid\"}",
+          "response": "{\"accepted\":\"boolean\"}"
+        },
+        {
+          "errors": "403 unauthorized scope; 404 absent identity; 410 expired retained history",
+          "method": "GET",
+          "ownerNodeId": "state",
+          "path": "/l012/push/state",
+          "request": "{\"storyId\":\"uuid\",\"digest\":\"sha256\"}",
+          "response": "{\"version\":\"integer\",\"outboxId\":\"uuid\"}"
+        }
+      ],
+      "assumptions": [
+        "Inbox rows are derived pointers, never independent grants of media access."
+      ],
+      "chooseWhen": "Most readers are active and audience fan-out is bounded.",
+      "id": "push",
+      "initialGraph": {
+        "edges": [],
+        "nodes": []
+      },
+      "stages": [
+        {
+          "checkIds": [
+            "mechanism",
+            "expiry",
+            "acl",
+            "views"
+          ],
+          "explanation": "Accept a stable story identity and retain pending upload status. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l012.push.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l012.push.c0"
+                },
+                "id": "request",
+                "label": "submit ephemeral stories",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l012.push.c0"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l012.push.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l012.push.d0",
+                "id": "boundary",
+                "label": "Publish gateway",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "push-s1",
+          "invariants": [
+            "Accept a stable story identity and retain pending upload status. State owner: Publish gateway (publication receipts)."
+          ],
+          "number": 1,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l012.push.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "l012.push.d0",
+                "id": "boundary",
+                "label": "Publish gateway",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l012.push.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l012.push.c0"
+                },
+                "id": "request",
+                "label": "submit ephemeral stories",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l012.push.c0"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What is accepted before fan-out?",
+          "reason": "Accept a stable story identity and retain pending upload status.",
+          "title": "Publish gateway"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "expiry",
+            "acl",
+            "views"
+          ],
+          "explanation": "Expand the gateway; commit immutable story metadata and outbox intent together. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l012.push.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l012.push.c0"
+                },
+                "id": "request",
+                "label": "submit ephemeral stories",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l012.push.c0"
+                }
+              },
+              {
+                "contractId": "l012.push.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l012.push.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l012.push.c1"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l012.push.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l012.push.d0",
+                "id": "boundary",
+                "label": "Publish gateway",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l012-push-boundary-binding-1",
+                "version": 1
+              },
+              {
+                "definitionId": "l012.push.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l012.push.d1",
+                "id": "state",
+                "label": "Publish outbox",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "push-s2",
+          "invariants": [
+            "Expand the gateway; commit immutable story metadata and outbox intent together. State owner: Publish outbox (story metadata and outbox)."
+          ],
+          "number": 2,
+          "operations": [
+            {
+              "edges": [
+                {
+                  "contractId": "l012.push.c1",
+                  "from": {
+                    "nodeId": "control",
+                    "portId": "out-l012.push.c1"
+                  },
+                  "id": "commit",
+                  "label": "commit versioned state",
+                  "mode": "storage",
+                  "to": {
+                    "nodeId": "state",
+                    "portId": "in-l012.push.c1"
+                  }
+                }
+              ],
+              "nodeId": "boundary",
+              "nodes": [
+                {
+                  "definitionId": "l012.push.control",
+                  "id": "control",
+                  "label": "Command control",
+                  "position": {
+                    "x": 560,
+                    "y": 0
+                  },
+                  "version": 1
+                },
+                {
+                  "definitionId": "l012.push.d1",
+                  "id": "state",
+                  "label": "Publish outbox",
+                  "position": {
+                    "x": 840,
+                    "y": 0
+                  },
+                  "version": 1
+                }
+              ],
+              "op": "expand",
+              "subsystemId": "l012-push-boundary-binding-1"
+            }
+          ],
+          "question": "How is fan-out tied to publication?",
+          "reason": "Expand the gateway; commit immutable story metadata and outbox intent together.",
+          "title": "Publish outbox"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "expiry",
+            "acl",
+            "views"
+          ],
+          "explanation": "Write deterministic rendition keys and verify completion before releasing publication. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l012.push.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l012.push.c0"
+                },
+                "id": "request",
+                "label": "submit ephemeral stories",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l012.push.c0"
+                }
+              },
+              {
+                "contractId": "l012.push.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l012.push.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l012.push.c1"
+                }
+              },
+              {
+                "contractId": "l012.push.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l012.push.c2-control"
+                },
+                "id": "rendition",
+                "label": "process upload",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l012.push.c2"
+                }
+              },
+              {
+                "contractId": "l012.push.c1",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l012.push.c1"
+                },
+                "id": "publish",
+                "label": "commit rendition manifest",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l012.push.c1-state"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l012.push.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l012.push.d0",
+                "id": "boundary",
+                "label": "Publish gateway",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l012-push-boundary-binding-2",
+                "version": 1
+              },
+              {
+                "definitionId": "l012.push.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l012.push.d1",
+                "id": "state",
+                "label": "Publish outbox",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l012.push.d2",
+                "id": "n2",
+                "label": "Transcode queue",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "push-s3",
+          "invariants": [
+            "Write deterministic rendition keys and verify completion before releasing publication. State owner: Transcode queue (rendition attempts)."
+          ],
+          "number": 3,
+          "operations": [
+            {
+              "nodeId": "boundary",
+              "op": "rebind",
+              "reason": "Select a new immutable exposure binding before connecting the added responsibility; prior stage binding remains unchanged.",
+              "subsystemId": "l012-push-boundary-binding-2"
+            },
+            {
+              "node": {
+                "definitionId": "l012.push.d2",
+                "id": "n2",
+                "label": "Transcode queue",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l012.push.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l012.push.c2-control"
+                },
+                "id": "rendition",
+                "label": "process upload",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l012.push.c2"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l012.push.c1",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l012.push.c1"
+                },
+                "id": "publish",
+                "label": "commit rendition manifest",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l012.push.c1-state"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How do retries avoid duplicate media?",
+          "reason": "Write deterministic rendition keys and verify completion before releasing publication.",
+          "title": "Transcode queue"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "expiry",
+            "acl",
+            "views"
+          ],
+          "explanation": "Retain recipient pages and deduplicate inbox insertion by viewer/story. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l012.push.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l012.push.c0"
+                },
+                "id": "request",
+                "label": "submit ephemeral stories",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l012.push.c0"
+                }
+              },
+              {
+                "contractId": "l012.push.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l012.push.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l012.push.c1"
+                }
+              },
+              {
+                "contractId": "l012.push.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l012.push.c2-control"
+                },
+                "id": "rendition",
+                "label": "process upload",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l012.push.c2"
+                }
+              },
+              {
+                "contractId": "l012.push.c1",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l012.push.c1"
+                },
+                "id": "publish",
+                "label": "commit rendition manifest",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l012.push.c1-state"
+                }
+              },
+              {
+                "contractId": "l012.push.c3",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l012.push.c3-state"
+                },
+                "id": "outbox",
+                "label": "deliver committed publication",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l012.push.c3"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l012.push.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l012.push.d0",
+                "id": "boundary",
+                "label": "Publish gateway",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l012-push-boundary-binding-3",
+                "version": 1
+              },
+              {
+                "definitionId": "l012.push.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l012.push.d1",
+                "id": "state",
+                "label": "Publish outbox",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l012.push.d2",
+                "id": "n2",
+                "label": "Transcode queue",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l012.push.d3",
+                "id": "n3",
+                "label": "Fan-out log",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "push-s4",
+          "invariants": [
+            "Retain recipient pages and deduplicate inbox insertion by viewer/story. State owner: Fan-out log (recipient page checkpoints)."
+          ],
+          "number": 4,
+          "operations": [
+            {
+              "nodeId": "boundary",
+              "op": "rebind",
+              "reason": "Select a new immutable exposure binding before connecting the added responsibility; prior stage binding remains unchanged.",
+              "subsystemId": "l012-push-boundary-binding-3"
+            },
+            {
+              "node": {
+                "definitionId": "l012.push.d3",
+                "id": "n3",
+                "label": "Fan-out log",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l012.push.c3",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l012.push.c3-state"
+                },
+                "id": "outbox",
+                "label": "deliver committed publication",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l012.push.c3"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can a worker crash halfway?",
+          "reason": "Retain recipient pages and deduplicate inbox insertion by viewer/story.",
+          "title": "Fan-out log"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "expiry",
+            "acl",
+            "views"
+          ],
+          "explanation": "Store ranked pointers with expiry and source version, not media ownership. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l012.push.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l012.push.c0"
+                },
+                "id": "request",
+                "label": "submit ephemeral stories",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l012.push.c0"
+                }
+              },
+              {
+                "contractId": "l012.push.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l012.push.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l012.push.c1"
+                }
+              },
+              {
+                "contractId": "l012.push.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l012.push.c2-control"
+                },
+                "id": "rendition",
+                "label": "process upload",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l012.push.c2"
+                }
+              },
+              {
+                "contractId": "l012.push.c1",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l012.push.c1"
+                },
+                "id": "publish",
+                "label": "commit rendition manifest",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l012.push.c1-state"
+                }
+              },
+              {
+                "contractId": "l012.push.c3",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l012.push.c3-state"
+                },
+                "id": "outbox",
+                "label": "deliver committed publication",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l012.push.c3"
+                }
+              },
+              {
+                "contractId": "l012.push.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l012.push.c4"
+                },
+                "id": "fanout",
+                "label": "upsert viewer pointer",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l012.push.c4"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l012.push.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l012.push.d0",
+                "id": "boundary",
+                "label": "Publish gateway",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l012-push-boundary-binding-3",
+                "version": 1
+              },
+              {
+                "definitionId": "l012.push.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l012.push.d1",
+                "id": "state",
+                "label": "Publish outbox",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l012.push.d2",
+                "id": "n2",
+                "label": "Transcode queue",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l012.push.d3",
+                "id": "n3",
+                "label": "Fan-out log",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l012.push.d4",
+                "id": "n4",
+                "label": "Viewer inbox",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "push-s5",
+          "invariants": [
+            "Store ranked pointers with expiry and source version, not media ownership. State owner: Viewer inbox (unique viewer/story pointers)."
+          ],
+          "number": 5,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l012.push.d4",
+                "id": "n4",
+                "label": "Viewer inbox",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l012.push.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l012.push.c4"
+                },
+                "id": "fanout",
+                "label": "upsert viewer pointer",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l012.push.c4"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What is cached per reader?",
+          "reason": "Store ranked pointers with expiry and source version, not media ownership.",
+          "title": "Viewer inbox"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "expiry",
+            "acl",
+            "views"
+          ],
+          "explanation": "Recheck current audience and expiry when dereferencing inbox pointers. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l012.push.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l012.push.c0"
+                },
+                "id": "request",
+                "label": "submit ephemeral stories",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l012.push.c0"
+                }
+              },
+              {
+                "contractId": "l012.push.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l012.push.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l012.push.c1"
+                }
+              },
+              {
+                "contractId": "l012.push.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l012.push.c2-control"
+                },
+                "id": "rendition",
+                "label": "process upload",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l012.push.c2"
+                }
+              },
+              {
+                "contractId": "l012.push.c1",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l012.push.c1"
+                },
+                "id": "publish",
+                "label": "commit rendition manifest",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l012.push.c1-state"
+                }
+              },
+              {
+                "contractId": "l012.push.c3",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l012.push.c3-state"
+                },
+                "id": "outbox",
+                "label": "deliver committed publication",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l012.push.c3"
+                }
+              },
+              {
+                "contractId": "l012.push.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l012.push.c4"
+                },
+                "id": "fanout",
+                "label": "upsert viewer pointer",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l012.push.c4"
+                }
+              },
+              {
+                "contractId": "l012.push.c5",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l012.push.c5"
+                },
+                "id": "read",
+                "label": "read story pointer",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l012.push.c5"
+                }
+              },
+              {
+                "contractId": "l012.push.c4",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l012.push.c4"
+                },
+                "id": "pointer",
+                "label": "read inbox candidate",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l012.push.c4"
+                }
+              },
+              {
+                "contractId": "l012.push.c1",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l012.push.c1"
+                },
+                "id": "authority",
+                "label": "check owner and expiry",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l012.push.c1-state"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l012.push.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l012.push.d0",
+                "id": "boundary",
+                "label": "Publish gateway",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l012-push-boundary-binding-3",
+                "version": 1
+              },
+              {
+                "definitionId": "l012.push.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l012.push.d1",
+                "id": "state",
+                "label": "Publish outbox",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l012.push.d2",
+                "id": "n2",
+                "label": "Transcode queue",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l012.push.d3",
+                "id": "n3",
+                "label": "Fan-out log",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l012.push.d4",
+                "id": "n4",
+                "label": "Viewer inbox",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l012.push.d5",
+                "id": "n5",
+                "label": "Read authorization",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "push-s6",
+          "invariants": [
+            "Recheck current audience and expiry when dereferencing inbox pointers. State owner: Read authorization (current authorization epoch)."
+          ],
+          "number": 6,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l012.push.d5",
+                "id": "n5",
+                "label": "Read authorization",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l012.push.c5",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l012.push.c5"
+                },
+                "id": "read",
+                "label": "read story pointer",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l012.push.c5"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l012.push.c4",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l012.push.c4"
+                },
+                "id": "pointer",
+                "label": "read inbox candidate",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l012.push.c4"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l012.push.c1",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l012.push.c1"
+                },
+                "id": "authority",
+                "label": "check owner and expiry",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l012.push.c1-state"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can an old pointer bypass revocation?",
+          "reason": "Recheck current audience and expiry when dereferencing inbox pointers.",
+          "title": "Read authorization"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "expiry",
+            "acl",
+            "views"
+          ],
+          "explanation": "Merge viewed identities independently from feed order; duplicates do not reset progress. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l012.push.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l012.push.c0"
+                },
+                "id": "request",
+                "label": "submit ephemeral stories",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l012.push.c0"
+                }
+              },
+              {
+                "contractId": "l012.push.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l012.push.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l012.push.c1"
+                }
+              },
+              {
+                "contractId": "l012.push.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l012.push.c2-control"
+                },
+                "id": "rendition",
+                "label": "process upload",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l012.push.c2"
+                }
+              },
+              {
+                "contractId": "l012.push.c1",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l012.push.c1"
+                },
+                "id": "publish",
+                "label": "commit rendition manifest",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l012.push.c1-state"
+                }
+              },
+              {
+                "contractId": "l012.push.c3",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l012.push.c3-state"
+                },
+                "id": "outbox",
+                "label": "deliver committed publication",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l012.push.c3"
+                }
+              },
+              {
+                "contractId": "l012.push.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l012.push.c4"
+                },
+                "id": "fanout",
+                "label": "upsert viewer pointer",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l012.push.c4"
+                }
+              },
+              {
+                "contractId": "l012.push.c5",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l012.push.c5"
+                },
+                "id": "read",
+                "label": "read story pointer",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l012.push.c5"
+                }
+              },
+              {
+                "contractId": "l012.push.c4",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l012.push.c4"
+                },
+                "id": "pointer",
+                "label": "read inbox candidate",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l012.push.c4"
+                }
+              },
+              {
+                "contractId": "l012.push.c1",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l012.push.c1"
+                },
+                "id": "authority",
+                "label": "check owner and expiry",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l012.push.c1-state"
+                }
+              },
+              {
+                "contractId": "l012.push.c6",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l012.push.c6"
+                },
+                "id": "view",
+                "label": "merge viewed identity",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l012.push.c6"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l012.push.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l012.push.d0",
+                "id": "boundary",
+                "label": "Publish gateway",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l012-push-boundary-binding-3",
+                "version": 1
+              },
+              {
+                "definitionId": "l012.push.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l012.push.d1",
+                "id": "state",
+                "label": "Publish outbox",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l012.push.d2",
+                "id": "n2",
+                "label": "Transcode queue",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l012.push.d3",
+                "id": "n3",
+                "label": "Fan-out log",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l012.push.d4",
+                "id": "n4",
+                "label": "Viewer inbox",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l012.push.d5",
+                "id": "n5",
+                "label": "Read authorization",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l012.push.d6",
+                "id": "n6",
+                "label": "View merge",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "push-s7",
+          "invariants": [
+            "Merge viewed identities independently from feed order; duplicates do not reset progress. State owner: View merge (viewed identities)."
+          ],
+          "number": 7,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l012.push.d6",
+                "id": "n6",
+                "label": "View merge",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l012.push.c6",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l012.push.c6"
+                },
+                "id": "view",
+                "label": "merge viewed identity",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l012.push.c6"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How do devices converge?",
+          "reason": "Merge viewed identities independently from feed order; duplicates do not reset progress.",
+          "title": "View merge"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "expiry",
+            "acl",
+            "views"
+          ],
+          "explanation": "Read-time expiry is authoritative; sweep derived inbox pointers and objects asynchronously. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l012.push.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l012.push.c0"
+                },
+                "id": "request",
+                "label": "submit ephemeral stories",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l012.push.c0"
+                }
+              },
+              {
+                "contractId": "l012.push.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l012.push.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l012.push.c1"
+                }
+              },
+              {
+                "contractId": "l012.push.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l012.push.c2-control"
+                },
+                "id": "rendition",
+                "label": "process upload",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l012.push.c2"
+                }
+              },
+              {
+                "contractId": "l012.push.c1",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l012.push.c1"
+                },
+                "id": "publish",
+                "label": "commit rendition manifest",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l012.push.c1-state"
+                }
+              },
+              {
+                "contractId": "l012.push.c3",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l012.push.c3-state"
+                },
+                "id": "outbox",
+                "label": "deliver committed publication",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l012.push.c3"
+                }
+              },
+              {
+                "contractId": "l012.push.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l012.push.c4"
+                },
+                "id": "fanout",
+                "label": "upsert viewer pointer",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l012.push.c4"
+                }
+              },
+              {
+                "contractId": "l012.push.c5",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l012.push.c5"
+                },
+                "id": "read",
+                "label": "read story pointer",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l012.push.c5"
+                }
+              },
+              {
+                "contractId": "l012.push.c4",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l012.push.c4"
+                },
+                "id": "pointer",
+                "label": "read inbox candidate",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l012.push.c4"
+                }
+              },
+              {
+                "contractId": "l012.push.c1",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l012.push.c1"
+                },
+                "id": "authority",
+                "label": "check owner and expiry",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l012.push.c1-state"
+                }
+              },
+              {
+                "contractId": "l012.push.c6",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l012.push.c6"
+                },
+                "id": "view",
+                "label": "merge viewed identity",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l012.push.c6"
+                }
+              },
+              {
+                "contractId": "l012.push.c7",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l012.push.c7"
+                },
+                "id": "sweep",
+                "label": "remove expired pointers",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l012.push.c7"
+                }
+              },
+              {
+                "contractId": "l012.push.c7",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l012.push.c7"
+                },
+                "id": "purge",
+                "label": "purge expired objects",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l012.push.c7"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l012.push.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l012.push.d0",
+                "id": "boundary",
+                "label": "Publish gateway",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l012-push-boundary-binding-3",
+                "version": 1
+              },
+              {
+                "definitionId": "l012.push.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l012.push.d1",
+                "id": "state",
+                "label": "Publish outbox",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l012.push.d2",
+                "id": "n2",
+                "label": "Transcode queue",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l012.push.d3",
+                "id": "n3",
+                "label": "Fan-out log",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l012.push.d4",
+                "id": "n4",
+                "label": "Viewer inbox",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l012.push.d5",
+                "id": "n5",
+                "label": "Read authorization",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l012.push.d6",
+                "id": "n6",
+                "label": "View merge",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l012.push.d7",
+                "id": "n7",
+                "label": "Expiry reconciliation",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "push-s8",
+          "invariants": [
+            "Read-time expiry is authoritative; sweep derived inbox pointers and objects asynchronously. State owner: Expiry reconciliation (sweep checkpoints)."
+          ],
+          "number": 8,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l012.push.d7",
+                "id": "n7",
+                "label": "Expiry reconciliation",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l012.push.c7",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l012.push.c7"
+                },
+                "id": "sweep",
+                "label": "remove expired pointers",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l012.push.c7"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l012.push.c7",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l012.push.c7"
+                },
+                "id": "purge",
+                "label": "purge expired objects",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l012.push.c7"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Does TTL deletion define visibility?",
+          "reason": "Read-time expiry is authoritative; sweep derived inbox pointers and objects asynchronously.",
+          "title": "Expiry reconciliation"
+        }
+      ],
+      "title": "Audience inbox materialization",
+      "tradeoffs": [
+        "Publication writes scale with recipients; stale inbox rows require read-time reauthorization."
+      ]
+    }
+  ],
+  "subsystems": [
+    {
+      "definitionId": "l012.pull.d0",
+      "id": "l012-pull-boundary-binding-1",
+      "ports": [
+        {
+          "contractId": "l012.pull.c0",
+          "direction": "in",
+          "id": "in-l012.pull.c0",
+          "target": {
+            "nodeId": "control",
+            "portId": "in-l012.pull.c0"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l012.pull.d0",
+      "id": "l012-pull-boundary-binding-2",
+      "ports": [
+        {
+          "contractId": "l012.pull.c0",
+          "direction": "in",
+          "id": "in-l012.pull.c0",
+          "target": {
+            "nodeId": "control",
+            "portId": "in-l012.pull.c0"
+          }
+        },
+        {
+          "contractId": "l012.pull.c2",
+          "direction": "out",
+          "id": "out-l012.pull.c2-control",
+          "target": {
+            "nodeId": "control",
+            "portId": "out-l012.pull.c2"
+          }
+        },
+        {
+          "contractId": "l012.pull.c1",
+          "direction": "in",
+          "id": "in-l012.pull.c1-state",
+          "target": {
+            "nodeId": "state",
+            "portId": "in-l012.pull.c1"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l012.pull.d0",
+      "id": "l012-pull-boundary-binding-3",
+      "ports": [
+        {
+          "contractId": "l012.pull.c0",
+          "direction": "in",
+          "id": "in-l012.pull.c0",
+          "target": {
+            "nodeId": "control",
+            "portId": "in-l012.pull.c0"
+          }
+        },
+        {
+          "contractId": "l012.pull.c2",
+          "direction": "out",
+          "id": "out-l012.pull.c2-control",
+          "target": {
+            "nodeId": "control",
+            "portId": "out-l012.pull.c2"
+          }
+        },
+        {
+          "contractId": "l012.pull.c1",
+          "direction": "in",
+          "id": "in-l012.pull.c1-state",
+          "target": {
+            "nodeId": "state",
+            "portId": "in-l012.pull.c1"
+          }
+        },
+        {
+          "contractId": "l012.pull.c3",
+          "direction": "out",
+          "id": "out-l012.pull.c3-control",
+          "target": {
+            "nodeId": "control",
+            "portId": "out-l012.pull.c3"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l012.push.d0",
+      "id": "l012-push-boundary-binding-1",
+      "ports": [
+        {
+          "contractId": "l012.push.c0",
+          "direction": "in",
+          "id": "in-l012.push.c0",
+          "target": {
+            "nodeId": "control",
+            "portId": "in-l012.push.c0"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l012.push.d0",
+      "id": "l012-push-boundary-binding-2",
+      "ports": [
+        {
+          "contractId": "l012.push.c0",
+          "direction": "in",
+          "id": "in-l012.push.c0",
+          "target": {
+            "nodeId": "control",
+            "portId": "in-l012.push.c0"
+          }
+        },
+        {
+          "contractId": "l012.push.c2",
+          "direction": "out",
+          "id": "out-l012.push.c2-control",
+          "target": {
+            "nodeId": "control",
+            "portId": "out-l012.push.c2"
+          }
+        },
+        {
+          "contractId": "l012.push.c1",
+          "direction": "in",
+          "id": "in-l012.push.c1-state",
+          "target": {
+            "nodeId": "state",
+            "portId": "in-l012.push.c1"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l012.push.d0",
+      "id": "l012-push-boundary-binding-3",
+      "ports": [
+        {
+          "contractId": "l012.push.c0",
+          "direction": "in",
+          "id": "in-l012.push.c0",
+          "target": {
+            "nodeId": "control",
+            "portId": "in-l012.push.c0"
+          }
+        },
+        {
+          "contractId": "l012.push.c2",
+          "direction": "out",
+          "id": "out-l012.push.c2-control",
+          "target": {
+            "nodeId": "control",
+            "portId": "out-l012.push.c2"
+          }
+        },
+        {
+          "contractId": "l012.push.c1",
+          "direction": "in",
+          "id": "in-l012.push.c1-state",
+          "target": {
+            "nodeId": "state",
+            "portId": "in-l012.push.c1"
+          }
+        },
+        {
+          "contractId": "l012.push.c3",
+          "direction": "out",
+          "id": "out-l012.push.c3-state",
+          "target": {
+            "nodeId": "state",
+            "portId": "out-l012.push.c3"
+          }
+        }
+      ],
+      "version": 1
+    }
+  ],
+  "version": 1
+}

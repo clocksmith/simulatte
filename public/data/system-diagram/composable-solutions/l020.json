@@ -1,0 +1,4584 @@
+{
+  "components": [
+    {
+      "extends": {
+        "id": "core.service",
+        "version": 1
+      },
+      "id": "l020.fanout.d0",
+      "label": "Post command",
+      "ports": [
+        {
+          "contractId": "l020.fanout.c0",
+          "direction": "in",
+          "id": "in-l020.fanout.c0"
+        },
+        {
+          "contractId": "l020.fanout.c2",
+          "direction": "out",
+          "id": "out-l020.fanout.c2-control"
+        },
+        {
+          "contractId": "l020.fanout.c3",
+          "direction": "out",
+          "id": "out-l020.fanout.c3-state"
+        },
+        {
+          "contractId": "l020.fanout.c5",
+          "direction": "out",
+          "id": "out-l020.fanout.c5-control"
+        },
+        {
+          "contractId": "l020.fanout.c1",
+          "direction": "in",
+          "id": "in-l020.fanout.c1-state"
+        }
+      ],
+      "responsibility": "Authenticate owner and persist a stable publication identity.",
+      "stateOwnership": [
+        "post command receipts"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l020.fanout.d1",
+      "label": "Post outbox",
+      "ports": [
+        {
+          "contractId": "l020.fanout.c1",
+          "direction": "in",
+          "id": "in-l020.fanout.c1"
+        },
+        {
+          "contractId": "l020.fanout.c3",
+          "direction": "out",
+          "id": "out-l020.fanout.c3"
+        }
+      ],
+      "responsibility": "Expand posting authority; commit post version and fan-out intent atomically.",
+      "stateOwnership": [
+        "posts and outbox"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.directory",
+        "version": 1
+      },
+      "id": "l020.fanout.d2",
+      "label": "Graph snapshot",
+      "ports": [
+        {
+          "contractId": "l020.fanout.c2",
+          "direction": "in",
+          "id": "in-l020.fanout.c2"
+        }
+      ],
+      "responsibility": "Pin a relationship snapshot for enumeration while checking current access on reads.",
+      "stateOwnership": [
+        "graph snapshot revision"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "l020.fanout.d3",
+      "label": "Candidate fan-out",
+      "ports": [
+        {
+          "contractId": "l020.fanout.c3",
+          "direction": "in",
+          "id": "in-l020.fanout.c3"
+        },
+        {
+          "contractId": "l020.fanout.c2",
+          "direction": "out",
+          "id": "out-l020.fanout.c2"
+        },
+        {
+          "contractId": "l020.fanout.c4",
+          "direction": "out",
+          "id": "out-l020.fanout.c4"
+        }
+      ],
+      "responsibility": "Deduplicate viewer/post insertion and commit page checkpoints after writes.",
+      "stateOwnership": [
+        "recipient page checkpoints"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l020.fanout.d4",
+      "label": "Timeline candidates",
+      "ports": [
+        {
+          "contractId": "l020.fanout.c4",
+          "direction": "in",
+          "id": "in-l020.fanout.c4"
+        }
+      ],
+      "responsibility": "Store bounded pointers and source watermark; high-degree sources remain pull candidates.",
+      "stateOwnership": [
+        "candidate identities and watermark"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.cache",
+        "version": 1
+      },
+      "id": "l020.fanout.d5",
+      "label": "Feature snapshot",
+      "ports": [
+        {
+          "contractId": "l020.fanout.c5",
+          "direction": "in",
+          "id": "in-l020.fanout.c5"
+        }
+      ],
+      "responsibility": "Pin feature and ranker versions for one feed session.",
+      "stateOwnership": [
+        "feature snapshot and ranker version"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l020.fanout.d6",
+      "label": "Stable ranker",
+      "ports": [
+        {
+          "contractId": "l020.fanout.c6",
+          "direction": "in",
+          "id": "in-l020.fanout.c6"
+        },
+        {
+          "contractId": "l020.fanout.c4",
+          "direction": "out",
+          "id": "out-l020.fanout.c4"
+        },
+        {
+          "contractId": "l020.fanout.c5",
+          "direction": "out",
+          "id": "out-l020.fanout.c5"
+        },
+        {
+          "contractId": "l020.fanout.c7",
+          "direction": "in",
+          "id": "in-l020.fanout.c7"
+        }
+      ],
+      "responsibility": "Order by score then publication sequence then post ID; encode snapshot in cursor.",
+      "stateOwnership": [
+        "feed session cursor"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "l020.fanout.d7",
+      "label": "Freshness repair",
+      "ports": [
+        {
+          "contractId": "l020.fanout.c4",
+          "direction": "out",
+          "id": "out-l020.fanout.c4"
+        },
+        {
+          "contractId": "l020.fanout.c1",
+          "direction": "out",
+          "id": "out-l020.fanout.c1"
+        },
+        {
+          "contractId": "l020.fanout.c7",
+          "direction": "out",
+          "id": "out-l020.fanout.c7"
+        }
+      ],
+      "responsibility": "Compare watermark against publication progress and merge bounded recent pull results.",
+      "stateOwnership": [
+        "repair watermark"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.client",
+        "version": 1
+      },
+      "id": "l020.fanout.caller",
+      "label": "Caller",
+      "ports": [
+        {
+          "contractId": "l020.fanout.c0",
+          "direction": "out",
+          "id": "out-l020.fanout.c0"
+        },
+        {
+          "contractId": "l020.fanout.c6",
+          "direction": "out",
+          "id": "out-l020.fanout.c6"
+        }
+      ],
+      "responsibility": "Submit the declared operation with authenticated identity and preserve its retry identity.",
+      "stateOwnership": [
+        "request identity"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l020.fanout.control",
+      "label": "Command control",
+      "ports": [
+        {
+          "contractId": "l020.fanout.c1",
+          "direction": "out",
+          "id": "out-l020.fanout.c1"
+        },
+        {
+          "contractId": "l020.fanout.c0",
+          "direction": "in",
+          "id": "in-l020.fanout.c0"
+        },
+        {
+          "contractId": "l020.fanout.c2",
+          "direction": "out",
+          "id": "out-l020.fanout.c2"
+        },
+        {
+          "contractId": "l020.fanout.c5",
+          "direction": "out",
+          "id": "out-l020.fanout.c5"
+        }
+      ],
+      "responsibility": "Authenticate owner and persist a stable publication identity.",
+      "stateOwnership": [
+        "validated command and version"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.service",
+        "version": 1
+      },
+      "id": "l020.readmerge.d0",
+      "label": "Feed query",
+      "ports": [
+        {
+          "contractId": "l020.readmerge.c0",
+          "direction": "in",
+          "id": "in-l020.readmerge.c0"
+        },
+        {
+          "contractId": "l020.readmerge.c2",
+          "direction": "out",
+          "id": "out-l020.readmerge.c2-control"
+        },
+        {
+          "contractId": "l020.readmerge.c1",
+          "direction": "in",
+          "id": "in-l020.readmerge.c1-state"
+        }
+      ],
+      "responsibility": "Authenticate viewer and freeze a publication upper bound.",
+      "stateOwnership": [
+        "session identity"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l020.readmerge.d1",
+      "label": "Session authority",
+      "ports": [
+        {
+          "contractId": "l020.readmerge.c1",
+          "direction": "in",
+          "id": "in-l020.readmerge.c1"
+        }
+      ],
+      "responsibility": "Expand query boundary and persist horizon, graph revision and ranker version.",
+      "stateOwnership": [
+        "session snapshot"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.directory",
+        "version": 1
+      },
+      "id": "l020.readmerge.d2",
+      "label": "Follow traversal",
+      "ports": [
+        {
+          "contractId": "l020.readmerge.c2",
+          "direction": "in",
+          "id": "in-l020.readmerge.c2"
+        },
+        {
+          "contractId": "l020.readmerge.c3",
+          "direction": "out",
+          "id": "out-l020.readmerge.c3"
+        }
+      ],
+      "responsibility": "Enumerate followed authors from a stable graph snapshot with pagination.",
+      "stateOwnership": [
+        "author cursors"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l020.readmerge.d3",
+      "label": "Post iterators",
+      "ports": [
+        {
+          "contractId": "l020.readmerge.c3",
+          "direction": "in",
+          "id": "in-l020.readmerge.c3"
+        },
+        {
+          "contractId": "l020.readmerge.c4",
+          "direction": "out",
+          "id": "out-l020.readmerge.c4"
+        }
+      ],
+      "responsibility": "Open bounded per-source publication cursors up to the fixed horizon.",
+      "stateOwnership": [
+        "source cursors"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l020.readmerge.d4",
+      "label": "Candidate heap",
+      "ports": [
+        {
+          "contractId": "l020.readmerge.c4",
+          "direction": "in",
+          "id": "in-l020.readmerge.c4"
+        },
+        {
+          "contractId": "l020.readmerge.c5",
+          "direction": "out",
+          "id": "out-l020.readmerge.c5"
+        }
+      ],
+      "responsibility": "Merge source heads with a candidate budget and explicit diversity cap.",
+      "stateOwnership": [
+        "merge heap and source budget"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.cache",
+        "version": 1
+      },
+      "id": "l020.readmerge.d5",
+      "label": "Rank features",
+      "ports": [
+        {
+          "contractId": "l020.readmerge.c5",
+          "direction": "in",
+          "id": "in-l020.readmerge.c5"
+        },
+        {
+          "contractId": "l020.readmerge.c6",
+          "direction": "out",
+          "id": "out-l020.readmerge.c6"
+        }
+      ],
+      "responsibility": "Read features at a pinned version, separating missing features from zero values.",
+      "stateOwnership": [
+        "feature version"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l020.readmerge.d6",
+      "label": "Ranking cursor",
+      "ports": [
+        {
+          "contractId": "l020.readmerge.c6",
+          "direction": "in",
+          "id": "in-l020.readmerge.c6"
+        },
+        {
+          "contractId": "l020.readmerge.c7",
+          "direction": "out",
+          "id": "out-l020.readmerge.c7"
+        }
+      ],
+      "responsibility": "Rank deterministically and keep the snapshot plus tie tuple in continuation state.",
+      "stateOwnership": [
+        "rank tuple cursor"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.service",
+        "version": 1
+      },
+      "id": "l020.readmerge.d7",
+      "label": "Access and lag",
+      "ports": [
+        {
+          "contractId": "l020.readmerge.c7",
+          "direction": "in",
+          "id": "in-l020.readmerge.c7"
+        },
+        {
+          "contractId": "l020.readmerge.c1",
+          "direction": "out",
+          "id": "out-l020.readmerge.c1"
+        }
+      ],
+      "responsibility": "Recheck deletion/revocation and report source lag without filling pages with stale grants.",
+      "stateOwnership": [
+        "access epoch and lag receipts"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.client",
+        "version": 1
+      },
+      "id": "l020.readmerge.caller",
+      "label": "Caller",
+      "ports": [
+        {
+          "contractId": "l020.readmerge.c0",
+          "direction": "out",
+          "id": "out-l020.readmerge.c0"
+        },
+        {
+          "contractId": "l020.readmerge.c6",
+          "direction": "out",
+          "id": "out-l020.readmerge.c6"
+        }
+      ],
+      "responsibility": "Submit the declared operation with authenticated identity and preserve its retry identity.",
+      "stateOwnership": [
+        "request identity"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l020.readmerge.control",
+      "label": "Command control",
+      "ports": [
+        {
+          "contractId": "l020.readmerge.c1",
+          "direction": "out",
+          "id": "out-l020.readmerge.c1"
+        },
+        {
+          "contractId": "l020.readmerge.c0",
+          "direction": "in",
+          "id": "in-l020.readmerge.c0"
+        },
+        {
+          "contractId": "l020.readmerge.c2",
+          "direction": "out",
+          "id": "out-l020.readmerge.c2"
+        }
+      ],
+      "responsibility": "Authenticate viewer and freeze a publication upper bound.",
+      "stateOwnership": [
+        "validated command and version"
+      ],
+      "version": 1
+    }
+  ],
+  "contracts": [
+    {
+      "id": "l020.fanout.c0",
+      "request": {
+        "authorId": "uuid",
+        "commandId": "uuid",
+        "postId": "uuid"
+      },
+      "response": {
+        "version": "integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l020.fanout.c1",
+      "request": {
+        "postId": "uuid",
+        "version": "integer"
+      },
+      "response": {
+        "eventId": "uuid"
+      },
+      "version": 1
+    },
+    {
+      "id": "l020.fanout.c2",
+      "request": {
+        "authorId": "uuid",
+        "revision": "integer"
+      },
+      "response": {
+        "followers": "uuid[]",
+        "next": "cursor|null"
+      },
+      "version": 1
+    },
+    {
+      "id": "l020.fanout.c3",
+      "request": {
+        "eventId": "uuid",
+        "page": "integer"
+      },
+      "response": {
+        "committedPage": "integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l020.fanout.c4",
+      "request": {
+        "postId": "uuid",
+        "viewerId": "uuid"
+      },
+      "response": {
+        "inserted": "boolean"
+      },
+      "version": 1
+    },
+    {
+      "id": "l020.fanout.c5",
+      "request": {
+        "snapshotId": "uuid",
+        "viewerId": "uuid"
+      },
+      "response": {
+        "features": "versioned values"
+      },
+      "version": 1
+    },
+    {
+      "id": "l020.fanout.c6",
+      "request": {
+        "after": "rank tuple|null",
+        "snapshotId": "uuid"
+      },
+      "response": {
+        "next": "cursor|null",
+        "posts": "uuid[]"
+      },
+      "version": 1
+    },
+    {
+      "id": "l020.fanout.c7",
+      "request": {
+        "viewerId": "uuid",
+        "watermark": "integer"
+      },
+      "response": {
+        "degraded": "boolean",
+        "freshThrough": "integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l020.readmerge.c0",
+      "request": {
+        "limit": "1..100",
+        "viewerId": "uuid"
+      },
+      "response": {
+        "sessionId": "uuid"
+      },
+      "version": 1
+    },
+    {
+      "id": "l020.readmerge.c1",
+      "request": {
+        "sessionId": "uuid"
+      },
+      "response": {
+        "horizon": "integer",
+        "rankerVersion": "integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l020.readmerge.c2",
+      "request": {
+        "graphRevision": "integer",
+        "viewerId": "uuid"
+      },
+      "response": {
+        "authors": "uuid[]"
+      },
+      "version": 1
+    },
+    {
+      "id": "l020.readmerge.c3",
+      "request": {
+        "authors": "uuid[]",
+        "upper": "integer"
+      },
+      "response": {
+        "candidates": "post pointers[]"
+      },
+      "version": 1
+    },
+    {
+      "id": "l020.readmerge.c4",
+      "request": {
+        "budget": "integer",
+        "candidates": "post pointers[]"
+      },
+      "response": {
+        "selected": "post pointers[]"
+      },
+      "version": 1
+    },
+    {
+      "id": "l020.readmerge.c5",
+      "request": {
+        "postIds": "uuid[]",
+        "version": "integer"
+      },
+      "response": {
+        "features": "feature rows[]"
+      },
+      "version": 1
+    },
+    {
+      "id": "l020.readmerge.c6",
+      "request": {
+        "after": "rank tuple|null",
+        "sessionId": "uuid"
+      },
+      "response": {
+        "next": "cursor|null",
+        "posts": "uuid[]"
+      },
+      "version": 1
+    },
+    {
+      "id": "l020.readmerge.c7",
+      "request": {
+        "postIds": "uuid[]",
+        "viewerId": "uuid"
+      },
+      "response": {
+        "freshThrough": "integer",
+        "visible": "uuid[]"
+      },
+      "version": 1
+    }
+  ],
+  "execution": {
+    "implementation": null,
+    "kind": "conceptual-design"
+  },
+  "problem": {
+    "referenceId": "L020",
+    "requirements": [
+      {
+        "id": "r0",
+        "text": "Keep post and relationship authority separate from derived timelines."
+      },
+      {
+        "id": "r1",
+        "text": "Rank with a pinned model/features snapshot and deterministic tie-breaker."
+      },
+      {
+        "id": "r2",
+        "text": "Reconcile partial fan-out and expose freshness while enforcing revocation."
+      }
+    ],
+    "scope": "Extend L011 with versioned ranking, stable pagination and freshness watermarks. Published latency targets require deployment measurements; queue throughput alone does not establish fast feed reads.",
+    "studyLabel": "Ranked social feed freshness"
+  },
+  "provenance": {
+    "kind": "authored-practice",
+    "note": "Authored interview preparation. Technical references support mechanisms, not the claim that a company asked this question."
+  },
+  "references": [
+    {
+      "id": "ref0",
+      "scope": "background",
+      "supports": "Versioned transactions and retrying serialization conflicts.",
+      "title": "PostgreSQL isolation",
+      "url": "https://www.postgresql.org/docs/18/transaction-iso.html"
+    },
+    {
+      "id": "ref1",
+      "scope": "background",
+      "supports": "Replay, transactional production and consumer processing boundaries.",
+      "title": "Kafka delivery",
+      "url": "https://kafka.apache.org/documentation/#semantics"
+    }
+  ],
+  "schema": "simulatte.composableStudy.v2",
+  "solutions": [
+    {
+      "acceptanceCases": [
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-01-mechanisms.test.mjs",
+            "testName": "L020 bounded mechanism"
+          },
+          "given": "Three posts include equal scores, distinct publication sequences and one revoked candidate.",
+          "id": "mechanism",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Both results have the same tie order and omit the revoked candidate; this proves only the bounded ranking rule.",
+          "when": "Rank twice with the same feature snapshot and reverse the input order."
+        },
+        {
+          "given": "Equal-score posts straddle a page boundary and new posts arrive.",
+          "id": "pages",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Return each eligible snapshot post once; new publications enter a new session.",
+          "when": "Continue with the same snapshot and full tie tuple."
+        },
+        {
+          "given": "An unfollow or deletion happens after candidate materialization.",
+          "id": "acl",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Current visibility removes it before ranking and output.",
+          "when": "Read the cached candidate."
+        },
+        {
+          "given": "Fan-out stops after only part of the recipient pages.",
+          "id": "lag",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Deduplicate replayed inserts and disclose freshness while bounded pull fallback repairs recent omissions.",
+          "when": "Resume workers and request a feed with a lagging watermark."
+        }
+      ],
+      "algorithms": [
+        {
+          "code": "return rows.filter(r=>r.allowed && !r.deleted).sort((a,b)=>b.score-a.score || b.seq-a.seq || a.id.localeCompare(b.id));",
+          "guarantees": [
+            "The code states the bounded decision rule; unimplemented helpers remain pseudocode.",
+            "External effects, distributed failure and latency require separate execution evidence."
+          ],
+          "id": "bounded-rule",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "n6"
+        },
+        {
+          "code": "const current = currentVisibilityAndGraphEpoch(viewer);\nconst candidates = dedupe([...materializedPointers(viewer), ...recentPostsAfter(watermark)]);\nreturn stableRank(candidates.filter(p=>authorizedNow(current,p)), pinnedRanker, pinnedFeatures);\n// Cursor carries snapshot ID and complete score/sequence/ID tie tuple.",
+          "guarantees": [
+            "Compare watermark against publication progress and merge bounded recent pull results."
+          ],
+          "id": "recover",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "n7"
+        }
+      ],
+      "apis": [
+        {
+          "errors": "401 unauthenticated; 409 stale identity/version; 429 bounded capacity; 503 unavailable authority",
+          "method": "POST",
+          "ownerNodeId": "control",
+          "path": "/l020/fanout",
+          "request": "{\"postId\":\"uuid\",\"authorId\":\"uuid\",\"commandId\":\"uuid\"}",
+          "response": "{\"version\":\"integer\"}"
+        },
+        {
+          "errors": "403 unauthorized scope; 404 absent identity; 410 expired retained history",
+          "method": "GET",
+          "ownerNodeId": "state",
+          "path": "/l020/fanout/state",
+          "request": "{\"postId\":\"uuid\",\"version\":\"integer\"}",
+          "response": "{\"eventId\":\"uuid\"}"
+        }
+      ],
+      "assumptions": [
+        "A timeline entry is a candidate pointer, never an independent access grant."
+      ],
+      "chooseWhen": "Most readers consume many feeds and write amplification is acceptable.",
+      "id": "fanout",
+      "initialGraph": {
+        "edges": [],
+        "nodes": []
+      },
+      "stages": [
+        {
+          "checkIds": [
+            "mechanism",
+            "pages",
+            "acl",
+            "lag"
+          ],
+          "explanation": "Authenticate owner and persist a stable publication identity. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l020.fanout.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l020.fanout.c0"
+                },
+                "id": "request",
+                "label": "submit ranked social feed freshness",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l020.fanout.c0"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l020.fanout.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l020.fanout.d0",
+                "id": "boundary",
+                "label": "Post command",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "fanout-s1",
+          "invariants": [
+            "Authenticate owner and persist a stable publication identity. State owner: Post command (post command receipts)."
+          ],
+          "number": 1,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l020.fanout.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "l020.fanout.d0",
+                "id": "boundary",
+                "label": "Post command",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l020.fanout.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l020.fanout.c0"
+                },
+                "id": "request",
+                "label": "submit ranked social feed freshness",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l020.fanout.c0"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "When can a reader see a post?",
+          "reason": "Authenticate owner and persist a stable publication identity.",
+          "title": "Post command"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "pages",
+            "acl",
+            "lag"
+          ],
+          "explanation": "Expand posting authority; commit post version and fan-out intent atomically. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l020.fanout.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l020.fanout.c0"
+                },
+                "id": "request",
+                "label": "submit ranked social feed freshness",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l020.fanout.c0"
+                }
+              },
+              {
+                "contractId": "l020.fanout.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l020.fanout.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l020.fanout.c1"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l020.fanout.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l020.fanout.d0",
+                "id": "boundary",
+                "label": "Post command",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l020-fanout-boundary-binding-1",
+                "version": 1
+              },
+              {
+                "definitionId": "l020.fanout.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l020.fanout.d1",
+                "id": "state",
+                "label": "Post outbox",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "fanout-s2",
+          "invariants": [
+            "Expand posting authority; commit post version and fan-out intent atomically. State owner: Post outbox (posts and outbox)."
+          ],
+          "number": 2,
+          "operations": [
+            {
+              "edges": [
+                {
+                  "contractId": "l020.fanout.c1",
+                  "from": {
+                    "nodeId": "control",
+                    "portId": "out-l020.fanout.c1"
+                  },
+                  "id": "commit",
+                  "label": "commit versioned state",
+                  "mode": "storage",
+                  "to": {
+                    "nodeId": "state",
+                    "portId": "in-l020.fanout.c1"
+                  }
+                }
+              ],
+              "nodeId": "boundary",
+              "nodes": [
+                {
+                  "definitionId": "l020.fanout.control",
+                  "id": "control",
+                  "label": "Command control",
+                  "position": {
+                    "x": 560,
+                    "y": 0
+                  },
+                  "version": 1
+                },
+                {
+                  "definitionId": "l020.fanout.d1",
+                  "id": "state",
+                  "label": "Post outbox",
+                  "position": {
+                    "x": 840,
+                    "y": 0
+                  },
+                  "version": 1
+                }
+              ],
+              "op": "expand",
+              "subsystemId": "l020-fanout-boundary-binding-1"
+            }
+          ],
+          "question": "Can committed posts miss fan-out?",
+          "reason": "Expand posting authority; commit post version and fan-out intent atomically.",
+          "title": "Post outbox"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "pages",
+            "acl",
+            "lag"
+          ],
+          "explanation": "Pin a relationship snapshot for enumeration while checking current access on reads. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l020.fanout.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l020.fanout.c0"
+                },
+                "id": "request",
+                "label": "submit ranked social feed freshness",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l020.fanout.c0"
+                }
+              },
+              {
+                "contractId": "l020.fanout.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l020.fanout.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l020.fanout.c1"
+                }
+              },
+              {
+                "contractId": "l020.fanout.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l020.fanout.c2-control"
+                },
+                "id": "enumerate",
+                "label": "pin follower graph revision",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l020.fanout.c2"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l020.fanout.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l020.fanout.d0",
+                "id": "boundary",
+                "label": "Post command",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l020-fanout-boundary-binding-2",
+                "version": 1
+              },
+              {
+                "definitionId": "l020.fanout.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l020.fanout.d1",
+                "id": "state",
+                "label": "Post outbox",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l020.fanout.d2",
+                "id": "n2",
+                "label": "Graph snapshot",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "fanout-s3",
+          "invariants": [
+            "Pin a relationship snapshot for enumeration while checking current access on reads. State owner: Graph snapshot (graph snapshot revision)."
+          ],
+          "number": 3,
+          "operations": [
+            {
+              "nodeId": "boundary",
+              "op": "rebind",
+              "reason": "Select a new immutable exposure binding before connecting the added responsibility; prior stage binding remains unchanged.",
+              "subsystemId": "l020-fanout-boundary-binding-2"
+            },
+            {
+              "node": {
+                "definitionId": "l020.fanout.d2",
+                "id": "n2",
+                "label": "Graph snapshot",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l020.fanout.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l020.fanout.c2-control"
+                },
+                "id": "enumerate",
+                "label": "pin follower graph revision",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l020.fanout.c2"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Which followers receive the post?",
+          "reason": "Pin a relationship snapshot for enumeration while checking current access on reads.",
+          "title": "Graph snapshot"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "pages",
+            "acl",
+            "lag"
+          ],
+          "explanation": "Deduplicate viewer/post insertion and commit page checkpoints after writes. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l020.fanout.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l020.fanout.c0"
+                },
+                "id": "request",
+                "label": "submit ranked social feed freshness",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l020.fanout.c0"
+                }
+              },
+              {
+                "contractId": "l020.fanout.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l020.fanout.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l020.fanout.c1"
+                }
+              },
+              {
+                "contractId": "l020.fanout.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l020.fanout.c2-control"
+                },
+                "id": "enumerate",
+                "label": "pin follower graph revision",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l020.fanout.c2"
+                }
+              },
+              {
+                "contractId": "l020.fanout.c3",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l020.fanout.c3-state"
+                },
+                "id": "publication",
+                "label": "consume publication outbox",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l020.fanout.c3"
+                }
+              },
+              {
+                "contractId": "l020.fanout.c2",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l020.fanout.c2"
+                },
+                "id": "followers",
+                "label": "page pinned followers",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l020.fanout.c2"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l020.fanout.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l020.fanout.d0",
+                "id": "boundary",
+                "label": "Post command",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l020-fanout-boundary-binding-3",
+                "version": 1
+              },
+              {
+                "definitionId": "l020.fanout.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l020.fanout.d1",
+                "id": "state",
+                "label": "Post outbox",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l020.fanout.d2",
+                "id": "n2",
+                "label": "Graph snapshot",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l020.fanout.d3",
+                "id": "n3",
+                "label": "Candidate fan-out",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "fanout-s4",
+          "invariants": [
+            "Deduplicate viewer/post insertion and commit page checkpoints after writes. State owner: Candidate fan-out (recipient page checkpoints)."
+          ],
+          "number": 4,
+          "operations": [
+            {
+              "nodeId": "boundary",
+              "op": "rebind",
+              "reason": "Select a new immutable exposure binding before connecting the added responsibility; prior stage binding remains unchanged.",
+              "subsystemId": "l020-fanout-boundary-binding-3"
+            },
+            {
+              "node": {
+                "definitionId": "l020.fanout.d3",
+                "id": "n3",
+                "label": "Candidate fan-out",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l020.fanout.c3",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l020.fanout.c3-state"
+                },
+                "id": "publication",
+                "label": "consume publication outbox",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l020.fanout.c3"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l020.fanout.c2",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l020.fanout.c2"
+                },
+                "id": "followers",
+                "label": "page pinned followers",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l020.fanout.c2"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How do crashed workers resume?",
+          "reason": "Deduplicate viewer/post insertion and commit page checkpoints after writes.",
+          "title": "Candidate fan-out"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "pages",
+            "acl",
+            "lag"
+          ],
+          "explanation": "Store bounded pointers and source watermark; high-degree sources remain pull candidates. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l020.fanout.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l020.fanout.c0"
+                },
+                "id": "request",
+                "label": "submit ranked social feed freshness",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l020.fanout.c0"
+                }
+              },
+              {
+                "contractId": "l020.fanout.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l020.fanout.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l020.fanout.c1"
+                }
+              },
+              {
+                "contractId": "l020.fanout.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l020.fanout.c2-control"
+                },
+                "id": "enumerate",
+                "label": "pin follower graph revision",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l020.fanout.c2"
+                }
+              },
+              {
+                "contractId": "l020.fanout.c3",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l020.fanout.c3-state"
+                },
+                "id": "publication",
+                "label": "consume publication outbox",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l020.fanout.c3"
+                }
+              },
+              {
+                "contractId": "l020.fanout.c2",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l020.fanout.c2"
+                },
+                "id": "followers",
+                "label": "page pinned followers",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l020.fanout.c2"
+                }
+              },
+              {
+                "contractId": "l020.fanout.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l020.fanout.c4"
+                },
+                "id": "candidate",
+                "label": "upsert viewer candidate",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l020.fanout.c4"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l020.fanout.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l020.fanout.d0",
+                "id": "boundary",
+                "label": "Post command",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l020-fanout-boundary-binding-3",
+                "version": 1
+              },
+              {
+                "definitionId": "l020.fanout.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l020.fanout.d1",
+                "id": "state",
+                "label": "Post outbox",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l020.fanout.d2",
+                "id": "n2",
+                "label": "Graph snapshot",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l020.fanout.d3",
+                "id": "n3",
+                "label": "Candidate fan-out",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l020.fanout.d4",
+                "id": "n4",
+                "label": "Timeline candidates",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "fanout-s5",
+          "invariants": [
+            "Store bounded pointers and source watermark; high-degree sources remain pull candidates. State owner: Timeline candidates (candidate identities and watermark)."
+          ],
+          "number": 5,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l020.fanout.d4",
+                "id": "n4",
+                "label": "Timeline candidates",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l020.fanout.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l020.fanout.c4"
+                },
+                "id": "candidate",
+                "label": "upsert viewer candidate",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l020.fanout.c4"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What is stored per reader?",
+          "reason": "Store bounded pointers and source watermark; high-degree sources remain pull candidates.",
+          "title": "Timeline candidates"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "pages",
+            "acl",
+            "lag"
+          ],
+          "explanation": "Pin feature and ranker versions for one feed session. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l020.fanout.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l020.fanout.c0"
+                },
+                "id": "request",
+                "label": "submit ranked social feed freshness",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l020.fanout.c0"
+                }
+              },
+              {
+                "contractId": "l020.fanout.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l020.fanout.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l020.fanout.c1"
+                }
+              },
+              {
+                "contractId": "l020.fanout.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l020.fanout.c2-control"
+                },
+                "id": "enumerate",
+                "label": "pin follower graph revision",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l020.fanout.c2"
+                }
+              },
+              {
+                "contractId": "l020.fanout.c3",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l020.fanout.c3-state"
+                },
+                "id": "publication",
+                "label": "consume publication outbox",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l020.fanout.c3"
+                }
+              },
+              {
+                "contractId": "l020.fanout.c2",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l020.fanout.c2"
+                },
+                "id": "followers",
+                "label": "page pinned followers",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l020.fanout.c2"
+                }
+              },
+              {
+                "contractId": "l020.fanout.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l020.fanout.c4"
+                },
+                "id": "candidate",
+                "label": "upsert viewer candidate",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l020.fanout.c4"
+                }
+              },
+              {
+                "contractId": "l020.fanout.c5",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l020.fanout.c5-control"
+                },
+                "id": "features",
+                "label": "pin ranking features",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l020.fanout.c5"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l020.fanout.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l020.fanout.d0",
+                "id": "boundary",
+                "label": "Post command",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l020-fanout-boundary-binding-4",
+                "version": 1
+              },
+              {
+                "definitionId": "l020.fanout.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l020.fanout.d1",
+                "id": "state",
+                "label": "Post outbox",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l020.fanout.d2",
+                "id": "n2",
+                "label": "Graph snapshot",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l020.fanout.d3",
+                "id": "n3",
+                "label": "Candidate fan-out",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l020.fanout.d4",
+                "id": "n4",
+                "label": "Timeline candidates",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l020.fanout.d5",
+                "id": "n5",
+                "label": "Feature snapshot",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "fanout-s6",
+          "invariants": [
+            "Pin feature and ranker versions for one feed session. State owner: Feature snapshot (feature snapshot and ranker version)."
+          ],
+          "number": 6,
+          "operations": [
+            {
+              "nodeId": "boundary",
+              "op": "rebind",
+              "reason": "Select a new immutable exposure binding before connecting the added responsibility; prior stage binding remains unchanged.",
+              "subsystemId": "l020-fanout-boundary-binding-4"
+            },
+            {
+              "node": {
+                "definitionId": "l020.fanout.d5",
+                "id": "n5",
+                "label": "Feature snapshot",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l020.fanout.c5",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l020.fanout.c5-control"
+                },
+                "id": "features",
+                "label": "pin ranking features",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l020.fanout.c5"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can scores change while paging?",
+          "reason": "Pin feature and ranker versions for one feed session.",
+          "title": "Feature snapshot"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "pages",
+            "acl",
+            "lag"
+          ],
+          "explanation": "Order by score then publication sequence then post ID; encode snapshot in cursor. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l020.fanout.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l020.fanout.c0"
+                },
+                "id": "request",
+                "label": "submit ranked social feed freshness",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l020.fanout.c0"
+                }
+              },
+              {
+                "contractId": "l020.fanout.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l020.fanout.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l020.fanout.c1"
+                }
+              },
+              {
+                "contractId": "l020.fanout.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l020.fanout.c2-control"
+                },
+                "id": "enumerate",
+                "label": "pin follower graph revision",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l020.fanout.c2"
+                }
+              },
+              {
+                "contractId": "l020.fanout.c3",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l020.fanout.c3-state"
+                },
+                "id": "publication",
+                "label": "consume publication outbox",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l020.fanout.c3"
+                }
+              },
+              {
+                "contractId": "l020.fanout.c2",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l020.fanout.c2"
+                },
+                "id": "followers",
+                "label": "page pinned followers",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l020.fanout.c2"
+                }
+              },
+              {
+                "contractId": "l020.fanout.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l020.fanout.c4"
+                },
+                "id": "candidate",
+                "label": "upsert viewer candidate",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l020.fanout.c4"
+                }
+              },
+              {
+                "contractId": "l020.fanout.c5",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l020.fanout.c5-control"
+                },
+                "id": "features",
+                "label": "pin ranking features",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l020.fanout.c5"
+                }
+              },
+              {
+                "contractId": "l020.fanout.c6",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l020.fanout.c6"
+                },
+                "id": "feed",
+                "label": "read ranked feed",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l020.fanout.c6"
+                }
+              },
+              {
+                "contractId": "l020.fanout.c4",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l020.fanout.c4"
+                },
+                "id": "candidates",
+                "label": "load candidate pointers",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l020.fanout.c4"
+                }
+              },
+              {
+                "contractId": "l020.fanout.c5",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l020.fanout.c5"
+                },
+                "id": "rank-features",
+                "label": "read pinned features",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l020.fanout.c5"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l020.fanout.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l020.fanout.d0",
+                "id": "boundary",
+                "label": "Post command",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l020-fanout-boundary-binding-4",
+                "version": 1
+              },
+              {
+                "definitionId": "l020.fanout.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l020.fanout.d1",
+                "id": "state",
+                "label": "Post outbox",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l020.fanout.d2",
+                "id": "n2",
+                "label": "Graph snapshot",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l020.fanout.d3",
+                "id": "n3",
+                "label": "Candidate fan-out",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l020.fanout.d4",
+                "id": "n4",
+                "label": "Timeline candidates",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l020.fanout.d5",
+                "id": "n5",
+                "label": "Feature snapshot",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l020.fanout.d6",
+                "id": "n6",
+                "label": "Stable ranker",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "fanout-s7",
+          "invariants": [
+            "Order by score then publication sequence then post ID; encode snapshot in cursor. State owner: Stable ranker (feed session cursor)."
+          ],
+          "number": 7,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l020.fanout.d6",
+                "id": "n6",
+                "label": "Stable ranker",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l020.fanout.c6",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l020.fanout.c6"
+                },
+                "id": "feed",
+                "label": "read ranked feed",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l020.fanout.c6"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l020.fanout.c4",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l020.fanout.c4"
+                },
+                "id": "candidates",
+                "label": "load candidate pointers",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l020.fanout.c4"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l020.fanout.c5",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l020.fanout.c5"
+                },
+                "id": "rank-features",
+                "label": "read pinned features",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l020.fanout.c5"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What breaks score ties?",
+          "reason": "Order by score then publication sequence then post ID; encode snapshot in cursor.",
+          "title": "Stable ranker"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "pages",
+            "acl",
+            "lag"
+          ],
+          "explanation": "Compare watermark against publication progress and merge bounded recent pull results. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l020.fanout.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l020.fanout.c0"
+                },
+                "id": "request",
+                "label": "submit ranked social feed freshness",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l020.fanout.c0"
+                }
+              },
+              {
+                "contractId": "l020.fanout.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l020.fanout.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l020.fanout.c1"
+                }
+              },
+              {
+                "contractId": "l020.fanout.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l020.fanout.c2-control"
+                },
+                "id": "enumerate",
+                "label": "pin follower graph revision",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l020.fanout.c2"
+                }
+              },
+              {
+                "contractId": "l020.fanout.c3",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l020.fanout.c3-state"
+                },
+                "id": "publication",
+                "label": "consume publication outbox",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l020.fanout.c3"
+                }
+              },
+              {
+                "contractId": "l020.fanout.c2",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l020.fanout.c2"
+                },
+                "id": "followers",
+                "label": "page pinned followers",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l020.fanout.c2"
+                }
+              },
+              {
+                "contractId": "l020.fanout.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l020.fanout.c4"
+                },
+                "id": "candidate",
+                "label": "upsert viewer candidate",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l020.fanout.c4"
+                }
+              },
+              {
+                "contractId": "l020.fanout.c5",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l020.fanout.c5-control"
+                },
+                "id": "features",
+                "label": "pin ranking features",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l020.fanout.c5"
+                }
+              },
+              {
+                "contractId": "l020.fanout.c6",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l020.fanout.c6"
+                },
+                "id": "feed",
+                "label": "read ranked feed",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l020.fanout.c6"
+                }
+              },
+              {
+                "contractId": "l020.fanout.c4",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l020.fanout.c4"
+                },
+                "id": "candidates",
+                "label": "load candidate pointers",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l020.fanout.c4"
+                }
+              },
+              {
+                "contractId": "l020.fanout.c5",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l020.fanout.c5"
+                },
+                "id": "rank-features",
+                "label": "read pinned features",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l020.fanout.c5"
+                }
+              },
+              {
+                "contractId": "l020.fanout.c4",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l020.fanout.c4"
+                },
+                "id": "lag",
+                "label": "compare candidate watermark",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l020.fanout.c4"
+                }
+              },
+              {
+                "contractId": "l020.fanout.c1",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l020.fanout.c1"
+                },
+                "id": "source",
+                "label": "pull recent source posts",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l020.fanout.c1-state"
+                }
+              },
+              {
+                "contractId": "l020.fanout.c7",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l020.fanout.c7"
+                },
+                "id": "repair",
+                "label": "merge freshness fallback",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l020.fanout.c7"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l020.fanout.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l020.fanout.d0",
+                "id": "boundary",
+                "label": "Post command",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l020-fanout-boundary-binding-5",
+                "version": 1
+              },
+              {
+                "definitionId": "l020.fanout.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l020.fanout.d1",
+                "id": "state",
+                "label": "Post outbox",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l020.fanout.d2",
+                "id": "n2",
+                "label": "Graph snapshot",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l020.fanout.d3",
+                "id": "n3",
+                "label": "Candidate fan-out",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l020.fanout.d4",
+                "id": "n4",
+                "label": "Timeline candidates",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l020.fanout.d5",
+                "id": "n5",
+                "label": "Feature snapshot",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l020.fanout.d6",
+                "id": "n6",
+                "label": "Stable ranker",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l020.fanout.d7",
+                "id": "n7",
+                "label": "Freshness repair",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "fanout-s8",
+          "invariants": [
+            "Compare watermark against publication progress and merge bounded recent pull results. State owner: Freshness repair (repair watermark)."
+          ],
+          "number": 8,
+          "operations": [
+            {
+              "nodeId": "boundary",
+              "op": "rebind",
+              "reason": "Select a new immutable exposure binding before connecting the added responsibility; prior stage binding remains unchanged.",
+              "subsystemId": "l020-fanout-boundary-binding-5"
+            },
+            {
+              "node": {
+                "definitionId": "l020.fanout.d7",
+                "id": "n7",
+                "label": "Freshness repair",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l020.fanout.c4",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l020.fanout.c4"
+                },
+                "id": "lag",
+                "label": "compare candidate watermark",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l020.fanout.c4"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l020.fanout.c1",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l020.fanout.c1"
+                },
+                "id": "source",
+                "label": "pull recent source posts",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l020.fanout.c1-state"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l020.fanout.c7",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l020.fanout.c7"
+                },
+                "id": "repair",
+                "label": "merge freshness fallback",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l020.fanout.c7"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What if candidate fan-out is delayed?",
+          "reason": "Compare watermark against publication progress and merge bounded recent pull results.",
+          "title": "Freshness repair"
+        }
+      ],
+      "title": "Write-time candidates with read-time ranking",
+      "tradeoffs": [
+        "Large fan-out needs bounded pages and high-degree author exceptions; ranking is refreshed separately."
+      ]
+    },
+    {
+      "acceptanceCases": [
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-01-mechanisms.test.mjs",
+            "testName": "L020 bounded mechanism"
+          },
+          "given": "Three posts include equal scores, distinct publication sequences and one revoked candidate.",
+          "id": "mechanism",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Both results have the same tie order and omit the revoked candidate; this proves only the bounded ranking rule.",
+          "when": "Rank twice with the same feature snapshot and reverse the input order."
+        },
+        {
+          "given": "A source adds a new high-score post after the first page.",
+          "id": "pages",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "The new post waits for a new session and prior posts retain deterministic tie order.",
+          "when": "Resume the same horizon and ranker snapshot."
+        },
+        {
+          "given": "A candidate becomes private while a source iterator is cached.",
+          "id": "acl",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Current ACL filtering removes the candidate before response.",
+          "when": "Emit the next page."
+        },
+        {
+          "given": "One source iterator is unavailable or budget-exhausted.",
+          "id": "lag",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Expose incomplete freshness and the source budget receipt rather than claiming a complete instant feed.",
+          "when": "Finish the bounded merge."
+        }
+      ],
+      "algorithms": [
+        {
+          "code": "return rows.filter(r=>r.allowed && !r.deleted).sort((a,b)=>b.score-a.score || b.seq-a.seq || a.id.localeCompare(b.id));",
+          "guarantees": [
+            "The code states the bounded decision rule; unimplemented helpers remain pseudocode.",
+            "External effects, distributed failure and latency require separate execution evidence."
+          ],
+          "id": "bounded-rule",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "n6"
+        },
+        {
+          "code": "const currentACL = loadCurrentACL(viewer);\nconst page = rankSnapshot.resume(cursor.snapshotId, cursor.tieTuple);\nreturn {posts:page.filter(p=>!p.deleted && currentACL.allows(p)), freshThrough:minimumSourceWatermark()};\n// Permission filtering can shorten a page; it never reuses a stale grant to fill it.",
+          "guarantees": [
+            "Recheck deletion/revocation and report source lag without filling pages with stale grants."
+          ],
+          "id": "recover",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "n7"
+        }
+      ],
+      "apis": [
+        {
+          "errors": "401 unauthenticated; 409 stale identity/version; 429 bounded capacity; 503 unavailable authority",
+          "method": "POST",
+          "ownerNodeId": "control",
+          "path": "/l020/readmerge",
+          "request": "{\"viewerId\":\"uuid\",\"limit\":\"1..100\"}",
+          "response": "{\"sessionId\":\"uuid\"}"
+        },
+        {
+          "errors": "403 unauthorized scope; 404 absent identity; 410 expired retained history",
+          "method": "GET",
+          "ownerNodeId": "state",
+          "path": "/l020/readmerge/state",
+          "request": "{\"sessionId\":\"uuid\"}",
+          "response": "{\"horizon\":\"integer\",\"rankerVersion\":\"integer\"}"
+        }
+      ],
+      "assumptions": [
+        "Each session freezes candidate horizon and ranking policy; new posts appear in a new session."
+      ],
+      "chooseWhen": "Writes dominate or authors have enormous audiences.",
+      "id": "readmerge",
+      "initialGraph": {
+        "edges": [],
+        "nodes": []
+      },
+      "stages": [
+        {
+          "checkIds": [
+            "mechanism",
+            "pages",
+            "acl",
+            "lag"
+          ],
+          "explanation": "Authenticate viewer and freeze a publication upper bound. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l020.readmerge.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l020.readmerge.c0"
+                },
+                "id": "request",
+                "label": "submit ranked social feed freshness",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l020.readmerge.c0"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l020.readmerge.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l020.readmerge.d0",
+                "id": "boundary",
+                "label": "Feed query",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "readmerge-s1",
+          "invariants": [
+            "Authenticate viewer and freeze a publication upper bound. State owner: Feed query (session identity)."
+          ],
+          "number": 1,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l020.readmerge.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "l020.readmerge.d0",
+                "id": "boundary",
+                "label": "Feed query",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l020.readmerge.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l020.readmerge.c0"
+                },
+                "id": "request",
+                "label": "submit ranked social feed freshness",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l020.readmerge.c0"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What defines the feed session?",
+          "reason": "Authenticate viewer and freeze a publication upper bound.",
+          "title": "Feed query"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "pages",
+            "acl",
+            "lag"
+          ],
+          "explanation": "Expand query boundary and persist horizon, graph revision and ranker version. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l020.readmerge.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l020.readmerge.c0"
+                },
+                "id": "request",
+                "label": "submit ranked social feed freshness",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l020.readmerge.c0"
+                }
+              },
+              {
+                "contractId": "l020.readmerge.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l020.readmerge.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l020.readmerge.c1"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l020.readmerge.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l020.readmerge.d0",
+                "id": "boundary",
+                "label": "Feed query",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l020-readmerge-boundary-binding-1",
+                "version": 1
+              },
+              {
+                "definitionId": "l020.readmerge.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l020.readmerge.d1",
+                "id": "state",
+                "label": "Session authority",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "readmerge-s2",
+          "invariants": [
+            "Expand query boundary and persist horizon, graph revision and ranker version. State owner: Session authority (session snapshot)."
+          ],
+          "number": 2,
+          "operations": [
+            {
+              "edges": [
+                {
+                  "contractId": "l020.readmerge.c1",
+                  "from": {
+                    "nodeId": "control",
+                    "portId": "out-l020.readmerge.c1"
+                  },
+                  "id": "commit",
+                  "label": "commit versioned state",
+                  "mode": "storage",
+                  "to": {
+                    "nodeId": "state",
+                    "portId": "in-l020.readmerge.c1"
+                  }
+                }
+              ],
+              "nodeId": "boundary",
+              "nodes": [
+                {
+                  "definitionId": "l020.readmerge.control",
+                  "id": "control",
+                  "label": "Command control",
+                  "position": {
+                    "x": 560,
+                    "y": 0
+                  },
+                  "version": 1
+                },
+                {
+                  "definitionId": "l020.readmerge.d1",
+                  "id": "state",
+                  "label": "Session authority",
+                  "position": {
+                    "x": 840,
+                    "y": 0
+                  },
+                  "version": 1
+                }
+              ],
+              "op": "expand",
+              "subsystemId": "l020-readmerge-boundary-binding-1"
+            }
+          ],
+          "question": "Can the next page change history?",
+          "reason": "Expand query boundary and persist horizon, graph revision and ranker version.",
+          "title": "Session authority"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "pages",
+            "acl",
+            "lag"
+          ],
+          "explanation": "Enumerate followed authors from a stable graph snapshot with pagination. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l020.readmerge.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l020.readmerge.c0"
+                },
+                "id": "request",
+                "label": "submit ranked social feed freshness",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l020.readmerge.c0"
+                }
+              },
+              {
+                "contractId": "l020.readmerge.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l020.readmerge.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l020.readmerge.c1"
+                }
+              },
+              {
+                "contractId": "l020.readmerge.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l020.readmerge.c2-control"
+                },
+                "id": "sources",
+                "label": "enumerate pinned follow graph",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l020.readmerge.c2"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l020.readmerge.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l020.readmerge.d0",
+                "id": "boundary",
+                "label": "Feed query",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l020-readmerge-boundary-binding-2",
+                "version": 1
+              },
+              {
+                "definitionId": "l020.readmerge.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l020.readmerge.d1",
+                "id": "state",
+                "label": "Session authority",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l020.readmerge.d2",
+                "id": "n2",
+                "label": "Follow traversal",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "readmerge-s3",
+          "invariants": [
+            "Enumerate followed authors from a stable graph snapshot with pagination. State owner: Follow traversal (author cursors)."
+          ],
+          "number": 3,
+          "operations": [
+            {
+              "nodeId": "boundary",
+              "op": "rebind",
+              "reason": "Select a new immutable exposure binding before connecting the added responsibility; prior stage binding remains unchanged.",
+              "subsystemId": "l020-readmerge-boundary-binding-2"
+            },
+            {
+              "node": {
+                "definitionId": "l020.readmerge.d2",
+                "id": "n2",
+                "label": "Follow traversal",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l020.readmerge.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l020.readmerge.c2-control"
+                },
+                "id": "sources",
+                "label": "enumerate pinned follow graph",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l020.readmerge.c2"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How is the source set bounded?",
+          "reason": "Enumerate followed authors from a stable graph snapshot with pagination.",
+          "title": "Follow traversal"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "pages",
+            "acl",
+            "lag"
+          ],
+          "explanation": "Open bounded per-source publication cursors up to the fixed horizon. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l020.readmerge.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l020.readmerge.c0"
+                },
+                "id": "request",
+                "label": "submit ranked social feed freshness",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l020.readmerge.c0"
+                }
+              },
+              {
+                "contractId": "l020.readmerge.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l020.readmerge.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l020.readmerge.c1"
+                }
+              },
+              {
+                "contractId": "l020.readmerge.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l020.readmerge.c2-control"
+                },
+                "id": "sources",
+                "label": "enumerate pinned follow graph",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l020.readmerge.c2"
+                }
+              },
+              {
+                "contractId": "l020.readmerge.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l020.readmerge.c3"
+                },
+                "id": "iterate",
+                "label": "open bounded author iterators",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l020.readmerge.c3"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l020.readmerge.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l020.readmerge.d0",
+                "id": "boundary",
+                "label": "Feed query",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l020-readmerge-boundary-binding-2",
+                "version": 1
+              },
+              {
+                "definitionId": "l020.readmerge.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l020.readmerge.d1",
+                "id": "state",
+                "label": "Session authority",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l020.readmerge.d2",
+                "id": "n2",
+                "label": "Follow traversal",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l020.readmerge.d3",
+                "id": "n3",
+                "label": "Post iterators",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "readmerge-s4",
+          "invariants": [
+            "Open bounded per-source publication cursors up to the fixed horizon. State owner: Post iterators (source cursors)."
+          ],
+          "number": 4,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l020.readmerge.d3",
+                "id": "n3",
+                "label": "Post iterators",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l020.readmerge.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l020.readmerge.c3"
+                },
+                "id": "iterate",
+                "label": "open bounded author iterators",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l020.readmerge.c3"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How are candidates fetched fairly?",
+          "reason": "Open bounded per-source publication cursors up to the fixed horizon.",
+          "title": "Post iterators"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "pages",
+            "acl",
+            "lag"
+          ],
+          "explanation": "Merge source heads with a candidate budget and explicit diversity cap. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l020.readmerge.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l020.readmerge.c0"
+                },
+                "id": "request",
+                "label": "submit ranked social feed freshness",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l020.readmerge.c0"
+                }
+              },
+              {
+                "contractId": "l020.readmerge.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l020.readmerge.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l020.readmerge.c1"
+                }
+              },
+              {
+                "contractId": "l020.readmerge.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l020.readmerge.c2-control"
+                },
+                "id": "sources",
+                "label": "enumerate pinned follow graph",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l020.readmerge.c2"
+                }
+              },
+              {
+                "contractId": "l020.readmerge.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l020.readmerge.c3"
+                },
+                "id": "iterate",
+                "label": "open bounded author iterators",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l020.readmerge.c3"
+                }
+              },
+              {
+                "contractId": "l020.readmerge.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l020.readmerge.c4"
+                },
+                "id": "merge",
+                "label": "merge candidate heads",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l020.readmerge.c4"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l020.readmerge.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l020.readmerge.d0",
+                "id": "boundary",
+                "label": "Feed query",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l020-readmerge-boundary-binding-2",
+                "version": 1
+              },
+              {
+                "definitionId": "l020.readmerge.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l020.readmerge.d1",
+                "id": "state",
+                "label": "Session authority",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l020.readmerge.d2",
+                "id": "n2",
+                "label": "Follow traversal",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l020.readmerge.d3",
+                "id": "n3",
+                "label": "Post iterators",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l020.readmerge.d4",
+                "id": "n4",
+                "label": "Candidate heap",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "readmerge-s5",
+          "invariants": [
+            "Merge source heads with a candidate budget and explicit diversity cap. State owner: Candidate heap (merge heap and source budget)."
+          ],
+          "number": 5,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l020.readmerge.d4",
+                "id": "n4",
+                "label": "Candidate heap",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l020.readmerge.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l020.readmerge.c4"
+                },
+                "id": "merge",
+                "label": "merge candidate heads",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l020.readmerge.c4"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can one source monopolize the feed?",
+          "reason": "Merge source heads with a candidate budget and explicit diversity cap.",
+          "title": "Candidate heap"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "pages",
+            "acl",
+            "lag"
+          ],
+          "explanation": "Read features at a pinned version, separating missing features from zero values. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l020.readmerge.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l020.readmerge.c0"
+                },
+                "id": "request",
+                "label": "submit ranked social feed freshness",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l020.readmerge.c0"
+                }
+              },
+              {
+                "contractId": "l020.readmerge.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l020.readmerge.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l020.readmerge.c1"
+                }
+              },
+              {
+                "contractId": "l020.readmerge.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l020.readmerge.c2-control"
+                },
+                "id": "sources",
+                "label": "enumerate pinned follow graph",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l020.readmerge.c2"
+                }
+              },
+              {
+                "contractId": "l020.readmerge.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l020.readmerge.c3"
+                },
+                "id": "iterate",
+                "label": "open bounded author iterators",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l020.readmerge.c3"
+                }
+              },
+              {
+                "contractId": "l020.readmerge.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l020.readmerge.c4"
+                },
+                "id": "merge",
+                "label": "merge candidate heads",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l020.readmerge.c4"
+                }
+              },
+              {
+                "contractId": "l020.readmerge.c5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l020.readmerge.c5"
+                },
+                "id": "feature",
+                "label": "load versioned features",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l020.readmerge.c5"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l020.readmerge.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l020.readmerge.d0",
+                "id": "boundary",
+                "label": "Feed query",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l020-readmerge-boundary-binding-2",
+                "version": 1
+              },
+              {
+                "definitionId": "l020.readmerge.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l020.readmerge.d1",
+                "id": "state",
+                "label": "Session authority",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l020.readmerge.d2",
+                "id": "n2",
+                "label": "Follow traversal",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l020.readmerge.d3",
+                "id": "n3",
+                "label": "Post iterators",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l020.readmerge.d4",
+                "id": "n4",
+                "label": "Candidate heap",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l020.readmerge.d5",
+                "id": "n5",
+                "label": "Rank features",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "readmerge-s6",
+          "invariants": [
+            "Read features at a pinned version, separating missing features from zero values. State owner: Rank features (feature version)."
+          ],
+          "number": 6,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l020.readmerge.d5",
+                "id": "n5",
+                "label": "Rank features",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l020.readmerge.c5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l020.readmerge.c5"
+                },
+                "id": "feature",
+                "label": "load versioned features",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l020.readmerge.c5"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What evidence determines order?",
+          "reason": "Read features at a pinned version, separating missing features from zero values.",
+          "title": "Rank features"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "pages",
+            "acl",
+            "lag"
+          ],
+          "explanation": "Rank deterministically and keep the snapshot plus tie tuple in continuation state. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l020.readmerge.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l020.readmerge.c0"
+                },
+                "id": "request",
+                "label": "submit ranked social feed freshness",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l020.readmerge.c0"
+                }
+              },
+              {
+                "contractId": "l020.readmerge.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l020.readmerge.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l020.readmerge.c1"
+                }
+              },
+              {
+                "contractId": "l020.readmerge.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l020.readmerge.c2-control"
+                },
+                "id": "sources",
+                "label": "enumerate pinned follow graph",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l020.readmerge.c2"
+                }
+              },
+              {
+                "contractId": "l020.readmerge.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l020.readmerge.c3"
+                },
+                "id": "iterate",
+                "label": "open bounded author iterators",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l020.readmerge.c3"
+                }
+              },
+              {
+                "contractId": "l020.readmerge.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l020.readmerge.c4"
+                },
+                "id": "merge",
+                "label": "merge candidate heads",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l020.readmerge.c4"
+                }
+              },
+              {
+                "contractId": "l020.readmerge.c5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l020.readmerge.c5"
+                },
+                "id": "feature",
+                "label": "load versioned features",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l020.readmerge.c5"
+                }
+              },
+              {
+                "contractId": "l020.readmerge.c6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l020.readmerge.c6"
+                },
+                "id": "rank",
+                "label": "rank and page snapshot",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l020.readmerge.c6"
+                }
+              },
+              {
+                "contractId": "l020.readmerge.c6",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l020.readmerge.c6"
+                },
+                "id": "read",
+                "label": "continue rank cursor",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l020.readmerge.c6"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l020.readmerge.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l020.readmerge.d0",
+                "id": "boundary",
+                "label": "Feed query",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l020-readmerge-boundary-binding-2",
+                "version": 1
+              },
+              {
+                "definitionId": "l020.readmerge.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l020.readmerge.d1",
+                "id": "state",
+                "label": "Session authority",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l020.readmerge.d2",
+                "id": "n2",
+                "label": "Follow traversal",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l020.readmerge.d3",
+                "id": "n3",
+                "label": "Post iterators",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l020.readmerge.d4",
+                "id": "n4",
+                "label": "Candidate heap",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l020.readmerge.d5",
+                "id": "n5",
+                "label": "Rank features",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l020.readmerge.d6",
+                "id": "n6",
+                "label": "Ranking cursor",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "readmerge-s7",
+          "invariants": [
+            "Rank deterministically and keep the snapshot plus tie tuple in continuation state. State owner: Ranking cursor (rank tuple cursor)."
+          ],
+          "number": 7,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l020.readmerge.d6",
+                "id": "n6",
+                "label": "Ranking cursor",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l020.readmerge.c6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l020.readmerge.c6"
+                },
+                "id": "rank",
+                "label": "rank and page snapshot",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l020.readmerge.c6"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l020.readmerge.c6",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l020.readmerge.c6"
+                },
+                "id": "read",
+                "label": "continue rank cursor",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l020.readmerge.c6"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How is stable paging achieved?",
+          "reason": "Rank deterministically and keep the snapshot plus tie tuple in continuation state.",
+          "title": "Ranking cursor"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "pages",
+            "acl",
+            "lag"
+          ],
+          "explanation": "Recheck deletion/revocation and report source lag without filling pages with stale grants. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l020.readmerge.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l020.readmerge.c0"
+                },
+                "id": "request",
+                "label": "submit ranked social feed freshness",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l020.readmerge.c0"
+                }
+              },
+              {
+                "contractId": "l020.readmerge.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l020.readmerge.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l020.readmerge.c1"
+                }
+              },
+              {
+                "contractId": "l020.readmerge.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l020.readmerge.c2-control"
+                },
+                "id": "sources",
+                "label": "enumerate pinned follow graph",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l020.readmerge.c2"
+                }
+              },
+              {
+                "contractId": "l020.readmerge.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l020.readmerge.c3"
+                },
+                "id": "iterate",
+                "label": "open bounded author iterators",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l020.readmerge.c3"
+                }
+              },
+              {
+                "contractId": "l020.readmerge.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l020.readmerge.c4"
+                },
+                "id": "merge",
+                "label": "merge candidate heads",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l020.readmerge.c4"
+                }
+              },
+              {
+                "contractId": "l020.readmerge.c5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l020.readmerge.c5"
+                },
+                "id": "feature",
+                "label": "load versioned features",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l020.readmerge.c5"
+                }
+              },
+              {
+                "contractId": "l020.readmerge.c6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l020.readmerge.c6"
+                },
+                "id": "rank",
+                "label": "rank and page snapshot",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l020.readmerge.c6"
+                }
+              },
+              {
+                "contractId": "l020.readmerge.c6",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l020.readmerge.c6"
+                },
+                "id": "read",
+                "label": "continue rank cursor",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l020.readmerge.c6"
+                }
+              },
+              {
+                "contractId": "l020.readmerge.c7",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l020.readmerge.c7"
+                },
+                "id": "visibility",
+                "label": "filter current visibility",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l020.readmerge.c7"
+                }
+              },
+              {
+                "contractId": "l020.readmerge.c1",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l020.readmerge.c1"
+                },
+                "id": "versions",
+                "label": "read session horizon",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l020.readmerge.c1-state"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l020.readmerge.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l020.readmerge.d0",
+                "id": "boundary",
+                "label": "Feed query",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l020-readmerge-boundary-binding-3",
+                "version": 1
+              },
+              {
+                "definitionId": "l020.readmerge.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l020.readmerge.d1",
+                "id": "state",
+                "label": "Session authority",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l020.readmerge.d2",
+                "id": "n2",
+                "label": "Follow traversal",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l020.readmerge.d3",
+                "id": "n3",
+                "label": "Post iterators",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l020.readmerge.d4",
+                "id": "n4",
+                "label": "Candidate heap",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l020.readmerge.d5",
+                "id": "n5",
+                "label": "Rank features",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l020.readmerge.d6",
+                "id": "n6",
+                "label": "Ranking cursor",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l020.readmerge.d7",
+                "id": "n7",
+                "label": "Access and lag",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "readmerge-s8",
+          "invariants": [
+            "Recheck deletion/revocation and report source lag without filling pages with stale grants. State owner: Access and lag (access epoch and lag receipts)."
+          ],
+          "number": 8,
+          "operations": [
+            {
+              "nodeId": "boundary",
+              "op": "rebind",
+              "reason": "Select a new immutable exposure binding before connecting the added responsibility; prior stage binding remains unchanged.",
+              "subsystemId": "l020-readmerge-boundary-binding-3"
+            },
+            {
+              "node": {
+                "definitionId": "l020.readmerge.d7",
+                "id": "n7",
+                "label": "Access and lag",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l020.readmerge.c7",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l020.readmerge.c7"
+                },
+                "id": "visibility",
+                "label": "filter current visibility",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l020.readmerge.c7"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l020.readmerge.c1",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l020.readmerge.c1"
+                },
+                "id": "versions",
+                "label": "read session horizon",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l020.readmerge.c1-state"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can deleted posts remain cached?",
+          "reason": "Recheck deletion/revocation and report source lag without filling pages with stale grants.",
+          "title": "Access and lag"
+        }
+      ],
+      "title": "Read-time multi-source merge and ranking",
+      "tradeoffs": [
+        "Read amplification and graph traversal are higher; source cursors and snapshot retention limit paging sessions."
+      ]
+    }
+  ],
+  "subsystems": [
+    {
+      "definitionId": "l020.fanout.d0",
+      "id": "l020-fanout-boundary-binding-1",
+      "ports": [
+        {
+          "contractId": "l020.fanout.c0",
+          "direction": "in",
+          "id": "in-l020.fanout.c0",
+          "target": {
+            "nodeId": "control",
+            "portId": "in-l020.fanout.c0"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l020.fanout.d0",
+      "id": "l020-fanout-boundary-binding-2",
+      "ports": [
+        {
+          "contractId": "l020.fanout.c0",
+          "direction": "in",
+          "id": "in-l020.fanout.c0",
+          "target": {
+            "nodeId": "control",
+            "portId": "in-l020.fanout.c0"
+          }
+        },
+        {
+          "contractId": "l020.fanout.c2",
+          "direction": "out",
+          "id": "out-l020.fanout.c2-control",
+          "target": {
+            "nodeId": "control",
+            "portId": "out-l020.fanout.c2"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l020.fanout.d0",
+      "id": "l020-fanout-boundary-binding-3",
+      "ports": [
+        {
+          "contractId": "l020.fanout.c0",
+          "direction": "in",
+          "id": "in-l020.fanout.c0",
+          "target": {
+            "nodeId": "control",
+            "portId": "in-l020.fanout.c0"
+          }
+        },
+        {
+          "contractId": "l020.fanout.c2",
+          "direction": "out",
+          "id": "out-l020.fanout.c2-control",
+          "target": {
+            "nodeId": "control",
+            "portId": "out-l020.fanout.c2"
+          }
+        },
+        {
+          "contractId": "l020.fanout.c3",
+          "direction": "out",
+          "id": "out-l020.fanout.c3-state",
+          "target": {
+            "nodeId": "state",
+            "portId": "out-l020.fanout.c3"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l020.fanout.d0",
+      "id": "l020-fanout-boundary-binding-4",
+      "ports": [
+        {
+          "contractId": "l020.fanout.c0",
+          "direction": "in",
+          "id": "in-l020.fanout.c0",
+          "target": {
+            "nodeId": "control",
+            "portId": "in-l020.fanout.c0"
+          }
+        },
+        {
+          "contractId": "l020.fanout.c2",
+          "direction": "out",
+          "id": "out-l020.fanout.c2-control",
+          "target": {
+            "nodeId": "control",
+            "portId": "out-l020.fanout.c2"
+          }
+        },
+        {
+          "contractId": "l020.fanout.c3",
+          "direction": "out",
+          "id": "out-l020.fanout.c3-state",
+          "target": {
+            "nodeId": "state",
+            "portId": "out-l020.fanout.c3"
+          }
+        },
+        {
+          "contractId": "l020.fanout.c5",
+          "direction": "out",
+          "id": "out-l020.fanout.c5-control",
+          "target": {
+            "nodeId": "control",
+            "portId": "out-l020.fanout.c5"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l020.fanout.d0",
+      "id": "l020-fanout-boundary-binding-5",
+      "ports": [
+        {
+          "contractId": "l020.fanout.c0",
+          "direction": "in",
+          "id": "in-l020.fanout.c0",
+          "target": {
+            "nodeId": "control",
+            "portId": "in-l020.fanout.c0"
+          }
+        },
+        {
+          "contractId": "l020.fanout.c2",
+          "direction": "out",
+          "id": "out-l020.fanout.c2-control",
+          "target": {
+            "nodeId": "control",
+            "portId": "out-l020.fanout.c2"
+          }
+        },
+        {
+          "contractId": "l020.fanout.c3",
+          "direction": "out",
+          "id": "out-l020.fanout.c3-state",
+          "target": {
+            "nodeId": "state",
+            "portId": "out-l020.fanout.c3"
+          }
+        },
+        {
+          "contractId": "l020.fanout.c5",
+          "direction": "out",
+          "id": "out-l020.fanout.c5-control",
+          "target": {
+            "nodeId": "control",
+            "portId": "out-l020.fanout.c5"
+          }
+        },
+        {
+          "contractId": "l020.fanout.c1",
+          "direction": "in",
+          "id": "in-l020.fanout.c1-state",
+          "target": {
+            "nodeId": "state",
+            "portId": "in-l020.fanout.c1"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l020.readmerge.d0",
+      "id": "l020-readmerge-boundary-binding-1",
+      "ports": [
+        {
+          "contractId": "l020.readmerge.c0",
+          "direction": "in",
+          "id": "in-l020.readmerge.c0",
+          "target": {
+            "nodeId": "control",
+            "portId": "in-l020.readmerge.c0"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l020.readmerge.d0",
+      "id": "l020-readmerge-boundary-binding-2",
+      "ports": [
+        {
+          "contractId": "l020.readmerge.c0",
+          "direction": "in",
+          "id": "in-l020.readmerge.c0",
+          "target": {
+            "nodeId": "control",
+            "portId": "in-l020.readmerge.c0"
+          }
+        },
+        {
+          "contractId": "l020.readmerge.c2",
+          "direction": "out",
+          "id": "out-l020.readmerge.c2-control",
+          "target": {
+            "nodeId": "control",
+            "portId": "out-l020.readmerge.c2"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l020.readmerge.d0",
+      "id": "l020-readmerge-boundary-binding-3",
+      "ports": [
+        {
+          "contractId": "l020.readmerge.c0",
+          "direction": "in",
+          "id": "in-l020.readmerge.c0",
+          "target": {
+            "nodeId": "control",
+            "portId": "in-l020.readmerge.c0"
+          }
+        },
+        {
+          "contractId": "l020.readmerge.c2",
+          "direction": "out",
+          "id": "out-l020.readmerge.c2-control",
+          "target": {
+            "nodeId": "control",
+            "portId": "out-l020.readmerge.c2"
+          }
+        },
+        {
+          "contractId": "l020.readmerge.c1",
+          "direction": "in",
+          "id": "in-l020.readmerge.c1-state",
+          "target": {
+            "nodeId": "state",
+            "portId": "in-l020.readmerge.c1"
+          }
+        }
+      ],
+      "version": 1
+    }
+  ],
+  "version": 1
+}

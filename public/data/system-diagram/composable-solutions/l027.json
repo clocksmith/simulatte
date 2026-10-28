@@ -1,0 +1,4183 @@
+{
+  "components": [
+    {
+      "extends": {
+        "id": "core.service",
+        "version": 1
+      },
+      "id": "l027.orchestrated.d0",
+      "label": "Request controller",
+      "ports": [
+        {
+          "contractId": "l027.orchestrated.c0",
+          "direction": "in",
+          "id": "in-l027.orchestrated.c0"
+        },
+        {
+          "contractId": "l027.orchestrated.c2",
+          "direction": "out",
+          "id": "out-l027.orchestrated.c2-control"
+        },
+        {
+          "contractId": "l027.orchestrated.c1",
+          "direction": "in",
+          "id": "in-l027.orchestrated.c1-state"
+        }
+      ],
+      "responsibility": "Record request deadline, repair allowance and tool-attempt limit before dispatch.",
+      "stateOwnership": [
+        "budget counters"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l027.orchestrated.d1",
+      "label": "Recovery ledger",
+      "ports": [
+        {
+          "contractId": "l027.orchestrated.c1",
+          "direction": "in",
+          "id": "in-l027.orchestrated.c1"
+        }
+      ],
+      "responsibility": "Expand controller; persist source revisions, plan versions and stable effect identities.",
+      "stateOwnership": [
+        "request attempt records"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.queue",
+        "version": 1
+      },
+      "id": "l027.orchestrated.d2",
+      "label": "Origin scheduler",
+      "ports": [
+        {
+          "contractId": "l027.orchestrated.c2",
+          "direction": "in",
+          "id": "in-l027.orchestrated.c2"
+        },
+        {
+          "contractId": "l027.orchestrated.c3",
+          "direction": "out",
+          "id": "out-l027.orchestrated.c3"
+        }
+      ],
+      "responsibility": "Grant tokens per normalized origin with bounded concurrency and explicit retry-after.",
+      "stateOwnership": [
+        "origin tokens and in-flight count"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l027.orchestrated.d3",
+      "label": "Index publication",
+      "ports": [
+        {
+          "contractId": "l027.orchestrated.c3",
+          "direction": "in",
+          "id": "in-l027.orchestrated.c3"
+        },
+        {
+          "contractId": "l027.orchestrated.c4",
+          "direction": "out",
+          "id": "out-l027.orchestrated.c4"
+        }
+      ],
+      "responsibility": "Publish index revision atomically and include source revision in each hit.",
+      "stateOwnership": [
+        "index manifest and source watermark"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l027.orchestrated.d4",
+      "label": "Freshness guard",
+      "ports": [
+        {
+          "contractId": "l027.orchestrated.c4",
+          "direction": "in",
+          "id": "in-l027.orchestrated.c4"
+        },
+        {
+          "contractId": "l027.orchestrated.c5",
+          "direction": "out",
+          "id": "out-l027.orchestrated.c5"
+        }
+      ],
+      "responsibility": "Recheck source revision and ACL before model context or tool preconditions are accepted.",
+      "stateOwnership": [
+        "freshness verdict"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l027.orchestrated.d5",
+      "label": "Schema repair",
+      "ports": [
+        {
+          "contractId": "l027.orchestrated.c5",
+          "direction": "in",
+          "id": "in-l027.orchestrated.c5"
+        },
+        {
+          "contractId": "l027.orchestrated.c6",
+          "direction": "out",
+          "id": "out-l027.orchestrated.c6"
+        }
+      ],
+      "responsibility": "Validate typed output and decrement repair budget before any repair request.",
+      "stateOwnership": [
+        "repair count and validation errors"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "l027.orchestrated.d6",
+      "label": "Tool executor",
+      "ports": [
+        {
+          "contractId": "l027.orchestrated.c6",
+          "direction": "in",
+          "id": "in-l027.orchestrated.c6"
+        },
+        {
+          "contractId": "l027.orchestrated.c7",
+          "direction": "in",
+          "id": "in-l027.orchestrated.c7"
+        }
+      ],
+      "responsibility": "Send stable effect key and expected resource version; mark ambiguous acceptance unknown.",
+      "stateOwnership": [
+        "tool attempt and effect receipt"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "l027.orchestrated.d7",
+      "label": "Outcome reconciliation",
+      "ports": [
+        {
+          "contractId": "l027.orchestrated.c7",
+          "direction": "out",
+          "id": "out-l027.orchestrated.c7"
+        },
+        {
+          "contractId": "l027.orchestrated.c1",
+          "direction": "out",
+          "id": "out-l027.orchestrated.c1"
+        }
+      ],
+      "responsibility": "Query remote effect identity where supported; otherwise surface uncertainty under explicit duplicate-versus-loss policy.",
+      "stateOwnership": [
+        "reconciliation status"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.client",
+        "version": 1
+      },
+      "id": "l027.orchestrated.caller",
+      "label": "Caller",
+      "ports": [
+        {
+          "contractId": "l027.orchestrated.c0",
+          "direction": "out",
+          "id": "out-l027.orchestrated.c0"
+        }
+      ],
+      "responsibility": "Submit the declared operation with authenticated identity and preserve its retry identity.",
+      "stateOwnership": [
+        "request identity"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l027.orchestrated.control",
+      "label": "Command control",
+      "ports": [
+        {
+          "contractId": "l027.orchestrated.c1",
+          "direction": "out",
+          "id": "out-l027.orchestrated.c1"
+        },
+        {
+          "contractId": "l027.orchestrated.c0",
+          "direction": "in",
+          "id": "in-l027.orchestrated.c0"
+        },
+        {
+          "contractId": "l027.orchestrated.c2",
+          "direction": "out",
+          "id": "out-l027.orchestrated.c2"
+        }
+      ],
+      "responsibility": "Record request deadline, repair allowance and tool-attempt limit before dispatch.",
+      "stateOwnership": [
+        "validated command and version"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.service",
+        "version": 1
+      },
+      "id": "l027.events.d0",
+      "label": "Intent inbox",
+      "ports": [
+        {
+          "contractId": "l027.events.c0",
+          "direction": "in",
+          "id": "in-l027.events.c0"
+        },
+        {
+          "contractId": "l027.events.c2",
+          "direction": "out",
+          "id": "out-l027.events.c2-control"
+        },
+        {
+          "contractId": "l027.events.c1",
+          "direction": "in",
+          "id": "in-l027.events.c1-state"
+        }
+      ],
+      "responsibility": "Persist typed intent, deadline and versioned authorization scope.",
+      "stateOwnership": [
+        "intent receipt"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.log",
+        "version": 1
+      },
+      "id": "l027.events.d1",
+      "label": "Intent journal",
+      "ports": [
+        {
+          "contractId": "l027.events.c1",
+          "direction": "in",
+          "id": "in-l027.events.c1"
+        }
+      ],
+      "responsibility": "Expand inbox and store versioned plan state plus work/event identities.",
+      "stateOwnership": [
+        "intent events and dedupe keys"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.queue",
+        "version": 1
+      },
+      "id": "l027.events.d2",
+      "label": "Crawl permits",
+      "ports": [
+        {
+          "contractId": "l027.events.c2",
+          "direction": "in",
+          "id": "in-l027.events.c2"
+        },
+        {
+          "contractId": "l027.events.c3",
+          "direction": "out",
+          "id": "out-l027.events.c3"
+        }
+      ],
+      "responsibility": "Issue per-origin permits and carry crawl cursor/byte limits in each queued job.",
+      "stateOwnership": [
+        "origin permit ledger"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "l027.events.d3",
+      "label": "Revision projector",
+      "ports": [
+        {
+          "contractId": "l027.events.c3",
+          "direction": "in",
+          "id": "in-l027.events.c3"
+        },
+        {
+          "contractId": "l027.events.c4",
+          "direction": "out",
+          "id": "out-l027.events.c4"
+        }
+      ],
+      "responsibility": "Build a new immutable index view then emit its published revision barrier.",
+      "stateOwnership": [
+        "index publication watermark"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l027.events.d4",
+      "label": "Plan validator",
+      "ports": [
+        {
+          "contractId": "l027.events.c4",
+          "direction": "in",
+          "id": "in-l027.events.c4"
+        },
+        {
+          "contractId": "l027.events.c5",
+          "direction": "out",
+          "id": "out-l027.events.c5"
+        }
+      ],
+      "responsibility": "Compare plan source revisions with current barriers and queue refresh instead of tool execution.",
+      "stateOwnership": [
+        "plan eligibility receipt"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.queue",
+        "version": 1
+      },
+      "id": "l027.events.d5",
+      "label": "Repair queue",
+      "ports": [
+        {
+          "contractId": "l027.events.c5",
+          "direction": "in",
+          "id": "in-l027.events.c5"
+        },
+        {
+          "contractId": "l027.events.c6",
+          "direction": "out",
+          "id": "out-l027.events.c6"
+        }
+      ],
+      "responsibility": "Enqueue repair only with a decreasing shared budget and an unexpired deadline.",
+      "stateOwnership": [
+        "repair job identities"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l027.events.d6",
+      "label": "Effect outbox",
+      "ports": [
+        {
+          "contractId": "l027.events.c6",
+          "direction": "in",
+          "id": "in-l027.events.c6"
+        },
+        {
+          "contractId": "l027.events.c7",
+          "direction": "out",
+          "id": "out-l027.events.c7"
+        }
+      ],
+      "responsibility": "Persist one stable effect key per approved tool action and expected resource version.",
+      "stateOwnership": [
+        "effect intent and dedupe key"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "l027.events.d7",
+      "label": "Recovery projector",
+      "ports": [
+        {
+          "contractId": "l027.events.c7",
+          "direction": "in",
+          "id": "in-l027.events.c7"
+        },
+        {
+          "contractId": "l027.events.c1",
+          "direction": "out",
+          "id": "out-l027.events.c1"
+        }
+      ],
+      "responsibility": "Fold receipts into completed, rejected, exhausted or uncertain; old retries cannot overwrite newer outcomes.",
+      "stateOwnership": [
+        "public recovery projection"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.client",
+        "version": 1
+      },
+      "id": "l027.events.caller",
+      "label": "Caller",
+      "ports": [
+        {
+          "contractId": "l027.events.c0",
+          "direction": "out",
+          "id": "out-l027.events.c0"
+        }
+      ],
+      "responsibility": "Submit the declared operation with authenticated identity and preserve its retry identity.",
+      "stateOwnership": [
+        "request identity"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l027.events.control",
+      "label": "Command control",
+      "ports": [
+        {
+          "contractId": "l027.events.c1",
+          "direction": "out",
+          "id": "out-l027.events.c1"
+        },
+        {
+          "contractId": "l027.events.c0",
+          "direction": "in",
+          "id": "in-l027.events.c0"
+        },
+        {
+          "contractId": "l027.events.c2",
+          "direction": "out",
+          "id": "out-l027.events.c2"
+        }
+      ],
+      "responsibility": "Persist typed intent, deadline and versioned authorization scope.",
+      "stateOwnership": [
+        "validated command and version"
+      ],
+      "version": 1
+    }
+  ],
+  "contracts": [
+    {
+      "id": "l027.orchestrated.c0",
+      "request": {
+        "deadline": "timestamp",
+        "maxRepairs": "integer",
+        "requestId": "uuid"
+      },
+      "response": {
+        "state": "accepted|rejected"
+      },
+      "version": 1
+    },
+    {
+      "id": "l027.orchestrated.c1",
+      "request": {
+        "expectedVersion": "integer",
+        "requestId": "uuid"
+      },
+      "response": {
+        "version": "integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l027.orchestrated.c2",
+      "request": {
+        "now": "timestamp",
+        "origin": "scheme/host/port"
+      },
+      "response": {
+        "permit": "boolean",
+        "retryAfter": "timestamp"
+      },
+      "version": 1
+    },
+    {
+      "id": "l027.orchestrated.c3",
+      "request": {
+        "indexVersion": "integer",
+        "sourceRevision": "integer"
+      },
+      "response": {
+        "published": "boolean"
+      },
+      "version": 1
+    },
+    {
+      "id": "l027.orchestrated.c4",
+      "request": {
+        "currentRevision": "integer",
+        "hitRevision": "integer"
+      },
+      "response": {
+        "status": "current|refresh|reject"
+      },
+      "version": 1
+    },
+    {
+      "id": "l027.orchestrated.c5",
+      "request": {
+        "remaining": "integer",
+        "reply": "unknown"
+      },
+      "response": {
+        "status": "valid|repair|exhausted"
+      },
+      "version": 1
+    },
+    {
+      "id": "l027.orchestrated.c6",
+      "request": {
+        "effectKey": "uuid",
+        "expectedVersion": "integer"
+      },
+      "response": {
+        "outcome": "success|rejected|unknown"
+      },
+      "version": 1
+    },
+    {
+      "id": "l027.orchestrated.c7",
+      "request": {
+        "effectKey": "uuid"
+      },
+      "response": {
+        "state": "confirmed|rejected|uncertain"
+      },
+      "version": 1
+    },
+    {
+      "id": "l027.events.c0",
+      "request": {
+        "intentId": "uuid",
+        "scope": "authorized resource ids[]"
+      },
+      "response": {
+        "accepted": "boolean"
+      },
+      "version": 1
+    },
+    {
+      "id": "l027.events.c1",
+      "request": {
+        "eventId": "uuid",
+        "intentId": "uuid"
+      },
+      "response": {
+        "offset": "integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l027.events.c2",
+      "request": {
+        "byteLimit": "integer",
+        "origin": "normalized origin"
+      },
+      "response": {
+        "permitId": "uuid|denied"
+      },
+      "version": 1
+    },
+    {
+      "id": "l027.events.c3",
+      "request": {
+        "sourceRevision": "integer"
+      },
+      "response": {
+        "indexRevision": "integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l027.events.c4",
+      "request": {
+        "planId": "uuid",
+        "sourceRevision": "integer"
+      },
+      "response": {
+        "status": "eligible|stale"
+      },
+      "version": 1
+    },
+    {
+      "id": "l027.events.c5",
+      "request": {
+        "intentId": "uuid",
+        "remaining": "integer"
+      },
+      "response": {
+        "state": "queued|exhausted"
+      },
+      "version": 1
+    },
+    {
+      "id": "l027.events.c6",
+      "request": {
+        "effectKey": "uuid",
+        "precondition": "resource version"
+      },
+      "response": {
+        "outcome": "pending|unknown|confirmed"
+      },
+      "version": 1
+    },
+    {
+      "id": "l027.events.c7",
+      "request": {
+        "eventVersion": "integer",
+        "intentId": "uuid"
+      },
+      "response": {
+        "status": "terminal or pending state"
+      },
+      "version": 1
+    }
+  ],
+  "execution": {
+    "implementation": null,
+    "kind": "conceptual-design"
+  },
+  "problem": {
+    "referenceId": "L027",
+    "requirements": [
+      {
+        "id": "r0",
+        "text": "Tie retrieval to source/index revisions and reject stale action preconditions."
+      },
+      {
+        "id": "r1",
+        "text": "Bound schema repair and tool retries with explicit terminal states."
+      },
+      {
+        "id": "r2",
+        "text": "Respect per-origin fetch budgets and reconcile uncertain tool writes."
+      }
+    ],
+    "scope": "Synthetic requests encounter changing documents, malformed model output and fallible tools. Authored architecture adds finite repair, per-origin budgets and recorded recovery; it makes no live scraping or model reasoning claim.",
+    "studyLabel": "Retrieval freshness and tool repair"
+  },
+  "provenance": {
+    "kind": "authored-practice",
+    "note": "Authored interview preparation. Technical references support mechanisms, not the claim that a company asked this question."
+  },
+  "references": [
+    {
+      "id": "ref0",
+      "scope": "background",
+      "supports": "Response shape validation; semantic grounding remains a separate check.",
+      "title": "JSON Schema validation",
+      "url": "https://json-schema.org/draft/2020-12/json-schema-validation"
+    },
+    {
+      "id": "ref1",
+      "scope": "background",
+      "supports": "Idempotency and conditional request semantics; arbitrary POST retries may duplicate effects.",
+      "title": "HTTP semantics",
+      "url": "https://www.rfc-editor.org/rfc/rfc9110.html"
+    }
+  ],
+  "schema": "simulatte.composableStudy.v2",
+  "solutions": [
+    {
+      "acceptanceCases": [
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-02-mechanisms.test.mjs",
+            "testName": "L027 bounded mechanism"
+          },
+          "given": "A reply stays malformed and the repair allowance is two.",
+          "id": "mechanism",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Only two repairs run; malformed output ends exhausted and an old hit cannot authorize a tool action.",
+          "when": "Run the bounded validation/repair loop, then compare an old hit with the current source revision."
+        },
+        {
+          "given": "All model replies are malformed with two repairs remaining.",
+          "id": "repair",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Dispatch at most two repairs and then terminate exhausted without calling a tool.",
+          "when": "Run validation and repair."
+        },
+        {
+          "given": "Retrieval returns source revision 5 while authority is at 6.",
+          "id": "stale",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Refresh or reject before tool execution; syntactic validity cannot override stale preconditions.",
+          "when": "Attempt a plan that writes based on revision 5."
+        },
+        {
+          "given": "Two jobs target one origin with capacity one.",
+          "id": "budget",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "At most one proceeds; retry-after and remaining request budget are explicit.",
+          "when": "Try both permits at the same time."
+        }
+      ],
+      "algorithms": [
+        {
+          "code": "while (!isValid(reply) && remaining > 0 && now() < deadline) { remaining--; reply = repair(reply); }\nif (!isValid(reply)) return {state:\"exhausted\"};\nif (plan.sourceRevision !== currentRevision) return {state:\"stale\"};\nreturn executeWithStableEffectKey(plan);",
+          "guarantees": [
+            "The code states the bounded decision rule; unimplemented helpers remain pseudocode.",
+            "External effects, distributed failure and latency require separate execution evidence."
+          ],
+          "id": "bounded-rule",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "n5"
+        },
+        {
+          "code": "const receipt = await tool.lookup(effectKey);\nif (receipt.confirmed) return commitConfirmed(receipt);\nif (receipt.provesNotAccepted && attempts < maxAttempts) return retryWithSameKey();\nreturn recordUncertain();\n// Each repair consumes its shared allowance before dispatch; source freshness is rechecked before a write.",
+          "guarantees": [
+            "Query remote effect identity where supported; otherwise surface uncertainty under explicit duplicate-versus-loss policy."
+          ],
+          "id": "recover",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "n7"
+        }
+      ],
+      "apis": [
+        {
+          "errors": "401 unauthenticated; 409 stale identity/version; 429 bounded capacity; 503 unavailable authority",
+          "method": "POST",
+          "ownerNodeId": "control",
+          "path": "/l027/orchestrated",
+          "request": "{\"requestId\":\"uuid\",\"deadline\":\"timestamp\",\"maxRepairs\":\"integer\"}",
+          "response": "{\"state\":\"accepted|rejected\"}"
+        },
+        {
+          "errors": "403 unauthorized scope; 404 absent identity; 410 expired retained history",
+          "method": "GET",
+          "ownerNodeId": "state",
+          "path": "/l027/orchestrated/state",
+          "request": "{\"requestId\":\"uuid\",\"expectedVersion\":\"integer\"}",
+          "response": "{\"version\":\"integer\"}"
+        }
+      ],
+      "assumptions": [
+        "A syntactically repaired plan still needs authorization and current preconditions."
+      ],
+      "chooseWhen": "Each user request needs a single bounded latency and retry budget.",
+      "id": "orchestrated",
+      "initialGraph": {
+        "edges": [],
+        "nodes": []
+      },
+      "stages": [
+        {
+          "checkIds": [
+            "mechanism",
+            "repair",
+            "stale",
+            "budget"
+          ],
+          "explanation": "Record request deadline, repair allowance and tool-attempt limit before dispatch. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l027.orchestrated.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l027.orchestrated.c0"
+                },
+                "id": "request",
+                "label": "submit retrieval freshness and tool repair",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l027.orchestrated.c0"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l027.orchestrated.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l027.orchestrated.d0",
+                "id": "boundary",
+                "label": "Request controller",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "orchestrated-s1",
+          "invariants": [
+            "Record request deadline, repair allowance and tool-attempt limit before dispatch. State owner: Request controller (budget counters)."
+          ],
+          "number": 1,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l027.orchestrated.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "l027.orchestrated.d0",
+                "id": "boundary",
+                "label": "Request controller",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l027.orchestrated.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l027.orchestrated.c0"
+                },
+                "id": "request",
+                "label": "submit retrieval freshness and tool repair",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l027.orchestrated.c0"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What is the finite work budget?",
+          "reason": "Record request deadline, repair allowance and tool-attempt limit before dispatch.",
+          "title": "Request controller"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "repair",
+            "stale",
+            "budget"
+          ],
+          "explanation": "Expand controller; persist source revisions, plan versions and stable effect identities. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l027.orchestrated.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l027.orchestrated.c0"
+                },
+                "id": "request",
+                "label": "submit retrieval freshness and tool repair",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l027.orchestrated.c0"
+                }
+              },
+              {
+                "contractId": "l027.orchestrated.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l027.orchestrated.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l027.orchestrated.c1"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l027.orchestrated.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l027.orchestrated.d0",
+                "id": "boundary",
+                "label": "Request controller",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l027-orchestrated-boundary-binding-1",
+                "version": 1
+              },
+              {
+                "definitionId": "l027.orchestrated.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l027.orchestrated.d1",
+                "id": "state",
+                "label": "Recovery ledger",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "orchestrated-s2",
+          "invariants": [
+            "Expand controller; persist source revisions, plan versions and stable effect identities. State owner: Recovery ledger (request attempt records)."
+          ],
+          "number": 2,
+          "operations": [
+            {
+              "edges": [
+                {
+                  "contractId": "l027.orchestrated.c1",
+                  "from": {
+                    "nodeId": "control",
+                    "portId": "out-l027.orchestrated.c1"
+                  },
+                  "id": "commit",
+                  "label": "commit versioned state",
+                  "mode": "storage",
+                  "to": {
+                    "nodeId": "state",
+                    "portId": "in-l027.orchestrated.c1"
+                  }
+                }
+              ],
+              "nodeId": "boundary",
+              "nodes": [
+                {
+                  "definitionId": "l027.orchestrated.control",
+                  "id": "control",
+                  "label": "Command control",
+                  "position": {
+                    "x": 560,
+                    "y": 0
+                  },
+                  "version": 1
+                },
+                {
+                  "definitionId": "l027.orchestrated.d1",
+                  "id": "state",
+                  "label": "Recovery ledger",
+                  "position": {
+                    "x": 840,
+                    "y": 0
+                  },
+                  "version": 1
+                }
+              ],
+              "op": "expand",
+              "subsystemId": "l027-orchestrated-boundary-binding-1"
+            }
+          ],
+          "question": "Which attempt is authoritative?",
+          "reason": "Expand controller; persist source revisions, plan versions and stable effect identities.",
+          "title": "Recovery ledger"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "repair",
+            "stale",
+            "budget"
+          ],
+          "explanation": "Grant tokens per normalized origin with bounded concurrency and explicit retry-after. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l027.orchestrated.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l027.orchestrated.c0"
+                },
+                "id": "request",
+                "label": "submit retrieval freshness and tool repair",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l027.orchestrated.c0"
+                }
+              },
+              {
+                "contractId": "l027.orchestrated.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l027.orchestrated.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l027.orchestrated.c1"
+                }
+              },
+              {
+                "contractId": "l027.orchestrated.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l027.orchestrated.c2-control"
+                },
+                "id": "crawl",
+                "label": "acquire per-origin permit",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l027.orchestrated.c2"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l027.orchestrated.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l027.orchestrated.d0",
+                "id": "boundary",
+                "label": "Request controller",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l027-orchestrated-boundary-binding-2",
+                "version": 1
+              },
+              {
+                "definitionId": "l027.orchestrated.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l027.orchestrated.d1",
+                "id": "state",
+                "label": "Recovery ledger",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l027.orchestrated.d2",
+                "id": "n2",
+                "label": "Origin scheduler",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "orchestrated-s3",
+          "invariants": [
+            "Grant tokens per normalized origin with bounded concurrency and explicit retry-after. State owner: Origin scheduler (origin tokens and in-flight count)."
+          ],
+          "number": 3,
+          "operations": [
+            {
+              "nodeId": "boundary",
+              "op": "rebind",
+              "reason": "Select a new immutable exposure binding before connecting the added responsibility; prior stage binding remains unchanged.",
+              "subsystemId": "l027-orchestrated-boundary-binding-2"
+            },
+            {
+              "node": {
+                "definitionId": "l027.orchestrated.d2",
+                "id": "n2",
+                "label": "Origin scheduler",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l027.orchestrated.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l027.orchestrated.c2-control"
+                },
+                "id": "crawl",
+                "label": "acquire per-origin permit",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l027.orchestrated.c2"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can one crawler overload a host?",
+          "reason": "Grant tokens per normalized origin with bounded concurrency and explicit retry-after.",
+          "title": "Origin scheduler"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "repair",
+            "stale",
+            "budget"
+          ],
+          "explanation": "Publish index revision atomically and include source revision in each hit. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l027.orchestrated.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l027.orchestrated.c0"
+                },
+                "id": "request",
+                "label": "submit retrieval freshness and tool repair",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l027.orchestrated.c0"
+                }
+              },
+              {
+                "contractId": "l027.orchestrated.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l027.orchestrated.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l027.orchestrated.c1"
+                }
+              },
+              {
+                "contractId": "l027.orchestrated.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l027.orchestrated.c2-control"
+                },
+                "id": "crawl",
+                "label": "acquire per-origin permit",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l027.orchestrated.c2"
+                }
+              },
+              {
+                "contractId": "l027.orchestrated.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l027.orchestrated.c3"
+                },
+                "id": "publish",
+                "label": "publish source index barrier",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l027.orchestrated.c3"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l027.orchestrated.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l027.orchestrated.d0",
+                "id": "boundary",
+                "label": "Request controller",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l027-orchestrated-boundary-binding-2",
+                "version": 1
+              },
+              {
+                "definitionId": "l027.orchestrated.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l027.orchestrated.d1",
+                "id": "state",
+                "label": "Recovery ledger",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l027.orchestrated.d2",
+                "id": "n2",
+                "label": "Origin scheduler",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l027.orchestrated.d3",
+                "id": "n3",
+                "label": "Index publication",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "orchestrated-s4",
+          "invariants": [
+            "Publish index revision atomically and include source revision in each hit. State owner: Index publication (index manifest and source watermark)."
+          ],
+          "number": 4,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l027.orchestrated.d3",
+                "id": "n3",
+                "label": "Index publication",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l027.orchestrated.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l027.orchestrated.c3"
+                },
+                "id": "publish",
+                "label": "publish source index barrier",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l027.orchestrated.c3"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What if retrieval lags the source?",
+          "reason": "Publish index revision atomically and include source revision in each hit.",
+          "title": "Index publication"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "repair",
+            "stale",
+            "budget"
+          ],
+          "explanation": "Recheck source revision and ACL before model context or tool preconditions are accepted. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l027.orchestrated.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l027.orchestrated.c0"
+                },
+                "id": "request",
+                "label": "submit retrieval freshness and tool repair",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l027.orchestrated.c0"
+                }
+              },
+              {
+                "contractId": "l027.orchestrated.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l027.orchestrated.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l027.orchestrated.c1"
+                }
+              },
+              {
+                "contractId": "l027.orchestrated.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l027.orchestrated.c2-control"
+                },
+                "id": "crawl",
+                "label": "acquire per-origin permit",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l027.orchestrated.c2"
+                }
+              },
+              {
+                "contractId": "l027.orchestrated.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l027.orchestrated.c3"
+                },
+                "id": "publish",
+                "label": "publish source index barrier",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l027.orchestrated.c3"
+                }
+              },
+              {
+                "contractId": "l027.orchestrated.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l027.orchestrated.c4"
+                },
+                "id": "fresh",
+                "label": "check retrieved revision",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l027.orchestrated.c4"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l027.orchestrated.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l027.orchestrated.d0",
+                "id": "boundary",
+                "label": "Request controller",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l027-orchestrated-boundary-binding-2",
+                "version": 1
+              },
+              {
+                "definitionId": "l027.orchestrated.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l027.orchestrated.d1",
+                "id": "state",
+                "label": "Recovery ledger",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l027.orchestrated.d2",
+                "id": "n2",
+                "label": "Origin scheduler",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l027.orchestrated.d3",
+                "id": "n3",
+                "label": "Index publication",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l027.orchestrated.d4",
+                "id": "n4",
+                "label": "Freshness guard",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "orchestrated-s5",
+          "invariants": [
+            "Recheck source revision and ACL before model context or tool preconditions are accepted. State owner: Freshness guard (freshness verdict)."
+          ],
+          "number": 5,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l027.orchestrated.d4",
+                "id": "n4",
+                "label": "Freshness guard",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l027.orchestrated.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l027.orchestrated.c4"
+                },
+                "id": "fresh",
+                "label": "check retrieved revision",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l027.orchestrated.c4"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can a stale hit authorize a write?",
+          "reason": "Recheck source revision and ACL before model context or tool preconditions are accepted.",
+          "title": "Freshness guard"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "repair",
+            "stale",
+            "budget"
+          ],
+          "explanation": "Validate typed output and decrement repair budget before any repair request. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l027.orchestrated.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l027.orchestrated.c0"
+                },
+                "id": "request",
+                "label": "submit retrieval freshness and tool repair",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l027.orchestrated.c0"
+                }
+              },
+              {
+                "contractId": "l027.orchestrated.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l027.orchestrated.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l027.orchestrated.c1"
+                }
+              },
+              {
+                "contractId": "l027.orchestrated.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l027.orchestrated.c2-control"
+                },
+                "id": "crawl",
+                "label": "acquire per-origin permit",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l027.orchestrated.c2"
+                }
+              },
+              {
+                "contractId": "l027.orchestrated.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l027.orchestrated.c3"
+                },
+                "id": "publish",
+                "label": "publish source index barrier",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l027.orchestrated.c3"
+                }
+              },
+              {
+                "contractId": "l027.orchestrated.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l027.orchestrated.c4"
+                },
+                "id": "fresh",
+                "label": "check retrieved revision",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l027.orchestrated.c4"
+                }
+              },
+              {
+                "contractId": "l027.orchestrated.c5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l027.orchestrated.c5"
+                },
+                "id": "validate",
+                "label": "validate bounded model output",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l027.orchestrated.c5"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l027.orchestrated.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l027.orchestrated.d0",
+                "id": "boundary",
+                "label": "Request controller",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l027-orchestrated-boundary-binding-2",
+                "version": 1
+              },
+              {
+                "definitionId": "l027.orchestrated.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l027.orchestrated.d1",
+                "id": "state",
+                "label": "Recovery ledger",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l027.orchestrated.d2",
+                "id": "n2",
+                "label": "Origin scheduler",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l027.orchestrated.d3",
+                "id": "n3",
+                "label": "Index publication",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l027.orchestrated.d4",
+                "id": "n4",
+                "label": "Freshness guard",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l027.orchestrated.d5",
+                "id": "n5",
+                "label": "Schema repair",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "orchestrated-s6",
+          "invariants": [
+            "Validate typed output and decrement repair budget before any repair request. State owner: Schema repair (repair count and validation errors)."
+          ],
+          "number": 6,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l027.orchestrated.d5",
+                "id": "n5",
+                "label": "Schema repair",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l027.orchestrated.c5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l027.orchestrated.c5"
+                },
+                "id": "validate",
+                "label": "validate bounded model output",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l027.orchestrated.c5"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How many malformed replies are allowed?",
+          "reason": "Validate typed output and decrement repair budget before any repair request.",
+          "title": "Schema repair"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "repair",
+            "stale",
+            "budget"
+          ],
+          "explanation": "Send stable effect key and expected resource version; mark ambiguous acceptance unknown. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l027.orchestrated.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l027.orchestrated.c0"
+                },
+                "id": "request",
+                "label": "submit retrieval freshness and tool repair",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l027.orchestrated.c0"
+                }
+              },
+              {
+                "contractId": "l027.orchestrated.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l027.orchestrated.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l027.orchestrated.c1"
+                }
+              },
+              {
+                "contractId": "l027.orchestrated.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l027.orchestrated.c2-control"
+                },
+                "id": "crawl",
+                "label": "acquire per-origin permit",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l027.orchestrated.c2"
+                }
+              },
+              {
+                "contractId": "l027.orchestrated.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l027.orchestrated.c3"
+                },
+                "id": "publish",
+                "label": "publish source index barrier",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l027.orchestrated.c3"
+                }
+              },
+              {
+                "contractId": "l027.orchestrated.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l027.orchestrated.c4"
+                },
+                "id": "fresh",
+                "label": "check retrieved revision",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l027.orchestrated.c4"
+                }
+              },
+              {
+                "contractId": "l027.orchestrated.c5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l027.orchestrated.c5"
+                },
+                "id": "validate",
+                "label": "validate bounded model output",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l027.orchestrated.c5"
+                }
+              },
+              {
+                "contractId": "l027.orchestrated.c6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l027.orchestrated.c6"
+                },
+                "id": "tool",
+                "label": "execute approved typed tool",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l027.orchestrated.c6"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l027.orchestrated.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l027.orchestrated.d0",
+                "id": "boundary",
+                "label": "Request controller",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l027-orchestrated-boundary-binding-2",
+                "version": 1
+              },
+              {
+                "definitionId": "l027.orchestrated.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l027.orchestrated.d1",
+                "id": "state",
+                "label": "Recovery ledger",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l027.orchestrated.d2",
+                "id": "n2",
+                "label": "Origin scheduler",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l027.orchestrated.d3",
+                "id": "n3",
+                "label": "Index publication",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l027.orchestrated.d4",
+                "id": "n4",
+                "label": "Freshness guard",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l027.orchestrated.d5",
+                "id": "n5",
+                "label": "Schema repair",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l027.orchestrated.d6",
+                "id": "n6",
+                "label": "Tool executor",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "orchestrated-s7",
+          "invariants": [
+            "Send stable effect key and expected resource version; mark ambiguous acceptance unknown. State owner: Tool executor (tool attempt and effect receipt)."
+          ],
+          "number": 7,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l027.orchestrated.d6",
+                "id": "n6",
+                "label": "Tool executor",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l027.orchestrated.c6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l027.orchestrated.c6"
+                },
+                "id": "tool",
+                "label": "execute approved typed tool",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l027.orchestrated.c6"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What if a write times out?",
+          "reason": "Send stable effect key and expected resource version; mark ambiguous acceptance unknown.",
+          "title": "Tool executor"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "repair",
+            "stale",
+            "budget"
+          ],
+          "explanation": "Query remote effect identity where supported; otherwise surface uncertainty under explicit duplicate-versus-loss policy. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l027.orchestrated.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l027.orchestrated.c0"
+                },
+                "id": "request",
+                "label": "submit retrieval freshness and tool repair",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l027.orchestrated.c0"
+                }
+              },
+              {
+                "contractId": "l027.orchestrated.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l027.orchestrated.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l027.orchestrated.c1"
+                }
+              },
+              {
+                "contractId": "l027.orchestrated.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l027.orchestrated.c2-control"
+                },
+                "id": "crawl",
+                "label": "acquire per-origin permit",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l027.orchestrated.c2"
+                }
+              },
+              {
+                "contractId": "l027.orchestrated.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l027.orchestrated.c3"
+                },
+                "id": "publish",
+                "label": "publish source index barrier",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l027.orchestrated.c3"
+                }
+              },
+              {
+                "contractId": "l027.orchestrated.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l027.orchestrated.c4"
+                },
+                "id": "fresh",
+                "label": "check retrieved revision",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l027.orchestrated.c4"
+                }
+              },
+              {
+                "contractId": "l027.orchestrated.c5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l027.orchestrated.c5"
+                },
+                "id": "validate",
+                "label": "validate bounded model output",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l027.orchestrated.c5"
+                }
+              },
+              {
+                "contractId": "l027.orchestrated.c6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l027.orchestrated.c6"
+                },
+                "id": "tool",
+                "label": "execute approved typed tool",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l027.orchestrated.c6"
+                }
+              },
+              {
+                "contractId": "l027.orchestrated.c7",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l027.orchestrated.c7"
+                },
+                "id": "reconcile",
+                "label": "reconcile stable remote effect",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l027.orchestrated.c7"
+                }
+              },
+              {
+                "contractId": "l027.orchestrated.c1",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l027.orchestrated.c1"
+                },
+                "id": "record",
+                "label": "record terminal outcome",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l027.orchestrated.c1-state"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l027.orchestrated.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l027.orchestrated.d0",
+                "id": "boundary",
+                "label": "Request controller",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l027-orchestrated-boundary-binding-3",
+                "version": 1
+              },
+              {
+                "definitionId": "l027.orchestrated.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l027.orchestrated.d1",
+                "id": "state",
+                "label": "Recovery ledger",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l027.orchestrated.d2",
+                "id": "n2",
+                "label": "Origin scheduler",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l027.orchestrated.d3",
+                "id": "n3",
+                "label": "Index publication",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l027.orchestrated.d4",
+                "id": "n4",
+                "label": "Freshness guard",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l027.orchestrated.d5",
+                "id": "n5",
+                "label": "Schema repair",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l027.orchestrated.d6",
+                "id": "n6",
+                "label": "Tool executor",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l027.orchestrated.d7",
+                "id": "n7",
+                "label": "Outcome reconciliation",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "orchestrated-s8",
+          "invariants": [
+            "Query remote effect identity where supported; otherwise surface uncertainty under explicit duplicate-versus-loss policy. State owner: Outcome reconciliation (reconciliation status)."
+          ],
+          "number": 8,
+          "operations": [
+            {
+              "nodeId": "boundary",
+              "op": "rebind",
+              "reason": "Select a new immutable exposure binding before connecting the added responsibility; prior stage binding remains unchanged.",
+              "subsystemId": "l027-orchestrated-boundary-binding-3"
+            },
+            {
+              "node": {
+                "definitionId": "l027.orchestrated.d7",
+                "id": "n7",
+                "label": "Outcome reconciliation",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l027.orchestrated.c7",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l027.orchestrated.c7"
+                },
+                "id": "reconcile",
+                "label": "reconcile stable remote effect",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l027.orchestrated.c7"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l027.orchestrated.c1",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l027.orchestrated.c1"
+                },
+                "id": "record",
+                "label": "record terminal outcome",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l027.orchestrated.c1-state"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can unknown writes be retried blindly?",
+          "reason": "Query remote effect identity where supported; otherwise surface uncertainty under explicit duplicate-versus-loss policy.",
+          "title": "Outcome reconciliation"
+        }
+      ],
+      "title": "Central budgeted repair state machine",
+      "tradeoffs": [
+        "Central state can bottleneck; repair and tool calls consume separate budgets and may still end unsupported."
+      ]
+    },
+    {
+      "acceptanceCases": [
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-02-mechanisms.test.mjs",
+            "testName": "L027 bounded mechanism"
+          },
+          "given": "A reply stays malformed and the repair allowance is two.",
+          "id": "mechanism",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Only two repairs run; malformed output ends exhausted and an old hit cannot authorize a tool action.",
+          "when": "Run the bounded validation/repair loop, then compare an old hit with the current source revision."
+        },
+        {
+          "given": "A repair queue redelivers the same repair job.",
+          "id": "repair",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "A duplicate does not create a fresh allowance; exhausted intents become terminal.",
+          "when": "Claim by intent/version and consume the shared budget."
+        },
+        {
+          "given": "A new source barrier arrives after a plan is queued.",
+          "id": "stale",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Compare source revisions and enqueue refresh instead of executing stale work.",
+          "when": "Claim the planned tool action."
+        },
+        {
+          "given": "Origin permits and request deadlines are exhausted.",
+          "id": "budget",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Reject or defer explicitly without exceeding the origin bound or resetting the intent deadline.",
+          "when": "Redeliver a queued crawl job."
+        }
+      ],
+      "algorithms": [
+        {
+          "code": "while (!isValid(reply) && remaining > 0 && now() < deadline) { remaining--; reply = repair(reply); }\nif (!isValid(reply)) return {state:\"exhausted\"};\nif (plan.sourceRevision !== currentRevision) return {state:\"stale\"};\nreturn executeWithStableEffectKey(plan);",
+          "guarantees": [
+            "The code states the bounded decision rule; unimplemented helpers remain pseudocode.",
+            "External effects, distributed failure and latency require separate execution evidence."
+          ],
+          "id": "bounded-rule",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "n5"
+        },
+        {
+          "code": "for (const receipt of eventsAfter(checkpoint)) {\n if (receipt.version <= projection.version) continue;\n projection = foldAllowedTransition(projection, receipt);\n commitProjectionAndCheckpoint(projection, receipt.offset);\n}\n// Unknown remote effects remain uncertain; retries retain the original intent scope and deadline.",
+          "guarantees": [
+            "Fold receipts into completed, rejected, exhausted or uncertain; old retries cannot overwrite newer outcomes."
+          ],
+          "id": "recover",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "n7"
+        }
+      ],
+      "apis": [
+        {
+          "errors": "401 unauthenticated; 409 stale identity/version; 429 bounded capacity; 503 unavailable authority",
+          "method": "POST",
+          "ownerNodeId": "control",
+          "path": "/l027/events",
+          "request": "{\"intentId\":\"uuid\",\"scope\":\"authorized resource ids[]\"}",
+          "response": "{\"accepted\":\"boolean\"}"
+        },
+        {
+          "errors": "403 unauthorized scope; 404 absent identity; 410 expired retained history",
+          "method": "GET",
+          "ownerNodeId": "state",
+          "path": "/l027/events/state",
+          "request": "{\"intentId\":\"uuid\",\"eventId\":\"uuid\"}",
+          "response": "{\"offset\":\"integer\"}"
+        }
+      ],
+      "assumptions": [
+        "Queue delivery is replayable; replay itself is not a new authorization or a new remote effect."
+      ],
+      "chooseWhen": "Ingestion and tool recovery are asynchronous and many consumers share them.",
+      "id": "events",
+      "initialGraph": {
+        "edges": [],
+        "nodes": []
+      },
+      "stages": [
+        {
+          "checkIds": [
+            "mechanism",
+            "repair",
+            "stale",
+            "budget"
+          ],
+          "explanation": "Persist typed intent, deadline and versioned authorization scope. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l027.events.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l027.events.c0"
+                },
+                "id": "request",
+                "label": "submit retrieval freshness and tool repair",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l027.events.c0"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l027.events.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l027.events.d0",
+                "id": "boundary",
+                "label": "Intent inbox",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "events-s1",
+          "invariants": [
+            "Persist typed intent, deadline and versioned authorization scope. State owner: Intent inbox (intent receipt)."
+          ],
+          "number": 1,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l027.events.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "l027.events.d0",
+                "id": "boundary",
+                "label": "Intent inbox",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l027.events.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l027.events.c0"
+                },
+                "id": "request",
+                "label": "submit retrieval freshness and tool repair",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l027.events.c0"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What is retained from the request?",
+          "reason": "Persist typed intent, deadline and versioned authorization scope.",
+          "title": "Intent inbox"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "repair",
+            "stale",
+            "budget"
+          ],
+          "explanation": "Expand inbox and store versioned plan state plus work/event identities. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l027.events.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l027.events.c0"
+                },
+                "id": "request",
+                "label": "submit retrieval freshness and tool repair",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l027.events.c0"
+                }
+              },
+              {
+                "contractId": "l027.events.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l027.events.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l027.events.c1"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l027.events.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l027.events.d0",
+                "id": "boundary",
+                "label": "Intent inbox",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l027-events-boundary-binding-1",
+                "version": 1
+              },
+              {
+                "definitionId": "l027.events.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l027.events.d1",
+                "id": "state",
+                "label": "Intent journal",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "events-s2",
+          "invariants": [
+            "Expand inbox and store versioned plan state plus work/event identities. State owner: Intent journal (intent events and dedupe keys)."
+          ],
+          "number": 2,
+          "operations": [
+            {
+              "edges": [
+                {
+                  "contractId": "l027.events.c1",
+                  "from": {
+                    "nodeId": "control",
+                    "portId": "out-l027.events.c1"
+                  },
+                  "id": "commit",
+                  "label": "commit versioned state",
+                  "mode": "storage",
+                  "to": {
+                    "nodeId": "state",
+                    "portId": "in-l027.events.c1"
+                  }
+                }
+              ],
+              "nodeId": "boundary",
+              "nodes": [
+                {
+                  "definitionId": "l027.events.control",
+                  "id": "control",
+                  "label": "Command control",
+                  "position": {
+                    "x": 560,
+                    "y": 0
+                  },
+                  "version": 1
+                },
+                {
+                  "definitionId": "l027.events.d1",
+                  "id": "state",
+                  "label": "Intent journal",
+                  "position": {
+                    "x": 840,
+                    "y": 0
+                  },
+                  "version": 1
+                }
+              ],
+              "op": "expand",
+              "subsystemId": "l027-events-boundary-binding-1"
+            }
+          ],
+          "question": "How do workers recover?",
+          "reason": "Expand inbox and store versioned plan state plus work/event identities.",
+          "title": "Intent journal"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "repair",
+            "stale",
+            "budget"
+          ],
+          "explanation": "Issue per-origin permits and carry crawl cursor/byte limits in each queued job. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l027.events.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l027.events.c0"
+                },
+                "id": "request",
+                "label": "submit retrieval freshness and tool repair",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l027.events.c0"
+                }
+              },
+              {
+                "contractId": "l027.events.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l027.events.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l027.events.c1"
+                }
+              },
+              {
+                "contractId": "l027.events.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l027.events.c2-control"
+                },
+                "id": "permit",
+                "label": "enqueue bounded origin work",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l027.events.c2"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l027.events.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l027.events.d0",
+                "id": "boundary",
+                "label": "Intent inbox",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l027-events-boundary-binding-2",
+                "version": 1
+              },
+              {
+                "definitionId": "l027.events.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l027.events.d1",
+                "id": "state",
+                "label": "Intent journal",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l027.events.d2",
+                "id": "n2",
+                "label": "Crawl permits",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "events-s3",
+          "invariants": [
+            "Issue per-origin permits and carry crawl cursor/byte limits in each queued job. State owner: Crawl permits (origin permit ledger)."
+          ],
+          "number": 3,
+          "operations": [
+            {
+              "nodeId": "boundary",
+              "op": "rebind",
+              "reason": "Select a new immutable exposure binding before connecting the added responsibility; prior stage binding remains unchanged.",
+              "subsystemId": "l027-events-boundary-binding-2"
+            },
+            {
+              "node": {
+                "definitionId": "l027.events.d2",
+                "id": "n2",
+                "label": "Crawl permits",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l027.events.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l027.events.c2-control"
+                },
+                "id": "permit",
+                "label": "enqueue bounded origin work",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l027.events.c2"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How is host fairness enforced?",
+          "reason": "Issue per-origin permits and carry crawl cursor/byte limits in each queued job.",
+          "title": "Crawl permits"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "repair",
+            "stale",
+            "budget"
+          ],
+          "explanation": "Build a new immutable index view then emit its published revision barrier. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l027.events.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l027.events.c0"
+                },
+                "id": "request",
+                "label": "submit retrieval freshness and tool repair",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l027.events.c0"
+                }
+              },
+              {
+                "contractId": "l027.events.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l027.events.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l027.events.c1"
+                }
+              },
+              {
+                "contractId": "l027.events.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l027.events.c2-control"
+                },
+                "id": "permit",
+                "label": "enqueue bounded origin work",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l027.events.c2"
+                }
+              },
+              {
+                "contractId": "l027.events.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l027.events.c3"
+                },
+                "id": "index",
+                "label": "project source revision",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l027.events.c3"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l027.events.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l027.events.d0",
+                "id": "boundary",
+                "label": "Intent inbox",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l027-events-boundary-binding-2",
+                "version": 1
+              },
+              {
+                "definitionId": "l027.events.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l027.events.d1",
+                "id": "state",
+                "label": "Intent journal",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l027.events.d2",
+                "id": "n2",
+                "label": "Crawl permits",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l027.events.d3",
+                "id": "n3",
+                "label": "Revision projector",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "events-s4",
+          "invariants": [
+            "Build a new immutable index view then emit its published revision barrier. State owner: Revision projector (index publication watermark)."
+          ],
+          "number": 4,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l027.events.d3",
+                "id": "n3",
+                "label": "Revision projector",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l027.events.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l027.events.c3"
+                },
+                "id": "index",
+                "label": "project source revision",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l027.events.c3"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How does a source change become searchable?",
+          "reason": "Build a new immutable index view then emit its published revision barrier.",
+          "title": "Revision projector"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "repair",
+            "stale",
+            "budget"
+          ],
+          "explanation": "Compare plan source revisions with current barriers and queue refresh instead of tool execution. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l027.events.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l027.events.c0"
+                },
+                "id": "request",
+                "label": "submit retrieval freshness and tool repair",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l027.events.c0"
+                }
+              },
+              {
+                "contractId": "l027.events.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l027.events.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l027.events.c1"
+                }
+              },
+              {
+                "contractId": "l027.events.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l027.events.c2-control"
+                },
+                "id": "permit",
+                "label": "enqueue bounded origin work",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l027.events.c2"
+                }
+              },
+              {
+                "contractId": "l027.events.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l027.events.c3"
+                },
+                "id": "index",
+                "label": "project source revision",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l027.events.c3"
+                }
+              },
+              {
+                "contractId": "l027.events.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l027.events.c4"
+                },
+                "id": "plan",
+                "label": "validate plan revision",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l027.events.c4"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l027.events.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l027.events.d0",
+                "id": "boundary",
+                "label": "Intent inbox",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l027-events-boundary-binding-2",
+                "version": 1
+              },
+              {
+                "definitionId": "l027.events.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l027.events.d1",
+                "id": "state",
+                "label": "Intent journal",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l027.events.d2",
+                "id": "n2",
+                "label": "Crawl permits",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l027.events.d3",
+                "id": "n3",
+                "label": "Revision projector",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l027.events.d4",
+                "id": "n4",
+                "label": "Plan validator",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "events-s5",
+          "invariants": [
+            "Compare plan source revisions with current barriers and queue refresh instead of tool execution. State owner: Plan validator (plan eligibility receipt)."
+          ],
+          "number": 5,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l027.events.d4",
+                "id": "n4",
+                "label": "Plan validator",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l027.events.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l027.events.c4"
+                },
+                "id": "plan",
+                "label": "validate plan revision",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l027.events.c4"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What happens to stale plans?",
+          "reason": "Compare plan source revisions with current barriers and queue refresh instead of tool execution.",
+          "title": "Plan validator"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "repair",
+            "stale",
+            "budget"
+          ],
+          "explanation": "Enqueue repair only with a decreasing shared budget and an unexpired deadline. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l027.events.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l027.events.c0"
+                },
+                "id": "request",
+                "label": "submit retrieval freshness and tool repair",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l027.events.c0"
+                }
+              },
+              {
+                "contractId": "l027.events.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l027.events.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l027.events.c1"
+                }
+              },
+              {
+                "contractId": "l027.events.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l027.events.c2-control"
+                },
+                "id": "permit",
+                "label": "enqueue bounded origin work",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l027.events.c2"
+                }
+              },
+              {
+                "contractId": "l027.events.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l027.events.c3"
+                },
+                "id": "index",
+                "label": "project source revision",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l027.events.c3"
+                }
+              },
+              {
+                "contractId": "l027.events.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l027.events.c4"
+                },
+                "id": "plan",
+                "label": "validate plan revision",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l027.events.c4"
+                }
+              },
+              {
+                "contractId": "l027.events.c5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l027.events.c5"
+                },
+                "id": "repair",
+                "label": "enqueue budgeted repair",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l027.events.c5"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l027.events.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l027.events.d0",
+                "id": "boundary",
+                "label": "Intent inbox",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l027-events-boundary-binding-2",
+                "version": 1
+              },
+              {
+                "definitionId": "l027.events.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l027.events.d1",
+                "id": "state",
+                "label": "Intent journal",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l027.events.d2",
+                "id": "n2",
+                "label": "Crawl permits",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l027.events.d3",
+                "id": "n3",
+                "label": "Revision projector",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l027.events.d4",
+                "id": "n4",
+                "label": "Plan validator",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l027.events.d5",
+                "id": "n5",
+                "label": "Repair queue",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "events-s6",
+          "invariants": [
+            "Enqueue repair only with a decreasing shared budget and an unexpired deadline. State owner: Repair queue (repair job identities)."
+          ],
+          "number": 6,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l027.events.d5",
+                "id": "n5",
+                "label": "Repair queue",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l027.events.c5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l027.events.c5"
+                },
+                "id": "repair",
+                "label": "enqueue budgeted repair",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l027.events.c5"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can malformed output loop forever?",
+          "reason": "Enqueue repair only with a decreasing shared budget and an unexpired deadline.",
+          "title": "Repair queue"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "repair",
+            "stale",
+            "budget"
+          ],
+          "explanation": "Persist one stable effect key per approved tool action and expected resource version. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l027.events.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l027.events.c0"
+                },
+                "id": "request",
+                "label": "submit retrieval freshness and tool repair",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l027.events.c0"
+                }
+              },
+              {
+                "contractId": "l027.events.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l027.events.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l027.events.c1"
+                }
+              },
+              {
+                "contractId": "l027.events.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l027.events.c2-control"
+                },
+                "id": "permit",
+                "label": "enqueue bounded origin work",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l027.events.c2"
+                }
+              },
+              {
+                "contractId": "l027.events.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l027.events.c3"
+                },
+                "id": "index",
+                "label": "project source revision",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l027.events.c3"
+                }
+              },
+              {
+                "contractId": "l027.events.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l027.events.c4"
+                },
+                "id": "plan",
+                "label": "validate plan revision",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l027.events.c4"
+                }
+              },
+              {
+                "contractId": "l027.events.c5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l027.events.c5"
+                },
+                "id": "repair",
+                "label": "enqueue budgeted repair",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l027.events.c5"
+                }
+              },
+              {
+                "contractId": "l027.events.c6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l027.events.c6"
+                },
+                "id": "approved",
+                "label": "commit approved tool intent",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l027.events.c6"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l027.events.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l027.events.d0",
+                "id": "boundary",
+                "label": "Intent inbox",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l027-events-boundary-binding-2",
+                "version": 1
+              },
+              {
+                "definitionId": "l027.events.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l027.events.d1",
+                "id": "state",
+                "label": "Intent journal",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l027.events.d2",
+                "id": "n2",
+                "label": "Crawl permits",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l027.events.d3",
+                "id": "n3",
+                "label": "Revision projector",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l027.events.d4",
+                "id": "n4",
+                "label": "Plan validator",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l027.events.d5",
+                "id": "n5",
+                "label": "Repair queue",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l027.events.d6",
+                "id": "n6",
+                "label": "Effect outbox",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "events-s7",
+          "invariants": [
+            "Persist one stable effect key per approved tool action and expected resource version. State owner: Effect outbox (effect intent and dedupe key)."
+          ],
+          "number": 7,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l027.events.d6",
+                "id": "n6",
+                "label": "Effect outbox",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l027.events.c6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l027.events.c6"
+                },
+                "id": "approved",
+                "label": "commit approved tool intent",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l027.events.c6"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How are writes retried safely?",
+          "reason": "Persist one stable effect key per approved tool action and expected resource version.",
+          "title": "Effect outbox"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "repair",
+            "stale",
+            "budget"
+          ],
+          "explanation": "Fold receipts into completed, rejected, exhausted or uncertain; old retries cannot overwrite newer outcomes. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l027.events.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l027.events.c0"
+                },
+                "id": "request",
+                "label": "submit retrieval freshness and tool repair",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l027.events.c0"
+                }
+              },
+              {
+                "contractId": "l027.events.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l027.events.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l027.events.c1"
+                }
+              },
+              {
+                "contractId": "l027.events.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l027.events.c2-control"
+                },
+                "id": "permit",
+                "label": "enqueue bounded origin work",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l027.events.c2"
+                }
+              },
+              {
+                "contractId": "l027.events.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l027.events.c3"
+                },
+                "id": "index",
+                "label": "project source revision",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l027.events.c3"
+                }
+              },
+              {
+                "contractId": "l027.events.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l027.events.c4"
+                },
+                "id": "plan",
+                "label": "validate plan revision",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l027.events.c4"
+                }
+              },
+              {
+                "contractId": "l027.events.c5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l027.events.c5"
+                },
+                "id": "repair",
+                "label": "enqueue budgeted repair",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l027.events.c5"
+                }
+              },
+              {
+                "contractId": "l027.events.c6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l027.events.c6"
+                },
+                "id": "approved",
+                "label": "commit approved tool intent",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l027.events.c6"
+                }
+              },
+              {
+                "contractId": "l027.events.c7",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l027.events.c7"
+                },
+                "id": "recover",
+                "label": "project effect receipts",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l027.events.c7"
+                }
+              },
+              {
+                "contractId": "l027.events.c1",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l027.events.c1"
+                },
+                "id": "journal",
+                "label": "record recovery status",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l027.events.c1-state"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l027.events.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l027.events.d0",
+                "id": "boundary",
+                "label": "Intent inbox",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l027-events-boundary-binding-3",
+                "version": 1
+              },
+              {
+                "definitionId": "l027.events.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l027.events.d1",
+                "id": "state",
+                "label": "Intent journal",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l027.events.d2",
+                "id": "n2",
+                "label": "Crawl permits",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l027.events.d3",
+                "id": "n3",
+                "label": "Revision projector",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l027.events.d4",
+                "id": "n4",
+                "label": "Plan validator",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l027.events.d5",
+                "id": "n5",
+                "label": "Repair queue",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l027.events.d6",
+                "id": "n6",
+                "label": "Effect outbox",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l027.events.d7",
+                "id": "n7",
+                "label": "Recovery projector",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "events-s8",
+          "invariants": [
+            "Fold receipts into completed, rejected, exhausted or uncertain; old retries cannot overwrite newer outcomes. State owner: Recovery projector (public recovery projection)."
+          ],
+          "number": 8,
+          "operations": [
+            {
+              "nodeId": "boundary",
+              "op": "rebind",
+              "reason": "Select a new immutable exposure binding before connecting the added responsibility; prior stage binding remains unchanged.",
+              "subsystemId": "l027-events-boundary-binding-3"
+            },
+            {
+              "node": {
+                "definitionId": "l027.events.d7",
+                "id": "n7",
+                "label": "Recovery projector",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l027.events.c7",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l027.events.c7"
+                },
+                "id": "recover",
+                "label": "project effect receipts",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l027.events.c7"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l027.events.c1",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l027.events.c1"
+                },
+                "id": "journal",
+                "label": "record recovery status",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l027.events.c1-state"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Which status is shown to the user?",
+          "reason": "Fold receipts into completed, rejected, exhausted or uncertain; old retries cannot overwrite newer outcomes.",
+          "title": "Recovery projector"
+        }
+      ],
+      "title": "Revision events and repair work queues",
+      "tradeoffs": [
+        "Queues and deduplication add state; separate work budgets must still obey the original request deadline."
+      ]
+    }
+  ],
+  "subsystems": [
+    {
+      "definitionId": "l027.orchestrated.d0",
+      "id": "l027-orchestrated-boundary-binding-1",
+      "ports": [
+        {
+          "contractId": "l027.orchestrated.c0",
+          "direction": "in",
+          "id": "in-l027.orchestrated.c0",
+          "target": {
+            "nodeId": "control",
+            "portId": "in-l027.orchestrated.c0"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l027.orchestrated.d0",
+      "id": "l027-orchestrated-boundary-binding-2",
+      "ports": [
+        {
+          "contractId": "l027.orchestrated.c0",
+          "direction": "in",
+          "id": "in-l027.orchestrated.c0",
+          "target": {
+            "nodeId": "control",
+            "portId": "in-l027.orchestrated.c0"
+          }
+        },
+        {
+          "contractId": "l027.orchestrated.c2",
+          "direction": "out",
+          "id": "out-l027.orchestrated.c2-control",
+          "target": {
+            "nodeId": "control",
+            "portId": "out-l027.orchestrated.c2"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l027.orchestrated.d0",
+      "id": "l027-orchestrated-boundary-binding-3",
+      "ports": [
+        {
+          "contractId": "l027.orchestrated.c0",
+          "direction": "in",
+          "id": "in-l027.orchestrated.c0",
+          "target": {
+            "nodeId": "control",
+            "portId": "in-l027.orchestrated.c0"
+          }
+        },
+        {
+          "contractId": "l027.orchestrated.c2",
+          "direction": "out",
+          "id": "out-l027.orchestrated.c2-control",
+          "target": {
+            "nodeId": "control",
+            "portId": "out-l027.orchestrated.c2"
+          }
+        },
+        {
+          "contractId": "l027.orchestrated.c1",
+          "direction": "in",
+          "id": "in-l027.orchestrated.c1-state",
+          "target": {
+            "nodeId": "state",
+            "portId": "in-l027.orchestrated.c1"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l027.events.d0",
+      "id": "l027-events-boundary-binding-1",
+      "ports": [
+        {
+          "contractId": "l027.events.c0",
+          "direction": "in",
+          "id": "in-l027.events.c0",
+          "target": {
+            "nodeId": "control",
+            "portId": "in-l027.events.c0"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l027.events.d0",
+      "id": "l027-events-boundary-binding-2",
+      "ports": [
+        {
+          "contractId": "l027.events.c0",
+          "direction": "in",
+          "id": "in-l027.events.c0",
+          "target": {
+            "nodeId": "control",
+            "portId": "in-l027.events.c0"
+          }
+        },
+        {
+          "contractId": "l027.events.c2",
+          "direction": "out",
+          "id": "out-l027.events.c2-control",
+          "target": {
+            "nodeId": "control",
+            "portId": "out-l027.events.c2"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l027.events.d0",
+      "id": "l027-events-boundary-binding-3",
+      "ports": [
+        {
+          "contractId": "l027.events.c0",
+          "direction": "in",
+          "id": "in-l027.events.c0",
+          "target": {
+            "nodeId": "control",
+            "portId": "in-l027.events.c0"
+          }
+        },
+        {
+          "contractId": "l027.events.c2",
+          "direction": "out",
+          "id": "out-l027.events.c2-control",
+          "target": {
+            "nodeId": "control",
+            "portId": "out-l027.events.c2"
+          }
+        },
+        {
+          "contractId": "l027.events.c1",
+          "direction": "in",
+          "id": "in-l027.events.c1-state",
+          "target": {
+            "nodeId": "state",
+            "portId": "in-l027.events.c1"
+          }
+        }
+      ],
+      "version": 1
+    }
+  ],
+  "version": 1
+}

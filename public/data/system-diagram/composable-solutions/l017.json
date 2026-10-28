@@ -1,0 +1,4428 @@
+{
+  "components": [
+    {
+      "extends": {
+        "id": "core.service",
+        "version": 1
+      },
+      "id": "l017.session.d0",
+      "label": "Prompt API",
+      "ports": [
+        {
+          "contractId": "l017.session.c0",
+          "direction": "in",
+          "id": "in-l017.session.c0"
+        },
+        {
+          "contractId": "l017.session.c2",
+          "direction": "out",
+          "id": "out-l017.session.c2-control"
+        },
+        {
+          "contractId": "l017.session.c1",
+          "direction": "in",
+          "id": "in-l017.session.c1-state"
+        }
+      ],
+      "responsibility": "Authenticate conversation membership and assign a stable generation ID.",
+      "stateOwnership": [
+        "command receipts"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l017.session.d1",
+      "label": "Conversation ledger",
+      "ports": [
+        {
+          "contractId": "l017.session.c1",
+          "direction": "in",
+          "id": "in-l017.session.c1"
+        }
+      ],
+      "responsibility": "Expand API; persist prompt, model selection and cancellation epoch.",
+      "stateOwnership": [
+        "prompt and generation records"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.queue",
+        "version": 1
+      },
+      "id": "l017.session.d2",
+      "label": "Model admission",
+      "ports": [
+        {
+          "contractId": "l017.session.c2",
+          "direction": "in",
+          "id": "in-l017.session.c2"
+        },
+        {
+          "contractId": "l017.session.c3",
+          "direction": "out",
+          "id": "out-l017.session.c3"
+        }
+      ],
+      "responsibility": "Route by model identity and reserve bounded queue/GPU slots with deadlines.",
+      "stateOwnership": [
+        "capacity reservations"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "l017.session.d3",
+      "label": "Inference worker",
+      "ports": [
+        {
+          "contractId": "l017.session.c3",
+          "direction": "in",
+          "id": "in-l017.session.c3"
+        },
+        {
+          "contractId": "l017.session.c4",
+          "direction": "out",
+          "id": "out-l017.session.c4"
+        },
+        {
+          "contractId": "l017.session.c6",
+          "direction": "in",
+          "id": "in-l017.session.c6"
+        }
+      ],
+      "responsibility": "One fenced generation attempt emits monotonically numbered chunks.",
+      "stateOwnership": [
+        "attempt fence and token index"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.log",
+        "version": 1
+      },
+      "id": "l017.session.d4",
+      "label": "Token journal",
+      "ports": [
+        {
+          "contractId": "l017.session.c4",
+          "direction": "in",
+          "id": "in-l017.session.c4"
+        },
+        {
+          "contractId": "l017.session.c5",
+          "direction": "out",
+          "id": "out-l017.session.c5"
+        },
+        {
+          "contractId": "l017.session.c7",
+          "direction": "in",
+          "id": "in-l017.session.c7"
+        }
+      ],
+      "responsibility": "Persist indexed chunks before acknowledging resumable delivery.",
+      "stateOwnership": [
+        "generation/token sequence"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.service",
+        "version": 1
+      },
+      "id": "l017.session.d5",
+      "label": "Stream gateway",
+      "ports": [
+        {
+          "contractId": "l017.session.c5",
+          "direction": "in",
+          "id": "in-l017.session.c5"
+        }
+      ],
+      "responsibility": "Deliver only after durable cursor; bound queue bytes and close with resume instruction.",
+      "stateOwnership": [
+        "connection delivery cursor"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l017.session.d6",
+      "label": "Cancel fence",
+      "ports": [
+        {
+          "contractId": "l017.session.c6",
+          "direction": "in",
+          "id": "in-l017.session.c6"
+        },
+        {
+          "contractId": "l017.session.c6",
+          "direction": "out",
+          "id": "out-l017.session.c6"
+        }
+      ],
+      "responsibility": "Advance generation epoch and reject late attempt writes; cancellation cannot erase already observed text.",
+      "stateOwnership": [
+        "cancellation epoch"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "l017.session.d7",
+      "label": "Resume reconciler",
+      "ports": [
+        {
+          "contractId": "l017.session.c7",
+          "direction": "out",
+          "id": "out-l017.session.c7"
+        },
+        {
+          "contractId": "l017.session.c1",
+          "direction": "out",
+          "id": "out-l017.session.c1"
+        }
+      ],
+      "responsibility": "Return an explicit gap and final snapshot or regenerate under a new identity.",
+      "stateOwnership": [
+        "retention floor"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.client",
+        "version": 1
+      },
+      "id": "l017.session.caller",
+      "label": "Caller",
+      "ports": [
+        {
+          "contractId": "l017.session.c0",
+          "direction": "out",
+          "id": "out-l017.session.c0"
+        },
+        {
+          "contractId": "l017.session.c5",
+          "direction": "out",
+          "id": "out-l017.session.c5"
+        },
+        {
+          "contractId": "l017.session.c6",
+          "direction": "out",
+          "id": "out-l017.session.c6"
+        }
+      ],
+      "responsibility": "Submit the declared operation with authenticated identity and preserve its retry identity.",
+      "stateOwnership": [
+        "request identity"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l017.session.control",
+      "label": "Command control",
+      "ports": [
+        {
+          "contractId": "l017.session.c1",
+          "direction": "out",
+          "id": "out-l017.session.c1"
+        },
+        {
+          "contractId": "l017.session.c0",
+          "direction": "in",
+          "id": "in-l017.session.c0"
+        },
+        {
+          "contractId": "l017.session.c2",
+          "direction": "out",
+          "id": "out-l017.session.c2"
+        }
+      ],
+      "responsibility": "Authenticate conversation membership and assign a stable generation ID.",
+      "stateOwnership": [
+        "validated command and version"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.service",
+        "version": 1
+      },
+      "id": "l017.pull.d0",
+      "label": "Generation workflow",
+      "ports": [
+        {
+          "contractId": "l017.pull.c0",
+          "direction": "in",
+          "id": "in-l017.pull.c0"
+        },
+        {
+          "contractId": "l017.pull.c2",
+          "direction": "out",
+          "id": "out-l017.pull.c2-control"
+        },
+        {
+          "contractId": "l017.pull.c1",
+          "direction": "in",
+          "id": "in-l017.pull.c1-state"
+        }
+      ],
+      "responsibility": "Start a durable command keyed by conversation and command identity.",
+      "stateOwnership": [
+        "workflow identity"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.log",
+        "version": 1
+      },
+      "id": "l017.pull.d1",
+      "label": "Workflow history",
+      "ports": [
+        {
+          "contractId": "l017.pull.c1",
+          "direction": "in",
+          "id": "in-l017.pull.c1"
+        }
+      ],
+      "responsibility": "Expand workflow with journaled model activity decisions and cancellation versions.",
+      "stateOwnership": [
+        "workflow history"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.queue",
+        "version": 1
+      },
+      "id": "l017.pull.d2",
+      "label": "Activity queue",
+      "ports": [
+        {
+          "contractId": "l017.pull.c2",
+          "direction": "in",
+          "id": "in-l017.pull.c2"
+        },
+        {
+          "contractId": "l017.pull.c3",
+          "direction": "out",
+          "id": "out-l017.pull.c3"
+        }
+      ],
+      "responsibility": "Dispatch retryable inference activities with stable attempt/fence identities.",
+      "stateOwnership": [
+        "activity leases"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "l017.pull.d3",
+      "label": "Chunk producer",
+      "ports": [
+        {
+          "contractId": "l017.pull.c3",
+          "direction": "in",
+          "id": "in-l017.pull.c3"
+        },
+        {
+          "contractId": "l017.pull.c4",
+          "direction": "out",
+          "id": "out-l017.pull.c4"
+        },
+        {
+          "contractId": "l017.pull.c6",
+          "direction": "in",
+          "id": "in-l017.pull.c6"
+        }
+      ],
+      "responsibility": "Persist tokens through a fenced append API; a new attempt cannot append to the prior prefix.",
+      "stateOwnership": [
+        "token prefix identity"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l017.pull.d4",
+      "label": "Output pages",
+      "ports": [
+        {
+          "contractId": "l017.pull.c4",
+          "direction": "in",
+          "id": "in-l017.pull.c4"
+        },
+        {
+          "contractId": "l017.pull.c7",
+          "direction": "in",
+          "id": "in-l017.pull.c7"
+        }
+      ],
+      "responsibility": "Materialize immutable chunk pages and completion status under generation/version.",
+      "stateOwnership": [
+        "immutable chunk pages"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l017.pull.d5",
+      "label": "Cursor reader",
+      "ports": [
+        {
+          "contractId": "l017.pull.c5",
+          "direction": "in",
+          "id": "in-l017.pull.c5"
+        },
+        {
+          "contractId": "l017.pull.c4",
+          "direction": "out",
+          "id": "out-l017.pull.c4"
+        }
+      ],
+      "responsibility": "Poll after the last accepted index and discard duplicate indexes locally.",
+      "stateOwnership": [
+        "reader cursor"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l017.pull.d6",
+      "label": "Cancellation signal",
+      "ports": [
+        {
+          "contractId": "l017.pull.c6",
+          "direction": "in",
+          "id": "in-l017.pull.c6"
+        },
+        {
+          "contractId": "l017.pull.c6",
+          "direction": "out",
+          "id": "out-l017.pull.c6"
+        }
+      ],
+      "responsibility": "Persist cancellation before cancelling queued activities and fence late output commits.",
+      "stateOwnership": [
+        "cancellation epoch"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "l017.pull.d7",
+      "label": "History compactor",
+      "ports": [
+        {
+          "contractId": "l017.pull.c1",
+          "direction": "out",
+          "id": "out-l017.pull.c1"
+        },
+        {
+          "contractId": "l017.pull.c7",
+          "direction": "out",
+          "id": "out-l017.pull.c7"
+        }
+      ],
+      "responsibility": "Compact finalized workflow state while preserving retention floor and explicit gap responses.",
+      "stateOwnership": [
+        "retention floor and final digest"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.client",
+        "version": 1
+      },
+      "id": "l017.pull.caller",
+      "label": "Caller",
+      "ports": [
+        {
+          "contractId": "l017.pull.c0",
+          "direction": "out",
+          "id": "out-l017.pull.c0"
+        },
+        {
+          "contractId": "l017.pull.c5",
+          "direction": "out",
+          "id": "out-l017.pull.c5"
+        },
+        {
+          "contractId": "l017.pull.c6",
+          "direction": "out",
+          "id": "out-l017.pull.c6"
+        }
+      ],
+      "responsibility": "Submit the declared operation with authenticated identity and preserve its retry identity.",
+      "stateOwnership": [
+        "request identity"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l017.pull.control",
+      "label": "Command control",
+      "ports": [
+        {
+          "contractId": "l017.pull.c1",
+          "direction": "out",
+          "id": "out-l017.pull.c1"
+        },
+        {
+          "contractId": "l017.pull.c0",
+          "direction": "in",
+          "id": "in-l017.pull.c0"
+        },
+        {
+          "contractId": "l017.pull.c2",
+          "direction": "out",
+          "id": "out-l017.pull.c2"
+        }
+      ],
+      "responsibility": "Start a durable command keyed by conversation and command identity.",
+      "stateOwnership": [
+        "validated command and version"
+      ],
+      "version": 1
+    }
+  ],
+  "contracts": [
+    {
+      "id": "l017.session.c0",
+      "request": {
+        "commandId": "uuid",
+        "conversationId": "uuid",
+        "prompt": "string"
+      },
+      "response": {
+        "generationId": "uuid",
+        "state": "queued"
+      },
+      "version": 1
+    },
+    {
+      "id": "l017.session.c1",
+      "request": {
+        "expectedVersion": "integer",
+        "generationId": "uuid"
+      },
+      "response": {
+        "version": "integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l017.session.c2",
+      "request": {
+        "deadline": "timestamp",
+        "modelId": "string"
+      },
+      "response": {
+        "leaseId": "uuid|rejected"
+      },
+      "version": 1
+    },
+    {
+      "id": "l017.session.c3",
+      "request": {
+        "fence": "integer",
+        "generationId": "uuid"
+      },
+      "response": {
+        "index": "integer",
+        "text": "string"
+      },
+      "version": 1
+    },
+    {
+      "id": "l017.session.c4",
+      "request": {
+        "generationId": "uuid",
+        "index": "integer",
+        "text": "string"
+      },
+      "response": {
+        "durableThrough": "integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l017.session.c5",
+      "request": {
+        "after": "integer",
+        "maxBytes": "integer"
+      },
+      "response": {
+        "chunks": "token[]",
+        "next": "integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l017.session.c6",
+      "request": {
+        "expectedEpoch": "integer",
+        "generationId": "uuid"
+      },
+      "response": {
+        "cancelled": "boolean"
+      },
+      "version": 1
+    },
+    {
+      "id": "l017.session.c7",
+      "request": {
+        "after": "integer",
+        "generationId": "uuid"
+      },
+      "response": {
+        "status": "resume|gap|complete"
+      },
+      "version": 1
+    },
+    {
+      "id": "l017.pull.c0",
+      "request": {
+        "commandId": "uuid",
+        "conversationId": "uuid"
+      },
+      "response": {
+        "generationId": "uuid"
+      },
+      "version": 1
+    },
+    {
+      "id": "l017.pull.c1",
+      "request": {
+        "event": "string",
+        "generationId": "uuid"
+      },
+      "response": {
+        "sequence": "integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l017.pull.c2",
+      "request": {
+        "fence": "integer",
+        "generationId": "uuid"
+      },
+      "response": {
+        "lease": "uuid|rejected"
+      },
+      "version": 1
+    },
+    {
+      "id": "l017.pull.c3",
+      "request": {
+        "attempt": "integer",
+        "generationId": "uuid",
+        "index": "integer"
+      },
+      "response": {
+        "accepted": "boolean"
+      },
+      "version": 1
+    },
+    {
+      "id": "l017.pull.c4",
+      "request": {
+        "after": "integer",
+        "generationId": "uuid"
+      },
+      "response": {
+        "next": "integer",
+        "page": "token[]"
+      },
+      "version": 1
+    },
+    {
+      "id": "l017.pull.c5",
+      "request": {
+        "after": "integer",
+        "generationId": "uuid"
+      },
+      "response": {
+        "state": "running|done|cancelled",
+        "tokens": "token[]"
+      },
+      "version": 1
+    },
+    {
+      "id": "l017.pull.c6",
+      "request": {
+        "generationId": "uuid"
+      },
+      "response": {
+        "state": "cancelled"
+      },
+      "version": 1
+    },
+    {
+      "id": "l017.pull.c7",
+      "request": {
+        "after": "integer",
+        "generationId": "uuid"
+      },
+      "response": {
+        "status": "page|gap"
+      },
+      "version": 1
+    }
+  ],
+  "execution": {
+    "implementation": null,
+    "kind": "conceptual-design"
+  },
+  "problem": {
+    "referenceId": "L017",
+    "requirements": [
+      {
+        "id": "r0",
+        "text": "Persist prompt and generation identity before dispatch."
+      },
+      {
+        "id": "r1",
+        "text": "Stream ordered tokens with bounded replay and explicit resume gaps."
+      },
+      {
+        "id": "r2",
+        "text": "Fence cancellation and bound model admission and client buffers."
+      }
+    ],
+    "scope": "Authored emphasis is generated reply tokens, replay and cancellation, distinct from L004 human messaging. One million connections is a sizing target requiring measurement; no local model establishes that capacity.",
+    "studyLabel": "Token streaming chat"
+  },
+  "provenance": {
+    "kind": "authored-practice",
+    "note": "Authored interview preparation. Technical references support mechanisms, not the claim that a company asked this question."
+  },
+  "references": [
+    {
+      "id": "ref0",
+      "scope": "background",
+      "supports": "Event identifiers and reconnection; application replay retention is separately required.",
+      "title": "Server-sent events",
+      "url": "https://html.spec.whatwg.org/multipage/server-sent-events.html"
+    },
+    {
+      "id": "ref1",
+      "scope": "background",
+      "supports": "Versioned transactions and retrying serialization conflicts.",
+      "title": "PostgreSQL isolation",
+      "url": "https://www.postgresql.org/docs/18/transaction-iso.html"
+    }
+  ],
+  "schema": "simulatte.composableStudy.v2",
+  "solutions": [
+    {
+      "acceptanceCases": [
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-01-mechanisms.test.mjs",
+            "testName": "L017 bounded mechanism"
+          },
+          "given": "A generation contains chunks 0 and 1 at epoch 4.",
+          "id": "mechanism",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "The duplicate index and stale token are rejected; resume after index 0 returns only existing chunk 1.",
+          "when": "Replay chunk 1, cancel by advancing epoch, then deliver chunk 2 from epoch 4."
+        },
+        {
+          "given": "Inference is running when cancel advances epoch.",
+          "id": "cancel",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Reject the chunk; text already observed remains part of the audit trail.",
+          "when": "Append a late chunk using the old epoch."
+        },
+        {
+          "given": "A reconnect cursor is older than retained chunks.",
+          "id": "gap",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Return gap plus a permitted final snapshot, never silently concatenate a different attempt.",
+          "when": "Resume the stream."
+        },
+        {
+          "given": "One connection stops consuming tokens.",
+          "id": "pressure",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Close that connection with a resume cursor without growing unbounded server memory.",
+          "when": "Its bounded delivery buffer fills."
+        }
+      ],
+      "algorithms": [
+        {
+          "code": "if (chunk.epoch !== state.epoch || state.cancelled) return false;\nif (chunk.index !== state.tokens.length) return false;\nstate.tokens.push(chunk.text); return true;",
+          "guarantees": [
+            "The code states the bounded decision rule; unimplemented helpers remain pseudocode.",
+            "External effects, distributed failure and latency require separate execution evidence."
+          ],
+          "id": "bounded-rule",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "n4"
+        },
+        {
+          "code": "if (after < journal.retentionFloor(generationId)) return {status:\"gap\", final:loadFinalSnapshot(generationId)};\nreturn journal.tokensAfter(generationId, after).filter(t => t.epoch === acceptedEpoch);\n// Client deduplicates token indexes; a new generation receives a new identity.",
+          "guarantees": [
+            "Return an explicit gap and final snapshot or regenerate under a new identity."
+          ],
+          "id": "recover",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "n7"
+        }
+      ],
+      "apis": [
+        {
+          "errors": "401 unauthenticated; 409 stale identity/version; 429 bounded capacity; 503 unavailable authority",
+          "method": "POST",
+          "ownerNodeId": "control",
+          "path": "/l017/session",
+          "request": "{\"conversationId\":\"uuid\",\"commandId\":\"uuid\",\"prompt\":\"string\"}",
+          "response": "{\"generationId\":\"uuid\",\"state\":\"queued\"}"
+        },
+        {
+          "errors": "403 unauthorized scope; 404 absent identity; 410 expired retained history",
+          "method": "GET",
+          "ownerNodeId": "state",
+          "path": "/l017/session/state",
+          "request": "{\"generationId\":\"uuid\",\"expectedVersion\":\"integer\"}",
+          "response": "{\"version\":\"integer\"}"
+        }
+      ],
+      "assumptions": [
+        "Tokens are indexed within one generation; partial output can be visible before final validation."
+      ],
+      "chooseWhen": "Fast incremental delivery and resumable token history are required.",
+      "id": "session",
+      "initialGraph": {
+        "edges": [],
+        "nodes": []
+      },
+      "stages": [
+        {
+          "checkIds": [
+            "mechanism",
+            "cancel",
+            "gap",
+            "pressure"
+          ],
+          "explanation": "Authenticate conversation membership and assign a stable generation ID. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l017.session.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l017.session.c0"
+                },
+                "id": "request",
+                "label": "submit token streaming chat",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l017.session.c0"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l017.session.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l017.session.d0",
+                "id": "boundary",
+                "label": "Prompt API",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "session-s1",
+          "invariants": [
+            "Authenticate conversation membership and assign a stable generation ID. State owner: Prompt API (command receipts)."
+          ],
+          "number": 1,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l017.session.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "l017.session.d0",
+                "id": "boundary",
+                "label": "Prompt API",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l017.session.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l017.session.c0"
+                },
+                "id": "request",
+                "label": "submit token streaming chat",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l017.session.c0"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "When is a reply accepted?",
+          "reason": "Authenticate conversation membership and assign a stable generation ID.",
+          "title": "Prompt API"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "cancel",
+            "gap",
+            "pressure"
+          ],
+          "explanation": "Expand API; persist prompt, model selection and cancellation epoch. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l017.session.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l017.session.c0"
+                },
+                "id": "request",
+                "label": "submit token streaming chat",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l017.session.c0"
+                }
+              },
+              {
+                "contractId": "l017.session.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l017.session.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l017.session.c1"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l017.session.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l017.session.d0",
+                "id": "boundary",
+                "label": "Prompt API",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l017-session-boundary-binding-1",
+                "version": 1
+              },
+              {
+                "definitionId": "l017.session.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l017.session.d1",
+                "id": "state",
+                "label": "Conversation ledger",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "session-s2",
+          "invariants": [
+            "Expand API; persist prompt, model selection and cancellation epoch. State owner: Conversation ledger (prompt and generation records)."
+          ],
+          "number": 2,
+          "operations": [
+            {
+              "edges": [
+                {
+                  "contractId": "l017.session.c1",
+                  "from": {
+                    "nodeId": "control",
+                    "portId": "out-l017.session.c1"
+                  },
+                  "id": "commit",
+                  "label": "commit versioned state",
+                  "mode": "storage",
+                  "to": {
+                    "nodeId": "state",
+                    "portId": "in-l017.session.c1"
+                  }
+                }
+              ],
+              "nodeId": "boundary",
+              "nodes": [
+                {
+                  "definitionId": "l017.session.control",
+                  "id": "control",
+                  "label": "Command control",
+                  "position": {
+                    "x": 560,
+                    "y": 0
+                  },
+                  "version": 1
+                },
+                {
+                  "definitionId": "l017.session.d1",
+                  "id": "state",
+                  "label": "Conversation ledger",
+                  "position": {
+                    "x": 840,
+                    "y": 0
+                  },
+                  "version": 1
+                }
+              ],
+              "op": "expand",
+              "subsystemId": "l017-session-boundary-binding-1"
+            }
+          ],
+          "question": "What survives a gateway restart?",
+          "reason": "Expand API; persist prompt, model selection and cancellation epoch.",
+          "title": "Conversation ledger"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "cancel",
+            "gap",
+            "pressure"
+          ],
+          "explanation": "Route by model identity and reserve bounded queue/GPU slots with deadlines. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l017.session.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l017.session.c0"
+                },
+                "id": "request",
+                "label": "submit token streaming chat",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l017.session.c0"
+                }
+              },
+              {
+                "contractId": "l017.session.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l017.session.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l017.session.c1"
+                }
+              },
+              {
+                "contractId": "l017.session.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l017.session.c2-control"
+                },
+                "id": "reserve",
+                "label": "reserve model capacity",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l017.session.c2"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l017.session.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l017.session.d0",
+                "id": "boundary",
+                "label": "Prompt API",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l017-session-boundary-binding-2",
+                "version": 1
+              },
+              {
+                "definitionId": "l017.session.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l017.session.d1",
+                "id": "state",
+                "label": "Conversation ledger",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l017.session.d2",
+                "id": "n2",
+                "label": "Model admission",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "session-s3",
+          "invariants": [
+            "Route by model identity and reserve bounded queue/GPU slots with deadlines. State owner: Model admission (capacity reservations)."
+          ],
+          "number": 3,
+          "operations": [
+            {
+              "nodeId": "boundary",
+              "op": "rebind",
+              "reason": "Select a new immutable exposure binding before connecting the added responsibility; prior stage binding remains unchanged.",
+              "subsystemId": "l017-session-boundary-binding-2"
+            },
+            {
+              "node": {
+                "definitionId": "l017.session.d2",
+                "id": "n2",
+                "label": "Model admission",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l017.session.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l017.session.c2-control"
+                },
+                "id": "reserve",
+                "label": "reserve model capacity",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l017.session.c2"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can slow models exhaust capacity?",
+          "reason": "Route by model identity and reserve bounded queue/GPU slots with deadlines.",
+          "title": "Model admission"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "cancel",
+            "gap",
+            "pressure"
+          ],
+          "explanation": "One fenced generation attempt emits monotonically numbered chunks. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l017.session.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l017.session.c0"
+                },
+                "id": "request",
+                "label": "submit token streaming chat",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l017.session.c0"
+                }
+              },
+              {
+                "contractId": "l017.session.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l017.session.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l017.session.c1"
+                }
+              },
+              {
+                "contractId": "l017.session.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l017.session.c2-control"
+                },
+                "id": "reserve",
+                "label": "reserve model capacity",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l017.session.c2"
+                }
+              },
+              {
+                "contractId": "l017.session.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l017.session.c3"
+                },
+                "id": "infer",
+                "label": "start fenced inference",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l017.session.c3"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l017.session.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l017.session.d0",
+                "id": "boundary",
+                "label": "Prompt API",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l017-session-boundary-binding-2",
+                "version": 1
+              },
+              {
+                "definitionId": "l017.session.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l017.session.d1",
+                "id": "state",
+                "label": "Conversation ledger",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l017.session.d2",
+                "id": "n2",
+                "label": "Model admission",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l017.session.d3",
+                "id": "n3",
+                "label": "Inference worker",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "session-s4",
+          "invariants": [
+            "One fenced generation attempt emits monotonically numbered chunks. State owner: Inference worker (attempt fence and token index)."
+          ],
+          "number": 4,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l017.session.d3",
+                "id": "n3",
+                "label": "Inference worker",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l017.session.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l017.session.c3"
+                },
+                "id": "infer",
+                "label": "start fenced inference",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l017.session.c3"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Who owns token numbering?",
+          "reason": "One fenced generation attempt emits monotonically numbered chunks.",
+          "title": "Inference worker"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "cancel",
+            "gap",
+            "pressure"
+          ],
+          "explanation": "Persist indexed chunks before acknowledging resumable delivery. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l017.session.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l017.session.c0"
+                },
+                "id": "request",
+                "label": "submit token streaming chat",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l017.session.c0"
+                }
+              },
+              {
+                "contractId": "l017.session.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l017.session.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l017.session.c1"
+                }
+              },
+              {
+                "contractId": "l017.session.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l017.session.c2-control"
+                },
+                "id": "reserve",
+                "label": "reserve model capacity",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l017.session.c2"
+                }
+              },
+              {
+                "contractId": "l017.session.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l017.session.c3"
+                },
+                "id": "infer",
+                "label": "start fenced inference",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l017.session.c3"
+                }
+              },
+              {
+                "contractId": "l017.session.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l017.session.c4"
+                },
+                "id": "append",
+                "label": "append indexed token",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l017.session.c4"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l017.session.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l017.session.d0",
+                "id": "boundary",
+                "label": "Prompt API",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l017-session-boundary-binding-2",
+                "version": 1
+              },
+              {
+                "definitionId": "l017.session.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l017.session.d1",
+                "id": "state",
+                "label": "Conversation ledger",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l017.session.d2",
+                "id": "n2",
+                "label": "Model admission",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l017.session.d3",
+                "id": "n3",
+                "label": "Inference worker",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l017.session.d4",
+                "id": "n4",
+                "label": "Token journal",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "session-s5",
+          "invariants": [
+            "Persist indexed chunks before acknowledging resumable delivery. State owner: Token journal (generation/token sequence)."
+          ],
+          "number": 5,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l017.session.d4",
+                "id": "n4",
+                "label": "Token journal",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l017.session.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l017.session.c4"
+                },
+                "id": "append",
+                "label": "append indexed token",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l017.session.c4"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can a reconnect recover output?",
+          "reason": "Persist indexed chunks before acknowledging resumable delivery.",
+          "title": "Token journal"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "cancel",
+            "gap",
+            "pressure"
+          ],
+          "explanation": "Deliver only after durable cursor; bound queue bytes and close with resume instruction. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l017.session.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l017.session.c0"
+                },
+                "id": "request",
+                "label": "submit token streaming chat",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l017.session.c0"
+                }
+              },
+              {
+                "contractId": "l017.session.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l017.session.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l017.session.c1"
+                }
+              },
+              {
+                "contractId": "l017.session.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l017.session.c2-control"
+                },
+                "id": "reserve",
+                "label": "reserve model capacity",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l017.session.c2"
+                }
+              },
+              {
+                "contractId": "l017.session.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l017.session.c3"
+                },
+                "id": "infer",
+                "label": "start fenced inference",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l017.session.c3"
+                }
+              },
+              {
+                "contractId": "l017.session.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l017.session.c4"
+                },
+                "id": "append",
+                "label": "append indexed token",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l017.session.c4"
+                }
+              },
+              {
+                "contractId": "l017.session.c5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l017.session.c5"
+                },
+                "id": "tail",
+                "label": "tail durable tokens",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l017.session.c5"
+                }
+              },
+              {
+                "contractId": "l017.session.c5",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l017.session.c5"
+                },
+                "id": "connect",
+                "label": "resume after cursor",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l017.session.c5"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l017.session.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l017.session.d0",
+                "id": "boundary",
+                "label": "Prompt API",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l017-session-boundary-binding-2",
+                "version": 1
+              },
+              {
+                "definitionId": "l017.session.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l017.session.d1",
+                "id": "state",
+                "label": "Conversation ledger",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l017.session.d2",
+                "id": "n2",
+                "label": "Model admission",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l017.session.d3",
+                "id": "n3",
+                "label": "Inference worker",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l017.session.d4",
+                "id": "n4",
+                "label": "Token journal",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l017.session.d5",
+                "id": "n5",
+                "label": "Stream gateway",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "session-s6",
+          "invariants": [
+            "Deliver only after durable cursor; bound queue bytes and close with resume instruction. State owner: Stream gateway (connection delivery cursor)."
+          ],
+          "number": 6,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l017.session.d5",
+                "id": "n5",
+                "label": "Stream gateway",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l017.session.c5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l017.session.c5"
+                },
+                "id": "tail",
+                "label": "tail durable tokens",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l017.session.c5"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l017.session.c5",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l017.session.c5"
+                },
+                "id": "connect",
+                "label": "resume after cursor",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l017.session.c5"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What if the browser is slow?",
+          "reason": "Deliver only after durable cursor; bound queue bytes and close with resume instruction.",
+          "title": "Stream gateway"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "cancel",
+            "gap",
+            "pressure"
+          ],
+          "explanation": "Advance generation epoch and reject late attempt writes; cancellation cannot erase already observed text. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l017.session.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l017.session.c0"
+                },
+                "id": "request",
+                "label": "submit token streaming chat",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l017.session.c0"
+                }
+              },
+              {
+                "contractId": "l017.session.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l017.session.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l017.session.c1"
+                }
+              },
+              {
+                "contractId": "l017.session.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l017.session.c2-control"
+                },
+                "id": "reserve",
+                "label": "reserve model capacity",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l017.session.c2"
+                }
+              },
+              {
+                "contractId": "l017.session.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l017.session.c3"
+                },
+                "id": "infer",
+                "label": "start fenced inference",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l017.session.c3"
+                }
+              },
+              {
+                "contractId": "l017.session.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l017.session.c4"
+                },
+                "id": "append",
+                "label": "append indexed token",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l017.session.c4"
+                }
+              },
+              {
+                "contractId": "l017.session.c5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l017.session.c5"
+                },
+                "id": "tail",
+                "label": "tail durable tokens",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l017.session.c5"
+                }
+              },
+              {
+                "contractId": "l017.session.c5",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l017.session.c5"
+                },
+                "id": "connect",
+                "label": "resume after cursor",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l017.session.c5"
+                }
+              },
+              {
+                "contractId": "l017.session.c6",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l017.session.c6"
+                },
+                "id": "cancel",
+                "label": "cancel generation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l017.session.c6"
+                }
+              },
+              {
+                "contractId": "l017.session.c6",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l017.session.c6"
+                },
+                "id": "fence",
+                "label": "fence late token writes",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l017.session.c6"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l017.session.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l017.session.d0",
+                "id": "boundary",
+                "label": "Prompt API",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l017-session-boundary-binding-2",
+                "version": 1
+              },
+              {
+                "definitionId": "l017.session.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l017.session.d1",
+                "id": "state",
+                "label": "Conversation ledger",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l017.session.d2",
+                "id": "n2",
+                "label": "Model admission",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l017.session.d3",
+                "id": "n3",
+                "label": "Inference worker",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l017.session.d4",
+                "id": "n4",
+                "label": "Token journal",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l017.session.d5",
+                "id": "n5",
+                "label": "Stream gateway",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l017.session.d6",
+                "id": "n6",
+                "label": "Cancel fence",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "session-s7",
+          "invariants": [
+            "Advance generation epoch and reject late attempt writes; cancellation cannot erase already observed text. State owner: Cancel fence (cancellation epoch)."
+          ],
+          "number": 7,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l017.session.d6",
+                "id": "n6",
+                "label": "Cancel fence",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l017.session.c6",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l017.session.c6"
+                },
+                "id": "cancel",
+                "label": "cancel generation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l017.session.c6"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l017.session.c6",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l017.session.c6"
+                },
+                "id": "fence",
+                "label": "fence late token writes",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l017.session.c6"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Does cancellation race a late token?",
+          "reason": "Advance generation epoch and reject late attempt writes; cancellation cannot erase already observed text.",
+          "title": "Cancel fence"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "cancel",
+            "gap",
+            "pressure"
+          ],
+          "explanation": "Return an explicit gap and final snapshot or regenerate under a new identity. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l017.session.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l017.session.c0"
+                },
+                "id": "request",
+                "label": "submit token streaming chat",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l017.session.c0"
+                }
+              },
+              {
+                "contractId": "l017.session.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l017.session.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l017.session.c1"
+                }
+              },
+              {
+                "contractId": "l017.session.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l017.session.c2-control"
+                },
+                "id": "reserve",
+                "label": "reserve model capacity",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l017.session.c2"
+                }
+              },
+              {
+                "contractId": "l017.session.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l017.session.c3"
+                },
+                "id": "infer",
+                "label": "start fenced inference",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l017.session.c3"
+                }
+              },
+              {
+                "contractId": "l017.session.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l017.session.c4"
+                },
+                "id": "append",
+                "label": "append indexed token",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l017.session.c4"
+                }
+              },
+              {
+                "contractId": "l017.session.c5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l017.session.c5"
+                },
+                "id": "tail",
+                "label": "tail durable tokens",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l017.session.c5"
+                }
+              },
+              {
+                "contractId": "l017.session.c5",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l017.session.c5"
+                },
+                "id": "connect",
+                "label": "resume after cursor",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l017.session.c5"
+                }
+              },
+              {
+                "contractId": "l017.session.c6",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l017.session.c6"
+                },
+                "id": "cancel",
+                "label": "cancel generation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l017.session.c6"
+                }
+              },
+              {
+                "contractId": "l017.session.c6",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l017.session.c6"
+                },
+                "id": "fence",
+                "label": "fence late token writes",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l017.session.c6"
+                }
+              },
+              {
+                "contractId": "l017.session.c7",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l017.session.c7"
+                },
+                "id": "recover",
+                "label": "check retained token floor",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l017.session.c7"
+                }
+              },
+              {
+                "contractId": "l017.session.c1",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l017.session.c1"
+                },
+                "id": "status",
+                "label": "read final generation state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l017.session.c1-state"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l017.session.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l017.session.d0",
+                "id": "boundary",
+                "label": "Prompt API",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l017-session-boundary-binding-3",
+                "version": 1
+              },
+              {
+                "definitionId": "l017.session.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l017.session.d1",
+                "id": "state",
+                "label": "Conversation ledger",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l017.session.d2",
+                "id": "n2",
+                "label": "Model admission",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l017.session.d3",
+                "id": "n3",
+                "label": "Inference worker",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l017.session.d4",
+                "id": "n4",
+                "label": "Token journal",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l017.session.d5",
+                "id": "n5",
+                "label": "Stream gateway",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l017.session.d6",
+                "id": "n6",
+                "label": "Cancel fence",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l017.session.d7",
+                "id": "n7",
+                "label": "Resume reconciler",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "session-s8",
+          "invariants": [
+            "Return an explicit gap and final snapshot or regenerate under a new identity. State owner: Resume reconciler (retention floor)."
+          ],
+          "number": 8,
+          "operations": [
+            {
+              "nodeId": "boundary",
+              "op": "rebind",
+              "reason": "Select a new immutable exposure binding before connecting the added responsibility; prior stage binding remains unchanged.",
+              "subsystemId": "l017-session-boundary-binding-3"
+            },
+            {
+              "node": {
+                "definitionId": "l017.session.d7",
+                "id": "n7",
+                "label": "Resume reconciler",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l017.session.c7",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l017.session.c7"
+                },
+                "id": "recover",
+                "label": "check retained token floor",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l017.session.c7"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l017.session.c1",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l017.session.c1"
+                },
+                "id": "status",
+                "label": "read final generation state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l017.session.c1-state"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What if history has expired?",
+          "reason": "Return an explicit gap and final snapshot or regenerate under a new identity.",
+          "title": "Resume reconciler"
+        }
+      ],
+      "title": "Connection gateway with durable token journal",
+      "tradeoffs": [
+        "Journaled tokens cost storage and I/O; gateways retain only bounded buffers."
+      ]
+    },
+    {
+      "acceptanceCases": [
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-01-mechanisms.test.mjs",
+            "testName": "L017 bounded mechanism"
+          },
+          "given": "A generation contains chunks 0 and 1 at epoch 4.",
+          "id": "mechanism",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "The duplicate index and stale token are rejected; resume after index 0 returns only existing chunk 1.",
+          "when": "Replay chunk 1, cancel by advancing epoch, then deliver chunk 2 from epoch 4."
+        },
+        {
+          "given": "Cancel is persisted while a remote activity is finishing.",
+          "id": "cancel",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Fence the commit and retain the canceled terminal state.",
+          "when": "Attempt a page commit with the old cancellation epoch."
+        },
+        {
+          "given": "The requested page cursor predates the compaction floor.",
+          "id": "gap",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Return gap and final status explicitly; duplicate indexes do not append twice.",
+          "when": "Poll after the stale index."
+        },
+        {
+          "given": "More inference activities arrive than capacity allows.",
+          "id": "pressure",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Queue within a fixed bound or reject with retry guidance before remote inference.",
+          "when": "Claim slots beyond the configured bound."
+        }
+      ],
+      "algorithms": [
+        {
+          "code": "if (chunk.epoch !== state.epoch || state.cancelled) return false;\nif (chunk.index !== state.tokens.length) return false;\nstate.tokens.push(chunk.text); return true;",
+          "guarantees": [
+            "The code states the bounded decision rule; unimplemented helpers remain pseudocode.",
+            "External effects, distributed failure and latency require separate execution evidence."
+          ],
+          "id": "bounded-rule",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "n3"
+        },
+        {
+          "code": "if (!workflow.isFinal(generationId)) return;\nconst snapshot = finalizeDigestAndStatus(generationId);\ncommitSnapshotBeforeTrimmingHistory(snapshot);\nrecordRetentionFloorBeforeDeletingPages(generationId);\n// Polling below the floor returns gap, not an empty successful page.",
+          "guarantees": [
+            "Compact finalized workflow state while preserving retention floor and explicit gap responses."
+          ],
+          "id": "recover",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "n7"
+        }
+      ],
+      "apis": [
+        {
+          "errors": "401 unauthenticated; 409 stale identity/version; 429 bounded capacity; 503 unavailable authority",
+          "method": "POST",
+          "ownerNodeId": "control",
+          "path": "/l017/pull",
+          "request": "{\"conversationId\":\"uuid\",\"commandId\":\"uuid\"}",
+          "response": "{\"generationId\":\"uuid\"}"
+        },
+        {
+          "errors": "403 unauthorized scope; 404 absent identity; 410 expired retained history",
+          "method": "GET",
+          "ownerNodeId": "state",
+          "path": "/l017/pull/state",
+          "request": "{\"generationId\":\"uuid\",\"event\":\"string\"}",
+          "response": "{\"sequence\":\"integer\"}"
+        }
+      ],
+      "assumptions": [
+        "The workflow records activity decisions, not private reasoning; remote inference may still be duplicated after uncertain failure."
+      ],
+      "chooseWhen": "Connections are intermittent and durable workflow orchestration already exists.",
+      "id": "pull",
+      "initialGraph": {
+        "edges": [],
+        "nodes": []
+      },
+      "stages": [
+        {
+          "checkIds": [
+            "mechanism",
+            "cancel",
+            "gap",
+            "pressure"
+          ],
+          "explanation": "Start a durable command keyed by conversation and command identity. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l017.pull.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l017.pull.c0"
+                },
+                "id": "request",
+                "label": "submit token streaming chat",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l017.pull.c0"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l017.pull.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l017.pull.d0",
+                "id": "boundary",
+                "label": "Generation workflow",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "pull-s1",
+          "invariants": [
+            "Start a durable command keyed by conversation and command identity. State owner: Generation workflow (workflow identity)."
+          ],
+          "number": 1,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l017.pull.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "l017.pull.d0",
+                "id": "boundary",
+                "label": "Generation workflow",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l017.pull.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l017.pull.c0"
+                },
+                "id": "request",
+                "label": "submit token streaming chat",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l017.pull.c0"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What constitutes one reply?",
+          "reason": "Start a durable command keyed by conversation and command identity.",
+          "title": "Generation workflow"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "cancel",
+            "gap",
+            "pressure"
+          ],
+          "explanation": "Expand workflow with journaled model activity decisions and cancellation versions. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l017.pull.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l017.pull.c0"
+                },
+                "id": "request",
+                "label": "submit token streaming chat",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l017.pull.c0"
+                }
+              },
+              {
+                "contractId": "l017.pull.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l017.pull.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l017.pull.c1"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l017.pull.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l017.pull.d0",
+                "id": "boundary",
+                "label": "Generation workflow",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l017-pull-boundary-binding-1",
+                "version": 1
+              },
+              {
+                "definitionId": "l017.pull.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l017.pull.d1",
+                "id": "state",
+                "label": "Workflow history",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "pull-s2",
+          "invariants": [
+            "Expand workflow with journaled model activity decisions and cancellation versions. State owner: Workflow history (workflow history)."
+          ],
+          "number": 2,
+          "operations": [
+            {
+              "edges": [
+                {
+                  "contractId": "l017.pull.c1",
+                  "from": {
+                    "nodeId": "control",
+                    "portId": "out-l017.pull.c1"
+                  },
+                  "id": "commit",
+                  "label": "commit versioned state",
+                  "mode": "storage",
+                  "to": {
+                    "nodeId": "state",
+                    "portId": "in-l017.pull.c1"
+                  }
+                }
+              ],
+              "nodeId": "boundary",
+              "nodes": [
+                {
+                  "definitionId": "l017.pull.control",
+                  "id": "control",
+                  "label": "Command control",
+                  "position": {
+                    "x": 560,
+                    "y": 0
+                  },
+                  "version": 1
+                },
+                {
+                  "definitionId": "l017.pull.d1",
+                  "id": "state",
+                  "label": "Workflow history",
+                  "position": {
+                    "x": 840,
+                    "y": 0
+                  },
+                  "version": 1
+                }
+              ],
+              "op": "expand",
+              "subsystemId": "l017-pull-boundary-binding-1"
+            }
+          ],
+          "question": "Which decisions replay?",
+          "reason": "Expand workflow with journaled model activity decisions and cancellation versions.",
+          "title": "Workflow history"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "cancel",
+            "gap",
+            "pressure"
+          ],
+          "explanation": "Dispatch retryable inference activities with stable attempt/fence identities. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l017.pull.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l017.pull.c0"
+                },
+                "id": "request",
+                "label": "submit token streaming chat",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l017.pull.c0"
+                }
+              },
+              {
+                "contractId": "l017.pull.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l017.pull.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l017.pull.c1"
+                }
+              },
+              {
+                "contractId": "l017.pull.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l017.pull.c2-control"
+                },
+                "id": "schedule",
+                "label": "schedule inference activity",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l017.pull.c2"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l017.pull.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l017.pull.d0",
+                "id": "boundary",
+                "label": "Generation workflow",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l017-pull-boundary-binding-2",
+                "version": 1
+              },
+              {
+                "definitionId": "l017.pull.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l017.pull.d1",
+                "id": "state",
+                "label": "Workflow history",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l017.pull.d2",
+                "id": "n2",
+                "label": "Activity queue",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "pull-s3",
+          "invariants": [
+            "Dispatch retryable inference activities with stable attempt/fence identities. State owner: Activity queue (activity leases)."
+          ],
+          "number": 3,
+          "operations": [
+            {
+              "nodeId": "boundary",
+              "op": "rebind",
+              "reason": "Select a new immutable exposure binding before connecting the added responsibility; prior stage binding remains unchanged.",
+              "subsystemId": "l017-pull-boundary-binding-2"
+            },
+            {
+              "node": {
+                "definitionId": "l017.pull.d2",
+                "id": "n2",
+                "label": "Activity queue",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l017.pull.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l017.pull.c2-control"
+                },
+                "id": "schedule",
+                "label": "schedule inference activity",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l017.pull.c2"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How is inference bounded?",
+          "reason": "Dispatch retryable inference activities with stable attempt/fence identities.",
+          "title": "Activity queue"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "cancel",
+            "gap",
+            "pressure"
+          ],
+          "explanation": "Persist tokens through a fenced append API; a new attempt cannot append to the prior prefix. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l017.pull.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l017.pull.c0"
+                },
+                "id": "request",
+                "label": "submit token streaming chat",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l017.pull.c0"
+                }
+              },
+              {
+                "contractId": "l017.pull.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l017.pull.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l017.pull.c1"
+                }
+              },
+              {
+                "contractId": "l017.pull.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l017.pull.c2-control"
+                },
+                "id": "schedule",
+                "label": "schedule inference activity",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l017.pull.c2"
+                }
+              },
+              {
+                "contractId": "l017.pull.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l017.pull.c3"
+                },
+                "id": "run",
+                "label": "run admitted generation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l017.pull.c3"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l017.pull.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l017.pull.d0",
+                "id": "boundary",
+                "label": "Generation workflow",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l017-pull-boundary-binding-2",
+                "version": 1
+              },
+              {
+                "definitionId": "l017.pull.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l017.pull.d1",
+                "id": "state",
+                "label": "Workflow history",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l017.pull.d2",
+                "id": "n2",
+                "label": "Activity queue",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l017.pull.d3",
+                "id": "n3",
+                "label": "Chunk producer",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "pull-s4",
+          "invariants": [
+            "Persist tokens through a fenced append API; a new attempt cannot append to the prior prefix. State owner: Chunk producer (token prefix identity)."
+          ],
+          "number": 4,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l017.pull.d3",
+                "id": "n3",
+                "label": "Chunk producer",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l017.pull.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l017.pull.c3"
+                },
+                "id": "run",
+                "label": "run admitted generation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l017.pull.c3"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can restarted activities corrupt output?",
+          "reason": "Persist tokens through a fenced append API; a new attempt cannot append to the prior prefix.",
+          "title": "Chunk producer"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "cancel",
+            "gap",
+            "pressure"
+          ],
+          "explanation": "Materialize immutable chunk pages and completion status under generation/version. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l017.pull.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l017.pull.c0"
+                },
+                "id": "request",
+                "label": "submit token streaming chat",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l017.pull.c0"
+                }
+              },
+              {
+                "contractId": "l017.pull.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l017.pull.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l017.pull.c1"
+                }
+              },
+              {
+                "contractId": "l017.pull.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l017.pull.c2-control"
+                },
+                "id": "schedule",
+                "label": "schedule inference activity",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l017.pull.c2"
+                }
+              },
+              {
+                "contractId": "l017.pull.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l017.pull.c3"
+                },
+                "id": "run",
+                "label": "run admitted generation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l017.pull.c3"
+                }
+              },
+              {
+                "contractId": "l017.pull.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l017.pull.c4"
+                },
+                "id": "materialize",
+                "label": "write immutable output page",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l017.pull.c4"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l017.pull.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l017.pull.d0",
+                "id": "boundary",
+                "label": "Generation workflow",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l017-pull-boundary-binding-2",
+                "version": 1
+              },
+              {
+                "definitionId": "l017.pull.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l017.pull.d1",
+                "id": "state",
+                "label": "Workflow history",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l017.pull.d2",
+                "id": "n2",
+                "label": "Activity queue",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l017.pull.d3",
+                "id": "n3",
+                "label": "Chunk producer",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l017.pull.d4",
+                "id": "n4",
+                "label": "Output pages",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "pull-s5",
+          "invariants": [
+            "Materialize immutable chunk pages and completion status under generation/version. State owner: Output pages (immutable chunk pages)."
+          ],
+          "number": 5,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l017.pull.d4",
+                "id": "n4",
+                "label": "Output pages",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l017.pull.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l017.pull.c4"
+                },
+                "id": "materialize",
+                "label": "write immutable output page",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l017.pull.c4"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What do readers fetch?",
+          "reason": "Materialize immutable chunk pages and completion status under generation/version.",
+          "title": "Output pages"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "cancel",
+            "gap",
+            "pressure"
+          ],
+          "explanation": "Poll after the last accepted index and discard duplicate indexes locally. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l017.pull.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l017.pull.c0"
+                },
+                "id": "request",
+                "label": "submit token streaming chat",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l017.pull.c0"
+                }
+              },
+              {
+                "contractId": "l017.pull.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l017.pull.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l017.pull.c1"
+                }
+              },
+              {
+                "contractId": "l017.pull.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l017.pull.c2-control"
+                },
+                "id": "schedule",
+                "label": "schedule inference activity",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l017.pull.c2"
+                }
+              },
+              {
+                "contractId": "l017.pull.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l017.pull.c3"
+                },
+                "id": "run",
+                "label": "run admitted generation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l017.pull.c3"
+                }
+              },
+              {
+                "contractId": "l017.pull.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l017.pull.c4"
+                },
+                "id": "materialize",
+                "label": "write immutable output page",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l017.pull.c4"
+                }
+              },
+              {
+                "contractId": "l017.pull.c5",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l017.pull.c5"
+                },
+                "id": "poll",
+                "label": "poll after token cursor",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l017.pull.c5"
+                }
+              },
+              {
+                "contractId": "l017.pull.c4",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l017.pull.c4"
+                },
+                "id": "pages",
+                "label": "read immutable page",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l017.pull.c4"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l017.pull.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l017.pull.d0",
+                "id": "boundary",
+                "label": "Generation workflow",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l017-pull-boundary-binding-2",
+                "version": 1
+              },
+              {
+                "definitionId": "l017.pull.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l017.pull.d1",
+                "id": "state",
+                "label": "Workflow history",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l017.pull.d2",
+                "id": "n2",
+                "label": "Activity queue",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l017.pull.d3",
+                "id": "n3",
+                "label": "Chunk producer",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l017.pull.d4",
+                "id": "n4",
+                "label": "Output pages",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l017.pull.d5",
+                "id": "n5",
+                "label": "Cursor reader",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "pull-s6",
+          "invariants": [
+            "Poll after the last accepted index and discard duplicate indexes locally. State owner: Cursor reader (reader cursor)."
+          ],
+          "number": 6,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l017.pull.d5",
+                "id": "n5",
+                "label": "Cursor reader",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l017.pull.c5",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l017.pull.c5"
+                },
+                "id": "poll",
+                "label": "poll after token cursor",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l017.pull.c5"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l017.pull.c4",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l017.pull.c4"
+                },
+                "id": "pages",
+                "label": "read immutable page",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l017.pull.c4"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How do clients avoid duplicate text?",
+          "reason": "Poll after the last accepted index and discard duplicate indexes locally.",
+          "title": "Cursor reader"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "cancel",
+            "gap",
+            "pressure"
+          ],
+          "explanation": "Persist cancellation before cancelling queued activities and fence late output commits. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l017.pull.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l017.pull.c0"
+                },
+                "id": "request",
+                "label": "submit token streaming chat",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l017.pull.c0"
+                }
+              },
+              {
+                "contractId": "l017.pull.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l017.pull.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l017.pull.c1"
+                }
+              },
+              {
+                "contractId": "l017.pull.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l017.pull.c2-control"
+                },
+                "id": "schedule",
+                "label": "schedule inference activity",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l017.pull.c2"
+                }
+              },
+              {
+                "contractId": "l017.pull.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l017.pull.c3"
+                },
+                "id": "run",
+                "label": "run admitted generation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l017.pull.c3"
+                }
+              },
+              {
+                "contractId": "l017.pull.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l017.pull.c4"
+                },
+                "id": "materialize",
+                "label": "write immutable output page",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l017.pull.c4"
+                }
+              },
+              {
+                "contractId": "l017.pull.c5",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l017.pull.c5"
+                },
+                "id": "poll",
+                "label": "poll after token cursor",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l017.pull.c5"
+                }
+              },
+              {
+                "contractId": "l017.pull.c4",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l017.pull.c4"
+                },
+                "id": "pages",
+                "label": "read immutable page",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l017.pull.c4"
+                }
+              },
+              {
+                "contractId": "l017.pull.c6",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l017.pull.c6"
+                },
+                "id": "signal",
+                "label": "signal cancellation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l017.pull.c6"
+                }
+              },
+              {
+                "contractId": "l017.pull.c6",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l017.pull.c6"
+                },
+                "id": "fence",
+                "label": "stop superseded activity",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l017.pull.c6"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l017.pull.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l017.pull.d0",
+                "id": "boundary",
+                "label": "Generation workflow",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l017-pull-boundary-binding-2",
+                "version": 1
+              },
+              {
+                "definitionId": "l017.pull.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l017.pull.d1",
+                "id": "state",
+                "label": "Workflow history",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l017.pull.d2",
+                "id": "n2",
+                "label": "Activity queue",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l017.pull.d3",
+                "id": "n3",
+                "label": "Chunk producer",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l017.pull.d4",
+                "id": "n4",
+                "label": "Output pages",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l017.pull.d5",
+                "id": "n5",
+                "label": "Cursor reader",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l017.pull.d6",
+                "id": "n6",
+                "label": "Cancellation signal",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "pull-s7",
+          "invariants": [
+            "Persist cancellation before cancelling queued activities and fence late output commits. State owner: Cancellation signal (cancellation epoch)."
+          ],
+          "number": 7,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l017.pull.d6",
+                "id": "n6",
+                "label": "Cancellation signal",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l017.pull.c6",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l017.pull.c6"
+                },
+                "id": "signal",
+                "label": "signal cancellation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l017.pull.c6"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l017.pull.c6",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l017.pull.c6"
+                },
+                "id": "fence",
+                "label": "stop superseded activity",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l017.pull.c6"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How is pending work stopped?",
+          "reason": "Persist cancellation before cancelling queued activities and fence late output commits.",
+          "title": "Cancellation signal"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "cancel",
+            "gap",
+            "pressure"
+          ],
+          "explanation": "Compact finalized workflow state while preserving retention floor and explicit gap responses. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l017.pull.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l017.pull.c0"
+                },
+                "id": "request",
+                "label": "submit token streaming chat",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l017.pull.c0"
+                }
+              },
+              {
+                "contractId": "l017.pull.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l017.pull.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l017.pull.c1"
+                }
+              },
+              {
+                "contractId": "l017.pull.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l017.pull.c2-control"
+                },
+                "id": "schedule",
+                "label": "schedule inference activity",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l017.pull.c2"
+                }
+              },
+              {
+                "contractId": "l017.pull.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l017.pull.c3"
+                },
+                "id": "run",
+                "label": "run admitted generation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l017.pull.c3"
+                }
+              },
+              {
+                "contractId": "l017.pull.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l017.pull.c4"
+                },
+                "id": "materialize",
+                "label": "write immutable output page",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l017.pull.c4"
+                }
+              },
+              {
+                "contractId": "l017.pull.c5",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l017.pull.c5"
+                },
+                "id": "poll",
+                "label": "poll after token cursor",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l017.pull.c5"
+                }
+              },
+              {
+                "contractId": "l017.pull.c4",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l017.pull.c4"
+                },
+                "id": "pages",
+                "label": "read immutable page",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l017.pull.c4"
+                }
+              },
+              {
+                "contractId": "l017.pull.c6",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l017.pull.c6"
+                },
+                "id": "signal",
+                "label": "signal cancellation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l017.pull.c6"
+                }
+              },
+              {
+                "contractId": "l017.pull.c6",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l017.pull.c6"
+                },
+                "id": "fence",
+                "label": "stop superseded activity",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l017.pull.c6"
+                }
+              },
+              {
+                "contractId": "l017.pull.c1",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l017.pull.c1"
+                },
+                "id": "compact",
+                "label": "compact finalized history",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l017.pull.c1-state"
+                }
+              },
+              {
+                "contractId": "l017.pull.c7",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l017.pull.c7"
+                },
+                "id": "retain",
+                "label": "record output retention floor",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l017.pull.c7"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l017.pull.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l017.pull.d0",
+                "id": "boundary",
+                "label": "Generation workflow",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l017-pull-boundary-binding-3",
+                "version": 1
+              },
+              {
+                "definitionId": "l017.pull.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l017.pull.d1",
+                "id": "state",
+                "label": "Workflow history",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l017.pull.d2",
+                "id": "n2",
+                "label": "Activity queue",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l017.pull.d3",
+                "id": "n3",
+                "label": "Chunk producer",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l017.pull.d4",
+                "id": "n4",
+                "label": "Output pages",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l017.pull.d5",
+                "id": "n5",
+                "label": "Cursor reader",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l017.pull.d6",
+                "id": "n6",
+                "label": "Cancellation signal",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l017.pull.d7",
+                "id": "n7",
+                "label": "History compactor",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "pull-s8",
+          "invariants": [
+            "Compact finalized workflow state while preserving retention floor and explicit gap responses. State owner: History compactor (retention floor and final digest)."
+          ],
+          "number": 8,
+          "operations": [
+            {
+              "nodeId": "boundary",
+              "op": "rebind",
+              "reason": "Select a new immutable exposure binding before connecting the added responsibility; prior stage binding remains unchanged.",
+              "subsystemId": "l017-pull-boundary-binding-3"
+            },
+            {
+              "node": {
+                "definitionId": "l017.pull.d7",
+                "id": "n7",
+                "label": "History compactor",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l017.pull.c1",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l017.pull.c1"
+                },
+                "id": "compact",
+                "label": "compact finalized history",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l017.pull.c1-state"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l017.pull.c7",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l017.pull.c7"
+                },
+                "id": "retain",
+                "label": "record output retention floor",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l017.pull.c7"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can pages disappear silently?",
+          "reason": "Compact finalized workflow state while preserving retention floor and explicit gap responses.",
+          "title": "History compactor"
+        }
+      ],
+      "title": "Durable generation workflow with cursor polling",
+      "tradeoffs": [
+        "Polling increases first-token delay; workflow histories need compaction and version management."
+      ]
+    }
+  ],
+  "subsystems": [
+    {
+      "definitionId": "l017.session.d0",
+      "id": "l017-session-boundary-binding-1",
+      "ports": [
+        {
+          "contractId": "l017.session.c0",
+          "direction": "in",
+          "id": "in-l017.session.c0",
+          "target": {
+            "nodeId": "control",
+            "portId": "in-l017.session.c0"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l017.session.d0",
+      "id": "l017-session-boundary-binding-2",
+      "ports": [
+        {
+          "contractId": "l017.session.c0",
+          "direction": "in",
+          "id": "in-l017.session.c0",
+          "target": {
+            "nodeId": "control",
+            "portId": "in-l017.session.c0"
+          }
+        },
+        {
+          "contractId": "l017.session.c2",
+          "direction": "out",
+          "id": "out-l017.session.c2-control",
+          "target": {
+            "nodeId": "control",
+            "portId": "out-l017.session.c2"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l017.session.d0",
+      "id": "l017-session-boundary-binding-3",
+      "ports": [
+        {
+          "contractId": "l017.session.c0",
+          "direction": "in",
+          "id": "in-l017.session.c0",
+          "target": {
+            "nodeId": "control",
+            "portId": "in-l017.session.c0"
+          }
+        },
+        {
+          "contractId": "l017.session.c2",
+          "direction": "out",
+          "id": "out-l017.session.c2-control",
+          "target": {
+            "nodeId": "control",
+            "portId": "out-l017.session.c2"
+          }
+        },
+        {
+          "contractId": "l017.session.c1",
+          "direction": "in",
+          "id": "in-l017.session.c1-state",
+          "target": {
+            "nodeId": "state",
+            "portId": "in-l017.session.c1"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l017.pull.d0",
+      "id": "l017-pull-boundary-binding-1",
+      "ports": [
+        {
+          "contractId": "l017.pull.c0",
+          "direction": "in",
+          "id": "in-l017.pull.c0",
+          "target": {
+            "nodeId": "control",
+            "portId": "in-l017.pull.c0"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l017.pull.d0",
+      "id": "l017-pull-boundary-binding-2",
+      "ports": [
+        {
+          "contractId": "l017.pull.c0",
+          "direction": "in",
+          "id": "in-l017.pull.c0",
+          "target": {
+            "nodeId": "control",
+            "portId": "in-l017.pull.c0"
+          }
+        },
+        {
+          "contractId": "l017.pull.c2",
+          "direction": "out",
+          "id": "out-l017.pull.c2-control",
+          "target": {
+            "nodeId": "control",
+            "portId": "out-l017.pull.c2"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l017.pull.d0",
+      "id": "l017-pull-boundary-binding-3",
+      "ports": [
+        {
+          "contractId": "l017.pull.c0",
+          "direction": "in",
+          "id": "in-l017.pull.c0",
+          "target": {
+            "nodeId": "control",
+            "portId": "in-l017.pull.c0"
+          }
+        },
+        {
+          "contractId": "l017.pull.c2",
+          "direction": "out",
+          "id": "out-l017.pull.c2-control",
+          "target": {
+            "nodeId": "control",
+            "portId": "out-l017.pull.c2"
+          }
+        },
+        {
+          "contractId": "l017.pull.c1",
+          "direction": "in",
+          "id": "in-l017.pull.c1-state",
+          "target": {
+            "nodeId": "state",
+            "portId": "in-l017.pull.c1"
+          }
+        }
+      ],
+      "version": 1
+    }
+  ],
+  "version": 1
+}

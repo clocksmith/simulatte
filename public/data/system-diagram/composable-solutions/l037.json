@@ -1,0 +1,3553 @@
+{
+  "components": [
+    {
+      "extends": {
+        "id": "core.client",
+        "version": 1
+      },
+      "id": "l037.avl-rope.caller",
+      "label": "Caller",
+      "ports": [
+        {
+          "contractId": "l037.avl-rope.command",
+          "direction": "out",
+          "id": "out-l037.avl-rope.command"
+        }
+      ],
+      "responsibility": "Invoke the documented API and retain returned outcomes.",
+      "stateOwnership": [
+        "caller-owned input"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l037.avl-rope.owner",
+      "label": "Rope facade",
+      "ports": [
+        {
+          "contractId": "l037.avl-rope.command",
+          "direction": "in",
+          "id": "in-l037.avl-rope.command"
+        },
+        {
+          "contractId": "l037.avl-rope.leaves",
+          "direction": "out",
+          "id": "out-l037.avl-rope.leaves"
+        }
+      ],
+      "responsibility": "Validate scalar ranges, split weighted tree and join bounded chunks; publish a new balanced root only after a successful edit.",
+      "stateOwnership": [
+        "current root",
+        "version"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l037.avl-rope.leaves",
+      "label": "Bounded leaf chunks",
+      "ports": [
+        {
+          "contractId": "l037.avl-rope.leaves",
+          "direction": "in",
+          "id": "in-l037.avl-rope.leaves"
+        },
+        {
+          "contractId": "l037.avl-rope.weights",
+          "direction": "out",
+          "id": "out-l037.avl-rope.weights"
+        }
+      ],
+      "responsibility": "Store at most B bytes per leaf, splitting on scalar boundaries; retain both byte and scalar length.",
+      "stateOwnership": [
+        "chunk bytes",
+        "scalar count"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l037.avl-rope.weights",
+      "label": "Weighted internal nodes",
+      "ports": [
+        {
+          "contractId": "l037.avl-rope.weights",
+          "direction": "in",
+          "id": "in-l037.avl-rope.weights"
+        },
+        {
+          "contractId": "l037.avl-rope.split",
+          "direction": "out",
+          "id": "out-l037.avl-rope.split"
+        }
+      ],
+      "responsibility": "Store left scalar weight and total subtree count; subtract left weight only when descending right.",
+      "stateOwnership": [
+        "left count",
+        "total count"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l037.avl-rope.split",
+      "label": "Weighted split",
+      "ports": [
+        {
+          "contractId": "l037.avl-rope.split",
+          "direction": "in",
+          "id": "in-l037.avl-rope.split"
+        },
+        {
+          "contractId": "l037.avl-rope.join",
+          "direction": "out",
+          "id": "out-l037.avl-rope.join"
+        }
+      ],
+      "responsibility": "Descend by weight, split at a valid scalar boundary, and reconstruct only nodes on the search path.",
+      "stateOwnership": [
+        "temporary left/right roots"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l037.avl-rope.join",
+      "label": "Height-aware join",
+      "ports": [
+        {
+          "contractId": "l037.avl-rope.join",
+          "direction": "in",
+          "id": "in-l037.avl-rope.join"
+        },
+        {
+          "contractId": "l037.avl-rope.rotations",
+          "direction": "out",
+          "id": "out-l037.avl-rope.rotations"
+        }
+      ],
+      "responsibility": "Join by descending the taller spine; allocate input chunks once and repair path metadata.",
+      "stateOwnership": [
+        "candidate root"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l037.avl-rope.rotations",
+      "label": "AVL repair",
+      "ports": [
+        {
+          "contractId": "l037.avl-rope.rotations",
+          "direction": "in",
+          "id": "in-l037.avl-rope.rotations"
+        },
+        {
+          "contractId": "l037.avl-rope.snapshots",
+          "direction": "out",
+          "id": "out-l037.avl-rope.snapshots"
+        }
+      ],
+      "responsibility": "Apply single or double rotations on repaired paths and recompute heights and weights bottom-up.",
+      "stateOwnership": [
+        "node heights"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l037.avl-rope.snapshots",
+      "label": "Pinned roots",
+      "ports": [
+        {
+          "contractId": "l037.avl-rope.snapshots",
+          "direction": "in",
+          "id": "in-l037.avl-rope.snapshots"
+        },
+        {
+          "contractId": "l037.avl-rope.reclaim",
+          "direction": "out",
+          "id": "out-l037.avl-rope.reclaim"
+        }
+      ],
+      "responsibility": "Immutable nodes retain old roots; publish the new root in one writer transition. Snapshots own root references.",
+      "stateOwnership": [
+        "root references",
+        "publication version"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l037.avl-rope.reclaim",
+      "label": "Chunk reclamation",
+      "ports": [
+        {
+          "contractId": "l037.avl-rope.reclaim",
+          "direction": "in",
+          "id": "in-l037.avl-rope.reclaim"
+        }
+      ],
+      "responsibility": "Detach a range structurally in logarithmic navigation work, then account separately for removed-node destruction and retained snapshots.",
+      "stateOwnership": [
+        "retired roots",
+        "live snapshot references"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.client",
+        "version": 1
+      },
+      "id": "l037.implicit-treap.caller",
+      "label": "Caller",
+      "ports": [
+        {
+          "contractId": "l037.implicit-treap.command",
+          "direction": "out",
+          "id": "out-l037.implicit-treap.command"
+        }
+      ],
+      "responsibility": "Invoke the documented API and retain returned outcomes.",
+      "stateOwnership": [
+        "caller-owned input"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l037.implicit-treap.owner",
+      "label": "Treap facade",
+      "ports": [
+        {
+          "contractId": "l037.implicit-treap.command",
+          "direction": "in",
+          "id": "in-l037.implicit-treap.command"
+        },
+        {
+          "contractId": "l037.implicit-treap.chunks",
+          "direction": "out",
+          "id": "out-l037.implicit-treap.chunks"
+        }
+      ],
+      "responsibility": "Use in-order position instead of explicit keys; heap priorities choose structure while subtree counts select positions.",
+      "stateOwnership": [
+        "root",
+        "priority generator state"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l037.implicit-treap.chunks",
+      "label": "Treap chunks",
+      "ports": [
+        {
+          "contractId": "l037.implicit-treap.chunks",
+          "direction": "in",
+          "id": "in-l037.implicit-treap.chunks"
+        },
+        {
+          "contractId": "l037.implicit-treap.sizes",
+          "direction": "out",
+          "id": "out-l037.implicit-treap.sizes"
+        }
+      ],
+      "responsibility": "Each treap node owns a bounded scalar chunk plus left/right children and a stable priority.",
+      "stateOwnership": [
+        "chunk",
+        "priority"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l037.implicit-treap.sizes",
+      "label": "Subtree totals",
+      "ports": [
+        {
+          "contractId": "l037.implicit-treap.sizes",
+          "direction": "in",
+          "id": "in-l037.implicit-treap.sizes"
+        },
+        {
+          "contractId": "l037.implicit-treap.partition",
+          "direction": "out",
+          "id": "out-l037.implicit-treap.partition"
+        }
+      ],
+      "responsibility": "Store total left/chunk/right scalar counts and repair after changing any child pointer.",
+      "stateOwnership": [
+        "cached subtree count"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l037.implicit-treap.partition",
+      "label": "Position split",
+      "ports": [
+        {
+          "contractId": "l037.implicit-treap.partition",
+          "direction": "in",
+          "id": "in-l037.implicit-treap.partition"
+        },
+        {
+          "contractId": "l037.implicit-treap.merge",
+          "direction": "out",
+          "id": "out-l037.implicit-treap.merge"
+        }
+      ],
+      "responsibility": "Split the chunk into two valid bounded chunks and merge each piece with its corresponding subtree using fresh ordered priorities.",
+      "stateOwnership": [
+        "temporary roots"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l037.implicit-treap.merge",
+      "label": "Priority merge",
+      "ports": [
+        {
+          "contractId": "l037.implicit-treap.merge",
+          "direction": "in",
+          "id": "in-l037.implicit-treap.merge"
+        },
+        {
+          "contractId": "l037.implicit-treap.edit",
+          "direction": "out",
+          "id": "out-l037.implicit-treap.edit"
+        }
+      ],
+      "responsibility": "Inputs represent consecutive text ranges. Select lower priority root and recursively merge only its touching child; repair counts.",
+      "stateOwnership": [
+        "candidate tree"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l037.implicit-treap.edit",
+      "label": "Range splice",
+      "ports": [
+        {
+          "contractId": "l037.implicit-treap.edit",
+          "direction": "in",
+          "id": "in-l037.implicit-treap.edit"
+        },
+        {
+          "contractId": "l037.implicit-treap.publication",
+          "direction": "out",
+          "id": "out-l037.implicit-treap.publication"
+        }
+      ],
+      "responsibility": "Insert splits once and merges input; delete splits twice and merges survivors. Read follows subtree ranks without changing root.",
+      "stateOwnership": [
+        "edit-local temporary roots"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l037.implicit-treap.publication",
+      "label": "Root publication",
+      "ports": [
+        {
+          "contractId": "l037.implicit-treap.publication",
+          "direction": "in",
+          "id": "in-l037.implicit-treap.publication"
+        },
+        {
+          "contractId": "l037.implicit-treap.depth",
+          "direction": "out",
+          "id": "out-l037.implicit-treap.depth"
+        }
+      ],
+      "responsibility": "Path-copy changed nodes and atomically publish a new immutable root under a single writer version check.",
+      "stateOwnership": [
+        "root version"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l037.implicit-treap.depth",
+      "label": "Height guard",
+      "ports": [
+        {
+          "contractId": "l037.implicit-treap.depth",
+          "direction": "in",
+          "id": "in-l037.implicit-treap.depth"
+        }
+      ],
+      "responsibility": "Track depth against a declared guard; rebuild with fresh priorities or reject the operation with old root intact. This is a fallback policy with explicit linear rebuild cost.",
+      "stateOwnership": [
+        "depth metric",
+        "rebuild generation"
+      ],
+      "version": 1
+    }
+  ],
+  "contracts": [
+    {
+      "id": "l037.avl-rope.command",
+      "request": {
+        "index": "scalar integer 0..length; read excludes length",
+        "length": "nonnegative scalar count for delete",
+        "operation": "read|insert|deleteRange",
+        "text": "UTF-8 string for insert"
+      },
+      "response": {
+        "mutation": "new version and scalar length",
+        "read": "one Unicode scalar"
+      },
+      "version": 1
+    },
+    {
+      "id": "l037.avl-rope.leaves",
+      "request": {
+        "maxBytes": "B",
+        "text": "validated UTF-8"
+      },
+      "response": {
+        "leaves": "bounded valid chunks"
+      },
+      "version": 1
+    },
+    {
+      "id": "l037.avl-rope.weights",
+      "request": {
+        "index": "scalar offset",
+        "node": "left/right children"
+      },
+      "response": {
+        "child": "selected subtree",
+        "offset": "relative index"
+      },
+      "version": 1
+    },
+    {
+      "id": "l037.avl-rope.split",
+      "request": {
+        "offset": "0..length",
+        "root": "balanced rope"
+      },
+      "response": {
+        "left": "prefix rope",
+        "right": "suffix rope"
+      },
+      "version": 1
+    },
+    {
+      "id": "l037.avl-rope.join",
+      "request": {
+        "left": "rope",
+        "right": "rope"
+      },
+      "response": {
+        "root": "joined rope"
+      },
+      "version": 1
+    },
+    {
+      "id": "l037.avl-rope.rotations",
+      "request": {
+        "node": "possibly unbalanced candidate"
+      },
+      "response": {
+        "root": "balanced candidate"
+      },
+      "version": 1
+    },
+    {
+      "id": "l037.avl-rope.snapshots",
+      "request": {
+        "candidate": "balanced root",
+        "expectedVersion": "integer"
+      },
+      "response": {
+        "published": "new root/version"
+      },
+      "version": 1
+    },
+    {
+      "id": "l037.avl-rope.reclaim",
+      "request": {
+        "retiredRoot": "detached subtree"
+      },
+      "response": {
+        "released": "unreferenced chunks"
+      },
+      "version": 1
+    },
+    {
+      "id": "l037.implicit-treap.command",
+      "request": {
+        "index": "scalar integer 0..length; read excludes length",
+        "length": "nonnegative scalar count for delete",
+        "operation": "read|insert|deleteRange",
+        "text": "UTF-8 string for insert"
+      },
+      "response": {
+        "mutation": "new version and scalar length",
+        "read": "one Unicode scalar"
+      },
+      "version": 1
+    },
+    {
+      "id": "l037.implicit-treap.chunks",
+      "request": {
+        "nodeId": "unique integer",
+        "priority": "random uint64",
+        "text": "scalar sequence"
+      },
+      "response": {
+        "node": "chunk treap node"
+      },
+      "version": 1
+    },
+    {
+      "id": "l037.implicit-treap.sizes",
+      "request": {
+        "node": "treap node"
+      },
+      "response": {
+        "count": "left+chunk+right"
+      },
+      "version": 1
+    },
+    {
+      "id": "l037.implicit-treap.partition",
+      "request": {
+        "rank": "0..count",
+        "root": "treap"
+      },
+      "response": {
+        "left": "prefix",
+        "right": "suffix"
+      },
+      "version": 1
+    },
+    {
+      "id": "l037.implicit-treap.merge",
+      "request": {
+        "left": "prefix tree",
+        "right": "suffix tree"
+      },
+      "response": {
+        "root": "merged tree"
+      },
+      "version": 1
+    },
+    {
+      "id": "l037.implicit-treap.edit",
+      "request": {
+        "index": "scalar rank",
+        "operation": "insert|delete|read"
+      },
+      "response": {
+        "result": "value or candidate root"
+      },
+      "version": 1
+    },
+    {
+      "id": "l037.implicit-treap.publication",
+      "request": {
+        "candidate": "new tree",
+        "expectedRoot": "pinned root"
+      },
+      "response": {
+        "version": "next integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l037.implicit-treap.depth",
+      "request": {
+        "candidate": "treap",
+        "maxDepth": "configured guard"
+      },
+      "response": {
+        "accepted": "boolean",
+        "rebuildCost": "visited node count"
+      },
+      "version": 1
+    }
+  ],
+  "execution": {
+    "implementation": null,
+    "kind": "conceptual-design"
+  },
+  "problem": {
+    "referenceId": "L037",
+    "requirements": [
+      {
+        "id": "r0",
+        "text": "Read, insert and delete preserve sequence order with checked half-open ranges and scalar indices."
+      },
+      {
+        "id": "r1",
+        "text": "Maintain subtree sizes and the chosen balance invariant after splits and joins."
+      },
+      {
+        "id": "r2",
+        "text": "Account for inserted bytes, removed-node reclamation, snapshots and invalid ranges without promising impossible O(log n) total copying."
+      }
+    ],
+    "scope": "Authored local data-structure study. Compare a height-balanced chunk rope with a randomized implicit treap. Positions count Unicode scalar values, not bytes or grapheme clusters. Insertion of m new characters costs at least O(m); deletion that frees m characters may also cost O(m). Sub-linear targets apply to indexed navigation and structural splicing, not input copying or reclamation.",
+    "studyLabel": "NewString: weighted ropes and implicit treaps"
+  },
+  "provenance": {
+    "kind": "authored-practice",
+    "note": "Authored interview preparation. Technical references support mechanisms, not the claim that a company asked this question."
+  },
+  "references": [
+    {
+      "id": "ref0",
+      "scope": "background",
+      "supports": "Segmented Unicode text and character-indexed operations. Balance and complexity below are authored design requirements.",
+      "title": "Ropey",
+      "url": "https://docs.rs/ropey/latest/ropey/"
+    }
+  ],
+  "schema": "simulatte.composableStudy.v2",
+  "solutions": [
+    {
+      "acceptanceCases": [
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-07-mechanisms.test.mjs",
+            "testName": "batch-07 rope: weighted split and splice match scalar arrays"
+          },
+          "given": "A rope containing a supplementary Unicode scalar and multiple chunks.",
+          "id": "behavior",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Flattened text matches the scalar-array oracle and cached subtree weights equal actual lengths.",
+          "when": "Split, insert and delete at every legal boundary."
+        },
+        {
+          "given": "Empty text, zero-length edits, end insertion and invalid range.",
+          "id": "boundary",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Boundary semantics are explicit; invalid edits fail before publishing; old snapshots remain unchanged.",
+          "when": "Apply each operation and retain a previously pinned root."
+        }
+      ],
+      "algorithms": [
+        {
+          "code": "insert(i,text) { checkInsertRange(i); [a,b]=split(root,i);\n middle=buildBalancedBoundedChunks(text);\n candidate=join(join(a,middle),b); assertWeightsAndAvl(candidate);\n publish(candidate); }\ndeleteRange(i,m) { checkRange(i,m); [a,tail]=split(root,i);\n [removed,b]=split(tail,m); publish(join(a,b)); retire(removed); }\nread(i) { checkReadRange(i); n=root; while(!n.leaf) {\n if(i<n.left.count)n=n.left; else {i-=n.left.count; n=n.right;} }\n return scalarAt(n.chunk,i); }",
+          "guarantees": [
+            "Navigation and path repair are O(log chunkCount) with enforced AVL balance; input and reclamation costs are additional."
+          ],
+          "id": "mechanism-0",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "owner"
+        }
+      ],
+      "apis": [
+        {
+          "errors": "RangeError invalid index/range; invalid text rejected by chosen encoding policy; allocation failure leaves old root intact",
+          "method": "CALL",
+          "ownerNodeId": "owner",
+          "path": "NewString.read/insert/deleteRange",
+          "request": "{\"operation\":\"read|insert|deleteRange\",\"index\":\"scalar integer 0..length; read excludes length\",\"text\":\"UTF-8 string for insert\",\"length\":\"nonnegative scalar count for delete\"}",
+          "response": "{\"read\":\"one Unicode scalar\",\"mutation\":\"new version and scalar length\"}"
+        }
+      ],
+      "assumptions": [
+        "One local writer or external writer lock; immutable nodes permit readers to pin a root. Chunk size B is bounded; byte/scalar conversion scans at most B bytes.",
+        "All added requirements and walkthroughs are authored practice. Graphs specify design; reference tests prove only named bounded mechanisms."
+      ],
+      "chooseWhen": "Worst-case logarithmic navigation and stable root snapshots matter.",
+      "id": "avl-rope",
+      "initialGraph": {
+        "edges": [],
+        "nodes": []
+      },
+      "stages": [
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l037.avl-rope.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l037.avl-rope.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l037.avl-rope.command"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l037.avl-rope.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l037.avl-rope.owner",
+                "id": "owner",
+                "label": "Rope facade",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "avl-rope-s1",
+          "invariants": [
+            "Every weight and public position counts the same Unicode scalar unit."
+          ],
+          "number": 1,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l037.avl-rope.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "l037.avl-rope.owner",
+                "id": "owner",
+                "label": "Rope facade",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l037.avl-rope.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l037.avl-rope.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l037.avl-rope.command"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What is the unit of an index?",
+          "reason": "Validate scalar ranges, split weighted tree and join bounded chunks; publish a new balanced root only after a successful edit.",
+          "title": "Expose Rope facade"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l037.avl-rope.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l037.avl-rope.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l037.avl-rope.command"
+                }
+              },
+              {
+                "contractId": "l037.avl-rope.leaves",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l037.avl-rope.leaves"
+                },
+                "id": "use-leaves",
+                "label": "Bound local scans",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "leaves",
+                  "portId": "in-l037.avl-rope.leaves"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l037.avl-rope.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l037.avl-rope.owner",
+                "id": "owner",
+                "label": "Rope facade",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l037.avl-rope.leaves",
+                "id": "leaves",
+                "label": "Bounded leaf chunks",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "avl-rope-s2",
+          "invariants": [
+            "No split creates invalid UTF-8."
+          ],
+          "number": 2,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l037.avl-rope.leaves",
+                "id": "leaves",
+                "label": "Bounded leaf chunks",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l037.avl-rope.leaves",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l037.avl-rope.leaves"
+                },
+                "id": "use-leaves",
+                "label": "Bound local scans",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "leaves",
+                  "portId": "in-l037.avl-rope.leaves"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can a single leaf grow without limit?",
+          "reason": "Store at most B bytes per leaf, splitting on scalar boundaries; retain both byte and scalar length.",
+          "title": "Bound local scans"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l037.avl-rope.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l037.avl-rope.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l037.avl-rope.command"
+                }
+              },
+              {
+                "contractId": "l037.avl-rope.leaves",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l037.avl-rope.leaves"
+                },
+                "id": "use-leaves",
+                "label": "Bound local scans",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "leaves",
+                  "portId": "in-l037.avl-rope.leaves"
+                }
+              },
+              {
+                "contractId": "l037.avl-rope.weights",
+                "from": {
+                  "nodeId": "leaves",
+                  "portId": "out-l037.avl-rope.weights"
+                },
+                "id": "use-weights",
+                "label": "Navigate by left weight",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "weights",
+                  "portId": "in-l037.avl-rope.weights"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l037.avl-rope.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l037.avl-rope.owner",
+                "id": "owner",
+                "label": "Rope facade",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l037.avl-rope.leaves",
+                "id": "leaves",
+                "label": "Bounded leaf chunks",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l037.avl-rope.weights",
+                "id": "weights",
+                "label": "Weighted internal nodes",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "avl-rope-s3",
+          "invariants": [
+            "Cached counts equal child totals after every structural operation."
+          ],
+          "number": 3,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l037.avl-rope.weights",
+                "id": "weights",
+                "label": "Weighted internal nodes",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l037.avl-rope.weights",
+                "from": {
+                  "nodeId": "leaves",
+                  "portId": "out-l037.avl-rope.weights"
+                },
+                "id": "use-weights",
+                "label": "Navigate by left weight",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "weights",
+                  "portId": "in-l037.avl-rope.weights"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Which side contains index i?",
+          "reason": "Store left scalar weight and total subtree count; subtract left weight only when descending right.",
+          "title": "Navigate by left weight"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l037.avl-rope.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l037.avl-rope.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l037.avl-rope.command"
+                }
+              },
+              {
+                "contractId": "l037.avl-rope.leaves",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l037.avl-rope.leaves"
+                },
+                "id": "use-leaves",
+                "label": "Bound local scans",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "leaves",
+                  "portId": "in-l037.avl-rope.leaves"
+                }
+              },
+              {
+                "contractId": "l037.avl-rope.weights",
+                "from": {
+                  "nodeId": "leaves",
+                  "portId": "out-l037.avl-rope.weights"
+                },
+                "id": "use-weights",
+                "label": "Navigate by left weight",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "weights",
+                  "portId": "in-l037.avl-rope.weights"
+                }
+              },
+              {
+                "contractId": "l037.avl-rope.split",
+                "from": {
+                  "nodeId": "weights",
+                  "portId": "out-l037.avl-rope.split"
+                },
+                "id": "use-split",
+                "label": "Split at an exact boundary",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "split",
+                  "portId": "in-l037.avl-rope.split"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l037.avl-rope.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l037.avl-rope.owner",
+                "id": "owner",
+                "label": "Rope facade",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l037.avl-rope.leaves",
+                "id": "leaves",
+                "label": "Bounded leaf chunks",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l037.avl-rope.weights",
+                "id": "weights",
+                "label": "Weighted internal nodes",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l037.avl-rope.split",
+                "id": "split",
+                "label": "Weighted split",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "avl-rope-s4",
+          "invariants": [
+            "concat(left,right) restores the original scalar sequence."
+          ],
+          "number": 4,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l037.avl-rope.split",
+                "id": "split",
+                "label": "Weighted split",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l037.avl-rope.split",
+                "from": {
+                  "nodeId": "weights",
+                  "portId": "out-l037.avl-rope.split"
+                },
+                "id": "use-split",
+                "label": "Split at an exact boundary",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "split",
+                  "portId": "in-l037.avl-rope.split"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What happens inside a chunk?",
+          "reason": "Descend by weight, split at a valid scalar boundary, and reconstruct only nodes on the search path.",
+          "title": "Split at an exact boundary"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l037.avl-rope.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l037.avl-rope.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l037.avl-rope.command"
+                }
+              },
+              {
+                "contractId": "l037.avl-rope.leaves",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l037.avl-rope.leaves"
+                },
+                "id": "use-leaves",
+                "label": "Bound local scans",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "leaves",
+                  "portId": "in-l037.avl-rope.leaves"
+                }
+              },
+              {
+                "contractId": "l037.avl-rope.weights",
+                "from": {
+                  "nodeId": "leaves",
+                  "portId": "out-l037.avl-rope.weights"
+                },
+                "id": "use-weights",
+                "label": "Navigate by left weight",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "weights",
+                  "portId": "in-l037.avl-rope.weights"
+                }
+              },
+              {
+                "contractId": "l037.avl-rope.split",
+                "from": {
+                  "nodeId": "weights",
+                  "portId": "out-l037.avl-rope.split"
+                },
+                "id": "use-split",
+                "label": "Split at an exact boundary",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "split",
+                  "portId": "in-l037.avl-rope.split"
+                }
+              },
+              {
+                "contractId": "l037.avl-rope.join",
+                "from": {
+                  "nodeId": "split",
+                  "portId": "out-l037.avl-rope.join"
+                },
+                "id": "use-join",
+                "label": "Splice without flattening",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "join",
+                  "portId": "in-l037.avl-rope.join"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l037.avl-rope.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l037.avl-rope.owner",
+                "id": "owner",
+                "label": "Rope facade",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l037.avl-rope.leaves",
+                "id": "leaves",
+                "label": "Bounded leaf chunks",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l037.avl-rope.weights",
+                "id": "weights",
+                "label": "Weighted internal nodes",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l037.avl-rope.split",
+                "id": "split",
+                "label": "Weighted split",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l037.avl-rope.join",
+                "id": "join",
+                "label": "Height-aware join",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "avl-rope-s5",
+          "invariants": [
+            "insert(i,s) equals join(prefix,s,suffix)."
+          ],
+          "number": 5,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l037.avl-rope.join",
+                "id": "join",
+                "label": "Height-aware join",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l037.avl-rope.join",
+                "from": {
+                  "nodeId": "split",
+                  "portId": "out-l037.avl-rope.join"
+                },
+                "id": "use-join",
+                "label": "Splice without flattening",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "join",
+                  "portId": "in-l037.avl-rope.join"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Must insert copy the existing text?",
+          "reason": "Join by descending the taller spine; allocate input chunks once and repair path metadata.",
+          "title": "Splice without flattening"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l037.avl-rope.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l037.avl-rope.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l037.avl-rope.command"
+                }
+              },
+              {
+                "contractId": "l037.avl-rope.leaves",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l037.avl-rope.leaves"
+                },
+                "id": "use-leaves",
+                "label": "Bound local scans",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "leaves",
+                  "portId": "in-l037.avl-rope.leaves"
+                }
+              },
+              {
+                "contractId": "l037.avl-rope.weights",
+                "from": {
+                  "nodeId": "leaves",
+                  "portId": "out-l037.avl-rope.weights"
+                },
+                "id": "use-weights",
+                "label": "Navigate by left weight",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "weights",
+                  "portId": "in-l037.avl-rope.weights"
+                }
+              },
+              {
+                "contractId": "l037.avl-rope.split",
+                "from": {
+                  "nodeId": "weights",
+                  "portId": "out-l037.avl-rope.split"
+                },
+                "id": "use-split",
+                "label": "Split at an exact boundary",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "split",
+                  "portId": "in-l037.avl-rope.split"
+                }
+              },
+              {
+                "contractId": "l037.avl-rope.join",
+                "from": {
+                  "nodeId": "split",
+                  "portId": "out-l037.avl-rope.join"
+                },
+                "id": "use-join",
+                "label": "Splice without flattening",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "join",
+                  "portId": "in-l037.avl-rope.join"
+                }
+              },
+              {
+                "contractId": "l037.avl-rope.rotations",
+                "from": {
+                  "nodeId": "join",
+                  "portId": "out-l037.avl-rope.rotations"
+                },
+                "id": "use-rotations",
+                "label": "Restore height balance",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "rotations",
+                  "portId": "in-l037.avl-rope.rotations"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l037.avl-rope.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l037.avl-rope.owner",
+                "id": "owner",
+                "label": "Rope facade",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l037.avl-rope.leaves",
+                "id": "leaves",
+                "label": "Bounded leaf chunks",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l037.avl-rope.weights",
+                "id": "weights",
+                "label": "Weighted internal nodes",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l037.avl-rope.split",
+                "id": "split",
+                "label": "Weighted split",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l037.avl-rope.join",
+                "id": "join",
+                "label": "Height-aware join",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l037.avl-rope.rotations",
+                "id": "rotations",
+                "label": "AVL repair",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "avl-rope-s6",
+          "invariants": [
+            "Absolute child-height difference is at most one after publication."
+          ],
+          "number": 6,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l037.avl-rope.rotations",
+                "id": "rotations",
+                "label": "AVL repair",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l037.avl-rope.rotations",
+                "from": {
+                  "nodeId": "join",
+                  "portId": "out-l037.avl-rope.rotations"
+                },
+                "id": "use-rotations",
+                "label": "Restore height balance",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "rotations",
+                  "portId": "in-l037.avl-rope.rotations"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can repeated front insertions create a linked list?",
+          "reason": "Apply single or double rotations on repaired paths and recompute heights and weights bottom-up.",
+          "title": "Restore height balance"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l037.avl-rope.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l037.avl-rope.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l037.avl-rope.command"
+                }
+              },
+              {
+                "contractId": "l037.avl-rope.leaves",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l037.avl-rope.leaves"
+                },
+                "id": "use-leaves",
+                "label": "Bound local scans",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "leaves",
+                  "portId": "in-l037.avl-rope.leaves"
+                }
+              },
+              {
+                "contractId": "l037.avl-rope.weights",
+                "from": {
+                  "nodeId": "leaves",
+                  "portId": "out-l037.avl-rope.weights"
+                },
+                "id": "use-weights",
+                "label": "Navigate by left weight",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "weights",
+                  "portId": "in-l037.avl-rope.weights"
+                }
+              },
+              {
+                "contractId": "l037.avl-rope.split",
+                "from": {
+                  "nodeId": "weights",
+                  "portId": "out-l037.avl-rope.split"
+                },
+                "id": "use-split",
+                "label": "Split at an exact boundary",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "split",
+                  "portId": "in-l037.avl-rope.split"
+                }
+              },
+              {
+                "contractId": "l037.avl-rope.join",
+                "from": {
+                  "nodeId": "split",
+                  "portId": "out-l037.avl-rope.join"
+                },
+                "id": "use-join",
+                "label": "Splice without flattening",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "join",
+                  "portId": "in-l037.avl-rope.join"
+                }
+              },
+              {
+                "contractId": "l037.avl-rope.rotations",
+                "from": {
+                  "nodeId": "join",
+                  "portId": "out-l037.avl-rope.rotations"
+                },
+                "id": "use-rotations",
+                "label": "Restore height balance",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "rotations",
+                  "portId": "in-l037.avl-rope.rotations"
+                }
+              },
+              {
+                "contractId": "l037.avl-rope.snapshots",
+                "from": {
+                  "nodeId": "rotations",
+                  "portId": "out-l037.avl-rope.snapshots"
+                },
+                "id": "use-snapshots",
+                "label": "Keep read snapshots stable",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "snapshots",
+                  "portId": "in-l037.avl-rope.snapshots"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l037.avl-rope.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l037.avl-rope.owner",
+                "id": "owner",
+                "label": "Rope facade",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l037.avl-rope.leaves",
+                "id": "leaves",
+                "label": "Bounded leaf chunks",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l037.avl-rope.weights",
+                "id": "weights",
+                "label": "Weighted internal nodes",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l037.avl-rope.split",
+                "id": "split",
+                "label": "Weighted split",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l037.avl-rope.join",
+                "id": "join",
+                "label": "Height-aware join",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l037.avl-rope.rotations",
+                "id": "rotations",
+                "label": "AVL repair",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l037.avl-rope.snapshots",
+                "id": "snapshots",
+                "label": "Pinned roots",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "avl-rope-s7",
+          "invariants": [
+            "Existing readers never observe partially repaired weights."
+          ],
+          "number": 7,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l037.avl-rope.snapshots",
+                "id": "snapshots",
+                "label": "Pinned roots",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l037.avl-rope.snapshots",
+                "from": {
+                  "nodeId": "rotations",
+                  "portId": "out-l037.avl-rope.snapshots"
+                },
+                "id": "use-snapshots",
+                "label": "Keep read snapshots stable",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "snapshots",
+                  "portId": "in-l037.avl-rope.snapshots"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can a reader see half an edit?",
+          "reason": "Immutable nodes retain old roots; publish the new root in one writer transition. Snapshots own root references.",
+          "title": "Keep read snapshots stable"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l037.avl-rope.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l037.avl-rope.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l037.avl-rope.command"
+                }
+              },
+              {
+                "contractId": "l037.avl-rope.leaves",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l037.avl-rope.leaves"
+                },
+                "id": "use-leaves",
+                "label": "Bound local scans",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "leaves",
+                  "portId": "in-l037.avl-rope.leaves"
+                }
+              },
+              {
+                "contractId": "l037.avl-rope.weights",
+                "from": {
+                  "nodeId": "leaves",
+                  "portId": "out-l037.avl-rope.weights"
+                },
+                "id": "use-weights",
+                "label": "Navigate by left weight",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "weights",
+                  "portId": "in-l037.avl-rope.weights"
+                }
+              },
+              {
+                "contractId": "l037.avl-rope.split",
+                "from": {
+                  "nodeId": "weights",
+                  "portId": "out-l037.avl-rope.split"
+                },
+                "id": "use-split",
+                "label": "Split at an exact boundary",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "split",
+                  "portId": "in-l037.avl-rope.split"
+                }
+              },
+              {
+                "contractId": "l037.avl-rope.join",
+                "from": {
+                  "nodeId": "split",
+                  "portId": "out-l037.avl-rope.join"
+                },
+                "id": "use-join",
+                "label": "Splice without flattening",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "join",
+                  "portId": "in-l037.avl-rope.join"
+                }
+              },
+              {
+                "contractId": "l037.avl-rope.rotations",
+                "from": {
+                  "nodeId": "join",
+                  "portId": "out-l037.avl-rope.rotations"
+                },
+                "id": "use-rotations",
+                "label": "Restore height balance",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "rotations",
+                  "portId": "in-l037.avl-rope.rotations"
+                }
+              },
+              {
+                "contractId": "l037.avl-rope.snapshots",
+                "from": {
+                  "nodeId": "rotations",
+                  "portId": "out-l037.avl-rope.snapshots"
+                },
+                "id": "use-snapshots",
+                "label": "Keep read snapshots stable",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "snapshots",
+                  "portId": "in-l037.avl-rope.snapshots"
+                }
+              },
+              {
+                "contractId": "l037.avl-rope.reclaim",
+                "from": {
+                  "nodeId": "snapshots",
+                  "portId": "out-l037.avl-rope.reclaim"
+                },
+                "id": "use-reclaim",
+                "label": "Account for edit costs",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "reclaim",
+                  "portId": "in-l037.avl-rope.reclaim"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l037.avl-rope.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l037.avl-rope.owner",
+                "id": "owner",
+                "label": "Rope facade",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l037.avl-rope.leaves",
+                "id": "leaves",
+                "label": "Bounded leaf chunks",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l037.avl-rope.weights",
+                "id": "weights",
+                "label": "Weighted internal nodes",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l037.avl-rope.split",
+                "id": "split",
+                "label": "Weighted split",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l037.avl-rope.join",
+                "id": "join",
+                "label": "Height-aware join",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l037.avl-rope.rotations",
+                "id": "rotations",
+                "label": "AVL repair",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l037.avl-rope.snapshots",
+                "id": "snapshots",
+                "label": "Pinned roots",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l037.avl-rope.reclaim",
+                "id": "reclaim",
+                "label": "Chunk reclamation",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "avl-rope-s8",
+          "invariants": [
+            "Reclamation cannot free nodes reachable from a pinned root."
+          ],
+          "number": 8,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l037.avl-rope.reclaim",
+                "id": "reclaim",
+                "label": "Chunk reclamation",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l037.avl-rope.reclaim",
+                "from": {
+                  "nodeId": "snapshots",
+                  "portId": "out-l037.avl-rope.reclaim"
+                },
+                "id": "use-reclaim",
+                "label": "Account for edit costs",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "reclaim",
+                  "portId": "in-l037.avl-rope.reclaim"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Does deleting a million characters cost O(log n) total?",
+          "reason": "Detach a range structurally in logarithmic navigation work, then account separately for removed-node destruction and retained snapshots.",
+          "title": "Account for edit costs"
+        }
+      ],
+      "title": "Height-balanced chunk rope with path copying",
+      "tradeoffs": [
+        "Height and weight repairs complicate split/join.",
+        "Path copying allocates O(log n) structure plus inserted chunks; reclaiming old snapshots needs a policy."
+      ]
+    },
+    {
+      "acceptanceCases": [
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-07-mechanisms.test.mjs",
+            "testName": "batch-07 rope: weighted split and splice match scalar arrays"
+          },
+          "given": "A rope containing a supplementary Unicode scalar and multiple chunks.",
+          "id": "behavior",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Flattened text matches the scalar-array oracle and cached subtree weights equal actual lengths.",
+          "when": "Split, insert and delete at every legal boundary."
+        },
+        {
+          "given": "Empty text, zero-length edits, end insertion and invalid range.",
+          "id": "boundary",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Boundary semantics are explicit; invalid edits fail before publishing; old snapshots remain unchanged.",
+          "when": "Apply each operation and retain a previously pinned root."
+        }
+      ],
+      "algorithms": [
+        {
+          "code": "count(n)=n?count(n.left)+n.chunk.scalarCount+count(n.right):0;\nmerge(a,b) { if(!a)return b; if(!b)return a;\n if(priority(a)<priority(b)) return copy(a,{right:merge(a.right,b)},recomputeCount);\n return copy(b,{left:merge(a,b.left)},recomputeCount); }\ninsert(i,s) { [a,b]=splitByCount(root,i); publish(merge(merge(a,buildChunks(s)),b)); }\ndeleteRange(i,m) { [a,t]=splitByCount(root,i); [gone,b]=splitByCount(t,m);\n publish(merge(a,b)); retire(gone); }",
+          "guarantees": [
+            "Expected O(log n) navigation under independent priorities; inserted length and freed nodes remain separate costs."
+          ],
+          "id": "mechanism-0",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "owner"
+        }
+      ],
+      "apis": [
+        {
+          "errors": "RangeError invalid index/range; invalid text rejected by chosen encoding policy; allocation failure leaves old root intact",
+          "method": "CALL",
+          "ownerNodeId": "owner",
+          "path": "NewString.read/insert/deleteRange",
+          "request": "{\"operation\":\"read|insert|deleteRange\",\"index\":\"scalar integer 0..length; read excludes length\",\"text\":\"UTF-8 string for insert\",\"length\":\"nonnegative scalar count for delete\"}",
+          "response": "{\"read\":\"one Unicode scalar\",\"mutation\":\"new version and scalar length\"}"
+        }
+      ],
+      "assumptions": [
+        "One local writer or external writer lock; immutable nodes permit readers to pin a root. Chunk size B is bounded; byte/scalar conversion scans at most B bytes.",
+        "All added requirements and walkthroughs are authored practice. Graphs specify design; reference tests prove only named bounded mechanisms."
+      ],
+      "chooseWhen": "Expected logarithmic edits and simpler split/merge code fit an owned random-seed policy.",
+      "id": "implicit-treap",
+      "initialGraph": {
+        "edges": [],
+        "nodes": []
+      },
+      "stages": [
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l037.implicit-treap.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l037.implicit-treap.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l037.implicit-treap.command"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l037.implicit-treap.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l037.implicit-treap.owner",
+                "id": "owner",
+                "label": "Treap facade",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "implicit-treap-s1",
+          "invariants": [
+            "In-order sequence defines position; priorities never define text order."
+          ],
+          "number": 1,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l037.implicit-treap.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "l037.implicit-treap.owner",
+                "id": "owner",
+                "label": "Treap facade",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l037.implicit-treap.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l037.implicit-treap.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l037.implicit-treap.command"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What replaces explicit character keys?",
+          "reason": "Use in-order position instead of explicit keys; heap priorities choose structure while subtree counts select positions.",
+          "title": "Expose Treap facade"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l037.implicit-treap.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l037.implicit-treap.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l037.implicit-treap.command"
+                }
+              },
+              {
+                "contractId": "l037.implicit-treap.chunks",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l037.implicit-treap.chunks"
+                },
+                "id": "use-chunks",
+                "label": "Store ordered text chunks",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "chunks",
+                  "portId": "in-l037.implicit-treap.chunks"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l037.implicit-treap.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l037.implicit-treap.owner",
+                "id": "owner",
+                "label": "Treap facade",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l037.implicit-treap.chunks",
+                "id": "chunks",
+                "label": "Treap chunks",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "implicit-treap-s2",
+          "invariants": [
+            "Priority collisions use a stable unique tie-breaker."
+          ],
+          "number": 2,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l037.implicit-treap.chunks",
+                "id": "chunks",
+                "label": "Treap chunks",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l037.implicit-treap.chunks",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l037.implicit-treap.chunks"
+                },
+                "id": "use-chunks",
+                "label": "Store ordered text chunks",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "chunks",
+                  "portId": "in-l037.implicit-treap.chunks"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Where are characters owned?",
+          "reason": "Each treap node owns a bounded scalar chunk plus left/right children and a stable priority.",
+          "title": "Store ordered text chunks"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l037.implicit-treap.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l037.implicit-treap.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l037.implicit-treap.command"
+                }
+              },
+              {
+                "contractId": "l037.implicit-treap.chunks",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l037.implicit-treap.chunks"
+                },
+                "id": "use-chunks",
+                "label": "Store ordered text chunks",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "chunks",
+                  "portId": "in-l037.implicit-treap.chunks"
+                }
+              },
+              {
+                "contractId": "l037.implicit-treap.sizes",
+                "from": {
+                  "nodeId": "chunks",
+                  "portId": "out-l037.implicit-treap.sizes"
+                },
+                "id": "use-sizes",
+                "label": "Maintain implicit positions",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "sizes",
+                  "portId": "in-l037.implicit-treap.sizes"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l037.implicit-treap.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l037.implicit-treap.owner",
+                "id": "owner",
+                "label": "Treap facade",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l037.implicit-treap.chunks",
+                "id": "chunks",
+                "label": "Treap chunks",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l037.implicit-treap.sizes",
+                "id": "sizes",
+                "label": "Subtree totals",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "implicit-treap-s3",
+          "invariants": [
+            "No edit renumbers untouched nodes."
+          ],
+          "number": 3,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l037.implicit-treap.sizes",
+                "id": "sizes",
+                "label": "Subtree totals",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l037.implicit-treap.sizes",
+                "from": {
+                  "nodeId": "chunks",
+                  "portId": "out-l037.implicit-treap.sizes"
+                },
+                "id": "use-sizes",
+                "label": "Maintain implicit positions",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "sizes",
+                  "portId": "in-l037.implicit-treap.sizes"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How does an offset avoid explicit renumbering?",
+          "reason": "Store total left/chunk/right scalar counts and repair after changing any child pointer.",
+          "title": "Maintain implicit positions"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l037.implicit-treap.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l037.implicit-treap.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l037.implicit-treap.command"
+                }
+              },
+              {
+                "contractId": "l037.implicit-treap.chunks",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l037.implicit-treap.chunks"
+                },
+                "id": "use-chunks",
+                "label": "Store ordered text chunks",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "chunks",
+                  "portId": "in-l037.implicit-treap.chunks"
+                }
+              },
+              {
+                "contractId": "l037.implicit-treap.sizes",
+                "from": {
+                  "nodeId": "chunks",
+                  "portId": "out-l037.implicit-treap.sizes"
+                },
+                "id": "use-sizes",
+                "label": "Maintain implicit positions",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "sizes",
+                  "portId": "in-l037.implicit-treap.sizes"
+                }
+              },
+              {
+                "contractId": "l037.implicit-treap.partition",
+                "from": {
+                  "nodeId": "sizes",
+                  "portId": "out-l037.implicit-treap.partition"
+                },
+                "id": "use-partition",
+                "label": "Partition by scalar rank",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "partition",
+                  "portId": "in-l037.implicit-treap.partition"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l037.implicit-treap.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l037.implicit-treap.owner",
+                "id": "owner",
+                "label": "Treap facade",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l037.implicit-treap.chunks",
+                "id": "chunks",
+                "label": "Treap chunks",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l037.implicit-treap.sizes",
+                "id": "sizes",
+                "label": "Subtree totals",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l037.implicit-treap.partition",
+                "id": "partition",
+                "label": "Position split",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "implicit-treap-s4",
+          "invariants": [
+            "The concatenation of split outputs preserves every scalar once."
+          ],
+          "number": 4,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l037.implicit-treap.partition",
+                "id": "partition",
+                "label": "Position split",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l037.implicit-treap.partition",
+                "from": {
+                  "nodeId": "sizes",
+                  "portId": "out-l037.implicit-treap.partition"
+                },
+                "id": "use-partition",
+                "label": "Partition by scalar rank",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "partition",
+                  "portId": "in-l037.implicit-treap.partition"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How is an offset inside a node handled?",
+          "reason": "Split the chunk into two valid bounded chunks and merge each piece with its corresponding subtree using fresh ordered priorities.",
+          "title": "Partition by scalar rank"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l037.implicit-treap.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l037.implicit-treap.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l037.implicit-treap.command"
+                }
+              },
+              {
+                "contractId": "l037.implicit-treap.chunks",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l037.implicit-treap.chunks"
+                },
+                "id": "use-chunks",
+                "label": "Store ordered text chunks",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "chunks",
+                  "portId": "in-l037.implicit-treap.chunks"
+                }
+              },
+              {
+                "contractId": "l037.implicit-treap.sizes",
+                "from": {
+                  "nodeId": "chunks",
+                  "portId": "out-l037.implicit-treap.sizes"
+                },
+                "id": "use-sizes",
+                "label": "Maintain implicit positions",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "sizes",
+                  "portId": "in-l037.implicit-treap.sizes"
+                }
+              },
+              {
+                "contractId": "l037.implicit-treap.partition",
+                "from": {
+                  "nodeId": "sizes",
+                  "portId": "out-l037.implicit-treap.partition"
+                },
+                "id": "use-partition",
+                "label": "Partition by scalar rank",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "partition",
+                  "portId": "in-l037.implicit-treap.partition"
+                }
+              },
+              {
+                "contractId": "l037.implicit-treap.merge",
+                "from": {
+                  "nodeId": "partition",
+                  "portId": "out-l037.implicit-treap.merge"
+                },
+                "id": "use-merge",
+                "label": "Join adjacent sequences",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "merge",
+                  "portId": "in-l037.implicit-treap.merge"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l037.implicit-treap.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l037.implicit-treap.owner",
+                "id": "owner",
+                "label": "Treap facade",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l037.implicit-treap.chunks",
+                "id": "chunks",
+                "label": "Treap chunks",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l037.implicit-treap.sizes",
+                "id": "sizes",
+                "label": "Subtree totals",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l037.implicit-treap.partition",
+                "id": "partition",
+                "label": "Position split",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l037.implicit-treap.merge",
+                "id": "merge",
+                "label": "Priority merge",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "implicit-treap-s5",
+          "invariants": [
+            "Heap ordering and in-order text both survive merge."
+          ],
+          "number": 5,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l037.implicit-treap.merge",
+                "id": "merge",
+                "label": "Priority merge",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l037.implicit-treap.merge",
+                "from": {
+                  "nodeId": "partition",
+                  "portId": "out-l037.implicit-treap.merge"
+                },
+                "id": "use-merge",
+                "label": "Join adjacent sequences",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "merge",
+                  "portId": "in-l037.implicit-treap.merge"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Why may arbitrary trees not be merged by key?",
+          "reason": "Inputs represent consecutive text ranges. Select lower priority root and recursively merge only its touching child; repair counts.",
+          "title": "Join adjacent sequences"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l037.implicit-treap.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l037.implicit-treap.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l037.implicit-treap.command"
+                }
+              },
+              {
+                "contractId": "l037.implicit-treap.chunks",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l037.implicit-treap.chunks"
+                },
+                "id": "use-chunks",
+                "label": "Store ordered text chunks",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "chunks",
+                  "portId": "in-l037.implicit-treap.chunks"
+                }
+              },
+              {
+                "contractId": "l037.implicit-treap.sizes",
+                "from": {
+                  "nodeId": "chunks",
+                  "portId": "out-l037.implicit-treap.sizes"
+                },
+                "id": "use-sizes",
+                "label": "Maintain implicit positions",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "sizes",
+                  "portId": "in-l037.implicit-treap.sizes"
+                }
+              },
+              {
+                "contractId": "l037.implicit-treap.partition",
+                "from": {
+                  "nodeId": "sizes",
+                  "portId": "out-l037.implicit-treap.partition"
+                },
+                "id": "use-partition",
+                "label": "Partition by scalar rank",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "partition",
+                  "portId": "in-l037.implicit-treap.partition"
+                }
+              },
+              {
+                "contractId": "l037.implicit-treap.merge",
+                "from": {
+                  "nodeId": "partition",
+                  "portId": "out-l037.implicit-treap.merge"
+                },
+                "id": "use-merge",
+                "label": "Join adjacent sequences",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "merge",
+                  "portId": "in-l037.implicit-treap.merge"
+                }
+              },
+              {
+                "contractId": "l037.implicit-treap.edit",
+                "from": {
+                  "nodeId": "merge",
+                  "portId": "out-l037.implicit-treap.edit"
+                },
+                "id": "use-edit",
+                "label": "Implement edit algebra",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "edit",
+                  "portId": "in-l037.implicit-treap.edit"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l037.implicit-treap.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l037.implicit-treap.owner",
+                "id": "owner",
+                "label": "Treap facade",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l037.implicit-treap.chunks",
+                "id": "chunks",
+                "label": "Treap chunks",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l037.implicit-treap.sizes",
+                "id": "sizes",
+                "label": "Subtree totals",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l037.implicit-treap.partition",
+                "id": "partition",
+                "label": "Position split",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l037.implicit-treap.merge",
+                "id": "merge",
+                "label": "Priority merge",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l037.implicit-treap.edit",
+                "id": "edit",
+                "label": "Range splice",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "implicit-treap-s6",
+          "invariants": [
+            "No existing node priority changes merely because its index shifted."
+          ],
+          "number": 6,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l037.implicit-treap.edit",
+                "id": "edit",
+                "label": "Range splice",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l037.implicit-treap.edit",
+                "from": {
+                  "nodeId": "merge",
+                  "portId": "out-l037.implicit-treap.edit"
+                },
+                "id": "use-edit",
+                "label": "Implement edit algebra",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "edit",
+                  "portId": "in-l037.implicit-treap.edit"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How are read and delete related to split?",
+          "reason": "Insert splits once and merges input; delete splits twice and merges survivors. Read follows subtree ranks without changing root.",
+          "title": "Implement edit algebra"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l037.implicit-treap.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l037.implicit-treap.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l037.implicit-treap.command"
+                }
+              },
+              {
+                "contractId": "l037.implicit-treap.chunks",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l037.implicit-treap.chunks"
+                },
+                "id": "use-chunks",
+                "label": "Store ordered text chunks",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "chunks",
+                  "portId": "in-l037.implicit-treap.chunks"
+                }
+              },
+              {
+                "contractId": "l037.implicit-treap.sizes",
+                "from": {
+                  "nodeId": "chunks",
+                  "portId": "out-l037.implicit-treap.sizes"
+                },
+                "id": "use-sizes",
+                "label": "Maintain implicit positions",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "sizes",
+                  "portId": "in-l037.implicit-treap.sizes"
+                }
+              },
+              {
+                "contractId": "l037.implicit-treap.partition",
+                "from": {
+                  "nodeId": "sizes",
+                  "portId": "out-l037.implicit-treap.partition"
+                },
+                "id": "use-partition",
+                "label": "Partition by scalar rank",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "partition",
+                  "portId": "in-l037.implicit-treap.partition"
+                }
+              },
+              {
+                "contractId": "l037.implicit-treap.merge",
+                "from": {
+                  "nodeId": "partition",
+                  "portId": "out-l037.implicit-treap.merge"
+                },
+                "id": "use-merge",
+                "label": "Join adjacent sequences",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "merge",
+                  "portId": "in-l037.implicit-treap.merge"
+                }
+              },
+              {
+                "contractId": "l037.implicit-treap.edit",
+                "from": {
+                  "nodeId": "merge",
+                  "portId": "out-l037.implicit-treap.edit"
+                },
+                "id": "use-edit",
+                "label": "Implement edit algebra",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "edit",
+                  "portId": "in-l037.implicit-treap.edit"
+                }
+              },
+              {
+                "contractId": "l037.implicit-treap.publication",
+                "from": {
+                  "nodeId": "edit",
+                  "portId": "out-l037.implicit-treap.publication"
+                },
+                "id": "use-publication",
+                "label": "Isolate readers from mutation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "publication",
+                  "portId": "in-l037.implicit-treap.publication"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l037.implicit-treap.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l037.implicit-treap.owner",
+                "id": "owner",
+                "label": "Treap facade",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l037.implicit-treap.chunks",
+                "id": "chunks",
+                "label": "Treap chunks",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l037.implicit-treap.sizes",
+                "id": "sizes",
+                "label": "Subtree totals",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l037.implicit-treap.partition",
+                "id": "partition",
+                "label": "Position split",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l037.implicit-treap.merge",
+                "id": "merge",
+                "label": "Priority merge",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l037.implicit-treap.edit",
+                "id": "edit",
+                "label": "Range splice",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l037.implicit-treap.publication",
+                "id": "publication",
+                "label": "Root publication",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "implicit-treap-s7",
+          "invariants": [
+            "Writer conflicts retry from a new root; no partially edited path is public."
+          ],
+          "number": 7,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l037.implicit-treap.publication",
+                "id": "publication",
+                "label": "Root publication",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l037.implicit-treap.publication",
+                "from": {
+                  "nodeId": "edit",
+                  "portId": "out-l037.implicit-treap.publication"
+                },
+                "id": "use-publication",
+                "label": "Isolate readers from mutation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "publication",
+                  "portId": "in-l037.implicit-treap.publication"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can a concurrent reader follow a changed pointer?",
+          "reason": "Path-copy changed nodes and atomically publish a new immutable root under a single writer version check.",
+          "title": "Isolate readers from mutation"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l037.implicit-treap.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l037.implicit-treap.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l037.implicit-treap.command"
+                }
+              },
+              {
+                "contractId": "l037.implicit-treap.chunks",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l037.implicit-treap.chunks"
+                },
+                "id": "use-chunks",
+                "label": "Store ordered text chunks",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "chunks",
+                  "portId": "in-l037.implicit-treap.chunks"
+                }
+              },
+              {
+                "contractId": "l037.implicit-treap.sizes",
+                "from": {
+                  "nodeId": "chunks",
+                  "portId": "out-l037.implicit-treap.sizes"
+                },
+                "id": "use-sizes",
+                "label": "Maintain implicit positions",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "sizes",
+                  "portId": "in-l037.implicit-treap.sizes"
+                }
+              },
+              {
+                "contractId": "l037.implicit-treap.partition",
+                "from": {
+                  "nodeId": "sizes",
+                  "portId": "out-l037.implicit-treap.partition"
+                },
+                "id": "use-partition",
+                "label": "Partition by scalar rank",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "partition",
+                  "portId": "in-l037.implicit-treap.partition"
+                }
+              },
+              {
+                "contractId": "l037.implicit-treap.merge",
+                "from": {
+                  "nodeId": "partition",
+                  "portId": "out-l037.implicit-treap.merge"
+                },
+                "id": "use-merge",
+                "label": "Join adjacent sequences",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "merge",
+                  "portId": "in-l037.implicit-treap.merge"
+                }
+              },
+              {
+                "contractId": "l037.implicit-treap.edit",
+                "from": {
+                  "nodeId": "merge",
+                  "portId": "out-l037.implicit-treap.edit"
+                },
+                "id": "use-edit",
+                "label": "Implement edit algebra",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "edit",
+                  "portId": "in-l037.implicit-treap.edit"
+                }
+              },
+              {
+                "contractId": "l037.implicit-treap.publication",
+                "from": {
+                  "nodeId": "edit",
+                  "portId": "out-l037.implicit-treap.publication"
+                },
+                "id": "use-publication",
+                "label": "Isolate readers from mutation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "publication",
+                  "portId": "in-l037.implicit-treap.publication"
+                }
+              },
+              {
+                "contractId": "l037.implicit-treap.depth",
+                "from": {
+                  "nodeId": "publication",
+                  "portId": "out-l037.implicit-treap.depth"
+                },
+                "id": "use-depth",
+                "label": "Handle pathological priorities",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "depth",
+                  "portId": "in-l037.implicit-treap.depth"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l037.implicit-treap.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l037.implicit-treap.owner",
+                "id": "owner",
+                "label": "Treap facade",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l037.implicit-treap.chunks",
+                "id": "chunks",
+                "label": "Treap chunks",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l037.implicit-treap.sizes",
+                "id": "sizes",
+                "label": "Subtree totals",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l037.implicit-treap.partition",
+                "id": "partition",
+                "label": "Position split",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l037.implicit-treap.merge",
+                "id": "merge",
+                "label": "Priority merge",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l037.implicit-treap.edit",
+                "id": "edit",
+                "label": "Range splice",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l037.implicit-treap.publication",
+                "id": "publication",
+                "label": "Root publication",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l037.implicit-treap.depth",
+                "id": "depth",
+                "label": "Height guard",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "implicit-treap-s8",
+          "invariants": [
+            "Expected complexity is not reported as a worst-case bound."
+          ],
+          "number": 8,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l037.implicit-treap.depth",
+                "id": "depth",
+                "label": "Height guard",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l037.implicit-treap.depth",
+                "from": {
+                  "nodeId": "publication",
+                  "portId": "out-l037.implicit-treap.depth"
+                },
+                "id": "use-depth",
+                "label": "Handle pathological priorities",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "depth",
+                  "portId": "in-l037.implicit-treap.depth"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What if the random tree becomes deep?",
+          "reason": "Track depth against a declared guard; rebuild with fresh priorities or reject the operation with old root intact. This is a fallback policy with explicit linear rebuild cost.",
+          "title": "Handle pathological priorities"
+        }
+      ],
+      "title": "Implicit treap with subtree counts",
+      "tradeoffs": [
+        "Worst-case depth is linear; expected bounds assume independent priorities.",
+        "A public deterministic seed is reproducible but permits adversarial priority patterns; production needs protected randomness or a height guard."
+      ]
+    }
+  ],
+  "subsystems": [],
+  "version": 1
+}

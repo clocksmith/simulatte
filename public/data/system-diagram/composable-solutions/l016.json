@@ -1,0 +1,4036 @@
+{
+  "components": [
+    {
+      "extends": {
+        "id": "core.client",
+        "version": 1
+      },
+      "id": "l016.cache-aside.caller",
+      "label": "Caller",
+      "ports": [
+        {
+          "contractId": "l016.cache-aside.command",
+          "direction": "out",
+          "id": "out-l016.cache-aside.command"
+        }
+      ],
+      "responsibility": "Submit the declared operation with stable identity and observe explicit completion.",
+      "stateOwnership": [
+        "caller request and retry identity"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l016.cache-aside.system",
+      "label": "Cache-aside API and job outbox",
+      "ports": [
+        {
+          "contractId": "l016.cache-aside.command",
+          "direction": "in",
+          "id": "in-l016.cache-aside.command"
+        },
+        {
+          "contractId": "l016.cache-aside.step3",
+          "direction": "out",
+          "id": "out-l016.cache-aside.step3-engine"
+        },
+        {
+          "contractId": "l016.cache-aside.step5",
+          "direction": "out",
+          "id": "out-l016.cache-aside.step5-engine"
+        },
+        {
+          "contractId": "l016.cache-aside.step8",
+          "direction": "out",
+          "id": "out-l016.cache-aside.step8-engine"
+        }
+      ],
+      "responsibility": "Preserve this stable boundary while refining its ownership and contracts.",
+      "stateOwnership": [
+        "logical operation state"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l016.cache-aside.engine",
+      "label": "Stateless API",
+      "ports": [
+        {
+          "contractId": "l016.cache-aside.command",
+          "direction": "out",
+          "id": "out-l016.cache-aside.command"
+        },
+        {
+          "contractId": "l016.cache-aside.command",
+          "direction": "in",
+          "id": "in-l016.cache-aside.command"
+        },
+        {
+          "contractId": "l016.cache-aside.step3",
+          "direction": "out",
+          "id": "out-l016.cache-aside.step3"
+        },
+        {
+          "contractId": "l016.cache-aside.step5",
+          "direction": "out",
+          "id": "out-l016.cache-aside.step5"
+        },
+        {
+          "contractId": "l016.cache-aside.step8",
+          "direction": "out",
+          "id": "out-l016.cache-aside.step8"
+        }
+      ],
+      "responsibility": "Authorize requests and commit versioned updates at one write authority.",
+      "stateOwnership": [
+        "request context"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l016.cache-aside.state",
+      "label": "Primary database",
+      "ports": [
+        {
+          "contractId": "l016.cache-aside.command",
+          "direction": "in",
+          "id": "in-l016.cache-aside.command"
+        }
+      ],
+      "responsibility": "Own records, versions and durable job intent.",
+      "stateOwnership": [
+        "object rows and job keys"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.cache",
+        "version": 1
+      },
+      "id": "l016.cache-aside.n3",
+      "label": "Versioned read cache",
+      "ports": [
+        {
+          "contractId": "l016.cache-aside.step3",
+          "direction": "in",
+          "id": "in-l016.cache-aside.step3"
+        },
+        {
+          "contractId": "l016.cache-aside.step4",
+          "direction": "out",
+          "id": "out-l016.cache-aside.step4"
+        }
+      ],
+      "responsibility": "Read a versioned cached value or fill from authority; updates invalidate after commit with bounded TTL.",
+      "stateOwnership": [
+        "resourceId, version, ttlMs"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l016.cache-aside.n4",
+      "label": "Replica reader",
+      "ports": [
+        {
+          "contractId": "l016.cache-aside.step4",
+          "direction": "in",
+          "id": "in-l016.cache-aside.step4"
+        }
+      ],
+      "responsibility": "Serve only reads whose required version is available; route stronger reads to primary.",
+      "stateOwnership": [
+        "minimumVersion, appliedVersion"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l016.cache-aside.n5",
+      "label": "Job outbox",
+      "ports": [
+        {
+          "contractId": "l016.cache-aside.step5",
+          "direction": "in",
+          "id": "in-l016.cache-aside.step5"
+        },
+        {
+          "contractId": "l016.cache-aside.step6",
+          "direction": "out",
+          "id": "out-l016.cache-aside.step6"
+        }
+      ],
+      "responsibility": "Insert job identity and input hash with the business transaction before returning accepted.",
+      "stateOwnership": [
+        "jobId, inputHash"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "l016.cache-aside.n6",
+      "label": "Leased worker",
+      "ports": [
+        {
+          "contractId": "l016.cache-aside.step6",
+          "direction": "in",
+          "id": "in-l016.cache-aside.step6"
+        },
+        {
+          "contractId": "l016.cache-aside.step7",
+          "direction": "out",
+          "id": "out-l016.cache-aside.step7"
+        }
+      ],
+      "responsibility": "Claim bounded work, run with a lease epoch, and retain the original job ID on retry.",
+      "stateOwnership": [
+        "jobId, leaseEpoch"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l016.cache-aside.n7",
+      "label": "Idempotent result",
+      "ports": [
+        {
+          "contractId": "l016.cache-aside.step7",
+          "direction": "in",
+          "id": "in-l016.cache-aside.step7"
+        }
+      ],
+      "responsibility": "Commit one result identity per job and model external effects with their own deduplication contract.",
+      "stateOwnership": [
+        "jobId, resultHash"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l016.cache-aside.n8",
+      "label": "Admission budget",
+      "ports": [
+        {
+          "contractId": "l016.cache-aside.step8",
+          "direction": "in",
+          "id": "in-l016.cache-aside.step8"
+        }
+      ],
+      "responsibility": "Reject or defer when per-tenant queued work or database concurrency reaches its declared bound.",
+      "stateOwnership": [
+        "tenantId, queued, limit"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.client",
+        "version": 1
+      },
+      "id": "l016.cqrs.caller",
+      "label": "Caller",
+      "ports": [
+        {
+          "contractId": "l016.cqrs.command",
+          "direction": "out",
+          "id": "out-l016.cqrs.command"
+        }
+      ],
+      "responsibility": "Submit the declared operation with stable identity and observe explicit completion.",
+      "stateOwnership": [
+        "caller request and retry identity"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l016.cqrs.system",
+      "label": "Command log and materialized reads",
+      "ports": [
+        {
+          "contractId": "l016.cqrs.command",
+          "direction": "in",
+          "id": "in-l016.cqrs.command"
+        },
+        {
+          "contractId": "l016.cqrs.step3",
+          "direction": "out",
+          "id": "out-l016.cqrs.step3-state"
+        }
+      ],
+      "responsibility": "Preserve this stable boundary while refining its ownership and contracts.",
+      "stateOwnership": [
+        "logical operation state"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l016.cqrs.engine",
+      "label": "Command admission",
+      "ports": [
+        {
+          "contractId": "l016.cqrs.command",
+          "direction": "out",
+          "id": "out-l016.cqrs.command"
+        },
+        {
+          "contractId": "l016.cqrs.command",
+          "direction": "in",
+          "id": "in-l016.cqrs.command"
+        }
+      ],
+      "responsibility": "Validate authenticated commands and append stable command identity.",
+      "stateOwnership": [
+        "accepted command offset"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l016.cqrs.state",
+      "label": "Command journal",
+      "ports": [
+        {
+          "contractId": "l016.cqrs.command",
+          "direction": "in",
+          "id": "in-l016.cqrs.command"
+        },
+        {
+          "contractId": "l016.cqrs.step3",
+          "direction": "out",
+          "id": "out-l016.cqrs.step3"
+        }
+      ],
+      "responsibility": "Own immutable ordered commands and deduplication receipts.",
+      "stateOwnership": [
+        "per-aggregate sequence"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "l016.cqrs.n3",
+      "label": "Aggregate reducer",
+      "ports": [
+        {
+          "contractId": "l016.cqrs.step3",
+          "direction": "in",
+          "id": "in-l016.cqrs.step3"
+        },
+        {
+          "contractId": "l016.cqrs.step4",
+          "direction": "out",
+          "id": "out-l016.cqrs.step4"
+        },
+        {
+          "contractId": "l016.cqrs.step6",
+          "direction": "out",
+          "id": "out-l016.cqrs.step6"
+        }
+      ],
+      "responsibility": "Apply one aggregate sequence with expected-version checks and atomic checkpoint.",
+      "stateOwnership": [
+        "aggregateId, sequence"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l016.cqrs.n4",
+      "label": "Projection store",
+      "ports": [
+        {
+          "contractId": "l016.cqrs.step4",
+          "direction": "in",
+          "id": "in-l016.cqrs.step4"
+        },
+        {
+          "contractId": "l016.cqrs.step5",
+          "direction": "out",
+          "id": "out-l016.cqrs.step5"
+        },
+        {
+          "contractId": "l016.cqrs.step8",
+          "direction": "out",
+          "id": "out-l016.cqrs.step8"
+        }
+      ],
+      "responsibility": "Materialize query-specific records with applied offset and generation.",
+      "stateOwnership": [
+        "projectionOffset, generation"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.service",
+        "version": 1
+      },
+      "id": "l016.cqrs.n5",
+      "label": "Read API",
+      "ports": [
+        {
+          "contractId": "l016.cqrs.step5",
+          "direction": "in",
+          "id": "in-l016.cqrs.step5"
+        }
+      ],
+      "responsibility": "Return a command token; wait boundedly for projection offset or expose pending.",
+      "stateOwnership": [
+        "minimumOffset, deadline"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.log",
+        "version": 1
+      },
+      "id": "l016.cqrs.n6",
+      "label": "Task intent stream",
+      "ports": [
+        {
+          "contractId": "l016.cqrs.step6",
+          "direction": "in",
+          "id": "in-l016.cqrs.step6"
+        },
+        {
+          "contractId": "l016.cqrs.step7",
+          "direction": "out",
+          "id": "out-l016.cqrs.step7"
+        }
+      ],
+      "responsibility": "Emit stable task identities from committed reducer transitions.",
+      "stateOwnership": [
+        "taskId, inputHash"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "l016.cqrs.n7",
+      "label": "Task runner",
+      "ports": [
+        {
+          "contractId": "l016.cqrs.step7",
+          "direction": "in",
+          "id": "in-l016.cqrs.step7"
+        }
+      ],
+      "responsibility": "Consume stable IDs with leased retries and explicit external idempotency/reconciliation.",
+      "stateOwnership": [
+        "taskId, attempt"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "l016.cqrs.n8",
+      "label": "Rebuild generation",
+      "ports": [
+        {
+          "contractId": "l016.cqrs.step8",
+          "direction": "in",
+          "id": "in-l016.cqrs.step8"
+        }
+      ],
+      "responsibility": "Replay into a shadow projection and publish only after its target offset is reached.",
+      "stateOwnership": [
+        "targetOffset, shadowGeneration"
+      ],
+      "version": 1
+    }
+  ],
+  "contracts": [
+    {
+      "id": "l016.cache-aside.command",
+      "request": {
+        "expectedVersion": "integer|null",
+        "operation": "get|update|start-job",
+        "requestId": "uuid",
+        "resourceId": "uuid"
+      },
+      "response": {
+        "jobId": "uuid|null",
+        "status": "ok|accepted|conflict|overloaded",
+        "version": "integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l016.cache-aside.step3",
+      "request": {
+        "resourceId": "uuid",
+        "ttlMs": "integer",
+        "version": "integer"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l016.cache-aside.step4",
+      "request": {
+        "appliedVersion": "integer",
+        "minimumVersion": "integer"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l016.cache-aside.step5",
+      "request": {
+        "inputHash": "sha256",
+        "jobId": "uuid"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l016.cache-aside.step6",
+      "request": {
+        "jobId": "uuid",
+        "leaseEpoch": "integer"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l016.cache-aside.step7",
+      "request": {
+        "jobId": "uuid",
+        "resultHash": "sha256"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l016.cache-aside.step8",
+      "request": {
+        "limit": "integer",
+        "queued": "integer",
+        "tenantId": "uuid"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l016.cqrs.command",
+      "request": {
+        "expectedVersion": "integer|null",
+        "operation": "get|update|start-job",
+        "requestId": "uuid",
+        "resourceId": "uuid"
+      },
+      "response": {
+        "jobId": "uuid|null",
+        "status": "ok|accepted|conflict|overloaded",
+        "version": "integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l016.cqrs.step3",
+      "request": {
+        "aggregateId": "uuid",
+        "sequence": "integer"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l016.cqrs.step4",
+      "request": {
+        "generation": "integer",
+        "projectionOffset": "integer"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l016.cqrs.step5",
+      "request": {
+        "deadline": "timestamp",
+        "minimumOffset": "integer"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l016.cqrs.step6",
+      "request": {
+        "inputHash": "sha256",
+        "taskId": "aggregate/sequence/task"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l016.cqrs.step7",
+      "request": {
+        "attempt": "integer",
+        "taskId": "string"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l016.cqrs.step8",
+      "request": {
+        "shadowGeneration": "integer",
+        "targetOffset": "integer"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    }
+  ],
+  "execution": {
+    "implementation": null,
+    "kind": "conceptual-design"
+  },
+  "problem": {
+    "referenceId": "L016",
+    "requirements": [
+      {
+        "id": "r0",
+        "text": "Preserve read/write semantics while scaling hot reads."
+      },
+      {
+        "id": "r1",
+        "text": "Move long jobs off the request path with stable job identity."
+      },
+      {
+        "id": "r2",
+        "text": "Bound stale reads, retries and overload without claiming exactly-once side effects."
+      }
+    ],
+    "scope": "Progress from a low-latency query/update service to cache and background execution. Compare transactional cache-aside with command-log/read-model separation; target QPS is a workload assumption, not measured capacity.",
+    "studyLabel": "Web application scaling"
+  },
+  "provenance": {
+    "kind": "authored-practice",
+    "note": "Authored interview preparation. Technical references support mechanisms, not the claim that a company asked this question."
+  },
+  "references": [
+    {
+      "id": "ref0",
+      "scope": "background",
+      "supports": "Transactions isolate concurrent authorization and mutation decisions; retries remain explicit.",
+      "title": "PostgreSQL isolation",
+      "url": "https://www.postgresql.org/docs/18/transaction-iso.html"
+    },
+    {
+      "id": "ref1",
+      "scope": "background",
+      "supports": "Cache freshness, invalidation and private-response restrictions.",
+      "title": "HTTP caching",
+      "url": "https://www.rfc-editor.org/rfc/rfc9111"
+    }
+  ],
+  "schema": "simulatte.composableStudy.v2",
+  "solutions": [
+    {
+      "acceptanceCases": [
+        {
+          "given": "A job request times out after its intent commits.",
+          "id": "case0",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Retain one job identity and refuse the stale result commit.",
+          "when": "Retry the same request ID and run two lease owners."
+        },
+        {
+          "given": "A session requires version 8 but the replica has version 7.",
+          "id": "case1",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Use primary or return explicit not-yet-available; never silently return version 7.",
+          "when": "Attempt its cached/replica read."
+        },
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-05-state.test.mjs",
+            "testName": "stable job identity deduplicates local intent and rejects conflicting input"
+          },
+          "given": "A bounded job map is initially empty.",
+          "id": "bounded-mechanism",
+          "relatedRequirementIds": [
+            "r0"
+          ],
+          "then": "Admit one intent, deduplicate exact repeat, reject the conflict.",
+          "when": "Admit the same ID/hash twice then conflicting bytes."
+        }
+      ],
+      "algorithms": [
+        {
+          "code": "if (op === \"get\") return readAtLeast(resourceId, sessionMinVersion);\ntransaction(() => { compareAndUpdate(expectedVersion); insertJobIntentUnique(requestId,inputHash); });\nworker: claimFenced(jobId); compute(); transaction(() => { assertLeaseEpoch(); insertResultUnique(jobId); });",
+          "guarantees": [
+            "Cache hit does not imply read-your-write unless a minimum version is enforced.",
+            "An insufficient replica version cannot satisfy a strong session read.",
+            "Accepted does not mean completed.",
+            "An expired owner cannot commit over its successor.",
+            "A unique local row alone cannot deduplicate a remote webhook.",
+            "Overload is surfaced rather than hidden in unbounded queues."
+          ],
+          "id": "transition",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "engine"
+        }
+      ],
+      "apis": [
+        {
+          "errors": "Reject invalid input, stale versions and operations outside the declared boundary.",
+          "method": "CALL",
+          "ownerNodeId": "engine",
+          "path": "L016/cache-aside",
+          "request": "{\"requestId\":\"uuid\",\"resourceId\":\"uuid\",\"operation\":\"get|update|start-job\",\"expectedVersion\":\"integer|null\"}",
+          "response": "{\"status\":\"ok|accepted|conflict|overloaded\",\"version\":\"integer\",\"jobId\":\"uuid|null\"}"
+        }
+      ],
+      "assumptions": [
+        "All added stages are authored practice extending the canonical prompt.",
+        "Graphs specify conceptual mechanisms; reference models do not prove cloud execution, latency, physical durability or distributed safety."
+      ],
+      "chooseWhen": "A relational write authority meets the load and eventual hot-read freshness is acceptable.",
+      "id": "cache-aside",
+      "initialGraph": {
+        "edges": [],
+        "nodes": []
+      },
+      "stages": [
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l016.cache-aside.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l016.cache-aside.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l016.cache-aside.command"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l016.cache-aside.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cache-aside.system",
+                "id": "system",
+                "label": "Cache-aside API and job outbox",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "cache-aside-s1",
+          "invariants": [
+            "Preserve read/write semantics while scaling hot reads."
+          ],
+          "number": 1,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l016.cache-aside.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "l016.cache-aside.system",
+                "id": "system",
+                "label": "Cache-aside API and job outbox",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l016.cache-aside.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l016.cache-aside.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l016.cache-aside.command"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What does successful completion promise?",
+          "reason": "Preserve read/write semantics while scaling hot reads.",
+          "title": "Define the operation boundary"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l016.cache-aside.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l016.cache-aside.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l016.cache-aside.command"
+                }
+              },
+              {
+                "contractId": "l016.cache-aside.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l016.cache-aside.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l016.cache-aside.command"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l016.cache-aside.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cache-aside.system",
+                "id": "system",
+                "label": "Cache-aside API and job outbox",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l016.cache-aside.binding-s2",
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cache-aside.engine",
+                "id": "engine",
+                "label": "Stateless API",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cache-aside.state",
+                "id": "state",
+                "label": "Primary database",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "cache-aside-s2",
+          "invariants": [
+            "request context belongs to Stateless API; object rows and job keys belongs to Primary database."
+          ],
+          "number": 2,
+          "operations": [
+            {
+              "edges": [
+                {
+                  "contractId": "l016.cache-aside.command",
+                  "from": {
+                    "nodeId": "engine",
+                    "portId": "out-l016.cache-aside.command"
+                  },
+                  "id": "owned-state",
+                  "label": "Read or commit state",
+                  "mode": "storage",
+                  "to": {
+                    "nodeId": "state",
+                    "portId": "in-l016.cache-aside.command"
+                  }
+                }
+              ],
+              "nodeId": "system",
+              "nodes": [
+                {
+                  "definitionId": "l016.cache-aside.engine",
+                  "id": "engine",
+                  "label": "Stateless API",
+                  "position": {
+                    "x": 560,
+                    "y": 0
+                  },
+                  "version": 1
+                },
+                {
+                  "definitionId": "l016.cache-aside.state",
+                  "id": "state",
+                  "label": "Primary database",
+                  "position": {
+                    "x": 840,
+                    "y": 0
+                  },
+                  "version": 1
+                }
+              ],
+              "op": "expand",
+              "subsystemId": "l016.cache-aside.binding-s2"
+            }
+          ],
+          "question": "Which component owns the decision and its persistent or shared state?",
+          "reason": "Authorize requests and commit versioned updates at one write authority. Own records, versions and durable job intent.",
+          "title": "Expose authority and state"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l016.cache-aside.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l016.cache-aside.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l016.cache-aside.command"
+                }
+              },
+              {
+                "contractId": "l016.cache-aside.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l016.cache-aside.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l016.cache-aside.command"
+                }
+              },
+              {
+                "contractId": "l016.cache-aside.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l016.cache-aside.step3-engine"
+                },
+                "id": "step3",
+                "label": "Versioned read cache",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l016.cache-aside.step3"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l016.cache-aside.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cache-aside.system",
+                "id": "system",
+                "label": "Cache-aside API and job outbox",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l016.cache-aside.binding-s3",
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cache-aside.engine",
+                "id": "engine",
+                "label": "Stateless API",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cache-aside.state",
+                "id": "state",
+                "label": "Primary database",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cache-aside.n3",
+                "id": "n3",
+                "label": "Versioned read cache",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "cache-aside-s3",
+          "invariants": [
+            "Cache hit does not imply read-your-write unless a minimum version is enforced."
+          ],
+          "number": 3,
+          "operations": [
+            {
+              "nodeId": "system",
+              "op": "rebind",
+              "reason": "Expose this new typed path without mutating earlier binding definitions.",
+              "subsystemId": "l016.cache-aside.binding-s3"
+            },
+            {
+              "node": {
+                "definitionId": "l016.cache-aside.n3",
+                "id": "n3",
+                "label": "Versioned read cache",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l016.cache-aside.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l016.cache-aside.step3-engine"
+                },
+                "id": "step3",
+                "label": "Versioned read cache",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l016.cache-aside.step3"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How are hot reads removed from the primary?",
+          "reason": "Read a versioned cached value or fill from authority; updates invalidate after commit with bounded TTL.",
+          "title": "Versioned read cache"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l016.cache-aside.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l016.cache-aside.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l016.cache-aside.command"
+                }
+              },
+              {
+                "contractId": "l016.cache-aside.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l016.cache-aside.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l016.cache-aside.command"
+                }
+              },
+              {
+                "contractId": "l016.cache-aside.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l016.cache-aside.step3-engine"
+                },
+                "id": "step3",
+                "label": "Versioned read cache",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l016.cache-aside.step3"
+                }
+              },
+              {
+                "contractId": "l016.cache-aside.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l016.cache-aside.step4"
+                },
+                "id": "step4",
+                "label": "Replica reader",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l016.cache-aside.step4"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l016.cache-aside.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cache-aside.system",
+                "id": "system",
+                "label": "Cache-aside API and job outbox",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l016.cache-aside.binding-s3",
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cache-aside.engine",
+                "id": "engine",
+                "label": "Stateless API",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cache-aside.state",
+                "id": "state",
+                "label": "Primary database",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cache-aside.n3",
+                "id": "n3",
+                "label": "Versioned read cache",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cache-aside.n4",
+                "id": "n4",
+                "label": "Replica reader",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "cache-aside-s4",
+          "invariants": [
+            "An insufficient replica version cannot satisfy a strong session read."
+          ],
+          "number": 4,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l016.cache-aside.n4",
+                "id": "n4",
+                "label": "Replica reader",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l016.cache-aside.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l016.cache-aside.step4"
+                },
+                "id": "step4",
+                "label": "Replica reader",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l016.cache-aside.step4"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "When is replica lag acceptable?",
+          "reason": "Serve only reads whose required version is available; route stronger reads to primary.",
+          "title": "Replica reader"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l016.cache-aside.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l016.cache-aside.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l016.cache-aside.command"
+                }
+              },
+              {
+                "contractId": "l016.cache-aside.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l016.cache-aside.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l016.cache-aside.command"
+                }
+              },
+              {
+                "contractId": "l016.cache-aside.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l016.cache-aside.step3-engine"
+                },
+                "id": "step3",
+                "label": "Versioned read cache",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l016.cache-aside.step3"
+                }
+              },
+              {
+                "contractId": "l016.cache-aside.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l016.cache-aside.step4"
+                },
+                "id": "step4",
+                "label": "Replica reader",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l016.cache-aside.step4"
+                }
+              },
+              {
+                "contractId": "l016.cache-aside.step5",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l016.cache-aside.step5-engine"
+                },
+                "id": "step5",
+                "label": "Job outbox",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l016.cache-aside.step5"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l016.cache-aside.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cache-aside.system",
+                "id": "system",
+                "label": "Cache-aside API and job outbox",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l016.cache-aside.binding-s5",
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cache-aside.engine",
+                "id": "engine",
+                "label": "Stateless API",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cache-aside.state",
+                "id": "state",
+                "label": "Primary database",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cache-aside.n3",
+                "id": "n3",
+                "label": "Versioned read cache",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cache-aside.n4",
+                "id": "n4",
+                "label": "Replica reader",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cache-aside.n5",
+                "id": "n5",
+                "label": "Job outbox",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "cache-aside-s5",
+          "invariants": [
+            "Accepted does not mean completed."
+          ],
+          "number": 5,
+          "operations": [
+            {
+              "nodeId": "system",
+              "op": "rebind",
+              "reason": "Expose this new typed path without mutating earlier binding definitions.",
+              "subsystemId": "l016.cache-aside.binding-s5"
+            },
+            {
+              "node": {
+                "definitionId": "l016.cache-aside.n5",
+                "id": "n5",
+                "label": "Job outbox",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l016.cache-aside.step5",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l016.cache-aside.step5-engine"
+                },
+                "id": "step5",
+                "label": "Job outbox",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l016.cache-aside.step5"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How is a long task accepted durably?",
+          "reason": "Insert job identity and input hash with the business transaction before returning accepted.",
+          "title": "Job outbox"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l016.cache-aside.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l016.cache-aside.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l016.cache-aside.command"
+                }
+              },
+              {
+                "contractId": "l016.cache-aside.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l016.cache-aside.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l016.cache-aside.command"
+                }
+              },
+              {
+                "contractId": "l016.cache-aside.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l016.cache-aside.step3-engine"
+                },
+                "id": "step3",
+                "label": "Versioned read cache",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l016.cache-aside.step3"
+                }
+              },
+              {
+                "contractId": "l016.cache-aside.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l016.cache-aside.step4"
+                },
+                "id": "step4",
+                "label": "Replica reader",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l016.cache-aside.step4"
+                }
+              },
+              {
+                "contractId": "l016.cache-aside.step5",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l016.cache-aside.step5-engine"
+                },
+                "id": "step5",
+                "label": "Job outbox",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l016.cache-aside.step5"
+                }
+              },
+              {
+                "contractId": "l016.cache-aside.step6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l016.cache-aside.step6"
+                },
+                "id": "step6",
+                "label": "Leased worker",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l016.cache-aside.step6"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l016.cache-aside.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cache-aside.system",
+                "id": "system",
+                "label": "Cache-aside API and job outbox",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l016.cache-aside.binding-s5",
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cache-aside.engine",
+                "id": "engine",
+                "label": "Stateless API",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cache-aside.state",
+                "id": "state",
+                "label": "Primary database",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cache-aside.n3",
+                "id": "n3",
+                "label": "Versioned read cache",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cache-aside.n4",
+                "id": "n4",
+                "label": "Replica reader",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cache-aside.n5",
+                "id": "n5",
+                "label": "Job outbox",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cache-aside.n6",
+                "id": "n6",
+                "label": "Leased worker",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "cache-aside-s6",
+          "invariants": [
+            "An expired owner cannot commit over its successor."
+          ],
+          "number": 6,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l016.cache-aside.n6",
+                "id": "n6",
+                "label": "Leased worker",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l016.cache-aside.step6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l016.cache-aside.step6"
+                },
+                "id": "step6",
+                "label": "Leased worker",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l016.cache-aside.step6"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What happens after worker loss?",
+          "reason": "Claim bounded work, run with a lease epoch, and retain the original job ID on retry.",
+          "title": "Leased worker"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l016.cache-aside.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l016.cache-aside.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l016.cache-aside.command"
+                }
+              },
+              {
+                "contractId": "l016.cache-aside.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l016.cache-aside.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l016.cache-aside.command"
+                }
+              },
+              {
+                "contractId": "l016.cache-aside.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l016.cache-aside.step3-engine"
+                },
+                "id": "step3",
+                "label": "Versioned read cache",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l016.cache-aside.step3"
+                }
+              },
+              {
+                "contractId": "l016.cache-aside.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l016.cache-aside.step4"
+                },
+                "id": "step4",
+                "label": "Replica reader",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l016.cache-aside.step4"
+                }
+              },
+              {
+                "contractId": "l016.cache-aside.step5",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l016.cache-aside.step5-engine"
+                },
+                "id": "step5",
+                "label": "Job outbox",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l016.cache-aside.step5"
+                }
+              },
+              {
+                "contractId": "l016.cache-aside.step6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l016.cache-aside.step6"
+                },
+                "id": "step6",
+                "label": "Leased worker",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l016.cache-aside.step6"
+                }
+              },
+              {
+                "contractId": "l016.cache-aside.step7",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l016.cache-aside.step7"
+                },
+                "id": "step7",
+                "label": "Idempotent result",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l016.cache-aside.step7"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l016.cache-aside.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cache-aside.system",
+                "id": "system",
+                "label": "Cache-aside API and job outbox",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l016.cache-aside.binding-s5",
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cache-aside.engine",
+                "id": "engine",
+                "label": "Stateless API",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cache-aside.state",
+                "id": "state",
+                "label": "Primary database",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cache-aside.n3",
+                "id": "n3",
+                "label": "Versioned read cache",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cache-aside.n4",
+                "id": "n4",
+                "label": "Replica reader",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cache-aside.n5",
+                "id": "n5",
+                "label": "Job outbox",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cache-aside.n6",
+                "id": "n6",
+                "label": "Leased worker",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cache-aside.n7",
+                "id": "n7",
+                "label": "Idempotent result",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "cache-aside-s7",
+          "invariants": [
+            "A unique local row alone cannot deduplicate a remote webhook."
+          ],
+          "number": 7,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l016.cache-aside.n7",
+                "id": "n7",
+                "label": "Idempotent result",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l016.cache-aside.step7",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l016.cache-aside.step7"
+                },
+                "id": "step7",
+                "label": "Idempotent result",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l016.cache-aside.step7"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can retry publish two results?",
+          "reason": "Commit one result identity per job and model external effects with their own deduplication contract.",
+          "title": "Idempotent result"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l016.cache-aside.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l016.cache-aside.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l016.cache-aside.command"
+                }
+              },
+              {
+                "contractId": "l016.cache-aside.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l016.cache-aside.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l016.cache-aside.command"
+                }
+              },
+              {
+                "contractId": "l016.cache-aside.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l016.cache-aside.step3-engine"
+                },
+                "id": "step3",
+                "label": "Versioned read cache",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l016.cache-aside.step3"
+                }
+              },
+              {
+                "contractId": "l016.cache-aside.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l016.cache-aside.step4"
+                },
+                "id": "step4",
+                "label": "Replica reader",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l016.cache-aside.step4"
+                }
+              },
+              {
+                "contractId": "l016.cache-aside.step5",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l016.cache-aside.step5-engine"
+                },
+                "id": "step5",
+                "label": "Job outbox",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l016.cache-aside.step5"
+                }
+              },
+              {
+                "contractId": "l016.cache-aside.step6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l016.cache-aside.step6"
+                },
+                "id": "step6",
+                "label": "Leased worker",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l016.cache-aside.step6"
+                }
+              },
+              {
+                "contractId": "l016.cache-aside.step7",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l016.cache-aside.step7"
+                },
+                "id": "step7",
+                "label": "Idempotent result",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l016.cache-aside.step7"
+                }
+              },
+              {
+                "contractId": "l016.cache-aside.step8",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l016.cache-aside.step8-engine"
+                },
+                "id": "step8",
+                "label": "Admission budget",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n8",
+                  "portId": "in-l016.cache-aside.step8"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l016.cache-aside.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cache-aside.system",
+                "id": "system",
+                "label": "Cache-aside API and job outbox",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l016.cache-aside.binding-s8",
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cache-aside.engine",
+                "id": "engine",
+                "label": "Stateless API",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cache-aside.state",
+                "id": "state",
+                "label": "Primary database",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cache-aside.n3",
+                "id": "n3",
+                "label": "Versioned read cache",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cache-aside.n4",
+                "id": "n4",
+                "label": "Replica reader",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cache-aside.n5",
+                "id": "n5",
+                "label": "Job outbox",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cache-aside.n6",
+                "id": "n6",
+                "label": "Leased worker",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cache-aside.n7",
+                "id": "n7",
+                "label": "Idempotent result",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cache-aside.n8",
+                "id": "n8",
+                "label": "Admission budget",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "cache-aside-s8",
+          "invariants": [
+            "Overload is surfaced rather than hidden in unbounded queues."
+          ],
+          "number": 8,
+          "operations": [
+            {
+              "nodeId": "system",
+              "op": "rebind",
+              "reason": "Expose this new typed path without mutating earlier binding definitions.",
+              "subsystemId": "l016.cache-aside.binding-s8"
+            },
+            {
+              "node": {
+                "definitionId": "l016.cache-aside.n8",
+                "id": "n8",
+                "label": "Admission budget",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l016.cache-aside.step8",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l016.cache-aside.step8-engine"
+                },
+                "id": "step8",
+                "label": "Admission budget",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n8",
+                  "portId": "in-l016.cache-aside.step8"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What prevents a backlog collapse?",
+          "reason": "Reject or defer when per-tenant queued work or database concurrency reaches its declared bound.",
+          "title": "Admission budget"
+        }
+      ],
+      "title": "Cache-aside API and job outbox",
+      "tradeoffs": [
+        "Invalidation races need versioned entries or a bounded staleness promise.",
+        "Database remains the write bottleneck."
+      ]
+    },
+    {
+      "acceptanceCases": [
+        {
+          "given": "A reducer replays the same accepted command.",
+          "id": "case0",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Stable task identity suppresses duplicate local admission.",
+          "when": "Emit its long-task intent twice."
+        },
+        {
+          "given": "A read token names offset 8 and projection is at 7.",
+          "id": "case1",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Wait or expose pending, never claim version 8 is visible.",
+          "when": "Read with a bounded deadline."
+        },
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-05-state.test.mjs",
+            "testName": "stable job identity deduplicates local intent and rejects conflicting input"
+          },
+          "given": "A bounded job map is initially empty.",
+          "id": "bounded-mechanism",
+          "relatedRequirementIds": [
+            "r0"
+          ],
+          "then": "Admit one intent, deduplicate exact repeat, reject the conflict.",
+          "when": "Admit the same ID/hash twice then conflicting bytes."
+        }
+      ],
+      "algorithms": [
+        {
+          "code": "const token = appendCommandIfAbsent(requestId, aggregateId, expectedVersion);\nreduceInSequence(token, tx => { applyOrReject(); saveOffset(); emitTaskId(aggregateId, sequence); });\nread: awaitProjectionAtLeast(token.offset, deadline);\nrebuild: replayIntoShadow(); publishOnlyAtVerifiedOffset();",
+          "guarantees": [
+            "Conflicting commands fail explicitly instead of silently overwriting.",
+            "A projection names its freshness boundary.",
+            "Pending projection is not failed command execution.",
+            "Replay emits the same task identity.",
+            "Unknown external outcome remains unknown until reconciled.",
+            "Clients do not mix two projection generations."
+          ],
+          "id": "transition",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "engine"
+        }
+      ],
+      "apis": [
+        {
+          "errors": "Reject invalid input, stale versions and operations outside the declared boundary.",
+          "method": "CALL",
+          "ownerNodeId": "engine",
+          "path": "L016/cqrs",
+          "request": "{\"requestId\":\"uuid\",\"resourceId\":\"uuid\",\"operation\":\"get|update|start-job\",\"expectedVersion\":\"integer|null\"}",
+          "response": "{\"status\":\"ok|accepted|conflict|overloaded\",\"version\":\"integer\",\"jobId\":\"uuid|null\"}"
+        }
+      ],
+      "assumptions": [
+        "All added stages are authored practice extending the canonical prompt.",
+        "Graphs specify conceptual mechanisms; reference models do not prove cloud execution, latency, physical durability or distributed safety."
+      ],
+      "chooseWhen": "Read shapes differ greatly from write state and projection lag is acceptable.",
+      "id": "cqrs",
+      "initialGraph": {
+        "edges": [],
+        "nodes": []
+      },
+      "stages": [
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l016.cqrs.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l016.cqrs.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l016.cqrs.command"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l016.cqrs.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cqrs.system",
+                "id": "system",
+                "label": "Command log and materialized reads",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "cqrs-s1",
+          "invariants": [
+            "Preserve read/write semantics while scaling hot reads."
+          ],
+          "number": 1,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l016.cqrs.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "l016.cqrs.system",
+                "id": "system",
+                "label": "Command log and materialized reads",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l016.cqrs.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l016.cqrs.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l016.cqrs.command"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What does successful completion promise?",
+          "reason": "Preserve read/write semantics while scaling hot reads.",
+          "title": "Define the operation boundary"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l016.cqrs.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l016.cqrs.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l016.cqrs.command"
+                }
+              },
+              {
+                "contractId": "l016.cqrs.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l016.cqrs.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l016.cqrs.command"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l016.cqrs.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cqrs.system",
+                "id": "system",
+                "label": "Command log and materialized reads",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l016.cqrs.binding-s2",
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cqrs.engine",
+                "id": "engine",
+                "label": "Command admission",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cqrs.state",
+                "id": "state",
+                "label": "Command journal",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "cqrs-s2",
+          "invariants": [
+            "accepted command offset belongs to Command admission; per-aggregate sequence belongs to Command journal."
+          ],
+          "number": 2,
+          "operations": [
+            {
+              "edges": [
+                {
+                  "contractId": "l016.cqrs.command",
+                  "from": {
+                    "nodeId": "engine",
+                    "portId": "out-l016.cqrs.command"
+                  },
+                  "id": "owned-state",
+                  "label": "Read or commit state",
+                  "mode": "storage",
+                  "to": {
+                    "nodeId": "state",
+                    "portId": "in-l016.cqrs.command"
+                  }
+                }
+              ],
+              "nodeId": "system",
+              "nodes": [
+                {
+                  "definitionId": "l016.cqrs.engine",
+                  "id": "engine",
+                  "label": "Command admission",
+                  "position": {
+                    "x": 560,
+                    "y": 0
+                  },
+                  "version": 1
+                },
+                {
+                  "definitionId": "l016.cqrs.state",
+                  "id": "state",
+                  "label": "Command journal",
+                  "position": {
+                    "x": 840,
+                    "y": 0
+                  },
+                  "version": 1
+                }
+              ],
+              "op": "expand",
+              "subsystemId": "l016.cqrs.binding-s2"
+            }
+          ],
+          "question": "Which component owns the decision and its persistent or shared state?",
+          "reason": "Validate authenticated commands and append stable command identity. Own immutable ordered commands and deduplication receipts.",
+          "title": "Expose authority and state"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l016.cqrs.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l016.cqrs.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l016.cqrs.command"
+                }
+              },
+              {
+                "contractId": "l016.cqrs.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l016.cqrs.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l016.cqrs.command"
+                }
+              },
+              {
+                "contractId": "l016.cqrs.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l016.cqrs.step3-state"
+                },
+                "id": "step3",
+                "label": "Aggregate reducer",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l016.cqrs.step3"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l016.cqrs.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cqrs.system",
+                "id": "system",
+                "label": "Command log and materialized reads",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l016.cqrs.binding-s3",
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cqrs.engine",
+                "id": "engine",
+                "label": "Command admission",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cqrs.state",
+                "id": "state",
+                "label": "Command journal",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cqrs.n3",
+                "id": "n3",
+                "label": "Aggregate reducer",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "cqrs-s3",
+          "invariants": [
+            "Conflicting commands fail explicitly instead of silently overwriting."
+          ],
+          "number": 3,
+          "operations": [
+            {
+              "nodeId": "system",
+              "op": "rebind",
+              "reason": "Expose this new typed path without mutating earlier binding definitions.",
+              "subsystemId": "l016.cqrs.binding-s3"
+            },
+            {
+              "node": {
+                "definitionId": "l016.cqrs.n3",
+                "id": "n3",
+                "label": "Aggregate reducer",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l016.cqrs.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l016.cqrs.step3-state"
+                },
+                "id": "step3",
+                "label": "Aggregate reducer",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l016.cqrs.step3"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Who serializes conflicting updates?",
+          "reason": "Apply one aggregate sequence with expected-version checks and atomic checkpoint.",
+          "title": "Aggregate reducer"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l016.cqrs.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l016.cqrs.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l016.cqrs.command"
+                }
+              },
+              {
+                "contractId": "l016.cqrs.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l016.cqrs.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l016.cqrs.command"
+                }
+              },
+              {
+                "contractId": "l016.cqrs.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l016.cqrs.step3-state"
+                },
+                "id": "step3",
+                "label": "Aggregate reducer",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l016.cqrs.step3"
+                }
+              },
+              {
+                "contractId": "l016.cqrs.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l016.cqrs.step4"
+                },
+                "id": "step4",
+                "label": "Projection store",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l016.cqrs.step4"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l016.cqrs.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cqrs.system",
+                "id": "system",
+                "label": "Command log and materialized reads",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l016.cqrs.binding-s3",
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cqrs.engine",
+                "id": "engine",
+                "label": "Command admission",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cqrs.state",
+                "id": "state",
+                "label": "Command journal",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cqrs.n3",
+                "id": "n3",
+                "label": "Aggregate reducer",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cqrs.n4",
+                "id": "n4",
+                "label": "Projection store",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "cqrs-s4",
+          "invariants": [
+            "A projection names its freshness boundary."
+          ],
+          "number": 4,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l016.cqrs.n4",
+                "id": "n4",
+                "label": "Projection store",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l016.cqrs.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l016.cqrs.step4"
+                },
+                "id": "step4",
+                "label": "Projection store",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l016.cqrs.step4"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How are read-heavy queries served?",
+          "reason": "Materialize query-specific records with applied offset and generation.",
+          "title": "Projection store"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l016.cqrs.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l016.cqrs.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l016.cqrs.command"
+                }
+              },
+              {
+                "contractId": "l016.cqrs.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l016.cqrs.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l016.cqrs.command"
+                }
+              },
+              {
+                "contractId": "l016.cqrs.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l016.cqrs.step3-state"
+                },
+                "id": "step3",
+                "label": "Aggregate reducer",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l016.cqrs.step3"
+                }
+              },
+              {
+                "contractId": "l016.cqrs.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l016.cqrs.step4"
+                },
+                "id": "step4",
+                "label": "Projection store",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l016.cqrs.step4"
+                }
+              },
+              {
+                "contractId": "l016.cqrs.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l016.cqrs.step5"
+                },
+                "id": "step5",
+                "label": "Read API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l016.cqrs.step5"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l016.cqrs.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cqrs.system",
+                "id": "system",
+                "label": "Command log and materialized reads",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l016.cqrs.binding-s3",
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cqrs.engine",
+                "id": "engine",
+                "label": "Command admission",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cqrs.state",
+                "id": "state",
+                "label": "Command journal",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cqrs.n3",
+                "id": "n3",
+                "label": "Aggregate reducer",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cqrs.n4",
+                "id": "n4",
+                "label": "Projection store",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cqrs.n5",
+                "id": "n5",
+                "label": "Read API",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "cqrs-s5",
+          "invariants": [
+            "Pending projection is not failed command execution."
+          ],
+          "number": 5,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l016.cqrs.n5",
+                "id": "n5",
+                "label": "Read API",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l016.cqrs.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l016.cqrs.step5"
+                },
+                "id": "step5",
+                "label": "Read API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l016.cqrs.step5"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How does a client observe its own command?",
+          "reason": "Return a command token; wait boundedly for projection offset or expose pending.",
+          "title": "Read API"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l016.cqrs.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l016.cqrs.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l016.cqrs.command"
+                }
+              },
+              {
+                "contractId": "l016.cqrs.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l016.cqrs.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l016.cqrs.command"
+                }
+              },
+              {
+                "contractId": "l016.cqrs.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l016.cqrs.step3-state"
+                },
+                "id": "step3",
+                "label": "Aggregate reducer",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l016.cqrs.step3"
+                }
+              },
+              {
+                "contractId": "l016.cqrs.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l016.cqrs.step4"
+                },
+                "id": "step4",
+                "label": "Projection store",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l016.cqrs.step4"
+                }
+              },
+              {
+                "contractId": "l016.cqrs.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l016.cqrs.step5"
+                },
+                "id": "step5",
+                "label": "Read API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l016.cqrs.step5"
+                }
+              },
+              {
+                "contractId": "l016.cqrs.step6",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l016.cqrs.step6"
+                },
+                "id": "step6",
+                "label": "Task intent stream",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l016.cqrs.step6"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l016.cqrs.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cqrs.system",
+                "id": "system",
+                "label": "Command log and materialized reads",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l016.cqrs.binding-s3",
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cqrs.engine",
+                "id": "engine",
+                "label": "Command admission",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cqrs.state",
+                "id": "state",
+                "label": "Command journal",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cqrs.n3",
+                "id": "n3",
+                "label": "Aggregate reducer",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cqrs.n4",
+                "id": "n4",
+                "label": "Projection store",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cqrs.n5",
+                "id": "n5",
+                "label": "Read API",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cqrs.n6",
+                "id": "n6",
+                "label": "Task intent stream",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "cqrs-s6",
+          "invariants": [
+            "Replay emits the same task identity."
+          ],
+          "number": 6,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l016.cqrs.n6",
+                "id": "n6",
+                "label": "Task intent stream",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l016.cqrs.step6",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l016.cqrs.step6"
+                },
+                "id": "step6",
+                "label": "Task intent stream",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l016.cqrs.step6"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Where do long computations enter?",
+          "reason": "Emit stable task identities from committed reducer transitions.",
+          "title": "Task intent stream"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l016.cqrs.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l016.cqrs.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l016.cqrs.command"
+                }
+              },
+              {
+                "contractId": "l016.cqrs.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l016.cqrs.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l016.cqrs.command"
+                }
+              },
+              {
+                "contractId": "l016.cqrs.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l016.cqrs.step3-state"
+                },
+                "id": "step3",
+                "label": "Aggregate reducer",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l016.cqrs.step3"
+                }
+              },
+              {
+                "contractId": "l016.cqrs.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l016.cqrs.step4"
+                },
+                "id": "step4",
+                "label": "Projection store",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l016.cqrs.step4"
+                }
+              },
+              {
+                "contractId": "l016.cqrs.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l016.cqrs.step5"
+                },
+                "id": "step5",
+                "label": "Read API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l016.cqrs.step5"
+                }
+              },
+              {
+                "contractId": "l016.cqrs.step6",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l016.cqrs.step6"
+                },
+                "id": "step6",
+                "label": "Task intent stream",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l016.cqrs.step6"
+                }
+              },
+              {
+                "contractId": "l016.cqrs.step7",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l016.cqrs.step7"
+                },
+                "id": "step7",
+                "label": "Task runner",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l016.cqrs.step7"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l016.cqrs.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cqrs.system",
+                "id": "system",
+                "label": "Command log and materialized reads",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l016.cqrs.binding-s3",
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cqrs.engine",
+                "id": "engine",
+                "label": "Command admission",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cqrs.state",
+                "id": "state",
+                "label": "Command journal",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cqrs.n3",
+                "id": "n3",
+                "label": "Aggregate reducer",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cqrs.n4",
+                "id": "n4",
+                "label": "Projection store",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cqrs.n5",
+                "id": "n5",
+                "label": "Read API",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cqrs.n6",
+                "id": "n6",
+                "label": "Task intent stream",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cqrs.n7",
+                "id": "n7",
+                "label": "Task runner",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "cqrs-s7",
+          "invariants": [
+            "Unknown external outcome remains unknown until reconciled."
+          ],
+          "number": 7,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l016.cqrs.n7",
+                "id": "n7",
+                "label": "Task runner",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l016.cqrs.step7",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l016.cqrs.step7"
+                },
+                "id": "step7",
+                "label": "Task runner",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l016.cqrs.step7"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can a replay rerun an external effect?",
+          "reason": "Consume stable IDs with leased retries and explicit external idempotency/reconciliation.",
+          "title": "Task runner"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l016.cqrs.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l016.cqrs.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l016.cqrs.command"
+                }
+              },
+              {
+                "contractId": "l016.cqrs.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l016.cqrs.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l016.cqrs.command"
+                }
+              },
+              {
+                "contractId": "l016.cqrs.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l016.cqrs.step3-state"
+                },
+                "id": "step3",
+                "label": "Aggregate reducer",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l016.cqrs.step3"
+                }
+              },
+              {
+                "contractId": "l016.cqrs.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l016.cqrs.step4"
+                },
+                "id": "step4",
+                "label": "Projection store",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l016.cqrs.step4"
+                }
+              },
+              {
+                "contractId": "l016.cqrs.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l016.cqrs.step5"
+                },
+                "id": "step5",
+                "label": "Read API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l016.cqrs.step5"
+                }
+              },
+              {
+                "contractId": "l016.cqrs.step6",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l016.cqrs.step6"
+                },
+                "id": "step6",
+                "label": "Task intent stream",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l016.cqrs.step6"
+                }
+              },
+              {
+                "contractId": "l016.cqrs.step7",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l016.cqrs.step7"
+                },
+                "id": "step7",
+                "label": "Task runner",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l016.cqrs.step7"
+                }
+              },
+              {
+                "contractId": "l016.cqrs.step8",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l016.cqrs.step8"
+                },
+                "id": "step8",
+                "label": "Rebuild generation",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n8",
+                  "portId": "in-l016.cqrs.step8"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l016.cqrs.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cqrs.system",
+                "id": "system",
+                "label": "Command log and materialized reads",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l016.cqrs.binding-s3",
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cqrs.engine",
+                "id": "engine",
+                "label": "Command admission",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cqrs.state",
+                "id": "state",
+                "label": "Command journal",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cqrs.n3",
+                "id": "n3",
+                "label": "Aggregate reducer",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cqrs.n4",
+                "id": "n4",
+                "label": "Projection store",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cqrs.n5",
+                "id": "n5",
+                "label": "Read API",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cqrs.n6",
+                "id": "n6",
+                "label": "Task intent stream",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cqrs.n7",
+                "id": "n7",
+                "label": "Task runner",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l016.cqrs.n8",
+                "id": "n8",
+                "label": "Rebuild generation",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "cqrs-s8",
+          "invariants": [
+            "Clients do not mix two projection generations."
+          ],
+          "number": 8,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l016.cqrs.n8",
+                "id": "n8",
+                "label": "Rebuild generation",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l016.cqrs.step8",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l016.cqrs.step8"
+                },
+                "id": "step8",
+                "label": "Rebuild generation",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n8",
+                  "portId": "in-l016.cqrs.step8"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How are new read models deployed?",
+          "reason": "Replay into a shadow projection and publish only after its target offset is reached.",
+          "title": "Rebuild generation"
+        }
+      ],
+      "title": "Command log and materialized reads",
+      "tradeoffs": [
+        "Read-your-write requires offset tokens and waiting.",
+        "Log, reducers and projection rebuilds add operational complexity."
+      ]
+    }
+  ],
+  "subsystems": [
+    {
+      "definitionId": "l016.cache-aside.system",
+      "id": "l016.cache-aside.binding-s2",
+      "ports": [
+        {
+          "contractId": "l016.cache-aside.command",
+          "direction": "in",
+          "id": "in-l016.cache-aside.command",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-l016.cache-aside.command"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l016.cache-aside.system",
+      "id": "l016.cache-aside.binding-s3",
+      "ports": [
+        {
+          "contractId": "l016.cache-aside.command",
+          "direction": "in",
+          "id": "in-l016.cache-aside.command",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-l016.cache-aside.command"
+          }
+        },
+        {
+          "contractId": "l016.cache-aside.step3",
+          "direction": "out",
+          "id": "out-l016.cache-aside.step3-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l016.cache-aside.step3"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l016.cache-aside.system",
+      "id": "l016.cache-aside.binding-s5",
+      "ports": [
+        {
+          "contractId": "l016.cache-aside.command",
+          "direction": "in",
+          "id": "in-l016.cache-aside.command",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-l016.cache-aside.command"
+          }
+        },
+        {
+          "contractId": "l016.cache-aside.step3",
+          "direction": "out",
+          "id": "out-l016.cache-aside.step3-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l016.cache-aside.step3"
+          }
+        },
+        {
+          "contractId": "l016.cache-aside.step5",
+          "direction": "out",
+          "id": "out-l016.cache-aside.step5-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l016.cache-aside.step5"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l016.cache-aside.system",
+      "id": "l016.cache-aside.binding-s8",
+      "ports": [
+        {
+          "contractId": "l016.cache-aside.command",
+          "direction": "in",
+          "id": "in-l016.cache-aside.command",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-l016.cache-aside.command"
+          }
+        },
+        {
+          "contractId": "l016.cache-aside.step3",
+          "direction": "out",
+          "id": "out-l016.cache-aside.step3-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l016.cache-aside.step3"
+          }
+        },
+        {
+          "contractId": "l016.cache-aside.step5",
+          "direction": "out",
+          "id": "out-l016.cache-aside.step5-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l016.cache-aside.step5"
+          }
+        },
+        {
+          "contractId": "l016.cache-aside.step8",
+          "direction": "out",
+          "id": "out-l016.cache-aside.step8-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l016.cache-aside.step8"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l016.cqrs.system",
+      "id": "l016.cqrs.binding-s2",
+      "ports": [
+        {
+          "contractId": "l016.cqrs.command",
+          "direction": "in",
+          "id": "in-l016.cqrs.command",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-l016.cqrs.command"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l016.cqrs.system",
+      "id": "l016.cqrs.binding-s3",
+      "ports": [
+        {
+          "contractId": "l016.cqrs.command",
+          "direction": "in",
+          "id": "in-l016.cqrs.command",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-l016.cqrs.command"
+          }
+        },
+        {
+          "contractId": "l016.cqrs.step3",
+          "direction": "out",
+          "id": "out-l016.cqrs.step3-state",
+          "target": {
+            "nodeId": "state",
+            "portId": "out-l016.cqrs.step3"
+          }
+        }
+      ],
+      "version": 1
+    }
+  ],
+  "version": 1
+}

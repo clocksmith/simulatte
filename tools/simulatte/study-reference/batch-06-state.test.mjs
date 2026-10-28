@@ -7,3 +7,13 @@ test('single flight reserves bytes shares failures pins buffers and retries by r
 });
 test('TTL exact deadline and generation checks preserve fresh replacement',()=>{const c=new TtlMap();assert.equal(c.get('missing',0),null);assert.equal(c.expire('missing',{generation:0},0),false);const old=c.put('x','A',10,0);assert.equal(c.get('x',9),'A');assert.equal(c.get('x',10),null);const fresh=c.put('x','B',20,9);assert.equal(c.expire('x',old,10),false);assert.equal(c.get('x',10),'B');assert.equal(c.expire('x',fresh,29),true);assert.equal(c.get('x',29),null);c.put('x','C',0,30);assert.equal(c.get('x',30),null);assert.throws(()=>c.put('x','bad',-1,30),/ttl/);});
 test('WAL framed suffix preserves tombstones rejects gaps and separates sync watermark',()=>{const snapshot={cut:2,entries:[['x','old']],commandIds:['c2']};const a=frame({lsn:3,commandId:'c3',operation:'delete',key:'x'}),b=frame({lsn:4,commandId:'c4',operation:'put',key:'y',value:'new'}),tail=frame({lsn:5,commandId:'c5',operation:'put',key:'z',value:'tail'}).subarray(0,9);const result=recover(snapshot,Buffer.concat([a,b,tail]));assert.equal(result.last,4);assert.deepEqual([...result.state],[['y','new']]);const corrupt=Buffer.from(a);corrupt[8]^=1;assert.throws(()=>recover(snapshot,Buffer.concat([corrupt,b])),/checksum/);assert.throws(()=>recover(snapshot,b),/gap/);assert.equal(ackEligible(4,4),true);assert.equal(ackEligible(7,4),false);});
+
+test('read lease pins before publication and closes the completion eviction gap',async()=>{
+ const cache=new BlockCache(4);let releaseFetch;const gate=new Promise(r=>releaseFetch=r);
+ const fetch=async()=>{await gate;return Uint8Array.of(1,2,3,4);};
+ const one=cache.acquire('v',0,4,fetch),two=cache.acquire('v',0,4,fetch);
+ let evicted;cache.block('v',0,4,fetch).then(()=>{evicted=cache.evict('v',0);});
+ releaseFetch();const a=await one,b=await two;assert.equal(evicted,false);assert.equal(cache.used,4);
+ a.release();a.release();assert.equal(cache.evict('v',0),false);b.release();assert.equal(cache.evict('v',0),true);assert.equal(cache.used,0);
+ await assert.rejects(cache.acquire('v',1,4,async()=>{throw Error('failed');}),/failed/);assert.equal(cache.used,0);assert.equal(cache.slots.size,0);
+});

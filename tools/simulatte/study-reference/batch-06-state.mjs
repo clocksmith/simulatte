@@ -8,6 +8,13 @@ export class BlockCache {
   this.used+=bytes;const slot={reserved:bytes,ready:false,pins:0};this.slots.set(key,slot);
   slot.promise=Promise.resolve().then(fetch).then(value=>{if(value.byteLength>bytes)throw Error('reservation exceeded');slot.ready=true;slot.value=value;this.used-=bytes-value.byteLength;slot.reserved=value.byteLength;return value;}).catch(e=>{if(this.slots.get(key)===slot){this.slots.delete(key);this.used-=slot.reserved;}throw e;});return slot.promise;
  }
+ acquire(revision,index,bytes,fetch){
+  const promise=this.block(revision,index,bytes,fetch),slot=this.slots.get(JSON.stringify([revision,index]));
+  if(!slot)return promise;
+  slot.pins++;let released=false;
+  const release=()=>{if(!released){released=true;slot.pins--;}};
+  return promise.then(value=>({value,release}),error=>{release();throw error;});
+ }
  pin(revision,index){const s=this.slots.get(JSON.stringify([revision,index]));if(!s?.ready)throw Error('not ready');s.pins++;return ()=>{if(s.pins<=0)throw Error('double unpin');s.pins--;};}
  evict(revision,index){const key=JSON.stringify([revision,index]),s=this.slots.get(key);if(!s?.ready||s.pins)return false;this.slots.delete(key);this.used-=s.reserved;return true;}
 }

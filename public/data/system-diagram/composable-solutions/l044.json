@@ -1,0 +1,4914 @@
+{
+  "components": [
+    {
+      "extends": {
+        "id": "core.service",
+        "version": 1
+      },
+      "id": "l044.conditional.d0",
+      "label": "Table transaction",
+      "ports": [
+        {
+          "contractId": "l044.conditional.c0",
+          "direction": "in",
+          "id": "in-l044.conditional.c0"
+        },
+        {
+          "contractId": "l044.conditional.c2",
+          "direction": "out",
+          "id": "out-l044.conditional.c2-control"
+        },
+        {
+          "contractId": "l044.conditional.c3",
+          "direction": "out",
+          "id": "out-l044.conditional.c3-control"
+        },
+        {
+          "contractId": "l044.conditional.c1",
+          "direction": "in",
+          "id": "in-l044.conditional.c1-state"
+        },
+        {
+          "contractId": "l044.conditional.c4",
+          "direction": "in",
+          "id": "in-l044.conditional.c4-state"
+        }
+      ],
+      "responsibility": "Start from a pinned table snapshot and record read predicates plus intended additions/removals.",
+      "stateOwnership": [
+        "transaction read version"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l044.conditional.d1",
+      "label": "Snapshot catalogue",
+      "ports": [
+        {
+          "contractId": "l044.conditional.c1",
+          "direction": "in",
+          "id": "in-l044.conditional.c1"
+        },
+        {
+          "contractId": "l044.conditional.c4",
+          "direction": "in",
+          "id": "in-l044.conditional.c4"
+        }
+      ],
+      "responsibility": "Expand transaction boundary with ordered immutable log actions and protocol metadata.",
+      "stateOwnership": [
+        "table log versions"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "l044.conditional.d2",
+      "label": "Data staging",
+      "ports": [
+        {
+          "contractId": "l044.conditional.c2",
+          "direction": "in",
+          "id": "in-l044.conditional.c2"
+        },
+        {
+          "contractId": "l044.conditional.c7",
+          "direction": "in",
+          "id": "in-l044.conditional.c7"
+        }
+      ],
+      "responsibility": "Upload immutable data objects and verify their hashes before attempting publication.",
+      "stateOwnership": [
+        "staged object refs and hashes"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l044.conditional.d3",
+      "label": "Conflict validation",
+      "ports": [
+        {
+          "contractId": "l044.conditional.c3",
+          "direction": "in",
+          "id": "in-l044.conditional.c3"
+        },
+        {
+          "contractId": "l044.conditional.c1",
+          "direction": "out",
+          "id": "out-l044.conditional.c1"
+        },
+        {
+          "contractId": "l044.conditional.c4",
+          "direction": "out",
+          "id": "out-l044.conditional.c4"
+        }
+      ],
+      "responsibility": "Read intervening commits; compare read/write predicates and schema/protocol changes under declared isolation.",
+      "stateOwnership": [
+        "validated read and write sets"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l044.conditional.d4",
+      "label": "Conditional commit",
+      "ports": [
+        {
+          "contractId": "l044.conditional.c4",
+          "direction": "in",
+          "id": "in-l044.conditional.c4"
+        },
+        {
+          "contractId": "l044.conditional.c2",
+          "direction": "out",
+          "id": "out-l044.conditional.c2"
+        },
+        {
+          "contractId": "l044.conditional.c4",
+          "direction": "out",
+          "id": "out-l044.conditional.c4"
+        }
+      ],
+      "responsibility": "Create the next immutable log key with If-None-Match star; a loser rereads and revalidates before retry.",
+      "stateOwnership": [
+        "commit key and attempt identity"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l044.conditional.d5",
+      "label": "Snapshot reader",
+      "ports": [
+        {
+          "contractId": "l044.conditional.c5",
+          "direction": "in",
+          "id": "in-l044.conditional.c5"
+        },
+        {
+          "contractId": "l044.conditional.c1",
+          "direction": "out",
+          "id": "out-l044.conditional.c1"
+        },
+        {
+          "contractId": "l044.conditional.c6",
+          "direction": "out",
+          "id": "out-l044.conditional.c6"
+        }
+      ],
+      "responsibility": "Choose one committed version and replay checkpoint plus contiguous log suffix.",
+      "stateOwnership": [
+        "reader snapshot version"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "l044.conditional.d6",
+      "label": "Metadata checkpoint",
+      "ports": [
+        {
+          "contractId": "l044.conditional.c1",
+          "direction": "out",
+          "id": "out-l044.conditional.c1"
+        },
+        {
+          "contractId": "l044.conditional.c6",
+          "direction": "in",
+          "id": "in-l044.conditional.c6"
+        }
+      ],
+      "responsibility": "Publish a complete checkpoint after each illustrative ten commits; verify checksum and retain required log suffix.",
+      "stateOwnership": [
+        "checkpoint version and checksum"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "l044.conditional.d7",
+      "label": "Retention and orphan cleanup",
+      "ports": [
+        {
+          "contractId": "l044.conditional.c7",
+          "direction": "out",
+          "id": "out-l044.conditional.c7"
+        },
+        {
+          "contractId": "l044.conditional.c1",
+          "direction": "out",
+          "id": "out-l044.conditional.c1"
+        }
+      ],
+      "responsibility": "Collect only unreferenced staged files after a grace period; respect active-reader retention and reconcile unknown commit outcomes by transaction ID.",
+      "stateOwnership": [
+        "retention floor and orphan receipts"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.client",
+        "version": 1
+      },
+      "id": "l044.conditional.caller",
+      "label": "Caller",
+      "ports": [
+        {
+          "contractId": "l044.conditional.c0",
+          "direction": "out",
+          "id": "out-l044.conditional.c0"
+        },
+        {
+          "contractId": "l044.conditional.c5",
+          "direction": "out",
+          "id": "out-l044.conditional.c5"
+        }
+      ],
+      "responsibility": "Submit the declared operation with authenticated identity and preserve its retry identity.",
+      "stateOwnership": [
+        "request identity"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l044.conditional.control",
+      "label": "Command control",
+      "ports": [
+        {
+          "contractId": "l044.conditional.c1",
+          "direction": "out",
+          "id": "out-l044.conditional.c1"
+        },
+        {
+          "contractId": "l044.conditional.c0",
+          "direction": "in",
+          "id": "in-l044.conditional.c0"
+        },
+        {
+          "contractId": "l044.conditional.c2",
+          "direction": "out",
+          "id": "out-l044.conditional.c2"
+        },
+        {
+          "contractId": "l044.conditional.c3",
+          "direction": "out",
+          "id": "out-l044.conditional.c3"
+        }
+      ],
+      "responsibility": "Start from a pinned table snapshot and record read predicates plus intended additions/removals.",
+      "stateOwnership": [
+        "validated command and version"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.service",
+        "version": 1
+      },
+      "id": "l044.coordinator.d0",
+      "label": "Commit request",
+      "ports": [
+        {
+          "contractId": "l044.coordinator.c0",
+          "direction": "in",
+          "id": "in-l044.coordinator.c0"
+        },
+        {
+          "contractId": "l044.coordinator.c2",
+          "direction": "out",
+          "id": "out-l044.coordinator.c2-control"
+        },
+        {
+          "contractId": "l044.coordinator.c1",
+          "direction": "in",
+          "id": "in-l044.coordinator.c1-state"
+        },
+        {
+          "contractId": "l044.coordinator.c4",
+          "direction": "in",
+          "id": "in-l044.coordinator.c4-state"
+        }
+      ],
+      "responsibility": "Submit base version, read predicates and immutable staged file references.",
+      "stateOwnership": [
+        "writer request identity"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l044.coordinator.d1",
+      "label": "Coordinator ledger",
+      "ports": [
+        {
+          "contractId": "l044.coordinator.c1",
+          "direction": "in",
+          "id": "in-l044.coordinator.c1"
+        },
+        {
+          "contractId": "l044.coordinator.c4",
+          "direction": "in",
+          "id": "in-l044.coordinator.c4"
+        }
+      ],
+      "responsibility": "Expand commit API with transaction receipts, monotonic table version and publisher epoch.",
+      "stateOwnership": [
+        "table sequence and writer receipts"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "l044.coordinator.d2",
+      "label": "Staging verifier",
+      "ports": [
+        {
+          "contractId": "l044.coordinator.c2",
+          "direction": "in",
+          "id": "in-l044.coordinator.c2"
+        },
+        {
+          "contractId": "l044.coordinator.c3",
+          "direction": "out",
+          "id": "out-l044.coordinator.c3"
+        }
+      ],
+      "responsibility": "Verify object existence, schema and digest before reserving commit publication.",
+      "stateOwnership": [
+        "verified staged refs"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l044.coordinator.d3",
+      "label": "OCC validator",
+      "ports": [
+        {
+          "contractId": "l044.coordinator.c3",
+          "direction": "in",
+          "id": "in-l044.coordinator.c3"
+        },
+        {
+          "contractId": "l044.coordinator.c1",
+          "direction": "out",
+          "id": "out-l044.coordinator.c1"
+        },
+        {
+          "contractId": "l044.coordinator.c4",
+          "direction": "out",
+          "id": "out-l044.coordinator.c4"
+        }
+      ],
+      "responsibility": "Validate against all intervening committed actions and enforce declared conflict semantics.",
+      "stateOwnership": [
+        "read/write set verdict"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "l044.coordinator.d4",
+      "label": "Fenced publisher",
+      "ports": [
+        {
+          "contractId": "l044.coordinator.c4",
+          "direction": "in",
+          "id": "in-l044.coordinator.c4"
+        },
+        {
+          "contractId": "l044.coordinator.c4",
+          "direction": "out",
+          "id": "out-l044.coordinator.c4"
+        },
+        {
+          "contractId": "l044.coordinator.c7",
+          "direction": "in",
+          "id": "in-l044.coordinator.c7"
+        }
+      ],
+      "responsibility": "Only the current publisher epoch can materialize ordered log records; recover pending publication before issuing later versions.",
+      "stateOwnership": [
+        "publication epoch and pending record"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l044.coordinator.d5",
+      "label": "Committed view",
+      "ports": [
+        {
+          "contractId": "l044.coordinator.c5",
+          "direction": "in",
+          "id": "in-l044.coordinator.c5"
+        },
+        {
+          "contractId": "l044.coordinator.c1",
+          "direction": "out",
+          "id": "out-l044.coordinator.c1"
+        }
+      ],
+      "responsibility": "Readers expose only a contiguous committed prefix with immutable log hashes.",
+      "stateOwnership": [
+        "committed prefix and snapshot"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "l044.coordinator.d6",
+      "label": "Checkpoint builder",
+      "ports": [
+        {
+          "contractId": "l044.coordinator.c5",
+          "direction": "out",
+          "id": "out-l044.coordinator.c5"
+        }
+      ],
+      "responsibility": "Create immutable checkpoints with protocol/schema metadata from the committed prefix.",
+      "stateOwnership": [
+        "checkpoint digest and version"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "l044.coordinator.d7",
+      "label": "Publication reconciler",
+      "ports": [
+        {
+          "contractId": "l044.coordinator.c7",
+          "direction": "out",
+          "id": "out-l044.coordinator.c7"
+        },
+        {
+          "contractId": "l044.coordinator.c1",
+          "direction": "out",
+          "id": "out-l044.coordinator.c1"
+        }
+      ],
+      "responsibility": "Resolve transaction identity against log/coordinator receipts before retry or cleanup; never skip a missing log version.",
+      "stateOwnership": [
+        "pending publication recovery"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.client",
+        "version": 1
+      },
+      "id": "l044.coordinator.caller",
+      "label": "Caller",
+      "ports": [
+        {
+          "contractId": "l044.coordinator.c0",
+          "direction": "out",
+          "id": "out-l044.coordinator.c0"
+        },
+        {
+          "contractId": "l044.coordinator.c5",
+          "direction": "out",
+          "id": "out-l044.coordinator.c5"
+        }
+      ],
+      "responsibility": "Submit the declared operation with authenticated identity and preserve its retry identity.",
+      "stateOwnership": [
+        "request identity"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l044.coordinator.control",
+      "label": "Command control",
+      "ports": [
+        {
+          "contractId": "l044.coordinator.c1",
+          "direction": "out",
+          "id": "out-l044.coordinator.c1"
+        },
+        {
+          "contractId": "l044.coordinator.c0",
+          "direction": "in",
+          "id": "in-l044.coordinator.c0"
+        },
+        {
+          "contractId": "l044.coordinator.c2",
+          "direction": "out",
+          "id": "out-l044.coordinator.c2"
+        }
+      ],
+      "responsibility": "Submit base version, read predicates and immutable staged file references.",
+      "stateOwnership": [
+        "validated command and version"
+      ],
+      "version": 1
+    }
+  ],
+  "contracts": [
+    {
+      "id": "l044.conditional.c0",
+      "request": {
+        "readVersion": "integer",
+        "tableId": "uuid"
+      },
+      "response": {
+        "transactionId": "uuid"
+      },
+      "version": 1
+    },
+    {
+      "id": "l044.conditional.c1",
+      "request": {
+        "tableId": "uuid",
+        "version": "integer"
+      },
+      "response": {
+        "actions": "add/remove/metadata actions[]"
+      },
+      "version": 1
+    },
+    {
+      "id": "l044.conditional.c2",
+      "request": {
+        "files": "object refs[]",
+        "transactionId": "uuid"
+      },
+      "response": {
+        "verified": "boolean"
+      },
+      "version": 1
+    },
+    {
+      "id": "l044.conditional.c3",
+      "request": {
+        "currentVersion": "integer",
+        "readVersion": "integer"
+      },
+      "response": {
+        "status": "compatible|conflict"
+      },
+      "version": 1
+    },
+    {
+      "id": "l044.conditional.c4",
+      "request": {
+        "actionsHash": "sha256",
+        "version": "integer"
+      },
+      "response": {
+        "conflict": "boolean",
+        "created": "boolean"
+      },
+      "version": 1
+    },
+    {
+      "id": "l044.conditional.c5",
+      "request": {
+        "version": "integer"
+      },
+      "response": {
+        "activeFiles": "immutable object refs[]"
+      },
+      "version": 1
+    },
+    {
+      "id": "l044.conditional.c6",
+      "request": {
+        "version": "multiple of 10"
+      },
+      "response": {
+        "checkpointHash": "sha256"
+      },
+      "version": 1
+    },
+    {
+      "id": "l044.conditional.c7",
+      "request": {
+        "readerFloor": "integer",
+        "transactionId": "uuid"
+      },
+      "response": {
+        "safeToDelete": "object refs[]"
+      },
+      "version": 1
+    },
+    {
+      "id": "l044.coordinator.c0",
+      "request": {
+        "baseVersion": "integer",
+        "transactionId": "uuid"
+      },
+      "response": {
+        "state": "accepted|conflict"
+      },
+      "version": 1
+    },
+    {
+      "id": "l044.coordinator.c1",
+      "request": {
+        "expectedVersion": "integer",
+        "tableId": "uuid"
+      },
+      "response": {
+        "epoch": "integer",
+        "version": "integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l044.coordinator.c2",
+      "request": {
+        "files": "object refs[]",
+        "schemaVersion": "integer"
+      },
+      "response": {
+        "valid": "boolean"
+      },
+      "version": 1
+    },
+    {
+      "id": "l044.coordinator.c3",
+      "request": {
+        "newActions": "actions[]",
+        "readPredicates": "typed predicates"
+      },
+      "response": {
+        "conflict": "boolean"
+      },
+      "version": 1
+    },
+    {
+      "id": "l044.coordinator.c4",
+      "request": {
+        "epoch": "integer",
+        "transactionId": "uuid",
+        "version": "integer"
+      },
+      "response": {
+        "published": "boolean"
+      },
+      "version": 1
+    },
+    {
+      "id": "l044.coordinator.c5",
+      "request": {
+        "requestedVersion": "integer"
+      },
+      "response": {
+        "snapshot": "active file refs[]"
+      },
+      "version": 1
+    },
+    {
+      "id": "l044.coordinator.c6",
+      "request": {
+        "version": "integer"
+      },
+      "response": {
+        "checkpointHash": "sha256"
+      },
+      "version": 1
+    },
+    {
+      "id": "l044.coordinator.c7",
+      "request": {
+        "publisherEpoch": "integer",
+        "transactionId": "uuid"
+      },
+      "response": {
+        "state": "committed|pending|conflict"
+      },
+      "version": 1
+    }
+  ],
+  "execution": {
+    "implementation": null,
+    "kind": "conceptual-design"
+  },
+  "problem": {
+    "referenceId": "L044",
+    "requirements": [
+      {
+        "id": "r0",
+        "text": "Publish one ordered immutable commit per table version with complete data references."
+      },
+      {
+        "id": "r1",
+        "text": "Validate optimistic conflicts and protocol/schema compatibility before commit."
+      },
+      {
+        "id": "r2",
+        "text": "Read consistent snapshots and compact metadata without deleting files needed by live readers."
+      }
+    ],
+    "scope": "Provide snapshot isolation and schema evolution over immutable data objects and an ordered transaction log. Compare backend-supported conditional commit creation with an external commit coordinator. S3 currently supports conditional writes; neither design assumes atomic directory rename or append.",
+    "studyLabel": "Transactional table metadata"
+  },
+  "provenance": {
+    "kind": "authored-practice",
+    "note": "Authored interview preparation. Technical references support mechanisms, not the claim that a company asked this question."
+  },
+  "references": [
+    {
+      "id": "ref0",
+      "scope": "background",
+      "supports": "Conditional creation and compare-and-swap object writes; backend-specific preconditions.",
+      "title": "S3 conditional writes",
+      "url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/conditional-writes.html"
+    },
+    {
+      "id": "ref1",
+      "scope": "background",
+      "supports": "Versioned commit actions, checkpoints and reader/writer protocol compatibility.",
+      "title": "Delta transaction protocol",
+      "url": "https://github.com/delta-io/delta/blob/master/PROTOCOL.md"
+    }
+  ],
+  "schema": "simulatte.composableStudy.v2",
+  "solutions": [
+    {
+      "acceptanceCases": [
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-03-mechanisms.test.mjs",
+            "testName": "L044 bounded mechanism"
+          },
+          "given": "Two writers read version 4 and both try to create version 5.",
+          "id": "mechanism",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Only one version-5 commit exists; the overlapping loser conflicts rather than overwriting or silently appending.",
+          "when": "Attempt atomic create-if-absent, then revalidate a loser whose predicate overlaps the winning write."
+        },
+        {
+          "given": "Two writers target the same version key after reading one snapshot.",
+          "id": "winner",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Only one creates that immutable version; loser rereads and revalidates conflict predicates.",
+          "when": "Create with backend-supported If-None-Match star."
+        },
+        {
+          "given": "A reader pins version 12 while version 13 commits and checkpoint 10 is available.",
+          "id": "snapshot",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Read version 12 consistently without mixing new metadata or requiring directory rename.",
+          "when": "Replay checkpoint 10 plus commits 11 and 12."
+        },
+        {
+          "given": "An old snapshot still references a data file while an uncommitted upload ages past grace.",
+          "id": "retention",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Retain referenced files and collect only proven orphan objects; schema/protocol conflicts abort unsafe commits.",
+          "when": "Run cleanup with the active-reader floor."
+        }
+      ],
+      "algorithms": [
+        {
+          "code": "const intervening = log.after(tx.readVersion);\nif (intervening.some(c => overlapsReadWrite(tx,c) || incompatibleMetadata(tx,c))) return \"conflict\";\nconst next = currentVersion + 1;\nreturn conditionalCreate(logKey(next), encode(tx.actions));\n// A failed create requires re-read and conflict validation, not overwriting the winner.",
+          "guarantees": [
+            "The code states the bounded decision rule; unimplemented helpers remain pseudocode.",
+            "External effects, distributed failure and latency require separate execution evidence."
+          ],
+          "id": "bounded-rule",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "n4"
+        },
+        {
+          "code": "const committed = findTransactionInLog(transactionId);\nif (committed) return committed.receipt;\nfor (const object of stagedObjects(transactionId)) {\n if (olderThanGrace(object) && !referencedByRetainedSnapshot(object, readerFloor)) deleteAndRecord(object);\n}\n// An unknown create outcome is reconciled before retrying or deleting referenced data.",
+          "guarantees": [
+            "Collect only unreferenced staged files after a grace period; respect active-reader retention and reconcile unknown commit outcomes by transaction ID."
+          ],
+          "id": "recover",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "n7"
+        }
+      ],
+      "apis": [
+        {
+          "errors": "401 unauthenticated; 409 stale identity/version; 429 bounded capacity; 503 unavailable authority",
+          "method": "POST",
+          "ownerNodeId": "control",
+          "path": "/l044/conditional",
+          "request": "{\"tableId\":\"uuid\",\"readVersion\":\"integer\"}",
+          "response": "{\"transactionId\":\"uuid\"}"
+        },
+        {
+          "errors": "403 unauthorized scope; 404 absent identity; 410 expired retained history",
+          "method": "GET",
+          "ownerNodeId": "state",
+          "path": "/l044/conditional/state",
+          "request": "{\"tableId\":\"uuid\",\"version\":\"integer\"}",
+          "response": "{\"actions\":\"add/remove/metadata actions[]\"}"
+        }
+      ],
+      "assumptions": [
+        "Data files are uploaded before log publication; a conditional create is the commit point."
+      ],
+      "chooseWhen": "The chosen backend provides qualified atomic create-if-absent semantics.",
+      "id": "conditional",
+      "initialGraph": {
+        "edges": [],
+        "nodes": []
+      },
+      "stages": [
+        {
+          "checkIds": [
+            "mechanism",
+            "winner",
+            "snapshot",
+            "retention"
+          ],
+          "explanation": "Start from a pinned table snapshot and record read predicates plus intended additions/removals. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l044.conditional.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l044.conditional.c0"
+                },
+                "id": "request",
+                "label": "submit transactional table metadata",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l044.conditional.c0"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l044.conditional.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l044.conditional.d0",
+                "id": "boundary",
+                "label": "Table transaction",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "conditional-s1",
+          "invariants": [
+            "Start from a pinned table snapshot and record read predicates plus intended additions/removals. State owner: Table transaction (transaction read version)."
+          ],
+          "number": 1,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l044.conditional.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "l044.conditional.d0",
+                "id": "boundary",
+                "label": "Table transaction",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l044.conditional.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l044.conditional.c0"
+                },
+                "id": "request",
+                "label": "submit transactional table metadata",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l044.conditional.c0"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What does a writer read?",
+          "reason": "Start from a pinned table snapshot and record read predicates plus intended additions/removals.",
+          "title": "Table transaction"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "winner",
+            "snapshot",
+            "retention"
+          ],
+          "explanation": "Expand transaction boundary with ordered immutable log actions and protocol metadata. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l044.conditional.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l044.conditional.c0"
+                },
+                "id": "request",
+                "label": "submit transactional table metadata",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l044.conditional.c0"
+                }
+              },
+              {
+                "contractId": "l044.conditional.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l044.conditional.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l044.conditional.c1"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l044.conditional.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l044.conditional.d0",
+                "id": "boundary",
+                "label": "Table transaction",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l044-conditional-boundary-binding-1",
+                "version": 1
+              },
+              {
+                "definitionId": "l044.conditional.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l044.conditional.d1",
+                "id": "state",
+                "label": "Snapshot catalogue",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "conditional-s2",
+          "invariants": [
+            "Expand transaction boundary with ordered immutable log actions and protocol metadata. State owner: Snapshot catalogue (table log versions)."
+          ],
+          "number": 2,
+          "operations": [
+            {
+              "edges": [
+                {
+                  "contractId": "l044.conditional.c1",
+                  "from": {
+                    "nodeId": "control",
+                    "portId": "out-l044.conditional.c1"
+                  },
+                  "id": "commit",
+                  "label": "commit versioned state",
+                  "mode": "storage",
+                  "to": {
+                    "nodeId": "state",
+                    "portId": "in-l044.conditional.c1"
+                  }
+                }
+              ],
+              "nodeId": "boundary",
+              "nodes": [
+                {
+                  "definitionId": "l044.conditional.control",
+                  "id": "control",
+                  "label": "Command control",
+                  "position": {
+                    "x": 560,
+                    "y": 0
+                  },
+                  "version": 1
+                },
+                {
+                  "definitionId": "l044.conditional.d1",
+                  "id": "state",
+                  "label": "Snapshot catalogue",
+                  "position": {
+                    "x": 840,
+                    "y": 0
+                  },
+                  "version": 1
+                }
+              ],
+              "op": "expand",
+              "subsystemId": "l044-conditional-boundary-binding-1"
+            }
+          ],
+          "question": "Which state is authoritative?",
+          "reason": "Expand transaction boundary with ordered immutable log actions and protocol metadata.",
+          "title": "Snapshot catalogue"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "winner",
+            "snapshot",
+            "retention"
+          ],
+          "explanation": "Upload immutable data objects and verify their hashes before attempting publication. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l044.conditional.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l044.conditional.c0"
+                },
+                "id": "request",
+                "label": "submit transactional table metadata",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l044.conditional.c0"
+                }
+              },
+              {
+                "contractId": "l044.conditional.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l044.conditional.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l044.conditional.c1"
+                }
+              },
+              {
+                "contractId": "l044.conditional.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l044.conditional.c2-control"
+                },
+                "id": "stage",
+                "label": "verify immutable data objects",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l044.conditional.c2"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l044.conditional.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l044.conditional.d0",
+                "id": "boundary",
+                "label": "Table transaction",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l044-conditional-boundary-binding-2",
+                "version": 1
+              },
+              {
+                "definitionId": "l044.conditional.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l044.conditional.d1",
+                "id": "state",
+                "label": "Snapshot catalogue",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l044.conditional.d2",
+                "id": "n2",
+                "label": "Data staging",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "conditional-s3",
+          "invariants": [
+            "Upload immutable data objects and verify their hashes before attempting publication. State owner: Data staging (staged object refs and hashes)."
+          ],
+          "number": 3,
+          "operations": [
+            {
+              "nodeId": "boundary",
+              "op": "rebind",
+              "reason": "Select a new immutable exposure binding before connecting the added responsibility; prior stage binding remains unchanged.",
+              "subsystemId": "l044-conditional-boundary-binding-2"
+            },
+            {
+              "node": {
+                "definitionId": "l044.conditional.d2",
+                "id": "n2",
+                "label": "Data staging",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l044.conditional.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l044.conditional.c2-control"
+                },
+                "id": "stage",
+                "label": "verify immutable data objects",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l044.conditional.c2"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can a commit refer to missing files?",
+          "reason": "Upload immutable data objects and verify their hashes before attempting publication.",
+          "title": "Data staging"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "winner",
+            "snapshot",
+            "retention"
+          ],
+          "explanation": "Read intervening commits; compare read/write predicates and schema/protocol changes under declared isolation. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l044.conditional.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l044.conditional.c0"
+                },
+                "id": "request",
+                "label": "submit transactional table metadata",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l044.conditional.c0"
+                }
+              },
+              {
+                "contractId": "l044.conditional.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l044.conditional.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l044.conditional.c1"
+                }
+              },
+              {
+                "contractId": "l044.conditional.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l044.conditional.c2-control"
+                },
+                "id": "stage",
+                "label": "verify immutable data objects",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l044.conditional.c2"
+                }
+              },
+              {
+                "contractId": "l044.conditional.c3",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l044.conditional.c3-control"
+                },
+                "id": "validate",
+                "label": "validate intervening commits",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l044.conditional.c3"
+                }
+              },
+              {
+                "contractId": "l044.conditional.c1",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l044.conditional.c1"
+                },
+                "id": "read-log",
+                "label": "read ordered log suffix",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l044.conditional.c1-state"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l044.conditional.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l044.conditional.d0",
+                "id": "boundary",
+                "label": "Table transaction",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l044-conditional-boundary-binding-3",
+                "version": 1
+              },
+              {
+                "definitionId": "l044.conditional.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l044.conditional.d1",
+                "id": "state",
+                "label": "Snapshot catalogue",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l044.conditional.d2",
+                "id": "n2",
+                "label": "Data staging",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l044.conditional.d3",
+                "id": "n3",
+                "label": "Conflict validation",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "conditional-s4",
+          "invariants": [
+            "Read intervening commits; compare read/write predicates and schema/protocol changes under declared isolation. State owner: Conflict validation (validated read and write sets)."
+          ],
+          "number": 4,
+          "operations": [
+            {
+              "nodeId": "boundary",
+              "op": "rebind",
+              "reason": "Select a new immutable exposure binding before connecting the added responsibility; prior stage binding remains unchanged.",
+              "subsystemId": "l044-conditional-boundary-binding-3"
+            },
+            {
+              "node": {
+                "definitionId": "l044.conditional.d3",
+                "id": "n3",
+                "label": "Conflict validation",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l044.conditional.c3",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l044.conditional.c3-control"
+                },
+                "id": "validate",
+                "label": "validate intervening commits",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l044.conditional.c3"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l044.conditional.c1",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l044.conditional.c1"
+                },
+                "id": "read-log",
+                "label": "read ordered log suffix",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l044.conditional.c1-state"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Does a newer version always conflict?",
+          "reason": "Read intervening commits; compare read/write predicates and schema/protocol changes under declared isolation.",
+          "title": "Conflict validation"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "winner",
+            "snapshot",
+            "retention"
+          ],
+          "explanation": "Create the next immutable log key with If-None-Match star; a loser rereads and revalidates before retry. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l044.conditional.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l044.conditional.c0"
+                },
+                "id": "request",
+                "label": "submit transactional table metadata",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l044.conditional.c0"
+                }
+              },
+              {
+                "contractId": "l044.conditional.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l044.conditional.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l044.conditional.c1"
+                }
+              },
+              {
+                "contractId": "l044.conditional.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l044.conditional.c2-control"
+                },
+                "id": "stage",
+                "label": "verify immutable data objects",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l044.conditional.c2"
+                }
+              },
+              {
+                "contractId": "l044.conditional.c3",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l044.conditional.c3-control"
+                },
+                "id": "validate",
+                "label": "validate intervening commits",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l044.conditional.c3"
+                }
+              },
+              {
+                "contractId": "l044.conditional.c1",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l044.conditional.c1"
+                },
+                "id": "read-log",
+                "label": "read ordered log suffix",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l044.conditional.c1-state"
+                }
+              },
+              {
+                "contractId": "l044.conditional.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l044.conditional.c4"
+                },
+                "id": "create",
+                "label": "conditionally create next commit",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l044.conditional.c4"
+                }
+              },
+              {
+                "contractId": "l044.conditional.c2",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l044.conditional.c2"
+                },
+                "id": "data-ready",
+                "label": "require staged file verification",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l044.conditional.c2"
+                }
+              },
+              {
+                "contractId": "l044.conditional.c4",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l044.conditional.c4"
+                },
+                "id": "commit-log",
+                "label": "publish immutable version key",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l044.conditional.c4-state"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l044.conditional.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l044.conditional.d0",
+                "id": "boundary",
+                "label": "Table transaction",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l044-conditional-boundary-binding-4",
+                "version": 1
+              },
+              {
+                "definitionId": "l044.conditional.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l044.conditional.d1",
+                "id": "state",
+                "label": "Snapshot catalogue",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l044.conditional.d2",
+                "id": "n2",
+                "label": "Data staging",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l044.conditional.d3",
+                "id": "n3",
+                "label": "Conflict validation",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l044.conditional.d4",
+                "id": "n4",
+                "label": "Conditional commit",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "conditional-s5",
+          "invariants": [
+            "Create the next immutable log key with If-None-Match star; a loser rereads and revalidates before retry. State owner: Conditional commit (commit key and attempt identity)."
+          ],
+          "number": 5,
+          "operations": [
+            {
+              "nodeId": "boundary",
+              "op": "rebind",
+              "reason": "Select a new immutable exposure binding before connecting the added responsibility; prior stage binding remains unchanged.",
+              "subsystemId": "l044-conditional-boundary-binding-4"
+            },
+            {
+              "node": {
+                "definitionId": "l044.conditional.d4",
+                "id": "n4",
+                "label": "Conditional commit",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l044.conditional.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l044.conditional.c4"
+                },
+                "id": "create",
+                "label": "conditionally create next commit",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l044.conditional.c4"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l044.conditional.c2",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l044.conditional.c2"
+                },
+                "id": "data-ready",
+                "label": "require staged file verification",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l044.conditional.c2"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l044.conditional.c4",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l044.conditional.c4"
+                },
+                "id": "commit-log",
+                "label": "publish immutable version key",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l044.conditional.c4-state"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How do writers claim the same next version?",
+          "reason": "Create the next immutable log key with If-None-Match star; a loser rereads and revalidates before retry.",
+          "title": "Conditional commit"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "winner",
+            "snapshot",
+            "retention"
+          ],
+          "explanation": "Choose one committed version and replay checkpoint plus contiguous log suffix. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l044.conditional.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l044.conditional.c0"
+                },
+                "id": "request",
+                "label": "submit transactional table metadata",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l044.conditional.c0"
+                }
+              },
+              {
+                "contractId": "l044.conditional.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l044.conditional.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l044.conditional.c1"
+                }
+              },
+              {
+                "contractId": "l044.conditional.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l044.conditional.c2-control"
+                },
+                "id": "stage",
+                "label": "verify immutable data objects",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l044.conditional.c2"
+                }
+              },
+              {
+                "contractId": "l044.conditional.c3",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l044.conditional.c3-control"
+                },
+                "id": "validate",
+                "label": "validate intervening commits",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l044.conditional.c3"
+                }
+              },
+              {
+                "contractId": "l044.conditional.c1",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l044.conditional.c1"
+                },
+                "id": "read-log",
+                "label": "read ordered log suffix",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l044.conditional.c1-state"
+                }
+              },
+              {
+                "contractId": "l044.conditional.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l044.conditional.c4"
+                },
+                "id": "create",
+                "label": "conditionally create next commit",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l044.conditional.c4"
+                }
+              },
+              {
+                "contractId": "l044.conditional.c2",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l044.conditional.c2"
+                },
+                "id": "data-ready",
+                "label": "require staged file verification",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l044.conditional.c2"
+                }
+              },
+              {
+                "contractId": "l044.conditional.c4",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l044.conditional.c4"
+                },
+                "id": "commit-log",
+                "label": "publish immutable version key",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l044.conditional.c4-state"
+                }
+              },
+              {
+                "contractId": "l044.conditional.c5",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l044.conditional.c5"
+                },
+                "id": "snapshot",
+                "label": "read pinned table snapshot",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l044.conditional.c5"
+                }
+              },
+              {
+                "contractId": "l044.conditional.c1",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l044.conditional.c1"
+                },
+                "id": "log",
+                "label": "replay contiguous commit prefix",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l044.conditional.c1-state"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l044.conditional.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l044.conditional.d0",
+                "id": "boundary",
+                "label": "Table transaction",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l044-conditional-boundary-binding-4",
+                "version": 1
+              },
+              {
+                "definitionId": "l044.conditional.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l044.conditional.d1",
+                "id": "state",
+                "label": "Snapshot catalogue",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l044.conditional.d2",
+                "id": "n2",
+                "label": "Data staging",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l044.conditional.d3",
+                "id": "n3",
+                "label": "Conflict validation",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l044.conditional.d4",
+                "id": "n4",
+                "label": "Conditional commit",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l044.conditional.d5",
+                "id": "n5",
+                "label": "Snapshot reader",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "conditional-s6",
+          "invariants": [
+            "Choose one committed version and replay checkpoint plus contiguous log suffix. State owner: Snapshot reader (reader snapshot version)."
+          ],
+          "number": 6,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l044.conditional.d5",
+                "id": "n5",
+                "label": "Snapshot reader",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l044.conditional.c5",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l044.conditional.c5"
+                },
+                "id": "snapshot",
+                "label": "read pinned table snapshot",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l044.conditional.c5"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l044.conditional.c1",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l044.conditional.c1"
+                },
+                "id": "log",
+                "label": "replay contiguous commit prefix",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l044.conditional.c1-state"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can a reader mix versions?",
+          "reason": "Choose one committed version and replay checkpoint plus contiguous log suffix.",
+          "title": "Snapshot reader"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "winner",
+            "snapshot",
+            "retention"
+          ],
+          "explanation": "Publish a complete checkpoint after each illustrative ten commits; verify checksum and retain required log suffix. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l044.conditional.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l044.conditional.c0"
+                },
+                "id": "request",
+                "label": "submit transactional table metadata",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l044.conditional.c0"
+                }
+              },
+              {
+                "contractId": "l044.conditional.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l044.conditional.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l044.conditional.c1"
+                }
+              },
+              {
+                "contractId": "l044.conditional.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l044.conditional.c2-control"
+                },
+                "id": "stage",
+                "label": "verify immutable data objects",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l044.conditional.c2"
+                }
+              },
+              {
+                "contractId": "l044.conditional.c3",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l044.conditional.c3-control"
+                },
+                "id": "validate",
+                "label": "validate intervening commits",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l044.conditional.c3"
+                }
+              },
+              {
+                "contractId": "l044.conditional.c1",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l044.conditional.c1"
+                },
+                "id": "read-log",
+                "label": "read ordered log suffix",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l044.conditional.c1-state"
+                }
+              },
+              {
+                "contractId": "l044.conditional.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l044.conditional.c4"
+                },
+                "id": "create",
+                "label": "conditionally create next commit",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l044.conditional.c4"
+                }
+              },
+              {
+                "contractId": "l044.conditional.c2",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l044.conditional.c2"
+                },
+                "id": "data-ready",
+                "label": "require staged file verification",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l044.conditional.c2"
+                }
+              },
+              {
+                "contractId": "l044.conditional.c4",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l044.conditional.c4"
+                },
+                "id": "commit-log",
+                "label": "publish immutable version key",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l044.conditional.c4-state"
+                }
+              },
+              {
+                "contractId": "l044.conditional.c5",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l044.conditional.c5"
+                },
+                "id": "snapshot",
+                "label": "read pinned table snapshot",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l044.conditional.c5"
+                }
+              },
+              {
+                "contractId": "l044.conditional.c1",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l044.conditional.c1"
+                },
+                "id": "log",
+                "label": "replay contiguous commit prefix",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l044.conditional.c1-state"
+                }
+              },
+              {
+                "contractId": "l044.conditional.c1",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l044.conditional.c1"
+                },
+                "id": "checkpoint",
+                "label": "read complete log prefix",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l044.conditional.c1-state"
+                }
+              },
+              {
+                "contractId": "l044.conditional.c6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l044.conditional.c6"
+                },
+                "id": "accelerate",
+                "label": "load verified checkpoint",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l044.conditional.c6"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l044.conditional.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l044.conditional.d0",
+                "id": "boundary",
+                "label": "Table transaction",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l044-conditional-boundary-binding-4",
+                "version": 1
+              },
+              {
+                "definitionId": "l044.conditional.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l044.conditional.d1",
+                "id": "state",
+                "label": "Snapshot catalogue",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l044.conditional.d2",
+                "id": "n2",
+                "label": "Data staging",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l044.conditional.d3",
+                "id": "n3",
+                "label": "Conflict validation",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l044.conditional.d4",
+                "id": "n4",
+                "label": "Conditional commit",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l044.conditional.d5",
+                "id": "n5",
+                "label": "Snapshot reader",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l044.conditional.d6",
+                "id": "n6",
+                "label": "Metadata checkpoint",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "conditional-s7",
+          "invariants": [
+            "Publish a complete checkpoint after each illustrative ten commits; verify checksum and retain required log suffix. State owner: Metadata checkpoint (checkpoint version and checksum)."
+          ],
+          "number": 7,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l044.conditional.d6",
+                "id": "n6",
+                "label": "Metadata checkpoint",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l044.conditional.c1",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l044.conditional.c1"
+                },
+                "id": "checkpoint",
+                "label": "read complete log prefix",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l044.conditional.c1-state"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l044.conditional.c6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l044.conditional.c6"
+                },
+                "id": "accelerate",
+                "label": "load verified checkpoint",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l044.conditional.c6"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can compaction replace history unsafely?",
+          "reason": "Publish a complete checkpoint after each illustrative ten commits; verify checksum and retain required log suffix.",
+          "title": "Metadata checkpoint"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "winner",
+            "snapshot",
+            "retention"
+          ],
+          "explanation": "Collect only unreferenced staged files after a grace period; respect active-reader retention and reconcile unknown commit outcomes by transaction ID. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l044.conditional.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l044.conditional.c0"
+                },
+                "id": "request",
+                "label": "submit transactional table metadata",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l044.conditional.c0"
+                }
+              },
+              {
+                "contractId": "l044.conditional.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l044.conditional.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l044.conditional.c1"
+                }
+              },
+              {
+                "contractId": "l044.conditional.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l044.conditional.c2-control"
+                },
+                "id": "stage",
+                "label": "verify immutable data objects",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l044.conditional.c2"
+                }
+              },
+              {
+                "contractId": "l044.conditional.c3",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l044.conditional.c3-control"
+                },
+                "id": "validate",
+                "label": "validate intervening commits",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l044.conditional.c3"
+                }
+              },
+              {
+                "contractId": "l044.conditional.c1",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l044.conditional.c1"
+                },
+                "id": "read-log",
+                "label": "read ordered log suffix",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l044.conditional.c1-state"
+                }
+              },
+              {
+                "contractId": "l044.conditional.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l044.conditional.c4"
+                },
+                "id": "create",
+                "label": "conditionally create next commit",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l044.conditional.c4"
+                }
+              },
+              {
+                "contractId": "l044.conditional.c2",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l044.conditional.c2"
+                },
+                "id": "data-ready",
+                "label": "require staged file verification",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l044.conditional.c2"
+                }
+              },
+              {
+                "contractId": "l044.conditional.c4",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l044.conditional.c4"
+                },
+                "id": "commit-log",
+                "label": "publish immutable version key",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l044.conditional.c4-state"
+                }
+              },
+              {
+                "contractId": "l044.conditional.c5",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l044.conditional.c5"
+                },
+                "id": "snapshot",
+                "label": "read pinned table snapshot",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l044.conditional.c5"
+                }
+              },
+              {
+                "contractId": "l044.conditional.c1",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l044.conditional.c1"
+                },
+                "id": "log",
+                "label": "replay contiguous commit prefix",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l044.conditional.c1-state"
+                }
+              },
+              {
+                "contractId": "l044.conditional.c1",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l044.conditional.c1"
+                },
+                "id": "checkpoint",
+                "label": "read complete log prefix",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l044.conditional.c1-state"
+                }
+              },
+              {
+                "contractId": "l044.conditional.c6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l044.conditional.c6"
+                },
+                "id": "accelerate",
+                "label": "load verified checkpoint",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l044.conditional.c6"
+                }
+              },
+              {
+                "contractId": "l044.conditional.c7",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l044.conditional.c7"
+                },
+                "id": "orphan",
+                "label": "reconcile staged orphan files",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l044.conditional.c7"
+                }
+              },
+              {
+                "contractId": "l044.conditional.c1",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l044.conditional.c1"
+                },
+                "id": "tx-status",
+                "label": "resolve transaction commit identity",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l044.conditional.c1-state"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l044.conditional.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l044.conditional.d0",
+                "id": "boundary",
+                "label": "Table transaction",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l044-conditional-boundary-binding-4",
+                "version": 1
+              },
+              {
+                "definitionId": "l044.conditional.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l044.conditional.d1",
+                "id": "state",
+                "label": "Snapshot catalogue",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l044.conditional.d2",
+                "id": "n2",
+                "label": "Data staging",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l044.conditional.d3",
+                "id": "n3",
+                "label": "Conflict validation",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l044.conditional.d4",
+                "id": "n4",
+                "label": "Conditional commit",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l044.conditional.d5",
+                "id": "n5",
+                "label": "Snapshot reader",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l044.conditional.d6",
+                "id": "n6",
+                "label": "Metadata checkpoint",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l044.conditional.d7",
+                "id": "n7",
+                "label": "Retention and orphan cleanup",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "conditional-s8",
+          "invariants": [
+            "Collect only unreferenced staged files after a grace period; respect active-reader retention and reconcile unknown commit outcomes by transaction ID. State owner: Retention and orphan cleanup (retention floor and orphan receipts)."
+          ],
+          "number": 8,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l044.conditional.d7",
+                "id": "n7",
+                "label": "Retention and orphan cleanup",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l044.conditional.c7",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l044.conditional.c7"
+                },
+                "id": "orphan",
+                "label": "reconcile staged orphan files",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l044.conditional.c7"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l044.conditional.c1",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l044.conditional.c1"
+                },
+                "id": "tx-status",
+                "label": "resolve transaction commit identity",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l044.conditional.c1-state"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "When can files be removed?",
+          "reason": "Collect only unreferenced staged files after a grace period; respect active-reader retention and reconcile unknown commit outcomes by transaction ID.",
+          "title": "Retention and orphan cleanup"
+        }
+      ],
+      "title": "Conditional version-file creation",
+      "tradeoffs": [
+        "Writers contend on commit versions and must rebase/revalidate; backend behavior and credentials must be qualified."
+      ]
+    },
+    {
+      "acceptanceCases": [
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-03-mechanisms.test.mjs",
+            "testName": "L044 bounded mechanism"
+          },
+          "given": "Two writers read version 4 and both try to create version 5.",
+          "id": "mechanism",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Only one version-5 commit exists; the overlapping loser conflicts rather than overwriting or silently appending.",
+          "when": "Attempt atomic create-if-absent, then revalidate a loser whose predicate overlaps the winning write."
+        },
+        {
+          "given": "Two writers update overlapping predicates from one base version.",
+          "id": "winner",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Select a valid commit or conflict; stale publishers cannot publish under an obsolete epoch.",
+          "when": "Serialize validation/publication through current coordinator epoch."
+        },
+        {
+          "given": "A version is reserved but its log object is not verified.",
+          "id": "snapshot",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Expose only the contiguous committed prefix, excluding the reservation.",
+          "when": "Read the latest table snapshot."
+        },
+        {
+          "given": "Publication succeeded but its acknowledgement was lost.",
+          "id": "retention",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Recover the original receipt and retain every file referenced by live snapshots.",
+          "when": "Reconcile by transaction identity before retry or garbage collection."
+        }
+      ],
+      "algorithms": [
+        {
+          "code": "assertCurrentPublisherEpoch(epoch);\nconst current = loadCommittedPrefix(tableId);\nif (interveningActionsConflict(tx, current)) return conflict();\nconst pending = reserveOrderedPublication(tx.id, current.version + 1, epoch);\n// Reservation is not reader-visible; fenced publisher verifies immutable log bytes before marking committed.",
+          "guarantees": [
+            "The code states the bounded decision rule; unimplemented helpers remain pseudocode.",
+            "External effects, distributed failure and latency require separate execution evidence."
+          ],
+          "id": "bounded-rule",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "n3"
+        },
+        {
+          "code": "const pending = ledger.find(transactionId);\nif (pending.state === \"committed\") return pending.receipt;\nassertCurrentPublisherEpoch(epoch);\nconst object = await readLogObject(pending.version);\nif (object.hash === pending.actionsHash) markCommittedAndAdvancePrefix(pending);\nelse retainPendingAndBlockLaterVersionPublication();\n// Fence old publishers and never treat a reserved sequence number as a committed snapshot.",
+          "guarantees": [
+            "Resolve transaction identity against log/coordinator receipts before retry or cleanup; never skip a missing log version."
+          ],
+          "id": "recover",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "n7"
+        }
+      ],
+      "apis": [
+        {
+          "errors": "401 unauthenticated; 409 stale identity/version; 429 bounded capacity; 503 unavailable authority",
+          "method": "POST",
+          "ownerNodeId": "control",
+          "path": "/l044/coordinator",
+          "request": "{\"transactionId\":\"uuid\",\"baseVersion\":\"integer\"}",
+          "response": "{\"state\":\"accepted|conflict\"}"
+        },
+        {
+          "errors": "403 unauthorized scope; 404 absent identity; 410 expired retained history",
+          "method": "GET",
+          "ownerNodeId": "state",
+          "path": "/l044/coordinator/state",
+          "request": "{\"tableId\":\"uuid\",\"expectedVersion\":\"integer\"}",
+          "response": "{\"version\":\"integer\",\"epoch\":\"integer\"}"
+        }
+      ],
+      "assumptions": [
+        "A fenced coordinator is the sole publisher; reservation alone is not a committed table version."
+      ],
+      "chooseWhen": "The backend lacks qualified conditional creation or high write contention benefits from a commit owner.",
+      "id": "coordinator",
+      "initialGraph": {
+        "edges": [],
+        "nodes": []
+      },
+      "stages": [
+        {
+          "checkIds": [
+            "mechanism",
+            "winner",
+            "snapshot",
+            "retention"
+          ],
+          "explanation": "Submit base version, read predicates and immutable staged file references. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l044.coordinator.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l044.coordinator.c0"
+                },
+                "id": "request",
+                "label": "submit transactional table metadata",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l044.coordinator.c0"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l044.coordinator.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l044.coordinator.d0",
+                "id": "boundary",
+                "label": "Commit request",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "coordinator-s1",
+          "invariants": [
+            "Submit base version, read predicates and immutable staged file references. State owner: Commit request (writer request identity)."
+          ],
+          "number": 1,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l044.coordinator.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "l044.coordinator.d0",
+                "id": "boundary",
+                "label": "Commit request",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l044.coordinator.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l044.coordinator.c0"
+                },
+                "id": "request",
+                "label": "submit transactional table metadata",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l044.coordinator.c0"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What must the coordinator validate?",
+          "reason": "Submit base version, read predicates and immutable staged file references.",
+          "title": "Commit request"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "winner",
+            "snapshot",
+            "retention"
+          ],
+          "explanation": "Expand commit API with transaction receipts, monotonic table version and publisher epoch. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l044.coordinator.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l044.coordinator.c0"
+                },
+                "id": "request",
+                "label": "submit transactional table metadata",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l044.coordinator.c0"
+                }
+              },
+              {
+                "contractId": "l044.coordinator.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l044.coordinator.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l044.coordinator.c1"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l044.coordinator.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l044.coordinator.d0",
+                "id": "boundary",
+                "label": "Commit request",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l044-coordinator-boundary-binding-1",
+                "version": 1
+              },
+              {
+                "definitionId": "l044.coordinator.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l044.coordinator.d1",
+                "id": "state",
+                "label": "Coordinator ledger",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "coordinator-s2",
+          "invariants": [
+            "Expand commit API with transaction receipts, monotonic table version and publisher epoch. State owner: Coordinator ledger (table sequence and writer receipts)."
+          ],
+          "number": 2,
+          "operations": [
+            {
+              "edges": [
+                {
+                  "contractId": "l044.coordinator.c1",
+                  "from": {
+                    "nodeId": "control",
+                    "portId": "out-l044.coordinator.c1"
+                  },
+                  "id": "commit",
+                  "label": "commit versioned state",
+                  "mode": "storage",
+                  "to": {
+                    "nodeId": "state",
+                    "portId": "in-l044.coordinator.c1"
+                  }
+                }
+              ],
+              "nodeId": "boundary",
+              "nodes": [
+                {
+                  "definitionId": "l044.coordinator.control",
+                  "id": "control",
+                  "label": "Command control",
+                  "position": {
+                    "x": 560,
+                    "y": 0
+                  },
+                  "version": 1
+                },
+                {
+                  "definitionId": "l044.coordinator.d1",
+                  "id": "state",
+                  "label": "Coordinator ledger",
+                  "position": {
+                    "x": 840,
+                    "y": 0
+                  },
+                  "version": 1
+                }
+              ],
+              "op": "expand",
+              "subsystemId": "l044-coordinator-boundary-binding-1"
+            }
+          ],
+          "question": "Who orders table versions?",
+          "reason": "Expand commit API with transaction receipts, monotonic table version and publisher epoch.",
+          "title": "Coordinator ledger"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "winner",
+            "snapshot",
+            "retention"
+          ],
+          "explanation": "Verify object existence, schema and digest before reserving commit publication. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l044.coordinator.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l044.coordinator.c0"
+                },
+                "id": "request",
+                "label": "submit transactional table metadata",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l044.coordinator.c0"
+                }
+              },
+              {
+                "contractId": "l044.coordinator.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l044.coordinator.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l044.coordinator.c1"
+                }
+              },
+              {
+                "contractId": "l044.coordinator.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l044.coordinator.c2-control"
+                },
+                "id": "verify",
+                "label": "verify staged file hashes",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l044.coordinator.c2"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l044.coordinator.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l044.coordinator.d0",
+                "id": "boundary",
+                "label": "Commit request",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l044-coordinator-boundary-binding-2",
+                "version": 1
+              },
+              {
+                "definitionId": "l044.coordinator.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l044.coordinator.d1",
+                "id": "state",
+                "label": "Coordinator ledger",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l044.coordinator.d2",
+                "id": "n2",
+                "label": "Staging verifier",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "coordinator-s3",
+          "invariants": [
+            "Verify object existence, schema and digest before reserving commit publication. State owner: Staging verifier (verified staged refs)."
+          ],
+          "number": 3,
+          "operations": [
+            {
+              "nodeId": "boundary",
+              "op": "rebind",
+              "reason": "Select a new immutable exposure binding before connecting the added responsibility; prior stage binding remains unchanged.",
+              "subsystemId": "l044-coordinator-boundary-binding-2"
+            },
+            {
+              "node": {
+                "definitionId": "l044.coordinator.d2",
+                "id": "n2",
+                "label": "Staging verifier",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l044.coordinator.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l044.coordinator.c2-control"
+                },
+                "id": "verify",
+                "label": "verify staged file hashes",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l044.coordinator.c2"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can a writer fabricate object references?",
+          "reason": "Verify object existence, schema and digest before reserving commit publication.",
+          "title": "Staging verifier"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "winner",
+            "snapshot",
+            "retention"
+          ],
+          "explanation": "Validate against all intervening committed actions and enforce declared conflict semantics. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l044.coordinator.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l044.coordinator.c0"
+                },
+                "id": "request",
+                "label": "submit transactional table metadata",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l044.coordinator.c0"
+                }
+              },
+              {
+                "contractId": "l044.coordinator.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l044.coordinator.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l044.coordinator.c1"
+                }
+              },
+              {
+                "contractId": "l044.coordinator.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l044.coordinator.c2-control"
+                },
+                "id": "verify",
+                "label": "verify staged file hashes",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l044.coordinator.c2"
+                }
+              },
+              {
+                "contractId": "l044.coordinator.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l044.coordinator.c3"
+                },
+                "id": "occ",
+                "label": "validate snapshot conflict sets",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l044.coordinator.c3"
+                }
+              },
+              {
+                "contractId": "l044.coordinator.c1",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l044.coordinator.c1"
+                },
+                "id": "suffix",
+                "label": "read committed table actions",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l044.coordinator.c1-state"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l044.coordinator.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l044.coordinator.d0",
+                "id": "boundary",
+                "label": "Commit request",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l044-coordinator-boundary-binding-3",
+                "version": 1
+              },
+              {
+                "definitionId": "l044.coordinator.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l044.coordinator.d1",
+                "id": "state",
+                "label": "Coordinator ledger",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l044.coordinator.d2",
+                "id": "n2",
+                "label": "Staging verifier",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l044.coordinator.d3",
+                "id": "n3",
+                "label": "OCC validator",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "coordinator-s4",
+          "invariants": [
+            "Validate against all intervening committed actions and enforce declared conflict semantics. State owner: OCC validator (read/write set verdict)."
+          ],
+          "number": 4,
+          "operations": [
+            {
+              "nodeId": "boundary",
+              "op": "rebind",
+              "reason": "Select a new immutable exposure binding before connecting the added responsibility; prior stage binding remains unchanged.",
+              "subsystemId": "l044-coordinator-boundary-binding-3"
+            },
+            {
+              "node": {
+                "definitionId": "l044.coordinator.d3",
+                "id": "n3",
+                "label": "OCC validator",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l044.coordinator.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l044.coordinator.c3"
+                },
+                "id": "occ",
+                "label": "validate snapshot conflict sets",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l044.coordinator.c3"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l044.coordinator.c1",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l044.coordinator.c1"
+                },
+                "id": "suffix",
+                "label": "read committed table actions",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l044.coordinator.c1-state"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can concurrent writers touch disjoint data?",
+          "reason": "Validate against all intervening committed actions and enforce declared conflict semantics.",
+          "title": "OCC validator"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "winner",
+            "snapshot",
+            "retention"
+          ],
+          "explanation": "Only the current publisher epoch can materialize ordered log records; recover pending publication before issuing later versions. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l044.coordinator.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l044.coordinator.c0"
+                },
+                "id": "request",
+                "label": "submit transactional table metadata",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l044.coordinator.c0"
+                }
+              },
+              {
+                "contractId": "l044.coordinator.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l044.coordinator.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l044.coordinator.c1"
+                }
+              },
+              {
+                "contractId": "l044.coordinator.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l044.coordinator.c2-control"
+                },
+                "id": "verify",
+                "label": "verify staged file hashes",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l044.coordinator.c2"
+                }
+              },
+              {
+                "contractId": "l044.coordinator.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l044.coordinator.c3"
+                },
+                "id": "occ",
+                "label": "validate snapshot conflict sets",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l044.coordinator.c3"
+                }
+              },
+              {
+                "contractId": "l044.coordinator.c1",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l044.coordinator.c1"
+                },
+                "id": "suffix",
+                "label": "read committed table actions",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l044.coordinator.c1-state"
+                }
+              },
+              {
+                "contractId": "l044.coordinator.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l044.coordinator.c4"
+                },
+                "id": "publish",
+                "label": "publish under fenced epoch",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l044.coordinator.c4"
+                }
+              },
+              {
+                "contractId": "l044.coordinator.c4",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l044.coordinator.c4"
+                },
+                "id": "record",
+                "label": "record ordered publication",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l044.coordinator.c4-state"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l044.coordinator.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l044.coordinator.d0",
+                "id": "boundary",
+                "label": "Commit request",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l044-coordinator-boundary-binding-4",
+                "version": 1
+              },
+              {
+                "definitionId": "l044.coordinator.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l044.coordinator.d1",
+                "id": "state",
+                "label": "Coordinator ledger",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l044.coordinator.d2",
+                "id": "n2",
+                "label": "Staging verifier",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l044.coordinator.d3",
+                "id": "n3",
+                "label": "OCC validator",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l044.coordinator.d4",
+                "id": "n4",
+                "label": "Fenced publisher",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "coordinator-s5",
+          "invariants": [
+            "Only the current publisher epoch can materialize ordered log records; recover pending publication before issuing later versions. State owner: Fenced publisher (publication epoch and pending record)."
+          ],
+          "number": 5,
+          "operations": [
+            {
+              "nodeId": "boundary",
+              "op": "rebind",
+              "reason": "Select a new immutable exposure binding before connecting the added responsibility; prior stage binding remains unchanged.",
+              "subsystemId": "l044-coordinator-boundary-binding-4"
+            },
+            {
+              "node": {
+                "definitionId": "l044.coordinator.d4",
+                "id": "n4",
+                "label": "Fenced publisher",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l044.coordinator.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l044.coordinator.c4"
+                },
+                "id": "publish",
+                "label": "publish under fenced epoch",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l044.coordinator.c4"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l044.coordinator.c4",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l044.coordinator.c4"
+                },
+                "id": "record",
+                "label": "record ordered publication",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l044.coordinator.c4-state"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What if coordinator ownership changes?",
+          "reason": "Only the current publisher epoch can materialize ordered log records; recover pending publication before issuing later versions.",
+          "title": "Fenced publisher"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "winner",
+            "snapshot",
+            "retention"
+          ],
+          "explanation": "Readers expose only a contiguous committed prefix with immutable log hashes. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l044.coordinator.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l044.coordinator.c0"
+                },
+                "id": "request",
+                "label": "submit transactional table metadata",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l044.coordinator.c0"
+                }
+              },
+              {
+                "contractId": "l044.coordinator.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l044.coordinator.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l044.coordinator.c1"
+                }
+              },
+              {
+                "contractId": "l044.coordinator.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l044.coordinator.c2-control"
+                },
+                "id": "verify",
+                "label": "verify staged file hashes",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l044.coordinator.c2"
+                }
+              },
+              {
+                "contractId": "l044.coordinator.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l044.coordinator.c3"
+                },
+                "id": "occ",
+                "label": "validate snapshot conflict sets",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l044.coordinator.c3"
+                }
+              },
+              {
+                "contractId": "l044.coordinator.c1",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l044.coordinator.c1"
+                },
+                "id": "suffix",
+                "label": "read committed table actions",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l044.coordinator.c1-state"
+                }
+              },
+              {
+                "contractId": "l044.coordinator.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l044.coordinator.c4"
+                },
+                "id": "publish",
+                "label": "publish under fenced epoch",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l044.coordinator.c4"
+                }
+              },
+              {
+                "contractId": "l044.coordinator.c4",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l044.coordinator.c4"
+                },
+                "id": "record",
+                "label": "record ordered publication",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l044.coordinator.c4-state"
+                }
+              },
+              {
+                "contractId": "l044.coordinator.c5",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l044.coordinator.c5"
+                },
+                "id": "read",
+                "label": "read committed table version",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l044.coordinator.c5"
+                }
+              },
+              {
+                "contractId": "l044.coordinator.c1",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l044.coordinator.c1"
+                },
+                "id": "prefix",
+                "label": "resolve contiguous committed prefix",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l044.coordinator.c1-state"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l044.coordinator.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l044.coordinator.d0",
+                "id": "boundary",
+                "label": "Commit request",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l044-coordinator-boundary-binding-4",
+                "version": 1
+              },
+              {
+                "definitionId": "l044.coordinator.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l044.coordinator.d1",
+                "id": "state",
+                "label": "Coordinator ledger",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l044.coordinator.d2",
+                "id": "n2",
+                "label": "Staging verifier",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l044.coordinator.d3",
+                "id": "n3",
+                "label": "OCC validator",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l044.coordinator.d4",
+                "id": "n4",
+                "label": "Fenced publisher",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l044.coordinator.d5",
+                "id": "n5",
+                "label": "Committed view",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "coordinator-s6",
+          "invariants": [
+            "Readers expose only a contiguous committed prefix with immutable log hashes. State owner: Committed view (committed prefix and snapshot)."
+          ],
+          "number": 6,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l044.coordinator.d5",
+                "id": "n5",
+                "label": "Committed view",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l044.coordinator.c5",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l044.coordinator.c5"
+                },
+                "id": "read",
+                "label": "read committed table version",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l044.coordinator.c5"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l044.coordinator.c1",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l044.coordinator.c1"
+                },
+                "id": "prefix",
+                "label": "resolve contiguous committed prefix",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l044.coordinator.c1-state"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Does a reserved version count?",
+          "reason": "Readers expose only a contiguous committed prefix with immutable log hashes.",
+          "title": "Committed view"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "winner",
+            "snapshot",
+            "retention"
+          ],
+          "explanation": "Create immutable checkpoints with protocol/schema metadata from the committed prefix. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l044.coordinator.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l044.coordinator.c0"
+                },
+                "id": "request",
+                "label": "submit transactional table metadata",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l044.coordinator.c0"
+                }
+              },
+              {
+                "contractId": "l044.coordinator.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l044.coordinator.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l044.coordinator.c1"
+                }
+              },
+              {
+                "contractId": "l044.coordinator.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l044.coordinator.c2-control"
+                },
+                "id": "verify",
+                "label": "verify staged file hashes",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l044.coordinator.c2"
+                }
+              },
+              {
+                "contractId": "l044.coordinator.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l044.coordinator.c3"
+                },
+                "id": "occ",
+                "label": "validate snapshot conflict sets",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l044.coordinator.c3"
+                }
+              },
+              {
+                "contractId": "l044.coordinator.c1",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l044.coordinator.c1"
+                },
+                "id": "suffix",
+                "label": "read committed table actions",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l044.coordinator.c1-state"
+                }
+              },
+              {
+                "contractId": "l044.coordinator.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l044.coordinator.c4"
+                },
+                "id": "publish",
+                "label": "publish under fenced epoch",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l044.coordinator.c4"
+                }
+              },
+              {
+                "contractId": "l044.coordinator.c4",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l044.coordinator.c4"
+                },
+                "id": "record",
+                "label": "record ordered publication",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l044.coordinator.c4-state"
+                }
+              },
+              {
+                "contractId": "l044.coordinator.c5",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l044.coordinator.c5"
+                },
+                "id": "read",
+                "label": "read committed table version",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l044.coordinator.c5"
+                }
+              },
+              {
+                "contractId": "l044.coordinator.c1",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l044.coordinator.c1"
+                },
+                "id": "prefix",
+                "label": "resolve contiguous committed prefix",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l044.coordinator.c1-state"
+                }
+              },
+              {
+                "contractId": "l044.coordinator.c5",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l044.coordinator.c5"
+                },
+                "id": "checkpoint",
+                "label": "build checkpoint from committed view",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l044.coordinator.c5"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l044.coordinator.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l044.coordinator.d0",
+                "id": "boundary",
+                "label": "Commit request",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l044-coordinator-boundary-binding-4",
+                "version": 1
+              },
+              {
+                "definitionId": "l044.coordinator.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l044.coordinator.d1",
+                "id": "state",
+                "label": "Coordinator ledger",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l044.coordinator.d2",
+                "id": "n2",
+                "label": "Staging verifier",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l044.coordinator.d3",
+                "id": "n3",
+                "label": "OCC validator",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l044.coordinator.d4",
+                "id": "n4",
+                "label": "Fenced publisher",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l044.coordinator.d5",
+                "id": "n5",
+                "label": "Committed view",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l044.coordinator.d6",
+                "id": "n6",
+                "label": "Checkpoint builder",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "coordinator-s7",
+          "invariants": [
+            "Create immutable checkpoints with protocol/schema metadata from the committed prefix. State owner: Checkpoint builder (checkpoint digest and version)."
+          ],
+          "number": 7,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l044.coordinator.d6",
+                "id": "n6",
+                "label": "Checkpoint builder",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l044.coordinator.c5",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l044.coordinator.c5"
+                },
+                "id": "checkpoint",
+                "label": "build checkpoint from committed view",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l044.coordinator.c5"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How are readers accelerated?",
+          "reason": "Create immutable checkpoints with protocol/schema metadata from the committed prefix.",
+          "title": "Checkpoint builder"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "winner",
+            "snapshot",
+            "retention"
+          ],
+          "explanation": "Resolve transaction identity against log/coordinator receipts before retry or cleanup; never skip a missing log version. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l044.coordinator.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l044.coordinator.c0"
+                },
+                "id": "request",
+                "label": "submit transactional table metadata",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l044.coordinator.c0"
+                }
+              },
+              {
+                "contractId": "l044.coordinator.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l044.coordinator.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l044.coordinator.c1"
+                }
+              },
+              {
+                "contractId": "l044.coordinator.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l044.coordinator.c2-control"
+                },
+                "id": "verify",
+                "label": "verify staged file hashes",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l044.coordinator.c2"
+                }
+              },
+              {
+                "contractId": "l044.coordinator.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l044.coordinator.c3"
+                },
+                "id": "occ",
+                "label": "validate snapshot conflict sets",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l044.coordinator.c3"
+                }
+              },
+              {
+                "contractId": "l044.coordinator.c1",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l044.coordinator.c1"
+                },
+                "id": "suffix",
+                "label": "read committed table actions",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l044.coordinator.c1-state"
+                }
+              },
+              {
+                "contractId": "l044.coordinator.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l044.coordinator.c4"
+                },
+                "id": "publish",
+                "label": "publish under fenced epoch",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l044.coordinator.c4"
+                }
+              },
+              {
+                "contractId": "l044.coordinator.c4",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l044.coordinator.c4"
+                },
+                "id": "record",
+                "label": "record ordered publication",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l044.coordinator.c4-state"
+                }
+              },
+              {
+                "contractId": "l044.coordinator.c5",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l044.coordinator.c5"
+                },
+                "id": "read",
+                "label": "read committed table version",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l044.coordinator.c5"
+                }
+              },
+              {
+                "contractId": "l044.coordinator.c1",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l044.coordinator.c1"
+                },
+                "id": "prefix",
+                "label": "resolve contiguous committed prefix",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l044.coordinator.c1-state"
+                }
+              },
+              {
+                "contractId": "l044.coordinator.c5",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l044.coordinator.c5"
+                },
+                "id": "checkpoint",
+                "label": "build checkpoint from committed view",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l044.coordinator.c5"
+                }
+              },
+              {
+                "contractId": "l044.coordinator.c7",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l044.coordinator.c7"
+                },
+                "id": "reconcile",
+                "label": "resolve pending publication",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l044.coordinator.c7"
+                }
+              },
+              {
+                "contractId": "l044.coordinator.c1",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l044.coordinator.c1"
+                },
+                "id": "receipt",
+                "label": "read transaction receipt",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l044.coordinator.c1-state"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l044.coordinator.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l044.coordinator.d0",
+                "id": "boundary",
+                "label": "Commit request",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l044-coordinator-boundary-binding-4",
+                "version": 1
+              },
+              {
+                "definitionId": "l044.coordinator.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l044.coordinator.d1",
+                "id": "state",
+                "label": "Coordinator ledger",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l044.coordinator.d2",
+                "id": "n2",
+                "label": "Staging verifier",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l044.coordinator.d3",
+                "id": "n3",
+                "label": "OCC validator",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l044.coordinator.d4",
+                "id": "n4",
+                "label": "Fenced publisher",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l044.coordinator.d5",
+                "id": "n5",
+                "label": "Committed view",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l044.coordinator.d6",
+                "id": "n6",
+                "label": "Checkpoint builder",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l044.coordinator.d7",
+                "id": "n7",
+                "label": "Publication reconciler",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "coordinator-s8",
+          "invariants": [
+            "Resolve transaction identity against log/coordinator receipts before retry or cleanup; never skip a missing log version. State owner: Publication reconciler (pending publication recovery)."
+          ],
+          "number": 8,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l044.coordinator.d7",
+                "id": "n7",
+                "label": "Publication reconciler",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l044.coordinator.c7",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l044.coordinator.c7"
+                },
+                "id": "reconcile",
+                "label": "resolve pending publication",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l044.coordinator.c7"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l044.coordinator.c1",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l044.coordinator.c1"
+                },
+                "id": "receipt",
+                "label": "read transaction receipt",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l044.coordinator.c1-state"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What happens after a lost acknowledgement?",
+          "reason": "Resolve transaction identity against log/coordinator receipts before retry or cleanup; never skip a missing log version.",
+          "title": "Publication reconciler"
+        }
+      ],
+      "title": "External serialized commit coordinator",
+      "tradeoffs": [
+        "Coordinator availability and fencing become part of commit correctness; object publication and coordinator receipts need recovery."
+      ]
+    }
+  ],
+  "subsystems": [
+    {
+      "definitionId": "l044.conditional.d0",
+      "id": "l044-conditional-boundary-binding-1",
+      "ports": [
+        {
+          "contractId": "l044.conditional.c0",
+          "direction": "in",
+          "id": "in-l044.conditional.c0",
+          "target": {
+            "nodeId": "control",
+            "portId": "in-l044.conditional.c0"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l044.conditional.d0",
+      "id": "l044-conditional-boundary-binding-2",
+      "ports": [
+        {
+          "contractId": "l044.conditional.c0",
+          "direction": "in",
+          "id": "in-l044.conditional.c0",
+          "target": {
+            "nodeId": "control",
+            "portId": "in-l044.conditional.c0"
+          }
+        },
+        {
+          "contractId": "l044.conditional.c2",
+          "direction": "out",
+          "id": "out-l044.conditional.c2-control",
+          "target": {
+            "nodeId": "control",
+            "portId": "out-l044.conditional.c2"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l044.conditional.d0",
+      "id": "l044-conditional-boundary-binding-3",
+      "ports": [
+        {
+          "contractId": "l044.conditional.c0",
+          "direction": "in",
+          "id": "in-l044.conditional.c0",
+          "target": {
+            "nodeId": "control",
+            "portId": "in-l044.conditional.c0"
+          }
+        },
+        {
+          "contractId": "l044.conditional.c2",
+          "direction": "out",
+          "id": "out-l044.conditional.c2-control",
+          "target": {
+            "nodeId": "control",
+            "portId": "out-l044.conditional.c2"
+          }
+        },
+        {
+          "contractId": "l044.conditional.c3",
+          "direction": "out",
+          "id": "out-l044.conditional.c3-control",
+          "target": {
+            "nodeId": "control",
+            "portId": "out-l044.conditional.c3"
+          }
+        },
+        {
+          "contractId": "l044.conditional.c1",
+          "direction": "in",
+          "id": "in-l044.conditional.c1-state",
+          "target": {
+            "nodeId": "state",
+            "portId": "in-l044.conditional.c1"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l044.conditional.d0",
+      "id": "l044-conditional-boundary-binding-4",
+      "ports": [
+        {
+          "contractId": "l044.conditional.c0",
+          "direction": "in",
+          "id": "in-l044.conditional.c0",
+          "target": {
+            "nodeId": "control",
+            "portId": "in-l044.conditional.c0"
+          }
+        },
+        {
+          "contractId": "l044.conditional.c2",
+          "direction": "out",
+          "id": "out-l044.conditional.c2-control",
+          "target": {
+            "nodeId": "control",
+            "portId": "out-l044.conditional.c2"
+          }
+        },
+        {
+          "contractId": "l044.conditional.c3",
+          "direction": "out",
+          "id": "out-l044.conditional.c3-control",
+          "target": {
+            "nodeId": "control",
+            "portId": "out-l044.conditional.c3"
+          }
+        },
+        {
+          "contractId": "l044.conditional.c1",
+          "direction": "in",
+          "id": "in-l044.conditional.c1-state",
+          "target": {
+            "nodeId": "state",
+            "portId": "in-l044.conditional.c1"
+          }
+        },
+        {
+          "contractId": "l044.conditional.c4",
+          "direction": "in",
+          "id": "in-l044.conditional.c4-state",
+          "target": {
+            "nodeId": "state",
+            "portId": "in-l044.conditional.c4"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l044.coordinator.d0",
+      "id": "l044-coordinator-boundary-binding-1",
+      "ports": [
+        {
+          "contractId": "l044.coordinator.c0",
+          "direction": "in",
+          "id": "in-l044.coordinator.c0",
+          "target": {
+            "nodeId": "control",
+            "portId": "in-l044.coordinator.c0"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l044.coordinator.d0",
+      "id": "l044-coordinator-boundary-binding-2",
+      "ports": [
+        {
+          "contractId": "l044.coordinator.c0",
+          "direction": "in",
+          "id": "in-l044.coordinator.c0",
+          "target": {
+            "nodeId": "control",
+            "portId": "in-l044.coordinator.c0"
+          }
+        },
+        {
+          "contractId": "l044.coordinator.c2",
+          "direction": "out",
+          "id": "out-l044.coordinator.c2-control",
+          "target": {
+            "nodeId": "control",
+            "portId": "out-l044.coordinator.c2"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l044.coordinator.d0",
+      "id": "l044-coordinator-boundary-binding-3",
+      "ports": [
+        {
+          "contractId": "l044.coordinator.c0",
+          "direction": "in",
+          "id": "in-l044.coordinator.c0",
+          "target": {
+            "nodeId": "control",
+            "portId": "in-l044.coordinator.c0"
+          }
+        },
+        {
+          "contractId": "l044.coordinator.c2",
+          "direction": "out",
+          "id": "out-l044.coordinator.c2-control",
+          "target": {
+            "nodeId": "control",
+            "portId": "out-l044.coordinator.c2"
+          }
+        },
+        {
+          "contractId": "l044.coordinator.c1",
+          "direction": "in",
+          "id": "in-l044.coordinator.c1-state",
+          "target": {
+            "nodeId": "state",
+            "portId": "in-l044.coordinator.c1"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l044.coordinator.d0",
+      "id": "l044-coordinator-boundary-binding-4",
+      "ports": [
+        {
+          "contractId": "l044.coordinator.c0",
+          "direction": "in",
+          "id": "in-l044.coordinator.c0",
+          "target": {
+            "nodeId": "control",
+            "portId": "in-l044.coordinator.c0"
+          }
+        },
+        {
+          "contractId": "l044.coordinator.c2",
+          "direction": "out",
+          "id": "out-l044.coordinator.c2-control",
+          "target": {
+            "nodeId": "control",
+            "portId": "out-l044.coordinator.c2"
+          }
+        },
+        {
+          "contractId": "l044.coordinator.c1",
+          "direction": "in",
+          "id": "in-l044.coordinator.c1-state",
+          "target": {
+            "nodeId": "state",
+            "portId": "in-l044.coordinator.c1"
+          }
+        },
+        {
+          "contractId": "l044.coordinator.c4",
+          "direction": "in",
+          "id": "in-l044.coordinator.c4-state",
+          "target": {
+            "nodeId": "state",
+            "portId": "in-l044.coordinator.c4"
+          }
+        }
+      ],
+      "version": 1
+    }
+  ],
+  "version": 1
+}

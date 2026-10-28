@@ -1,0 +1,4286 @@
+{
+  "components": [
+    {
+      "extends": {
+        "id": "core.service",
+        "version": 1
+      },
+      "id": "l021.workflow.d0",
+      "label": "Task submission",
+      "ports": [
+        {
+          "contractId": "l021.workflow.c0",
+          "direction": "in",
+          "id": "in-l021.workflow.c0"
+        },
+        {
+          "contractId": "l021.workflow.c2",
+          "direction": "out",
+          "id": "out-l021.workflow.c2-control"
+        },
+        {
+          "contractId": "l021.workflow.c1",
+          "direction": "in",
+          "id": "in-l021.workflow.c1-state"
+        }
+      ],
+      "responsibility": "Validate acyclic dependencies and assign stable task/run IDs before work.",
+      "stateOwnership": [
+        "run identity"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.log",
+        "version": 1
+      },
+      "id": "l021.workflow.d1",
+      "label": "Decision history",
+      "ports": [
+        {
+          "contractId": "l021.workflow.c1",
+          "direction": "in",
+          "id": "in-l021.workflow.c1"
+        }
+      ],
+      "responsibility": "Expand coordinator; journal transitions and output references before scheduling dependents.",
+      "stateOwnership": [
+        "workflow history and task states"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l021.workflow.d2",
+      "label": "Ready scheduler",
+      "ports": [
+        {
+          "contractId": "l021.workflow.c2",
+          "direction": "in",
+          "id": "in-l021.workflow.c2"
+        },
+        {
+          "contractId": "l021.workflow.c3",
+          "direction": "out",
+          "id": "out-l021.workflow.c3"
+        }
+      ],
+      "responsibility": "Release tasks only when all predecessor output receipts are committed.",
+      "stateOwnership": [
+        "dependency counters"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "l021.workflow.d3",
+      "label": "Research activities",
+      "ports": [
+        {
+          "contractId": "l021.workflow.c3",
+          "direction": "in",
+          "id": "in-l021.workflow.c3"
+        },
+        {
+          "contractId": "l021.workflow.c4",
+          "direction": "out",
+          "id": "out-l021.workflow.c4"
+        }
+      ],
+      "responsibility": "Execute research/tool steps with stable effect keys and bounded attempts.",
+      "stateOwnership": [
+        "activity attempt fence"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l021.workflow.d4",
+      "label": "Constraint gate",
+      "ports": [
+        {
+          "contractId": "l021.workflow.c4",
+          "direction": "in",
+          "id": "in-l021.workflow.c4"
+        },
+        {
+          "contractId": "l021.workflow.c5",
+          "direction": "out",
+          "id": "out-l021.workflow.c5"
+        }
+      ],
+      "responsibility": "Require explicit source/constraint inspection receipts before synthesis consumes inputs.",
+      "stateOwnership": [
+        "constraint verdict"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l021.workflow.d5",
+      "label": "Review checkpoint",
+      "ports": [
+        {
+          "contractId": "l021.workflow.c5",
+          "direction": "in",
+          "id": "in-l021.workflow.c5"
+        },
+        {
+          "contractId": "l021.workflow.c6",
+          "direction": "out",
+          "id": "out-l021.workflow.c6"
+        }
+      ],
+      "responsibility": "Persist review verdict and artifact hash; a revised artifact requires fresh review.",
+      "stateOwnership": [
+        "reviewed artifact hash"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l021.workflow.d6",
+      "label": "Publication intent",
+      "ports": [
+        {
+          "contractId": "l021.workflow.c6",
+          "direction": "in",
+          "id": "in-l021.workflow.c6"
+        },
+        {
+          "contractId": "l021.workflow.c7",
+          "direction": "in",
+          "id": "in-l021.workflow.c7"
+        }
+      ],
+      "responsibility": "Commit an outbox identity for the approved hash before issuing a remote write.",
+      "stateOwnership": [
+        "publication intent and remote receipt"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "l021.workflow.d7",
+      "label": "Recovery and status",
+      "ports": [
+        {
+          "contractId": "l021.workflow.c7",
+          "direction": "out",
+          "id": "out-l021.workflow.c7"
+        },
+        {
+          "contractId": "l021.workflow.c1",
+          "direction": "out",
+          "id": "out-l021.workflow.c1"
+        }
+      ],
+      "responsibility": "Reconcile by effect identity before retry; publish compact task states separately from private computation.",
+      "stateOwnership": [
+        "reconciliation cursor and public status"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.client",
+        "version": 1
+      },
+      "id": "l021.workflow.caller",
+      "label": "Caller",
+      "ports": [
+        {
+          "contractId": "l021.workflow.c0",
+          "direction": "out",
+          "id": "out-l021.workflow.c0"
+        }
+      ],
+      "responsibility": "Submit the declared operation with authenticated identity and preserve its retry identity.",
+      "stateOwnership": [
+        "request identity"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l021.workflow.control",
+      "label": "Command control",
+      "ports": [
+        {
+          "contractId": "l021.workflow.c1",
+          "direction": "out",
+          "id": "out-l021.workflow.c1"
+        },
+        {
+          "contractId": "l021.workflow.c0",
+          "direction": "in",
+          "id": "in-l021.workflow.c0"
+        },
+        {
+          "contractId": "l021.workflow.c2",
+          "direction": "out",
+          "id": "out-l021.workflow.c2"
+        }
+      ],
+      "responsibility": "Validate acyclic dependencies and assign stable task/run IDs before work.",
+      "stateOwnership": [
+        "validated command and version"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.service",
+        "version": 1
+      },
+      "id": "l021.journal.d0",
+      "label": "DAG command",
+      "ports": [
+        {
+          "contractId": "l021.journal.c0",
+          "direction": "in",
+          "id": "in-l021.journal.c0"
+        },
+        {
+          "contractId": "l021.journal.c2",
+          "direction": "out",
+          "id": "out-l021.journal.c2-control"
+        },
+        {
+          "contractId": "l021.journal.c1",
+          "direction": "in",
+          "id": "in-l021.journal.c1-state"
+        }
+      ],
+      "responsibility": "Accept immutable task IDs and reject cycles or missing prerequisite IDs.",
+      "stateOwnership": [
+        "DAG command identity"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l021.journal.d1",
+      "label": "Task rows",
+      "ports": [
+        {
+          "contractId": "l021.journal.c1",
+          "direction": "in",
+          "id": "in-l021.journal.c1"
+        }
+      ],
+      "responsibility": "Expand command boundary; store state, attempt epoch and predecessor receipts transactionally.",
+      "stateOwnership": [
+        "task rows and transition receipts"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.queue",
+        "version": 1
+      },
+      "id": "l021.journal.d2",
+      "label": "Lease claims",
+      "ports": [
+        {
+          "contractId": "l021.journal.c2",
+          "direction": "in",
+          "id": "in-l021.journal.c2"
+        },
+        {
+          "contractId": "l021.journal.c3",
+          "direction": "out",
+          "id": "out-l021.journal.c3"
+        },
+        {
+          "contractId": "l021.journal.c7",
+          "direction": "in",
+          "id": "in-l021.journal.c7"
+        }
+      ],
+      "responsibility": "Claim ready task with compare-and-swap and monotonic attempt epoch.",
+      "stateOwnership": [
+        "lease epoch and deadline"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l021.journal.d3",
+      "label": "Effect ledger",
+      "ports": [
+        {
+          "contractId": "l021.journal.c3",
+          "direction": "in",
+          "id": "in-l021.journal.c3"
+        },
+        {
+          "contractId": "l021.journal.c4",
+          "direction": "out",
+          "id": "out-l021.journal.c4"
+        }
+      ],
+      "responsibility": "Record stable remote intent and classify known rejection versus uncertain acceptance.",
+      "stateOwnership": [
+        "effect keys and outcomes"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "l021.journal.d4",
+      "label": "Research and constraints",
+      "ports": [
+        {
+          "contractId": "l021.journal.c4",
+          "direction": "in",
+          "id": "in-l021.journal.c4"
+        },
+        {
+          "contractId": "l021.journal.c5",
+          "direction": "out",
+          "id": "out-l021.journal.c5"
+        }
+      ],
+      "responsibility": "Persist immutable research results and explicit constraint verdict before advancing dependencies.",
+      "stateOwnership": [
+        "output hashes and constraint receipt"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l021.journal.d5",
+      "label": "Join transition",
+      "ports": [
+        {
+          "contractId": "l021.journal.c5",
+          "direction": "in",
+          "id": "in-l021.journal.c5"
+        },
+        {
+          "contractId": "l021.journal.c1",
+          "direction": "out",
+          "id": "out-l021.journal.c1"
+        },
+        {
+          "contractId": "l021.journal.c6",
+          "direction": "out",
+          "id": "out-l021.journal.c6"
+        }
+      ],
+      "responsibility": "Deduplicate predecessor completion and decrement remaining dependency count once.",
+      "stateOwnership": [
+        "completion identity set"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l021.journal.d6",
+      "label": "Approval outbox",
+      "ports": [
+        {
+          "contractId": "l021.journal.c6",
+          "direction": "in",
+          "id": "in-l021.journal.c6"
+        }
+      ],
+      "responsibility": "Bind review to artifact digest and append publication intent in the same versioned transition.",
+      "stateOwnership": [
+        "approval and publication outbox"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "l021.journal.d7",
+      "label": "Reconciliation sweep",
+      "ports": [
+        {
+          "contractId": "l021.journal.c7",
+          "direction": "out",
+          "id": "out-l021.journal.c7"
+        },
+        {
+          "contractId": "l021.journal.c3",
+          "direction": "out",
+          "id": "out-l021.journal.c3"
+        },
+        {
+          "contractId": "l021.journal.c6",
+          "direction": "out",
+          "id": "out-l021.journal.c6"
+        }
+      ],
+      "responsibility": "Fence expired owners, reconcile unknown effects, and expose pending status rather than false success.",
+      "stateOwnership": [
+        "sweep cursor and status receipt"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.client",
+        "version": 1
+      },
+      "id": "l021.journal.caller",
+      "label": "Caller",
+      "ports": [
+        {
+          "contractId": "l021.journal.c0",
+          "direction": "out",
+          "id": "out-l021.journal.c0"
+        }
+      ],
+      "responsibility": "Submit the declared operation with authenticated identity and preserve its retry identity.",
+      "stateOwnership": [
+        "request identity"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l021.journal.control",
+      "label": "Command control",
+      "ports": [
+        {
+          "contractId": "l021.journal.c1",
+          "direction": "out",
+          "id": "out-l021.journal.c1"
+        },
+        {
+          "contractId": "l021.journal.c0",
+          "direction": "in",
+          "id": "in-l021.journal.c0"
+        },
+        {
+          "contractId": "l021.journal.c2",
+          "direction": "out",
+          "id": "out-l021.journal.c2"
+        }
+      ],
+      "responsibility": "Accept immutable task IDs and reject cycles or missing prerequisite IDs.",
+      "stateOwnership": [
+        "validated command and version"
+      ],
+      "version": 1
+    }
+  ],
+  "contracts": [
+    {
+      "id": "l021.workflow.c0",
+      "request": {
+        "dag": "typed tasks and dependencies",
+        "runId": "uuid"
+      },
+      "response": {
+        "state": "accepted|invalid"
+      },
+      "version": 1
+    },
+    {
+      "id": "l021.workflow.c1",
+      "request": {
+        "runId": "uuid",
+        "taskId": "uuid"
+      },
+      "response": {
+        "state": "pending|ready|running|done"
+      },
+      "version": 1
+    },
+    {
+      "id": "l021.workflow.c2",
+      "request": {
+        "predecessorReceipts": "receipt ids[]",
+        "taskId": "uuid"
+      },
+      "response": {
+        "ready": "boolean"
+      },
+      "version": 1
+    },
+    {
+      "id": "l021.workflow.c3",
+      "request": {
+        "attempt": "integer",
+        "effectKey": "uuid"
+      },
+      "response": {
+        "receipt": "external receipt|unknown"
+      },
+      "version": 1
+    },
+    {
+      "id": "l021.workflow.c4",
+      "request": {
+        "constraints": "typed limits",
+        "sourceRefs": "immutable refs[]"
+      },
+      "response": {
+        "allowed": "boolean",
+        "violations": "string[]"
+      },
+      "version": 1
+    },
+    {
+      "id": "l021.workflow.c5",
+      "request": {
+        "artifactHash": "sha256",
+        "reviewVersion": "integer"
+      },
+      "response": {
+        "decision": "approve|revise|reject"
+      },
+      "version": 1
+    },
+    {
+      "id": "l021.workflow.c6",
+      "request": {
+        "artifactHash": "sha256",
+        "effectKey": "uuid"
+      },
+      "response": {
+        "state": "pending|published|unknown"
+      },
+      "version": 1
+    },
+    {
+      "id": "l021.workflow.c7",
+      "request": {
+        "effectKey": "uuid",
+        "runId": "uuid"
+      },
+      "response": {
+        "remoteReceipt": "string|null",
+        "status": "public task states"
+      },
+      "version": 1
+    },
+    {
+      "id": "l021.journal.c0",
+      "request": {
+        "edges": "task-id pairs[]",
+        "runId": "uuid"
+      },
+      "response": {
+        "accepted": "boolean"
+      },
+      "version": 1
+    },
+    {
+      "id": "l021.journal.c1",
+      "request": {
+        "expectedVersion": "integer",
+        "taskId": "uuid"
+      },
+      "response": {
+        "version": "integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l021.journal.c2",
+      "request": {
+        "now": "timestamp",
+        "taskId": "uuid"
+      },
+      "response": {
+        "epoch": "integer|conflict"
+      },
+      "version": 1
+    },
+    {
+      "id": "l021.journal.c3",
+      "request": {
+        "effectKey": "uuid",
+        "epoch": "integer"
+      },
+      "response": {
+        "state": "applied|rejected|unknown"
+      },
+      "version": 1
+    },
+    {
+      "id": "l021.journal.c4",
+      "request": {
+        "inputs": "immutable refs[]",
+        "taskId": "uuid"
+      },
+      "response": {
+        "outputHash": "sha256"
+      },
+      "version": 1
+    },
+    {
+      "id": "l021.journal.c5",
+      "request": {
+        "dependentId": "uuid",
+        "predecessorId": "uuid"
+      },
+      "response": {
+        "remaining": "integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l021.journal.c6",
+      "request": {
+        "approvalId": "uuid",
+        "artifactHash": "sha256"
+      },
+      "response": {
+        "effectKey": "uuid"
+      },
+      "version": 1
+    },
+    {
+      "id": "l021.journal.c7",
+      "request": {
+        "cursor": "string",
+        "now": "timestamp"
+      },
+      "response": {
+        "recovered": "task ids[]",
+        "unknown": "effect keys[]"
+      },
+      "version": 1
+    }
+  ],
+  "execution": {
+    "implementation": null,
+    "kind": "conceptual-design"
+  },
+  "problem": {
+    "referenceId": "L021",
+    "requirements": [
+      {
+        "id": "r0",
+        "text": "Run tasks only after their declared predecessors commit outputs."
+      },
+      {
+        "id": "r1",
+        "text": "Use stable effect identities and fence superseded attempts."
+      },
+      {
+        "id": "r2",
+        "text": "Expose public status and recover uncertain effects without duplicate publication."
+      }
+    ],
+    "scope": "A task DAG covers planning, research, constraint inspection, synthesis, review and publication. Public status exposes work states and receipts, never private reasoning. Remote effect reconciliation is distinct from journal delivery.",
+    "studyLabel": "Task trajectories and recovery"
+  },
+  "provenance": {
+    "kind": "authored-practice",
+    "note": "Authored interview preparation. Technical references support mechanisms, not the claim that a company asked this question."
+  },
+  "references": [
+    {
+      "id": "ref0",
+      "scope": "background",
+      "supports": "Versioned transactions and retrying serialization conflicts.",
+      "title": "PostgreSQL isolation",
+      "url": "https://www.postgresql.org/docs/18/transaction-iso.html"
+    },
+    {
+      "id": "ref1",
+      "scope": "background",
+      "supports": "Durable workflow histories and retryable activities; activity effects need idempotency.",
+      "title": "Temporal workflow execution",
+      "url": "https://docs.temporal.io/workflow-execution"
+    }
+  ],
+  "schema": "simulatte.composableStudy.v2",
+  "solutions": [
+    {
+      "acceptanceCases": [
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-02-mechanisms.test.mjs",
+            "testName": "L021 bounded mechanism"
+          },
+          "given": "A join has two prerequisites and receives duplicate completion for the first.",
+          "id": "mechanism",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Remaining dependencies are 1,1,0; no dependent is released by the duplicate. Remote exactly-once effects are not established.",
+          "when": "Apply first, duplicate-first and second completions."
+        },
+        {
+          "given": "Research completed but constraint inspection has no committed receipt.",
+          "id": "dependencies",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Keep synthesis blocked until both declared prerequisite receipts commit.",
+          "when": "Try to schedule synthesis."
+        },
+        {
+          "given": "Publication was accepted remotely but the activity response was lost.",
+          "id": "effect",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Reconcile the same effect identity; no blind new publication identity is created.",
+          "when": "Recover the workflow."
+        },
+        {
+          "given": "An approved artifact is edited before publication.",
+          "id": "review",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Reject publication until the new digest receives review.",
+          "when": "Compare digest with the recorded approval."
+        }
+      ],
+      "algorithms": [
+        {
+          "code": "if (completed.has(predecessorId)) return remaining;\ncompleted.add(predecessorId); remaining--;\nreturn remaining; // A ready transition is committed only at zero with all output receipts present.",
+          "guarantees": [
+            "The code states the bounded decision rule; unimplemented helpers remain pseudocode.",
+            "External effects, distributed failure and latency require separate execution evidence."
+          ],
+          "id": "bounded-rule",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "n2"
+        },
+        {
+          "code": "const intent = loadPublicationIntent(effectKey);\nconst remote = await lookupRemoteReceipt(effectKey);\nif (remote) recordConfirmed(intent, remote);\nelse if (knownNotAccepted(remote)) retrySameEffectKey(intent);\nelse markUncertain(intent);\n// Status contains task states and receipt references, never private reasoning.",
+          "guarantees": [
+            "Reconcile by effect identity before retry; publish compact task states separately from private computation."
+          ],
+          "id": "recover",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "n7"
+        }
+      ],
+      "apis": [
+        {
+          "errors": "401 unauthenticated; 409 stale identity/version; 429 bounded capacity; 503 unavailable authority",
+          "method": "POST",
+          "ownerNodeId": "control",
+          "path": "/l021/workflow",
+          "request": "{\"runId\":\"uuid\",\"dag\":\"typed tasks and dependencies\"}",
+          "response": "{\"state\":\"accepted|invalid\"}"
+        },
+        {
+          "errors": "403 unauthorized scope; 404 absent identity; 410 expired retained history",
+          "method": "GET",
+          "ownerNodeId": "state",
+          "path": "/l021/workflow/state",
+          "request": "{\"runId\":\"uuid\",\"taskId\":\"uuid\"}",
+          "response": "{\"state\":\"pending|ready|running|done\"}"
+        }
+      ],
+      "assumptions": [
+        "Only public task state/output receipts are journaled; reasoning is not a status payload."
+      ],
+      "chooseWhen": "Long-lived task recovery and durable timers are primary.",
+      "id": "workflow",
+      "initialGraph": {
+        "edges": [],
+        "nodes": []
+      },
+      "stages": [
+        {
+          "checkIds": [
+            "mechanism",
+            "dependencies",
+            "effect",
+            "review"
+          ],
+          "explanation": "Validate acyclic dependencies and assign stable task/run IDs before work. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l021.workflow.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l021.workflow.c0"
+                },
+                "id": "request",
+                "label": "submit task trajectories and recovery",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l021.workflow.c0"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l021.workflow.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l021.workflow.d0",
+                "id": "boundary",
+                "label": "Task submission",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "workflow-s1",
+          "invariants": [
+            "Validate acyclic dependencies and assign stable task/run IDs before work. State owner: Task submission (run identity)."
+          ],
+          "number": 1,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l021.workflow.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "l021.workflow.d0",
+                "id": "boundary",
+                "label": "Task submission",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l021.workflow.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l021.workflow.c0"
+                },
+                "id": "request",
+                "label": "submit task trajectories and recovery",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l021.workflow.c0"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What does accepted mean?",
+          "reason": "Validate acyclic dependencies and assign stable task/run IDs before work.",
+          "title": "Task submission"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "dependencies",
+            "effect",
+            "review"
+          ],
+          "explanation": "Expand coordinator; journal transitions and output references before scheduling dependents. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l021.workflow.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l021.workflow.c0"
+                },
+                "id": "request",
+                "label": "submit task trajectories and recovery",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l021.workflow.c0"
+                }
+              },
+              {
+                "contractId": "l021.workflow.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l021.workflow.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l021.workflow.c1"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l021.workflow.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l021.workflow.d0",
+                "id": "boundary",
+                "label": "Task submission",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l021-workflow-boundary-binding-1",
+                "version": 1
+              },
+              {
+                "definitionId": "l021.workflow.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l021.workflow.d1",
+                "id": "state",
+                "label": "Decision history",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "workflow-s2",
+          "invariants": [
+            "Expand coordinator; journal transitions and output references before scheduling dependents. State owner: Decision history (workflow history and task states)."
+          ],
+          "number": 2,
+          "operations": [
+            {
+              "edges": [
+                {
+                  "contractId": "l021.workflow.c1",
+                  "from": {
+                    "nodeId": "control",
+                    "portId": "out-l021.workflow.c1"
+                  },
+                  "id": "commit",
+                  "label": "commit versioned state",
+                  "mode": "storage",
+                  "to": {
+                    "nodeId": "state",
+                    "portId": "in-l021.workflow.c1"
+                  }
+                }
+              ],
+              "nodeId": "boundary",
+              "nodes": [
+                {
+                  "definitionId": "l021.workflow.control",
+                  "id": "control",
+                  "label": "Command control",
+                  "position": {
+                    "x": 560,
+                    "y": 0
+                  },
+                  "version": 1
+                },
+                {
+                  "definitionId": "l021.workflow.d1",
+                  "id": "state",
+                  "label": "Decision history",
+                  "position": {
+                    "x": 840,
+                    "y": 0
+                  },
+                  "version": 1
+                }
+              ],
+              "op": "expand",
+              "subsystemId": "l021-workflow-boundary-binding-1"
+            }
+          ],
+          "question": "Which decisions survive restart?",
+          "reason": "Expand coordinator; journal transitions and output references before scheduling dependents.",
+          "title": "Decision history"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "dependencies",
+            "effect",
+            "review"
+          ],
+          "explanation": "Release tasks only when all predecessor output receipts are committed. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l021.workflow.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l021.workflow.c0"
+                },
+                "id": "request",
+                "label": "submit task trajectories and recovery",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l021.workflow.c0"
+                }
+              },
+              {
+                "contractId": "l021.workflow.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l021.workflow.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l021.workflow.c1"
+                }
+              },
+              {
+                "contractId": "l021.workflow.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l021.workflow.c2-control"
+                },
+                "id": "ready",
+                "label": "release satisfied DAG tasks",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l021.workflow.c2"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l021.workflow.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l021.workflow.d0",
+                "id": "boundary",
+                "label": "Task submission",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l021-workflow-boundary-binding-2",
+                "version": 1
+              },
+              {
+                "definitionId": "l021.workflow.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l021.workflow.d1",
+                "id": "state",
+                "label": "Decision history",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l021.workflow.d2",
+                "id": "n2",
+                "label": "Ready scheduler",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "workflow-s3",
+          "invariants": [
+            "Release tasks only when all predecessor output receipts are committed. State owner: Ready scheduler (dependency counters)."
+          ],
+          "number": 3,
+          "operations": [
+            {
+              "nodeId": "boundary",
+              "op": "rebind",
+              "reason": "Select a new immutable exposure binding before connecting the added responsibility; prior stage binding remains unchanged.",
+              "subsystemId": "l021-workflow-boundary-binding-2"
+            },
+            {
+              "node": {
+                "definitionId": "l021.workflow.d2",
+                "id": "n2",
+                "label": "Ready scheduler",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l021.workflow.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l021.workflow.c2-control"
+                },
+                "id": "ready",
+                "label": "release satisfied DAG tasks",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l021.workflow.c2"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can synthesis race research?",
+          "reason": "Release tasks only when all predecessor output receipts are committed.",
+          "title": "Ready scheduler"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "dependencies",
+            "effect",
+            "review"
+          ],
+          "explanation": "Execute research/tool steps with stable effect keys and bounded attempts. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l021.workflow.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l021.workflow.c0"
+                },
+                "id": "request",
+                "label": "submit task trajectories and recovery",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l021.workflow.c0"
+                }
+              },
+              {
+                "contractId": "l021.workflow.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l021.workflow.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l021.workflow.c1"
+                }
+              },
+              {
+                "contractId": "l021.workflow.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l021.workflow.c2-control"
+                },
+                "id": "ready",
+                "label": "release satisfied DAG tasks",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l021.workflow.c2"
+                }
+              },
+              {
+                "contractId": "l021.workflow.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l021.workflow.c3"
+                },
+                "id": "activity",
+                "label": "dispatch stable research effect",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l021.workflow.c3"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l021.workflow.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l021.workflow.d0",
+                "id": "boundary",
+                "label": "Task submission",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l021-workflow-boundary-binding-2",
+                "version": 1
+              },
+              {
+                "definitionId": "l021.workflow.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l021.workflow.d1",
+                "id": "state",
+                "label": "Decision history",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l021.workflow.d2",
+                "id": "n2",
+                "label": "Ready scheduler",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l021.workflow.d3",
+                "id": "n3",
+                "label": "Research activities",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "workflow-s4",
+          "invariants": [
+            "Execute research/tool steps with stable effect keys and bounded attempts. State owner: Research activities (activity attempt fence)."
+          ],
+          "number": 4,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l021.workflow.d3",
+                "id": "n3",
+                "label": "Research activities",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l021.workflow.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l021.workflow.c3"
+                },
+                "id": "activity",
+                "label": "dispatch stable research effect",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l021.workflow.c3"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What is retried after a crash?",
+          "reason": "Execute research/tool steps with stable effect keys and bounded attempts.",
+          "title": "Research activities"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "dependencies",
+            "effect",
+            "review"
+          ],
+          "explanation": "Require explicit source/constraint inspection receipts before synthesis consumes inputs. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l021.workflow.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l021.workflow.c0"
+                },
+                "id": "request",
+                "label": "submit task trajectories and recovery",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l021.workflow.c0"
+                }
+              },
+              {
+                "contractId": "l021.workflow.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l021.workflow.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l021.workflow.c1"
+                }
+              },
+              {
+                "contractId": "l021.workflow.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l021.workflow.c2-control"
+                },
+                "id": "ready",
+                "label": "release satisfied DAG tasks",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l021.workflow.c2"
+                }
+              },
+              {
+                "contractId": "l021.workflow.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l021.workflow.c3"
+                },
+                "id": "activity",
+                "label": "dispatch stable research effect",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l021.workflow.c3"
+                }
+              },
+              {
+                "contractId": "l021.workflow.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l021.workflow.c4"
+                },
+                "id": "inspect",
+                "label": "inspect source constraints",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l021.workflow.c4"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l021.workflow.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l021.workflow.d0",
+                "id": "boundary",
+                "label": "Task submission",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l021-workflow-boundary-binding-2",
+                "version": 1
+              },
+              {
+                "definitionId": "l021.workflow.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l021.workflow.d1",
+                "id": "state",
+                "label": "Decision history",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l021.workflow.d2",
+                "id": "n2",
+                "label": "Ready scheduler",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l021.workflow.d3",
+                "id": "n3",
+                "label": "Research activities",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l021.workflow.d4",
+                "id": "n4",
+                "label": "Constraint gate",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "workflow-s5",
+          "invariants": [
+            "Require explicit source/constraint inspection receipts before synthesis consumes inputs. State owner: Constraint gate (constraint verdict)."
+          ],
+          "number": 5,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l021.workflow.d4",
+                "id": "n4",
+                "label": "Constraint gate",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l021.workflow.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l021.workflow.c4"
+                },
+                "id": "inspect",
+                "label": "inspect source constraints",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l021.workflow.c4"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can generated output ignore limits?",
+          "reason": "Require explicit source/constraint inspection receipts before synthesis consumes inputs.",
+          "title": "Constraint gate"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "dependencies",
+            "effect",
+            "review"
+          ],
+          "explanation": "Persist review verdict and artifact hash; a revised artifact requires fresh review. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l021.workflow.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l021.workflow.c0"
+                },
+                "id": "request",
+                "label": "submit task trajectories and recovery",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l021.workflow.c0"
+                }
+              },
+              {
+                "contractId": "l021.workflow.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l021.workflow.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l021.workflow.c1"
+                }
+              },
+              {
+                "contractId": "l021.workflow.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l021.workflow.c2-control"
+                },
+                "id": "ready",
+                "label": "release satisfied DAG tasks",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l021.workflow.c2"
+                }
+              },
+              {
+                "contractId": "l021.workflow.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l021.workflow.c3"
+                },
+                "id": "activity",
+                "label": "dispatch stable research effect",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l021.workflow.c3"
+                }
+              },
+              {
+                "contractId": "l021.workflow.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l021.workflow.c4"
+                },
+                "id": "inspect",
+                "label": "inspect source constraints",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l021.workflow.c4"
+                }
+              },
+              {
+                "contractId": "l021.workflow.c5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l021.workflow.c5"
+                },
+                "id": "review",
+                "label": "review synthesized artifact",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l021.workflow.c5"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l021.workflow.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l021.workflow.d0",
+                "id": "boundary",
+                "label": "Task submission",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l021-workflow-boundary-binding-2",
+                "version": 1
+              },
+              {
+                "definitionId": "l021.workflow.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l021.workflow.d1",
+                "id": "state",
+                "label": "Decision history",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l021.workflow.d2",
+                "id": "n2",
+                "label": "Ready scheduler",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l021.workflow.d3",
+                "id": "n3",
+                "label": "Research activities",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l021.workflow.d4",
+                "id": "n4",
+                "label": "Constraint gate",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l021.workflow.d5",
+                "id": "n5",
+                "label": "Review checkpoint",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "workflow-s6",
+          "invariants": [
+            "Persist review verdict and artifact hash; a revised artifact requires fresh review. State owner: Review checkpoint (reviewed artifact hash)."
+          ],
+          "number": 6,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l021.workflow.d5",
+                "id": "n5",
+                "label": "Review checkpoint",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l021.workflow.c5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l021.workflow.c5"
+                },
+                "id": "review",
+                "label": "review synthesized artifact",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l021.workflow.c5"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Who authorizes publication?",
+          "reason": "Persist review verdict and artifact hash; a revised artifact requires fresh review.",
+          "title": "Review checkpoint"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "dependencies",
+            "effect",
+            "review"
+          ],
+          "explanation": "Commit an outbox identity for the approved hash before issuing a remote write. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l021.workflow.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l021.workflow.c0"
+                },
+                "id": "request",
+                "label": "submit task trajectories and recovery",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l021.workflow.c0"
+                }
+              },
+              {
+                "contractId": "l021.workflow.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l021.workflow.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l021.workflow.c1"
+                }
+              },
+              {
+                "contractId": "l021.workflow.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l021.workflow.c2-control"
+                },
+                "id": "ready",
+                "label": "release satisfied DAG tasks",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l021.workflow.c2"
+                }
+              },
+              {
+                "contractId": "l021.workflow.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l021.workflow.c3"
+                },
+                "id": "activity",
+                "label": "dispatch stable research effect",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l021.workflow.c3"
+                }
+              },
+              {
+                "contractId": "l021.workflow.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l021.workflow.c4"
+                },
+                "id": "inspect",
+                "label": "inspect source constraints",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l021.workflow.c4"
+                }
+              },
+              {
+                "contractId": "l021.workflow.c5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l021.workflow.c5"
+                },
+                "id": "review",
+                "label": "review synthesized artifact",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l021.workflow.c5"
+                }
+              },
+              {
+                "contractId": "l021.workflow.c6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l021.workflow.c6"
+                },
+                "id": "approve",
+                "label": "commit approved publication intent",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l021.workflow.c6"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l021.workflow.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l021.workflow.d0",
+                "id": "boundary",
+                "label": "Task submission",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l021-workflow-boundary-binding-2",
+                "version": 1
+              },
+              {
+                "definitionId": "l021.workflow.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l021.workflow.d1",
+                "id": "state",
+                "label": "Decision history",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l021.workflow.d2",
+                "id": "n2",
+                "label": "Ready scheduler",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l021.workflow.d3",
+                "id": "n3",
+                "label": "Research activities",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l021.workflow.d4",
+                "id": "n4",
+                "label": "Constraint gate",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l021.workflow.d5",
+                "id": "n5",
+                "label": "Review checkpoint",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l021.workflow.d6",
+                "id": "n6",
+                "label": "Publication intent",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "workflow-s7",
+          "invariants": [
+            "Commit an outbox identity for the approved hash before issuing a remote write. State owner: Publication intent (publication intent and remote receipt)."
+          ],
+          "number": 7,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l021.workflow.d6",
+                "id": "n6",
+                "label": "Publication intent",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l021.workflow.c6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l021.workflow.c6"
+                },
+                "id": "approve",
+                "label": "commit approved publication intent",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l021.workflow.c6"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How is duplicate publication avoided?",
+          "reason": "Commit an outbox identity for the approved hash before issuing a remote write.",
+          "title": "Publication intent"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "dependencies",
+            "effect",
+            "review"
+          ],
+          "explanation": "Reconcile by effect identity before retry; publish compact task states separately from private computation. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l021.workflow.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l021.workflow.c0"
+                },
+                "id": "request",
+                "label": "submit task trajectories and recovery",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l021.workflow.c0"
+                }
+              },
+              {
+                "contractId": "l021.workflow.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l021.workflow.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l021.workflow.c1"
+                }
+              },
+              {
+                "contractId": "l021.workflow.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l021.workflow.c2-control"
+                },
+                "id": "ready",
+                "label": "release satisfied DAG tasks",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l021.workflow.c2"
+                }
+              },
+              {
+                "contractId": "l021.workflow.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l021.workflow.c3"
+                },
+                "id": "activity",
+                "label": "dispatch stable research effect",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l021.workflow.c3"
+                }
+              },
+              {
+                "contractId": "l021.workflow.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l021.workflow.c4"
+                },
+                "id": "inspect",
+                "label": "inspect source constraints",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l021.workflow.c4"
+                }
+              },
+              {
+                "contractId": "l021.workflow.c5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l021.workflow.c5"
+                },
+                "id": "review",
+                "label": "review synthesized artifact",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l021.workflow.c5"
+                }
+              },
+              {
+                "contractId": "l021.workflow.c6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l021.workflow.c6"
+                },
+                "id": "approve",
+                "label": "commit approved publication intent",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l021.workflow.c6"
+                }
+              },
+              {
+                "contractId": "l021.workflow.c7",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l021.workflow.c7"
+                },
+                "id": "reconcile",
+                "label": "reconcile unknown publication",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l021.workflow.c7"
+                }
+              },
+              {
+                "contractId": "l021.workflow.c1",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l021.workflow.c1"
+                },
+                "id": "status",
+                "label": "project public task status",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l021.workflow.c1-state"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l021.workflow.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l021.workflow.d0",
+                "id": "boundary",
+                "label": "Task submission",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l021-workflow-boundary-binding-3",
+                "version": 1
+              },
+              {
+                "definitionId": "l021.workflow.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l021.workflow.d1",
+                "id": "state",
+                "label": "Decision history",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l021.workflow.d2",
+                "id": "n2",
+                "label": "Ready scheduler",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l021.workflow.d3",
+                "id": "n3",
+                "label": "Research activities",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l021.workflow.d4",
+                "id": "n4",
+                "label": "Constraint gate",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l021.workflow.d5",
+                "id": "n5",
+                "label": "Review checkpoint",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l021.workflow.d6",
+                "id": "n6",
+                "label": "Publication intent",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l021.workflow.d7",
+                "id": "n7",
+                "label": "Recovery and status",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "workflow-s8",
+          "invariants": [
+            "Reconcile by effect identity before retry; publish compact task states separately from private computation. State owner: Recovery and status (reconciliation cursor and public status)."
+          ],
+          "number": 8,
+          "operations": [
+            {
+              "nodeId": "boundary",
+              "op": "rebind",
+              "reason": "Select a new immutable exposure binding before connecting the added responsibility; prior stage binding remains unchanged.",
+              "subsystemId": "l021-workflow-boundary-binding-3"
+            },
+            {
+              "node": {
+                "definitionId": "l021.workflow.d7",
+                "id": "n7",
+                "label": "Recovery and status",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l021.workflow.c7",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l021.workflow.c7"
+                },
+                "id": "reconcile",
+                "label": "reconcile unknown publication",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l021.workflow.c7"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l021.workflow.c1",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l021.workflow.c1"
+                },
+                "id": "status",
+                "label": "project public task status",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l021.workflow.c1-state"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What if the remote write succeeded?",
+          "reason": "Reconcile by effect identity before retry; publish compact task states separately from private computation.",
+          "title": "Recovery and status"
+        }
+      ],
+      "title": "One durable workflow per task DAG",
+      "tradeoffs": [
+        "Workflow histories/versioning add operations; activities still need remote idempotency."
+      ]
+    },
+    {
+      "acceptanceCases": [
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-02-mechanisms.test.mjs",
+            "testName": "L021 bounded mechanism"
+          },
+          "given": "A join has two prerequisites and receives duplicate completion for the first.",
+          "id": "mechanism",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Remaining dependencies are 1,1,0; no dependent is released by the duplicate. Remote exactly-once effects are not established.",
+          "when": "Apply first, duplicate-first and second completions."
+        },
+        {
+          "given": "Two workers deliver the same predecessor completion.",
+          "id": "dependencies",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Deduplicate by predecessor identity and make the dependent ready only once all distinct prerequisites complete.",
+          "when": "Apply their dependency-counter transitions."
+        },
+        {
+          "given": "A worker lease expires while a tool write is unknown.",
+          "id": "effect",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Advance epoch and reconcile stable effect identity before retry; late old completion is fenced.",
+          "when": "Assign a successor worker."
+        },
+        {
+          "given": "An outbox refers to a different digest from the approval row.",
+          "id": "review",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Reject the mismatched artifact and preserve the pending intent for review.",
+          "when": "Dispatch the publication."
+        }
+      ],
+      "algorithms": [
+        {
+          "code": "if (completed.has(predecessorId)) return remaining;\ncompleted.add(predecessorId); remaining--;\nreturn remaining; // A ready transition is committed only at zero with all output receipts present.",
+          "guarantees": [
+            "The code states the bounded decision rule; unimplemented helpers remain pseudocode.",
+            "External effects, distributed failure and latency require separate execution evidence."
+          ],
+          "id": "bounded-rule",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "n5"
+        },
+        {
+          "code": "for (const task of expiredLeases(now)) {\n const nextEpoch = compareAndAdvanceEpoch(task.id, task.epoch);\n for (const effect of pendingEffects(task.id)) await reconcileBeforeRetry(effect.key);\n requeueIfPrerequisitesStillCommitted(task.id, nextEpoch);\n}\n// Completion handlers compare epochs and cannot overwrite a successor owner.",
+          "guarantees": [
+            "Fence expired owners, reconcile unknown effects, and expose pending status rather than false success."
+          ],
+          "id": "recover",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "n7"
+        }
+      ],
+      "apis": [
+        {
+          "errors": "401 unauthenticated; 409 stale identity/version; 429 bounded capacity; 503 unavailable authority",
+          "method": "POST",
+          "ownerNodeId": "control",
+          "path": "/l021/journal",
+          "request": "{\"runId\":\"uuid\",\"edges\":\"task-id pairs[]\"}",
+          "response": "{\"accepted\":\"boolean\"}"
+        },
+        {
+          "errors": "403 unauthorized scope; 404 absent identity; 410 expired retained history",
+          "method": "GET",
+          "ownerNodeId": "state",
+          "path": "/l021/journal/state",
+          "request": "{\"taskId\":\"uuid\",\"expectedVersion\":\"integer\"}",
+          "response": "{\"version\":\"integer\"}"
+        }
+      ],
+      "assumptions": [
+        "The database serializes task transitions; it does not make remote tools transactional."
+      ],
+      "chooseWhen": "A small task state machine fits a database and explicit workers.",
+      "id": "journal",
+      "initialGraph": {
+        "edges": [],
+        "nodes": []
+      },
+      "stages": [
+        {
+          "checkIds": [
+            "mechanism",
+            "dependencies",
+            "effect",
+            "review"
+          ],
+          "explanation": "Accept immutable task IDs and reject cycles or missing prerequisite IDs. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l021.journal.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l021.journal.c0"
+                },
+                "id": "request",
+                "label": "submit task trajectories and recovery",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l021.journal.c0"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l021.journal.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l021.journal.d0",
+                "id": "boundary",
+                "label": "DAG command",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "journal-s1",
+          "invariants": [
+            "Accept immutable task IDs and reject cycles or missing prerequisite IDs. State owner: DAG command (DAG command identity)."
+          ],
+          "number": 1,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l021.journal.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "l021.journal.d0",
+                "id": "boundary",
+                "label": "DAG command",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l021.journal.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l021.journal.c0"
+                },
+                "id": "request",
+                "label": "submit task trajectories and recovery",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l021.journal.c0"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How are dependencies validated?",
+          "reason": "Accept immutable task IDs and reject cycles or missing prerequisite IDs.",
+          "title": "DAG command"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "dependencies",
+            "effect",
+            "review"
+          ],
+          "explanation": "Expand command boundary; store state, attempt epoch and predecessor receipts transactionally. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l021.journal.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l021.journal.c0"
+                },
+                "id": "request",
+                "label": "submit task trajectories and recovery",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l021.journal.c0"
+                }
+              },
+              {
+                "contractId": "l021.journal.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l021.journal.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l021.journal.c1"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l021.journal.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l021.journal.d0",
+                "id": "boundary",
+                "label": "DAG command",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l021-journal-boundary-binding-1",
+                "version": 1
+              },
+              {
+                "definitionId": "l021.journal.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l021.journal.d1",
+                "id": "state",
+                "label": "Task rows",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "journal-s2",
+          "invariants": [
+            "Expand command boundary; store state, attempt epoch and predecessor receipts transactionally. State owner: Task rows (task rows and transition receipts)."
+          ],
+          "number": 2,
+          "operations": [
+            {
+              "edges": [
+                {
+                  "contractId": "l021.journal.c1",
+                  "from": {
+                    "nodeId": "control",
+                    "portId": "out-l021.journal.c1"
+                  },
+                  "id": "commit",
+                  "label": "commit versioned state",
+                  "mode": "storage",
+                  "to": {
+                    "nodeId": "state",
+                    "portId": "in-l021.journal.c1"
+                  }
+                }
+              ],
+              "nodeId": "boundary",
+              "nodes": [
+                {
+                  "definitionId": "l021.journal.control",
+                  "id": "control",
+                  "label": "Command control",
+                  "position": {
+                    "x": 560,
+                    "y": 0
+                  },
+                  "version": 1
+                },
+                {
+                  "definitionId": "l021.journal.d1",
+                  "id": "state",
+                  "label": "Task rows",
+                  "position": {
+                    "x": 840,
+                    "y": 0
+                  },
+                  "version": 1
+                }
+              ],
+              "op": "expand",
+              "subsystemId": "l021-journal-boundary-binding-1"
+            }
+          ],
+          "question": "What is authoritative task state?",
+          "reason": "Expand command boundary; store state, attempt epoch and predecessor receipts transactionally.",
+          "title": "Task rows"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "dependencies",
+            "effect",
+            "review"
+          ],
+          "explanation": "Claim ready task with compare-and-swap and monotonic attempt epoch. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l021.journal.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l021.journal.c0"
+                },
+                "id": "request",
+                "label": "submit task trajectories and recovery",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l021.journal.c0"
+                }
+              },
+              {
+                "contractId": "l021.journal.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l021.journal.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l021.journal.c1"
+                }
+              },
+              {
+                "contractId": "l021.journal.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l021.journal.c2-control"
+                },
+                "id": "claim",
+                "label": "claim ready task lease",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l021.journal.c2"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l021.journal.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l021.journal.d0",
+                "id": "boundary",
+                "label": "DAG command",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l021-journal-boundary-binding-2",
+                "version": 1
+              },
+              {
+                "definitionId": "l021.journal.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l021.journal.d1",
+                "id": "state",
+                "label": "Task rows",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l021.journal.d2",
+                "id": "n2",
+                "label": "Lease claims",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "journal-s3",
+          "invariants": [
+            "Claim ready task with compare-and-swap and monotonic attempt epoch. State owner: Lease claims (lease epoch and deadline)."
+          ],
+          "number": 3,
+          "operations": [
+            {
+              "nodeId": "boundary",
+              "op": "rebind",
+              "reason": "Select a new immutable exposure binding before connecting the added responsibility; prior stage binding remains unchanged.",
+              "subsystemId": "l021-journal-boundary-binding-2"
+            },
+            {
+              "node": {
+                "definitionId": "l021.journal.d2",
+                "id": "n2",
+                "label": "Lease claims",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l021.journal.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l021.journal.c2-control"
+                },
+                "id": "claim",
+                "label": "claim ready task lease",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l021.journal.c2"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can two workers own one task?",
+          "reason": "Claim ready task with compare-and-swap and monotonic attempt epoch.",
+          "title": "Lease claims"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "dependencies",
+            "effect",
+            "review"
+          ],
+          "explanation": "Record stable remote intent and classify known rejection versus uncertain acceptance. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l021.journal.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l021.journal.c0"
+                },
+                "id": "request",
+                "label": "submit task trajectories and recovery",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l021.journal.c0"
+                }
+              },
+              {
+                "contractId": "l021.journal.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l021.journal.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l021.journal.c1"
+                }
+              },
+              {
+                "contractId": "l021.journal.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l021.journal.c2-control"
+                },
+                "id": "claim",
+                "label": "claim ready task lease",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l021.journal.c2"
+                }
+              },
+              {
+                "contractId": "l021.journal.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l021.journal.c3"
+                },
+                "id": "intent",
+                "label": "persist stable effect identity",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l021.journal.c3"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l021.journal.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l021.journal.d0",
+                "id": "boundary",
+                "label": "DAG command",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l021-journal-boundary-binding-2",
+                "version": 1
+              },
+              {
+                "definitionId": "l021.journal.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l021.journal.d1",
+                "id": "state",
+                "label": "Task rows",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l021.journal.d2",
+                "id": "n2",
+                "label": "Lease claims",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l021.journal.d3",
+                "id": "n3",
+                "label": "Effect ledger",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "journal-s4",
+          "invariants": [
+            "Record stable remote intent and classify known rejection versus uncertain acceptance. State owner: Effect ledger (effect keys and outcomes)."
+          ],
+          "number": 4,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l021.journal.d3",
+                "id": "n3",
+                "label": "Effect ledger",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l021.journal.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l021.journal.c3"
+                },
+                "id": "intent",
+                "label": "persist stable effect identity",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l021.journal.c3"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What if acknowledgement is lost?",
+          "reason": "Record stable remote intent and classify known rejection versus uncertain acceptance.",
+          "title": "Effect ledger"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "dependencies",
+            "effect",
+            "review"
+          ],
+          "explanation": "Persist immutable research results and explicit constraint verdict before advancing dependencies. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l021.journal.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l021.journal.c0"
+                },
+                "id": "request",
+                "label": "submit task trajectories and recovery",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l021.journal.c0"
+                }
+              },
+              {
+                "contractId": "l021.journal.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l021.journal.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l021.journal.c1"
+                }
+              },
+              {
+                "contractId": "l021.journal.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l021.journal.c2-control"
+                },
+                "id": "claim",
+                "label": "claim ready task lease",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l021.journal.c2"
+                }
+              },
+              {
+                "contractId": "l021.journal.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l021.journal.c3"
+                },
+                "id": "intent",
+                "label": "persist stable effect identity",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l021.journal.c3"
+                }
+              },
+              {
+                "contractId": "l021.journal.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l021.journal.c4"
+                },
+                "id": "research",
+                "label": "execute research and constraints",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l021.journal.c4"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l021.journal.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l021.journal.d0",
+                "id": "boundary",
+                "label": "DAG command",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l021-journal-boundary-binding-2",
+                "version": 1
+              },
+              {
+                "definitionId": "l021.journal.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l021.journal.d1",
+                "id": "state",
+                "label": "Task rows",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l021.journal.d2",
+                "id": "n2",
+                "label": "Lease claims",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l021.journal.d3",
+                "id": "n3",
+                "label": "Effect ledger",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l021.journal.d4",
+                "id": "n4",
+                "label": "Research and constraints",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "journal-s5",
+          "invariants": [
+            "Persist immutable research results and explicit constraint verdict before advancing dependencies. State owner: Research and constraints (output hashes and constraint receipt)."
+          ],
+          "number": 5,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l021.journal.d4",
+                "id": "n4",
+                "label": "Research and constraints",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l021.journal.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l021.journal.c4"
+                },
+                "id": "research",
+                "label": "execute research and constraints",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l021.journal.c4"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Which inputs reach synthesis?",
+          "reason": "Persist immutable research results and explicit constraint verdict before advancing dependencies.",
+          "title": "Research and constraints"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "dependencies",
+            "effect",
+            "review"
+          ],
+          "explanation": "Deduplicate predecessor completion and decrement remaining dependency count once. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l021.journal.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l021.journal.c0"
+                },
+                "id": "request",
+                "label": "submit task trajectories and recovery",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l021.journal.c0"
+                }
+              },
+              {
+                "contractId": "l021.journal.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l021.journal.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l021.journal.c1"
+                }
+              },
+              {
+                "contractId": "l021.journal.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l021.journal.c2-control"
+                },
+                "id": "claim",
+                "label": "claim ready task lease",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l021.journal.c2"
+                }
+              },
+              {
+                "contractId": "l021.journal.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l021.journal.c3"
+                },
+                "id": "intent",
+                "label": "persist stable effect identity",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l021.journal.c3"
+                }
+              },
+              {
+                "contractId": "l021.journal.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l021.journal.c4"
+                },
+                "id": "research",
+                "label": "execute research and constraints",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l021.journal.c4"
+                }
+              },
+              {
+                "contractId": "l021.journal.c5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l021.journal.c5"
+                },
+                "id": "complete",
+                "label": "deduplicate dependency completion",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l021.journal.c5"
+                }
+              },
+              {
+                "contractId": "l021.journal.c1",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l021.journal.c1"
+                },
+                "id": "task-state",
+                "label": "commit dependent readiness",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l021.journal.c1-state"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l021.journal.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l021.journal.d0",
+                "id": "boundary",
+                "label": "DAG command",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l021-journal-boundary-binding-3",
+                "version": 1
+              },
+              {
+                "definitionId": "l021.journal.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l021.journal.d1",
+                "id": "state",
+                "label": "Task rows",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l021.journal.d2",
+                "id": "n2",
+                "label": "Lease claims",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l021.journal.d3",
+                "id": "n3",
+                "label": "Effect ledger",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l021.journal.d4",
+                "id": "n4",
+                "label": "Research and constraints",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l021.journal.d5",
+                "id": "n5",
+                "label": "Join transition",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "journal-s6",
+          "invariants": [
+            "Deduplicate predecessor completion and decrement remaining dependency count once. State owner: Join transition (completion identity set)."
+          ],
+          "number": 6,
+          "operations": [
+            {
+              "nodeId": "boundary",
+              "op": "rebind",
+              "reason": "Select a new immutable exposure binding before connecting the added responsibility; prior stage binding remains unchanged.",
+              "subsystemId": "l021-journal-boundary-binding-3"
+            },
+            {
+              "node": {
+                "definitionId": "l021.journal.d5",
+                "id": "n5",
+                "label": "Join transition",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l021.journal.c5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l021.journal.c5"
+                },
+                "id": "complete",
+                "label": "deduplicate dependency completion",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l021.journal.c5"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l021.journal.c1",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l021.journal.c1"
+                },
+                "id": "task-state",
+                "label": "commit dependent readiness",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l021.journal.c1-state"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can duplicate completion release twice?",
+          "reason": "Deduplicate predecessor completion and decrement remaining dependency count once.",
+          "title": "Join transition"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "dependencies",
+            "effect",
+            "review"
+          ],
+          "explanation": "Bind review to artifact digest and append publication intent in the same versioned transition. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l021.journal.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l021.journal.c0"
+                },
+                "id": "request",
+                "label": "submit task trajectories and recovery",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l021.journal.c0"
+                }
+              },
+              {
+                "contractId": "l021.journal.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l021.journal.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l021.journal.c1"
+                }
+              },
+              {
+                "contractId": "l021.journal.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l021.journal.c2-control"
+                },
+                "id": "claim",
+                "label": "claim ready task lease",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l021.journal.c2"
+                }
+              },
+              {
+                "contractId": "l021.journal.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l021.journal.c3"
+                },
+                "id": "intent",
+                "label": "persist stable effect identity",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l021.journal.c3"
+                }
+              },
+              {
+                "contractId": "l021.journal.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l021.journal.c4"
+                },
+                "id": "research",
+                "label": "execute research and constraints",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l021.journal.c4"
+                }
+              },
+              {
+                "contractId": "l021.journal.c5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l021.journal.c5"
+                },
+                "id": "complete",
+                "label": "deduplicate dependency completion",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l021.journal.c5"
+                }
+              },
+              {
+                "contractId": "l021.journal.c1",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l021.journal.c1"
+                },
+                "id": "task-state",
+                "label": "commit dependent readiness",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l021.journal.c1-state"
+                }
+              },
+              {
+                "contractId": "l021.journal.c6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l021.journal.c6"
+                },
+                "id": "approve",
+                "label": "commit reviewed publication",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l021.journal.c6"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l021.journal.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l021.journal.d0",
+                "id": "boundary",
+                "label": "DAG command",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l021-journal-boundary-binding-3",
+                "version": 1
+              },
+              {
+                "definitionId": "l021.journal.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l021.journal.d1",
+                "id": "state",
+                "label": "Task rows",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l021.journal.d2",
+                "id": "n2",
+                "label": "Lease claims",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l021.journal.d3",
+                "id": "n3",
+                "label": "Effect ledger",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l021.journal.d4",
+                "id": "n4",
+                "label": "Research and constraints",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l021.journal.d5",
+                "id": "n5",
+                "label": "Join transition",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l021.journal.d6",
+                "id": "n6",
+                "label": "Approval outbox",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "journal-s7",
+          "invariants": [
+            "Bind review to artifact digest and append publication intent in the same versioned transition. State owner: Approval outbox (approval and publication outbox)."
+          ],
+          "number": 7,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l021.journal.d6",
+                "id": "n6",
+                "label": "Approval outbox",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l021.journal.c6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l021.journal.c6"
+                },
+                "id": "approve",
+                "label": "commit reviewed publication",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l021.journal.c6"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What exactly is approved?",
+          "reason": "Bind review to artifact digest and append publication intent in the same versioned transition.",
+          "title": "Approval outbox"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "dependencies",
+            "effect",
+            "review"
+          ],
+          "explanation": "Fence expired owners, reconcile unknown effects, and expose pending status rather than false success. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l021.journal.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l021.journal.c0"
+                },
+                "id": "request",
+                "label": "submit task trajectories and recovery",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l021.journal.c0"
+                }
+              },
+              {
+                "contractId": "l021.journal.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l021.journal.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l021.journal.c1"
+                }
+              },
+              {
+                "contractId": "l021.journal.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l021.journal.c2-control"
+                },
+                "id": "claim",
+                "label": "claim ready task lease",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l021.journal.c2"
+                }
+              },
+              {
+                "contractId": "l021.journal.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l021.journal.c3"
+                },
+                "id": "intent",
+                "label": "persist stable effect identity",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l021.journal.c3"
+                }
+              },
+              {
+                "contractId": "l021.journal.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l021.journal.c4"
+                },
+                "id": "research",
+                "label": "execute research and constraints",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l021.journal.c4"
+                }
+              },
+              {
+                "contractId": "l021.journal.c5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l021.journal.c5"
+                },
+                "id": "complete",
+                "label": "deduplicate dependency completion",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l021.journal.c5"
+                }
+              },
+              {
+                "contractId": "l021.journal.c1",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l021.journal.c1"
+                },
+                "id": "task-state",
+                "label": "commit dependent readiness",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l021.journal.c1-state"
+                }
+              },
+              {
+                "contractId": "l021.journal.c6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l021.journal.c6"
+                },
+                "id": "approve",
+                "label": "commit reviewed publication",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l021.journal.c6"
+                }
+              },
+              {
+                "contractId": "l021.journal.c7",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l021.journal.c7"
+                },
+                "id": "leases",
+                "label": "fence expired task owners",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l021.journal.c7"
+                }
+              },
+              {
+                "contractId": "l021.journal.c3",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l021.journal.c3"
+                },
+                "id": "unknown",
+                "label": "reconcile effect outcome",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l021.journal.c3"
+                }
+              },
+              {
+                "contractId": "l021.journal.c6",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l021.journal.c6"
+                },
+                "id": "publication",
+                "label": "resume approved outbox",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l021.journal.c6"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l021.journal.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l021.journal.d0",
+                "id": "boundary",
+                "label": "DAG command",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l021-journal-boundary-binding-3",
+                "version": 1
+              },
+              {
+                "definitionId": "l021.journal.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l021.journal.d1",
+                "id": "state",
+                "label": "Task rows",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l021.journal.d2",
+                "id": "n2",
+                "label": "Lease claims",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l021.journal.d3",
+                "id": "n3",
+                "label": "Effect ledger",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l021.journal.d4",
+                "id": "n4",
+                "label": "Research and constraints",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l021.journal.d5",
+                "id": "n5",
+                "label": "Join transition",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l021.journal.d6",
+                "id": "n6",
+                "label": "Approval outbox",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l021.journal.d7",
+                "id": "n7",
+                "label": "Reconciliation sweep",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "journal-s8",
+          "invariants": [
+            "Fence expired owners, reconcile unknown effects, and expose pending status rather than false success. State owner: Reconciliation sweep (sweep cursor and status receipt)."
+          ],
+          "number": 8,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l021.journal.d7",
+                "id": "n7",
+                "label": "Reconciliation sweep",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l021.journal.c7",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l021.journal.c7"
+                },
+                "id": "leases",
+                "label": "fence expired task owners",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l021.journal.c7"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l021.journal.c3",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l021.journal.c3"
+                },
+                "id": "unknown",
+                "label": "reconcile effect outcome",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l021.journal.c3"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l021.journal.c6",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l021.journal.c6"
+                },
+                "id": "publication",
+                "label": "resume approved outbox",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l021.journal.c6"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How is a lost worker recovered?",
+          "reason": "Fence expired owners, reconcile unknown effects, and expose pending status rather than false success.",
+          "title": "Reconciliation sweep"
+        }
+      ],
+      "title": "Transactional DAG state and worker leases",
+      "tradeoffs": [
+        "Leases, scheduling and recovery must be implemented; dependency counters need transactional deduplication."
+      ]
+    }
+  ],
+  "subsystems": [
+    {
+      "definitionId": "l021.workflow.d0",
+      "id": "l021-workflow-boundary-binding-1",
+      "ports": [
+        {
+          "contractId": "l021.workflow.c0",
+          "direction": "in",
+          "id": "in-l021.workflow.c0",
+          "target": {
+            "nodeId": "control",
+            "portId": "in-l021.workflow.c0"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l021.workflow.d0",
+      "id": "l021-workflow-boundary-binding-2",
+      "ports": [
+        {
+          "contractId": "l021.workflow.c0",
+          "direction": "in",
+          "id": "in-l021.workflow.c0",
+          "target": {
+            "nodeId": "control",
+            "portId": "in-l021.workflow.c0"
+          }
+        },
+        {
+          "contractId": "l021.workflow.c2",
+          "direction": "out",
+          "id": "out-l021.workflow.c2-control",
+          "target": {
+            "nodeId": "control",
+            "portId": "out-l021.workflow.c2"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l021.workflow.d0",
+      "id": "l021-workflow-boundary-binding-3",
+      "ports": [
+        {
+          "contractId": "l021.workflow.c0",
+          "direction": "in",
+          "id": "in-l021.workflow.c0",
+          "target": {
+            "nodeId": "control",
+            "portId": "in-l021.workflow.c0"
+          }
+        },
+        {
+          "contractId": "l021.workflow.c2",
+          "direction": "out",
+          "id": "out-l021.workflow.c2-control",
+          "target": {
+            "nodeId": "control",
+            "portId": "out-l021.workflow.c2"
+          }
+        },
+        {
+          "contractId": "l021.workflow.c1",
+          "direction": "in",
+          "id": "in-l021.workflow.c1-state",
+          "target": {
+            "nodeId": "state",
+            "portId": "in-l021.workflow.c1"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l021.journal.d0",
+      "id": "l021-journal-boundary-binding-1",
+      "ports": [
+        {
+          "contractId": "l021.journal.c0",
+          "direction": "in",
+          "id": "in-l021.journal.c0",
+          "target": {
+            "nodeId": "control",
+            "portId": "in-l021.journal.c0"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l021.journal.d0",
+      "id": "l021-journal-boundary-binding-2",
+      "ports": [
+        {
+          "contractId": "l021.journal.c0",
+          "direction": "in",
+          "id": "in-l021.journal.c0",
+          "target": {
+            "nodeId": "control",
+            "portId": "in-l021.journal.c0"
+          }
+        },
+        {
+          "contractId": "l021.journal.c2",
+          "direction": "out",
+          "id": "out-l021.journal.c2-control",
+          "target": {
+            "nodeId": "control",
+            "portId": "out-l021.journal.c2"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l021.journal.d0",
+      "id": "l021-journal-boundary-binding-3",
+      "ports": [
+        {
+          "contractId": "l021.journal.c0",
+          "direction": "in",
+          "id": "in-l021.journal.c0",
+          "target": {
+            "nodeId": "control",
+            "portId": "in-l021.journal.c0"
+          }
+        },
+        {
+          "contractId": "l021.journal.c2",
+          "direction": "out",
+          "id": "out-l021.journal.c2-control",
+          "target": {
+            "nodeId": "control",
+            "portId": "out-l021.journal.c2"
+          }
+        },
+        {
+          "contractId": "l021.journal.c1",
+          "direction": "in",
+          "id": "in-l021.journal.c1-state",
+          "target": {
+            "nodeId": "state",
+            "portId": "in-l021.journal.c1"
+          }
+        }
+      ],
+      "version": 1
+    }
+  ],
+  "version": 1
+}

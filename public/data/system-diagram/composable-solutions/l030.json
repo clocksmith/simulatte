@@ -1,0 +1,4346 @@
+{
+  "components": [
+    {
+      "extends": {
+        "id": "core.service",
+        "version": 1
+      },
+      "id": "l030.incremental.d0",
+      "label": "Event intake",
+      "ports": [
+        {
+          "contractId": "l030.incremental.c0",
+          "direction": "in",
+          "id": "in-l030.incremental.c0"
+        },
+        {
+          "contractId": "l030.incremental.c2",
+          "direction": "out",
+          "id": "out-l030.incremental.c2-control"
+        },
+        {
+          "contractId": "l030.incremental.c4",
+          "direction": "out",
+          "id": "out-l030.incremental.c4-control"
+        },
+        {
+          "contractId": "l030.incremental.c1",
+          "direction": "in",
+          "id": "in-l030.incremental.c1-state"
+        }
+      ],
+      "responsibility": "Accept source event ID, partition, schema version and an event timestamp separate from arrival time.",
+      "stateOwnership": [
+        "source event identity"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l030.incremental.d1",
+      "label": "Offset authority",
+      "ports": [
+        {
+          "contractId": "l030.incremental.c1",
+          "direction": "in",
+          "id": "in-l030.incremental.c1"
+        }
+      ],
+      "responsibility": "Expand ingress with source offsets, schema compatibility and state checkpoint identities.",
+      "stateOwnership": [
+        "offset and checkpoint versions"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l030.incremental.d2",
+      "label": "Version decoder",
+      "ports": [
+        {
+          "contractId": "l030.incremental.c2",
+          "direction": "in",
+          "id": "in-l030.incremental.c2"
+        },
+        {
+          "contractId": "l030.incremental.c3",
+          "direction": "out",
+          "id": "out-l030.incremental.c3"
+        }
+      ],
+      "responsibility": "Decode v1/v2 through explicit converters to one canonical value; reject unknown versions.",
+      "stateOwnership": [
+        "schema conversion registry"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.queue",
+        "version": 1
+      },
+      "id": "l030.incremental.d3",
+      "label": "Partition FIFO",
+      "ports": [
+        {
+          "contractId": "l030.incremental.c3",
+          "direction": "in",
+          "id": "in-l030.incremental.c3"
+        },
+        {
+          "contractId": "l030.incremental.c5",
+          "direction": "out",
+          "id": "out-l030.incremental.c5"
+        }
+      ],
+      "responsibility": "Keep per-partition FIFO with bounded buffers and backpressure on source admission.",
+      "stateOwnership": [
+        "partition queue and byte budget"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l030.incremental.d4",
+      "label": "Window state",
+      "ports": [
+        {
+          "contractId": "l030.incremental.c4",
+          "direction": "in",
+          "id": "in-l030.incremental.c4"
+        },
+        {
+          "contractId": "l030.incremental.c6",
+          "direction": "out",
+          "id": "out-l030.incremental.c6"
+        }
+      ],
+      "responsibility": "Update floor(eventTime/windowSize) half-open sum/count after deduplicating event IDs.",
+      "stateOwnership": [
+        "key/window sum, count and dedupe"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l030.incremental.d5",
+      "label": "Watermark gate",
+      "ports": [
+        {
+          "contractId": "l030.incremental.c5",
+          "direction": "in",
+          "id": "in-l030.incremental.c5"
+        },
+        {
+          "contractId": "l030.incremental.c4",
+          "direction": "out",
+          "id": "out-l030.incremental.c4"
+        }
+      ],
+      "responsibility": "Advance a monotonic watermark under declared partition/idleness policy and route older events to quarantine.",
+      "stateOwnership": [
+        "watermark and late-event reasons"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "l030.incremental.d6",
+      "label": "Spill checkpoint",
+      "ports": [
+        {
+          "contractId": "l030.incremental.c6",
+          "direction": "in",
+          "id": "in-l030.incremental.c6"
+        },
+        {
+          "contractId": "l030.incremental.c1",
+          "direction": "out",
+          "id": "out-l030.incremental.c1"
+        }
+      ],
+      "responsibility": "Spill bounded sorted runs and atomically checkpoint state references plus source offsets.",
+      "stateOwnership": [
+        "spill manifests and checkpoints"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "l030.incremental.d7",
+      "label": "Replay and finalize",
+      "ports": [
+        {
+          "contractId": "l030.incremental.c6",
+          "direction": "out",
+          "id": "out-l030.incremental.c6"
+        },
+        {
+          "contractId": "l030.incremental.c1",
+          "direction": "out",
+          "id": "out-l030.incremental.c1"
+        }
+      ],
+      "responsibility": "Restore a checkpoint, deduplicate replayed IDs and publish versioned window results; finality follows the declared watermark rule.",
+      "stateOwnership": [
+        "output versions and replay cursor"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.client",
+        "version": 1
+      },
+      "id": "l030.incremental.caller",
+      "label": "Caller",
+      "ports": [
+        {
+          "contractId": "l030.incremental.c0",
+          "direction": "out",
+          "id": "out-l030.incremental.c0"
+        }
+      ],
+      "responsibility": "Submit the declared operation with authenticated identity and preserve its retry identity.",
+      "stateOwnership": [
+        "request identity"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l030.incremental.control",
+      "label": "Command control",
+      "ports": [
+        {
+          "contractId": "l030.incremental.c1",
+          "direction": "out",
+          "id": "out-l030.incremental.c1"
+        },
+        {
+          "contractId": "l030.incremental.c0",
+          "direction": "in",
+          "id": "in-l030.incremental.c0"
+        },
+        {
+          "contractId": "l030.incremental.c2",
+          "direction": "out",
+          "id": "out-l030.incremental.c2"
+        },
+        {
+          "contractId": "l030.incremental.c4",
+          "direction": "out",
+          "id": "out-l030.incremental.c4"
+        }
+      ],
+      "responsibility": "Accept source event ID, partition, schema version and an event timestamp separate from arrival time.",
+      "stateOwnership": [
+        "validated command and version"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.service",
+        "version": 1
+      },
+      "id": "l030.microbatch.d0",
+      "label": "Batch cutoff",
+      "ports": [
+        {
+          "contractId": "l030.microbatch.c0",
+          "direction": "in",
+          "id": "in-l030.microbatch.c0"
+        },
+        {
+          "contractId": "l030.microbatch.c2",
+          "direction": "out",
+          "id": "out-l030.microbatch.c2-control"
+        },
+        {
+          "contractId": "l030.microbatch.c1",
+          "direction": "in",
+          "id": "in-l030.microbatch.c1-state"
+        }
+      ],
+      "responsibility": "Freeze upper source offsets and a unique batch identity without treating arrival time as event time.",
+      "stateOwnership": [
+        "batch offset interval"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l030.microbatch.d1",
+      "label": "Batch catalogue",
+      "ports": [
+        {
+          "contractId": "l030.microbatch.c1",
+          "direction": "in",
+          "id": "in-l030.microbatch.c1"
+        }
+      ],
+      "responsibility": "Expand batch coordinator with immutable offset ranges and commit receipts.",
+      "stateOwnership": [
+        "batch identity and ranges"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l030.microbatch.d2",
+      "label": "Raw event archive",
+      "ports": [
+        {
+          "contractId": "l030.microbatch.c2",
+          "direction": "in",
+          "id": "in-l030.microbatch.c2"
+        },
+        {
+          "contractId": "l030.microbatch.c3",
+          "direction": "out",
+          "id": "out-l030.microbatch.c3"
+        }
+      ],
+      "responsibility": "Retain event IDs, event times and original schema version in an immutable batch object.",
+      "stateOwnership": [
+        "raw batch bytes and digest"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l030.microbatch.d3",
+      "label": "Schema normalize",
+      "ports": [
+        {
+          "contractId": "l030.microbatch.c3",
+          "direction": "in",
+          "id": "in-l030.microbatch.c3"
+        },
+        {
+          "contractId": "l030.microbatch.c4",
+          "direction": "out",
+          "id": "out-l030.microbatch.c4"
+        }
+      ],
+      "responsibility": "Convert each declared version to canonical key/value fields and quarantine unknown versions.",
+      "stateOwnership": [
+        "conversion version and rejects"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "l030.microbatch.d4",
+      "label": "Sort and spill",
+      "ports": [
+        {
+          "contractId": "l030.microbatch.c4",
+          "direction": "in",
+          "id": "in-l030.microbatch.c4"
+        },
+        {
+          "contractId": "l030.microbatch.c5",
+          "direction": "out",
+          "id": "out-l030.microbatch.c5"
+        }
+      ],
+      "responsibility": "Sort by key/window/event ID into bounded disk runs, deduplicating repeated source identities.",
+      "stateOwnership": [
+        "sorted spill runs"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l030.microbatch.d5",
+      "label": "Lateness partition",
+      "ports": [
+        {
+          "contractId": "l030.microbatch.c5",
+          "direction": "in",
+          "id": "in-l030.microbatch.c5"
+        },
+        {
+          "contractId": "l030.microbatch.c6",
+          "direction": "out",
+          "id": "out-l030.microbatch.c6"
+        }
+      ],
+      "responsibility": "Use the frozen batch watermark; eligible events update windows, older events enter a retained quarantine dataset.",
+      "stateOwnership": [
+        "batch watermark and quarantine"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l030.microbatch.d6",
+      "label": "Atomic window merge",
+      "ports": [
+        {
+          "contractId": "l030.microbatch.c6",
+          "direction": "in",
+          "id": "in-l030.microbatch.c6"
+        }
+      ],
+      "responsibility": "Commit touched-window aggregates and batch receipt together, or recompute from selected immutable batches.",
+      "stateOwnership": [
+        "window versions and batch receipts"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "l030.microbatch.d7",
+      "label": "Batch recovery",
+      "ports": [
+        {
+          "contractId": "l030.microbatch.c6",
+          "direction": "out",
+          "id": "out-l030.microbatch.c6"
+        },
+        {
+          "contractId": "l030.microbatch.c1",
+          "direction": "out",
+          "id": "out-l030.microbatch.c1"
+        }
+      ],
+      "responsibility": "Reuse frozen ranges and batch identity, reconcile merge receipt, then advance source checkpoint.",
+      "stateOwnership": [
+        "recovery cursor and output receipt"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.client",
+        "version": 1
+      },
+      "id": "l030.microbatch.caller",
+      "label": "Caller",
+      "ports": [
+        {
+          "contractId": "l030.microbatch.c0",
+          "direction": "out",
+          "id": "out-l030.microbatch.c0"
+        }
+      ],
+      "responsibility": "Submit the declared operation with authenticated identity and preserve its retry identity.",
+      "stateOwnership": [
+        "request identity"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l030.microbatch.control",
+      "label": "Command control",
+      "ports": [
+        {
+          "contractId": "l030.microbatch.c1",
+          "direction": "out",
+          "id": "out-l030.microbatch.c1"
+        },
+        {
+          "contractId": "l030.microbatch.c0",
+          "direction": "in",
+          "id": "in-l030.microbatch.c0"
+        },
+        {
+          "contractId": "l030.microbatch.c2",
+          "direction": "out",
+          "id": "out-l030.microbatch.c2"
+        }
+      ],
+      "responsibility": "Freeze upper source offsets and a unique batch identity without treating arrival time as event time.",
+      "stateOwnership": [
+        "validated command and version"
+      ],
+      "version": 1
+    }
+  ],
+  "contracts": [
+    {
+      "id": "l030.incremental.c0",
+      "request": {
+        "eventId": "uuid",
+        "eventTime": "integer ms",
+        "partition": "integer",
+        "schemaVersion": "1|2"
+      },
+      "response": {
+        "accepted": "boolean"
+      },
+      "version": 1
+    },
+    {
+      "id": "l030.incremental.c1",
+      "request": {
+        "offset": "integer",
+        "partition": "integer"
+      },
+      "response": {
+        "checkpointId": "uuid"
+      },
+      "version": 1
+    },
+    {
+      "id": "l030.incremental.c2",
+      "request": {
+        "payload": "versioned event",
+        "schemaVersion": "1|2"
+      },
+      "response": {
+        "eventTime": "integer",
+        "key": "string",
+        "value": "number"
+      },
+      "version": 1
+    },
+    {
+      "id": "l030.incremental.c3",
+      "request": {
+        "offset": "integer",
+        "partition": "integer"
+      },
+      "response": {
+        "queued": "boolean"
+      },
+      "version": 1
+    },
+    {
+      "id": "l030.incremental.c4",
+      "request": {
+        "eventTime": "integer",
+        "key": "string",
+        "value": "number"
+      },
+      "response": {
+        "count": "integer",
+        "sum": "number",
+        "windowStart": "integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l030.incremental.c5",
+      "request": {
+        "eventTime": "integer",
+        "watermark": "integer"
+      },
+      "response": {
+        "route": "window|quarantine"
+      },
+      "version": 1
+    },
+    {
+      "id": "l030.incremental.c6",
+      "request": {
+        "memoryBytes": "integer",
+        "offsets": "partition offsets"
+      },
+      "response": {
+        "checkpoint": "immutable ref"
+      },
+      "version": 1
+    },
+    {
+      "id": "l030.incremental.c7",
+      "request": {
+        "checkpointId": "uuid",
+        "offsets": "partition offsets"
+      },
+      "response": {
+        "restored": "boolean"
+      },
+      "version": 1
+    },
+    {
+      "id": "l030.microbatch.c0",
+      "request": {
+        "batchId": "uuid",
+        "upperOffsets": "partition offsets"
+      },
+      "response": {
+        "accepted": "boolean"
+      },
+      "version": 1
+    },
+    {
+      "id": "l030.microbatch.c1",
+      "request": {
+        "batchId": "uuid"
+      },
+      "response": {
+        "lowerOffsets": "map",
+        "upperOffsets": "map"
+      },
+      "version": 1
+    },
+    {
+      "id": "l030.microbatch.c2",
+      "request": {
+        "events": "versioned event rows[]"
+      },
+      "response": {
+        "objectHash": "sha256"
+      },
+      "version": 1
+    },
+    {
+      "id": "l030.microbatch.c3",
+      "request": {
+        "payload": "versioned event",
+        "schemaVersion": "1|2"
+      },
+      "response": {
+        "canonical": "key/time/value"
+      },
+      "version": 1
+    },
+    {
+      "id": "l030.microbatch.c4",
+      "request": {
+        "canonical": "event rows[]",
+        "memoryLimit": "positive bytes"
+      },
+      "response": {
+        "runs": "immutable refs[]"
+      },
+      "version": 1
+    },
+    {
+      "id": "l030.microbatch.c5",
+      "request": {
+        "batchWatermark": "integer",
+        "eventTime": "integer"
+      },
+      "response": {
+        "route": "eligible|quarantine"
+      },
+      "version": 1
+    },
+    {
+      "id": "l030.microbatch.c6",
+      "request": {
+        "batchId": "uuid",
+        "windowDeltas": "key/window/sum/count[]"
+      },
+      "response": {
+        "applied": "boolean"
+      },
+      "version": 1
+    },
+    {
+      "id": "l030.microbatch.c7",
+      "request": {
+        "batchId": "uuid"
+      },
+      "response": {
+        "state": "replay|already-committed"
+      },
+      "version": 1
+    }
+  ],
+  "execution": {
+    "implementation": null,
+    "kind": "conceptual-design"
+  },
+  "problem": {
+    "referenceId": "L030",
+    "requirements": [
+      {
+        "id": "r0",
+        "text": "Decode declared schema versions and preserve event identity and event time."
+      },
+      {
+        "id": "r1",
+        "text": "Compute half-open tumbling sums/counts and quarantine excessively late events."
+      },
+      {
+        "id": "r2",
+        "text": "Bound memory, spill deterministically and commit progress with state/output."
+      }
+    ],
+    "scope": "Finite events carry explicit event timestamps and schema-version transitions. Compare incremental keyed event-time state with immutable microbatch recomputation. Watermarks express a lateness policy; bounded memory/spill and replay are explicit.",
+    "studyLabel": "Event-time windows and schema evolution"
+  },
+  "provenance": {
+    "kind": "authored-practice",
+    "note": "Authored interview preparation. Technical references support mechanisms, not the claim that a company asked this question."
+  },
+  "references": [
+    {
+      "id": "ref0",
+      "scope": "background",
+      "supports": "Event-time watermarks, late data policy and stateful streaming.",
+      "title": "Spark streaming guide",
+      "url": "https://spark.apache.org/docs/latest/streaming/apis-on-dataframes-and-datasets.html"
+    },
+    {
+      "id": "ref1",
+      "scope": "background",
+      "supports": "Versioned transactions and retrying serialization conflicts.",
+      "title": "PostgreSQL isolation",
+      "url": "https://www.postgresql.org/docs/18/transaction-iso.html"
+    }
+  ],
+  "schema": "simulatte.composableStudy.v2",
+  "solutions": [
+    {
+      "acceptanceCases": [
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-03-mechanisms.test.mjs",
+            "testName": "L030 bounded mechanism"
+          },
+          "given": "A 10ms tumbling window sees timestamps 9,10, a duplicate ID, and a timestamp below watermark 5.",
+          "id": "mechanism",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Time 9 maps to [0,10), time 10 to [10,20); the duplicate is ignored and timestamp 4 quarantined.",
+          "when": "Apply mixed-schema canonical values to the bounded window fold."
+        },
+        {
+          "given": "An event lands exactly at a tumbling-window boundary.",
+          "id": "boundary",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Assign the event to the new half-open window, independent of arrival order.",
+          "when": "Decode its version and compute floor(eventTime/width)."
+        },
+        {
+          "given": "Watermark is 5 and events at 4 and 5 arrive.",
+          "id": "late",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Quarantine time 4 and allow time 5; idle partitions must follow an explicit policy.",
+          "when": "Classify both under the declared event-time policy."
+        },
+        {
+          "given": "A worker crashes after output is written but before source checkpoint commit.",
+          "id": "replay",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Deduplicate or reconcile versioned output so sum/count do not double; unknown schema versions remain quarantined.",
+          "when": "Restore and replay the same event identities."
+        }
+      ],
+      "algorithms": [
+        {
+          "code": "if (seen.has(event.id)) return \"duplicate\";\nseen.add(event.id);\nif (event.time < watermark) return \"quarantine\";\nconst start = Math.floor(event.time / width) * width;\nwindows[start] ??= {sum:0,count:0}; windows[start].sum += event.value; windows[start].count++;",
+          "guarantees": [
+            "The code states the bounded decision rule; unimplemented helpers remain pseudocode.",
+            "External effects, distributed failure and latency require separate execution evidence."
+          ],
+          "id": "bounded-rule",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "n4"
+        },
+        {
+          "code": "const cp = loadCommittedCheckpoint();\nrestoreWindowState(cp.stateRefs, cp.dedupeRefs, cp.watermark);\nfor (const event of source.after(cp.offsets)) applyIfNewEventId(event);\ncommitOutputVersionsWithCheckpoint();\n// Finalize a window only under the declared watermark rule; late quarantine is retained separately.",
+          "guarantees": [
+            "Restore a checkpoint, deduplicate replayed IDs and publish versioned window results; finality follows the declared watermark rule."
+          ],
+          "id": "recover",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "n7"
+        }
+      ],
+      "apis": [
+        {
+          "errors": "401 unauthenticated; 409 stale identity/version; 429 bounded capacity; 503 unavailable authority",
+          "method": "POST",
+          "ownerNodeId": "control",
+          "path": "/l030/incremental",
+          "request": "{\"eventId\":\"uuid\",\"partition\":\"integer\",\"schemaVersion\":\"1|2\",\"eventTime\":\"integer ms\"}",
+          "response": "{\"accepted\":\"boolean\"}"
+        },
+        {
+          "errors": "403 unauthorized scope; 404 absent identity; 410 expired retained history",
+          "method": "GET",
+          "ownerNodeId": "state",
+          "path": "/l030/incremental/state",
+          "request": "{\"partition\":\"integer\",\"offset\":\"integer\"}",
+          "response": "{\"checkpointId\":\"uuid\"}"
+        }
+      ],
+      "assumptions": [
+        "Worked windows use milliseconds and max-seen minus allowed lateness; idle-partition policy must be explicit."
+      ],
+      "chooseWhen": "Low-latency updates matter and state fits partitioned ownership with bounded spill.",
+      "id": "incremental",
+      "initialGraph": {
+        "edges": [],
+        "nodes": []
+      },
+      "stages": [
+        {
+          "checkIds": [
+            "mechanism",
+            "boundary",
+            "late",
+            "replay"
+          ],
+          "explanation": "Accept source event ID, partition, schema version and an event timestamp separate from arrival time. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l030.incremental.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l030.incremental.c0"
+                },
+                "id": "request",
+                "label": "submit event-time windows and schema evolution",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l030.incremental.c0"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l030.incremental.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l030.incremental.d0",
+                "id": "boundary",
+                "label": "Event intake",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "incremental-s1",
+          "invariants": [
+            "Accept source event ID, partition, schema version and an event timestamp separate from arrival time. State owner: Event intake (source event identity)."
+          ],
+          "number": 1,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l030.incremental.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "l030.incremental.d0",
+                "id": "boundary",
+                "label": "Event intake",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l030.incremental.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l030.incremental.c0"
+                },
+                "id": "request",
+                "label": "submit event-time windows and schema evolution",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l030.incremental.c0"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What is event time?",
+          "reason": "Accept source event ID, partition, schema version and an event timestamp separate from arrival time.",
+          "title": "Event intake"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "boundary",
+            "late",
+            "replay"
+          ],
+          "explanation": "Expand ingress with source offsets, schema compatibility and state checkpoint identities. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l030.incremental.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l030.incremental.c0"
+                },
+                "id": "request",
+                "label": "submit event-time windows and schema evolution",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l030.incremental.c0"
+                }
+              },
+              {
+                "contractId": "l030.incremental.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l030.incremental.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l030.incremental.c1"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l030.incremental.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l030.incremental.d0",
+                "id": "boundary",
+                "label": "Event intake",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l030-incremental-boundary-binding-1",
+                "version": 1
+              },
+              {
+                "definitionId": "l030.incremental.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l030.incremental.d1",
+                "id": "state",
+                "label": "Offset authority",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "incremental-s2",
+          "invariants": [
+            "Expand ingress with source offsets, schema compatibility and state checkpoint identities. State owner: Offset authority (offset and checkpoint versions)."
+          ],
+          "number": 2,
+          "operations": [
+            {
+              "edges": [
+                {
+                  "contractId": "l030.incremental.c1",
+                  "from": {
+                    "nodeId": "control",
+                    "portId": "out-l030.incremental.c1"
+                  },
+                  "id": "commit",
+                  "label": "commit versioned state",
+                  "mode": "storage",
+                  "to": {
+                    "nodeId": "state",
+                    "portId": "in-l030.incremental.c1"
+                  }
+                }
+              ],
+              "nodeId": "boundary",
+              "nodes": [
+                {
+                  "definitionId": "l030.incremental.control",
+                  "id": "control",
+                  "label": "Command control",
+                  "position": {
+                    "x": 560,
+                    "y": 0
+                  },
+                  "version": 1
+                },
+                {
+                  "definitionId": "l030.incremental.d1",
+                  "id": "state",
+                  "label": "Offset authority",
+                  "position": {
+                    "x": 840,
+                    "y": 0
+                  },
+                  "version": 1
+                }
+              ],
+              "op": "expand",
+              "subsystemId": "l030-incremental-boundary-binding-1"
+            }
+          ],
+          "question": "Which progress is committed?",
+          "reason": "Expand ingress with source offsets, schema compatibility and state checkpoint identities.",
+          "title": "Offset authority"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "boundary",
+            "late",
+            "replay"
+          ],
+          "explanation": "Decode v1/v2 through explicit converters to one canonical value; reject unknown versions. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l030.incremental.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l030.incremental.c0"
+                },
+                "id": "request",
+                "label": "submit event-time windows and schema evolution",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l030.incremental.c0"
+                }
+              },
+              {
+                "contractId": "l030.incremental.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l030.incremental.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l030.incremental.c1"
+                }
+              },
+              {
+                "contractId": "l030.incremental.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l030.incremental.c2-control"
+                },
+                "id": "decode",
+                "label": "decode declared event schema",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l030.incremental.c2"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l030.incremental.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l030.incremental.d0",
+                "id": "boundary",
+                "label": "Event intake",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l030-incremental-boundary-binding-2",
+                "version": 1
+              },
+              {
+                "definitionId": "l030.incremental.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l030.incremental.d1",
+                "id": "state",
+                "label": "Offset authority",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l030.incremental.d2",
+                "id": "n2",
+                "label": "Version decoder",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "incremental-s3",
+          "invariants": [
+            "Decode v1/v2 through explicit converters to one canonical value; reject unknown versions. State owner: Version decoder (schema conversion registry)."
+          ],
+          "number": 3,
+          "operations": [
+            {
+              "nodeId": "boundary",
+              "op": "rebind",
+              "reason": "Select a new immutable exposure binding before connecting the added responsibility; prior stage binding remains unchanged.",
+              "subsystemId": "l030-incremental-boundary-binding-2"
+            },
+            {
+              "node": {
+                "definitionId": "l030.incremental.d2",
+                "id": "n2",
+                "label": "Version decoder",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l030.incremental.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l030.incremental.c2-control"
+                },
+                "id": "decode",
+                "label": "decode declared event schema",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l030.incremental.c2"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can v2 change the meaning of v1?",
+          "reason": "Decode v1/v2 through explicit converters to one canonical value; reject unknown versions.",
+          "title": "Version decoder"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "boundary",
+            "late",
+            "replay"
+          ],
+          "explanation": "Keep per-partition FIFO with bounded buffers and backpressure on source admission. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l030.incremental.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l030.incremental.c0"
+                },
+                "id": "request",
+                "label": "submit event-time windows and schema evolution",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l030.incremental.c0"
+                }
+              },
+              {
+                "contractId": "l030.incremental.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l030.incremental.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l030.incremental.c1"
+                }
+              },
+              {
+                "contractId": "l030.incremental.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l030.incremental.c2-control"
+                },
+                "id": "decode",
+                "label": "decode declared event schema",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l030.incremental.c2"
+                }
+              },
+              {
+                "contractId": "l030.incremental.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l030.incremental.c3"
+                },
+                "id": "enqueue",
+                "label": "enqueue partition FIFO",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l030.incremental.c3"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l030.incremental.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l030.incremental.d0",
+                "id": "boundary",
+                "label": "Event intake",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l030-incremental-boundary-binding-2",
+                "version": 1
+              },
+              {
+                "definitionId": "l030.incremental.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l030.incremental.d1",
+                "id": "state",
+                "label": "Offset authority",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l030.incremental.d2",
+                "id": "n2",
+                "label": "Version decoder",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l030.incremental.d3",
+                "id": "n3",
+                "label": "Partition FIFO",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "incremental-s4",
+          "invariants": [
+            "Keep per-partition FIFO with bounded buffers and backpressure on source admission. State owner: Partition FIFO (partition queue and byte budget)."
+          ],
+          "number": 4,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l030.incremental.d3",
+                "id": "n3",
+                "label": "Partition FIFO",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l030.incremental.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l030.incremental.c3"
+                },
+                "id": "enqueue",
+                "label": "enqueue partition FIFO",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l030.incremental.c3"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can transfer reorder a source?",
+          "reason": "Keep per-partition FIFO with bounded buffers and backpressure on source admission.",
+          "title": "Partition FIFO"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "boundary",
+            "late",
+            "replay"
+          ],
+          "explanation": "Update floor(eventTime/windowSize) half-open sum/count after deduplicating event IDs. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l030.incremental.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l030.incremental.c0"
+                },
+                "id": "request",
+                "label": "submit event-time windows and schema evolution",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l030.incremental.c0"
+                }
+              },
+              {
+                "contractId": "l030.incremental.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l030.incremental.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l030.incremental.c1"
+                }
+              },
+              {
+                "contractId": "l030.incremental.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l030.incremental.c2-control"
+                },
+                "id": "decode",
+                "label": "decode declared event schema",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l030.incremental.c2"
+                }
+              },
+              {
+                "contractId": "l030.incremental.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l030.incremental.c3"
+                },
+                "id": "enqueue",
+                "label": "enqueue partition FIFO",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l030.incremental.c3"
+                }
+              },
+              {
+                "contractId": "l030.incremental.c4",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l030.incremental.c4-control"
+                },
+                "id": "initialize",
+                "label": "initialize empty window state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l030.incremental.c4"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l030.incremental.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l030.incremental.d0",
+                "id": "boundary",
+                "label": "Event intake",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l030-incremental-boundary-binding-3",
+                "version": 1
+              },
+              {
+                "definitionId": "l030.incremental.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l030.incremental.d1",
+                "id": "state",
+                "label": "Offset authority",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l030.incremental.d2",
+                "id": "n2",
+                "label": "Version decoder",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l030.incremental.d3",
+                "id": "n3",
+                "label": "Partition FIFO",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l030.incremental.d4",
+                "id": "n4",
+                "label": "Window state",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "incremental-s5",
+          "invariants": [
+            "Update floor(eventTime/windowSize) half-open sum/count after deduplicating event IDs. State owner: Window state (key/window sum, count and dedupe)."
+          ],
+          "number": 5,
+          "operations": [
+            {
+              "nodeId": "boundary",
+              "op": "rebind",
+              "reason": "Select a new immutable exposure binding before connecting the added responsibility; prior stage binding remains unchanged.",
+              "subsystemId": "l030-incremental-boundary-binding-3"
+            },
+            {
+              "node": {
+                "definitionId": "l030.incremental.d4",
+                "id": "n4",
+                "label": "Window state",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l030.incremental.c4",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l030.incremental.c4-control"
+                },
+                "id": "initialize",
+                "label": "initialize empty window state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l030.incremental.c4"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Which bucket owns a boundary event?",
+          "reason": "Update floor(eventTime/windowSize) half-open sum/count after deduplicating event IDs.",
+          "title": "Window state"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "boundary",
+            "late",
+            "replay"
+          ],
+          "explanation": "Advance a monotonic watermark under declared partition/idleness policy and route older events to quarantine. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l030.incremental.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l030.incremental.c0"
+                },
+                "id": "request",
+                "label": "submit event-time windows and schema evolution",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l030.incremental.c0"
+                }
+              },
+              {
+                "contractId": "l030.incremental.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l030.incremental.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l030.incremental.c1"
+                }
+              },
+              {
+                "contractId": "l030.incremental.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l030.incremental.c2-control"
+                },
+                "id": "decode",
+                "label": "decode declared event schema",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l030.incremental.c2"
+                }
+              },
+              {
+                "contractId": "l030.incremental.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l030.incremental.c3"
+                },
+                "id": "enqueue",
+                "label": "enqueue partition FIFO",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l030.incremental.c3"
+                }
+              },
+              {
+                "contractId": "l030.incremental.c4",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l030.incremental.c4-control"
+                },
+                "id": "initialize",
+                "label": "initialize empty window state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l030.incremental.c4"
+                }
+              },
+              {
+                "contractId": "l030.incremental.c5",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l030.incremental.c5"
+                },
+                "id": "lateness",
+                "label": "check event-time watermark",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l030.incremental.c5"
+                }
+              },
+              {
+                "contractId": "l030.incremental.c4",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l030.incremental.c4"
+                },
+                "id": "admit",
+                "label": "request generation capacity",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l030.incremental.c4"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l030.incremental.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l030.incremental.d0",
+                "id": "boundary",
+                "label": "Event intake",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l030-incremental-boundary-binding-3",
+                "version": 1
+              },
+              {
+                "definitionId": "l030.incremental.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l030.incremental.d1",
+                "id": "state",
+                "label": "Offset authority",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l030.incremental.d2",
+                "id": "n2",
+                "label": "Version decoder",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l030.incremental.d3",
+                "id": "n3",
+                "label": "Partition FIFO",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l030.incremental.d4",
+                "id": "n4",
+                "label": "Window state",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l030.incremental.d5",
+                "id": "n5",
+                "label": "Watermark gate",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "incremental-s6",
+          "invariants": [
+            "Advance a monotonic watermark under declared partition/idleness policy and route older events to quarantine. State owner: Watermark gate (watermark and late-event reasons)."
+          ],
+          "number": 6,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l030.incremental.d5",
+                "id": "n5",
+                "label": "Watermark gate",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l030.incremental.c5",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l030.incremental.c5"
+                },
+                "id": "lateness",
+                "label": "check event-time watermark",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l030.incremental.c5"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l030.incremental.c4",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l030.incremental.c4"
+                },
+                "id": "admit",
+                "label": "request generation capacity",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l030.incremental.c4"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "When is an event too late?",
+          "reason": "Advance a monotonic watermark under declared partition/idleness policy and route older events to quarantine.",
+          "title": "Watermark gate"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "boundary",
+            "late",
+            "replay"
+          ],
+          "explanation": "Spill bounded sorted runs and atomically checkpoint state references plus source offsets. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l030.incremental.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l030.incremental.c0"
+                },
+                "id": "request",
+                "label": "submit event-time windows and schema evolution",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l030.incremental.c0"
+                }
+              },
+              {
+                "contractId": "l030.incremental.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l030.incremental.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l030.incremental.c1"
+                }
+              },
+              {
+                "contractId": "l030.incremental.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l030.incremental.c2-control"
+                },
+                "id": "decode",
+                "label": "decode declared event schema",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l030.incremental.c2"
+                }
+              },
+              {
+                "contractId": "l030.incremental.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l030.incremental.c3"
+                },
+                "id": "enqueue",
+                "label": "enqueue partition FIFO",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l030.incremental.c3"
+                }
+              },
+              {
+                "contractId": "l030.incremental.c4",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l030.incremental.c4-control"
+                },
+                "id": "initialize",
+                "label": "initialize empty window state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l030.incremental.c4"
+                }
+              },
+              {
+                "contractId": "l030.incremental.c5",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l030.incremental.c5"
+                },
+                "id": "lateness",
+                "label": "check event-time watermark",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l030.incremental.c5"
+                }
+              },
+              {
+                "contractId": "l030.incremental.c4",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l030.incremental.c4"
+                },
+                "id": "admit",
+                "label": "request generation capacity",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l030.incremental.c4"
+                }
+              },
+              {
+                "contractId": "l030.incremental.c6",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l030.incremental.c6"
+                },
+                "id": "spill",
+                "label": "write spill and checkpoint",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l030.incremental.c6"
+                }
+              },
+              {
+                "contractId": "l030.incremental.c1",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l030.incremental.c1"
+                },
+                "id": "offset",
+                "label": "commit state and source offsets",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l030.incremental.c1-state"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l030.incremental.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l030.incremental.d0",
+                "id": "boundary",
+                "label": "Event intake",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l030-incremental-boundary-binding-4",
+                "version": 1
+              },
+              {
+                "definitionId": "l030.incremental.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l030.incremental.d1",
+                "id": "state",
+                "label": "Offset authority",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l030.incremental.d2",
+                "id": "n2",
+                "label": "Version decoder",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l030.incremental.d3",
+                "id": "n3",
+                "label": "Partition FIFO",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l030.incremental.d4",
+                "id": "n4",
+                "label": "Window state",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l030.incremental.d5",
+                "id": "n5",
+                "label": "Watermark gate",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l030.incremental.d6",
+                "id": "n6",
+                "label": "Spill checkpoint",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "incremental-s7",
+          "invariants": [
+            "Spill bounded sorted runs and atomically checkpoint state references plus source offsets. State owner: Spill checkpoint (spill manifests and checkpoints)."
+          ],
+          "number": 7,
+          "operations": [
+            {
+              "nodeId": "boundary",
+              "op": "rebind",
+              "reason": "Select a new immutable exposure binding before connecting the added responsibility; prior stage binding remains unchanged.",
+              "subsystemId": "l030-incremental-boundary-binding-4"
+            },
+            {
+              "node": {
+                "definitionId": "l030.incremental.d6",
+                "id": "n6",
+                "label": "Spill checkpoint",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l030.incremental.c6",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l030.incremental.c6"
+                },
+                "id": "spill",
+                "label": "write spill and checkpoint",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l030.incremental.c6"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l030.incremental.c1",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l030.incremental.c1"
+                },
+                "id": "offset",
+                "label": "commit state and source offsets",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l030.incremental.c1-state"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How does state exceed memory safely?",
+          "reason": "Spill bounded sorted runs and atomically checkpoint state references plus source offsets.",
+          "title": "Spill checkpoint"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "boundary",
+            "late",
+            "replay"
+          ],
+          "explanation": "Restore a checkpoint, deduplicate replayed IDs and publish versioned window results; finality follows the declared watermark rule. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l030.incremental.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l030.incremental.c0"
+                },
+                "id": "request",
+                "label": "submit event-time windows and schema evolution",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l030.incremental.c0"
+                }
+              },
+              {
+                "contractId": "l030.incremental.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l030.incremental.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l030.incremental.c1"
+                }
+              },
+              {
+                "contractId": "l030.incremental.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l030.incremental.c2-control"
+                },
+                "id": "decode",
+                "label": "decode declared event schema",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l030.incremental.c2"
+                }
+              },
+              {
+                "contractId": "l030.incremental.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l030.incremental.c3"
+                },
+                "id": "enqueue",
+                "label": "enqueue partition FIFO",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l030.incremental.c3"
+                }
+              },
+              {
+                "contractId": "l030.incremental.c4",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l030.incremental.c4-control"
+                },
+                "id": "initialize",
+                "label": "initialize empty window state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l030.incremental.c4"
+                }
+              },
+              {
+                "contractId": "l030.incremental.c5",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l030.incremental.c5"
+                },
+                "id": "lateness",
+                "label": "check event-time watermark",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l030.incremental.c5"
+                }
+              },
+              {
+                "contractId": "l030.incremental.c4",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l030.incremental.c4"
+                },
+                "id": "admit",
+                "label": "request generation capacity",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l030.incremental.c4"
+                }
+              },
+              {
+                "contractId": "l030.incremental.c6",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l030.incremental.c6"
+                },
+                "id": "spill",
+                "label": "write spill and checkpoint",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l030.incremental.c6"
+                }
+              },
+              {
+                "contractId": "l030.incremental.c1",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l030.incremental.c1"
+                },
+                "id": "offset",
+                "label": "commit state and source offsets",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l030.incremental.c1-state"
+                }
+              },
+              {
+                "contractId": "l030.incremental.c6",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l030.incremental.c6"
+                },
+                "id": "restore",
+                "label": "restore checkpoint and spill",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l030.incremental.c6"
+                }
+              },
+              {
+                "contractId": "l030.incremental.c1",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l030.incremental.c1"
+                },
+                "id": "resume",
+                "label": "resume committed source offsets",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l030.incremental.c1-state"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l030.incremental.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l030.incremental.d0",
+                "id": "boundary",
+                "label": "Event intake",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l030-incremental-boundary-binding-4",
+                "version": 1
+              },
+              {
+                "definitionId": "l030.incremental.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l030.incremental.d1",
+                "id": "state",
+                "label": "Offset authority",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l030.incremental.d2",
+                "id": "n2",
+                "label": "Version decoder",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l030.incremental.d3",
+                "id": "n3",
+                "label": "Partition FIFO",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l030.incremental.d4",
+                "id": "n4",
+                "label": "Window state",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l030.incremental.d5",
+                "id": "n5",
+                "label": "Watermark gate",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l030.incremental.d6",
+                "id": "n6",
+                "label": "Spill checkpoint",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l030.incremental.d7",
+                "id": "n7",
+                "label": "Replay and finalize",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "incremental-s8",
+          "invariants": [
+            "Restore a checkpoint, deduplicate replayed IDs and publish versioned window results; finality follows the declared watermark rule. State owner: Replay and finalize (output versions and replay cursor)."
+          ],
+          "number": 8,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l030.incremental.d7",
+                "id": "n7",
+                "label": "Replay and finalize",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l030.incremental.c6",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l030.incremental.c6"
+                },
+                "id": "restore",
+                "label": "restore checkpoint and spill",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l030.incremental.c6"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l030.incremental.c1",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l030.incremental.c1"
+                },
+                "id": "resume",
+                "label": "resume committed source offsets",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l030.incremental.c1-state"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What if the worker crashes after output?",
+          "reason": "Restore a checkpoint, deduplicate replayed IDs and publish versioned window results; finality follows the declared watermark rule.",
+          "title": "Replay and finalize"
+        }
+      ],
+      "title": "Incremental keyed state with watermark",
+      "tradeoffs": [
+        "Watermark mistakes can drop useful late events; state backend/checkpoint recovery is operationally significant."
+      ]
+    },
+    {
+      "acceptanceCases": [
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-03-mechanisms.test.mjs",
+            "testName": "L030 bounded mechanism"
+          },
+          "given": "A 10ms tumbling window sees timestamps 9,10, a duplicate ID, and a timestamp below watermark 5.",
+          "id": "mechanism",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Time 9 maps to [0,10), time 10 to [10,20); the duplicate is ignored and timestamp 4 quarantined.",
+          "when": "Apply mixed-schema canonical values to the bounded window fold."
+        },
+        {
+          "given": "A frozen batch contains v1 and v2 events at timestamps 9 and 10.",
+          "id": "boundary",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Produce separate [0,10) and [10,20) aggregates with explicit conversion versions.",
+          "when": "Normalize to canonical values and group into 10ms windows."
+        },
+        {
+          "given": "New arrivals appear while a batch runs.",
+          "id": "late",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "The new arrivals enter a later batch; old timestamps follow the recorded late/quarantine policy.",
+          "when": "Finish the frozen upper offsets and watermark."
+        },
+        {
+          "given": "A batch merge commits but the process crashes before advancing source offsets.",
+          "id": "replay",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Read the unique batch receipt and advance offsets without adding its deltas again.",
+          "when": "Replay the same batch identity."
+        }
+      ],
+      "algorithms": [
+        {
+          "code": "if (seen.has(event.id)) return \"duplicate\";\nseen.add(event.id);\nif (event.time < watermark) return \"quarantine\";\nconst start = Math.floor(event.time / width) * width;\nwindows[start] ??= {sum:0,count:0}; windows[start].sum += event.value; windows[start].count++;",
+          "guarantees": [
+            "The code states the bounded decision rule; unimplemented helpers remain pseudocode.",
+            "External effects, distributed failure and latency require separate execution evidence."
+          ],
+          "id": "bounded-rule",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "n6"
+        },
+        {
+          "code": "const batch = loadFrozenBatch(batchId);\nif (windowStore.hasBatchReceipt(batch.id)) return advanceOffsets(batch.upperOffsets);\nconst deltas = recomputeFromImmutableEvents(batch, batch.watermark);\ntransaction(()=> { mergeDeltas(deltas); insertBatchReceiptUnique(batch.id); });\nadvanceOffsets(batch.upperOffsets);",
+          "guarantees": [
+            "Reuse frozen ranges and batch identity, reconcile merge receipt, then advance source checkpoint."
+          ],
+          "id": "recover",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "n7"
+        }
+      ],
+      "apis": [
+        {
+          "errors": "401 unauthenticated; 409 stale identity/version; 429 bounded capacity; 503 unavailable authority",
+          "method": "POST",
+          "ownerNodeId": "control",
+          "path": "/l030/microbatch",
+          "request": "{\"batchId\":\"uuid\",\"upperOffsets\":\"partition offsets\"}",
+          "response": "{\"accepted\":\"boolean\"}"
+        },
+        {
+          "errors": "403 unauthorized scope; 404 absent identity; 410 expired retained history",
+          "method": "GET",
+          "ownerNodeId": "state",
+          "path": "/l030/microbatch/state",
+          "request": "{\"batchId\":\"uuid\"}",
+          "response": "{\"lowerOffsets\":\"map\",\"upperOffsets\":\"map\"}"
+        }
+      ],
+      "assumptions": [
+        "A batch pins its upper offsets and watermark; new arrivals enter a later batch."
+      ],
+      "chooseWhen": "Batch latency is acceptable and immutable recomputation simplifies recovery.",
+      "id": "microbatch",
+      "initialGraph": {
+        "edges": [],
+        "nodes": []
+      },
+      "stages": [
+        {
+          "checkIds": [
+            "mechanism",
+            "boundary",
+            "late",
+            "replay"
+          ],
+          "explanation": "Freeze upper source offsets and a unique batch identity without treating arrival time as event time. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l030.microbatch.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l030.microbatch.c0"
+                },
+                "id": "request",
+                "label": "submit event-time windows and schema evolution",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l030.microbatch.c0"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l030.microbatch.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l030.microbatch.d0",
+                "id": "boundary",
+                "label": "Batch cutoff",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "microbatch-s1",
+          "invariants": [
+            "Freeze upper source offsets and a unique batch identity without treating arrival time as event time. State owner: Batch cutoff (batch offset interval)."
+          ],
+          "number": 1,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l030.microbatch.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "l030.microbatch.d0",
+                "id": "boundary",
+                "label": "Batch cutoff",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l030.microbatch.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l030.microbatch.c0"
+                },
+                "id": "request",
+                "label": "submit event-time windows and schema evolution",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l030.microbatch.c0"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Which arrivals belong to this batch?",
+          "reason": "Freeze upper source offsets and a unique batch identity without treating arrival time as event time.",
+          "title": "Batch cutoff"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "boundary",
+            "late",
+            "replay"
+          ],
+          "explanation": "Expand batch coordinator with immutable offset ranges and commit receipts. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l030.microbatch.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l030.microbatch.c0"
+                },
+                "id": "request",
+                "label": "submit event-time windows and schema evolution",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l030.microbatch.c0"
+                }
+              },
+              {
+                "contractId": "l030.microbatch.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l030.microbatch.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l030.microbatch.c1"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l030.microbatch.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l030.microbatch.d0",
+                "id": "boundary",
+                "label": "Batch cutoff",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l030-microbatch-boundary-binding-1",
+                "version": 1
+              },
+              {
+                "definitionId": "l030.microbatch.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l030.microbatch.d1",
+                "id": "state",
+                "label": "Batch catalogue",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "microbatch-s2",
+          "invariants": [
+            "Expand batch coordinator with immutable offset ranges and commit receipts. State owner: Batch catalogue (batch identity and ranges)."
+          ],
+          "number": 2,
+          "operations": [
+            {
+              "edges": [
+                {
+                  "contractId": "l030.microbatch.c1",
+                  "from": {
+                    "nodeId": "control",
+                    "portId": "out-l030.microbatch.c1"
+                  },
+                  "id": "commit",
+                  "label": "commit versioned state",
+                  "mode": "storage",
+                  "to": {
+                    "nodeId": "state",
+                    "portId": "in-l030.microbatch.c1"
+                  }
+                }
+              ],
+              "nodeId": "boundary",
+              "nodes": [
+                {
+                  "definitionId": "l030.microbatch.control",
+                  "id": "control",
+                  "label": "Command control",
+                  "position": {
+                    "x": 560,
+                    "y": 0
+                  },
+                  "version": 1
+                },
+                {
+                  "definitionId": "l030.microbatch.d1",
+                  "id": "state",
+                  "label": "Batch catalogue",
+                  "position": {
+                    "x": 840,
+                    "y": 0
+                  },
+                  "version": 1
+                }
+              ],
+              "op": "expand",
+              "subsystemId": "l030-microbatch-boundary-binding-1"
+            }
+          ],
+          "question": "Can a retry create a new interval?",
+          "reason": "Expand batch coordinator with immutable offset ranges and commit receipts.",
+          "title": "Batch catalogue"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "boundary",
+            "late",
+            "replay"
+          ],
+          "explanation": "Retain event IDs, event times and original schema version in an immutable batch object. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l030.microbatch.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l030.microbatch.c0"
+                },
+                "id": "request",
+                "label": "submit event-time windows and schema evolution",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l030.microbatch.c0"
+                }
+              },
+              {
+                "contractId": "l030.microbatch.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l030.microbatch.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l030.microbatch.c1"
+                }
+              },
+              {
+                "contractId": "l030.microbatch.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l030.microbatch.c2-control"
+                },
+                "id": "archive",
+                "label": "persist raw batch bytes",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l030.microbatch.c2"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l030.microbatch.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l030.microbatch.d0",
+                "id": "boundary",
+                "label": "Batch cutoff",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l030-microbatch-boundary-binding-2",
+                "version": 1
+              },
+              {
+                "definitionId": "l030.microbatch.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l030.microbatch.d1",
+                "id": "state",
+                "label": "Batch catalogue",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l030.microbatch.d2",
+                "id": "n2",
+                "label": "Raw event archive",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "microbatch-s3",
+          "invariants": [
+            "Retain event IDs, event times and original schema version in an immutable batch object. State owner: Raw event archive (raw batch bytes and digest)."
+          ],
+          "number": 3,
+          "operations": [
+            {
+              "nodeId": "boundary",
+              "op": "rebind",
+              "reason": "Select a new immutable exposure binding before connecting the added responsibility; prior stage binding remains unchanged.",
+              "subsystemId": "l030-microbatch-boundary-binding-2"
+            },
+            {
+              "node": {
+                "definitionId": "l030.microbatch.d2",
+                "id": "n2",
+                "label": "Raw event archive",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l030.microbatch.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l030.microbatch.c2-control"
+                },
+                "id": "archive",
+                "label": "persist raw batch bytes",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l030.microbatch.c2"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What survives a transform failure?",
+          "reason": "Retain event IDs, event times and original schema version in an immutable batch object.",
+          "title": "Raw event archive"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "boundary",
+            "late",
+            "replay"
+          ],
+          "explanation": "Convert each declared version to canonical key/value fields and quarantine unknown versions. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l030.microbatch.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l030.microbatch.c0"
+                },
+                "id": "request",
+                "label": "submit event-time windows and schema evolution",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l030.microbatch.c0"
+                }
+              },
+              {
+                "contractId": "l030.microbatch.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l030.microbatch.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l030.microbatch.c1"
+                }
+              },
+              {
+                "contractId": "l030.microbatch.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l030.microbatch.c2-control"
+                },
+                "id": "archive",
+                "label": "persist raw batch bytes",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l030.microbatch.c2"
+                }
+              },
+              {
+                "contractId": "l030.microbatch.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l030.microbatch.c3"
+                },
+                "id": "normalize",
+                "label": "normalize versioned records",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l030.microbatch.c3"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l030.microbatch.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l030.microbatch.d0",
+                "id": "boundary",
+                "label": "Batch cutoff",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l030-microbatch-boundary-binding-2",
+                "version": 1
+              },
+              {
+                "definitionId": "l030.microbatch.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l030.microbatch.d1",
+                "id": "state",
+                "label": "Batch catalogue",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l030.microbatch.d2",
+                "id": "n2",
+                "label": "Raw event archive",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l030.microbatch.d3",
+                "id": "n3",
+                "label": "Schema normalize",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "microbatch-s4",
+          "invariants": [
+            "Convert each declared version to canonical key/value fields and quarantine unknown versions. State owner: Schema normalize (conversion version and rejects)."
+          ],
+          "number": 4,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l030.microbatch.d3",
+                "id": "n3",
+                "label": "Schema normalize",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l030.microbatch.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l030.microbatch.c3"
+                },
+                "id": "normalize",
+                "label": "normalize versioned records",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l030.microbatch.c3"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How do mixed versions combine?",
+          "reason": "Convert each declared version to canonical key/value fields and quarantine unknown versions.",
+          "title": "Schema normalize"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "boundary",
+            "late",
+            "replay"
+          ],
+          "explanation": "Sort by key/window/event ID into bounded disk runs, deduplicating repeated source identities. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l030.microbatch.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l030.microbatch.c0"
+                },
+                "id": "request",
+                "label": "submit event-time windows and schema evolution",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l030.microbatch.c0"
+                }
+              },
+              {
+                "contractId": "l030.microbatch.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l030.microbatch.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l030.microbatch.c1"
+                }
+              },
+              {
+                "contractId": "l030.microbatch.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l030.microbatch.c2-control"
+                },
+                "id": "archive",
+                "label": "persist raw batch bytes",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l030.microbatch.c2"
+                }
+              },
+              {
+                "contractId": "l030.microbatch.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l030.microbatch.c3"
+                },
+                "id": "normalize",
+                "label": "normalize versioned records",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l030.microbatch.c3"
+                }
+              },
+              {
+                "contractId": "l030.microbatch.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l030.microbatch.c4"
+                },
+                "id": "sort",
+                "label": "sort and spill canonical events",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l030.microbatch.c4"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l030.microbatch.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l030.microbatch.d0",
+                "id": "boundary",
+                "label": "Batch cutoff",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l030-microbatch-boundary-binding-2",
+                "version": 1
+              },
+              {
+                "definitionId": "l030.microbatch.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l030.microbatch.d1",
+                "id": "state",
+                "label": "Batch catalogue",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l030.microbatch.d2",
+                "id": "n2",
+                "label": "Raw event archive",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l030.microbatch.d3",
+                "id": "n3",
+                "label": "Schema normalize",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l030.microbatch.d4",
+                "id": "n4",
+                "label": "Sort and spill",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "microbatch-s5",
+          "invariants": [
+            "Sort by key/window/event ID into bounded disk runs, deduplicating repeated source identities. State owner: Sort and spill (sorted spill runs)."
+          ],
+          "number": 5,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l030.microbatch.d4",
+                "id": "n4",
+                "label": "Sort and spill",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l030.microbatch.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l030.microbatch.c4"
+                },
+                "id": "sort",
+                "label": "sort and spill canonical events",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l030.microbatch.c4"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What is the bounded-memory plan?",
+          "reason": "Sort by key/window/event ID into bounded disk runs, deduplicating repeated source identities.",
+          "title": "Sort and spill"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "boundary",
+            "late",
+            "replay"
+          ],
+          "explanation": "Use the frozen batch watermark; eligible events update windows, older events enter a retained quarantine dataset. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l030.microbatch.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l030.microbatch.c0"
+                },
+                "id": "request",
+                "label": "submit event-time windows and schema evolution",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l030.microbatch.c0"
+                }
+              },
+              {
+                "contractId": "l030.microbatch.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l030.microbatch.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l030.microbatch.c1"
+                }
+              },
+              {
+                "contractId": "l030.microbatch.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l030.microbatch.c2-control"
+                },
+                "id": "archive",
+                "label": "persist raw batch bytes",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l030.microbatch.c2"
+                }
+              },
+              {
+                "contractId": "l030.microbatch.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l030.microbatch.c3"
+                },
+                "id": "normalize",
+                "label": "normalize versioned records",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l030.microbatch.c3"
+                }
+              },
+              {
+                "contractId": "l030.microbatch.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l030.microbatch.c4"
+                },
+                "id": "sort",
+                "label": "sort and spill canonical events",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l030.microbatch.c4"
+                }
+              },
+              {
+                "contractId": "l030.microbatch.c5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l030.microbatch.c5"
+                },
+                "id": "late",
+                "label": "partition by frozen watermark",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l030.microbatch.c5"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l030.microbatch.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l030.microbatch.d0",
+                "id": "boundary",
+                "label": "Batch cutoff",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l030-microbatch-boundary-binding-2",
+                "version": 1
+              },
+              {
+                "definitionId": "l030.microbatch.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l030.microbatch.d1",
+                "id": "state",
+                "label": "Batch catalogue",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l030.microbatch.d2",
+                "id": "n2",
+                "label": "Raw event archive",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l030.microbatch.d3",
+                "id": "n3",
+                "label": "Schema normalize",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l030.microbatch.d4",
+                "id": "n4",
+                "label": "Sort and spill",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l030.microbatch.d5",
+                "id": "n5",
+                "label": "Lateness partition",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "microbatch-s6",
+          "invariants": [
+            "Use the frozen batch watermark; eligible events update windows, older events enter a retained quarantine dataset. State owner: Lateness partition (batch watermark and quarantine)."
+          ],
+          "number": 6,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l030.microbatch.d5",
+                "id": "n5",
+                "label": "Lateness partition",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l030.microbatch.c5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l030.microbatch.c5"
+                },
+                "id": "late",
+                "label": "partition by frozen watermark",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l030.microbatch.c5"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How is late data classified consistently?",
+          "reason": "Use the frozen batch watermark; eligible events update windows, older events enter a retained quarantine dataset.",
+          "title": "Lateness partition"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "boundary",
+            "late",
+            "replay"
+          ],
+          "explanation": "Commit touched-window aggregates and batch receipt together, or recompute from selected immutable batches. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l030.microbatch.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l030.microbatch.c0"
+                },
+                "id": "request",
+                "label": "submit event-time windows and schema evolution",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l030.microbatch.c0"
+                }
+              },
+              {
+                "contractId": "l030.microbatch.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l030.microbatch.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l030.microbatch.c1"
+                }
+              },
+              {
+                "contractId": "l030.microbatch.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l030.microbatch.c2-control"
+                },
+                "id": "archive",
+                "label": "persist raw batch bytes",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l030.microbatch.c2"
+                }
+              },
+              {
+                "contractId": "l030.microbatch.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l030.microbatch.c3"
+                },
+                "id": "normalize",
+                "label": "normalize versioned records",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l030.microbatch.c3"
+                }
+              },
+              {
+                "contractId": "l030.microbatch.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l030.microbatch.c4"
+                },
+                "id": "sort",
+                "label": "sort and spill canonical events",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l030.microbatch.c4"
+                }
+              },
+              {
+                "contractId": "l030.microbatch.c5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l030.microbatch.c5"
+                },
+                "id": "late",
+                "label": "partition by frozen watermark",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l030.microbatch.c5"
+                }
+              },
+              {
+                "contractId": "l030.microbatch.c6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l030.microbatch.c6"
+                },
+                "id": "merge",
+                "label": "merge eligible window deltas",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l030.microbatch.c6"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l030.microbatch.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l030.microbatch.d0",
+                "id": "boundary",
+                "label": "Batch cutoff",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l030-microbatch-boundary-binding-2",
+                "version": 1
+              },
+              {
+                "definitionId": "l030.microbatch.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l030.microbatch.d1",
+                "id": "state",
+                "label": "Batch catalogue",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l030.microbatch.d2",
+                "id": "n2",
+                "label": "Raw event archive",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l030.microbatch.d3",
+                "id": "n3",
+                "label": "Schema normalize",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l030.microbatch.d4",
+                "id": "n4",
+                "label": "Sort and spill",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l030.microbatch.d5",
+                "id": "n5",
+                "label": "Lateness partition",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l030.microbatch.d6",
+                "id": "n6",
+                "label": "Atomic window merge",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "microbatch-s7",
+          "invariants": [
+            "Commit touched-window aggregates and batch receipt together, or recompute from selected immutable batches. State owner: Atomic window merge (window versions and batch receipts)."
+          ],
+          "number": 7,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l030.microbatch.d6",
+                "id": "n6",
+                "label": "Atomic window merge",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l030.microbatch.c6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l030.microbatch.c6"
+                },
+                "id": "merge",
+                "label": "merge eligible window deltas",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l030.microbatch.c6"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can replay double-count a batch?",
+          "reason": "Commit touched-window aggregates and batch receipt together, or recompute from selected immutable batches.",
+          "title": "Atomic window merge"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "boundary",
+            "late",
+            "replay"
+          ],
+          "explanation": "Reuse frozen ranges and batch identity, reconcile merge receipt, then advance source checkpoint. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l030.microbatch.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l030.microbatch.c0"
+                },
+                "id": "request",
+                "label": "submit event-time windows and schema evolution",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l030.microbatch.c0"
+                }
+              },
+              {
+                "contractId": "l030.microbatch.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l030.microbatch.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l030.microbatch.c1"
+                }
+              },
+              {
+                "contractId": "l030.microbatch.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l030.microbatch.c2-control"
+                },
+                "id": "archive",
+                "label": "persist raw batch bytes",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l030.microbatch.c2"
+                }
+              },
+              {
+                "contractId": "l030.microbatch.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l030.microbatch.c3"
+                },
+                "id": "normalize",
+                "label": "normalize versioned records",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l030.microbatch.c3"
+                }
+              },
+              {
+                "contractId": "l030.microbatch.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l030.microbatch.c4"
+                },
+                "id": "sort",
+                "label": "sort and spill canonical events",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l030.microbatch.c4"
+                }
+              },
+              {
+                "contractId": "l030.microbatch.c5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l030.microbatch.c5"
+                },
+                "id": "late",
+                "label": "partition by frozen watermark",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l030.microbatch.c5"
+                }
+              },
+              {
+                "contractId": "l030.microbatch.c6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l030.microbatch.c6"
+                },
+                "id": "merge",
+                "label": "merge eligible window deltas",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l030.microbatch.c6"
+                }
+              },
+              {
+                "contractId": "l030.microbatch.c6",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l030.microbatch.c6"
+                },
+                "id": "recover",
+                "label": "check atomic batch receipt",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l030.microbatch.c6"
+                }
+              },
+              {
+                "contractId": "l030.microbatch.c1",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l030.microbatch.c1"
+                },
+                "id": "offset",
+                "label": "advance frozen batch offsets",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l030.microbatch.c1-state"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l030.microbatch.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l030.microbatch.d0",
+                "id": "boundary",
+                "label": "Batch cutoff",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l030-microbatch-boundary-binding-3",
+                "version": 1
+              },
+              {
+                "definitionId": "l030.microbatch.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l030.microbatch.d1",
+                "id": "state",
+                "label": "Batch catalogue",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l030.microbatch.d2",
+                "id": "n2",
+                "label": "Raw event archive",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l030.microbatch.d3",
+                "id": "n3",
+                "label": "Schema normalize",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l030.microbatch.d4",
+                "id": "n4",
+                "label": "Sort and spill",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l030.microbatch.d5",
+                "id": "n5",
+                "label": "Lateness partition",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l030.microbatch.d6",
+                "id": "n6",
+                "label": "Atomic window merge",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l030.microbatch.d7",
+                "id": "n7",
+                "label": "Batch recovery",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "microbatch-s8",
+          "invariants": [
+            "Reuse frozen ranges and batch identity, reconcile merge receipt, then advance source checkpoint. State owner: Batch recovery (recovery cursor and output receipt)."
+          ],
+          "number": 8,
+          "operations": [
+            {
+              "nodeId": "boundary",
+              "op": "rebind",
+              "reason": "Select a new immutable exposure binding before connecting the added responsibility; prior stage binding remains unchanged.",
+              "subsystemId": "l030-microbatch-boundary-binding-3"
+            },
+            {
+              "node": {
+                "definitionId": "l030.microbatch.d7",
+                "id": "n7",
+                "label": "Batch recovery",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l030.microbatch.c6",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l030.microbatch.c6"
+                },
+                "id": "recover",
+                "label": "check atomic batch receipt",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l030.microbatch.c6"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l030.microbatch.c1",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l030.microbatch.c1"
+                },
+                "id": "offset",
+                "label": "advance frozen batch offsets",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l030.microbatch.c1-state"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can output commit outrun offsets?",
+          "reason": "Reuse frozen ranges and batch identity, reconcile merge receipt, then advance source checkpoint.",
+          "title": "Batch recovery"
+        }
+      ],
+      "title": "Immutable microbatches and transactional window merges",
+      "tradeoffs": [
+        "Microbatch delay is visible; keeping raw events and recomputing touched windows costs storage/I/O."
+      ]
+    }
+  ],
+  "subsystems": [
+    {
+      "definitionId": "l030.incremental.d0",
+      "id": "l030-incremental-boundary-binding-1",
+      "ports": [
+        {
+          "contractId": "l030.incremental.c0",
+          "direction": "in",
+          "id": "in-l030.incremental.c0",
+          "target": {
+            "nodeId": "control",
+            "portId": "in-l030.incremental.c0"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l030.incremental.d0",
+      "id": "l030-incremental-boundary-binding-2",
+      "ports": [
+        {
+          "contractId": "l030.incremental.c0",
+          "direction": "in",
+          "id": "in-l030.incremental.c0",
+          "target": {
+            "nodeId": "control",
+            "portId": "in-l030.incremental.c0"
+          }
+        },
+        {
+          "contractId": "l030.incremental.c2",
+          "direction": "out",
+          "id": "out-l030.incremental.c2-control",
+          "target": {
+            "nodeId": "control",
+            "portId": "out-l030.incremental.c2"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l030.incremental.d0",
+      "id": "l030-incremental-boundary-binding-3",
+      "ports": [
+        {
+          "contractId": "l030.incremental.c0",
+          "direction": "in",
+          "id": "in-l030.incremental.c0",
+          "target": {
+            "nodeId": "control",
+            "portId": "in-l030.incremental.c0"
+          }
+        },
+        {
+          "contractId": "l030.incremental.c2",
+          "direction": "out",
+          "id": "out-l030.incremental.c2-control",
+          "target": {
+            "nodeId": "control",
+            "portId": "out-l030.incremental.c2"
+          }
+        },
+        {
+          "contractId": "l030.incremental.c4",
+          "direction": "out",
+          "id": "out-l030.incremental.c4-control",
+          "target": {
+            "nodeId": "control",
+            "portId": "out-l030.incremental.c4"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l030.incremental.d0",
+      "id": "l030-incremental-boundary-binding-4",
+      "ports": [
+        {
+          "contractId": "l030.incremental.c0",
+          "direction": "in",
+          "id": "in-l030.incremental.c0",
+          "target": {
+            "nodeId": "control",
+            "portId": "in-l030.incremental.c0"
+          }
+        },
+        {
+          "contractId": "l030.incremental.c2",
+          "direction": "out",
+          "id": "out-l030.incremental.c2-control",
+          "target": {
+            "nodeId": "control",
+            "portId": "out-l030.incremental.c2"
+          }
+        },
+        {
+          "contractId": "l030.incremental.c4",
+          "direction": "out",
+          "id": "out-l030.incremental.c4-control",
+          "target": {
+            "nodeId": "control",
+            "portId": "out-l030.incremental.c4"
+          }
+        },
+        {
+          "contractId": "l030.incremental.c1",
+          "direction": "in",
+          "id": "in-l030.incremental.c1-state",
+          "target": {
+            "nodeId": "state",
+            "portId": "in-l030.incremental.c1"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l030.microbatch.d0",
+      "id": "l030-microbatch-boundary-binding-1",
+      "ports": [
+        {
+          "contractId": "l030.microbatch.c0",
+          "direction": "in",
+          "id": "in-l030.microbatch.c0",
+          "target": {
+            "nodeId": "control",
+            "portId": "in-l030.microbatch.c0"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l030.microbatch.d0",
+      "id": "l030-microbatch-boundary-binding-2",
+      "ports": [
+        {
+          "contractId": "l030.microbatch.c0",
+          "direction": "in",
+          "id": "in-l030.microbatch.c0",
+          "target": {
+            "nodeId": "control",
+            "portId": "in-l030.microbatch.c0"
+          }
+        },
+        {
+          "contractId": "l030.microbatch.c2",
+          "direction": "out",
+          "id": "out-l030.microbatch.c2-control",
+          "target": {
+            "nodeId": "control",
+            "portId": "out-l030.microbatch.c2"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l030.microbatch.d0",
+      "id": "l030-microbatch-boundary-binding-3",
+      "ports": [
+        {
+          "contractId": "l030.microbatch.c0",
+          "direction": "in",
+          "id": "in-l030.microbatch.c0",
+          "target": {
+            "nodeId": "control",
+            "portId": "in-l030.microbatch.c0"
+          }
+        },
+        {
+          "contractId": "l030.microbatch.c2",
+          "direction": "out",
+          "id": "out-l030.microbatch.c2-control",
+          "target": {
+            "nodeId": "control",
+            "portId": "out-l030.microbatch.c2"
+          }
+        },
+        {
+          "contractId": "l030.microbatch.c1",
+          "direction": "in",
+          "id": "in-l030.microbatch.c1-state",
+          "target": {
+            "nodeId": "state",
+            "portId": "in-l030.microbatch.c1"
+          }
+        }
+      ],
+      "version": 1
+    }
+  ],
+  "version": 1
+}

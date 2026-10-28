@@ -1,0 +1,4029 @@
+{
+  "components": [
+    {
+      "extends": {
+        "id": "core.client",
+        "version": 1
+      },
+      "id": "l026.quorum-log.caller",
+      "label": "Caller",
+      "ports": [
+        {
+          "contractId": "l026.quorum-log.command",
+          "direction": "out",
+          "id": "out-l026.quorum-log.command"
+        }
+      ],
+      "responsibility": "Submit the declared operation with stable identity and observe explicit completion.",
+      "stateOwnership": [
+        "caller request and retry identity"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l026.quorum-log.system",
+      "label": "Majority replicated log",
+      "ports": [
+        {
+          "contractId": "l026.quorum-log.command",
+          "direction": "in",
+          "id": "in-l026.quorum-log.command"
+        },
+        {
+          "contractId": "l026.quorum-log.step3",
+          "direction": "out",
+          "id": "out-l026.quorum-log.step3-engine"
+        },
+        {
+          "contractId": "l026.quorum-log.step6",
+          "direction": "out",
+          "id": "out-l026.quorum-log.step6-engine"
+        }
+      ],
+      "responsibility": "Preserve this stable boundary while refining its ownership and contracts.",
+      "stateOwnership": [
+        "logical operation state"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l026.quorum-log.engine",
+      "label": "Leader state machine",
+      "ports": [
+        {
+          "contractId": "l026.quorum-log.command",
+          "direction": "out",
+          "id": "out-l026.quorum-log.command"
+        },
+        {
+          "contractId": "l026.quorum-log.command",
+          "direction": "in",
+          "id": "in-l026.quorum-log.command"
+        },
+        {
+          "contractId": "l026.quorum-log.step3",
+          "direction": "out",
+          "id": "out-l026.quorum-log.step3"
+        },
+        {
+          "contractId": "l026.quorum-log.step6",
+          "direction": "out",
+          "id": "out-l026.quorum-log.step6"
+        }
+      ],
+      "responsibility": "Assign one log index per deduplicated command in the current term.",
+      "stateOwnership": [
+        "term and commit index"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l026.quorum-log.state",
+      "label": "Local durable log",
+      "ports": [
+        {
+          "contractId": "l026.quorum-log.command",
+          "direction": "in",
+          "id": "in-l026.quorum-log.command"
+        }
+      ],
+      "responsibility": "Own indexed terms and checksummed command entries before acknowledgement.",
+      "stateOwnership": [
+        "log prefix"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l026.quorum-log.n3",
+      "label": "Follower replication",
+      "ports": [
+        {
+          "contractId": "l026.quorum-log.step3",
+          "direction": "in",
+          "id": "in-l026.quorum-log.step3"
+        },
+        {
+          "contractId": "l026.quorum-log.step4",
+          "direction": "out",
+          "id": "out-l026.quorum-log.step4"
+        },
+        {
+          "contractId": "l026.quorum-log.step7",
+          "direction": "out",
+          "id": "out-l026.quorum-log.step7"
+        }
+      ],
+      "responsibility": "Verify prior index/term, durably append the matching suffix and reject log mismatch.",
+      "stateOwnership": [
+        "prevIndex, prevTerm, entries"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l026.quorum-log.n4",
+      "label": "Majority commit rule",
+      "ports": [
+        {
+          "contractId": "l026.quorum-log.step4",
+          "direction": "in",
+          "id": "in-l026.quorum-log.step4"
+        },
+        {
+          "contractId": "l026.quorum-log.step5",
+          "direction": "out",
+          "id": "out-l026.quorum-log.step5"
+        }
+      ],
+      "responsibility": "Advance only with the consensus current-term rule and a majority of the active configuration.",
+      "stateOwnership": [
+        "matchIndexes, currentTerm"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l026.quorum-log.n5",
+      "label": "Applied read view",
+      "ports": [
+        {
+          "contractId": "l026.quorum-log.step5",
+          "direction": "in",
+          "id": "in-l026.quorum-log.step5"
+        },
+        {
+          "contractId": "l026.quorum-log.step8",
+          "direction": "out",
+          "id": "out-l026.quorum-log.step8"
+        }
+      ],
+      "responsibility": "Apply committed entries in index order and use a verified leadership/read-index barrier.",
+      "stateOwnership": [
+        "readIndex, appliedIndex"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l026.quorum-log.n6",
+      "label": "Election gate",
+      "ports": [
+        {
+          "contractId": "l026.quorum-log.step6",
+          "direction": "in",
+          "id": "in-l026.quorum-log.step6"
+        }
+      ],
+      "responsibility": "Persist votes and term; reject candidates whose logs are not sufficiently up to date.",
+      "stateOwnership": [
+        "candidateLastTerm, candidateLastIndex"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "l026.quorum-log.n7",
+      "label": "Snapshot installer",
+      "ports": [
+        {
+          "contractId": "l026.quorum-log.step7",
+          "direction": "in",
+          "id": "in-l026.quorum-log.step7"
+        }
+      ],
+      "responsibility": "Install a checksummed snapshot with last included index/term, then append the suffix.",
+      "stateOwnership": [
+        "lastIncludedIndex, lastIncludedTerm"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l026.quorum-log.n8",
+      "label": "Request deduplicator",
+      "ports": [
+        {
+          "contractId": "l026.quorum-log.step8",
+          "direction": "in",
+          "id": "in-l026.quorum-log.step8"
+        }
+      ],
+      "responsibility": "Persist client sequence/result in the replicated state machine.",
+      "stateOwnership": [
+        "clientId, requestSeq, result"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.client",
+        "version": 1
+      },
+      "id": "l026.fenced-primary.caller",
+      "label": "Caller",
+      "ports": [
+        {
+          "contractId": "l026.fenced-primary.command",
+          "direction": "out",
+          "id": "out-l026.fenced-primary.command"
+        }
+      ],
+      "responsibility": "Submit the declared operation with stable identity and observe explicit completion.",
+      "stateOwnership": [
+        "caller request and retry identity"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l026.fenced-primary.system",
+      "label": "Externally fenced primary and backups",
+      "ports": [
+        {
+          "contractId": "l026.fenced-primary.command",
+          "direction": "in",
+          "id": "in-l026.fenced-primary.command"
+        },
+        {
+          "contractId": "l026.fenced-primary.step3",
+          "direction": "out",
+          "id": "out-l026.fenced-primary.step3-engine"
+        },
+        {
+          "contractId": "l026.fenced-primary.step4",
+          "direction": "out",
+          "id": "out-l026.fenced-primary.step4-engine"
+        }
+      ],
+      "responsibility": "Preserve this stable boundary while refining its ownership and contracts.",
+      "stateOwnership": [
+        "logical operation state"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l026.fenced-primary.engine",
+      "label": "Primary writer",
+      "ports": [
+        {
+          "contractId": "l026.fenced-primary.command",
+          "direction": "out",
+          "id": "out-l026.fenced-primary.command"
+        },
+        {
+          "contractId": "l026.fenced-primary.command",
+          "direction": "in",
+          "id": "in-l026.fenced-primary.command"
+        },
+        {
+          "contractId": "l026.fenced-primary.step3",
+          "direction": "out",
+          "id": "out-l026.fenced-primary.step3"
+        },
+        {
+          "contractId": "l026.fenced-primary.step4",
+          "direction": "out",
+          "id": "out-l026.fenced-primary.step4"
+        }
+      ],
+      "responsibility": "Require a current monotonically increasing storage fence on every mutation.",
+      "stateOwnership": [
+        "current fence token"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l026.fenced-primary.state",
+      "label": "Primary journal",
+      "ports": [
+        {
+          "contractId": "l026.fenced-primary.command",
+          "direction": "in",
+          "id": "in-l026.fenced-primary.command"
+        }
+      ],
+      "responsibility": "Own durable sequenced writes and client result receipts.",
+      "stateOwnership": [
+        "journal LSN"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l026.fenced-primary.n3",
+      "label": "Synchronous backup",
+      "ports": [
+        {
+          "contractId": "l026.fenced-primary.step3",
+          "direction": "in",
+          "id": "in-l026.fenced-primary.step3"
+        },
+        {
+          "contractId": "l026.fenced-primary.step5",
+          "direction": "out",
+          "id": "out-l026.fenced-primary.step5"
+        },
+        {
+          "contractId": "l026.fenced-primary.step6",
+          "direction": "out",
+          "id": "out-l026.fenced-primary.step6"
+        }
+      ],
+      "responsibility": "For zero declared loss within the selected failure model, await a durable backup receipt before success.",
+      "stateOwnership": [
+        "lsn, checksum"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.directory",
+        "version": 1
+      },
+      "id": "l026.fenced-primary.n4",
+      "label": "Fence authority",
+      "ports": [
+        {
+          "contractId": "l026.fenced-primary.step4",
+          "direction": "in",
+          "id": "in-l026.fenced-primary.step4"
+        }
+      ],
+      "responsibility": "Issue monotonic fencing tokens and enforce them at the storage mutation boundary.",
+      "stateOwnership": [
+        "token, owner"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l026.fenced-primary.n5",
+      "label": "Promotion verifier",
+      "ports": [
+        {
+          "contractId": "l026.fenced-primary.step5",
+          "direction": "in",
+          "id": "in-l026.fenced-primary.step5"
+        },
+        {
+          "contractId": "l026.fenced-primary.step7",
+          "direction": "out",
+          "id": "out-l026.fenced-primary.step7"
+        },
+        {
+          "contractId": "l026.fenced-primary.step8",
+          "direction": "out",
+          "id": "out-l026.fenced-primary.step8"
+        }
+      ],
+      "responsibility": "Compare durable acknowledgement watermark and available log prefixes before selecting a survivor.",
+      "stateOwnership": [
+        "durableLsn, acknowledgedLsn"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l026.fenced-primary.n6",
+      "label": "Read replica",
+      "ports": [
+        {
+          "contractId": "l026.fenced-primary.step6",
+          "direction": "in",
+          "id": "in-l026.fenced-primary.step6"
+        }
+      ],
+      "responsibility": "Carry a minimum LSN token and wait or route to primary when a replica is behind.",
+      "stateOwnership": [
+        "minimumLsn, appliedLsn"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "l026.fenced-primary.n7",
+      "label": "Snapshot catchup",
+      "ports": [
+        {
+          "contractId": "l026.fenced-primary.step7",
+          "direction": "in",
+          "id": "in-l026.fenced-primary.step7"
+        }
+      ],
+      "responsibility": "Rejoin as a follower under the new fence and restore verified snapshot plus journal suffix.",
+      "stateOwnership": [
+        "snapshotLsn, newFence"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.log",
+        "version": 1
+      },
+      "id": "l026.fenced-primary.n8",
+      "label": "Failover ledger",
+      "ports": [
+        {
+          "contractId": "l026.fenced-primary.step8",
+          "direction": "in",
+          "id": "in-l026.fenced-primary.step8"
+        }
+      ],
+      "responsibility": "Retain request IDs, promotion decisions and acknowledged LSN boundary for client retry resolution.",
+      "stateOwnership": [
+        "requestId, promotionFence"
+      ],
+      "version": 1
+    }
+  ],
+  "contracts": [
+    {
+      "id": "l026.quorum-log.command",
+      "request": {
+        "clientId": "uuid",
+        "key": "string",
+        "minimumCommit": "integer",
+        "requestSeq": "integer",
+        "value": "bytes"
+      },
+      "response": {
+        "commitIndex": "integer",
+        "status": "committed|not-leader|unavailable",
+        "term": "integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l026.quorum-log.step3",
+      "request": {
+        "entries": "record[]",
+        "prevIndex": "integer",
+        "prevTerm": "integer"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l026.quorum-log.step4",
+      "request": {
+        "currentTerm": "integer",
+        "matchIndexes": "integer[]"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l026.quorum-log.step5",
+      "request": {
+        "appliedIndex": "integer",
+        "readIndex": "integer"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l026.quorum-log.step6",
+      "request": {
+        "candidateLastIndex": "integer",
+        "candidateLastTerm": "integer"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l026.quorum-log.step7",
+      "request": {
+        "lastIncludedIndex": "integer",
+        "lastIncludedTerm": "integer"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l026.quorum-log.step8",
+      "request": {
+        "clientId": "uuid",
+        "requestSeq": "integer",
+        "result": "bytes"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l026.fenced-primary.command",
+      "request": {
+        "clientId": "uuid",
+        "key": "string",
+        "minimumCommit": "integer",
+        "requestSeq": "integer",
+        "value": "bytes"
+      },
+      "response": {
+        "commitIndex": "integer",
+        "status": "committed|not-leader|unavailable",
+        "term": "integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l026.fenced-primary.step3",
+      "request": {
+        "checksum": "sha256",
+        "lsn": "integer"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l026.fenced-primary.step4",
+      "request": {
+        "owner": "uuid",
+        "token": "monotonic integer"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l026.fenced-primary.step5",
+      "request": {
+        "acknowledgedLsn": "integer",
+        "durableLsn": "integer"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l026.fenced-primary.step6",
+      "request": {
+        "appliedLsn": "integer",
+        "minimumLsn": "integer"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l026.fenced-primary.step7",
+      "request": {
+        "newFence": "integer",
+        "snapshotLsn": "integer"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l026.fenced-primary.step8",
+      "request": {
+        "promotionFence": "integer",
+        "requestId": "uuid"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    }
+  ],
+  "execution": {
+    "implementation": null,
+    "kind": "conceptual-design"
+  },
+  "problem": {
+    "referenceId": "L026",
+    "requirements": [
+      {
+        "id": "r0",
+        "text": "Distinguish acknowledged durable writes, committed prefixes and lagging applied state."
+      },
+      {
+        "id": "r1",
+        "text": "Prevent stale leaders from committing after promotion and refuse unsafe minority writes."
+      },
+      {
+        "id": "r2",
+        "text": "Recover through a verified snapshot/log boundary without skipping acknowledged records."
+      }
+    ],
+    "scope": "Extend the canonical three-slot synthetic replica exercise with an authored safety discussion. Compare quorum-log consensus with externally fenced primary/backup recovery; the canonical simulation itself proves neither split-brain safety nor consensus.",
+    "studyLabel": "Replica lag and fenced recovery"
+  },
+  "provenance": {
+    "kind": "authored-practice",
+    "note": "Authored interview preparation. Technical references support mechanisms, not the claim that a company asked this question."
+  },
+  "references": [
+    {
+      "id": "ref0",
+      "scope": "background",
+      "supports": "Terms, majority commit, log matching and snapshot installation.",
+      "title": "Raft extended paper",
+      "url": "https://raft.github.io/raft.pdf"
+    },
+    {
+      "id": "ref1",
+      "scope": "background",
+      "supports": "Transactions isolate concurrent authorization and mutation decisions; retries remain explicit.",
+      "title": "PostgreSQL isolation",
+      "url": "https://www.postgresql.org/docs/18/transaction-iso.html"
+    }
+  ],
+  "schema": "simulatte.composableStudy.v2",
+  "solutions": [
+    {
+      "acceptanceCases": [
+        {
+          "given": "A former leader is isolated from a majority.",
+          "id": "case0",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "The old leader cannot commit a new write; implementation safety remains a specification.",
+          "when": "A newer term elects another leader."
+        },
+        {
+          "given": "A follower installs snapshot through index 10.",
+          "id": "case1",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Apply one ordered committed prefix and retain request deduplication.",
+          "when": "Replay suffix entries 11 and 12 twice."
+        },
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-05-state.test.mjs",
+            "testName": "fence comparison and bounded committed suffix retain recovery boundary"
+          },
+          "given": "Installed fence is 5 and snapshot index is 10.",
+          "id": "bounded-mechanism",
+          "relatedRequirementIds": [
+            "r0"
+          ],
+          "then": "Reject token 4, stop before uncommitted 13, and reject a suffix gap; this is not consensus proof.",
+          "when": "Compare token 4 and replay contiguous committed suffix through 12."
+        }
+      ],
+      "algorithms": [
+        {
+          "code": "appendDurably(term,index,command); replicateMatchingPrefix();\nif (majorityMatch(index,configuration) && log[index].term === currentTerm) advanceCommit(index);\napplyCommittedInOrder();\nread: establishReadBarrier(); waitApplied(readIndex);\nretry: returnPersistedClientSequenceResult();",
+          "guarantees": [
+            "An acknowledgement names a persisted matching prefix.",
+            "A bare count without term/configuration is insufficient.",
+            "Read success requires appliedIndex at least the read barrier.",
+            "Timeout triggers an election, not proof that the old leader is dead.",
+            "Snapshot and suffix meet at one verified boundary.",
+            "A repeated command sequence returns its original committed result."
+          ],
+          "id": "transition",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "engine"
+        }
+      ],
+      "apis": [
+        {
+          "errors": "Reject invalid input, stale versions and operations outside the declared boundary.",
+          "method": "CALL",
+          "ownerNodeId": "engine",
+          "path": "L026/quorum-log",
+          "request": "{\"clientId\":\"uuid\",\"requestSeq\":\"integer\",\"key\":\"string\",\"value\":\"bytes\",\"minimumCommit\":\"integer\"}",
+          "response": "{\"term\":\"integer\",\"commitIndex\":\"integer\",\"status\":\"committed|not-leader|unavailable\"}"
+        }
+      ],
+      "assumptions": [
+        "All added stages are authored practice extending the canonical prompt.",
+        "Graphs specify conceptual mechanisms; reference models do not prove cloud execution, latency, physical durability or distributed safety."
+      ],
+      "chooseWhen": "A proven consensus implementation can own elections and durable commit order.",
+      "id": "quorum-log",
+      "initialGraph": {
+        "edges": [],
+        "nodes": []
+      },
+      "stages": [
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l026.quorum-log.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l026.quorum-log.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l026.quorum-log.command"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l026.quorum-log.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l026.quorum-log.system",
+                "id": "system",
+                "label": "Majority replicated log",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "quorum-log-s1",
+          "invariants": [
+            "Distinguish acknowledged durable writes, committed prefixes and lagging applied state."
+          ],
+          "number": 1,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l026.quorum-log.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "l026.quorum-log.system",
+                "id": "system",
+                "label": "Majority replicated log",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l026.quorum-log.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l026.quorum-log.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l026.quorum-log.command"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What does successful completion promise?",
+          "reason": "Distinguish acknowledged durable writes, committed prefixes and lagging applied state.",
+          "title": "Define the operation boundary"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l026.quorum-log.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l026.quorum-log.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l026.quorum-log.command"
+                }
+              },
+              {
+                "contractId": "l026.quorum-log.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l026.quorum-log.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l026.quorum-log.command"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l026.quorum-log.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l026.quorum-log.system",
+                "id": "system",
+                "label": "Majority replicated log",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l026.quorum-log.binding-s2",
+                "version": 1
+              },
+              {
+                "definitionId": "l026.quorum-log.engine",
+                "id": "engine",
+                "label": "Leader state machine",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l026.quorum-log.state",
+                "id": "state",
+                "label": "Local durable log",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "quorum-log-s2",
+          "invariants": [
+            "term and commit index belongs to Leader state machine; log prefix belongs to Local durable log."
+          ],
+          "number": 2,
+          "operations": [
+            {
+              "edges": [
+                {
+                  "contractId": "l026.quorum-log.command",
+                  "from": {
+                    "nodeId": "engine",
+                    "portId": "out-l026.quorum-log.command"
+                  },
+                  "id": "owned-state",
+                  "label": "Read or commit state",
+                  "mode": "storage",
+                  "to": {
+                    "nodeId": "state",
+                    "portId": "in-l026.quorum-log.command"
+                  }
+                }
+              ],
+              "nodeId": "system",
+              "nodes": [
+                {
+                  "definitionId": "l026.quorum-log.engine",
+                  "id": "engine",
+                  "label": "Leader state machine",
+                  "position": {
+                    "x": 560,
+                    "y": 0
+                  },
+                  "version": 1
+                },
+                {
+                  "definitionId": "l026.quorum-log.state",
+                  "id": "state",
+                  "label": "Local durable log",
+                  "position": {
+                    "x": 840,
+                    "y": 0
+                  },
+                  "version": 1
+                }
+              ],
+              "op": "expand",
+              "subsystemId": "l026.quorum-log.binding-s2"
+            }
+          ],
+          "question": "Which component owns the decision and its persistent or shared state?",
+          "reason": "Assign one log index per deduplicated command in the current term. Own indexed terms and checksummed command entries before acknowledgement.",
+          "title": "Expose authority and state"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l026.quorum-log.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l026.quorum-log.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l026.quorum-log.command"
+                }
+              },
+              {
+                "contractId": "l026.quorum-log.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l026.quorum-log.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l026.quorum-log.command"
+                }
+              },
+              {
+                "contractId": "l026.quorum-log.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l026.quorum-log.step3-engine"
+                },
+                "id": "step3",
+                "label": "Follower replication",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l026.quorum-log.step3"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l026.quorum-log.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l026.quorum-log.system",
+                "id": "system",
+                "label": "Majority replicated log",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l026.quorum-log.binding-s3",
+                "version": 1
+              },
+              {
+                "definitionId": "l026.quorum-log.engine",
+                "id": "engine",
+                "label": "Leader state machine",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l026.quorum-log.state",
+                "id": "state",
+                "label": "Local durable log",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l026.quorum-log.n3",
+                "id": "n3",
+                "label": "Follower replication",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "quorum-log-s3",
+          "invariants": [
+            "An acknowledgement names a persisted matching prefix."
+          ],
+          "number": 3,
+          "operations": [
+            {
+              "nodeId": "system",
+              "op": "rebind",
+              "reason": "Expose this new typed path without mutating earlier binding definitions.",
+              "subsystemId": "l026.quorum-log.binding-s3"
+            },
+            {
+              "node": {
+                "definitionId": "l026.quorum-log.n3",
+                "id": "n3",
+                "label": "Follower replication",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l026.quorum-log.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l026.quorum-log.step3-engine"
+                },
+                "id": "step3",
+                "label": "Follower replication",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l026.quorum-log.step3"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "When does a follower acknowledge?",
+          "reason": "Verify prior index/term, durably append the matching suffix and reject log mismatch.",
+          "title": "Follower replication"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l026.quorum-log.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l026.quorum-log.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l026.quorum-log.command"
+                }
+              },
+              {
+                "contractId": "l026.quorum-log.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l026.quorum-log.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l026.quorum-log.command"
+                }
+              },
+              {
+                "contractId": "l026.quorum-log.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l026.quorum-log.step3-engine"
+                },
+                "id": "step3",
+                "label": "Follower replication",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l026.quorum-log.step3"
+                }
+              },
+              {
+                "contractId": "l026.quorum-log.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l026.quorum-log.step4"
+                },
+                "id": "step4",
+                "label": "Majority commit rule",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l026.quorum-log.step4"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l026.quorum-log.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l026.quorum-log.system",
+                "id": "system",
+                "label": "Majority replicated log",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l026.quorum-log.binding-s3",
+                "version": 1
+              },
+              {
+                "definitionId": "l026.quorum-log.engine",
+                "id": "engine",
+                "label": "Leader state machine",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l026.quorum-log.state",
+                "id": "state",
+                "label": "Local durable log",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l026.quorum-log.n3",
+                "id": "n3",
+                "label": "Follower replication",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l026.quorum-log.n4",
+                "id": "n4",
+                "label": "Majority commit rule",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "quorum-log-s4",
+          "invariants": [
+            "A bare count without term/configuration is insufficient."
+          ],
+          "number": 4,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l026.quorum-log.n4",
+                "id": "n4",
+                "label": "Majority commit rule",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l026.quorum-log.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l026.quorum-log.step4"
+                },
+                "id": "step4",
+                "label": "Majority commit rule",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l026.quorum-log.step4"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "May an old-term majority imply a new commit?",
+          "reason": "Advance only with the consensus current-term rule and a majority of the active configuration.",
+          "title": "Majority commit rule"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l026.quorum-log.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l026.quorum-log.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l026.quorum-log.command"
+                }
+              },
+              {
+                "contractId": "l026.quorum-log.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l026.quorum-log.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l026.quorum-log.command"
+                }
+              },
+              {
+                "contractId": "l026.quorum-log.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l026.quorum-log.step3-engine"
+                },
+                "id": "step3",
+                "label": "Follower replication",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l026.quorum-log.step3"
+                }
+              },
+              {
+                "contractId": "l026.quorum-log.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l026.quorum-log.step4"
+                },
+                "id": "step4",
+                "label": "Majority commit rule",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l026.quorum-log.step4"
+                }
+              },
+              {
+                "contractId": "l026.quorum-log.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l026.quorum-log.step5"
+                },
+                "id": "step5",
+                "label": "Applied read view",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l026.quorum-log.step5"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l026.quorum-log.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l026.quorum-log.system",
+                "id": "system",
+                "label": "Majority replicated log",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l026.quorum-log.binding-s3",
+                "version": 1
+              },
+              {
+                "definitionId": "l026.quorum-log.engine",
+                "id": "engine",
+                "label": "Leader state machine",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l026.quorum-log.state",
+                "id": "state",
+                "label": "Local durable log",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l026.quorum-log.n3",
+                "id": "n3",
+                "label": "Follower replication",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l026.quorum-log.n4",
+                "id": "n4",
+                "label": "Majority commit rule",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l026.quorum-log.n5",
+                "id": "n5",
+                "label": "Applied read view",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "quorum-log-s5",
+          "invariants": [
+            "Read success requires appliedIndex at least the read barrier."
+          ],
+          "number": 5,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l026.quorum-log.n5",
+                "id": "n5",
+                "label": "Applied read view",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l026.quorum-log.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l026.quorum-log.step5"
+                },
+                "id": "step5",
+                "label": "Applied read view",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l026.quorum-log.step5"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can a lagging state machine serve latest reads?",
+          "reason": "Apply committed entries in index order and use a verified leadership/read-index barrier.",
+          "title": "Applied read view"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l026.quorum-log.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l026.quorum-log.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l026.quorum-log.command"
+                }
+              },
+              {
+                "contractId": "l026.quorum-log.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l026.quorum-log.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l026.quorum-log.command"
+                }
+              },
+              {
+                "contractId": "l026.quorum-log.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l026.quorum-log.step3-engine"
+                },
+                "id": "step3",
+                "label": "Follower replication",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l026.quorum-log.step3"
+                }
+              },
+              {
+                "contractId": "l026.quorum-log.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l026.quorum-log.step4"
+                },
+                "id": "step4",
+                "label": "Majority commit rule",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l026.quorum-log.step4"
+                }
+              },
+              {
+                "contractId": "l026.quorum-log.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l026.quorum-log.step5"
+                },
+                "id": "step5",
+                "label": "Applied read view",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l026.quorum-log.step5"
+                }
+              },
+              {
+                "contractId": "l026.quorum-log.step6",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l026.quorum-log.step6-engine"
+                },
+                "id": "step6",
+                "label": "Election gate",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l026.quorum-log.step6"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l026.quorum-log.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l026.quorum-log.system",
+                "id": "system",
+                "label": "Majority replicated log",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l026.quorum-log.binding-s6",
+                "version": 1
+              },
+              {
+                "definitionId": "l026.quorum-log.engine",
+                "id": "engine",
+                "label": "Leader state machine",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l026.quorum-log.state",
+                "id": "state",
+                "label": "Local durable log",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l026.quorum-log.n3",
+                "id": "n3",
+                "label": "Follower replication",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l026.quorum-log.n4",
+                "id": "n4",
+                "label": "Majority commit rule",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l026.quorum-log.n5",
+                "id": "n5",
+                "label": "Applied read view",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l026.quorum-log.n6",
+                "id": "n6",
+                "label": "Election gate",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "quorum-log-s6",
+          "invariants": [
+            "Timeout triggers an election, not proof that the old leader is dead."
+          ],
+          "number": 6,
+          "operations": [
+            {
+              "nodeId": "system",
+              "op": "rebind",
+              "reason": "Expose this new typed path without mutating earlier binding definitions.",
+              "subsystemId": "l026.quorum-log.binding-s6"
+            },
+            {
+              "node": {
+                "definitionId": "l026.quorum-log.n6",
+                "id": "n6",
+                "label": "Election gate",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l026.quorum-log.step6",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l026.quorum-log.step6-engine"
+                },
+                "id": "step6",
+                "label": "Election gate",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l026.quorum-log.step6"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Who may replace a failed leader?",
+          "reason": "Persist votes and term; reject candidates whose logs are not sufficiently up to date.",
+          "title": "Election gate"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l026.quorum-log.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l026.quorum-log.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l026.quorum-log.command"
+                }
+              },
+              {
+                "contractId": "l026.quorum-log.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l026.quorum-log.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l026.quorum-log.command"
+                }
+              },
+              {
+                "contractId": "l026.quorum-log.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l026.quorum-log.step3-engine"
+                },
+                "id": "step3",
+                "label": "Follower replication",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l026.quorum-log.step3"
+                }
+              },
+              {
+                "contractId": "l026.quorum-log.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l026.quorum-log.step4"
+                },
+                "id": "step4",
+                "label": "Majority commit rule",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l026.quorum-log.step4"
+                }
+              },
+              {
+                "contractId": "l026.quorum-log.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l026.quorum-log.step5"
+                },
+                "id": "step5",
+                "label": "Applied read view",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l026.quorum-log.step5"
+                }
+              },
+              {
+                "contractId": "l026.quorum-log.step6",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l026.quorum-log.step6-engine"
+                },
+                "id": "step6",
+                "label": "Election gate",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l026.quorum-log.step6"
+                }
+              },
+              {
+                "contractId": "l026.quorum-log.step7",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l026.quorum-log.step7"
+                },
+                "id": "step7",
+                "label": "Snapshot installer",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l026.quorum-log.step7"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l026.quorum-log.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l026.quorum-log.system",
+                "id": "system",
+                "label": "Majority replicated log",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l026.quorum-log.binding-s6",
+                "version": 1
+              },
+              {
+                "definitionId": "l026.quorum-log.engine",
+                "id": "engine",
+                "label": "Leader state machine",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l026.quorum-log.state",
+                "id": "state",
+                "label": "Local durable log",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l026.quorum-log.n3",
+                "id": "n3",
+                "label": "Follower replication",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l026.quorum-log.n4",
+                "id": "n4",
+                "label": "Majority commit rule",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l026.quorum-log.n5",
+                "id": "n5",
+                "label": "Applied read view",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l026.quorum-log.n6",
+                "id": "n6",
+                "label": "Election gate",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l026.quorum-log.n7",
+                "id": "n7",
+                "label": "Snapshot installer",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "quorum-log-s7",
+          "invariants": [
+            "Snapshot and suffix meet at one verified boundary."
+          ],
+          "number": 7,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l026.quorum-log.n7",
+                "id": "n7",
+                "label": "Snapshot installer",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l026.quorum-log.step7",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l026.quorum-log.step7"
+                },
+                "id": "step7",
+                "label": "Snapshot installer",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l026.quorum-log.step7"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How does a far-behind replica recover?",
+          "reason": "Install a checksummed snapshot with last included index/term, then append the suffix.",
+          "title": "Snapshot installer"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l026.quorum-log.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l026.quorum-log.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l026.quorum-log.command"
+                }
+              },
+              {
+                "contractId": "l026.quorum-log.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l026.quorum-log.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l026.quorum-log.command"
+                }
+              },
+              {
+                "contractId": "l026.quorum-log.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l026.quorum-log.step3-engine"
+                },
+                "id": "step3",
+                "label": "Follower replication",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l026.quorum-log.step3"
+                }
+              },
+              {
+                "contractId": "l026.quorum-log.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l026.quorum-log.step4"
+                },
+                "id": "step4",
+                "label": "Majority commit rule",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l026.quorum-log.step4"
+                }
+              },
+              {
+                "contractId": "l026.quorum-log.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l026.quorum-log.step5"
+                },
+                "id": "step5",
+                "label": "Applied read view",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l026.quorum-log.step5"
+                }
+              },
+              {
+                "contractId": "l026.quorum-log.step6",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l026.quorum-log.step6-engine"
+                },
+                "id": "step6",
+                "label": "Election gate",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l026.quorum-log.step6"
+                }
+              },
+              {
+                "contractId": "l026.quorum-log.step7",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l026.quorum-log.step7"
+                },
+                "id": "step7",
+                "label": "Snapshot installer",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l026.quorum-log.step7"
+                }
+              },
+              {
+                "contractId": "l026.quorum-log.step8",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l026.quorum-log.step8"
+                },
+                "id": "step8",
+                "label": "Request deduplicator",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n8",
+                  "portId": "in-l026.quorum-log.step8"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l026.quorum-log.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l026.quorum-log.system",
+                "id": "system",
+                "label": "Majority replicated log",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l026.quorum-log.binding-s6",
+                "version": 1
+              },
+              {
+                "definitionId": "l026.quorum-log.engine",
+                "id": "engine",
+                "label": "Leader state machine",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l026.quorum-log.state",
+                "id": "state",
+                "label": "Local durable log",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l026.quorum-log.n3",
+                "id": "n3",
+                "label": "Follower replication",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l026.quorum-log.n4",
+                "id": "n4",
+                "label": "Majority commit rule",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l026.quorum-log.n5",
+                "id": "n5",
+                "label": "Applied read view",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l026.quorum-log.n6",
+                "id": "n6",
+                "label": "Election gate",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l026.quorum-log.n7",
+                "id": "n7",
+                "label": "Snapshot installer",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l026.quorum-log.n8",
+                "id": "n8",
+                "label": "Request deduplicator",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "quorum-log-s8",
+          "invariants": [
+            "A repeated command sequence returns its original committed result."
+          ],
+          "number": 8,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l026.quorum-log.n8",
+                "id": "n8",
+                "label": "Request deduplicator",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l026.quorum-log.step8",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l026.quorum-log.step8"
+                },
+                "id": "step8",
+                "label": "Request deduplicator",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n8",
+                  "portId": "in-l026.quorum-log.step8"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What if the client retries after an uncertain response?",
+          "reason": "Persist client sequence/result in the replicated state machine.",
+          "title": "Request deduplicator"
+        }
+      ],
+      "title": "Majority replicated log",
+      "tradeoffs": [
+        "Minority partitions cannot accept writes.",
+        "Membership changes and disk durability must follow the selected consensus implementation contract."
+      ]
+    },
+    {
+      "acceptanceCases": [
+        {
+          "given": "A stale primary still believes its lease is valid.",
+          "id": "case0",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "The storage mutation boundary rejects token 4.",
+          "when": "It writes with token 4 after token 5 is installed."
+        },
+        {
+          "given": "A backup is below the last acknowledged LSN.",
+          "id": "case1",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Refuse promotion or explicitly declare the loss policy; never claim zero loss.",
+          "when": "Attempt zero-loss promotion."
+        },
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-05-state.test.mjs",
+            "testName": "fence comparison and bounded committed suffix retain recovery boundary"
+          },
+          "given": "Installed fence is 5 and snapshot index is 10.",
+          "id": "bounded-mechanism",
+          "relatedRequirementIds": [
+            "r0"
+          ],
+          "then": "Reject token 4, stop before uncommitted 13, and reject a suffix gap; this is not consensus proof.",
+          "when": "Compare token 4 and replay contiguous committed suffix through 12."
+        }
+      ],
+      "algorithms": [
+        {
+          "code": "const fence = coordination.acquireMonotonicFence();\nwrite: storage.rejectIfFenceOlder(fence); appendDurable(lsn,requestId,command);\nawaitBackupDurable(lsn); persistResponseReceipt(); acknowledge(lsn);\npromote: requireSurvivorAtLeast(acknowledgedLsn); installNewFence();\nrejoin: replaceOldAuthorityWithFollowerSnapshotAndSuffix();",
+          "guarantees": [
+            "Async acknowledgement instead exposes an explicit potential-loss window.",
+            "Lease timeout without storage enforcement is insufficient.",
+            "Do not promote below the acknowledged boundary unless data loss is explicitly accepted.",
+            "A stale replica cannot satisfy the stronger read token.",
+            "Recovery never restores the old write authority.",
+            "A missing receipt is not automatically proof of nonexecution."
+          ],
+          "id": "transition",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "engine"
+        }
+      ],
+      "apis": [
+        {
+          "errors": "Reject invalid input, stale versions and operations outside the declared boundary.",
+          "method": "CALL",
+          "ownerNodeId": "engine",
+          "path": "L026/fenced-primary",
+          "request": "{\"clientId\":\"uuid\",\"requestSeq\":\"integer\",\"key\":\"string\",\"value\":\"bytes\",\"minimumCommit\":\"integer\"}",
+          "response": "{\"term\":\"integer\",\"commitIndex\":\"integer\",\"status\":\"committed|not-leader|unavailable\"}"
+        }
+      ],
+      "assumptions": [
+        "All added stages are authored practice extending the canonical prompt.",
+        "Graphs specify conceptual mechanisms; reference models do not prove cloud execution, latency, physical durability or distributed safety."
+      ],
+      "chooseWhen": "A trusted external coordination/storage fence is available and failover downtime is acceptable.",
+      "id": "fenced-primary",
+      "initialGraph": {
+        "edges": [],
+        "nodes": []
+      },
+      "stages": [
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l026.fenced-primary.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l026.fenced-primary.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l026.fenced-primary.command"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l026.fenced-primary.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l026.fenced-primary.system",
+                "id": "system",
+                "label": "Externally fenced primary and backups",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "fenced-primary-s1",
+          "invariants": [
+            "Distinguish acknowledged durable writes, committed prefixes and lagging applied state."
+          ],
+          "number": 1,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l026.fenced-primary.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "l026.fenced-primary.system",
+                "id": "system",
+                "label": "Externally fenced primary and backups",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l026.fenced-primary.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l026.fenced-primary.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l026.fenced-primary.command"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What does successful completion promise?",
+          "reason": "Distinguish acknowledged durable writes, committed prefixes and lagging applied state.",
+          "title": "Define the operation boundary"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l026.fenced-primary.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l026.fenced-primary.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l026.fenced-primary.command"
+                }
+              },
+              {
+                "contractId": "l026.fenced-primary.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l026.fenced-primary.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l026.fenced-primary.command"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l026.fenced-primary.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l026.fenced-primary.system",
+                "id": "system",
+                "label": "Externally fenced primary and backups",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l026.fenced-primary.binding-s2",
+                "version": 1
+              },
+              {
+                "definitionId": "l026.fenced-primary.engine",
+                "id": "engine",
+                "label": "Primary writer",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l026.fenced-primary.state",
+                "id": "state",
+                "label": "Primary journal",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "fenced-primary-s2",
+          "invariants": [
+            "current fence token belongs to Primary writer; journal LSN belongs to Primary journal."
+          ],
+          "number": 2,
+          "operations": [
+            {
+              "edges": [
+                {
+                  "contractId": "l026.fenced-primary.command",
+                  "from": {
+                    "nodeId": "engine",
+                    "portId": "out-l026.fenced-primary.command"
+                  },
+                  "id": "owned-state",
+                  "label": "Read or commit state",
+                  "mode": "storage",
+                  "to": {
+                    "nodeId": "state",
+                    "portId": "in-l026.fenced-primary.command"
+                  }
+                }
+              ],
+              "nodeId": "system",
+              "nodes": [
+                {
+                  "definitionId": "l026.fenced-primary.engine",
+                  "id": "engine",
+                  "label": "Primary writer",
+                  "position": {
+                    "x": 560,
+                    "y": 0
+                  },
+                  "version": 1
+                },
+                {
+                  "definitionId": "l026.fenced-primary.state",
+                  "id": "state",
+                  "label": "Primary journal",
+                  "position": {
+                    "x": 840,
+                    "y": 0
+                  },
+                  "version": 1
+                }
+              ],
+              "op": "expand",
+              "subsystemId": "l026.fenced-primary.binding-s2"
+            }
+          ],
+          "question": "Which component owns the decision and its persistent or shared state?",
+          "reason": "Require a current monotonically increasing storage fence on every mutation. Own durable sequenced writes and client result receipts.",
+          "title": "Expose authority and state"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l026.fenced-primary.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l026.fenced-primary.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l026.fenced-primary.command"
+                }
+              },
+              {
+                "contractId": "l026.fenced-primary.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l026.fenced-primary.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l026.fenced-primary.command"
+                }
+              },
+              {
+                "contractId": "l026.fenced-primary.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l026.fenced-primary.step3-engine"
+                },
+                "id": "step3",
+                "label": "Synchronous backup",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l026.fenced-primary.step3"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l026.fenced-primary.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l026.fenced-primary.system",
+                "id": "system",
+                "label": "Externally fenced primary and backups",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l026.fenced-primary.binding-s3",
+                "version": 1
+              },
+              {
+                "definitionId": "l026.fenced-primary.engine",
+                "id": "engine",
+                "label": "Primary writer",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l026.fenced-primary.state",
+                "id": "state",
+                "label": "Primary journal",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l026.fenced-primary.n3",
+                "id": "n3",
+                "label": "Synchronous backup",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "fenced-primary-s3",
+          "invariants": [
+            "Async acknowledgement instead exposes an explicit potential-loss window."
+          ],
+          "number": 3,
+          "operations": [
+            {
+              "nodeId": "system",
+              "op": "rebind",
+              "reason": "Expose this new typed path without mutating earlier binding definitions.",
+              "subsystemId": "l026.fenced-primary.binding-s3"
+            },
+            {
+              "node": {
+                "definitionId": "l026.fenced-primary.n3",
+                "id": "n3",
+                "label": "Synchronous backup",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l026.fenced-primary.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l026.fenced-primary.step3-engine"
+                },
+                "id": "step3",
+                "label": "Synchronous backup",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l026.fenced-primary.step3"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Which writes may be acknowledged?",
+          "reason": "For zero declared loss within the selected failure model, await a durable backup receipt before success.",
+          "title": "Synchronous backup"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l026.fenced-primary.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l026.fenced-primary.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l026.fenced-primary.command"
+                }
+              },
+              {
+                "contractId": "l026.fenced-primary.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l026.fenced-primary.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l026.fenced-primary.command"
+                }
+              },
+              {
+                "contractId": "l026.fenced-primary.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l026.fenced-primary.step3-engine"
+                },
+                "id": "step3",
+                "label": "Synchronous backup",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l026.fenced-primary.step3"
+                }
+              },
+              {
+                "contractId": "l026.fenced-primary.step4",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l026.fenced-primary.step4-engine"
+                },
+                "id": "step4",
+                "label": "Fence authority",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l026.fenced-primary.step4"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l026.fenced-primary.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l026.fenced-primary.system",
+                "id": "system",
+                "label": "Externally fenced primary and backups",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l026.fenced-primary.binding-s4",
+                "version": 1
+              },
+              {
+                "definitionId": "l026.fenced-primary.engine",
+                "id": "engine",
+                "label": "Primary writer",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l026.fenced-primary.state",
+                "id": "state",
+                "label": "Primary journal",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l026.fenced-primary.n3",
+                "id": "n3",
+                "label": "Synchronous backup",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l026.fenced-primary.n4",
+                "id": "n4",
+                "label": "Fence authority",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "fenced-primary-s4",
+          "invariants": [
+            "Lease timeout without storage enforcement is insufficient."
+          ],
+          "number": 4,
+          "operations": [
+            {
+              "nodeId": "system",
+              "op": "rebind",
+              "reason": "Expose this new typed path without mutating earlier binding definitions.",
+              "subsystemId": "l026.fenced-primary.binding-s4"
+            },
+            {
+              "node": {
+                "definitionId": "l026.fenced-primary.n4",
+                "id": "n4",
+                "label": "Fence authority",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l026.fenced-primary.step4",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l026.fenced-primary.step4-engine"
+                },
+                "id": "step4",
+                "label": "Fence authority",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l026.fenced-primary.step4"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How is the old primary stopped?",
+          "reason": "Issue monotonic fencing tokens and enforce them at the storage mutation boundary.",
+          "title": "Fence authority"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l026.fenced-primary.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l026.fenced-primary.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l026.fenced-primary.command"
+                }
+              },
+              {
+                "contractId": "l026.fenced-primary.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l026.fenced-primary.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l026.fenced-primary.command"
+                }
+              },
+              {
+                "contractId": "l026.fenced-primary.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l026.fenced-primary.step3-engine"
+                },
+                "id": "step3",
+                "label": "Synchronous backup",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l026.fenced-primary.step3"
+                }
+              },
+              {
+                "contractId": "l026.fenced-primary.step4",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l026.fenced-primary.step4-engine"
+                },
+                "id": "step4",
+                "label": "Fence authority",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l026.fenced-primary.step4"
+                }
+              },
+              {
+                "contractId": "l026.fenced-primary.step5",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l026.fenced-primary.step5"
+                },
+                "id": "step5",
+                "label": "Promotion verifier",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l026.fenced-primary.step5"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l026.fenced-primary.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l026.fenced-primary.system",
+                "id": "system",
+                "label": "Externally fenced primary and backups",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l026.fenced-primary.binding-s4",
+                "version": 1
+              },
+              {
+                "definitionId": "l026.fenced-primary.engine",
+                "id": "engine",
+                "label": "Primary writer",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l026.fenced-primary.state",
+                "id": "state",
+                "label": "Primary journal",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l026.fenced-primary.n3",
+                "id": "n3",
+                "label": "Synchronous backup",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l026.fenced-primary.n4",
+                "id": "n4",
+                "label": "Fence authority",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l026.fenced-primary.n5",
+                "id": "n5",
+                "label": "Promotion verifier",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "fenced-primary-s5",
+          "invariants": [
+            "Do not promote below the acknowledged boundary unless data loss is explicitly accepted."
+          ],
+          "number": 5,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l026.fenced-primary.n5",
+                "id": "n5",
+                "label": "Promotion verifier",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l026.fenced-primary.step5",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l026.fenced-primary.step5"
+                },
+                "id": "step5",
+                "label": "Promotion verifier",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l026.fenced-primary.step5"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can any backup be promoted?",
+          "reason": "Compare durable acknowledgement watermark and available log prefixes before selecting a survivor.",
+          "title": "Promotion verifier"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l026.fenced-primary.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l026.fenced-primary.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l026.fenced-primary.command"
+                }
+              },
+              {
+                "contractId": "l026.fenced-primary.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l026.fenced-primary.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l026.fenced-primary.command"
+                }
+              },
+              {
+                "contractId": "l026.fenced-primary.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l026.fenced-primary.step3-engine"
+                },
+                "id": "step3",
+                "label": "Synchronous backup",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l026.fenced-primary.step3"
+                }
+              },
+              {
+                "contractId": "l026.fenced-primary.step4",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l026.fenced-primary.step4-engine"
+                },
+                "id": "step4",
+                "label": "Fence authority",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l026.fenced-primary.step4"
+                }
+              },
+              {
+                "contractId": "l026.fenced-primary.step5",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l026.fenced-primary.step5"
+                },
+                "id": "step5",
+                "label": "Promotion verifier",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l026.fenced-primary.step5"
+                }
+              },
+              {
+                "contractId": "l026.fenced-primary.step6",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l026.fenced-primary.step6"
+                },
+                "id": "step6",
+                "label": "Read replica",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l026.fenced-primary.step6"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l026.fenced-primary.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l026.fenced-primary.system",
+                "id": "system",
+                "label": "Externally fenced primary and backups",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l026.fenced-primary.binding-s4",
+                "version": 1
+              },
+              {
+                "definitionId": "l026.fenced-primary.engine",
+                "id": "engine",
+                "label": "Primary writer",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l026.fenced-primary.state",
+                "id": "state",
+                "label": "Primary journal",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l026.fenced-primary.n3",
+                "id": "n3",
+                "label": "Synchronous backup",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l026.fenced-primary.n4",
+                "id": "n4",
+                "label": "Fence authority",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l026.fenced-primary.n5",
+                "id": "n5",
+                "label": "Promotion verifier",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l026.fenced-primary.n6",
+                "id": "n6",
+                "label": "Read replica",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "fenced-primary-s6",
+          "invariants": [
+            "A stale replica cannot satisfy the stronger read token."
+          ],
+          "number": 6,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l026.fenced-primary.n6",
+                "id": "n6",
+                "label": "Read replica",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l026.fenced-primary.step6",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l026.fenced-primary.step6"
+                },
+                "id": "step6",
+                "label": "Read replica",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l026.fenced-primary.step6"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How does a session avoid stale reads?",
+          "reason": "Carry a minimum LSN token and wait or route to primary when a replica is behind.",
+          "title": "Read replica"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l026.fenced-primary.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l026.fenced-primary.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l026.fenced-primary.command"
+                }
+              },
+              {
+                "contractId": "l026.fenced-primary.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l026.fenced-primary.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l026.fenced-primary.command"
+                }
+              },
+              {
+                "contractId": "l026.fenced-primary.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l026.fenced-primary.step3-engine"
+                },
+                "id": "step3",
+                "label": "Synchronous backup",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l026.fenced-primary.step3"
+                }
+              },
+              {
+                "contractId": "l026.fenced-primary.step4",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l026.fenced-primary.step4-engine"
+                },
+                "id": "step4",
+                "label": "Fence authority",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l026.fenced-primary.step4"
+                }
+              },
+              {
+                "contractId": "l026.fenced-primary.step5",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l026.fenced-primary.step5"
+                },
+                "id": "step5",
+                "label": "Promotion verifier",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l026.fenced-primary.step5"
+                }
+              },
+              {
+                "contractId": "l026.fenced-primary.step6",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l026.fenced-primary.step6"
+                },
+                "id": "step6",
+                "label": "Read replica",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l026.fenced-primary.step6"
+                }
+              },
+              {
+                "contractId": "l026.fenced-primary.step7",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l026.fenced-primary.step7"
+                },
+                "id": "step7",
+                "label": "Snapshot catchup",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l026.fenced-primary.step7"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l026.fenced-primary.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l026.fenced-primary.system",
+                "id": "system",
+                "label": "Externally fenced primary and backups",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l026.fenced-primary.binding-s4",
+                "version": 1
+              },
+              {
+                "definitionId": "l026.fenced-primary.engine",
+                "id": "engine",
+                "label": "Primary writer",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l026.fenced-primary.state",
+                "id": "state",
+                "label": "Primary journal",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l026.fenced-primary.n3",
+                "id": "n3",
+                "label": "Synchronous backup",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l026.fenced-primary.n4",
+                "id": "n4",
+                "label": "Fence authority",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l026.fenced-primary.n5",
+                "id": "n5",
+                "label": "Promotion verifier",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l026.fenced-primary.n6",
+                "id": "n6",
+                "label": "Read replica",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l026.fenced-primary.n7",
+                "id": "n7",
+                "label": "Snapshot catchup",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "fenced-primary-s7",
+          "invariants": [
+            "Recovery never restores the old write authority."
+          ],
+          "number": 7,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l026.fenced-primary.n7",
+                "id": "n7",
+                "label": "Snapshot catchup",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l026.fenced-primary.step7",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l026.fenced-primary.step7"
+                },
+                "id": "step7",
+                "label": "Snapshot catchup",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l026.fenced-primary.step7"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What happens to a repaired old primary?",
+          "reason": "Rejoin as a follower under the new fence and restore verified snapshot plus journal suffix.",
+          "title": "Snapshot catchup"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l026.fenced-primary.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l026.fenced-primary.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l026.fenced-primary.command"
+                }
+              },
+              {
+                "contractId": "l026.fenced-primary.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l026.fenced-primary.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l026.fenced-primary.command"
+                }
+              },
+              {
+                "contractId": "l026.fenced-primary.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l026.fenced-primary.step3-engine"
+                },
+                "id": "step3",
+                "label": "Synchronous backup",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l026.fenced-primary.step3"
+                }
+              },
+              {
+                "contractId": "l026.fenced-primary.step4",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l026.fenced-primary.step4-engine"
+                },
+                "id": "step4",
+                "label": "Fence authority",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l026.fenced-primary.step4"
+                }
+              },
+              {
+                "contractId": "l026.fenced-primary.step5",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l026.fenced-primary.step5"
+                },
+                "id": "step5",
+                "label": "Promotion verifier",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l026.fenced-primary.step5"
+                }
+              },
+              {
+                "contractId": "l026.fenced-primary.step6",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l026.fenced-primary.step6"
+                },
+                "id": "step6",
+                "label": "Read replica",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l026.fenced-primary.step6"
+                }
+              },
+              {
+                "contractId": "l026.fenced-primary.step7",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l026.fenced-primary.step7"
+                },
+                "id": "step7",
+                "label": "Snapshot catchup",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l026.fenced-primary.step7"
+                }
+              },
+              {
+                "contractId": "l026.fenced-primary.step8",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l026.fenced-primary.step8"
+                },
+                "id": "step8",
+                "label": "Failover ledger",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n8",
+                  "portId": "in-l026.fenced-primary.step8"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l026.fenced-primary.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l026.fenced-primary.system",
+                "id": "system",
+                "label": "Externally fenced primary and backups",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l026.fenced-primary.binding-s4",
+                "version": 1
+              },
+              {
+                "definitionId": "l026.fenced-primary.engine",
+                "id": "engine",
+                "label": "Primary writer",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l026.fenced-primary.state",
+                "id": "state",
+                "label": "Primary journal",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l026.fenced-primary.n3",
+                "id": "n3",
+                "label": "Synchronous backup",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l026.fenced-primary.n4",
+                "id": "n4",
+                "label": "Fence authority",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l026.fenced-primary.n5",
+                "id": "n5",
+                "label": "Promotion verifier",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l026.fenced-primary.n6",
+                "id": "n6",
+                "label": "Read replica",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l026.fenced-primary.n7",
+                "id": "n7",
+                "label": "Snapshot catchup",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l026.fenced-primary.n8",
+                "id": "n8",
+                "label": "Failover ledger",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "fenced-primary-s8",
+          "invariants": [
+            "A missing receipt is not automatically proof of nonexecution."
+          ],
+          "number": 8,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l026.fenced-primary.n8",
+                "id": "n8",
+                "label": "Failover ledger",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l026.fenced-primary.step8",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l026.fenced-primary.step8"
+                },
+                "id": "step8",
+                "label": "Failover ledger",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n8",
+                  "portId": "in-l026.fenced-primary.step8"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How is uncertain completion reconciled?",
+          "reason": "Retain request IDs, promotion decisions and acknowledged LSN boundary for client retry resolution.",
+          "title": "Failover ledger"
+        }
+      ],
+      "title": "Externally fenced primary and backups",
+      "tradeoffs": [
+        "The fence authority is a new availability dependency.",
+        "Asynchronous replicas can lose unreplicated writes unless acknowledgement waits for the declared durable copies."
+      ]
+    }
+  ],
+  "subsystems": [
+    {
+      "definitionId": "l026.quorum-log.system",
+      "id": "l026.quorum-log.binding-s2",
+      "ports": [
+        {
+          "contractId": "l026.quorum-log.command",
+          "direction": "in",
+          "id": "in-l026.quorum-log.command",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-l026.quorum-log.command"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l026.quorum-log.system",
+      "id": "l026.quorum-log.binding-s3",
+      "ports": [
+        {
+          "contractId": "l026.quorum-log.command",
+          "direction": "in",
+          "id": "in-l026.quorum-log.command",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-l026.quorum-log.command"
+          }
+        },
+        {
+          "contractId": "l026.quorum-log.step3",
+          "direction": "out",
+          "id": "out-l026.quorum-log.step3-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l026.quorum-log.step3"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l026.quorum-log.system",
+      "id": "l026.quorum-log.binding-s6",
+      "ports": [
+        {
+          "contractId": "l026.quorum-log.command",
+          "direction": "in",
+          "id": "in-l026.quorum-log.command",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-l026.quorum-log.command"
+          }
+        },
+        {
+          "contractId": "l026.quorum-log.step3",
+          "direction": "out",
+          "id": "out-l026.quorum-log.step3-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l026.quorum-log.step3"
+          }
+        },
+        {
+          "contractId": "l026.quorum-log.step6",
+          "direction": "out",
+          "id": "out-l026.quorum-log.step6-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l026.quorum-log.step6"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l026.fenced-primary.system",
+      "id": "l026.fenced-primary.binding-s2",
+      "ports": [
+        {
+          "contractId": "l026.fenced-primary.command",
+          "direction": "in",
+          "id": "in-l026.fenced-primary.command",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-l026.fenced-primary.command"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l026.fenced-primary.system",
+      "id": "l026.fenced-primary.binding-s3",
+      "ports": [
+        {
+          "contractId": "l026.fenced-primary.command",
+          "direction": "in",
+          "id": "in-l026.fenced-primary.command",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-l026.fenced-primary.command"
+          }
+        },
+        {
+          "contractId": "l026.fenced-primary.step3",
+          "direction": "out",
+          "id": "out-l026.fenced-primary.step3-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l026.fenced-primary.step3"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l026.fenced-primary.system",
+      "id": "l026.fenced-primary.binding-s4",
+      "ports": [
+        {
+          "contractId": "l026.fenced-primary.command",
+          "direction": "in",
+          "id": "in-l026.fenced-primary.command",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-l026.fenced-primary.command"
+          }
+        },
+        {
+          "contractId": "l026.fenced-primary.step3",
+          "direction": "out",
+          "id": "out-l026.fenced-primary.step3-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l026.fenced-primary.step3"
+          }
+        },
+        {
+          "contractId": "l026.fenced-primary.step4",
+          "direction": "out",
+          "id": "out-l026.fenced-primary.step4-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l026.fenced-primary.step4"
+          }
+        }
+      ],
+      "version": 1
+    }
+  ],
+  "version": 1
+}

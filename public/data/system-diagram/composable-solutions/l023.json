@@ -1,0 +1,4085 @@
+{
+  "components": [
+    {
+      "extends": {
+        "id": "core.client",
+        "version": 1
+      },
+      "id": "l023.transactional.caller",
+      "label": "Caller",
+      "ports": [
+        {
+          "contractId": "l023.transactional.command",
+          "direction": "out",
+          "id": "out-l023.transactional.command"
+        }
+      ],
+      "responsibility": "Submit the declared operation with stable identity and observe explicit completion.",
+      "stateOwnership": [
+        "caller request and retry identity"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l023.transactional.system",
+      "label": "Transactional permission checks",
+      "ports": [
+        {
+          "contractId": "l023.transactional.command",
+          "direction": "in",
+          "id": "in-l023.transactional.command"
+        },
+        {
+          "contractId": "l023.transactional.step3",
+          "direction": "out",
+          "id": "out-l023.transactional.step3-engine"
+        },
+        {
+          "contractId": "l023.transactional.step4",
+          "direction": "out",
+          "id": "out-l023.transactional.step4-engine"
+        },
+        {
+          "contractId": "l023.transactional.step7",
+          "direction": "out",
+          "id": "out-l023.transactional.step7-engine"
+        }
+      ],
+      "responsibility": "Preserve this stable boundary while refining its ownership and contracts.",
+      "stateOwnership": [
+        "logical operation state"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l023.transactional.engine",
+      "label": "Permission transaction",
+      "ports": [
+        {
+          "contractId": "l023.transactional.command",
+          "direction": "out",
+          "id": "out-l023.transactional.command"
+        },
+        {
+          "contractId": "l023.transactional.command",
+          "direction": "in",
+          "id": "in-l023.transactional.command"
+        },
+        {
+          "contractId": "l023.transactional.step3",
+          "direction": "out",
+          "id": "out-l023.transactional.step3"
+        },
+        {
+          "contractId": "l023.transactional.step4",
+          "direction": "out",
+          "id": "out-l023.transactional.step4"
+        },
+        {
+          "contractId": "l023.transactional.step7",
+          "direction": "out",
+          "id": "out-l023.transactional.step7"
+        }
+      ],
+      "responsibility": "Lock policy and target rows, evaluate inherited grants and explicit deny, then mutate.",
+      "stateOwnership": [
+        "policy snapshot and object version"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l023.transactional.state",
+      "label": "Workspace tables",
+      "ports": [
+        {
+          "contractId": "l023.transactional.command",
+          "direction": "in",
+          "id": "in-l023.transactional.command"
+        }
+      ],
+      "responsibility": "Own workspace membership, project ancestry, role grants and object rows.",
+      "stateOwnership": [
+        "tenant-scoped keys"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.cache",
+        "version": 1
+      },
+      "id": "l023.transactional.n3",
+      "label": "Policy cache",
+      "ports": [
+        {
+          "contractId": "l023.transactional.step3",
+          "direction": "in",
+          "id": "in-l023.transactional.step3"
+        }
+      ],
+      "responsibility": "Add a tenant/principal/resource/version keyed cache; never cache a private response under a public key.",
+      "stateOwnership": [
+        "policyVersion, expiresAt"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l023.transactional.n4",
+      "label": "Mutation outbox",
+      "ports": [
+        {
+          "contractId": "l023.transactional.step4",
+          "direction": "in",
+          "id": "in-l023.transactional.step4"
+        },
+        {
+          "contractId": "l023.transactional.step5",
+          "direction": "out",
+          "id": "out-l023.transactional.step5"
+        }
+      ],
+      "responsibility": "Persist an immutable event with the authorized mutation in the same transaction.",
+      "stateOwnership": [
+        "eventId, objectVersion"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "l023.transactional.n5",
+      "label": "Activity dispatcher",
+      "ports": [
+        {
+          "contractId": "l023.transactional.step5",
+          "direction": "in",
+          "id": "in-l023.transactional.step5"
+        },
+        {
+          "contractId": "l023.transactional.step6",
+          "direction": "out",
+          "id": "out-l023.transactional.step6"
+        }
+      ],
+      "responsibility": "Claim durable event IDs and retry downstream independently of client success.",
+      "stateOwnership": [
+        "eventId, attempt"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l023.transactional.n6",
+      "label": "Consumer inbox",
+      "ports": [
+        {
+          "contractId": "l023.transactional.step6",
+          "direction": "in",
+          "id": "in-l023.transactional.step6"
+        },
+        {
+          "contractId": "l023.transactional.step8",
+          "direction": "out",
+          "id": "out-l023.transactional.step8"
+        }
+      ],
+      "responsibility": "Deduplicate event IDs before applying the activity projection.",
+      "stateOwnership": [
+        "eventId, applied"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l023.transactional.n7",
+      "label": "Revocation barrier",
+      "ports": [
+        {
+          "contractId": "l023.transactional.step7",
+          "direction": "in",
+          "id": "in-l023.transactional.step7"
+        }
+      ],
+      "responsibility": "Advance policy epoch and serialize protected commits against it; reject stale decisions.",
+      "stateOwnership": [
+        "expectedEpoch, currentEpoch"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l023.transactional.n8",
+      "label": "Audit ledger",
+      "ports": [
+        {
+          "contractId": "l023.transactional.step8",
+          "direction": "in",
+          "id": "in-l023.transactional.step8"
+        }
+      ],
+      "responsibility": "Record decision reason, policy version and event delivery status with restricted audit access.",
+      "stateOwnership": [
+        "principalId, policyVersion, outcome"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.client",
+        "version": 1
+      },
+      "id": "l023.capability.caller",
+      "label": "Caller",
+      "ports": [
+        {
+          "contractId": "l023.capability.command",
+          "direction": "out",
+          "id": "out-l023.capability.command"
+        }
+      ],
+      "responsibility": "Submit the declared operation with stable identity and observe explicit completion.",
+      "stateOwnership": [
+        "caller request and retry identity"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l023.capability.system",
+      "label": "Short-lived scoped capabilities",
+      "ports": [
+        {
+          "contractId": "l023.capability.command",
+          "direction": "in",
+          "id": "in-l023.capability.command"
+        },
+        {
+          "contractId": "l023.capability.step3",
+          "direction": "out",
+          "id": "out-l023.capability.step3-engine"
+        },
+        {
+          "contractId": "l023.capability.step4",
+          "direction": "out",
+          "id": "out-l023.capability.step4-engine"
+        }
+      ],
+      "responsibility": "Preserve this stable boundary while refining its ownership and contracts.",
+      "stateOwnership": [
+        "logical operation state"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l023.capability.engine",
+      "label": "Capability verifier",
+      "ports": [
+        {
+          "contractId": "l023.capability.command",
+          "direction": "out",
+          "id": "out-l023.capability.command"
+        },
+        {
+          "contractId": "l023.capability.command",
+          "direction": "in",
+          "id": "in-l023.capability.command"
+        },
+        {
+          "contractId": "l023.capability.step3",
+          "direction": "out",
+          "id": "out-l023.capability.step3"
+        },
+        {
+          "contractId": "l023.capability.step4",
+          "direction": "out",
+          "id": "out-l023.capability.step4"
+        }
+      ],
+      "responsibility": "Verify signature, expiry, audience, tenant and resource scope before accepting an operation.",
+      "stateOwnership": [
+        "verification keys and accepted epoch"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l023.capability.state",
+      "label": "Epoch authority",
+      "ports": [
+        {
+          "contractId": "l023.capability.command",
+          "direction": "in",
+          "id": "in-l023.capability.command"
+        }
+      ],
+      "responsibility": "Own current workspace revocation epochs and role source of truth.",
+      "stateOwnership": [
+        "workspace epochs"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.service",
+        "version": 1
+      },
+      "id": "l023.capability.n3",
+      "label": "Token issuer",
+      "ports": [
+        {
+          "contractId": "l023.capability.step3",
+          "direction": "in",
+          "id": "in-l023.capability.step3"
+        },
+        {
+          "contractId": "l023.capability.step7",
+          "direction": "out",
+          "id": "out-l023.capability.step7"
+        }
+      ],
+      "responsibility": "Issue only after an authoritative membership check and bind action, resource, audience and expiry.",
+      "stateOwnership": [
+        "scope, epoch, expiry"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l023.capability.n4",
+      "label": "Fenced mutation store",
+      "ports": [
+        {
+          "contractId": "l023.capability.step4",
+          "direction": "in",
+          "id": "in-l023.capability.step4"
+        },
+        {
+          "contractId": "l023.capability.step5",
+          "direction": "out",
+          "id": "out-l023.capability.step5"
+        }
+      ],
+      "responsibility": "Compare capability epoch with the authoritative epoch inside the object transaction.",
+      "stateOwnership": [
+        "tokenEpoch, objectVersion"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.log",
+        "version": 1
+      },
+      "id": "l023.capability.n5",
+      "label": "Committed event log",
+      "ports": [
+        {
+          "contractId": "l023.capability.step5",
+          "direction": "in",
+          "id": "in-l023.capability.step5"
+        },
+        {
+          "contractId": "l023.capability.step6",
+          "direction": "out",
+          "id": "out-l023.capability.step6"
+        }
+      ],
+      "responsibility": "Append command identity and resulting version with the mutation.",
+      "stateOwnership": [
+        "commandId, version"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "l023.capability.n6",
+      "label": "Projection consumer",
+      "ports": [
+        {
+          "contractId": "l023.capability.step6",
+          "direction": "in",
+          "id": "in-l023.capability.step6"
+        },
+        {
+          "contractId": "l023.capability.step8",
+          "direction": "out",
+          "id": "out-l023.capability.step8"
+        }
+      ],
+      "responsibility": "Apply monotonic policy epochs and object versions from replayable events.",
+      "stateOwnership": [
+        "policyEpoch, offset"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.directory",
+        "version": 1
+      },
+      "id": "l023.capability.n7",
+      "label": "Key rotation set",
+      "ports": [
+        {
+          "contractId": "l023.capability.step7",
+          "direction": "in",
+          "id": "in-l023.capability.step7"
+        }
+      ],
+      "responsibility": "Publish bounded key overlap and reject unknown key IDs; compromise can force online epoch checks.",
+      "stateOwnership": [
+        "keyId, notAfter"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l023.capability.n8",
+      "label": "Revocation notification",
+      "ports": [
+        {
+          "contractId": "l023.capability.step8",
+          "direction": "in",
+          "id": "in-l023.capability.step8"
+        }
+      ],
+      "responsibility": "Notify clients to discard local proofs while server epoch fencing remains authoritative.",
+      "stateOwnership": [
+        "workspaceId, epoch"
+      ],
+      "version": 1
+    }
+  ],
+  "contracts": [
+    {
+      "id": "l023.transactional.command",
+      "request": {
+        "action": "read|edit|revoke",
+        "commandId": "uuid",
+        "expectedVersion": "integer",
+        "principalId": "authenticated ID",
+        "projectId": "uuid",
+        "workspaceId": "uuid"
+      },
+      "response": {
+        "decision": "allow|deny",
+        "objectVersion": "integer|null",
+        "policyVersion": "integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l023.transactional.step3",
+      "request": {
+        "expiresAt": "timestamp",
+        "policyVersion": "integer"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l023.transactional.step4",
+      "request": {
+        "eventId": "uuid",
+        "objectVersion": "integer"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l023.transactional.step5",
+      "request": {
+        "attempt": "integer",
+        "eventId": "uuid"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l023.transactional.step6",
+      "request": {
+        "applied": "boolean",
+        "eventId": "uuid"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l023.transactional.step7",
+      "request": {
+        "currentEpoch": "integer",
+        "expectedEpoch": "integer"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l023.transactional.step8",
+      "request": {
+        "outcome": "allow|deny|published",
+        "policyVersion": "integer",
+        "principalId": "uuid"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l023.capability.command",
+      "request": {
+        "action": "read|edit|revoke",
+        "commandId": "uuid",
+        "expectedVersion": "integer",
+        "principalId": "authenticated ID",
+        "projectId": "uuid",
+        "workspaceId": "uuid"
+      },
+      "response": {
+        "decision": "allow|deny",
+        "objectVersion": "integer|null",
+        "policyVersion": "integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l023.capability.step3",
+      "request": {
+        "epoch": "integer",
+        "expiry": "timestamp",
+        "scope": "resource/action set"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l023.capability.step4",
+      "request": {
+        "objectVersion": "integer",
+        "tokenEpoch": "integer"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l023.capability.step5",
+      "request": {
+        "commandId": "uuid",
+        "version": "integer"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l023.capability.step6",
+      "request": {
+        "offset": "integer",
+        "policyEpoch": "integer"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l023.capability.step7",
+      "request": {
+        "keyId": "string",
+        "notAfter": "timestamp"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l023.capability.step8",
+      "request": {
+        "epoch": "integer",
+        "workspaceId": "uuid"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    }
+  ],
+  "execution": {
+    "implementation": null,
+    "kind": "conceptual-design"
+  },
+  "problem": {
+    "referenceId": "L023",
+    "requirements": [
+      {
+        "id": "r0",
+        "text": "Deny cross-workspace reads and writes; role inheritance and explicit deny have defined precedence."
+      },
+      {
+        "id": "r1",
+        "text": "Revocation races serialize with protected writes; cached decisions cannot silently extend access."
+      },
+      {
+        "id": "r2",
+        "text": "Commit mutations and activity intent atomically; publication is independently retryable."
+      }
+    ],
+    "scope": "Authored extension of the canonical workspace-access exercise: enforce tenant/project access during mutations and distinguish committed changes from activity publication. No production authentication is executed.",
+    "studyLabel": "Workspaces, projects and permissions"
+  },
+  "provenance": {
+    "kind": "authored-practice",
+    "note": "Authored interview preparation. Technical references support mechanisms, not the claim that a company asked this question."
+  },
+  "references": [
+    {
+      "id": "ref0",
+      "scope": "background",
+      "supports": "Transactions isolate concurrent authorization and mutation decisions; retries remain explicit.",
+      "title": "PostgreSQL isolation",
+      "url": "https://www.postgresql.org/docs/18/transaction-iso.html"
+    },
+    {
+      "id": "ref1",
+      "scope": "background",
+      "supports": "Cache freshness, invalidation and private-response restrictions.",
+      "title": "HTTP caching",
+      "url": "https://www.rfc-editor.org/rfc/rfc9111"
+    }
+  ],
+  "schema": "simulatte.composableStudy.v2",
+  "solutions": [
+    {
+      "acceptanceCases": [
+        {
+          "given": "A user has edit at epoch 4.",
+          "id": "case0",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Reject the stale edit; no mutation or event commits.",
+          "when": "Revoke at epoch 5 before a stale edit commits."
+        },
+        {
+          "given": "A mutation commits and a dispatcher crashes.",
+          "id": "case1",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "One activity record is applied; client success still means only committed mutation.",
+          "when": "Deliver the same outbox ID twice."
+        },
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-04-state.test.mjs",
+            "testName": "workspace epoch and tenant fencing rejects stale proof"
+          },
+          "given": "A bounded permission proof has a tenant, epoch and action.",
+          "id": "bounded-mechanism",
+          "relatedRequirementIds": [
+            "r0"
+          ],
+          "then": "Return false for stale epoch or wrong tenant and true only for the matching example.",
+          "when": "Compare against current tenant, epoch and expected version."
+        }
+      ],
+      "algorithms": [
+        {
+          "code": "transaction(() => { lockWorkspacePolicy(workspaceId); const p = loadPolicy();\n assertTenant(principalId, workspaceId); requireAllowed(p, action, projectId);\n compareVersion(object, expectedVersion); applyMutation(); insertOutboxUnique(commandId); });",
+          "guarantees": [
+            "Cache validity is bounded and write authorization is never delegated to a stale entry.",
+            "No event is emitted for a rolled-back object change.",
+            "Queued and published are distinct observable states.",
+            "An event ID can affect the projection once.",
+            "Revocation cutoff is the authoritative transaction order.",
+            "Audit data does not grant permission to read the protected object."
+          ],
+          "id": "transition",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "engine"
+        }
+      ],
+      "apis": [
+        {
+          "errors": "Reject invalid input, stale versions and operations outside the declared boundary.",
+          "method": "CALL",
+          "ownerNodeId": "engine",
+          "path": "L023/transactional",
+          "request": "{\"principalId\":\"authenticated ID\",\"workspaceId\":\"uuid\",\"projectId\":\"uuid\",\"action\":\"read|edit|revoke\",\"expectedVersion\":\"integer\",\"commandId\":\"uuid\"}",
+          "response": "{\"decision\":\"allow|deny\",\"policyVersion\":\"integer\",\"objectVersion\":\"integer|null\"}"
+        }
+      ],
+      "assumptions": [
+        "All added stages are authored practice extending the canonical prompt.",
+        "Graphs specify conceptual mechanisms; reference models do not prove cloud execution, latency, physical durability or distributed safety."
+      ],
+      "chooseWhen": "One relational authority can serialize policy and object mutations.",
+      "id": "transactional",
+      "initialGraph": {
+        "edges": [],
+        "nodes": []
+      },
+      "stages": [
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l023.transactional.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l023.transactional.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l023.transactional.command"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l023.transactional.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l023.transactional.system",
+                "id": "system",
+                "label": "Transactional permission checks",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "transactional-s1",
+          "invariants": [
+            "Deny cross-workspace reads and writes; role inheritance and explicit deny have defined precedence."
+          ],
+          "number": 1,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l023.transactional.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "l023.transactional.system",
+                "id": "system",
+                "label": "Transactional permission checks",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l023.transactional.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l023.transactional.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l023.transactional.command"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What does successful completion promise?",
+          "reason": "Deny cross-workspace reads and writes; role inheritance and explicit deny have defined precedence.",
+          "title": "Define the operation boundary"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l023.transactional.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l023.transactional.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l023.transactional.command"
+                }
+              },
+              {
+                "contractId": "l023.transactional.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l023.transactional.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l023.transactional.command"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l023.transactional.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l023.transactional.system",
+                "id": "system",
+                "label": "Transactional permission checks",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l023.transactional.binding-s2",
+                "version": 1
+              },
+              {
+                "definitionId": "l023.transactional.engine",
+                "id": "engine",
+                "label": "Permission transaction",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l023.transactional.state",
+                "id": "state",
+                "label": "Workspace tables",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "transactional-s2",
+          "invariants": [
+            "policy snapshot and object version belongs to Permission transaction; tenant-scoped keys belongs to Workspace tables."
+          ],
+          "number": 2,
+          "operations": [
+            {
+              "edges": [
+                {
+                  "contractId": "l023.transactional.command",
+                  "from": {
+                    "nodeId": "engine",
+                    "portId": "out-l023.transactional.command"
+                  },
+                  "id": "owned-state",
+                  "label": "Read or commit state",
+                  "mode": "storage",
+                  "to": {
+                    "nodeId": "state",
+                    "portId": "in-l023.transactional.command"
+                  }
+                }
+              ],
+              "nodeId": "system",
+              "nodes": [
+                {
+                  "definitionId": "l023.transactional.engine",
+                  "id": "engine",
+                  "label": "Permission transaction",
+                  "position": {
+                    "x": 560,
+                    "y": 0
+                  },
+                  "version": 1
+                },
+                {
+                  "definitionId": "l023.transactional.state",
+                  "id": "state",
+                  "label": "Workspace tables",
+                  "position": {
+                    "x": 840,
+                    "y": 0
+                  },
+                  "version": 1
+                }
+              ],
+              "op": "expand",
+              "subsystemId": "l023.transactional.binding-s2"
+            }
+          ],
+          "question": "Which component owns the decision and its persistent or shared state?",
+          "reason": "Lock policy and target rows, evaluate inherited grants and explicit deny, then mutate. Own workspace membership, project ancestry, role grants and object rows.",
+          "title": "Expose authority and state"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l023.transactional.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l023.transactional.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l023.transactional.command"
+                }
+              },
+              {
+                "contractId": "l023.transactional.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l023.transactional.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l023.transactional.command"
+                }
+              },
+              {
+                "contractId": "l023.transactional.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l023.transactional.step3-engine"
+                },
+                "id": "step3",
+                "label": "Policy cache",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l023.transactional.step3"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l023.transactional.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l023.transactional.system",
+                "id": "system",
+                "label": "Transactional permission checks",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l023.transactional.binding-s3",
+                "version": 1
+              },
+              {
+                "definitionId": "l023.transactional.engine",
+                "id": "engine",
+                "label": "Permission transaction",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l023.transactional.state",
+                "id": "state",
+                "label": "Workspace tables",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l023.transactional.n3",
+                "id": "n3",
+                "label": "Policy cache",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "transactional-s3",
+          "invariants": [
+            "Cache validity is bounded and write authorization is never delegated to a stale entry."
+          ],
+          "number": 3,
+          "operations": [
+            {
+              "nodeId": "system",
+              "op": "rebind",
+              "reason": "Expose this new typed path without mutating earlier binding definitions.",
+              "subsystemId": "l023.transactional.binding-s3"
+            },
+            {
+              "node": {
+                "definitionId": "l023.transactional.n3",
+                "id": "n3",
+                "label": "Policy cache",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l023.transactional.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l023.transactional.step3-engine"
+                },
+                "id": "step3",
+                "label": "Policy cache",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l023.transactional.step3"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can hot reads reuse decisions?",
+          "reason": "Add a tenant/principal/resource/version keyed cache; never cache a private response under a public key.",
+          "title": "Policy cache"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l023.transactional.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l023.transactional.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l023.transactional.command"
+                }
+              },
+              {
+                "contractId": "l023.transactional.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l023.transactional.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l023.transactional.command"
+                }
+              },
+              {
+                "contractId": "l023.transactional.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l023.transactional.step3-engine"
+                },
+                "id": "step3",
+                "label": "Policy cache",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l023.transactional.step3"
+                }
+              },
+              {
+                "contractId": "l023.transactional.step4",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l023.transactional.step4-engine"
+                },
+                "id": "step4",
+                "label": "Mutation outbox",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l023.transactional.step4"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l023.transactional.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l023.transactional.system",
+                "id": "system",
+                "label": "Transactional permission checks",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l023.transactional.binding-s4",
+                "version": 1
+              },
+              {
+                "definitionId": "l023.transactional.engine",
+                "id": "engine",
+                "label": "Permission transaction",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l023.transactional.state",
+                "id": "state",
+                "label": "Workspace tables",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l023.transactional.n3",
+                "id": "n3",
+                "label": "Policy cache",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l023.transactional.n4",
+                "id": "n4",
+                "label": "Mutation outbox",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "transactional-s4",
+          "invariants": [
+            "No event is emitted for a rolled-back object change."
+          ],
+          "number": 4,
+          "operations": [
+            {
+              "nodeId": "system",
+              "op": "rebind",
+              "reason": "Expose this new typed path without mutating earlier binding definitions.",
+              "subsystemId": "l023.transactional.binding-s4"
+            },
+            {
+              "node": {
+                "definitionId": "l023.transactional.n4",
+                "id": "n4",
+                "label": "Mutation outbox",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l023.transactional.step4",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l023.transactional.step4-engine"
+                },
+                "id": "step4",
+                "label": "Mutation outbox",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l023.transactional.step4"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How is activity tied to the write?",
+          "reason": "Persist an immutable event with the authorized mutation in the same transaction.",
+          "title": "Mutation outbox"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l023.transactional.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l023.transactional.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l023.transactional.command"
+                }
+              },
+              {
+                "contractId": "l023.transactional.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l023.transactional.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l023.transactional.command"
+                }
+              },
+              {
+                "contractId": "l023.transactional.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l023.transactional.step3-engine"
+                },
+                "id": "step3",
+                "label": "Policy cache",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l023.transactional.step3"
+                }
+              },
+              {
+                "contractId": "l023.transactional.step4",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l023.transactional.step4-engine"
+                },
+                "id": "step4",
+                "label": "Mutation outbox",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l023.transactional.step4"
+                }
+              },
+              {
+                "contractId": "l023.transactional.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l023.transactional.step5"
+                },
+                "id": "step5",
+                "label": "Activity dispatcher",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l023.transactional.step5"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l023.transactional.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l023.transactional.system",
+                "id": "system",
+                "label": "Transactional permission checks",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l023.transactional.binding-s4",
+                "version": 1
+              },
+              {
+                "definitionId": "l023.transactional.engine",
+                "id": "engine",
+                "label": "Permission transaction",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l023.transactional.state",
+                "id": "state",
+                "label": "Workspace tables",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l023.transactional.n3",
+                "id": "n3",
+                "label": "Policy cache",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l023.transactional.n4",
+                "id": "n4",
+                "label": "Mutation outbox",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l023.transactional.n5",
+                "id": "n5",
+                "label": "Activity dispatcher",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "transactional-s5",
+          "invariants": [
+            "Queued and published are distinct observable states."
+          ],
+          "number": 5,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l023.transactional.n5",
+                "id": "n5",
+                "label": "Activity dispatcher",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l023.transactional.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l023.transactional.step5"
+                },
+                "id": "step5",
+                "label": "Activity dispatcher",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l023.transactional.step5"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What if publication fails after commit?",
+          "reason": "Claim durable event IDs and retry downstream independently of client success.",
+          "title": "Activity dispatcher"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l023.transactional.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l023.transactional.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l023.transactional.command"
+                }
+              },
+              {
+                "contractId": "l023.transactional.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l023.transactional.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l023.transactional.command"
+                }
+              },
+              {
+                "contractId": "l023.transactional.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l023.transactional.step3-engine"
+                },
+                "id": "step3",
+                "label": "Policy cache",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l023.transactional.step3"
+                }
+              },
+              {
+                "contractId": "l023.transactional.step4",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l023.transactional.step4-engine"
+                },
+                "id": "step4",
+                "label": "Mutation outbox",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l023.transactional.step4"
+                }
+              },
+              {
+                "contractId": "l023.transactional.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l023.transactional.step5"
+                },
+                "id": "step5",
+                "label": "Activity dispatcher",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l023.transactional.step5"
+                }
+              },
+              {
+                "contractId": "l023.transactional.step6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l023.transactional.step6"
+                },
+                "id": "step6",
+                "label": "Consumer inbox",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l023.transactional.step6"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l023.transactional.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l023.transactional.system",
+                "id": "system",
+                "label": "Transactional permission checks",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l023.transactional.binding-s4",
+                "version": 1
+              },
+              {
+                "definitionId": "l023.transactional.engine",
+                "id": "engine",
+                "label": "Permission transaction",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l023.transactional.state",
+                "id": "state",
+                "label": "Workspace tables",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l023.transactional.n3",
+                "id": "n3",
+                "label": "Policy cache",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l023.transactional.n4",
+                "id": "n4",
+                "label": "Mutation outbox",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l023.transactional.n5",
+                "id": "n5",
+                "label": "Activity dispatcher",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l023.transactional.n6",
+                "id": "n6",
+                "label": "Consumer inbox",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "transactional-s6",
+          "invariants": [
+            "An event ID can affect the projection once."
+          ],
+          "number": 6,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l023.transactional.n6",
+                "id": "n6",
+                "label": "Consumer inbox",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l023.transactional.step6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l023.transactional.step6"
+                },
+                "id": "step6",
+                "label": "Consumer inbox",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l023.transactional.step6"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can activity be delivered twice?",
+          "reason": "Deduplicate event IDs before applying the activity projection.",
+          "title": "Consumer inbox"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l023.transactional.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l023.transactional.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l023.transactional.command"
+                }
+              },
+              {
+                "contractId": "l023.transactional.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l023.transactional.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l023.transactional.command"
+                }
+              },
+              {
+                "contractId": "l023.transactional.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l023.transactional.step3-engine"
+                },
+                "id": "step3",
+                "label": "Policy cache",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l023.transactional.step3"
+                }
+              },
+              {
+                "contractId": "l023.transactional.step4",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l023.transactional.step4-engine"
+                },
+                "id": "step4",
+                "label": "Mutation outbox",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l023.transactional.step4"
+                }
+              },
+              {
+                "contractId": "l023.transactional.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l023.transactional.step5"
+                },
+                "id": "step5",
+                "label": "Activity dispatcher",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l023.transactional.step5"
+                }
+              },
+              {
+                "contractId": "l023.transactional.step6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l023.transactional.step6"
+                },
+                "id": "step6",
+                "label": "Consumer inbox",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l023.transactional.step6"
+                }
+              },
+              {
+                "contractId": "l023.transactional.step7",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l023.transactional.step7-engine"
+                },
+                "id": "step7",
+                "label": "Revocation barrier",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l023.transactional.step7"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l023.transactional.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l023.transactional.system",
+                "id": "system",
+                "label": "Transactional permission checks",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l023.transactional.binding-s7",
+                "version": 1
+              },
+              {
+                "definitionId": "l023.transactional.engine",
+                "id": "engine",
+                "label": "Permission transaction",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l023.transactional.state",
+                "id": "state",
+                "label": "Workspace tables",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l023.transactional.n3",
+                "id": "n3",
+                "label": "Policy cache",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l023.transactional.n4",
+                "id": "n4",
+                "label": "Mutation outbox",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l023.transactional.n5",
+                "id": "n5",
+                "label": "Activity dispatcher",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l023.transactional.n6",
+                "id": "n6",
+                "label": "Consumer inbox",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l023.transactional.n7",
+                "id": "n7",
+                "label": "Revocation barrier",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "transactional-s7",
+          "invariants": [
+            "Revocation cutoff is the authoritative transaction order."
+          ],
+          "number": 7,
+          "operations": [
+            {
+              "nodeId": "system",
+              "op": "rebind",
+              "reason": "Expose this new typed path without mutating earlier binding definitions.",
+              "subsystemId": "l023.transactional.binding-s7"
+            },
+            {
+              "node": {
+                "definitionId": "l023.transactional.n7",
+                "id": "n7",
+                "label": "Revocation barrier",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l023.transactional.step7",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l023.transactional.step7-engine"
+                },
+                "id": "step7",
+                "label": "Revocation barrier",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l023.transactional.step7"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can an old authorization finish after removal?",
+          "reason": "Advance policy epoch and serialize protected commits against it; reject stale decisions.",
+          "title": "Revocation barrier"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l023.transactional.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l023.transactional.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l023.transactional.command"
+                }
+              },
+              {
+                "contractId": "l023.transactional.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l023.transactional.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l023.transactional.command"
+                }
+              },
+              {
+                "contractId": "l023.transactional.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l023.transactional.step3-engine"
+                },
+                "id": "step3",
+                "label": "Policy cache",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l023.transactional.step3"
+                }
+              },
+              {
+                "contractId": "l023.transactional.step4",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l023.transactional.step4-engine"
+                },
+                "id": "step4",
+                "label": "Mutation outbox",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l023.transactional.step4"
+                }
+              },
+              {
+                "contractId": "l023.transactional.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l023.transactional.step5"
+                },
+                "id": "step5",
+                "label": "Activity dispatcher",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l023.transactional.step5"
+                }
+              },
+              {
+                "contractId": "l023.transactional.step6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l023.transactional.step6"
+                },
+                "id": "step6",
+                "label": "Consumer inbox",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l023.transactional.step6"
+                }
+              },
+              {
+                "contractId": "l023.transactional.step7",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l023.transactional.step7-engine"
+                },
+                "id": "step7",
+                "label": "Revocation barrier",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l023.transactional.step7"
+                }
+              },
+              {
+                "contractId": "l023.transactional.step8",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l023.transactional.step8"
+                },
+                "id": "step8",
+                "label": "Audit ledger",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n8",
+                  "portId": "in-l023.transactional.step8"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l023.transactional.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l023.transactional.system",
+                "id": "system",
+                "label": "Transactional permission checks",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l023.transactional.binding-s7",
+                "version": 1
+              },
+              {
+                "definitionId": "l023.transactional.engine",
+                "id": "engine",
+                "label": "Permission transaction",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l023.transactional.state",
+                "id": "state",
+                "label": "Workspace tables",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l023.transactional.n3",
+                "id": "n3",
+                "label": "Policy cache",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l023.transactional.n4",
+                "id": "n4",
+                "label": "Mutation outbox",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l023.transactional.n5",
+                "id": "n5",
+                "label": "Activity dispatcher",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l023.transactional.n6",
+                "id": "n6",
+                "label": "Consumer inbox",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l023.transactional.n7",
+                "id": "n7",
+                "label": "Revocation barrier",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l023.transactional.n8",
+                "id": "n8",
+                "label": "Audit ledger",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "transactional-s8",
+          "invariants": [
+            "Audit data does not grant permission to read the protected object."
+          ],
+          "number": 8,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l023.transactional.n8",
+                "id": "n8",
+                "label": "Audit ledger",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l023.transactional.step8",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l023.transactional.step8"
+                },
+                "id": "step8",
+                "label": "Audit ledger",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n8",
+                  "portId": "in-l023.transactional.step8"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How are denied and published actions explained?",
+          "reason": "Record decision reason, policy version and event delivery status with restricted audit access.",
+          "title": "Audit ledger"
+        }
+      ],
+      "title": "Transactional permission checks",
+      "tradeoffs": [
+        "Policy checks add database contention.",
+        "A cache is only a hint; authoritative writes still check the policy version."
+      ]
+    },
+    {
+      "acceptanceCases": [
+        {
+          "given": "A capability carries epoch 4.",
+          "id": "case0",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "The online write fence denies it even before expiry.",
+          "when": "The authority advances to epoch 5 and the client misses notification."
+        },
+        {
+          "given": "A projection consumer restarts at an old offset.",
+          "id": "case1",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Retain epoch 5 and deduplicate mutation events.",
+          "when": "Replay epoch 5 followed by epoch 4."
+        },
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-04-state.test.mjs",
+            "testName": "workspace epoch and tenant fencing rejects stale proof"
+          },
+          "given": "A bounded permission proof has a tenant, epoch and action.",
+          "id": "bounded-mechanism",
+          "relatedRequirementIds": [
+            "r0"
+          ],
+          "then": "Return false for stale epoch or wrong tenant and true only for the matching example.",
+          "when": "Compare against current tenant, epoch and expected version."
+        }
+      ],
+      "algorithms": [
+        {
+          "code": "const proof = verifySignatureAndScope(token, audience, tenant, resource, action);\ntransaction(() => { const epoch = lockEpoch(tenant); if (proof.epoch !== epoch) deny();\n compareVersion(object, expectedVersion); applyMutation(); appendEventUnique(commandId); });",
+          "guarantees": [
+            "A capability is not transferable across audiences or tenants.",
+            "A signed but revoked write proof is rejected.",
+            "The log records completed decisions, not queued promises.",
+            "An old event cannot reduce a projection epoch.",
+            "Key retirement and capability expiration are explicit.",
+            "A missed client notification cannot permit a stale write."
+          ],
+          "id": "transition",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "engine"
+        }
+      ],
+      "apis": [
+        {
+          "errors": "Reject invalid input, stale versions and operations outside the declared boundary.",
+          "method": "CALL",
+          "ownerNodeId": "engine",
+          "path": "L023/capability",
+          "request": "{\"principalId\":\"authenticated ID\",\"workspaceId\":\"uuid\",\"projectId\":\"uuid\",\"action\":\"read|edit|revoke\",\"expectedVersion\":\"integer\",\"commandId\":\"uuid\"}",
+          "response": "{\"decision\":\"allow|deny\",\"policyVersion\":\"integer\",\"objectVersion\":\"integer|null\"}"
+        }
+      ],
+      "assumptions": [
+        "All added stages are authored practice extending the canonical prompt.",
+        "Graphs specify conceptual mechanisms; reference models do not prove cloud execution, latency, physical durability or distributed safety."
+      ],
+      "chooseWhen": "Read-heavy clients can carry signed scoped permission proofs with online write fencing.",
+      "id": "capability",
+      "initialGraph": {
+        "edges": [],
+        "nodes": []
+      },
+      "stages": [
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l023.capability.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l023.capability.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l023.capability.command"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l023.capability.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l023.capability.system",
+                "id": "system",
+                "label": "Short-lived scoped capabilities",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "capability-s1",
+          "invariants": [
+            "Deny cross-workspace reads and writes; role inheritance and explicit deny have defined precedence."
+          ],
+          "number": 1,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l023.capability.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "l023.capability.system",
+                "id": "system",
+                "label": "Short-lived scoped capabilities",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l023.capability.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l023.capability.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l023.capability.command"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What does successful completion promise?",
+          "reason": "Deny cross-workspace reads and writes; role inheritance and explicit deny have defined precedence.",
+          "title": "Define the operation boundary"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l023.capability.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l023.capability.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l023.capability.command"
+                }
+              },
+              {
+                "contractId": "l023.capability.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l023.capability.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l023.capability.command"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l023.capability.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l023.capability.system",
+                "id": "system",
+                "label": "Short-lived scoped capabilities",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l023.capability.binding-s2",
+                "version": 1
+              },
+              {
+                "definitionId": "l023.capability.engine",
+                "id": "engine",
+                "label": "Capability verifier",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l023.capability.state",
+                "id": "state",
+                "label": "Epoch authority",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "capability-s2",
+          "invariants": [
+            "verification keys and accepted epoch belongs to Capability verifier; workspace epochs belongs to Epoch authority."
+          ],
+          "number": 2,
+          "operations": [
+            {
+              "edges": [
+                {
+                  "contractId": "l023.capability.command",
+                  "from": {
+                    "nodeId": "engine",
+                    "portId": "out-l023.capability.command"
+                  },
+                  "id": "owned-state",
+                  "label": "Read or commit state",
+                  "mode": "storage",
+                  "to": {
+                    "nodeId": "state",
+                    "portId": "in-l023.capability.command"
+                  }
+                }
+              ],
+              "nodeId": "system",
+              "nodes": [
+                {
+                  "definitionId": "l023.capability.engine",
+                  "id": "engine",
+                  "label": "Capability verifier",
+                  "position": {
+                    "x": 560,
+                    "y": 0
+                  },
+                  "version": 1
+                },
+                {
+                  "definitionId": "l023.capability.state",
+                  "id": "state",
+                  "label": "Epoch authority",
+                  "position": {
+                    "x": 840,
+                    "y": 0
+                  },
+                  "version": 1
+                }
+              ],
+              "op": "expand",
+              "subsystemId": "l023.capability.binding-s2"
+            }
+          ],
+          "question": "Which component owns the decision and its persistent or shared state?",
+          "reason": "Verify signature, expiry, audience, tenant and resource scope before accepting an operation. Own current workspace revocation epochs and role source of truth.",
+          "title": "Expose authority and state"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l023.capability.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l023.capability.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l023.capability.command"
+                }
+              },
+              {
+                "contractId": "l023.capability.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l023.capability.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l023.capability.command"
+                }
+              },
+              {
+                "contractId": "l023.capability.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l023.capability.step3-engine"
+                },
+                "id": "step3",
+                "label": "Token issuer",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l023.capability.step3"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l023.capability.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l023.capability.system",
+                "id": "system",
+                "label": "Short-lived scoped capabilities",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l023.capability.binding-s3",
+                "version": 1
+              },
+              {
+                "definitionId": "l023.capability.engine",
+                "id": "engine",
+                "label": "Capability verifier",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l023.capability.state",
+                "id": "state",
+                "label": "Epoch authority",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l023.capability.n3",
+                "id": "n3",
+                "label": "Token issuer",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "capability-s3",
+          "invariants": [
+            "A capability is not transferable across audiences or tenants."
+          ],
+          "number": 3,
+          "operations": [
+            {
+              "nodeId": "system",
+              "op": "rebind",
+              "reason": "Expose this new typed path without mutating earlier binding definitions.",
+              "subsystemId": "l023.capability.binding-s3"
+            },
+            {
+              "node": {
+                "definitionId": "l023.capability.n3",
+                "id": "n3",
+                "label": "Token issuer",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l023.capability.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l023.capability.step3-engine"
+                },
+                "id": "step3",
+                "label": "Token issuer",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l023.capability.step3"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Who may mint a scoped capability?",
+          "reason": "Issue only after an authoritative membership check and bind action, resource, audience and expiry.",
+          "title": "Token issuer"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l023.capability.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l023.capability.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l023.capability.command"
+                }
+              },
+              {
+                "contractId": "l023.capability.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l023.capability.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l023.capability.command"
+                }
+              },
+              {
+                "contractId": "l023.capability.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l023.capability.step3-engine"
+                },
+                "id": "step3",
+                "label": "Token issuer",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l023.capability.step3"
+                }
+              },
+              {
+                "contractId": "l023.capability.step4",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l023.capability.step4-engine"
+                },
+                "id": "step4",
+                "label": "Fenced mutation store",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l023.capability.step4"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l023.capability.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l023.capability.system",
+                "id": "system",
+                "label": "Short-lived scoped capabilities",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l023.capability.binding-s4",
+                "version": 1
+              },
+              {
+                "definitionId": "l023.capability.engine",
+                "id": "engine",
+                "label": "Capability verifier",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l023.capability.state",
+                "id": "state",
+                "label": "Epoch authority",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l023.capability.n3",
+                "id": "n3",
+                "label": "Token issuer",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l023.capability.n4",
+                "id": "n4",
+                "label": "Fenced mutation store",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "capability-s4",
+          "invariants": [
+            "A signed but revoked write proof is rejected."
+          ],
+          "number": 4,
+          "operations": [
+            {
+              "nodeId": "system",
+              "op": "rebind",
+              "reason": "Expose this new typed path without mutating earlier binding definitions.",
+              "subsystemId": "l023.capability.binding-s4"
+            },
+            {
+              "node": {
+                "definitionId": "l023.capability.n4",
+                "id": "n4",
+                "label": "Fenced mutation store",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l023.capability.step4",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l023.capability.step4-engine"
+                },
+                "id": "step4",
+                "label": "Fenced mutation store",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l023.capability.step4"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can a valid signature bypass a revocation?",
+          "reason": "Compare capability epoch with the authoritative epoch inside the object transaction.",
+          "title": "Fenced mutation store"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l023.capability.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l023.capability.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l023.capability.command"
+                }
+              },
+              {
+                "contractId": "l023.capability.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l023.capability.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l023.capability.command"
+                }
+              },
+              {
+                "contractId": "l023.capability.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l023.capability.step3-engine"
+                },
+                "id": "step3",
+                "label": "Token issuer",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l023.capability.step3"
+                }
+              },
+              {
+                "contractId": "l023.capability.step4",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l023.capability.step4-engine"
+                },
+                "id": "step4",
+                "label": "Fenced mutation store",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l023.capability.step4"
+                }
+              },
+              {
+                "contractId": "l023.capability.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l023.capability.step5"
+                },
+                "id": "step5",
+                "label": "Committed event log",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l023.capability.step5"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l023.capability.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l023.capability.system",
+                "id": "system",
+                "label": "Short-lived scoped capabilities",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l023.capability.binding-s4",
+                "version": 1
+              },
+              {
+                "definitionId": "l023.capability.engine",
+                "id": "engine",
+                "label": "Capability verifier",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l023.capability.state",
+                "id": "state",
+                "label": "Epoch authority",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l023.capability.n3",
+                "id": "n3",
+                "label": "Token issuer",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l023.capability.n4",
+                "id": "n4",
+                "label": "Fenced mutation store",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l023.capability.n5",
+                "id": "n5",
+                "label": "Committed event log",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "capability-s5",
+          "invariants": [
+            "The log records completed decisions, not queued promises."
+          ],
+          "number": 5,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l023.capability.n5",
+                "id": "n5",
+                "label": "Committed event log",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l023.capability.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l023.capability.step5"
+                },
+                "id": "step5",
+                "label": "Committed event log",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l023.capability.step5"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How are authorized changes published?",
+          "reason": "Append command identity and resulting version with the mutation.",
+          "title": "Committed event log"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l023.capability.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l023.capability.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l023.capability.command"
+                }
+              },
+              {
+                "contractId": "l023.capability.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l023.capability.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l023.capability.command"
+                }
+              },
+              {
+                "contractId": "l023.capability.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l023.capability.step3-engine"
+                },
+                "id": "step3",
+                "label": "Token issuer",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l023.capability.step3"
+                }
+              },
+              {
+                "contractId": "l023.capability.step4",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l023.capability.step4-engine"
+                },
+                "id": "step4",
+                "label": "Fenced mutation store",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l023.capability.step4"
+                }
+              },
+              {
+                "contractId": "l023.capability.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l023.capability.step5"
+                },
+                "id": "step5",
+                "label": "Committed event log",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l023.capability.step5"
+                }
+              },
+              {
+                "contractId": "l023.capability.step6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l023.capability.step6"
+                },
+                "id": "step6",
+                "label": "Projection consumer",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l023.capability.step6"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l023.capability.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l023.capability.system",
+                "id": "system",
+                "label": "Short-lived scoped capabilities",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l023.capability.binding-s4",
+                "version": 1
+              },
+              {
+                "definitionId": "l023.capability.engine",
+                "id": "engine",
+                "label": "Capability verifier",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l023.capability.state",
+                "id": "state",
+                "label": "Epoch authority",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l023.capability.n3",
+                "id": "n3",
+                "label": "Token issuer",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l023.capability.n4",
+                "id": "n4",
+                "label": "Fenced mutation store",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l023.capability.n5",
+                "id": "n5",
+                "label": "Committed event log",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l023.capability.n6",
+                "id": "n6",
+                "label": "Projection consumer",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "capability-s6",
+          "invariants": [
+            "An old event cannot reduce a projection epoch."
+          ],
+          "number": 6,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l023.capability.n6",
+                "id": "n6",
+                "label": "Projection consumer",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l023.capability.step6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l023.capability.step6"
+                },
+                "id": "step6",
+                "label": "Projection consumer",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l023.capability.step6"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How do read models learn policy changes?",
+          "reason": "Apply monotonic policy epochs and object versions from replayable events.",
+          "title": "Projection consumer"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l023.capability.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l023.capability.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l023.capability.command"
+                }
+              },
+              {
+                "contractId": "l023.capability.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l023.capability.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l023.capability.command"
+                }
+              },
+              {
+                "contractId": "l023.capability.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l023.capability.step3-engine"
+                },
+                "id": "step3",
+                "label": "Token issuer",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l023.capability.step3"
+                }
+              },
+              {
+                "contractId": "l023.capability.step4",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l023.capability.step4-engine"
+                },
+                "id": "step4",
+                "label": "Fenced mutation store",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l023.capability.step4"
+                }
+              },
+              {
+                "contractId": "l023.capability.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l023.capability.step5"
+                },
+                "id": "step5",
+                "label": "Committed event log",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l023.capability.step5"
+                }
+              },
+              {
+                "contractId": "l023.capability.step6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l023.capability.step6"
+                },
+                "id": "step6",
+                "label": "Projection consumer",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l023.capability.step6"
+                }
+              },
+              {
+                "contractId": "l023.capability.step7",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l023.capability.step7"
+                },
+                "id": "step7",
+                "label": "Key rotation set",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l023.capability.step7"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l023.capability.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l023.capability.system",
+                "id": "system",
+                "label": "Short-lived scoped capabilities",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l023.capability.binding-s4",
+                "version": 1
+              },
+              {
+                "definitionId": "l023.capability.engine",
+                "id": "engine",
+                "label": "Capability verifier",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l023.capability.state",
+                "id": "state",
+                "label": "Epoch authority",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l023.capability.n3",
+                "id": "n3",
+                "label": "Token issuer",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l023.capability.n4",
+                "id": "n4",
+                "label": "Fenced mutation store",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l023.capability.n5",
+                "id": "n5",
+                "label": "Committed event log",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l023.capability.n6",
+                "id": "n6",
+                "label": "Projection consumer",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l023.capability.n7",
+                "id": "n7",
+                "label": "Key rotation set",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "capability-s7",
+          "invariants": [
+            "Key retirement and capability expiration are explicit."
+          ],
+          "number": 7,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l023.capability.n7",
+                "id": "n7",
+                "label": "Key rotation set",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l023.capability.step7",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l023.capability.step7"
+                },
+                "id": "step7",
+                "label": "Key rotation set",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l023.capability.step7"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What if a signing key is retired?",
+          "reason": "Publish bounded key overlap and reject unknown key IDs; compromise can force online epoch checks.",
+          "title": "Key rotation set"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l023.capability.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l023.capability.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l023.capability.command"
+                }
+              },
+              {
+                "contractId": "l023.capability.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l023.capability.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l023.capability.command"
+                }
+              },
+              {
+                "contractId": "l023.capability.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l023.capability.step3-engine"
+                },
+                "id": "step3",
+                "label": "Token issuer",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l023.capability.step3"
+                }
+              },
+              {
+                "contractId": "l023.capability.step4",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l023.capability.step4-engine"
+                },
+                "id": "step4",
+                "label": "Fenced mutation store",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l023.capability.step4"
+                }
+              },
+              {
+                "contractId": "l023.capability.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l023.capability.step5"
+                },
+                "id": "step5",
+                "label": "Committed event log",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l023.capability.step5"
+                }
+              },
+              {
+                "contractId": "l023.capability.step6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l023.capability.step6"
+                },
+                "id": "step6",
+                "label": "Projection consumer",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l023.capability.step6"
+                }
+              },
+              {
+                "contractId": "l023.capability.step7",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l023.capability.step7"
+                },
+                "id": "step7",
+                "label": "Key rotation set",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l023.capability.step7"
+                }
+              },
+              {
+                "contractId": "l023.capability.step8",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l023.capability.step8"
+                },
+                "id": "step8",
+                "label": "Revocation notification",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n8",
+                  "portId": "in-l023.capability.step8"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l023.capability.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l023.capability.system",
+                "id": "system",
+                "label": "Short-lived scoped capabilities",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l023.capability.binding-s4",
+                "version": 1
+              },
+              {
+                "definitionId": "l023.capability.engine",
+                "id": "engine",
+                "label": "Capability verifier",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l023.capability.state",
+                "id": "state",
+                "label": "Epoch authority",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l023.capability.n3",
+                "id": "n3",
+                "label": "Token issuer",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l023.capability.n4",
+                "id": "n4",
+                "label": "Fenced mutation store",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l023.capability.n5",
+                "id": "n5",
+                "label": "Committed event log",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l023.capability.n6",
+                "id": "n6",
+                "label": "Projection consumer",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l023.capability.n7",
+                "id": "n7",
+                "label": "Key rotation set",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l023.capability.n8",
+                "id": "n8",
+                "label": "Revocation notification",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "capability-s8",
+          "invariants": [
+            "A missed client notification cannot permit a stale write."
+          ],
+          "number": 8,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l023.capability.n8",
+                "id": "n8",
+                "label": "Revocation notification",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l023.capability.step8",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l023.capability.step8"
+                },
+                "id": "step8",
+                "label": "Revocation notification",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n8",
+                  "portId": "in-l023.capability.step8"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How are long-lived clients updated?",
+          "reason": "Notify clients to discard local proofs while server epoch fencing remains authoritative.",
+          "title": "Revocation notification"
+        }
+      ],
+      "title": "Short-lived scoped capabilities",
+      "tradeoffs": [
+        "Revocation requires an epoch lookup or expiry delay.",
+        "Capability signing, audience binding and rotation add security operations."
+      ]
+    }
+  ],
+  "subsystems": [
+    {
+      "definitionId": "l023.transactional.system",
+      "id": "l023.transactional.binding-s2",
+      "ports": [
+        {
+          "contractId": "l023.transactional.command",
+          "direction": "in",
+          "id": "in-l023.transactional.command",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-l023.transactional.command"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l023.transactional.system",
+      "id": "l023.transactional.binding-s3",
+      "ports": [
+        {
+          "contractId": "l023.transactional.command",
+          "direction": "in",
+          "id": "in-l023.transactional.command",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-l023.transactional.command"
+          }
+        },
+        {
+          "contractId": "l023.transactional.step3",
+          "direction": "out",
+          "id": "out-l023.transactional.step3-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l023.transactional.step3"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l023.transactional.system",
+      "id": "l023.transactional.binding-s4",
+      "ports": [
+        {
+          "contractId": "l023.transactional.command",
+          "direction": "in",
+          "id": "in-l023.transactional.command",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-l023.transactional.command"
+          }
+        },
+        {
+          "contractId": "l023.transactional.step3",
+          "direction": "out",
+          "id": "out-l023.transactional.step3-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l023.transactional.step3"
+          }
+        },
+        {
+          "contractId": "l023.transactional.step4",
+          "direction": "out",
+          "id": "out-l023.transactional.step4-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l023.transactional.step4"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l023.transactional.system",
+      "id": "l023.transactional.binding-s7",
+      "ports": [
+        {
+          "contractId": "l023.transactional.command",
+          "direction": "in",
+          "id": "in-l023.transactional.command",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-l023.transactional.command"
+          }
+        },
+        {
+          "contractId": "l023.transactional.step3",
+          "direction": "out",
+          "id": "out-l023.transactional.step3-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l023.transactional.step3"
+          }
+        },
+        {
+          "contractId": "l023.transactional.step4",
+          "direction": "out",
+          "id": "out-l023.transactional.step4-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l023.transactional.step4"
+          }
+        },
+        {
+          "contractId": "l023.transactional.step7",
+          "direction": "out",
+          "id": "out-l023.transactional.step7-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l023.transactional.step7"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l023.capability.system",
+      "id": "l023.capability.binding-s2",
+      "ports": [
+        {
+          "contractId": "l023.capability.command",
+          "direction": "in",
+          "id": "in-l023.capability.command",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-l023.capability.command"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l023.capability.system",
+      "id": "l023.capability.binding-s3",
+      "ports": [
+        {
+          "contractId": "l023.capability.command",
+          "direction": "in",
+          "id": "in-l023.capability.command",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-l023.capability.command"
+          }
+        },
+        {
+          "contractId": "l023.capability.step3",
+          "direction": "out",
+          "id": "out-l023.capability.step3-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l023.capability.step3"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l023.capability.system",
+      "id": "l023.capability.binding-s4",
+      "ports": [
+        {
+          "contractId": "l023.capability.command",
+          "direction": "in",
+          "id": "in-l023.capability.command",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-l023.capability.command"
+          }
+        },
+        {
+          "contractId": "l023.capability.step3",
+          "direction": "out",
+          "id": "out-l023.capability.step3-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l023.capability.step3"
+          }
+        },
+        {
+          "contractId": "l023.capability.step4",
+          "direction": "out",
+          "id": "out-l023.capability.step4-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l023.capability.step4"
+          }
+        }
+      ],
+      "version": 1
+    }
+  ],
+  "version": 1
+}

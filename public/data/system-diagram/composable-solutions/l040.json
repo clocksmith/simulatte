@@ -1,0 +1,3560 @@
+{
+  "components": [
+    {
+      "extends": {
+        "id": "core.client",
+        "version": 1
+      },
+      "id": "l040.ring-monitor.caller",
+      "label": "Caller",
+      "ports": [
+        {
+          "contractId": "l040.ring-monitor.command",
+          "direction": "out",
+          "id": "out-l040.ring-monitor.command"
+        }
+      ],
+      "responsibility": "Invoke the documented API and retain returned outcomes.",
+      "stateOwnership": [
+        "caller-owned input"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l040.ring-monitor.owner",
+      "label": "Buffer monitor",
+      "ports": [
+        {
+          "contractId": "l040.ring-monitor.command",
+          "direction": "in",
+          "id": "in-l040.ring-monitor.command"
+        },
+        {
+          "contractId": "l040.ring-monitor.ring",
+          "direction": "out",
+          "id": "out-l040.ring-monitor.ring"
+        }
+      ],
+      "responsibility": "Serialize every ring mutation under one mutex; notFull and notEmpty belong to that same mutex.",
+      "stateOwnership": [
+        "head",
+        "tail",
+        "count",
+        "closed flag"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l040.ring-monitor.ring",
+      "label": "Fixed ring storage",
+      "ports": [
+        {
+          "contractId": "l040.ring-monitor.ring",
+          "direction": "in",
+          "id": "in-l040.ring-monitor.ring"
+        },
+        {
+          "contractId": "l040.ring-monitor.mutex",
+          "direction": "out",
+          "id": "out-l040.ring-monitor.mutex"
+        },
+        {
+          "contractId": "l040.ring-monitor.fifo",
+          "direction": "out",
+          "id": "out-l040.ring-monitor.fifo"
+        }
+      ],
+      "responsibility": "Allocate exactly capacity slots; wrap head/tail modulo capacity and clear a taken slot to release references.",
+      "stateOwnership": [
+        "slots",
+        "head",
+        "tail"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l040.ring-monitor.mutex",
+      "label": "Monitor mutex",
+      "ports": [
+        {
+          "contractId": "l040.ring-monitor.mutex",
+          "direction": "in",
+          "id": "in-l040.ring-monitor.mutex"
+        },
+        {
+          "contractId": "l040.ring-monitor.notFull",
+          "direction": "out",
+          "id": "out-l040.ring-monitor.notFull"
+        },
+        {
+          "contractId": "l040.ring-monitor.notEmpty",
+          "direction": "out",
+          "id": "out-l040.ring-monitor.notEmpty"
+        },
+        {
+          "contractId": "l040.ring-monitor.interrupt",
+          "direction": "out",
+          "id": "out-l040.ring-monitor.interrupt"
+        },
+        {
+          "contractId": "l040.ring-monitor.close",
+          "direction": "out",
+          "id": "out-l040.ring-monitor.close"
+        }
+      ],
+      "responsibility": "Guard count, indices, slots and closed flag with one mutex; release in finally on every exit.",
+      "stateOwnership": [
+        "lock ownership"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l040.ring-monitor.notFull",
+      "label": "notFull condition",
+      "ports": [
+        {
+          "contractId": "l040.ring-monitor.notFull",
+          "direction": "in",
+          "id": "in-l040.ring-monitor.notFull"
+        }
+      ],
+      "responsibility": "Under mutex, while full and not closed await notFull; after every return, test again before mutation.",
+      "stateOwnership": [
+        "producer wait set"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l040.ring-monitor.notEmpty",
+      "label": "notEmpty condition",
+      "ports": [
+        {
+          "contractId": "l040.ring-monitor.notEmpty",
+          "direction": "in",
+          "id": "in-l040.ring-monitor.notEmpty"
+        }
+      ],
+      "responsibility": "Taker loops while empty and open under the same lock; put writes slot and count before signaling notEmpty.",
+      "stateOwnership": [
+        "consumer wait set"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l040.ring-monitor.fifo",
+      "label": "FIFO transition",
+      "ports": [
+        {
+          "contractId": "l040.ring-monitor.fifo",
+          "direction": "in",
+          "id": "in-l040.ring-monitor.fifo"
+        }
+      ],
+      "responsibility": "Put linearizes at count increment after slot write; take linearizes at removal/count decrement, then signals notFull while locked.",
+      "stateOwnership": [
+        "mutation sequence"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l040.ring-monitor.interrupt",
+      "label": "Interrupt cleanup",
+      "ports": [
+        {
+          "contractId": "l040.ring-monitor.interrupt",
+          "direction": "in",
+          "id": "in-l040.ring-monitor.interrupt"
+        }
+      ],
+      "responsibility": "Await interruption unwinds through finally; if no mutation occurred the operation has no queue effect. Once mutation commits, return success rather than retroactively cancel it.",
+      "stateOwnership": [
+        "waiter cancellation state"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l040.ring-monitor.close",
+      "label": "Close protocol",
+      "ports": [
+        {
+          "contractId": "l040.ring-monitor.close",
+          "direction": "in",
+          "id": "in-l040.ring-monitor.close"
+        }
+      ],
+      "responsibility": "Set closed while holding mutex, signalAll both conditions, reject new puts and allow takes to drain before closed-empty error.",
+      "stateOwnership": [
+        "closed flag"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.client",
+        "version": 1
+      },
+      "id": "l040.two-lock-linked.caller",
+      "label": "Caller",
+      "ports": [
+        {
+          "contractId": "l040.two-lock-linked.command",
+          "direction": "out",
+          "id": "out-l040.two-lock-linked.command"
+        }
+      ],
+      "responsibility": "Invoke the documented API and retain returned outcomes.",
+      "stateOwnership": [
+        "caller-owned input"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l040.two-lock-linked.owner",
+      "label": "Two-lock queue",
+      "ports": [
+        {
+          "contractId": "l040.two-lock-linked.command",
+          "direction": "in",
+          "id": "in-l040.two-lock-linked.command"
+        },
+        {
+          "contractId": "l040.two-lock-linked.nodes",
+          "direction": "out",
+          "id": "out-l040.two-lock-linked.nodes"
+        }
+      ],
+      "responsibility": "Serialize producers with putLock, consumers with takeLock, and publish count through an atomic counter with release/acquire ordering.",
+      "stateOwnership": [
+        "sentinel head",
+        "tail",
+        "atomic count",
+        "closed flag"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l040.two-lock-linked.nodes",
+      "label": "Linked node chain",
+      "ports": [
+        {
+          "contractId": "l040.two-lock-linked.nodes",
+          "direction": "in",
+          "id": "in-l040.two-lock-linked.nodes"
+        },
+        {
+          "contractId": "l040.two-lock-linked.putLock",
+          "direction": "out",
+          "id": "out-l040.two-lock-linked.putLock"
+        },
+        {
+          "contractId": "l040.two-lock-linked.takeLock",
+          "direction": "out",
+          "id": "out-l040.two-lock-linked.takeLock"
+        }
+      ],
+      "responsibility": "Use a dummy head; producer appends through tail under putLock, consumer advances dummy head under takeLock and clears detached references.",
+      "stateOwnership": [
+        "head sentinel",
+        "tail pointer"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l040.two-lock-linked.putLock",
+      "label": "Producer mutex",
+      "ports": [
+        {
+          "contractId": "l040.two-lock-linked.putLock",
+          "direction": "in",
+          "id": "in-l040.two-lock-linked.putLock"
+        },
+        {
+          "contractId": "l040.two-lock-linked.count",
+          "direction": "out",
+          "id": "out-l040.two-lock-linked.count"
+        }
+      ],
+      "responsibility": "putLock protects producer wait predicate and tail links. notFull is associated only with putLock.",
+      "stateOwnership": [
+        "putLock",
+        "notFull wait set"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l040.two-lock-linked.takeLock",
+      "label": "Consumer mutex",
+      "ports": [
+        {
+          "contractId": "l040.two-lock-linked.takeLock",
+          "direction": "in",
+          "id": "in-l040.two-lock-linked.takeLock"
+        }
+      ],
+      "responsibility": "takeLock protects head and notEmpty waiting; consume only after atomic count observes a published entry.",
+      "stateOwnership": [
+        "takeLock",
+        "notEmpty wait set"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l040.two-lock-linked.count",
+      "label": "Atomic publication count",
+      "ports": [
+        {
+          "contractId": "l040.two-lock-linked.count",
+          "direction": "in",
+          "id": "in-l040.two-lock-linked.count"
+        },
+        {
+          "contractId": "l040.two-lock-linked.signals",
+          "direction": "out",
+          "id": "out-l040.two-lock-linked.signals"
+        }
+      ],
+      "responsibility": "A producer links then atomic getAndIncrement; consumer checks count with acquire semantics before following next. Decrement follows removal.",
+      "stateOwnership": [
+        "atomic count"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l040.two-lock-linked.signals",
+      "label": "Cross-lock notifications",
+      "ports": [
+        {
+          "contractId": "l040.two-lock-linked.signals",
+          "direction": "in",
+          "id": "in-l040.two-lock-linked.signals"
+        },
+        {
+          "contractId": "l040.two-lock-linked.shutdown",
+          "direction": "out",
+          "id": "out-l040.two-lock-linked.shutdown"
+        }
+      ],
+      "responsibility": "Release local mutation lock before acquiring the opposite lock for empty-to-nonempty or full-to-nonfull signal. Propagate local signals when further work is possible.",
+      "stateOwnership": [
+        "boundary transition flags"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l040.two-lock-linked.shutdown",
+      "label": "Ordered close acquisition",
+      "ports": [
+        {
+          "contractId": "l040.two-lock-linked.shutdown",
+          "direction": "in",
+          "id": "in-l040.two-lock-linked.shutdown"
+        },
+        {
+          "contractId": "l040.two-lock-linked.cancel",
+          "direction": "out",
+          "id": "out-l040.two-lock-linked.cancel"
+        }
+      ],
+      "responsibility": "Close takes putLock then takeLock, sets shared closed, and signals both wait sets before releasing in reverse order; puts test closed under putLock.",
+      "stateOwnership": [
+        "closed atomic flag",
+        "global lock order"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l040.two-lock-linked.cancel",
+      "label": "Waiter cancellation",
+      "ports": [
+        {
+          "contractId": "l040.two-lock-linked.cancel",
+          "direction": "in",
+          "id": "in-l040.two-lock-linked.cancel"
+        }
+      ],
+      "responsibility": "Use while loops with closed checks on the relevant condition; interrupted await exits before linking/unlinking, unlocking in finally.",
+      "stateOwnership": [
+        "pending operation outcome"
+      ],
+      "version": 1
+    }
+  ],
+  "contracts": [
+    {
+      "id": "l040.ring-monitor.command",
+      "request": {
+        "cancellation": "interrupt signal while awaiting",
+        "item": "T for put; null items prohibited",
+        "operation": "put|take|close"
+      },
+      "response": {
+        "close": "idempotent closure",
+        "put": "returns only after publication",
+        "take": "oldest T; closed-and-empty error"
+      },
+      "version": 1
+    },
+    {
+      "id": "l040.ring-monitor.ring",
+      "request": {
+        "capacity": "positive integer"
+      },
+      "response": {
+        "slots": "T[capacity]"
+      },
+      "version": 1
+    },
+    {
+      "id": "l040.ring-monitor.mutex",
+      "request": {
+        "thread": "local thread identity"
+      },
+      "response": {
+        "criticalSection": "exclusive access"
+      },
+      "version": 1
+    },
+    {
+      "id": "l040.ring-monitor.notFull",
+      "request": {
+        "closed": "boolean",
+        "count": "0..capacity"
+      },
+      "response": {
+        "action": "await or publish"
+      },
+      "version": 1
+    },
+    {
+      "id": "l040.ring-monitor.notEmpty",
+      "request": {
+        "closed": "boolean",
+        "count": "0..capacity"
+      },
+      "response": {
+        "action": "await or remove"
+      },
+      "version": 1
+    },
+    {
+      "id": "l040.ring-monitor.fifo",
+      "request": {
+        "head": "ring index",
+        "slot": "T",
+        "tail": "ring index"
+      },
+      "response": {
+        "result": "new count and optional item"
+      },
+      "version": 1
+    },
+    {
+      "id": "l040.ring-monitor.interrupt",
+      "request": {
+        "interrupted": "boolean",
+        "waiter": "pending operation"
+      },
+      "response": {
+        "outcome": "canceled before mutation or committed"
+      },
+      "version": 1
+    },
+    {
+      "id": "l040.ring-monitor.close",
+      "request": {
+        "operation": "close"
+      },
+      "response": {
+        "closed": "true",
+        "waiters": "all notified"
+      },
+      "version": 1
+    },
+    {
+      "id": "l040.two-lock-linked.command",
+      "request": {
+        "cancellation": "interrupt signal while awaiting",
+        "item": "T for put; null items prohibited",
+        "operation": "put|take|close"
+      },
+      "response": {
+        "close": "idempotent closure",
+        "put": "returns only after publication",
+        "take": "oldest T; closed-and-empty error"
+      },
+      "version": 1
+    },
+    {
+      "id": "l040.two-lock-linked.nodes",
+      "request": {
+        "item": "nonnull T",
+        "next": "node|null"
+      },
+      "response": {
+        "node": "linked entry"
+      },
+      "version": 1
+    },
+    {
+      "id": "l040.two-lock-linked.putLock",
+      "request": {
+        "count": "atomic integer",
+        "thread": "producer"
+      },
+      "response": {
+        "action": "wait or append"
+      },
+      "version": 1
+    },
+    {
+      "id": "l040.two-lock-linked.takeLock",
+      "request": {
+        "count": "atomic integer",
+        "thread": "consumer"
+      },
+      "response": {
+        "action": "wait or unlink"
+      },
+      "version": 1
+    },
+    {
+      "id": "l040.two-lock-linked.count",
+      "request": {
+        "delta": "plus or minus one"
+      },
+      "response": {
+        "newCount": "integer",
+        "oldCount": "integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l040.two-lock-linked.signals",
+      "request": {
+        "capacity": "integer",
+        "oldCount": "count before mutation"
+      },
+      "response": {
+        "notification": "notEmpty|notFull|none"
+      },
+      "version": 1
+    },
+    {
+      "id": "l040.two-lock-linked.shutdown",
+      "request": {
+        "operation": "close"
+      },
+      "response": {
+        "closed": "true"
+      },
+      "version": 1
+    },
+    {
+      "id": "l040.two-lock-linked.cancel",
+      "request": {
+        "interrupt": "signal",
+        "waiter": "producer|consumer"
+      },
+      "response": {
+        "result": "canceled or committed"
+      },
+      "version": 1
+    }
+  ],
+  "execution": {
+    "implementation": null,
+    "kind": "conceptual-design"
+  },
+  "problem": {
+    "referenceId": "L040",
+    "requirements": [
+      {
+        "id": "r0",
+        "text": "put waits while full, take waits while empty; waits release and reacquire the associated lock atomically."
+      },
+      {
+        "id": "r1",
+        "text": "Maintain 0 <= size <= capacity, FIFO publication and exactly one removal per item despite spurious wakeups."
+      },
+      {
+        "id": "r2",
+        "text": "Define interrupt/close behavior and a deadlock-free lock order without busy waiting."
+      }
+    ],
+    "scope": "Authored in-process concurrency study: a fixed-capacity circular buffer with one lock versus a linked FIFO with separate put/take locks and an atomic count. Both use condition variables, predicate loops and explicit wakeup rules. Graph modules are local synchronization/state responsibilities, not network services. No persistence, process recovery or unconditional fairness claim.",
+    "studyLabel": "Bounded blocking queue with condition waits"
+  },
+  "provenance": {
+    "kind": "authored-practice",
+    "note": "Authored interview preparation. Technical references support mechanisms, not the claim that a company asked this question."
+  },
+  "references": [
+    {
+      "id": "ref0",
+      "scope": "background",
+      "supports": "Lock-associated waits, spurious wakeups and a bounded-buffer example.",
+      "title": "Java Condition",
+      "url": "https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/concurrent/locks/Condition.html"
+    },
+    {
+      "id": "ref1",
+      "scope": "background",
+      "supports": "Bounded linked FIFO API and ownership model; the detailed two-lock design here is authored pseudocode.",
+      "title": "Java LinkedBlockingQueue",
+      "url": "https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/concurrent/LinkedBlockingQueue.html"
+    }
+  ],
+  "schema": "simulatte.composableStudy.v2",
+  "solutions": [
+    {
+      "acceptanceCases": [
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-08-mechanisms.test.mjs",
+            "testName": "batch-08 queue: blocked predicates wakeups close and cancellation"
+          },
+          "given": "Capacity one, producer P1 fills, P2 waits, consumer removes.",
+          "id": "behavior",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Predicate loop keeps P2 blocked while full; after reacquiring it publishes one item and size remains bounded.",
+          "when": "Wake P2 spuriously before the removal, then notify after removal."
+        },
+        {
+          "given": "Empty queue with a waiting taker, interrupt and close racing.",
+          "id": "boundary",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Canceled operations mutate nothing; closure wakes all wait sets; drained closed queue terminates; no lock is retained on errors.",
+          "when": "Cancel the waiter, close, then attempt put/take."
+        }
+      ],
+      "algorithms": [
+        {
+          "code": "put(x) { requireNonNull(x); lock(); try {\n while(count==capacity && !closed) notFull.await();\n if(closed)throw Closed(); slots[tail]=x;tail=(tail+1)%capacity;count++;\n notEmpty.signal(); } finally {unlock();} }\ntake() { lock(); try { while(count==0 && !closed)notEmpty.await();\n if(count==0)throw ClosedEmpty(); const x=slots[head];slots[head]=null;\n head=(head+1)%capacity;count--;notFull.signal();return x;\n } finally {unlock();} }\nclose() {lock();try{closed=true;notFull.signalAll();notEmpty.signalAll();}finally{unlock();}}",
+          "guarantees": [
+            "No busy waiting; all predicate rechecks occur under the owning mutex."
+          ],
+          "id": "mechanism-0",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "owner"
+        }
+      ],
+      "apis": [
+        {
+          "errors": "Invalid capacity <=0 or null item rejects; interruption before mutation leaves queue unchanged; closed put rejects; take drains before closed-empty error",
+          "method": "CALL",
+          "ownerNodeId": "owner",
+          "path": "BoundedQueue.put/take/close",
+          "request": "{\"operation\":\"put|take|close\",\"item\":\"T for put; null items prohibited\",\"cancellation\":\"interrupt signal while awaiting\"}",
+          "response": "{\"put\":\"returns only after publication\",\"take\":\"oldest T; closed-and-empty error\",\"close\":\"idempotent closure\"}"
+        }
+      ],
+      "assumptions": [
+        "Thread mutex/condition/atomic primitives satisfy their documented memory-order guarantees. Tests are deterministic transition models, not proof of JVM thread scheduling or lock fairness.",
+        "All added requirements and walkthroughs are authored practice. Graphs specify design; reference tests prove only named bounded mechanisms."
+      ],
+      "chooseWhen": "A simple auditable bounded buffer fits contention and fixed storage requirements.",
+      "id": "ring-monitor",
+      "initialGraph": {
+        "edges": [],
+        "nodes": []
+      },
+      "stages": [
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l040.ring-monitor.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l040.ring-monitor.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l040.ring-monitor.command"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l040.ring-monitor.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l040.ring-monitor.owner",
+                "id": "owner",
+                "label": "Buffer monitor",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "ring-monitor-s1",
+          "invariants": [
+            "The condition await atomically releases its associated lock and reacquires it before returning."
+          ],
+          "number": 1,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l040.ring-monitor.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "l040.ring-monitor.owner",
+                "id": "owner",
+                "label": "Buffer monitor",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l040.ring-monitor.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l040.ring-monitor.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l040.ring-monitor.command"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What makes checking a predicate and sleeping atomic?",
+          "reason": "Serialize every ring mutation under one mutex; notFull and notEmpty belong to that same mutex.",
+          "title": "Expose Buffer monitor"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l040.ring-monitor.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l040.ring-monitor.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l040.ring-monitor.command"
+                }
+              },
+              {
+                "contractId": "l040.ring-monitor.ring",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l040.ring-monitor.ring"
+                },
+                "id": "use-ring",
+                "label": "Allocate bounded slots",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "ring",
+                  "portId": "in-l040.ring-monitor.ring"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l040.ring-monitor.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l040.ring-monitor.owner",
+                "id": "owner",
+                "label": "Buffer monitor",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l040.ring-monitor.ring",
+                "id": "ring",
+                "label": "Fixed ring storage",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "ring-monitor-s2",
+          "invariants": [
+            "Occupied count never exceeds capacity."
+          ],
+          "number": 2,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l040.ring-monitor.ring",
+                "id": "ring",
+                "label": "Fixed ring storage",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l040.ring-monitor.ring",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l040.ring-monitor.ring"
+                },
+                "id": "use-ring",
+                "label": "Allocate bounded slots",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "ring",
+                  "portId": "in-l040.ring-monitor.ring"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can a put allocate unbounded memory?",
+          "reason": "Allocate exactly capacity slots; wrap head/tail modulo capacity and clear a taken slot to release references.",
+          "title": "Allocate bounded slots"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l040.ring-monitor.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l040.ring-monitor.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l040.ring-monitor.command"
+                }
+              },
+              {
+                "contractId": "l040.ring-monitor.ring",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l040.ring-monitor.ring"
+                },
+                "id": "use-ring",
+                "label": "Allocate bounded slots",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "ring",
+                  "portId": "in-l040.ring-monitor.ring"
+                }
+              },
+              {
+                "contractId": "l040.ring-monitor.mutex",
+                "from": {
+                  "nodeId": "ring",
+                  "portId": "out-l040.ring-monitor.mutex"
+                },
+                "id": "use-mutex",
+                "label": "Own every queue mutation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "mutex",
+                  "portId": "in-l040.ring-monitor.mutex"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l040.ring-monitor.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l040.ring-monitor.owner",
+                "id": "owner",
+                "label": "Buffer monitor",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l040.ring-monitor.ring",
+                "id": "ring",
+                "label": "Fixed ring storage",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l040.ring-monitor.mutex",
+                "id": "mutex",
+                "label": "Monitor mutex",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "ring-monitor-s3",
+          "invariants": [
+            "No queue field is read for a decision without the mutex."
+          ],
+          "number": 3,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l040.ring-monitor.mutex",
+                "id": "mutex",
+                "label": "Monitor mutex",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l040.ring-monitor.mutex",
+                "from": {
+                  "nodeId": "ring",
+                  "portId": "out-l040.ring-monitor.mutex"
+                },
+                "id": "use-mutex",
+                "label": "Own every queue mutation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "mutex",
+                  "portId": "in-l040.ring-monitor.mutex"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can count be checked outside its lock?",
+          "reason": "Guard count, indices, slots and closed flag with one mutex; release in finally on every exit.",
+          "title": "Own every queue mutation"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l040.ring-monitor.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l040.ring-monitor.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l040.ring-monitor.command"
+                }
+              },
+              {
+                "contractId": "l040.ring-monitor.ring",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l040.ring-monitor.ring"
+                },
+                "id": "use-ring",
+                "label": "Allocate bounded slots",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "ring",
+                  "portId": "in-l040.ring-monitor.ring"
+                }
+              },
+              {
+                "contractId": "l040.ring-monitor.mutex",
+                "from": {
+                  "nodeId": "ring",
+                  "portId": "out-l040.ring-monitor.mutex"
+                },
+                "id": "use-mutex",
+                "label": "Own every queue mutation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "mutex",
+                  "portId": "in-l040.ring-monitor.mutex"
+                }
+              },
+              {
+                "contractId": "l040.ring-monitor.notFull",
+                "from": {
+                  "nodeId": "mutex",
+                  "portId": "out-l040.ring-monitor.notFull"
+                },
+                "id": "use-notFull",
+                "label": "Wait without spinning",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "notFull",
+                  "portId": "in-l040.ring-monitor.notFull"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l040.ring-monitor.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l040.ring-monitor.owner",
+                "id": "owner",
+                "label": "Buffer monitor",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l040.ring-monitor.ring",
+                "id": "ring",
+                "label": "Fixed ring storage",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l040.ring-monitor.mutex",
+                "id": "mutex",
+                "label": "Monitor mutex",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l040.ring-monitor.notFull",
+                "id": "notFull",
+                "label": "notFull condition",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "ring-monitor-s4",
+          "invariants": [
+            "Notification is permission to recheck, not a reserved slot."
+          ],
+          "number": 4,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l040.ring-monitor.notFull",
+                "id": "notFull",
+                "label": "notFull condition",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l040.ring-monitor.notFull",
+                "from": {
+                  "nodeId": "mutex",
+                  "portId": "out-l040.ring-monitor.notFull"
+                },
+                "id": "use-notFull",
+                "label": "Wait without spinning",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "notFull",
+                  "portId": "in-l040.ring-monitor.notFull"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What if a producer wakes while still full?",
+          "reason": "Under mutex, while full and not closed await notFull; after every return, test again before mutation.",
+          "title": "Wait without spinning"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l040.ring-monitor.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l040.ring-monitor.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l040.ring-monitor.command"
+                }
+              },
+              {
+                "contractId": "l040.ring-monitor.ring",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l040.ring-monitor.ring"
+                },
+                "id": "use-ring",
+                "label": "Allocate bounded slots",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "ring",
+                  "portId": "in-l040.ring-monitor.ring"
+                }
+              },
+              {
+                "contractId": "l040.ring-monitor.mutex",
+                "from": {
+                  "nodeId": "ring",
+                  "portId": "out-l040.ring-monitor.mutex"
+                },
+                "id": "use-mutex",
+                "label": "Own every queue mutation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "mutex",
+                  "portId": "in-l040.ring-monitor.mutex"
+                }
+              },
+              {
+                "contractId": "l040.ring-monitor.notFull",
+                "from": {
+                  "nodeId": "mutex",
+                  "portId": "out-l040.ring-monitor.notFull"
+                },
+                "id": "use-notFull",
+                "label": "Wait without spinning",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "notFull",
+                  "portId": "in-l040.ring-monitor.notFull"
+                }
+              },
+              {
+                "contractId": "l040.ring-monitor.notEmpty",
+                "from": {
+                  "nodeId": "mutex",
+                  "portId": "out-l040.ring-monitor.notEmpty"
+                },
+                "id": "use-notEmpty",
+                "label": "Wake takers after publication",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "notEmpty",
+                  "portId": "in-l040.ring-monitor.notEmpty"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l040.ring-monitor.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l040.ring-monitor.owner",
+                "id": "owner",
+                "label": "Buffer monitor",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l040.ring-monitor.ring",
+                "id": "ring",
+                "label": "Fixed ring storage",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l040.ring-monitor.mutex",
+                "id": "mutex",
+                "label": "Monitor mutex",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l040.ring-monitor.notFull",
+                "id": "notFull",
+                "label": "notFull condition",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l040.ring-monitor.notEmpty",
+                "id": "notEmpty",
+                "label": "notEmpty condition",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "ring-monitor-s5",
+          "invariants": [
+            "Predicate test, wait registration and publication share synchronization."
+          ],
+          "number": 5,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l040.ring-monitor.notEmpty",
+                "id": "notEmpty",
+                "label": "notEmpty condition",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l040.ring-monitor.notEmpty",
+                "from": {
+                  "nodeId": "mutex",
+                  "portId": "out-l040.ring-monitor.notEmpty"
+                },
+                "id": "use-notEmpty",
+                "label": "Wake takers after publication",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "notEmpty",
+                  "portId": "in-l040.ring-monitor.notEmpty"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can a consumer miss a put signal?",
+          "reason": "Taker loops while empty and open under the same lock; put writes slot and count before signaling notEmpty.",
+          "title": "Wake takers after publication"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l040.ring-monitor.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l040.ring-monitor.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l040.ring-monitor.command"
+                }
+              },
+              {
+                "contractId": "l040.ring-monitor.ring",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l040.ring-monitor.ring"
+                },
+                "id": "use-ring",
+                "label": "Allocate bounded slots",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "ring",
+                  "portId": "in-l040.ring-monitor.ring"
+                }
+              },
+              {
+                "contractId": "l040.ring-monitor.mutex",
+                "from": {
+                  "nodeId": "ring",
+                  "portId": "out-l040.ring-monitor.mutex"
+                },
+                "id": "use-mutex",
+                "label": "Own every queue mutation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "mutex",
+                  "portId": "in-l040.ring-monitor.mutex"
+                }
+              },
+              {
+                "contractId": "l040.ring-monitor.notFull",
+                "from": {
+                  "nodeId": "mutex",
+                  "portId": "out-l040.ring-monitor.notFull"
+                },
+                "id": "use-notFull",
+                "label": "Wait without spinning",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "notFull",
+                  "portId": "in-l040.ring-monitor.notFull"
+                }
+              },
+              {
+                "contractId": "l040.ring-monitor.notEmpty",
+                "from": {
+                  "nodeId": "mutex",
+                  "portId": "out-l040.ring-monitor.notEmpty"
+                },
+                "id": "use-notEmpty",
+                "label": "Wake takers after publication",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "notEmpty",
+                  "portId": "in-l040.ring-monitor.notEmpty"
+                }
+              },
+              {
+                "contractId": "l040.ring-monitor.fifo",
+                "from": {
+                  "nodeId": "ring",
+                  "portId": "out-l040.ring-monitor.fifo"
+                },
+                "id": "use-fifo",
+                "label": "Define linearization points",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "fifo",
+                  "portId": "in-l040.ring-monitor.fifo"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l040.ring-monitor.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l040.ring-monitor.owner",
+                "id": "owner",
+                "label": "Buffer monitor",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l040.ring-monitor.ring",
+                "id": "ring",
+                "label": "Fixed ring storage",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l040.ring-monitor.mutex",
+                "id": "mutex",
+                "label": "Monitor mutex",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l040.ring-monitor.notFull",
+                "id": "notFull",
+                "label": "notFull condition",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l040.ring-monitor.notEmpty",
+                "id": "notEmpty",
+                "label": "notEmpty condition",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l040.ring-monitor.fifo",
+                "id": "fifo",
+                "label": "FIFO transition",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "ring-monitor-s6",
+          "invariants": [
+            "Each successful take returns the oldest published item exactly once."
+          ],
+          "number": 6,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l040.ring-monitor.fifo",
+                "id": "fifo",
+                "label": "FIFO transition",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l040.ring-monitor.fifo",
+                "from": {
+                  "nodeId": "ring",
+                  "portId": "out-l040.ring-monitor.fifo"
+                },
+                "id": "use-fifo",
+                "label": "Define linearization points",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "fifo",
+                  "portId": "in-l040.ring-monitor.fifo"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "When does an item become visible?",
+          "reason": "Put linearizes at count increment after slot write; take linearizes at removal/count decrement, then signals notFull while locked.",
+          "title": "Define linearization points"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l040.ring-monitor.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l040.ring-monitor.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l040.ring-monitor.command"
+                }
+              },
+              {
+                "contractId": "l040.ring-monitor.ring",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l040.ring-monitor.ring"
+                },
+                "id": "use-ring",
+                "label": "Allocate bounded slots",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "ring",
+                  "portId": "in-l040.ring-monitor.ring"
+                }
+              },
+              {
+                "contractId": "l040.ring-monitor.mutex",
+                "from": {
+                  "nodeId": "ring",
+                  "portId": "out-l040.ring-monitor.mutex"
+                },
+                "id": "use-mutex",
+                "label": "Own every queue mutation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "mutex",
+                  "portId": "in-l040.ring-monitor.mutex"
+                }
+              },
+              {
+                "contractId": "l040.ring-monitor.notFull",
+                "from": {
+                  "nodeId": "mutex",
+                  "portId": "out-l040.ring-monitor.notFull"
+                },
+                "id": "use-notFull",
+                "label": "Wait without spinning",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "notFull",
+                  "portId": "in-l040.ring-monitor.notFull"
+                }
+              },
+              {
+                "contractId": "l040.ring-monitor.notEmpty",
+                "from": {
+                  "nodeId": "mutex",
+                  "portId": "out-l040.ring-monitor.notEmpty"
+                },
+                "id": "use-notEmpty",
+                "label": "Wake takers after publication",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "notEmpty",
+                  "portId": "in-l040.ring-monitor.notEmpty"
+                }
+              },
+              {
+                "contractId": "l040.ring-monitor.fifo",
+                "from": {
+                  "nodeId": "ring",
+                  "portId": "out-l040.ring-monitor.fifo"
+                },
+                "id": "use-fifo",
+                "label": "Define linearization points",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "fifo",
+                  "portId": "in-l040.ring-monitor.fifo"
+                }
+              },
+              {
+                "contractId": "l040.ring-monitor.interrupt",
+                "from": {
+                  "nodeId": "mutex",
+                  "portId": "out-l040.ring-monitor.interrupt"
+                },
+                "id": "use-interrupt",
+                "label": "Cancel before mutation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "interrupt",
+                  "portId": "in-l040.ring-monitor.interrupt"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l040.ring-monitor.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l040.ring-monitor.owner",
+                "id": "owner",
+                "label": "Buffer monitor",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l040.ring-monitor.ring",
+                "id": "ring",
+                "label": "Fixed ring storage",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l040.ring-monitor.mutex",
+                "id": "mutex",
+                "label": "Monitor mutex",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l040.ring-monitor.notFull",
+                "id": "notFull",
+                "label": "notFull condition",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l040.ring-monitor.notEmpty",
+                "id": "notEmpty",
+                "label": "notEmpty condition",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l040.ring-monitor.fifo",
+                "id": "fifo",
+                "label": "FIFO transition",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l040.ring-monitor.interrupt",
+                "id": "interrupt",
+                "label": "Interrupt cleanup",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "ring-monitor-s7",
+          "invariants": [
+            "Cancellation does not undo another thread's publication."
+          ],
+          "number": 7,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l040.ring-monitor.interrupt",
+                "id": "interrupt",
+                "label": "Interrupt cleanup",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l040.ring-monitor.interrupt",
+                "from": {
+                  "nodeId": "mutex",
+                  "portId": "out-l040.ring-monitor.interrupt"
+                },
+                "id": "use-interrupt",
+                "label": "Cancel before mutation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "interrupt",
+                  "portId": "in-l040.ring-monitor.interrupt"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can interruption lose an item?",
+          "reason": "Await interruption unwinds through finally; if no mutation occurred the operation has no queue effect. Once mutation commits, return success rather than retroactively cancel it.",
+          "title": "Cancel before mutation"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l040.ring-monitor.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l040.ring-monitor.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l040.ring-monitor.command"
+                }
+              },
+              {
+                "contractId": "l040.ring-monitor.ring",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l040.ring-monitor.ring"
+                },
+                "id": "use-ring",
+                "label": "Allocate bounded slots",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "ring",
+                  "portId": "in-l040.ring-monitor.ring"
+                }
+              },
+              {
+                "contractId": "l040.ring-monitor.mutex",
+                "from": {
+                  "nodeId": "ring",
+                  "portId": "out-l040.ring-monitor.mutex"
+                },
+                "id": "use-mutex",
+                "label": "Own every queue mutation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "mutex",
+                  "portId": "in-l040.ring-monitor.mutex"
+                }
+              },
+              {
+                "contractId": "l040.ring-monitor.notFull",
+                "from": {
+                  "nodeId": "mutex",
+                  "portId": "out-l040.ring-monitor.notFull"
+                },
+                "id": "use-notFull",
+                "label": "Wait without spinning",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "notFull",
+                  "portId": "in-l040.ring-monitor.notFull"
+                }
+              },
+              {
+                "contractId": "l040.ring-monitor.notEmpty",
+                "from": {
+                  "nodeId": "mutex",
+                  "portId": "out-l040.ring-monitor.notEmpty"
+                },
+                "id": "use-notEmpty",
+                "label": "Wake takers after publication",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "notEmpty",
+                  "portId": "in-l040.ring-monitor.notEmpty"
+                }
+              },
+              {
+                "contractId": "l040.ring-monitor.fifo",
+                "from": {
+                  "nodeId": "ring",
+                  "portId": "out-l040.ring-monitor.fifo"
+                },
+                "id": "use-fifo",
+                "label": "Define linearization points",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "fifo",
+                  "portId": "in-l040.ring-monitor.fifo"
+                }
+              },
+              {
+                "contractId": "l040.ring-monitor.interrupt",
+                "from": {
+                  "nodeId": "mutex",
+                  "portId": "out-l040.ring-monitor.interrupt"
+                },
+                "id": "use-interrupt",
+                "label": "Cancel before mutation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "interrupt",
+                  "portId": "in-l040.ring-monitor.interrupt"
+                }
+              },
+              {
+                "contractId": "l040.ring-monitor.close",
+                "from": {
+                  "nodeId": "mutex",
+                  "portId": "out-l040.ring-monitor.close"
+                },
+                "id": "use-close",
+                "label": "Wake all waiters on close",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "close",
+                  "portId": "in-l040.ring-monitor.close"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l040.ring-monitor.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l040.ring-monitor.owner",
+                "id": "owner",
+                "label": "Buffer monitor",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l040.ring-monitor.ring",
+                "id": "ring",
+                "label": "Fixed ring storage",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l040.ring-monitor.mutex",
+                "id": "mutex",
+                "label": "Monitor mutex",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l040.ring-monitor.notFull",
+                "id": "notFull",
+                "label": "notFull condition",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l040.ring-monitor.notEmpty",
+                "id": "notEmpty",
+                "label": "notEmpty condition",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l040.ring-monitor.fifo",
+                "id": "fifo",
+                "label": "FIFO transition",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l040.ring-monitor.interrupt",
+                "id": "interrupt",
+                "label": "Interrupt cleanup",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l040.ring-monitor.close",
+                "id": "close",
+                "label": "Close protocol",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "ring-monitor-s8",
+          "invariants": [
+            "Closing never silently discards queued items."
+          ],
+          "number": 8,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l040.ring-monitor.close",
+                "id": "close",
+                "label": "Close protocol",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l040.ring-monitor.close",
+                "from": {
+                  "nodeId": "mutex",
+                  "portId": "out-l040.ring-monitor.close"
+                },
+                "id": "use-close",
+                "label": "Wake all waiters on close",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "close",
+                  "portId": "in-l040.ring-monitor.close"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How can an empty taker terminate?",
+          "reason": "Set closed while holding mutex, signalAll both conditions, reject new puts and allow takes to drain before closed-empty error.",
+          "title": "Wake all waiters on close"
+        }
+      ],
+      "title": "Single-lock circular buffer and two conditions",
+      "tradeoffs": [
+        "All put/take mutations contend on one mutex.",
+        "Waiter scheduling depends on the lock/condition implementation; FIFO items do not imply FIFO thread admission."
+      ]
+    },
+    {
+      "acceptanceCases": [
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-08-mechanisms.test.mjs",
+            "testName": "batch-08 queue: blocked predicates wakeups close and cancellation"
+          },
+          "given": "Capacity one, producer P1 fills, P2 waits, consumer removes.",
+          "id": "behavior",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Predicate loop keeps P2 blocked while full; after reacquiring it publishes one item and size remains bounded.",
+          "when": "Wake P2 spuriously before the removal, then notify after removal."
+        },
+        {
+          "given": "Empty queue with a waiting taker, interrupt and close racing.",
+          "id": "boundary",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Canceled operations mutate nothing; closure wakes all wait sets; drained closed queue terminates; no lock is retained on errors.",
+          "when": "Cancel the waiter, close, then attempt put/take."
+        }
+      ],
+      "algorithms": [
+        {
+          "code": "put(x) { let old; putLock.lockInterruptibly(); try {\n while(count.get()==capacity && !closed)notFull.await();if(closed)throw Closed();\n tail.next=node(x);tail=tail.next;old=count.getAndIncrement();\n if(old+1<capacity)notFull.signal();\n } finally {putLock.unlock();}\n if(old==0)signalUnderTakeLock(notEmpty);\n}\ntake() { let old,x;takeLock.lockInterruptibly();try {\n while(count.get()==0 && !closed)notEmpty.await();if(count.get()==0)throw ClosedEmpty();\n x=head.next.item;head=head.next;head.item=null;old=count.getAndDecrement();\n if(old>1)notEmpty.signal();}finally{takeLock.unlock();}\n if(old==capacity)signalUnderPutLock(notFull);return x; }\n// close acquires putLock then takeLock, wakes both sets, then releases reverse order.",
+          "guarantees": [
+            "Count provides cross-lock publication; crossing signals occur after releasing the local lock."
+          ],
+          "id": "mechanism-0",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "owner"
+        }
+      ],
+      "apis": [
+        {
+          "errors": "Invalid capacity <=0 or null item rejects; interruption before mutation leaves queue unchanged; closed put rejects; take drains before closed-empty error",
+          "method": "CALL",
+          "ownerNodeId": "owner",
+          "path": "BoundedQueue.put/take/close",
+          "request": "{\"operation\":\"put|take|close\",\"item\":\"T for put; null items prohibited\",\"cancellation\":\"interrupt signal while awaiting\"}",
+          "response": "{\"put\":\"returns only after publication\",\"take\":\"oldest T; closed-and-empty error\",\"close\":\"idempotent closure\"}"
+        }
+      ],
+      "assumptions": [
+        "Thread mutex/condition/atomic primitives satisfy their documented memory-order guarantees. Tests are deterministic transition models, not proof of JVM thread scheduling or lock fairness.",
+        "All added requirements and walkthroughs are authored practice. Graphs specify design; reference tests prove only named bounded mechanisms."
+      ],
+      "chooseWhen": "Producer and consumer critical sections should overlap while bounded storage remains explicit.",
+      "id": "two-lock-linked",
+      "initialGraph": {
+        "edges": [],
+        "nodes": []
+      },
+      "stages": [
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l040.two-lock-linked.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l040.two-lock-linked.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l040.two-lock-linked.command"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l040.two-lock-linked.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l040.two-lock-linked.owner",
+                "id": "owner",
+                "label": "Two-lock queue",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "two-lock-linked-s1",
+          "invariants": [
+            "Link publication precedes atomic count increment; acquiring the count synchronizes consumer visibility."
+          ],
+          "number": 1,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l040.two-lock-linked.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "l040.two-lock-linked.owner",
+                "id": "owner",
+                "label": "Two-lock queue",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l040.two-lock-linked.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l040.two-lock-linked.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l040.two-lock-linked.command"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How do put and take share visibility without one mutex?",
+          "reason": "Serialize producers with putLock, consumers with takeLock, and publish count through an atomic counter with release/acquire ordering.",
+          "title": "Expose Two-lock queue"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l040.two-lock-linked.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l040.two-lock-linked.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l040.two-lock-linked.command"
+                }
+              },
+              {
+                "contractId": "l040.two-lock-linked.nodes",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l040.two-lock-linked.nodes"
+                },
+                "id": "use-nodes",
+                "label": "Separate head and tail ownership",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "nodes",
+                  "portId": "in-l040.two-lock-linked.nodes"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l040.two-lock-linked.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l040.two-lock-linked.owner",
+                "id": "owner",
+                "label": "Two-lock queue",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l040.two-lock-linked.nodes",
+                "id": "nodes",
+                "label": "Linked node chain",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "two-lock-linked-s2",
+          "invariants": [
+            "Only published nodes with positive count may be removed."
+          ],
+          "number": 2,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l040.two-lock-linked.nodes",
+                "id": "nodes",
+                "label": "Linked node chain",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l040.two-lock-linked.nodes",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l040.two-lock-linked.nodes"
+                },
+                "id": "use-nodes",
+                "label": "Separate head and tail ownership",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "nodes",
+                  "portId": "in-l040.two-lock-linked.nodes"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Which pointer may each lock mutate?",
+          "reason": "Use a dummy head; producer appends through tail under putLock, consumer advances dummy head under takeLock and clears detached references.",
+          "title": "Separate head and tail ownership"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l040.two-lock-linked.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l040.two-lock-linked.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l040.two-lock-linked.command"
+                }
+              },
+              {
+                "contractId": "l040.two-lock-linked.nodes",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l040.two-lock-linked.nodes"
+                },
+                "id": "use-nodes",
+                "label": "Separate head and tail ownership",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "nodes",
+                  "portId": "in-l040.two-lock-linked.nodes"
+                }
+              },
+              {
+                "contractId": "l040.two-lock-linked.putLock",
+                "from": {
+                  "nodeId": "nodes",
+                  "portId": "out-l040.two-lock-linked.putLock"
+                },
+                "id": "use-putLock",
+                "label": "Serialize tail mutation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "putLock",
+                  "portId": "in-l040.two-lock-linked.putLock"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l040.two-lock-linked.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l040.two-lock-linked.owner",
+                "id": "owner",
+                "label": "Two-lock queue",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l040.two-lock-linked.nodes",
+                "id": "nodes",
+                "label": "Linked node chain",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l040.two-lock-linked.putLock",
+                "id": "putLock",
+                "label": "Producer mutex",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "two-lock-linked-s3",
+          "invariants": [
+            "One producer publishes one tail link at a time."
+          ],
+          "number": 3,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l040.two-lock-linked.putLock",
+                "id": "putLock",
+                "label": "Producer mutex",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l040.two-lock-linked.putLock",
+                "from": {
+                  "nodeId": "nodes",
+                  "portId": "out-l040.two-lock-linked.putLock"
+                },
+                "id": "use-putLock",
+                "label": "Serialize tail mutation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "putLock",
+                  "portId": "in-l040.two-lock-linked.putLock"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can two producers append to the same tail?",
+          "reason": "putLock protects producer wait predicate and tail links. notFull is associated only with putLock.",
+          "title": "Serialize tail mutation"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l040.two-lock-linked.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l040.two-lock-linked.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l040.two-lock-linked.command"
+                }
+              },
+              {
+                "contractId": "l040.two-lock-linked.nodes",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l040.two-lock-linked.nodes"
+                },
+                "id": "use-nodes",
+                "label": "Separate head and tail ownership",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "nodes",
+                  "portId": "in-l040.two-lock-linked.nodes"
+                }
+              },
+              {
+                "contractId": "l040.two-lock-linked.putLock",
+                "from": {
+                  "nodeId": "nodes",
+                  "portId": "out-l040.two-lock-linked.putLock"
+                },
+                "id": "use-putLock",
+                "label": "Serialize tail mutation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "putLock",
+                  "portId": "in-l040.two-lock-linked.putLock"
+                }
+              },
+              {
+                "contractId": "l040.two-lock-linked.takeLock",
+                "from": {
+                  "nodeId": "nodes",
+                  "portId": "out-l040.two-lock-linked.takeLock"
+                },
+                "id": "use-takeLock",
+                "label": "Serialize head mutation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "takeLock",
+                  "portId": "in-l040.two-lock-linked.takeLock"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l040.two-lock-linked.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l040.two-lock-linked.owner",
+                "id": "owner",
+                "label": "Two-lock queue",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l040.two-lock-linked.nodes",
+                "id": "nodes",
+                "label": "Linked node chain",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l040.two-lock-linked.putLock",
+                "id": "putLock",
+                "label": "Producer mutex",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l040.two-lock-linked.takeLock",
+                "id": "takeLock",
+                "label": "Consumer mutex",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "two-lock-linked-s4",
+          "invariants": [
+            "One consumer advances head at a time."
+          ],
+          "number": 4,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l040.two-lock-linked.takeLock",
+                "id": "takeLock",
+                "label": "Consumer mutex",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l040.two-lock-linked.takeLock",
+                "from": {
+                  "nodeId": "nodes",
+                  "portId": "out-l040.two-lock-linked.takeLock"
+                },
+                "id": "use-takeLock",
+                "label": "Serialize head mutation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "takeLock",
+                  "portId": "in-l040.two-lock-linked.takeLock"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can two consumers return the same node?",
+          "reason": "takeLock protects head and notEmpty waiting; consume only after atomic count observes a published entry.",
+          "title": "Serialize head mutation"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l040.two-lock-linked.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l040.two-lock-linked.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l040.two-lock-linked.command"
+                }
+              },
+              {
+                "contractId": "l040.two-lock-linked.nodes",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l040.two-lock-linked.nodes"
+                },
+                "id": "use-nodes",
+                "label": "Separate head and tail ownership",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "nodes",
+                  "portId": "in-l040.two-lock-linked.nodes"
+                }
+              },
+              {
+                "contractId": "l040.two-lock-linked.putLock",
+                "from": {
+                  "nodeId": "nodes",
+                  "portId": "out-l040.two-lock-linked.putLock"
+                },
+                "id": "use-putLock",
+                "label": "Serialize tail mutation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "putLock",
+                  "portId": "in-l040.two-lock-linked.putLock"
+                }
+              },
+              {
+                "contractId": "l040.two-lock-linked.takeLock",
+                "from": {
+                  "nodeId": "nodes",
+                  "portId": "out-l040.two-lock-linked.takeLock"
+                },
+                "id": "use-takeLock",
+                "label": "Serialize head mutation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "takeLock",
+                  "portId": "in-l040.two-lock-linked.takeLock"
+                }
+              },
+              {
+                "contractId": "l040.two-lock-linked.count",
+                "from": {
+                  "nodeId": "putLock",
+                  "portId": "out-l040.two-lock-linked.count"
+                },
+                "id": "use-count",
+                "label": "Publish memory across locks",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "count",
+                  "portId": "in-l040.two-lock-linked.count"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l040.two-lock-linked.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l040.two-lock-linked.owner",
+                "id": "owner",
+                "label": "Two-lock queue",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l040.two-lock-linked.nodes",
+                "id": "nodes",
+                "label": "Linked node chain",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l040.two-lock-linked.putLock",
+                "id": "putLock",
+                "label": "Producer mutex",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l040.two-lock-linked.takeLock",
+                "id": "takeLock",
+                "label": "Consumer mutex",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l040.two-lock-linked.count",
+                "id": "count",
+                "label": "Atomic publication count",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "two-lock-linked-s5",
+          "invariants": [
+            "Count transitions publish link writes; count remains within capacity."
+          ],
+          "number": 5,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l040.two-lock-linked.count",
+                "id": "count",
+                "label": "Atomic publication count",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l040.two-lock-linked.count",
+                "from": {
+                  "nodeId": "putLock",
+                  "portId": "out-l040.two-lock-linked.count"
+                },
+                "id": "use-count",
+                "label": "Publish memory across locks",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "count",
+                  "portId": "in-l040.two-lock-linked.count"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "When is a linked node safe to read?",
+          "reason": "A producer links then atomic getAndIncrement; consumer checks count with acquire semantics before following next. Decrement follows removal.",
+          "title": "Publish memory across locks"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l040.two-lock-linked.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l040.two-lock-linked.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l040.two-lock-linked.command"
+                }
+              },
+              {
+                "contractId": "l040.two-lock-linked.nodes",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l040.two-lock-linked.nodes"
+                },
+                "id": "use-nodes",
+                "label": "Separate head and tail ownership",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "nodes",
+                  "portId": "in-l040.two-lock-linked.nodes"
+                }
+              },
+              {
+                "contractId": "l040.two-lock-linked.putLock",
+                "from": {
+                  "nodeId": "nodes",
+                  "portId": "out-l040.two-lock-linked.putLock"
+                },
+                "id": "use-putLock",
+                "label": "Serialize tail mutation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "putLock",
+                  "portId": "in-l040.two-lock-linked.putLock"
+                }
+              },
+              {
+                "contractId": "l040.two-lock-linked.takeLock",
+                "from": {
+                  "nodeId": "nodes",
+                  "portId": "out-l040.two-lock-linked.takeLock"
+                },
+                "id": "use-takeLock",
+                "label": "Serialize head mutation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "takeLock",
+                  "portId": "in-l040.two-lock-linked.takeLock"
+                }
+              },
+              {
+                "contractId": "l040.two-lock-linked.count",
+                "from": {
+                  "nodeId": "putLock",
+                  "portId": "out-l040.two-lock-linked.count"
+                },
+                "id": "use-count",
+                "label": "Publish memory across locks",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "count",
+                  "portId": "in-l040.two-lock-linked.count"
+                }
+              },
+              {
+                "contractId": "l040.two-lock-linked.signals",
+                "from": {
+                  "nodeId": "count",
+                  "portId": "out-l040.two-lock-linked.signals"
+                },
+                "id": "use-signals",
+                "label": "Signal without lock inversion",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "signals",
+                  "portId": "in-l040.two-lock-linked.signals"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l040.two-lock-linked.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l040.two-lock-linked.owner",
+                "id": "owner",
+                "label": "Two-lock queue",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l040.two-lock-linked.nodes",
+                "id": "nodes",
+                "label": "Linked node chain",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l040.two-lock-linked.putLock",
+                "id": "putLock",
+                "label": "Producer mutex",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l040.two-lock-linked.takeLock",
+                "id": "takeLock",
+                "label": "Consumer mutex",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l040.two-lock-linked.count",
+                "id": "count",
+                "label": "Atomic publication count",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l040.two-lock-linked.signals",
+                "id": "signals",
+                "label": "Cross-lock notifications",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "two-lock-linked-s6",
+          "invariants": [
+            "Normal put/take never hold both locks simultaneously."
+          ],
+          "number": 6,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l040.two-lock-linked.signals",
+                "id": "signals",
+                "label": "Cross-lock notifications",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l040.two-lock-linked.signals",
+                "from": {
+                  "nodeId": "count",
+                  "portId": "out-l040.two-lock-linked.signals"
+                },
+                "id": "use-signals",
+                "label": "Signal without lock inversion",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "signals",
+                  "portId": "in-l040.two-lock-linked.signals"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Could put hold putLock while waiting for takeLock?",
+          "reason": "Release local mutation lock before acquiring the opposite lock for empty-to-nonempty or full-to-nonfull signal. Propagate local signals when further work is possible.",
+          "title": "Signal without lock inversion"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l040.two-lock-linked.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l040.two-lock-linked.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l040.two-lock-linked.command"
+                }
+              },
+              {
+                "contractId": "l040.two-lock-linked.nodes",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l040.two-lock-linked.nodes"
+                },
+                "id": "use-nodes",
+                "label": "Separate head and tail ownership",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "nodes",
+                  "portId": "in-l040.two-lock-linked.nodes"
+                }
+              },
+              {
+                "contractId": "l040.two-lock-linked.putLock",
+                "from": {
+                  "nodeId": "nodes",
+                  "portId": "out-l040.two-lock-linked.putLock"
+                },
+                "id": "use-putLock",
+                "label": "Serialize tail mutation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "putLock",
+                  "portId": "in-l040.two-lock-linked.putLock"
+                }
+              },
+              {
+                "contractId": "l040.two-lock-linked.takeLock",
+                "from": {
+                  "nodeId": "nodes",
+                  "portId": "out-l040.two-lock-linked.takeLock"
+                },
+                "id": "use-takeLock",
+                "label": "Serialize head mutation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "takeLock",
+                  "portId": "in-l040.two-lock-linked.takeLock"
+                }
+              },
+              {
+                "contractId": "l040.two-lock-linked.count",
+                "from": {
+                  "nodeId": "putLock",
+                  "portId": "out-l040.two-lock-linked.count"
+                },
+                "id": "use-count",
+                "label": "Publish memory across locks",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "count",
+                  "portId": "in-l040.two-lock-linked.count"
+                }
+              },
+              {
+                "contractId": "l040.two-lock-linked.signals",
+                "from": {
+                  "nodeId": "count",
+                  "portId": "out-l040.two-lock-linked.signals"
+                },
+                "id": "use-signals",
+                "label": "Signal without lock inversion",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "signals",
+                  "portId": "in-l040.two-lock-linked.signals"
+                }
+              },
+              {
+                "contractId": "l040.two-lock-linked.shutdown",
+                "from": {
+                  "nodeId": "signals",
+                  "portId": "out-l040.two-lock-linked.shutdown"
+                },
+                "id": "use-shutdown",
+                "label": "Close under one lock order",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "shutdown",
+                  "portId": "in-l040.two-lock-linked.shutdown"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l040.two-lock-linked.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l040.two-lock-linked.owner",
+                "id": "owner",
+                "label": "Two-lock queue",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l040.two-lock-linked.nodes",
+                "id": "nodes",
+                "label": "Linked node chain",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l040.two-lock-linked.putLock",
+                "id": "putLock",
+                "label": "Producer mutex",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l040.two-lock-linked.takeLock",
+                "id": "takeLock",
+                "label": "Consumer mutex",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l040.two-lock-linked.count",
+                "id": "count",
+                "label": "Atomic publication count",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l040.two-lock-linked.signals",
+                "id": "signals",
+                "label": "Cross-lock notifications",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l040.two-lock-linked.shutdown",
+                "id": "shutdown",
+                "label": "Ordered close acquisition",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "two-lock-linked-s7",
+          "invariants": [
+            "Any path that holds both locks uses putLock then takeLock."
+          ],
+          "number": 7,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l040.two-lock-linked.shutdown",
+                "id": "shutdown",
+                "label": "Ordered close acquisition",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l040.two-lock-linked.shutdown",
+                "from": {
+                  "nodeId": "signals",
+                  "portId": "out-l040.two-lock-linked.shutdown"
+                },
+                "id": "use-shutdown",
+                "label": "Close under one lock order",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "shutdown",
+                  "portId": "in-l040.two-lock-linked.shutdown"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What if closure races a blocked put?",
+          "reason": "Close takes putLock then takeLock, sets shared closed, and signals both wait sets before releasing in reverse order; puts test closed under putLock.",
+          "title": "Close under one lock order"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l040.two-lock-linked.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l040.two-lock-linked.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l040.two-lock-linked.command"
+                }
+              },
+              {
+                "contractId": "l040.two-lock-linked.nodes",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l040.two-lock-linked.nodes"
+                },
+                "id": "use-nodes",
+                "label": "Separate head and tail ownership",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "nodes",
+                  "portId": "in-l040.two-lock-linked.nodes"
+                }
+              },
+              {
+                "contractId": "l040.two-lock-linked.putLock",
+                "from": {
+                  "nodeId": "nodes",
+                  "portId": "out-l040.two-lock-linked.putLock"
+                },
+                "id": "use-putLock",
+                "label": "Serialize tail mutation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "putLock",
+                  "portId": "in-l040.two-lock-linked.putLock"
+                }
+              },
+              {
+                "contractId": "l040.two-lock-linked.takeLock",
+                "from": {
+                  "nodeId": "nodes",
+                  "portId": "out-l040.two-lock-linked.takeLock"
+                },
+                "id": "use-takeLock",
+                "label": "Serialize head mutation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "takeLock",
+                  "portId": "in-l040.two-lock-linked.takeLock"
+                }
+              },
+              {
+                "contractId": "l040.two-lock-linked.count",
+                "from": {
+                  "nodeId": "putLock",
+                  "portId": "out-l040.two-lock-linked.count"
+                },
+                "id": "use-count",
+                "label": "Publish memory across locks",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "count",
+                  "portId": "in-l040.two-lock-linked.count"
+                }
+              },
+              {
+                "contractId": "l040.two-lock-linked.signals",
+                "from": {
+                  "nodeId": "count",
+                  "portId": "out-l040.two-lock-linked.signals"
+                },
+                "id": "use-signals",
+                "label": "Signal without lock inversion",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "signals",
+                  "portId": "in-l040.two-lock-linked.signals"
+                }
+              },
+              {
+                "contractId": "l040.two-lock-linked.shutdown",
+                "from": {
+                  "nodeId": "signals",
+                  "portId": "out-l040.two-lock-linked.shutdown"
+                },
+                "id": "use-shutdown",
+                "label": "Close under one lock order",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "shutdown",
+                  "portId": "in-l040.two-lock-linked.shutdown"
+                }
+              },
+              {
+                "contractId": "l040.two-lock-linked.cancel",
+                "from": {
+                  "nodeId": "shutdown",
+                  "portId": "out-l040.two-lock-linked.cancel"
+                },
+                "id": "use-cancel",
+                "label": "Remove waiters without queue mutation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "cancel",
+                  "portId": "in-l040.two-lock-linked.cancel"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l040.two-lock-linked.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l040.two-lock-linked.owner",
+                "id": "owner",
+                "label": "Two-lock queue",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l040.two-lock-linked.nodes",
+                "id": "nodes",
+                "label": "Linked node chain",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l040.two-lock-linked.putLock",
+                "id": "putLock",
+                "label": "Producer mutex",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l040.two-lock-linked.takeLock",
+                "id": "takeLock",
+                "label": "Consumer mutex",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l040.two-lock-linked.count",
+                "id": "count",
+                "label": "Atomic publication count",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l040.two-lock-linked.signals",
+                "id": "signals",
+                "label": "Cross-lock notifications",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l040.two-lock-linked.shutdown",
+                "id": "shutdown",
+                "label": "Ordered close acquisition",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l040.two-lock-linked.cancel",
+                "id": "cancel",
+                "label": "Waiter cancellation",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "two-lock-linked-s8",
+          "invariants": [
+            "No semaphore permit accounting exists to leak; count changes only with data mutation."
+          ],
+          "number": 8,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l040.two-lock-linked.cancel",
+                "id": "cancel",
+                "label": "Waiter cancellation",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l040.two-lock-linked.cancel",
+                "from": {
+                  "nodeId": "shutdown",
+                  "portId": "out-l040.two-lock-linked.cancel"
+                },
+                "id": "use-cancel",
+                "label": "Remove waiters without queue mutation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "cancel",
+                  "portId": "in-l040.two-lock-linked.cancel"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can canceled waiters consume a permit?",
+          "reason": "Use while loops with closed checks on the relevant condition; interrupted await exits before linking/unlinking, unlocking in finally.",
+          "title": "Remove waiters without queue mutation"
+        }
+      ],
+      "title": "Separate put/take locks over linked FIFO",
+      "tradeoffs": [
+        "More subtle cross-lock signaling and publication proof.",
+        "Linked nodes allocate per put; close and full snapshots acquire both locks in a fixed order."
+      ]
+    }
+  ],
+  "subsystems": [],
+  "version": 1
+}

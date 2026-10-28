@@ -1,0 +1,3552 @@
+{
+  "components": [
+    {
+      "extends": {
+        "id": "core.client",
+        "version": 1
+      },
+      "id": "l041.striped-ring.caller",
+      "label": "Caller",
+      "ports": [
+        {
+          "contractId": "l041.striped-ring.command",
+          "direction": "out",
+          "id": "out-l041.striped-ring.command"
+        }
+      ],
+      "responsibility": "Invoke the documented API and retain returned outcomes.",
+      "stateOwnership": [
+        "caller-owned input"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l041.striped-ring.owner",
+      "label": "Ring counter",
+      "ports": [
+        {
+          "contractId": "l041.striped-ring.command",
+          "direction": "in",
+          "id": "in-l041.striped-ring.command"
+        },
+        {
+          "contractId": "l041.striped-ring.clock",
+          "direction": "out",
+          "id": "out-l041.striped-ring.clock"
+        }
+      ],
+      "responsibility": "Route each second to its timestamp-tagged slot; hold the slot stripe while resetting epoch and incrementing count.",
+      "stateOwnership": [
+        "key directory",
+        "300 tagged counters per key"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l041.striped-ring.clock",
+      "label": "Injected clock",
+      "ports": [
+        {
+          "contractId": "l041.striped-ring.clock",
+          "direction": "in",
+          "id": "in-l041.striped-ring.clock"
+        },
+        {
+          "contractId": "l041.striped-ring.slots",
+          "direction": "out",
+          "id": "out-l041.striped-ring.slots"
+        }
+      ],
+      "responsibility": "Use an injected clock adapter with nondecreasing clamp and a visible rollback diagnostic; never trust request time for expiration.",
+      "stateOwnership": [
+        "last observed second"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l041.striped-ring.slots",
+      "label": "Timestamp ring",
+      "ports": [
+        {
+          "contractId": "l041.striped-ring.slots",
+          "direction": "in",
+          "id": "in-l041.striped-ring.slots"
+        },
+        {
+          "contractId": "l041.striped-ring.stripe",
+          "direction": "out",
+          "id": "out-l041.striped-ring.stripe"
+        },
+        {
+          "contractId": "l041.striped-ring.keys",
+          "direction": "out",
+          "id": "out-l041.striped-ring.keys"
+        }
+      ],
+      "responsibility": "Index now modulo 300; slot contains epoch second and count, never count alone.",
+      "stateOwnership": [
+        "300 {second,count} slots per key"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l041.striped-ring.stripe",
+      "label": "Slot stripe locks",
+      "ports": [
+        {
+          "contractId": "l041.striped-ring.stripe",
+          "direction": "in",
+          "id": "in-l041.striped-ring.stripe"
+        },
+        {
+          "contractId": "l041.striped-ring.snapshot",
+          "direction": "out",
+          "id": "out-l041.striped-ring.snapshot"
+        }
+      ],
+      "responsibility": "Lock the stripe covering the slot, replace stale tag/count with {now,0}, checked increment, then release.",
+      "stateOwnership": [
+        "stripe mutexes"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l041.striped-ring.snapshot",
+      "label": "Ordered stripe snapshot",
+      "ports": [
+        {
+          "contractId": "l041.striped-ring.snapshot",
+          "direction": "in",
+          "id": "in-l041.striped-ring.snapshot"
+        },
+        {
+          "contractId": "l041.striped-ring.admit",
+          "direction": "out",
+          "id": "out-l041.striped-ring.admit"
+        }
+      ],
+      "responsibility": "Acquire all stripes in ascending index, sample clock once, sum matching epochs, and release reverse order. Hit samples now only after its stripe lock is held.",
+      "stateOwnership": [
+        "snapshot lock set"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l041.striped-ring.admit",
+      "label": "Per-key admission gate",
+      "ports": [
+        {
+          "contractId": "l041.striped-ring.admit",
+          "direction": "in",
+          "id": "in-l041.striped-ring.admit"
+        },
+        {
+          "contractId": "l041.striped-ring.overflow",
+          "direction": "out",
+          "id": "out-l041.striped-ring.overflow"
+        }
+      ],
+      "responsibility": "tryAcquire takes all stripes in the same order and checks sum plus increments its current slot as one transition. Plain hit remains slot-striped.",
+      "stateOwnership": [
+        "admission critical section"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l041.striped-ring.keys",
+      "label": "Key lifecycle",
+      "ports": [
+        {
+          "contractId": "l041.striped-ring.keys",
+          "direction": "in",
+          "id": "in-l041.striped-ring.keys"
+        }
+      ],
+      "responsibility": "Use a capped key directory and reference pinning; reclaim idle keys only when their window is empty and no operation pins the entry.",
+      "stateOwnership": [
+        "directory cap",
+        "entry pins"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l041.striped-ring.overflow",
+      "label": "Checked arithmetic",
+      "ports": [
+        {
+          "contractId": "l041.striped-ring.overflow",
+          "direction": "in",
+          "id": "in-l041.striped-ring.overflow"
+        }
+      ],
+      "responsibility": "Check per-slot increment and sum overflow before publishing mutation; report exhaustion rather than wrap negative.",
+      "stateOwnership": [
+        "overflow diagnostic"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.client",
+        "version": 1
+      },
+      "id": "l041.timestamp-deque.caller",
+      "label": "Caller",
+      "ports": [
+        {
+          "contractId": "l041.timestamp-deque.command",
+          "direction": "out",
+          "id": "out-l041.timestamp-deque.command"
+        }
+      ],
+      "responsibility": "Invoke the documented API and retain returned outcomes.",
+      "stateOwnership": [
+        "caller-owned input"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l041.timestamp-deque.owner",
+      "label": "Deque counter",
+      "ports": [
+        {
+          "contractId": "l041.timestamp-deque.command",
+          "direction": "in",
+          "id": "in-l041.timestamp-deque.command"
+        },
+        {
+          "contractId": "l041.timestamp-deque.keylock",
+          "direction": "out",
+          "id": "out-l041.timestamp-deque.keylock"
+        }
+      ],
+      "responsibility": "Store ascending timestamp buckets per key and expire from the head; serialize only operations for the same key.",
+      "stateOwnership": [
+        "key directory",
+        "per-key bucket deque",
+        "running total"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l041.timestamp-deque.keylock",
+      "label": "Key mutex directory",
+      "ports": [
+        {
+          "contractId": "l041.timestamp-deque.keylock",
+          "direction": "in",
+          "id": "in-l041.timestamp-deque.keylock"
+        },
+        {
+          "contractId": "l041.timestamp-deque.time",
+          "direction": "out",
+          "id": "out-l041.timestamp-deque.time"
+        },
+        {
+          "contractId": "l041.timestamp-deque.reap",
+          "direction": "out",
+          "id": "out-l041.timestamp-deque.reap"
+        }
+      ],
+      "responsibility": "Use bounded striped directory lookup with pinned per-key entries, then serialize only that entry's state transitions.",
+      "stateOwnership": [
+        "per-key mutex",
+        "entry pins"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l041.timestamp-deque.time",
+      "label": "Monotone key clock",
+      "ports": [
+        {
+          "contractId": "l041.timestamp-deque.time",
+          "direction": "in",
+          "id": "in-l041.timestamp-deque.time"
+        },
+        {
+          "contractId": "l041.timestamp-deque.buckets",
+          "direction": "out",
+          "id": "out-l041.timestamp-deque.buckets"
+        }
+      ],
+      "responsibility": "Sample the injected monotone clock while holding the key mutex; clamp regressions and keep diagnostic state.",
+      "stateOwnership": [
+        "last second"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l041.timestamp-deque.buckets",
+      "label": "Timestamp buckets",
+      "ports": [
+        {
+          "contractId": "l041.timestamp-deque.buckets",
+          "direction": "in",
+          "id": "in-l041.timestamp-deque.buckets"
+        },
+        {
+          "contractId": "l041.timestamp-deque.expire",
+          "direction": "out",
+          "id": "out-l041.timestamp-deque.expire"
+        }
+      ],
+      "responsibility": "Increment the tail bucket if its timestamp equals now, otherwise append one bucket; keep checked running total.",
+      "stateOwnership": [
+        "deque {second,count}",
+        "total"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l041.timestamp-deque.expire",
+      "label": "Head expiry",
+      "ports": [
+        {
+          "contractId": "l041.timestamp-deque.expire",
+          "direction": "in",
+          "id": "in-l041.timestamp-deque.expire"
+        },
+        {
+          "contractId": "l041.timestamp-deque.decision",
+          "direction": "out",
+          "id": "out-l041.timestamp-deque.decision"
+        }
+      ],
+      "responsibility": "Before any read/admission, pop while head.second <= now-300 and subtract each count exactly once.",
+      "stateOwnership": [
+        "expired bucket cursor"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l041.timestamp-deque.decision",
+      "label": "Atomic decision",
+      "ports": [
+        {
+          "contractId": "l041.timestamp-deque.decision",
+          "direction": "in",
+          "id": "in-l041.timestamp-deque.decision"
+        },
+        {
+          "contractId": "l041.timestamp-deque.checked",
+          "direction": "out",
+          "id": "out-l041.timestamp-deque.checked"
+        }
+      ],
+      "responsibility": "Under the same key lock, expire then compare total to limit; on success add one hit before unlocking.",
+      "stateOwnership": [
+        "admission result"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l041.timestamp-deque.reap",
+      "label": "Idle-key reaper",
+      "ports": [
+        {
+          "contractId": "l041.timestamp-deque.reap",
+          "direction": "in",
+          "id": "in-l041.timestamp-deque.reap"
+        }
+      ],
+      "responsibility": "After expiration leaves empty deque, mark idle; directory removal checks entry identity and pin count. Live-key cap rejects rather than evicts active accounting.",
+      "stateOwnership": [
+        "idle epoch",
+        "directory membership"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l041.timestamp-deque.checked",
+      "label": "Overflow and shutdown policy",
+      "ports": [
+        {
+          "contractId": "l041.timestamp-deque.checked",
+          "direction": "in",
+          "id": "in-l041.timestamp-deque.checked"
+        }
+      ],
+      "responsibility": "Only pop a bucket once under its owner lock, use checked totals, and stop admission on numeric exhaustion. Reinitialization is explicit.",
+      "stateOwnership": [
+        "numeric failure flag"
+      ],
+      "version": 1
+    }
+  ],
+  "contracts": [
+    {
+      "id": "l041.striped-ring.command",
+      "request": {
+        "key": "bounded-cardinality caller key",
+        "limit": "positive integer for optional admission",
+        "now": "injected monotonic integer seconds",
+        "operation": "hit|getHits|tryAcquire"
+      },
+      "response": {
+        "accepted": "boolean for tryAcquire",
+        "count": "nonnegative exact count in [now-299,now]",
+        "snapshotTime": "one sampled clock second"
+      },
+      "version": 1
+    },
+    {
+      "id": "l041.striped-ring.clock",
+      "request": {
+        "rawNow": "int64 seconds"
+      },
+      "response": {
+        "now": "nondecreasing int64",
+        "rollback": "boolean"
+      },
+      "version": 1
+    },
+    {
+      "id": "l041.striped-ring.slots",
+      "request": {
+        "key": "key",
+        "second": "int64"
+      },
+      "response": {
+        "slot": "index and timestamp tag"
+      },
+      "version": 1
+    },
+    {
+      "id": "l041.striped-ring.stripe",
+      "request": {
+        "now": "second",
+        "slot": "tagged counter"
+      },
+      "response": {
+        "newCount": "checked int64"
+      },
+      "version": 1
+    },
+    {
+      "id": "l041.striped-ring.snapshot",
+      "request": {
+        "key": "key"
+      },
+      "response": {
+        "count": "consistent sum",
+        "now": "one clock sample"
+      },
+      "version": 1
+    },
+    {
+      "id": "l041.striped-ring.admit",
+      "request": {
+        "key": "key",
+        "limit": "positive count"
+      },
+      "response": {
+        "accepted": "boolean",
+        "count": "postdecision total"
+      },
+      "version": 1
+    },
+    {
+      "id": "l041.striped-ring.keys",
+      "request": {
+        "key": "bounded string",
+        "now": "second"
+      },
+      "response": {
+        "entry": "pinned ring or rejected"
+      },
+      "version": 1
+    },
+    {
+      "id": "l041.striped-ring.overflow",
+      "request": {
+        "count": "int64",
+        "delta": "positive integer"
+      },
+      "response": {
+        "result": "new int64 or error"
+      },
+      "version": 1
+    },
+    {
+      "id": "l041.timestamp-deque.command",
+      "request": {
+        "key": "bounded-cardinality caller key",
+        "limit": "positive integer for optional admission",
+        "now": "injected monotonic integer seconds",
+        "operation": "hit|getHits|tryAcquire"
+      },
+      "response": {
+        "accepted": "boolean for tryAcquire",
+        "count": "nonnegative exact count in [now-299,now]",
+        "snapshotTime": "one sampled clock second"
+      },
+      "version": 1
+    },
+    {
+      "id": "l041.timestamp-deque.keylock",
+      "request": {
+        "key": "bounded key"
+      },
+      "response": {
+        "entry": "pinned mutex and deque"
+      },
+      "version": 1
+    },
+    {
+      "id": "l041.timestamp-deque.time",
+      "request": {
+        "last": "prior time",
+        "rawNow": "clock sample"
+      },
+      "response": {
+        "now": "max(last,rawNow)"
+      },
+      "version": 1
+    },
+    {
+      "id": "l041.timestamp-deque.buckets",
+      "request": {
+        "delta": "positive count",
+        "now": "second"
+      },
+      "response": {
+        "tail": "coalesced or appended bucket"
+      },
+      "version": 1
+    },
+    {
+      "id": "l041.timestamp-deque.expire",
+      "request": {
+        "deque": "ordered buckets",
+        "now": "second"
+      },
+      "response": {
+        "total": "sum of retained buckets"
+      },
+      "version": 1
+    },
+    {
+      "id": "l041.timestamp-deque.decision",
+      "request": {
+        "limit": "positive integer",
+        "total": "current exact count"
+      },
+      "response": {
+        "accepted": "boolean"
+      },
+      "version": 1
+    },
+    {
+      "id": "l041.timestamp-deque.reap",
+      "request": {
+        "key": "entry identity",
+        "pins": "active holders"
+      },
+      "response": {
+        "removed": "boolean"
+      },
+      "version": 1
+    },
+    {
+      "id": "l041.timestamp-deque.checked",
+      "request": {
+        "delta": "signed update",
+        "total": "int64"
+      },
+      "response": {
+        "newTotal": "valid nonnegative int64"
+      },
+      "version": 1
+    }
+  ],
+  "execution": {
+    "implementation": null,
+    "kind": "conceptual-design"
+  },
+  "problem": {
+    "referenceId": "L041",
+    "requirements": [
+      {
+        "id": "r0",
+        "text": "Record concurrent hits without losing increments when a ring slot changes epoch; expire at the exact 300-second boundary."
+      },
+      {
+        "id": "r1",
+        "text": "Use granular hit-path synchronization and a consistent count snapshot policy."
+      },
+      {
+        "id": "r2",
+        "text": "Inject time and define clock rollback, overflow, per-key memory bounds and optional atomic check-and-admit."
+      }
+    ],
+    "scope": "Authored in-process exact integer-second counter and optional admission limiter. Compare striped timestamp-tagged 300-slot rings with per-key ordered timestamp queues. Count window at second now is [now-299,now]; timestamps <=now-300 expire. The injected nondecreasing clock defines time, not client timestamps. No cross-machine clock or distributed rate-limit guarantee.",
+    "studyLabel": "Concurrent 300-second hit counter"
+  },
+  "provenance": {
+    "kind": "authored-practice",
+    "note": "Authored interview preparation. Technical references support mechanisms, not the claim that a company asked this question."
+  },
+  "references": [
+    {
+      "id": "ref0",
+      "scope": "background",
+      "supports": "Injectable time for deterministic tests; monotonic-second semantics here are an explicit authored policy.",
+      "title": "Java Clock",
+      "url": "https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/time/Clock.html"
+    }
+  ],
+  "schema": "simulatte.composableStudy.v2",
+  "solutions": [
+    {
+      "acceptanceCases": [
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-08-mechanisms.test.mjs",
+            "testName": "batch-08 counter: rollover boundary rollback and exact admission"
+          },
+          "given": "Hits at seconds 0, 299 and 300 with multiple increments in one slot.",
+          "id": "behavior",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "At 300 the second-0 count is excluded; epoch reuse cannot resurrect or erase another hit.",
+          "when": "Read at 299, 300, 599 and 600 under injected time."
+        },
+        {
+          "given": "Two same-key admissions see one remaining slot, with clock rollback afterward.",
+          "id": "boundary",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Exactly one admission succeeds; denied requests do not increment; rollback follows the declared clamp policy.",
+          "when": "Serialize each check-and-increment at the per-key boundary."
+        }
+      ],
+      "algorithms": [
+        {
+          "code": "hit(key) { const entry=pin(key); try { for(;;) {\n const stripe=entry.stripe(clock.peek()%300); lock(stripe);\n try { const now=clock.nowMonotone();\n  if(stripeOf(now%300)!==stripe)continue; // finally unlocks before the loop retries\n  const slot=entry.slot(now%300);\n  const next=slot.second===now?checkedAdd(slot.count,1):1;\n  slot.second=now;slot.count=next;return;\n }finally{unlock(stripe);}\n }}finally{unpin(entry);} }\ngetHits(key) { lockAllAscending(key);try{const now=clock.nowMonotone();\n return sumChecked(slots.filter(s=>s.second<=now&&s.second>now-300));\n }finally{unlockAllDescending(key);} }\n// tryAcquire uses the same all-stripe snapshot boundary and increments before releasing.",
+          "guarantees": [
+            "Plain hit is striped; snapshot/admission use a documented multi-lock order and exact epoch predicate."
+          ],
+          "id": "mechanism-0",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "owner"
+        }
+      ],
+      "apis": [
+        {
+          "errors": "Reject invalid keys and count overflow; clamp backward clock movement to prior observed second and expose rollback diagnostic; reject excessive live keys",
+          "method": "CALL",
+          "ownerNodeId": "owner",
+          "path": "HitCounter.hit/getHits/tryAcquire",
+          "request": "{\"operation\":\"hit|getHits|tryAcquire\",\"key\":\"bounded-cardinality caller key\",\"now\":\"injected monotonic integer seconds\",\"limit\":\"positive integer for optional admission\"}",
+          "response": "{\"count\":\"nonnegative exact count in [now-299,now]\",\"accepted\":\"boolean for tryAcquire\",\"snapshotTime\":\"one sampled clock second\"}"
+        }
+      ],
+      "assumptions": [
+        "Clock seconds and counters use checked 64-bit integers. Hit and getHits sample a nondecreasing clock within their synchronization boundary. Specified lock protocol, not small tests, carries the concurrency claim.",
+        "All added requirements and walkthroughs are authored practice. Graphs specify design; reference tests prove only named bounded mechanisms."
+      ],
+      "chooseWhen": "Second resolution and bounded per-key memory are fixed; hot keys benefit from striped hit writes.",
+      "id": "striped-ring",
+      "initialGraph": {
+        "edges": [],
+        "nodes": []
+      },
+      "stages": [
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l041.striped-ring.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l041.striped-ring.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l041.striped-ring.command"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l041.striped-ring.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l041.striped-ring.owner",
+                "id": "owner",
+                "label": "Ring counter",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "striped-ring-s1",
+          "invariants": [
+            "Timestamp and count reset/increment occur in the same protected transition."
+          ],
+          "number": 1,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l041.striped-ring.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "l041.striped-ring.owner",
+                "id": "owner",
+                "label": "Ring counter",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l041.striped-ring.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l041.striped-ring.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l041.striped-ring.command"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What prevents reset and increment races?",
+          "reason": "Route each second to its timestamp-tagged slot; hold the slot stripe while resetting epoch and incrementing count.",
+          "title": "Expose Ring counter"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l041.striped-ring.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l041.striped-ring.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l041.striped-ring.command"
+                }
+              },
+              {
+                "contractId": "l041.striped-ring.clock",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l041.striped-ring.clock"
+                },
+                "id": "use-clock",
+                "label": "Sample trusted seconds",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "clock",
+                  "portId": "in-l041.striped-ring.clock"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l041.striped-ring.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l041.striped-ring.owner",
+                "id": "owner",
+                "label": "Ring counter",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l041.striped-ring.clock",
+                "id": "clock",
+                "label": "Injected clock",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "striped-ring-s2",
+          "invariants": [
+            "All hit/window decisions use the declared clock."
+          ],
+          "number": 2,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l041.striped-ring.clock",
+                "id": "clock",
+                "label": "Injected clock",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l041.striped-ring.clock",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l041.striped-ring.clock"
+                },
+                "id": "use-clock",
+                "label": "Sample trusted seconds",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "clock",
+                  "portId": "in-l041.striped-ring.clock"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What if wall time moves backward?",
+          "reason": "Use an injected clock adapter with nondecreasing clamp and a visible rollback diagnostic; never trust request time for expiration.",
+          "title": "Sample trusted seconds"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l041.striped-ring.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l041.striped-ring.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l041.striped-ring.command"
+                }
+              },
+              {
+                "contractId": "l041.striped-ring.clock",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l041.striped-ring.clock"
+                },
+                "id": "use-clock",
+                "label": "Sample trusted seconds",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "clock",
+                  "portId": "in-l041.striped-ring.clock"
+                }
+              },
+              {
+                "contractId": "l041.striped-ring.slots",
+                "from": {
+                  "nodeId": "clock",
+                  "portId": "out-l041.striped-ring.slots"
+                },
+                "id": "use-slots",
+                "label": "Store 300 tagged slots",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "slots",
+                  "portId": "in-l041.striped-ring.slots"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l041.striped-ring.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l041.striped-ring.owner",
+                "id": "owner",
+                "label": "Ring counter",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l041.striped-ring.clock",
+                "id": "clock",
+                "label": "Injected clock",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l041.striped-ring.slots",
+                "id": "slots",
+                "label": "Timestamp ring",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "striped-ring-s3",
+          "invariants": [
+            "Only epochs in [now-299,now] contribute."
+          ],
+          "number": 3,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l041.striped-ring.slots",
+                "id": "slots",
+                "label": "Timestamp ring",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l041.striped-ring.slots",
+                "from": {
+                  "nodeId": "clock",
+                  "portId": "out-l041.striped-ring.slots"
+                },
+                "id": "use-slots",
+                "label": "Store 300 tagged slots",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "slots",
+                  "portId": "in-l041.striped-ring.slots"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can modulo reuse retain an old count?",
+          "reason": "Index now modulo 300; slot contains epoch second and count, never count alone.",
+          "title": "Store 300 tagged slots"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l041.striped-ring.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l041.striped-ring.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l041.striped-ring.command"
+                }
+              },
+              {
+                "contractId": "l041.striped-ring.clock",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l041.striped-ring.clock"
+                },
+                "id": "use-clock",
+                "label": "Sample trusted seconds",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "clock",
+                  "portId": "in-l041.striped-ring.clock"
+                }
+              },
+              {
+                "contractId": "l041.striped-ring.slots",
+                "from": {
+                  "nodeId": "clock",
+                  "portId": "out-l041.striped-ring.slots"
+                },
+                "id": "use-slots",
+                "label": "Store 300 tagged slots",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "slots",
+                  "portId": "in-l041.striped-ring.slots"
+                }
+              },
+              {
+                "contractId": "l041.striped-ring.stripe",
+                "from": {
+                  "nodeId": "slots",
+                  "portId": "out-l041.striped-ring.stripe"
+                },
+                "id": "use-stripe",
+                "label": "Reset and increment atomically",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "stripe",
+                  "portId": "in-l041.striped-ring.stripe"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l041.striped-ring.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l041.striped-ring.owner",
+                "id": "owner",
+                "label": "Ring counter",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l041.striped-ring.clock",
+                "id": "clock",
+                "label": "Injected clock",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l041.striped-ring.slots",
+                "id": "slots",
+                "label": "Timestamp ring",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l041.striped-ring.stripe",
+                "id": "stripe",
+                "label": "Slot stripe locks",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "striped-ring-s4",
+          "invariants": [
+            "No increment can be lost between epoch check and reset."
+          ],
+          "number": 4,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l041.striped-ring.stripe",
+                "id": "stripe",
+                "label": "Slot stripe locks",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l041.striped-ring.stripe",
+                "from": {
+                  "nodeId": "slots",
+                  "portId": "out-l041.striped-ring.stripe"
+                },
+                "id": "use-stripe",
+                "label": "Reset and increment atomically",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "stripe",
+                  "portId": "in-l041.striped-ring.stripe"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can another hit increment before reset finishes?",
+          "reason": "Lock the stripe covering the slot, replace stale tag/count with {now,0}, checked increment, then release.",
+          "title": "Reset and increment atomically"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l041.striped-ring.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l041.striped-ring.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l041.striped-ring.command"
+                }
+              },
+              {
+                "contractId": "l041.striped-ring.clock",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l041.striped-ring.clock"
+                },
+                "id": "use-clock",
+                "label": "Sample trusted seconds",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "clock",
+                  "portId": "in-l041.striped-ring.clock"
+                }
+              },
+              {
+                "contractId": "l041.striped-ring.slots",
+                "from": {
+                  "nodeId": "clock",
+                  "portId": "out-l041.striped-ring.slots"
+                },
+                "id": "use-slots",
+                "label": "Store 300 tagged slots",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "slots",
+                  "portId": "in-l041.striped-ring.slots"
+                }
+              },
+              {
+                "contractId": "l041.striped-ring.stripe",
+                "from": {
+                  "nodeId": "slots",
+                  "portId": "out-l041.striped-ring.stripe"
+                },
+                "id": "use-stripe",
+                "label": "Reset and increment atomically",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "stripe",
+                  "portId": "in-l041.striped-ring.stripe"
+                }
+              },
+              {
+                "contractId": "l041.striped-ring.snapshot",
+                "from": {
+                  "nodeId": "stripe",
+                  "portId": "out-l041.striped-ring.snapshot"
+                },
+                "id": "use-snapshot",
+                "label": "Define getHits consistency",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "snapshot",
+                  "portId": "in-l041.striped-ring.snapshot"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l041.striped-ring.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l041.striped-ring.owner",
+                "id": "owner",
+                "label": "Ring counter",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l041.striped-ring.clock",
+                "id": "clock",
+                "label": "Injected clock",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l041.striped-ring.slots",
+                "id": "slots",
+                "label": "Timestamp ring",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l041.striped-ring.stripe",
+                "id": "stripe",
+                "label": "Slot stripe locks",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l041.striped-ring.snapshot",
+                "id": "snapshot",
+                "label": "Ordered stripe snapshot",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "striped-ring-s5",
+          "invariants": [
+            "Snapshot linearizes while every stripe is held; readers do not mix resets."
+          ],
+          "number": 5,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l041.striped-ring.snapshot",
+                "id": "snapshot",
+                "label": "Ordered stripe snapshot",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l041.striped-ring.snapshot",
+                "from": {
+                  "nodeId": "stripe",
+                  "portId": "out-l041.striped-ring.snapshot"
+                },
+                "id": "use-snapshot",
+                "label": "Define getHits consistency",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "snapshot",
+                  "portId": "in-l041.striped-ring.snapshot"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can a reader sum counters from incompatible times?",
+          "reason": "Acquire all stripes in ascending index, sample clock once, sum matching epochs, and release reverse order. Hit samples now only after its stripe lock is held.",
+          "title": "Define getHits consistency"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l041.striped-ring.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l041.striped-ring.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l041.striped-ring.command"
+                }
+              },
+              {
+                "contractId": "l041.striped-ring.clock",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l041.striped-ring.clock"
+                },
+                "id": "use-clock",
+                "label": "Sample trusted seconds",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "clock",
+                  "portId": "in-l041.striped-ring.clock"
+                }
+              },
+              {
+                "contractId": "l041.striped-ring.slots",
+                "from": {
+                  "nodeId": "clock",
+                  "portId": "out-l041.striped-ring.slots"
+                },
+                "id": "use-slots",
+                "label": "Store 300 tagged slots",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "slots",
+                  "portId": "in-l041.striped-ring.slots"
+                }
+              },
+              {
+                "contractId": "l041.striped-ring.stripe",
+                "from": {
+                  "nodeId": "slots",
+                  "portId": "out-l041.striped-ring.stripe"
+                },
+                "id": "use-stripe",
+                "label": "Reset and increment atomically",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "stripe",
+                  "portId": "in-l041.striped-ring.stripe"
+                }
+              },
+              {
+                "contractId": "l041.striped-ring.snapshot",
+                "from": {
+                  "nodeId": "stripe",
+                  "portId": "out-l041.striped-ring.snapshot"
+                },
+                "id": "use-snapshot",
+                "label": "Define getHits consistency",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "snapshot",
+                  "portId": "in-l041.striped-ring.snapshot"
+                }
+              },
+              {
+                "contractId": "l041.striped-ring.admit",
+                "from": {
+                  "nodeId": "snapshot",
+                  "portId": "out-l041.striped-ring.admit"
+                },
+                "id": "use-admit",
+                "label": "Make limit check atomic",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "admit",
+                  "portId": "in-l041.striped-ring.admit"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l041.striped-ring.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l041.striped-ring.owner",
+                "id": "owner",
+                "label": "Ring counter",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l041.striped-ring.clock",
+                "id": "clock",
+                "label": "Injected clock",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l041.striped-ring.slots",
+                "id": "slots",
+                "label": "Timestamp ring",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l041.striped-ring.stripe",
+                "id": "stripe",
+                "label": "Slot stripe locks",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l041.striped-ring.snapshot",
+                "id": "snapshot",
+                "label": "Ordered stripe snapshot",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l041.striped-ring.admit",
+                "id": "admit",
+                "label": "Per-key admission gate",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "striped-ring-s6",
+          "invariants": [
+            "Denied requests never increment the hit count."
+          ],
+          "number": 6,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l041.striped-ring.admit",
+                "id": "admit",
+                "label": "Per-key admission gate",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l041.striped-ring.admit",
+                "from": {
+                  "nodeId": "snapshot",
+                  "portId": "out-l041.striped-ring.admit"
+                },
+                "id": "use-admit",
+                "label": "Make limit check atomic",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "admit",
+                  "portId": "in-l041.striped-ring.admit"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can two readers admit the last slot?",
+          "reason": "tryAcquire takes all stripes in the same order and checks sum plus increments its current slot as one transition. Plain hit remains slot-striped.",
+          "title": "Make limit check atomic"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l041.striped-ring.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l041.striped-ring.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l041.striped-ring.command"
+                }
+              },
+              {
+                "contractId": "l041.striped-ring.clock",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l041.striped-ring.clock"
+                },
+                "id": "use-clock",
+                "label": "Sample trusted seconds",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "clock",
+                  "portId": "in-l041.striped-ring.clock"
+                }
+              },
+              {
+                "contractId": "l041.striped-ring.slots",
+                "from": {
+                  "nodeId": "clock",
+                  "portId": "out-l041.striped-ring.slots"
+                },
+                "id": "use-slots",
+                "label": "Store 300 tagged slots",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "slots",
+                  "portId": "in-l041.striped-ring.slots"
+                }
+              },
+              {
+                "contractId": "l041.striped-ring.stripe",
+                "from": {
+                  "nodeId": "slots",
+                  "portId": "out-l041.striped-ring.stripe"
+                },
+                "id": "use-stripe",
+                "label": "Reset and increment atomically",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "stripe",
+                  "portId": "in-l041.striped-ring.stripe"
+                }
+              },
+              {
+                "contractId": "l041.striped-ring.snapshot",
+                "from": {
+                  "nodeId": "stripe",
+                  "portId": "out-l041.striped-ring.snapshot"
+                },
+                "id": "use-snapshot",
+                "label": "Define getHits consistency",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "snapshot",
+                  "portId": "in-l041.striped-ring.snapshot"
+                }
+              },
+              {
+                "contractId": "l041.striped-ring.admit",
+                "from": {
+                  "nodeId": "snapshot",
+                  "portId": "out-l041.striped-ring.admit"
+                },
+                "id": "use-admit",
+                "label": "Make limit check atomic",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "admit",
+                  "portId": "in-l041.striped-ring.admit"
+                }
+              },
+              {
+                "contractId": "l041.striped-ring.keys",
+                "from": {
+                  "nodeId": "slots",
+                  "portId": "out-l041.striped-ring.keys"
+                },
+                "id": "use-keys",
+                "label": "Bound global cardinality",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "keys",
+                  "portId": "in-l041.striped-ring.keys"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l041.striped-ring.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l041.striped-ring.owner",
+                "id": "owner",
+                "label": "Ring counter",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l041.striped-ring.clock",
+                "id": "clock",
+                "label": "Injected clock",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l041.striped-ring.slots",
+                "id": "slots",
+                "label": "Timestamp ring",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l041.striped-ring.stripe",
+                "id": "stripe",
+                "label": "Slot stripe locks",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l041.striped-ring.snapshot",
+                "id": "snapshot",
+                "label": "Ordered stripe snapshot",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l041.striped-ring.admit",
+                "id": "admit",
+                "label": "Per-key admission gate",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l041.striped-ring.keys",
+                "id": "keys",
+                "label": "Key lifecycle",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "striped-ring-s7",
+          "invariants": [
+            "A reclaimed entry cannot still receive a hit through a stale pointer."
+          ],
+          "number": 7,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l041.striped-ring.keys",
+                "id": "keys",
+                "label": "Key lifecycle",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l041.striped-ring.keys",
+                "from": {
+                  "nodeId": "slots",
+                  "portId": "out-l041.striped-ring.keys"
+                },
+                "id": "use-keys",
+                "label": "Bound global cardinality",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "keys",
+                  "portId": "in-l041.striped-ring.keys"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can an attacker allocate unlimited rings?",
+          "reason": "Use a capped key directory and reference pinning; reclaim idle keys only when their window is empty and no operation pins the entry.",
+          "title": "Bound global cardinality"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l041.striped-ring.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l041.striped-ring.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l041.striped-ring.command"
+                }
+              },
+              {
+                "contractId": "l041.striped-ring.clock",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l041.striped-ring.clock"
+                },
+                "id": "use-clock",
+                "label": "Sample trusted seconds",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "clock",
+                  "portId": "in-l041.striped-ring.clock"
+                }
+              },
+              {
+                "contractId": "l041.striped-ring.slots",
+                "from": {
+                  "nodeId": "clock",
+                  "portId": "out-l041.striped-ring.slots"
+                },
+                "id": "use-slots",
+                "label": "Store 300 tagged slots",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "slots",
+                  "portId": "in-l041.striped-ring.slots"
+                }
+              },
+              {
+                "contractId": "l041.striped-ring.stripe",
+                "from": {
+                  "nodeId": "slots",
+                  "portId": "out-l041.striped-ring.stripe"
+                },
+                "id": "use-stripe",
+                "label": "Reset and increment atomically",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "stripe",
+                  "portId": "in-l041.striped-ring.stripe"
+                }
+              },
+              {
+                "contractId": "l041.striped-ring.snapshot",
+                "from": {
+                  "nodeId": "stripe",
+                  "portId": "out-l041.striped-ring.snapshot"
+                },
+                "id": "use-snapshot",
+                "label": "Define getHits consistency",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "snapshot",
+                  "portId": "in-l041.striped-ring.snapshot"
+                }
+              },
+              {
+                "contractId": "l041.striped-ring.admit",
+                "from": {
+                  "nodeId": "snapshot",
+                  "portId": "out-l041.striped-ring.admit"
+                },
+                "id": "use-admit",
+                "label": "Make limit check atomic",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "admit",
+                  "portId": "in-l041.striped-ring.admit"
+                }
+              },
+              {
+                "contractId": "l041.striped-ring.keys",
+                "from": {
+                  "nodeId": "slots",
+                  "portId": "out-l041.striped-ring.keys"
+                },
+                "id": "use-keys",
+                "label": "Bound global cardinality",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "keys",
+                  "portId": "in-l041.striped-ring.keys"
+                }
+              },
+              {
+                "contractId": "l041.striped-ring.overflow",
+                "from": {
+                  "nodeId": "admit",
+                  "portId": "out-l041.striped-ring.overflow"
+                },
+                "id": "use-overflow",
+                "label": "Refuse silent overflow",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "overflow",
+                  "portId": "in-l041.striped-ring.overflow"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l041.striped-ring.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l041.striped-ring.owner",
+                "id": "owner",
+                "label": "Ring counter",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l041.striped-ring.clock",
+                "id": "clock",
+                "label": "Injected clock",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l041.striped-ring.slots",
+                "id": "slots",
+                "label": "Timestamp ring",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l041.striped-ring.stripe",
+                "id": "stripe",
+                "label": "Slot stripe locks",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l041.striped-ring.snapshot",
+                "id": "snapshot",
+                "label": "Ordered stripe snapshot",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l041.striped-ring.admit",
+                "id": "admit",
+                "label": "Per-key admission gate",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l041.striped-ring.keys",
+                "id": "keys",
+                "label": "Key lifecycle",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l041.striped-ring.overflow",
+                "id": "overflow",
+                "label": "Checked arithmetic",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "striped-ring-s8",
+          "invariants": [
+            "A failed hit does not reset or increment partially."
+          ],
+          "number": 8,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l041.striped-ring.overflow",
+                "id": "overflow",
+                "label": "Checked arithmetic",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l041.striped-ring.overflow",
+                "from": {
+                  "nodeId": "admit",
+                  "portId": "out-l041.striped-ring.overflow"
+                },
+                "id": "use-overflow",
+                "label": "Refuse silent overflow",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "overflow",
+                  "portId": "in-l041.striped-ring.overflow"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What if a second exceeds integer range?",
+          "reason": "Check per-slot increment and sum overflow before publishing mutation; report exhaustion rather than wrap negative.",
+          "title": "Refuse silent overflow"
+        }
+      ],
+      "title": "Per-key 300-slot ring with striped slot locks",
+      "tradeoffs": [
+        "A consistent getHits snapshot acquires all stripes in ascending order.",
+        "Optional exact admission must serialize per key or acquire all stripes, reducing concurrency for that operation."
+      ]
+    },
+    {
+      "acceptanceCases": [
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-08-mechanisms.test.mjs",
+            "testName": "batch-08 counter: rollover boundary rollback and exact admission"
+          },
+          "given": "Hits at seconds 0, 299 and 300 with multiple increments in one slot.",
+          "id": "behavior",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "At 300 the second-0 count is excluded; epoch reuse cannot resurrect or erase another hit.",
+          "when": "Read at 299, 300, 599 and 600 under injected time."
+        },
+        {
+          "given": "Two same-key admissions see one remaining slot, with clock rollback afterward.",
+          "id": "boundary",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Exactly one admission succeeds; denied requests do not increment; rollback follows the declared clamp policy.",
+          "when": "Serialize each check-and-increment at the per-key boundary."
+        }
+      ],
+      "algorithms": [
+        {
+          "code": "withKey(key, state => {\n const now=clock.nowMonotone();\n while(state.head && state.head.second<=now-300)state.total-=state.popHead().count;\n if(operation===\"getHits\")return {count:state.total,snapshotTime:now};\n if(operation===\"tryAcquire\" && state.total>=limit)return {accepted:false,count:state.total};\n const next=checkedAdd(state.total,1);\n if(state.tail?.second===now)state.tail.count=checkedAdd(state.tail.count,1);\n else state.push({second:now,count:1});\n state.total=next; return {accepted:true,count:next};\n});",
+          "guarantees": [
+            "O(1) amortized expiry per bucket; exact same-key snapshot/admission, no cross-key global count promise."
+          ],
+          "id": "mechanism-0",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "owner"
+        }
+      ],
+      "apis": [
+        {
+          "errors": "Reject invalid keys and count overflow; clamp backward clock movement to prior observed second and expose rollback diagnostic; reject excessive live keys",
+          "method": "CALL",
+          "ownerNodeId": "owner",
+          "path": "HitCounter.hit/getHits/tryAcquire",
+          "request": "{\"operation\":\"hit|getHits|tryAcquire\",\"key\":\"bounded-cardinality caller key\",\"now\":\"injected monotonic integer seconds\",\"limit\":\"positive integer for optional admission\"}",
+          "response": "{\"count\":\"nonnegative exact count in [now-299,now]\",\"accepted\":\"boolean for tryAcquire\",\"snapshotTime\":\"one sampled clock second\"}"
+        }
+      ],
+      "assumptions": [
+        "Clock seconds and counters use checked 64-bit integers. Hit and getHits sample a nondecreasing clock within their synchronization boundary. Specified lock protocol, not small tests, carries the concurrency claim.",
+        "All added requirements and walkthroughs are authored practice. Graphs specify design; reference tests prove only named bounded mechanisms."
+      ],
+      "chooseWhen": "Key-level parallelism dominates and sparse activity should avoid allocating 300 slots per key.",
+      "id": "timestamp-deque",
+      "initialGraph": {
+        "edges": [],
+        "nodes": []
+      },
+      "stages": [
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l041.timestamp-deque.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l041.timestamp-deque.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l041.timestamp-deque.command"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l041.timestamp-deque.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l041.timestamp-deque.owner",
+                "id": "owner",
+                "label": "Deque counter",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "timestamp-deque-s1",
+          "invariants": [
+            "Ascending timestamp buckets are removed explicitly when they leave the window."
+          ],
+          "number": 1,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l041.timestamp-deque.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "l041.timestamp-deque.owner",
+                "id": "owner",
+                "label": "Deque counter",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l041.timestamp-deque.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l041.timestamp-deque.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l041.timestamp-deque.command"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What alternative avoids modulo slot reuse?",
+          "reason": "Store ascending timestamp buckets per key and expire from the head; serialize only operations for the same key.",
+          "title": "Expose Deque counter"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l041.timestamp-deque.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l041.timestamp-deque.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l041.timestamp-deque.command"
+                }
+              },
+              {
+                "contractId": "l041.timestamp-deque.keylock",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l041.timestamp-deque.keylock"
+                },
+                "id": "use-keylock",
+                "label": "Isolate independent keys",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "keylock",
+                  "portId": "in-l041.timestamp-deque.keylock"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l041.timestamp-deque.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l041.timestamp-deque.owner",
+                "id": "owner",
+                "label": "Deque counter",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l041.timestamp-deque.keylock",
+                "id": "keylock",
+                "label": "Key mutex directory",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "timestamp-deque-s2",
+          "invariants": [
+            "Eviction cannot detach a pinned key."
+          ],
+          "number": 2,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l041.timestamp-deque.keylock",
+                "id": "keylock",
+                "label": "Key mutex directory",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l041.timestamp-deque.keylock",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l041.timestamp-deque.keylock"
+                },
+                "id": "use-keylock",
+                "label": "Isolate independent keys",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "keylock",
+                  "portId": "in-l041.timestamp-deque.keylock"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Must unrelated tenants share one lock?",
+          "reason": "Use bounded striped directory lookup with pinned per-key entries, then serialize only that entry's state transitions.",
+          "title": "Isolate independent keys"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l041.timestamp-deque.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l041.timestamp-deque.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l041.timestamp-deque.command"
+                }
+              },
+              {
+                "contractId": "l041.timestamp-deque.keylock",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l041.timestamp-deque.keylock"
+                },
+                "id": "use-keylock",
+                "label": "Isolate independent keys",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "keylock",
+                  "portId": "in-l041.timestamp-deque.keylock"
+                }
+              },
+              {
+                "contractId": "l041.timestamp-deque.time",
+                "from": {
+                  "nodeId": "keylock",
+                  "portId": "out-l041.timestamp-deque.time"
+                },
+                "id": "use-time",
+                "label": "Define ordered timestamps",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "time",
+                  "portId": "in-l041.timestamp-deque.time"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l041.timestamp-deque.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l041.timestamp-deque.owner",
+                "id": "owner",
+                "label": "Deque counter",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l041.timestamp-deque.keylock",
+                "id": "keylock",
+                "label": "Key mutex directory",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l041.timestamp-deque.time",
+                "id": "time",
+                "label": "Monotone key clock",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "timestamp-deque-s3",
+          "invariants": [
+            "Deque bucket timestamps remain ascending."
+          ],
+          "number": 3,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l041.timestamp-deque.time",
+                "id": "time",
+                "label": "Monotone key clock",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l041.timestamp-deque.time",
+                "from": {
+                  "nodeId": "keylock",
+                  "portId": "out-l041.timestamp-deque.time"
+                },
+                "id": "use-time",
+                "label": "Define ordered timestamps",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "time",
+                  "portId": "in-l041.timestamp-deque.time"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can timestamps be appended out of order?",
+          "reason": "Sample the injected monotone clock while holding the key mutex; clamp regressions and keep diagnostic state.",
+          "title": "Define ordered timestamps"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l041.timestamp-deque.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l041.timestamp-deque.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l041.timestamp-deque.command"
+                }
+              },
+              {
+                "contractId": "l041.timestamp-deque.keylock",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l041.timestamp-deque.keylock"
+                },
+                "id": "use-keylock",
+                "label": "Isolate independent keys",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "keylock",
+                  "portId": "in-l041.timestamp-deque.keylock"
+                }
+              },
+              {
+                "contractId": "l041.timestamp-deque.time",
+                "from": {
+                  "nodeId": "keylock",
+                  "portId": "out-l041.timestamp-deque.time"
+                },
+                "id": "use-time",
+                "label": "Define ordered timestamps",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "time",
+                  "portId": "in-l041.timestamp-deque.time"
+                }
+              },
+              {
+                "contractId": "l041.timestamp-deque.buckets",
+                "from": {
+                  "nodeId": "time",
+                  "portId": "out-l041.timestamp-deque.buckets"
+                },
+                "id": "use-buckets",
+                "label": "Coalesce same-second hits",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "buckets",
+                  "portId": "in-l041.timestamp-deque.buckets"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l041.timestamp-deque.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l041.timestamp-deque.owner",
+                "id": "owner",
+                "label": "Deque counter",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l041.timestamp-deque.keylock",
+                "id": "keylock",
+                "label": "Key mutex directory",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l041.timestamp-deque.time",
+                "id": "time",
+                "label": "Monotone key clock",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l041.timestamp-deque.buckets",
+                "id": "buckets",
+                "label": "Timestamp buckets",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "timestamp-deque-s4",
+          "invariants": [
+            "At most 300 live second buckets for a nondecreasing integer clock."
+          ],
+          "number": 4,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l041.timestamp-deque.buckets",
+                "id": "buckets",
+                "label": "Timestamp buckets",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l041.timestamp-deque.buckets",
+                "from": {
+                  "nodeId": "time",
+                  "portId": "out-l041.timestamp-deque.buckets"
+                },
+                "id": "use-buckets",
+                "label": "Coalesce same-second hits",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "buckets",
+                  "portId": "in-l041.timestamp-deque.buckets"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Does each hit allocate a queue node?",
+          "reason": "Increment the tail bucket if its timestamp equals now, otherwise append one bucket; keep checked running total.",
+          "title": "Coalesce same-second hits"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l041.timestamp-deque.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l041.timestamp-deque.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l041.timestamp-deque.command"
+                }
+              },
+              {
+                "contractId": "l041.timestamp-deque.keylock",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l041.timestamp-deque.keylock"
+                },
+                "id": "use-keylock",
+                "label": "Isolate independent keys",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "keylock",
+                  "portId": "in-l041.timestamp-deque.keylock"
+                }
+              },
+              {
+                "contractId": "l041.timestamp-deque.time",
+                "from": {
+                  "nodeId": "keylock",
+                  "portId": "out-l041.timestamp-deque.time"
+                },
+                "id": "use-time",
+                "label": "Define ordered timestamps",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "time",
+                  "portId": "in-l041.timestamp-deque.time"
+                }
+              },
+              {
+                "contractId": "l041.timestamp-deque.buckets",
+                "from": {
+                  "nodeId": "time",
+                  "portId": "out-l041.timestamp-deque.buckets"
+                },
+                "id": "use-buckets",
+                "label": "Coalesce same-second hits",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "buckets",
+                  "portId": "in-l041.timestamp-deque.buckets"
+                }
+              },
+              {
+                "contractId": "l041.timestamp-deque.expire",
+                "from": {
+                  "nodeId": "buckets",
+                  "portId": "out-l041.timestamp-deque.expire"
+                },
+                "id": "use-expire",
+                "label": "Remove the exact old boundary",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "expire",
+                  "portId": "in-l041.timestamp-deque.expire"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l041.timestamp-deque.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l041.timestamp-deque.owner",
+                "id": "owner",
+                "label": "Deque counter",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l041.timestamp-deque.keylock",
+                "id": "keylock",
+                "label": "Key mutex directory",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l041.timestamp-deque.time",
+                "id": "time",
+                "label": "Monotone key clock",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l041.timestamp-deque.buckets",
+                "id": "buckets",
+                "label": "Timestamp buckets",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l041.timestamp-deque.expire",
+                "id": "expire",
+                "label": "Head expiry",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "timestamp-deque-s5",
+          "invariants": [
+            "All retained buckets satisfy now-300 < second <= now."
+          ],
+          "number": 5,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l041.timestamp-deque.expire",
+                "id": "expire",
+                "label": "Head expiry",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l041.timestamp-deque.expire",
+                "from": {
+                  "nodeId": "buckets",
+                  "portId": "out-l041.timestamp-deque.expire"
+                },
+                "id": "use-expire",
+                "label": "Remove the exact old boundary",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "expire",
+                  "portId": "in-l041.timestamp-deque.expire"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Is second now-300 included?",
+          "reason": "Before any read/admission, pop while head.second <= now-300 and subtract each count exactly once.",
+          "title": "Remove the exact old boundary"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l041.timestamp-deque.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l041.timestamp-deque.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l041.timestamp-deque.command"
+                }
+              },
+              {
+                "contractId": "l041.timestamp-deque.keylock",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l041.timestamp-deque.keylock"
+                },
+                "id": "use-keylock",
+                "label": "Isolate independent keys",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "keylock",
+                  "portId": "in-l041.timestamp-deque.keylock"
+                }
+              },
+              {
+                "contractId": "l041.timestamp-deque.time",
+                "from": {
+                  "nodeId": "keylock",
+                  "portId": "out-l041.timestamp-deque.time"
+                },
+                "id": "use-time",
+                "label": "Define ordered timestamps",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "time",
+                  "portId": "in-l041.timestamp-deque.time"
+                }
+              },
+              {
+                "contractId": "l041.timestamp-deque.buckets",
+                "from": {
+                  "nodeId": "time",
+                  "portId": "out-l041.timestamp-deque.buckets"
+                },
+                "id": "use-buckets",
+                "label": "Coalesce same-second hits",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "buckets",
+                  "portId": "in-l041.timestamp-deque.buckets"
+                }
+              },
+              {
+                "contractId": "l041.timestamp-deque.expire",
+                "from": {
+                  "nodeId": "buckets",
+                  "portId": "out-l041.timestamp-deque.expire"
+                },
+                "id": "use-expire",
+                "label": "Remove the exact old boundary",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "expire",
+                  "portId": "in-l041.timestamp-deque.expire"
+                }
+              },
+              {
+                "contractId": "l041.timestamp-deque.decision",
+                "from": {
+                  "nodeId": "expire",
+                  "portId": "out-l041.timestamp-deque.decision"
+                },
+                "id": "use-decision",
+                "label": "Combine count and admission",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "decision",
+                  "portId": "in-l041.timestamp-deque.decision"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l041.timestamp-deque.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l041.timestamp-deque.owner",
+                "id": "owner",
+                "label": "Deque counter",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l041.timestamp-deque.keylock",
+                "id": "keylock",
+                "label": "Key mutex directory",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l041.timestamp-deque.time",
+                "id": "time",
+                "label": "Monotone key clock",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l041.timestamp-deque.buckets",
+                "id": "buckets",
+                "label": "Timestamp buckets",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l041.timestamp-deque.expire",
+                "id": "expire",
+                "label": "Head expiry",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l041.timestamp-deque.decision",
+                "id": "decision",
+                "label": "Atomic decision",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "timestamp-deque-s6",
+          "invariants": [
+            "Count snapshot and admission linearize inside the same key critical section."
+          ],
+          "number": 6,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l041.timestamp-deque.decision",
+                "id": "decision",
+                "label": "Atomic decision",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l041.timestamp-deque.decision",
+                "from": {
+                  "nodeId": "expire",
+                  "portId": "out-l041.timestamp-deque.decision"
+                },
+                "id": "use-decision",
+                "label": "Combine count and admission",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "decision",
+                  "portId": "in-l041.timestamp-deque.decision"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can the last permit be oversold?",
+          "reason": "Under the same key lock, expire then compare total to limit; on success add one hit before unlocking.",
+          "title": "Combine count and admission"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l041.timestamp-deque.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l041.timestamp-deque.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l041.timestamp-deque.command"
+                }
+              },
+              {
+                "contractId": "l041.timestamp-deque.keylock",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l041.timestamp-deque.keylock"
+                },
+                "id": "use-keylock",
+                "label": "Isolate independent keys",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "keylock",
+                  "portId": "in-l041.timestamp-deque.keylock"
+                }
+              },
+              {
+                "contractId": "l041.timestamp-deque.time",
+                "from": {
+                  "nodeId": "keylock",
+                  "portId": "out-l041.timestamp-deque.time"
+                },
+                "id": "use-time",
+                "label": "Define ordered timestamps",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "time",
+                  "portId": "in-l041.timestamp-deque.time"
+                }
+              },
+              {
+                "contractId": "l041.timestamp-deque.buckets",
+                "from": {
+                  "nodeId": "time",
+                  "portId": "out-l041.timestamp-deque.buckets"
+                },
+                "id": "use-buckets",
+                "label": "Coalesce same-second hits",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "buckets",
+                  "portId": "in-l041.timestamp-deque.buckets"
+                }
+              },
+              {
+                "contractId": "l041.timestamp-deque.expire",
+                "from": {
+                  "nodeId": "buckets",
+                  "portId": "out-l041.timestamp-deque.expire"
+                },
+                "id": "use-expire",
+                "label": "Remove the exact old boundary",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "expire",
+                  "portId": "in-l041.timestamp-deque.expire"
+                }
+              },
+              {
+                "contractId": "l041.timestamp-deque.decision",
+                "from": {
+                  "nodeId": "expire",
+                  "portId": "out-l041.timestamp-deque.decision"
+                },
+                "id": "use-decision",
+                "label": "Combine count and admission",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "decision",
+                  "portId": "in-l041.timestamp-deque.decision"
+                }
+              },
+              {
+                "contractId": "l041.timestamp-deque.reap",
+                "from": {
+                  "nodeId": "keylock",
+                  "portId": "out-l041.timestamp-deque.reap"
+                },
+                "id": "use-reap",
+                "label": "Release inactive key state",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "reap",
+                  "portId": "in-l041.timestamp-deque.reap"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l041.timestamp-deque.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l041.timestamp-deque.owner",
+                "id": "owner",
+                "label": "Deque counter",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l041.timestamp-deque.keylock",
+                "id": "keylock",
+                "label": "Key mutex directory",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l041.timestamp-deque.time",
+                "id": "time",
+                "label": "Monotone key clock",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l041.timestamp-deque.buckets",
+                "id": "buckets",
+                "label": "Timestamp buckets",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l041.timestamp-deque.expire",
+                "id": "expire",
+                "label": "Head expiry",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l041.timestamp-deque.decision",
+                "id": "decision",
+                "label": "Atomic decision",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l041.timestamp-deque.reap",
+                "id": "reap",
+                "label": "Idle-key reaper",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "timestamp-deque-s7",
+          "invariants": [
+            "Active-window counts are never dropped to free memory."
+          ],
+          "number": 7,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l041.timestamp-deque.reap",
+                "id": "reap",
+                "label": "Idle-key reaper",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l041.timestamp-deque.reap",
+                "from": {
+                  "nodeId": "keylock",
+                  "portId": "out-l041.timestamp-deque.reap"
+                },
+                "id": "use-reap",
+                "label": "Release inactive key state",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "reap",
+                  "portId": "in-l041.timestamp-deque.reap"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "When does an empty key disappear?",
+          "reason": "After expiration leaves empty deque, mark idle; directory removal checks entry identity and pin count. Live-key cap rejects rather than evicts active accounting.",
+          "title": "Release inactive key state"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l041.timestamp-deque.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l041.timestamp-deque.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l041.timestamp-deque.command"
+                }
+              },
+              {
+                "contractId": "l041.timestamp-deque.keylock",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l041.timestamp-deque.keylock"
+                },
+                "id": "use-keylock",
+                "label": "Isolate independent keys",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "keylock",
+                  "portId": "in-l041.timestamp-deque.keylock"
+                }
+              },
+              {
+                "contractId": "l041.timestamp-deque.time",
+                "from": {
+                  "nodeId": "keylock",
+                  "portId": "out-l041.timestamp-deque.time"
+                },
+                "id": "use-time",
+                "label": "Define ordered timestamps",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "time",
+                  "portId": "in-l041.timestamp-deque.time"
+                }
+              },
+              {
+                "contractId": "l041.timestamp-deque.buckets",
+                "from": {
+                  "nodeId": "time",
+                  "portId": "out-l041.timestamp-deque.buckets"
+                },
+                "id": "use-buckets",
+                "label": "Coalesce same-second hits",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "buckets",
+                  "portId": "in-l041.timestamp-deque.buckets"
+                }
+              },
+              {
+                "contractId": "l041.timestamp-deque.expire",
+                "from": {
+                  "nodeId": "buckets",
+                  "portId": "out-l041.timestamp-deque.expire"
+                },
+                "id": "use-expire",
+                "label": "Remove the exact old boundary",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "expire",
+                  "portId": "in-l041.timestamp-deque.expire"
+                }
+              },
+              {
+                "contractId": "l041.timestamp-deque.decision",
+                "from": {
+                  "nodeId": "expire",
+                  "portId": "out-l041.timestamp-deque.decision"
+                },
+                "id": "use-decision",
+                "label": "Combine count and admission",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "decision",
+                  "portId": "in-l041.timestamp-deque.decision"
+                }
+              },
+              {
+                "contractId": "l041.timestamp-deque.reap",
+                "from": {
+                  "nodeId": "keylock",
+                  "portId": "out-l041.timestamp-deque.reap"
+                },
+                "id": "use-reap",
+                "label": "Release inactive key state",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "reap",
+                  "portId": "in-l041.timestamp-deque.reap"
+                }
+              },
+              {
+                "contractId": "l041.timestamp-deque.checked",
+                "from": {
+                  "nodeId": "decision",
+                  "portId": "out-l041.timestamp-deque.checked"
+                },
+                "id": "use-checked",
+                "label": "Protect counter integrity",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "checked",
+                  "portId": "in-l041.timestamp-deque.checked"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l041.timestamp-deque.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l041.timestamp-deque.owner",
+                "id": "owner",
+                "label": "Deque counter",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l041.timestamp-deque.keylock",
+                "id": "keylock",
+                "label": "Key mutex directory",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l041.timestamp-deque.time",
+                "id": "time",
+                "label": "Monotone key clock",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l041.timestamp-deque.buckets",
+                "id": "buckets",
+                "label": "Timestamp buckets",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l041.timestamp-deque.expire",
+                "id": "expire",
+                "label": "Head expiry",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l041.timestamp-deque.decision",
+                "id": "decision",
+                "label": "Atomic decision",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l041.timestamp-deque.reap",
+                "id": "reap",
+                "label": "Idle-key reaper",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l041.timestamp-deque.checked",
+                "id": "checked",
+                "label": "Overflow and shutdown policy",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "timestamp-deque-s8",
+          "invariants": [
+            "Errors never wrap counts or silently reset a live window."
+          ],
+          "number": 8,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l041.timestamp-deque.checked",
+                "id": "checked",
+                "label": "Overflow and shutdown policy",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l041.timestamp-deque.checked",
+                "from": {
+                  "nodeId": "decision",
+                  "portId": "out-l041.timestamp-deque.checked"
+                },
+                "id": "use-checked",
+                "label": "Protect counter integrity",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "checked",
+                  "portId": "in-l041.timestamp-deque.checked"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can subtraction underflow on duplicate expiry?",
+          "reason": "Only pop a bucket once under its owner lock, use checked totals, and stop admission on numeric exhaustion. Reinitialization is explicit.",
+          "title": "Protect counter integrity"
+        }
+      ],
+      "title": "Per-key timestamp deque with key-level serialization",
+      "tradeoffs": [
+        "One hot key is serialized by its mutex.",
+        "Each bucket is created and expired once, giving amortized rather than per-operation worst-case bounds."
+      ]
+    }
+  ],
+  "subsystems": [],
+  "version": 1
+}

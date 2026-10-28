@@ -1,0 +1,4110 @@
+{
+  "components": [
+    {
+      "extends": {
+        "id": "core.client",
+        "version": 1
+      },
+      "id": "l035.global-lru.caller",
+      "label": "Caller",
+      "ports": [
+        {
+          "contractId": "l035.global-lru.command",
+          "direction": "out",
+          "id": "out-l035.global-lru.command"
+        }
+      ],
+      "responsibility": "Submit the declared operation with stable identity and observe explicit completion.",
+      "stateOwnership": [
+        "caller request and retry identity"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l035.global-lru.system",
+      "label": "Global LRU and shared pending futures",
+      "ports": [
+        {
+          "contractId": "l035.global-lru.command",
+          "direction": "in",
+          "id": "in-l035.global-lru.command"
+        },
+        {
+          "contractId": "l035.global-lru.step3",
+          "direction": "out",
+          "id": "out-l035.global-lru.step3-engine"
+        },
+        {
+          "contractId": "l035.global-lru.step4",
+          "direction": "out",
+          "id": "out-l035.global-lru.step4-engine"
+        }
+      ],
+      "responsibility": "Preserve this stable boundary while refining its ownership and contracts.",
+      "stateOwnership": [
+        "logical operation state"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l035.global-lru.engine",
+      "label": "CachedFile.read",
+      "ports": [
+        {
+          "contractId": "l035.global-lru.command",
+          "direction": "out",
+          "id": "out-l035.global-lru.command"
+        },
+        {
+          "contractId": "l035.global-lru.command",
+          "direction": "in",
+          "id": "in-l035.global-lru.command"
+        },
+        {
+          "contractId": "l035.global-lru.step3",
+          "direction": "out",
+          "id": "out-l035.global-lru.step3"
+        },
+        {
+          "contractId": "l035.global-lru.step4",
+          "direction": "out",
+          "id": "out-l035.global-lru.step4"
+        }
+      ],
+      "responsibility": "Bind an immutable/version-addressed URI and file size for handle lifetime; split the interval into blocks.",
+      "stateOwnership": [
+        "read pins and destination slices"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l035.global-lru.state",
+      "label": "Block map and LRU",
+      "ports": [
+        {
+          "contractId": "l035.global-lru.command",
+          "direction": "in",
+          "id": "in-l035.global-lru.command"
+        }
+      ],
+      "responsibility": "Own READY and LOADING records under one metadata mutex.",
+      "stateOwnership": [
+        "revision/block index and access order"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l035.global-lru.n3",
+      "label": "Range planner",
+      "ports": [
+        {
+          "contractId": "l035.global-lru.step3",
+          "direction": "in",
+          "id": "in-l035.global-lru.step3"
+        }
+      ],
+      "responsibility": "Compute floor(offset/B) through floor((end-1)/B), clamp end at size, and special-case zero length.",
+      "stateOwnership": [
+        "blockSize, fileSize"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l035.global-lru.n4",
+      "label": "Single-flight slots",
+      "ports": [
+        {
+          "contractId": "l035.global-lru.step4",
+          "direction": "in",
+          "id": "in-l035.global-lru.step4"
+        },
+        {
+          "contractId": "l035.global-lru.step5",
+          "direction": "out",
+          "id": "out-l035.global-lru.step5"
+        }
+      ],
+      "responsibility": "Install one shared future atomically under the metadata lock; followers attach outside the lock.",
+      "stateOwnership": [
+        "blockKey, futureState"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l035.global-lru.n5",
+      "label": "Byte reservation",
+      "ports": [
+        {
+          "contractId": "l035.global-lru.step5",
+          "direction": "in",
+          "id": "in-l035.global-lru.step5"
+        },
+        {
+          "contractId": "l035.global-lru.step6",
+          "direction": "out",
+          "id": "out-l035.global-lru.step6"
+        }
+      ],
+      "responsibility": "Reserve block bytes before fetch; evict unpinned ready blocks or wait with bounded admission.",
+      "stateOwnership": [
+        "readyBytes, reservedBytes, pinnedBytes"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.external",
+        "version": 1
+      },
+      "id": "l035.global-lru.n6",
+      "label": "StorageClient fetch",
+      "ports": [
+        {
+          "contractId": "l035.global-lru.step6",
+          "direction": "in",
+          "id": "in-l035.global-lru.step6"
+        },
+        {
+          "contractId": "l035.global-lru.step7",
+          "direction": "out",
+          "id": "out-l035.global-lru.step7"
+        }
+      ],
+      "responsibility": "Call original fetch(uri,offset,length,buffer) outside metadata lock against the immutable/version-addressed URI. Conditional fetch/version validation is a proposed adapter extension only; without it mutable-source snapshot consistency is unsupported.",
+      "stateOwnership": [
+        "uri, offset, length"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l035.global-lru.n7",
+      "label": "Completion publisher",
+      "ports": [
+        {
+          "contractId": "l035.global-lru.step7",
+          "direction": "in",
+          "id": "in-l035.global-lru.step7"
+        },
+        {
+          "contractId": "l035.global-lru.step8",
+          "direction": "out",
+          "id": "out-l035.global-lru.step8"
+        }
+      ],
+      "responsibility": "Publish immutable bytes or exceptional completion; remove failed slot and release reservations before permitting retry.",
+      "stateOwnership": [
+        "blockKey, actualBytes, error"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l035.global-lru.n8",
+      "label": "Pinned copy and release",
+      "ports": [
+        {
+          "contractId": "l035.global-lru.step8",
+          "direction": "in",
+          "id": "in-l035.global-lru.step8"
+        }
+      ],
+      "responsibility": "Acquire a read lease under metadata lock before waiting for publication, retain it across await/copy, then release in finally. Eviction cannot win between completion and pinning.",
+      "stateOwnership": [
+        "sliceStart, sliceLength, pinCount"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.client",
+        "version": 1
+      },
+      "id": "l035.sharded.caller",
+      "label": "Caller",
+      "ports": [
+        {
+          "contractId": "l035.sharded.command",
+          "direction": "out",
+          "id": "out-l035.sharded.command"
+        }
+      ],
+      "responsibility": "Submit the declared operation with stable identity and observe explicit completion.",
+      "stateOwnership": [
+        "caller request and retry identity"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l035.sharded.system",
+      "label": "Sharded block caches with global byte permits",
+      "ports": [
+        {
+          "contractId": "l035.sharded.command",
+          "direction": "in",
+          "id": "in-l035.sharded.command"
+        },
+        {
+          "contractId": "l035.sharded.step3",
+          "direction": "out",
+          "id": "out-l035.sharded.step3-engine"
+        },
+        {
+          "contractId": "l035.sharded.step4",
+          "direction": "out",
+          "id": "out-l035.sharded.step4-state"
+        }
+      ],
+      "responsibility": "Preserve this stable boundary while refining its ownership and contracts.",
+      "stateOwnership": [
+        "logical operation state"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l035.sharded.engine",
+      "label": "CachedFile facade",
+      "ports": [
+        {
+          "contractId": "l035.sharded.command",
+          "direction": "out",
+          "id": "out-l035.sharded.command"
+        },
+        {
+          "contractId": "l035.sharded.command",
+          "direction": "in",
+          "id": "in-l035.sharded.command"
+        },
+        {
+          "contractId": "l035.sharded.step3",
+          "direction": "out",
+          "id": "out-l035.sharded.step3"
+        }
+      ],
+      "responsibility": "Bind immutable/version-addressed URI identity and distribute block slices to deterministic shard owners.",
+      "stateOwnership": [
+        "per-read slices and cancellation"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l035.sharded.state",
+      "label": "Shard directory",
+      "ports": [
+        {
+          "contractId": "l035.sharded.command",
+          "direction": "in",
+          "id": "in-l035.sharded.command"
+        },
+        {
+          "contractId": "l035.sharded.step4",
+          "direction": "out",
+          "id": "out-l035.sharded.step4"
+        }
+      ],
+      "responsibility": "Map immutable block keys to one owning shard.",
+      "stateOwnership": [
+        "fixed shard mapping"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l035.sharded.n3",
+      "label": "Block planner",
+      "ports": [
+        {
+          "contractId": "l035.sharded.step3",
+          "direction": "in",
+          "id": "in-l035.sharded.step3"
+        }
+      ],
+      "responsibility": "Use checked end arithmetic and clamp against immutable file size.",
+      "stateOwnership": [
+        "offset, length, size"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l035.sharded.n4",
+      "label": "Shard pending map",
+      "ports": [
+        {
+          "contractId": "l035.sharded.step4",
+          "direction": "in",
+          "id": "in-l035.sharded.step4"
+        },
+        {
+          "contractId": "l035.sharded.step5",
+          "direction": "out",
+          "id": "out-l035.sharded.step5"
+        },
+        {
+          "contractId": "l035.sharded.step7",
+          "direction": "out",
+          "id": "out-l035.sharded.step7"
+        }
+      ],
+      "responsibility": "One shard mutex installs a promise per revision/block key before any IO begins.",
+      "stateOwnership": [
+        "shardId, blockKey"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l035.sharded.n5",
+      "label": "Global byte semaphore",
+      "ports": [
+        {
+          "contractId": "l035.sharded.step5",
+          "direction": "in",
+          "id": "in-l035.sharded.step5"
+        },
+        {
+          "contractId": "l035.sharded.step6",
+          "direction": "out",
+          "id": "out-l035.sharded.step6"
+        }
+      ],
+      "responsibility": "Acquire global bytes before allocation, outside shard lock; recheck for a winner after reacquiring.",
+      "stateOwnership": [
+        "requestedBytes, availableBytes"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.external",
+        "version": 1
+      },
+      "id": "l035.sharded.n6",
+      "label": "Storage fetch task",
+      "ports": [
+        {
+          "contractId": "l035.sharded.step6",
+          "direction": "in",
+          "id": "in-l035.sharded.step6"
+        },
+        {
+          "contractId": "l035.sharded.step8",
+          "direction": "out",
+          "id": "out-l035.sharded.step8"
+        }
+      ],
+      "responsibility": "Run admitted calls to original fetch(uri,offset,length,buffer) outside shard locks. URI content must remain stable for the handle lifetime; conditional versions and deadlines require an explicitly proposed supporting adapter.",
+      "stateOwnership": [
+        "versionCondition, blockOffset"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l035.sharded.n7",
+      "label": "Shard eviction ring",
+      "ports": [
+        {
+          "contractId": "l035.sharded.step7",
+          "direction": "in",
+          "id": "in-l035.sharded.step7"
+        }
+      ],
+      "responsibility": "Track shard-local access order and evict only unpinned READY entries; never drop a LOADING promise.",
+      "stateOwnership": [
+        "pinCount, state"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l035.sharded.n8",
+      "label": "Read assembly",
+      "ports": [
+        {
+          "contractId": "l035.sharded.step8",
+          "direction": "in",
+          "id": "in-l035.sharded.step8"
+        }
+      ],
+      "responsibility": "Pin the shared slot under its shard lock before awaiting completion; copy immutable slices and release the lease in finally. Cancel one waiter without canceling another reader shared fetch.",
+      "stateOwnership": [
+        "destinationOffset, waiterCancelled"
+      ],
+      "version": 1
+    }
+  ],
+  "contracts": [
+    {
+      "id": "l035.global-lru.command",
+      "request": {
+        "fileRevision": "optional proposed adapter-extension version metadata; absent in canonical immutable-URI mode",
+        "length": "nonnegative integer",
+        "offset": "nonnegative 64-bit integer",
+        "uri": "immutable/version-addressed String URI stable for handle lifetime in canonical mode"
+      },
+      "response": {
+        "bytes": "byte[]",
+        "bytesRead": "integer <= length",
+        "revision": "stable handle identity derived from immutable URI; explicit adapter-extension version only when supported"
+      },
+      "version": 1
+    },
+    {
+      "id": "l035.global-lru.step3",
+      "request": {
+        "blockSize": "positive integer",
+        "fileSize": "nonnegative integer"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l035.global-lru.step4",
+      "request": {
+        "blockKey": "uri/revision/index",
+        "futureState": "loading|ready|failed"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l035.global-lru.step5",
+      "request": {
+        "pinnedBytes": "integer",
+        "readyBytes": "integer",
+        "reservedBytes": "integer"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l035.global-lru.step6",
+      "request": {
+        "length": "integer",
+        "offset": "64-bit integer",
+        "uri": "string"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l035.global-lru.step7",
+      "request": {
+        "actualBytes": "integer",
+        "blockKey": "string",
+        "error": "optional failure"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l035.global-lru.step8",
+      "request": {
+        "pinCount": "integer",
+        "sliceLength": "integer",
+        "sliceStart": "integer"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l035.sharded.command",
+      "request": {
+        "fileRevision": "optional proposed adapter-extension version metadata; absent in canonical immutable-URI mode",
+        "length": "nonnegative integer",
+        "offset": "nonnegative 64-bit integer",
+        "uri": "immutable/version-addressed String URI stable for handle lifetime in canonical mode"
+      },
+      "response": {
+        "bytes": "byte[]",
+        "bytesRead": "integer <= length",
+        "revision": "stable handle identity derived from immutable URI; explicit adapter-extension version only when supported"
+      },
+      "version": 1
+    },
+    {
+      "id": "l035.sharded.step3",
+      "request": {
+        "length": "integer",
+        "offset": "64-bit integer",
+        "size": "64-bit integer"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l035.sharded.step4",
+      "request": {
+        "blockKey": "uri/revision/index",
+        "shardId": "integer"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l035.sharded.step5",
+      "request": {
+        "availableBytes": "integer",
+        "requestedBytes": "integer"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l035.sharded.step6",
+      "request": {
+        "blockOffset": "integer",
+        "versionCondition": "optional proposed adapter extension, unavailable in canonical StorageClient"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l035.sharded.step7",
+      "request": {
+        "pinCount": "integer",
+        "state": "ready|loading"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l035.sharded.step8",
+      "request": {
+        "destinationOffset": "integer",
+        "waiterCancelled": "boolean"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    }
+  ],
+  "execution": {
+    "implementation": null,
+    "kind": "conceptual-design"
+  },
+  "problem": {
+    "referenceId": "L035",
+    "requirements": [
+      {
+        "id": "r0",
+        "text": "Split arbitrary byte ranges into fixed blocks, clamp at EOF and validate offsets/lengths."
+      },
+      {
+        "id": "r1",
+        "text": "Coalesce concurrent misses per immutable file revision/block; share success or failure and allow retry."
+      },
+      {
+        "id": "r2",
+        "text": "Bound ready, pinned and in-flight reserved memory; do not hold metadata locks during remote fetch."
+      }
+    ],
+    "scope": "Systems-coding design for getFileSize(uri) and fetch(uri,offset,length,buffer), then CachedFile.read. Nodes are in-process modules, synchronized data structures and the remote StorageClient interface. Compare one global access-order cache with sharded block ownership. Original signatures are long getFileSize(String uri) and void fetch(String uri, long offset, int length, byte[] buffer). With this interface the URI must be immutable or version-addressed and stable for the handle lifetime. A mutable source cannot guarantee snapshot-consistent multi-block reads through this interface. Conditional fetch and version metadata below are explicitly proposed adapter extensions, unsupported unless the provider adapter supplies them.",
+    "studyLabel": "StorageClient and CachedFile"
+  },
+  "provenance": {
+    "kind": "authored-practice",
+    "note": "Authored interview preparation. Technical references support mechanisms, not the claim that a company asked this question."
+  },
+  "references": [
+    {
+      "id": "ref0",
+      "scope": "background",
+      "supports": "Share one pending result and exceptional completion among concurrent readers.",
+      "title": "Java CompletableFuture",
+      "url": "https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/concurrent/CompletableFuture.html"
+    },
+    {
+      "id": "ref1",
+      "scope": "background",
+      "supports": "Access-order eviction requires external synchronization under concurrent mutation.",
+      "title": "Java LinkedHashMap",
+      "url": "https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/LinkedHashMap.html"
+    }
+  ],
+  "schema": "simulatte.composableStudy.v2",
+  "solutions": [
+    {
+      "acceptanceCases": [
+        {
+          "given": "A file has a partial last block and the read is unaligned.",
+          "id": "case0",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Return exact intersection slices and zero work for an empty/EOF read.",
+          "when": "Plan slices across a block boundary and at EOF."
+        },
+        {
+          "given": "Two readers miss one revision/block while its fetch is pending.",
+          "id": "case1",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Start one fetch, share outcome, clean up failed slot, and allow a new retry.",
+          "when": "Complete or fail the shared fetch, then retry after failure."
+        },
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-06-state.test.mjs",
+            "testName": "single flight reserves bytes shares failures pins buffers and retries by revision"
+          },
+          "given": "A four-byte cache admits two same-key waiters and a different revision.",
+          "id": "bounded-mechanism",
+          "relatedRequirementIds": [
+            "r0"
+          ],
+          "then": "Use one promise/fetch per key, bound reserved bytes, retain pinned buffers and release failed reservations; no thread-runtime proof is claimed.",
+          "when": "Hold fetch pending, test admission and pinning, fail a shared fetch then retry."
+        },
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-06-state.test.mjs",
+            "testName": "read lease pins before publication and closes the completion eviction gap"
+          },
+          "given": "A reader joins a pending block before its fetch completes.",
+          "id": "publication-pin",
+          "relatedRequirementIds": [
+            "r2"
+          ],
+          "then": "The pre-acquired lease prevents eviction until every reader releases it; failure releases the lease.",
+          "when": "Completion triggers an eviction attempt before the reader continuation copies bytes."
+        }
+      ],
+      "algorithms": [
+        {
+          "code": "validateRange(); const revision = immutableUriHandleIdentity(uri); const size = storage.getFileSize(uri); // URI stays immutable for handle lifetime\nfor (const slice of planBlocks(offset,length,size,B)) {\n lockMetadata(); const slot = findOrInstallFutureWithByteReservation(revision,slice.block); const lease = pinSlotBeforeUnlock(slot); unlockMetadata();\n if (slot.owner) { try { const data = allocateReservedBlockBuffer(slice); storage.fetch(uri,slice.blockOffset,slice.fetchLength,data); publishReady(slot,data); }\n catch(e) { removeIfSameFuture(slot); releaseReservation(); slot.fail(e); } }\n try { const block = await slot.future; copyImmutableSlices(block,slice); } finally { releaseReadLease(lease); } }\n// No version argument exists in original fetch. Conditional retrieval requires an explicitly supplied adapter extension; otherwise mutable-source snapshot consistency is unsupported.",
+          "guarantees": [
+            "Never fetch beyond EOF or allocate for an empty read.",
+            "One in-flight fetch per pinned revision/block.",
+            "Ready plus reserved bytes never exceed the configured budget.",
+            "Canonical mode requires stable URI content for the entire handle lifetime; the original interface cannot detect arbitrary mutable-source changes.",
+            "Only the owning future may remove its slot; waiters see the same failure.",
+            "Eviction never reuses a pinned buffer."
+          ],
+          "id": "transition",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "engine"
+        }
+      ],
+      "apis": [
+        {
+          "errors": "Reject invalid input, stale versions and operations outside the declared boundary.",
+          "method": "METHOD",
+          "ownerNodeId": "engine",
+          "path": "CachedFile.read(offset,length,buffer)",
+          "request": "{\"uri\":\"immutable/version-addressed String URI stable for handle lifetime in canonical mode\",\"fileRevision\":\"optional proposed adapter-extension version metadata; absent in canonical immutable-URI mode\",\"offset\":\"nonnegative 64-bit integer\",\"length\":\"nonnegative integer\"}",
+          "response": "{\"bytesRead\":\"integer <= length\",\"bytes\":\"byte[]\",\"revision\":\"stable handle identity derived from immutable URI; explicit adapter-extension version only when supported\"}"
+        },
+        {
+          "errors": "Storage error; requires URI content stable for handle lifetime.",
+          "method": "JAVA",
+          "ownerNodeId": "n6",
+          "path": "StorageClient.getFileSize",
+          "request": "String uri",
+          "response": "long"
+        },
+        {
+          "errors": "Storage error; original method has no etag or conditional-version argument.",
+          "method": "JAVA",
+          "ownerNodeId": "n6",
+          "path": "StorageClient.fetch",
+          "request": "String uri, long offset, int length, byte[] buffer",
+          "response": "void; fills supplied byte[] buffer"
+        }
+      ],
+      "assumptions": [
+        "All added stages are authored practice extending the canonical prompt.",
+        "Graphs specify conceptual mechanisms; reference models do not prove cloud execution, latency, physical durability or distributed safety.",
+        "Canonical mode requires an immutable/version-addressed URI stable for the handle lifetime, including getFileSize and every fetch. The cache cannot verify this promise with the original interface.",
+        "Mutable-source snapshot consistency is unsupported with only getFileSize(uri) and fetch(uri,offset,length,buffer). Optional version metadata and conditional fetch are proposed adapter extensions, not hidden original API arguments."
+      ],
+      "chooseWhen": "A modest concurrent reader count can tolerate one short metadata lock.",
+      "id": "global-lru",
+      "initialGraph": {
+        "edges": [],
+        "nodes": []
+      },
+      "stages": [
+        {
+          "checkIds": [
+            "case0",
+            "case1",
+            "publication-pin"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l035.global-lru.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l035.global-lru.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l035.global-lru.command"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l035.global-lru.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l035.global-lru.system",
+                "id": "system",
+                "label": "Global LRU and shared pending futures",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "global-lru-s1",
+          "invariants": [
+            "Split arbitrary byte ranges into fixed blocks, clamp at EOF and validate offsets/lengths."
+          ],
+          "number": 1,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l035.global-lru.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "l035.global-lru.system",
+                "id": "system",
+                "label": "Global LRU and shared pending futures",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l035.global-lru.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l035.global-lru.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l035.global-lru.command"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What does successful completion promise?",
+          "reason": "Split arbitrary byte ranges into fixed blocks, clamp at EOF and validate offsets/lengths.",
+          "title": "Define the operation boundary"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1",
+            "publication-pin"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l035.global-lru.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l035.global-lru.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l035.global-lru.command"
+                }
+              },
+              {
+                "contractId": "l035.global-lru.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l035.global-lru.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l035.global-lru.command"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l035.global-lru.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l035.global-lru.system",
+                "id": "system",
+                "label": "Global LRU and shared pending futures",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l035.global-lru.binding-s2",
+                "version": 1
+              },
+              {
+                "definitionId": "l035.global-lru.engine",
+                "id": "engine",
+                "label": "CachedFile.read",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l035.global-lru.state",
+                "id": "state",
+                "label": "Block map and LRU",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "global-lru-s2",
+          "invariants": [
+            "read pins and destination slices belongs to CachedFile.read; revision/block index and access order belongs to Block map and LRU."
+          ],
+          "number": 2,
+          "operations": [
+            {
+              "edges": [
+                {
+                  "contractId": "l035.global-lru.command",
+                  "from": {
+                    "nodeId": "engine",
+                    "portId": "out-l035.global-lru.command"
+                  },
+                  "id": "owned-state",
+                  "label": "Read or commit state",
+                  "mode": "storage",
+                  "to": {
+                    "nodeId": "state",
+                    "portId": "in-l035.global-lru.command"
+                  }
+                }
+              ],
+              "nodeId": "system",
+              "nodes": [
+                {
+                  "definitionId": "l035.global-lru.engine",
+                  "id": "engine",
+                  "label": "CachedFile.read",
+                  "position": {
+                    "x": 560,
+                    "y": 0
+                  },
+                  "version": 1
+                },
+                {
+                  "definitionId": "l035.global-lru.state",
+                  "id": "state",
+                  "label": "Block map and LRU",
+                  "position": {
+                    "x": 840,
+                    "y": 0
+                  },
+                  "version": 1
+                }
+              ],
+              "op": "expand",
+              "subsystemId": "l035.global-lru.binding-s2"
+            }
+          ],
+          "question": "Which component owns the decision and its persistent or shared state?",
+          "reason": "Bind an immutable/version-addressed URI and file size for handle lifetime; split the interval into blocks. Own READY and LOADING records under one metadata mutex.",
+          "title": "Expose authority and state"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1",
+            "publication-pin"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l035.global-lru.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l035.global-lru.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l035.global-lru.command"
+                }
+              },
+              {
+                "contractId": "l035.global-lru.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l035.global-lru.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l035.global-lru.command"
+                }
+              },
+              {
+                "contractId": "l035.global-lru.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l035.global-lru.step3-engine"
+                },
+                "id": "step3",
+                "label": "Range planner",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l035.global-lru.step3"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l035.global-lru.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l035.global-lru.system",
+                "id": "system",
+                "label": "Global LRU and shared pending futures",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l035.global-lru.binding-s3",
+                "version": 1
+              },
+              {
+                "definitionId": "l035.global-lru.engine",
+                "id": "engine",
+                "label": "CachedFile.read",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l035.global-lru.state",
+                "id": "state",
+                "label": "Block map and LRU",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l035.global-lru.n3",
+                "id": "n3",
+                "label": "Range planner",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "global-lru-s3",
+          "invariants": [
+            "Never fetch beyond EOF or allocate for an empty read."
+          ],
+          "number": 3,
+          "operations": [
+            {
+              "nodeId": "system",
+              "op": "rebind",
+              "reason": "Expose this new typed path without mutating earlier binding definitions.",
+              "subsystemId": "l035.global-lru.binding-s3"
+            },
+            {
+              "node": {
+                "definitionId": "l035.global-lru.n3",
+                "id": "n3",
+                "label": "Range planner",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l035.global-lru.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l035.global-lru.step3-engine"
+                },
+                "id": "step3",
+                "label": "Range planner",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l035.global-lru.step3"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How does an unaligned read cross blocks?",
+          "reason": "Compute floor(offset/B) through floor((end-1)/B), clamp end at size, and special-case zero length.",
+          "title": "Range planner"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1",
+            "publication-pin"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l035.global-lru.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l035.global-lru.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l035.global-lru.command"
+                }
+              },
+              {
+                "contractId": "l035.global-lru.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l035.global-lru.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l035.global-lru.command"
+                }
+              },
+              {
+                "contractId": "l035.global-lru.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l035.global-lru.step3-engine"
+                },
+                "id": "step3",
+                "label": "Range planner",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l035.global-lru.step3"
+                }
+              },
+              {
+                "contractId": "l035.global-lru.step4",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l035.global-lru.step4-engine"
+                },
+                "id": "step4",
+                "label": "Single-flight slots",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l035.global-lru.step4"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l035.global-lru.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l035.global-lru.system",
+                "id": "system",
+                "label": "Global LRU and shared pending futures",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l035.global-lru.binding-s4",
+                "version": 1
+              },
+              {
+                "definitionId": "l035.global-lru.engine",
+                "id": "engine",
+                "label": "CachedFile.read",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l035.global-lru.state",
+                "id": "state",
+                "label": "Block map and LRU",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l035.global-lru.n3",
+                "id": "n3",
+                "label": "Range planner",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l035.global-lru.n4",
+                "id": "n4",
+                "label": "Single-flight slots",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "global-lru-s4",
+          "invariants": [
+            "One in-flight fetch per pinned revision/block."
+          ],
+          "number": 4,
+          "operations": [
+            {
+              "nodeId": "system",
+              "op": "rebind",
+              "reason": "Expose this new typed path without mutating earlier binding definitions.",
+              "subsystemId": "l035.global-lru.binding-s4"
+            },
+            {
+              "node": {
+                "definitionId": "l035.global-lru.n4",
+                "id": "n4",
+                "label": "Single-flight slots",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l035.global-lru.step4",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l035.global-lru.step4-engine"
+                },
+                "id": "step4",
+                "label": "Single-flight slots",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l035.global-lru.step4"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What if two threads miss the same block?",
+          "reason": "Install one shared future atomically under the metadata lock; followers attach outside the lock.",
+          "title": "Single-flight slots"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1",
+            "publication-pin"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l035.global-lru.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l035.global-lru.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l035.global-lru.command"
+                }
+              },
+              {
+                "contractId": "l035.global-lru.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l035.global-lru.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l035.global-lru.command"
+                }
+              },
+              {
+                "contractId": "l035.global-lru.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l035.global-lru.step3-engine"
+                },
+                "id": "step3",
+                "label": "Range planner",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l035.global-lru.step3"
+                }
+              },
+              {
+                "contractId": "l035.global-lru.step4",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l035.global-lru.step4-engine"
+                },
+                "id": "step4",
+                "label": "Single-flight slots",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l035.global-lru.step4"
+                }
+              },
+              {
+                "contractId": "l035.global-lru.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l035.global-lru.step5"
+                },
+                "id": "step5",
+                "label": "Byte reservation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l035.global-lru.step5"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l035.global-lru.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l035.global-lru.system",
+                "id": "system",
+                "label": "Global LRU and shared pending futures",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l035.global-lru.binding-s4",
+                "version": 1
+              },
+              {
+                "definitionId": "l035.global-lru.engine",
+                "id": "engine",
+                "label": "CachedFile.read",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l035.global-lru.state",
+                "id": "state",
+                "label": "Block map and LRU",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l035.global-lru.n3",
+                "id": "n3",
+                "label": "Range planner",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l035.global-lru.n4",
+                "id": "n4",
+                "label": "Single-flight slots",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l035.global-lru.n5",
+                "id": "n5",
+                "label": "Byte reservation",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "global-lru-s5",
+          "invariants": [
+            "Ready plus reserved bytes never exceed the configured budget."
+          ],
+          "number": 5,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l035.global-lru.n5",
+                "id": "n5",
+                "label": "Byte reservation",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l035.global-lru.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l035.global-lru.step5"
+                },
+                "id": "step5",
+                "label": "Byte reservation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l035.global-lru.step5"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can slow misses exceed the memory ceiling?",
+          "reason": "Reserve block bytes before fetch; evict unpinned ready blocks or wait with bounded admission.",
+          "title": "Byte reservation"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1",
+            "publication-pin"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l035.global-lru.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l035.global-lru.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l035.global-lru.command"
+                }
+              },
+              {
+                "contractId": "l035.global-lru.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l035.global-lru.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l035.global-lru.command"
+                }
+              },
+              {
+                "contractId": "l035.global-lru.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l035.global-lru.step3-engine"
+                },
+                "id": "step3",
+                "label": "Range planner",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l035.global-lru.step3"
+                }
+              },
+              {
+                "contractId": "l035.global-lru.step4",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l035.global-lru.step4-engine"
+                },
+                "id": "step4",
+                "label": "Single-flight slots",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l035.global-lru.step4"
+                }
+              },
+              {
+                "contractId": "l035.global-lru.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l035.global-lru.step5"
+                },
+                "id": "step5",
+                "label": "Byte reservation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l035.global-lru.step5"
+                }
+              },
+              {
+                "contractId": "l035.global-lru.step6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l035.global-lru.step6"
+                },
+                "id": "step6",
+                "label": "StorageClient fetch",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l035.global-lru.step6"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l035.global-lru.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l035.global-lru.system",
+                "id": "system",
+                "label": "Global LRU and shared pending futures",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l035.global-lru.binding-s4",
+                "version": 1
+              },
+              {
+                "definitionId": "l035.global-lru.engine",
+                "id": "engine",
+                "label": "CachedFile.read",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l035.global-lru.state",
+                "id": "state",
+                "label": "Block map and LRU",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l035.global-lru.n3",
+                "id": "n3",
+                "label": "Range planner",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l035.global-lru.n4",
+                "id": "n4",
+                "label": "Single-flight slots",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l035.global-lru.n5",
+                "id": "n5",
+                "label": "Byte reservation",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l035.global-lru.n6",
+                "id": "n6",
+                "label": "StorageClient fetch",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "global-lru-s6",
+          "invariants": [
+            "Canonical mode requires stable URI content for the entire handle lifetime; the original interface cannot detect arbitrary mutable-source changes."
+          ],
+          "number": 6,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l035.global-lru.n6",
+                "id": "n6",
+                "label": "StorageClient fetch",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l035.global-lru.step6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l035.global-lru.step6"
+                },
+                "id": "step6",
+                "label": "StorageClient fetch",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l035.global-lru.step6"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Which lock is held during remote IO?",
+          "reason": "Call original fetch(uri,offset,length,buffer) outside metadata lock against the immutable/version-addressed URI. Conditional fetch/version validation is a proposed adapter extension only; without it mutable-source snapshot consistency is unsupported.",
+          "title": "StorageClient fetch"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1",
+            "publication-pin"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l035.global-lru.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l035.global-lru.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l035.global-lru.command"
+                }
+              },
+              {
+                "contractId": "l035.global-lru.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l035.global-lru.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l035.global-lru.command"
+                }
+              },
+              {
+                "contractId": "l035.global-lru.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l035.global-lru.step3-engine"
+                },
+                "id": "step3",
+                "label": "Range planner",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l035.global-lru.step3"
+                }
+              },
+              {
+                "contractId": "l035.global-lru.step4",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l035.global-lru.step4-engine"
+                },
+                "id": "step4",
+                "label": "Single-flight slots",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l035.global-lru.step4"
+                }
+              },
+              {
+                "contractId": "l035.global-lru.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l035.global-lru.step5"
+                },
+                "id": "step5",
+                "label": "Byte reservation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l035.global-lru.step5"
+                }
+              },
+              {
+                "contractId": "l035.global-lru.step6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l035.global-lru.step6"
+                },
+                "id": "step6",
+                "label": "StorageClient fetch",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l035.global-lru.step6"
+                }
+              },
+              {
+                "contractId": "l035.global-lru.step7",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l035.global-lru.step7"
+                },
+                "id": "step7",
+                "label": "Completion publisher",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l035.global-lru.step7"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l035.global-lru.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l035.global-lru.system",
+                "id": "system",
+                "label": "Global LRU and shared pending futures",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l035.global-lru.binding-s4",
+                "version": 1
+              },
+              {
+                "definitionId": "l035.global-lru.engine",
+                "id": "engine",
+                "label": "CachedFile.read",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l035.global-lru.state",
+                "id": "state",
+                "label": "Block map and LRU",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l035.global-lru.n3",
+                "id": "n3",
+                "label": "Range planner",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l035.global-lru.n4",
+                "id": "n4",
+                "label": "Single-flight slots",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l035.global-lru.n5",
+                "id": "n5",
+                "label": "Byte reservation",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l035.global-lru.n6",
+                "id": "n6",
+                "label": "StorageClient fetch",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l035.global-lru.n7",
+                "id": "n7",
+                "label": "Completion publisher",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "global-lru-s7",
+          "invariants": [
+            "Only the owning future may remove its slot; waiters see the same failure."
+          ],
+          "number": 7,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l035.global-lru.n7",
+                "id": "n7",
+                "label": "Completion publisher",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l035.global-lru.step7",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l035.global-lru.step7"
+                },
+                "id": "step7",
+                "label": "Completion publisher",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l035.global-lru.step7"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How do failures wake every waiter?",
+          "reason": "Publish immutable bytes or exceptional completion; remove failed slot and release reservations before permitting retry.",
+          "title": "Completion publisher"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1",
+            "publication-pin"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l035.global-lru.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l035.global-lru.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l035.global-lru.command"
+                }
+              },
+              {
+                "contractId": "l035.global-lru.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l035.global-lru.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l035.global-lru.command"
+                }
+              },
+              {
+                "contractId": "l035.global-lru.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l035.global-lru.step3-engine"
+                },
+                "id": "step3",
+                "label": "Range planner",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l035.global-lru.step3"
+                }
+              },
+              {
+                "contractId": "l035.global-lru.step4",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l035.global-lru.step4-engine"
+                },
+                "id": "step4",
+                "label": "Single-flight slots",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l035.global-lru.step4"
+                }
+              },
+              {
+                "contractId": "l035.global-lru.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l035.global-lru.step5"
+                },
+                "id": "step5",
+                "label": "Byte reservation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l035.global-lru.step5"
+                }
+              },
+              {
+                "contractId": "l035.global-lru.step6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l035.global-lru.step6"
+                },
+                "id": "step6",
+                "label": "StorageClient fetch",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l035.global-lru.step6"
+                }
+              },
+              {
+                "contractId": "l035.global-lru.step7",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l035.global-lru.step7"
+                },
+                "id": "step7",
+                "label": "Completion publisher",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l035.global-lru.step7"
+                }
+              },
+              {
+                "contractId": "l035.global-lru.step8",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l035.global-lru.step8"
+                },
+                "id": "step8",
+                "label": "Pinned copy and release",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n8",
+                  "portId": "in-l035.global-lru.step8"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l035.global-lru.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l035.global-lru.system",
+                "id": "system",
+                "label": "Global LRU and shared pending futures",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l035.global-lru.binding-s4",
+                "version": 1
+              },
+              {
+                "definitionId": "l035.global-lru.engine",
+                "id": "engine",
+                "label": "CachedFile.read",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l035.global-lru.state",
+                "id": "state",
+                "label": "Block map and LRU",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l035.global-lru.n3",
+                "id": "n3",
+                "label": "Range planner",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l035.global-lru.n4",
+                "id": "n4",
+                "label": "Single-flight slots",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l035.global-lru.n5",
+                "id": "n5",
+                "label": "Byte reservation",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l035.global-lru.n6",
+                "id": "n6",
+                "label": "StorageClient fetch",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l035.global-lru.n7",
+                "id": "n7",
+                "label": "Completion publisher",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l035.global-lru.n8",
+                "id": "n8",
+                "label": "Pinned copy and release",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "global-lru-s8",
+          "invariants": [
+            "Eviction never reuses a pinned buffer."
+          ],
+          "number": 8,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l035.global-lru.n8",
+                "id": "n8",
+                "label": "Pinned copy and release",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l035.global-lru.step8",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l035.global-lru.step8"
+                },
+                "id": "step8",
+                "label": "Pinned copy and release",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n8",
+                  "portId": "in-l035.global-lru.step8"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can eviction free bytes while a reader copies?",
+          "reason": "Acquire a read lease under metadata lock before waiting for publication, retain it across await/copy, then release in finally. Eviction cannot win between completion and pinning.",
+          "title": "Pinned copy and release"
+        }
+      ],
+      "title": "Global LRU and shared pending futures",
+      "tradeoffs": [
+        "Access-order hits mutate LRU and need exclusive metadata protection.",
+        "One lock and global eviction become a contention point."
+      ]
+    },
+    {
+      "acceptanceCases": [
+        {
+          "given": "An unaligned range reaches a partial final block.",
+          "id": "case0",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Copy exactly requested available bytes without overflow or crossing revision.",
+          "when": "Plan and assemble shard-owned slices."
+        },
+        {
+          "given": "Two readers map the same block to one shard.",
+          "id": "case1",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Shared failure cleans up the pending slot; permits return and a later read can retry.",
+          "when": "One cancels while fetch fails for the other."
+        },
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-06-state.test.mjs",
+            "testName": "single flight reserves bytes shares failures pins buffers and retries by revision"
+          },
+          "given": "A four-byte cache admits two same-key waiters and a different revision.",
+          "id": "bounded-mechanism",
+          "relatedRequirementIds": [
+            "r0"
+          ],
+          "then": "Use one promise/fetch per key, bound reserved bytes, retain pinned buffers and release failed reservations; no thread-runtime proof is claimed.",
+          "when": "Hold fetch pending, test admission and pinning, fail a shared fetch then retry."
+        },
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-06-state.test.mjs",
+            "testName": "read lease pins before publication and closes the completion eviction gap"
+          },
+          "given": "A reader joins a pending block before its fetch completes.",
+          "id": "publication-pin",
+          "relatedRequirementIds": [
+            "r2"
+          ],
+          "then": "The pre-acquired lease prevents eviction until every reader releases it; failure releases the lease.",
+          "when": "Completion triggers an eviction attempt before the reader continuation copies bytes."
+        }
+      ],
+      "algorithms": [
+        {
+          "code": "const revision = immutableUriHandleIdentity(uri), pinnedSize = storage.getFileSize(uri);\nconst pieces = checkedBlockPlan(offset,length,pinnedSize);\nfor (const piece of pieces) { const shard = hash(uri,revision,piece.block)%N;\n const {pending,lease} = shard.findOrCreateAndPinPromiseWithRecheckAfterPermit();\n try { ownerFetchOutsideLocks(pending, () => storage.fetch(uri,piece.blockOffset,piece.fetchLength,reservedBuffer)); awaitWithoutShardLock(pending);\n copyPinnedSlice(); } finally { releaseReadLease(lease); } }\n// Per-shard READY eviction is approximate global LRU; global permits bound bytes.\n// Original StorageClient takes no version/etag argument. Conditional fetch is a proposed extension; the baseline requires immutable URI content.",
+          "guarantees": [
+            "Invalid negative or overflowing ranges are rejected.",
+            "All readers of the same block resolve to the same shard future.",
+            "No shard waits for memory while holding its metadata mutex.",
+            "Failures release permits; mutable-source snapshot consistency is unsupported without the proposed adapter extension.",
+            "LOADING slots retain single-flight identity until completed.",
+            "Release pins/permits exactly once under success, failure and cancellation."
+          ],
+          "id": "transition",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "engine"
+        }
+      ],
+      "apis": [
+        {
+          "errors": "Reject invalid input, stale versions and operations outside the declared boundary.",
+          "method": "METHOD",
+          "ownerNodeId": "engine",
+          "path": "CachedFile.read(offset,length,buffer)",
+          "request": "{\"uri\":\"immutable/version-addressed String URI stable for handle lifetime in canonical mode\",\"fileRevision\":\"optional proposed adapter-extension version metadata; absent in canonical immutable-URI mode\",\"offset\":\"nonnegative 64-bit integer\",\"length\":\"nonnegative integer\"}",
+          "response": "{\"bytesRead\":\"integer <= length\",\"bytes\":\"byte[]\",\"revision\":\"stable handle identity derived from immutable URI; explicit adapter-extension version only when supported\"}"
+        },
+        {
+          "errors": "Storage error; requires URI content stable for handle lifetime.",
+          "method": "JAVA",
+          "ownerNodeId": "n6",
+          "path": "StorageClient.getFileSize",
+          "request": "String uri",
+          "response": "long"
+        },
+        {
+          "errors": "Storage error; original method has no etag or conditional-version argument.",
+          "method": "JAVA",
+          "ownerNodeId": "n6",
+          "path": "StorageClient.fetch",
+          "request": "String uri, long offset, int length, byte[] buffer",
+          "response": "void; fills supplied byte[] buffer"
+        }
+      ],
+      "assumptions": [
+        "All added stages are authored practice extending the canonical prompt.",
+        "Graphs specify conceptual mechanisms; reference models do not prove cloud execution, latency, physical durability or distributed safety.",
+        "Canonical mode requires an immutable/version-addressed URI stable for the handle lifetime, including getFileSize and every fetch. The cache cannot verify this promise with the original interface.",
+        "Mutable-source snapshot consistency is unsupported with only getFileSize(uri) and fetch(uri,offset,length,buffer). Optional version metadata and conditional fetch are proposed adapter extensions, not hidden original API arguments."
+      ],
+      "chooseWhen": "Many independent file/block reads justify partitioned metadata locks.",
+      "id": "sharded",
+      "initialGraph": {
+        "edges": [],
+        "nodes": []
+      },
+      "stages": [
+        {
+          "checkIds": [
+            "case0",
+            "case1",
+            "publication-pin"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l035.sharded.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l035.sharded.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l035.sharded.command"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l035.sharded.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l035.sharded.system",
+                "id": "system",
+                "label": "Sharded block caches with global byte permits",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "sharded-s1",
+          "invariants": [
+            "Split arbitrary byte ranges into fixed blocks, clamp at EOF and validate offsets/lengths."
+          ],
+          "number": 1,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l035.sharded.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "l035.sharded.system",
+                "id": "system",
+                "label": "Sharded block caches with global byte permits",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l035.sharded.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l035.sharded.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l035.sharded.command"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What does successful completion promise?",
+          "reason": "Split arbitrary byte ranges into fixed blocks, clamp at EOF and validate offsets/lengths.",
+          "title": "Define the operation boundary"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1",
+            "publication-pin"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l035.sharded.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l035.sharded.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l035.sharded.command"
+                }
+              },
+              {
+                "contractId": "l035.sharded.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l035.sharded.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l035.sharded.command"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l035.sharded.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l035.sharded.system",
+                "id": "system",
+                "label": "Sharded block caches with global byte permits",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l035.sharded.binding-s2",
+                "version": 1
+              },
+              {
+                "definitionId": "l035.sharded.engine",
+                "id": "engine",
+                "label": "CachedFile facade",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l035.sharded.state",
+                "id": "state",
+                "label": "Shard directory",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "sharded-s2",
+          "invariants": [
+            "per-read slices and cancellation belongs to CachedFile facade; fixed shard mapping belongs to Shard directory."
+          ],
+          "number": 2,
+          "operations": [
+            {
+              "edges": [
+                {
+                  "contractId": "l035.sharded.command",
+                  "from": {
+                    "nodeId": "engine",
+                    "portId": "out-l035.sharded.command"
+                  },
+                  "id": "owned-state",
+                  "label": "Read or commit state",
+                  "mode": "storage",
+                  "to": {
+                    "nodeId": "state",
+                    "portId": "in-l035.sharded.command"
+                  }
+                }
+              ],
+              "nodeId": "system",
+              "nodes": [
+                {
+                  "definitionId": "l035.sharded.engine",
+                  "id": "engine",
+                  "label": "CachedFile facade",
+                  "position": {
+                    "x": 560,
+                    "y": 0
+                  },
+                  "version": 1
+                },
+                {
+                  "definitionId": "l035.sharded.state",
+                  "id": "state",
+                  "label": "Shard directory",
+                  "position": {
+                    "x": 840,
+                    "y": 0
+                  },
+                  "version": 1
+                }
+              ],
+              "op": "expand",
+              "subsystemId": "l035.sharded.binding-s2"
+            }
+          ],
+          "question": "Which component owns the decision and its persistent or shared state?",
+          "reason": "Bind immutable/version-addressed URI identity and distribute block slices to deterministic shard owners. Map immutable block keys to one owning shard.",
+          "title": "Expose authority and state"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1",
+            "publication-pin"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l035.sharded.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l035.sharded.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l035.sharded.command"
+                }
+              },
+              {
+                "contractId": "l035.sharded.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l035.sharded.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l035.sharded.command"
+                }
+              },
+              {
+                "contractId": "l035.sharded.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l035.sharded.step3-engine"
+                },
+                "id": "step3",
+                "label": "Block planner",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l035.sharded.step3"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l035.sharded.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l035.sharded.system",
+                "id": "system",
+                "label": "Sharded block caches with global byte permits",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l035.sharded.binding-s3",
+                "version": 1
+              },
+              {
+                "definitionId": "l035.sharded.engine",
+                "id": "engine",
+                "label": "CachedFile facade",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l035.sharded.state",
+                "id": "state",
+                "label": "Shard directory",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l035.sharded.n3",
+                "id": "n3",
+                "label": "Block planner",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "sharded-s3",
+          "invariants": [
+            "Invalid negative or overflowing ranges are rejected."
+          ],
+          "number": 3,
+          "operations": [
+            {
+              "nodeId": "system",
+              "op": "rebind",
+              "reason": "Expose this new typed path without mutating earlier binding definitions.",
+              "subsystemId": "l035.sharded.binding-s3"
+            },
+            {
+              "node": {
+                "definitionId": "l035.sharded.n3",
+                "id": "n3",
+                "label": "Block planner",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l035.sharded.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l035.sharded.step3-engine"
+                },
+                "id": "step3",
+                "label": "Block planner",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l035.sharded.step3"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How are reads split without overflow?",
+          "reason": "Use checked end arithmetic and clamp against immutable file size.",
+          "title": "Block planner"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1",
+            "publication-pin"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l035.sharded.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l035.sharded.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l035.sharded.command"
+                }
+              },
+              {
+                "contractId": "l035.sharded.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l035.sharded.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l035.sharded.command"
+                }
+              },
+              {
+                "contractId": "l035.sharded.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l035.sharded.step3-engine"
+                },
+                "id": "step3",
+                "label": "Block planner",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l035.sharded.step3"
+                }
+              },
+              {
+                "contractId": "l035.sharded.step4",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l035.sharded.step4-state"
+                },
+                "id": "step4",
+                "label": "Shard pending map",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l035.sharded.step4"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l035.sharded.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l035.sharded.system",
+                "id": "system",
+                "label": "Sharded block caches with global byte permits",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l035.sharded.binding-s4",
+                "version": 1
+              },
+              {
+                "definitionId": "l035.sharded.engine",
+                "id": "engine",
+                "label": "CachedFile facade",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l035.sharded.state",
+                "id": "state",
+                "label": "Shard directory",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l035.sharded.n3",
+                "id": "n3",
+                "label": "Block planner",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l035.sharded.n4",
+                "id": "n4",
+                "label": "Shard pending map",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "sharded-s4",
+          "invariants": [
+            "All readers of the same block resolve to the same shard future."
+          ],
+          "number": 4,
+          "operations": [
+            {
+              "nodeId": "system",
+              "op": "rebind",
+              "reason": "Expose this new typed path without mutating earlier binding definitions.",
+              "subsystemId": "l035.sharded.binding-s4"
+            },
+            {
+              "node": {
+                "definitionId": "l035.sharded.n4",
+                "id": "n4",
+                "label": "Shard pending map",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l035.sharded.step4",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l035.sharded.step4-state"
+                },
+                "id": "step4",
+                "label": "Shard pending map",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l035.sharded.step4"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Where is miss coalescing linearized?",
+          "reason": "One shard mutex installs a promise per revision/block key before any IO begins.",
+          "title": "Shard pending map"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1",
+            "publication-pin"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l035.sharded.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l035.sharded.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l035.sharded.command"
+                }
+              },
+              {
+                "contractId": "l035.sharded.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l035.sharded.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l035.sharded.command"
+                }
+              },
+              {
+                "contractId": "l035.sharded.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l035.sharded.step3-engine"
+                },
+                "id": "step3",
+                "label": "Block planner",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l035.sharded.step3"
+                }
+              },
+              {
+                "contractId": "l035.sharded.step4",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l035.sharded.step4-state"
+                },
+                "id": "step4",
+                "label": "Shard pending map",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l035.sharded.step4"
+                }
+              },
+              {
+                "contractId": "l035.sharded.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l035.sharded.step5"
+                },
+                "id": "step5",
+                "label": "Global byte semaphore",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l035.sharded.step5"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l035.sharded.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l035.sharded.system",
+                "id": "system",
+                "label": "Sharded block caches with global byte permits",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l035.sharded.binding-s4",
+                "version": 1
+              },
+              {
+                "definitionId": "l035.sharded.engine",
+                "id": "engine",
+                "label": "CachedFile facade",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l035.sharded.state",
+                "id": "state",
+                "label": "Shard directory",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l035.sharded.n3",
+                "id": "n3",
+                "label": "Block planner",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l035.sharded.n4",
+                "id": "n4",
+                "label": "Shard pending map",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l035.sharded.n5",
+                "id": "n5",
+                "label": "Global byte semaphore",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "sharded-s5",
+          "invariants": [
+            "No shard waits for memory while holding its metadata mutex."
+          ],
+          "number": 5,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l035.sharded.n5",
+                "id": "n5",
+                "label": "Global byte semaphore",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l035.sharded.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l035.sharded.step5"
+                },
+                "id": "step5",
+                "label": "Global byte semaphore",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l035.sharded.step5"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can each shard independently overallocate?",
+          "reason": "Acquire global bytes before allocation, outside shard lock; recheck for a winner after reacquiring.",
+          "title": "Global byte semaphore"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1",
+            "publication-pin"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l035.sharded.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l035.sharded.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l035.sharded.command"
+                }
+              },
+              {
+                "contractId": "l035.sharded.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l035.sharded.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l035.sharded.command"
+                }
+              },
+              {
+                "contractId": "l035.sharded.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l035.sharded.step3-engine"
+                },
+                "id": "step3",
+                "label": "Block planner",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l035.sharded.step3"
+                }
+              },
+              {
+                "contractId": "l035.sharded.step4",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l035.sharded.step4-state"
+                },
+                "id": "step4",
+                "label": "Shard pending map",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l035.sharded.step4"
+                }
+              },
+              {
+                "contractId": "l035.sharded.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l035.sharded.step5"
+                },
+                "id": "step5",
+                "label": "Global byte semaphore",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l035.sharded.step5"
+                }
+              },
+              {
+                "contractId": "l035.sharded.step6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l035.sharded.step6"
+                },
+                "id": "step6",
+                "label": "Storage fetch task",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l035.sharded.step6"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l035.sharded.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l035.sharded.system",
+                "id": "system",
+                "label": "Sharded block caches with global byte permits",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l035.sharded.binding-s4",
+                "version": 1
+              },
+              {
+                "definitionId": "l035.sharded.engine",
+                "id": "engine",
+                "label": "CachedFile facade",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l035.sharded.state",
+                "id": "state",
+                "label": "Shard directory",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l035.sharded.n3",
+                "id": "n3",
+                "label": "Block planner",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l035.sharded.n4",
+                "id": "n4",
+                "label": "Shard pending map",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l035.sharded.n5",
+                "id": "n5",
+                "label": "Global byte semaphore",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l035.sharded.n6",
+                "id": "n6",
+                "label": "Storage fetch task",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "sharded-s6",
+          "invariants": [
+            "Failures release permits; mutable-source snapshot consistency is unsupported without the proposed adapter extension."
+          ],
+          "number": 6,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l035.sharded.n6",
+                "id": "n6",
+                "label": "Storage fetch task",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l035.sharded.step6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l035.sharded.step6"
+                },
+                "id": "step6",
+                "label": "Storage fetch task",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l035.sharded.step6"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How are remote reads bounded?",
+          "reason": "Run admitted calls to original fetch(uri,offset,length,buffer) outside shard locks. URI content must remain stable for the handle lifetime; conditional versions and deadlines require an explicitly proposed supporting adapter.",
+          "title": "Storage fetch task"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1",
+            "publication-pin"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l035.sharded.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l035.sharded.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l035.sharded.command"
+                }
+              },
+              {
+                "contractId": "l035.sharded.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l035.sharded.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l035.sharded.command"
+                }
+              },
+              {
+                "contractId": "l035.sharded.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l035.sharded.step3-engine"
+                },
+                "id": "step3",
+                "label": "Block planner",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l035.sharded.step3"
+                }
+              },
+              {
+                "contractId": "l035.sharded.step4",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l035.sharded.step4-state"
+                },
+                "id": "step4",
+                "label": "Shard pending map",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l035.sharded.step4"
+                }
+              },
+              {
+                "contractId": "l035.sharded.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l035.sharded.step5"
+                },
+                "id": "step5",
+                "label": "Global byte semaphore",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l035.sharded.step5"
+                }
+              },
+              {
+                "contractId": "l035.sharded.step6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l035.sharded.step6"
+                },
+                "id": "step6",
+                "label": "Storage fetch task",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l035.sharded.step6"
+                }
+              },
+              {
+                "contractId": "l035.sharded.step7",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l035.sharded.step7"
+                },
+                "id": "step7",
+                "label": "Shard eviction ring",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l035.sharded.step7"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l035.sharded.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l035.sharded.system",
+                "id": "system",
+                "label": "Sharded block caches with global byte permits",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l035.sharded.binding-s4",
+                "version": 1
+              },
+              {
+                "definitionId": "l035.sharded.engine",
+                "id": "engine",
+                "label": "CachedFile facade",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l035.sharded.state",
+                "id": "state",
+                "label": "Shard directory",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l035.sharded.n3",
+                "id": "n3",
+                "label": "Block planner",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l035.sharded.n4",
+                "id": "n4",
+                "label": "Shard pending map",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l035.sharded.n5",
+                "id": "n5",
+                "label": "Global byte semaphore",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l035.sharded.n6",
+                "id": "n6",
+                "label": "Storage fetch task",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l035.sharded.n7",
+                "id": "n7",
+                "label": "Shard eviction ring",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "sharded-s7",
+          "invariants": [
+            "LOADING slots retain single-flight identity until completed."
+          ],
+          "number": 7,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l035.sharded.n7",
+                "id": "n7",
+                "label": "Shard eviction ring",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l035.sharded.step7",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l035.sharded.step7"
+                },
+                "id": "step7",
+                "label": "Shard eviction ring",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l035.sharded.step7"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How is cached memory reclaimed?",
+          "reason": "Track shard-local access order and evict only unpinned READY entries; never drop a LOADING promise.",
+          "title": "Shard eviction ring"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1",
+            "publication-pin"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l035.sharded.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l035.sharded.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l035.sharded.command"
+                }
+              },
+              {
+                "contractId": "l035.sharded.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l035.sharded.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l035.sharded.command"
+                }
+              },
+              {
+                "contractId": "l035.sharded.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l035.sharded.step3-engine"
+                },
+                "id": "step3",
+                "label": "Block planner",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l035.sharded.step3"
+                }
+              },
+              {
+                "contractId": "l035.sharded.step4",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l035.sharded.step4-state"
+                },
+                "id": "step4",
+                "label": "Shard pending map",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l035.sharded.step4"
+                }
+              },
+              {
+                "contractId": "l035.sharded.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l035.sharded.step5"
+                },
+                "id": "step5",
+                "label": "Global byte semaphore",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l035.sharded.step5"
+                }
+              },
+              {
+                "contractId": "l035.sharded.step6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l035.sharded.step6"
+                },
+                "id": "step6",
+                "label": "Storage fetch task",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l035.sharded.step6"
+                }
+              },
+              {
+                "contractId": "l035.sharded.step7",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l035.sharded.step7"
+                },
+                "id": "step7",
+                "label": "Shard eviction ring",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l035.sharded.step7"
+                }
+              },
+              {
+                "contractId": "l035.sharded.step8",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l035.sharded.step8"
+                },
+                "id": "step8",
+                "label": "Read assembly",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n8",
+                  "portId": "in-l035.sharded.step8"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l035.sharded.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l035.sharded.system",
+                "id": "system",
+                "label": "Sharded block caches with global byte permits",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l035.sharded.binding-s4",
+                "version": 1
+              },
+              {
+                "definitionId": "l035.sharded.engine",
+                "id": "engine",
+                "label": "CachedFile facade",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l035.sharded.state",
+                "id": "state",
+                "label": "Shard directory",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l035.sharded.n3",
+                "id": "n3",
+                "label": "Block planner",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l035.sharded.n4",
+                "id": "n4",
+                "label": "Shard pending map",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l035.sharded.n5",
+                "id": "n5",
+                "label": "Global byte semaphore",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l035.sharded.n6",
+                "id": "n6",
+                "label": "Storage fetch task",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l035.sharded.n7",
+                "id": "n7",
+                "label": "Shard eviction ring",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l035.sharded.n8",
+                "id": "n8",
+                "label": "Read assembly",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "sharded-s8",
+          "invariants": [
+            "Release pins/permits exactly once under success, failure and cancellation."
+          ],
+          "number": 8,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l035.sharded.n8",
+                "id": "n8",
+                "label": "Read assembly",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l035.sharded.step8",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l035.sharded.step8"
+                },
+                "id": "step8",
+                "label": "Read assembly",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n8",
+                  "portId": "in-l035.sharded.step8"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can cancellation poison shared work?",
+          "reason": "Pin the shared slot under its shard lock before awaiting completion; copy immutable slices and release the lease in finally. Cancel one waiter without canceling another reader shared fetch.",
+          "title": "Read assembly"
+        }
+      ],
+      "title": "Sharded block caches with global byte permits",
+      "tradeoffs": [
+        "Per-shard eviction is approximate global LRU.",
+        "Global byte permits and shard lock order need careful deadlock avoidance."
+      ]
+    }
+  ],
+  "subsystems": [
+    {
+      "definitionId": "l035.global-lru.system",
+      "id": "l035.global-lru.binding-s2",
+      "ports": [
+        {
+          "contractId": "l035.global-lru.command",
+          "direction": "in",
+          "id": "in-l035.global-lru.command",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-l035.global-lru.command"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l035.global-lru.system",
+      "id": "l035.global-lru.binding-s3",
+      "ports": [
+        {
+          "contractId": "l035.global-lru.command",
+          "direction": "in",
+          "id": "in-l035.global-lru.command",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-l035.global-lru.command"
+          }
+        },
+        {
+          "contractId": "l035.global-lru.step3",
+          "direction": "out",
+          "id": "out-l035.global-lru.step3-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l035.global-lru.step3"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l035.global-lru.system",
+      "id": "l035.global-lru.binding-s4",
+      "ports": [
+        {
+          "contractId": "l035.global-lru.command",
+          "direction": "in",
+          "id": "in-l035.global-lru.command",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-l035.global-lru.command"
+          }
+        },
+        {
+          "contractId": "l035.global-lru.step3",
+          "direction": "out",
+          "id": "out-l035.global-lru.step3-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l035.global-lru.step3"
+          }
+        },
+        {
+          "contractId": "l035.global-lru.step4",
+          "direction": "out",
+          "id": "out-l035.global-lru.step4-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l035.global-lru.step4"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l035.sharded.system",
+      "id": "l035.sharded.binding-s2",
+      "ports": [
+        {
+          "contractId": "l035.sharded.command",
+          "direction": "in",
+          "id": "in-l035.sharded.command",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-l035.sharded.command"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l035.sharded.system",
+      "id": "l035.sharded.binding-s3",
+      "ports": [
+        {
+          "contractId": "l035.sharded.command",
+          "direction": "in",
+          "id": "in-l035.sharded.command",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-l035.sharded.command"
+          }
+        },
+        {
+          "contractId": "l035.sharded.step3",
+          "direction": "out",
+          "id": "out-l035.sharded.step3-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l035.sharded.step3"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l035.sharded.system",
+      "id": "l035.sharded.binding-s4",
+      "ports": [
+        {
+          "contractId": "l035.sharded.command",
+          "direction": "in",
+          "id": "in-l035.sharded.command",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-l035.sharded.command"
+          }
+        },
+        {
+          "contractId": "l035.sharded.step3",
+          "direction": "out",
+          "id": "out-l035.sharded.step3-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l035.sharded.step3"
+          }
+        },
+        {
+          "contractId": "l035.sharded.step4",
+          "direction": "out",
+          "id": "out-l035.sharded.step4-state",
+          "target": {
+            "nodeId": "state",
+            "portId": "out-l035.sharded.step4"
+          }
+        }
+      ],
+      "version": 1
+    }
+  ],
+  "version": 1
+}

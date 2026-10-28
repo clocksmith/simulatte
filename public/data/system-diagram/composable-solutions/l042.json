@@ -1,0 +1,4146 @@
+{
+  "components": [
+    {
+      "extends": {
+        "id": "core.client",
+        "version": 1
+      },
+      "id": "l042.heap.caller",
+      "label": "Caller",
+      "ports": [
+        {
+          "contractId": "l042.heap.command",
+          "direction": "out",
+          "id": "out-l042.heap.command"
+        }
+      ],
+      "responsibility": "Submit the declared operation with stable identity and observe explicit completion.",
+      "stateOwnership": [
+        "caller request and retry identity"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l042.heap.system",
+      "label": "Read/write lock and expiry heap",
+      "ports": [
+        {
+          "contractId": "l042.heap.command",
+          "direction": "in",
+          "id": "in-l042.heap.command"
+        },
+        {
+          "contractId": "l042.heap.step3",
+          "direction": "out",
+          "id": "out-l042.heap.step3-engine"
+        },
+        {
+          "contractId": "l042.heap.step4",
+          "direction": "out",
+          "id": "out-l042.heap.step4-engine"
+        },
+        {
+          "contractId": "l042.heap.step5",
+          "direction": "out",
+          "id": "out-l042.heap.step5-state"
+        },
+        {
+          "contractId": "l042.heap.step7",
+          "direction": "out",
+          "id": "out-l042.heap.step7-engine"
+        }
+      ],
+      "responsibility": "Preserve this stable boundary while refining its ownership and contracts.",
+      "stateOwnership": [
+        "logical operation state"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l042.heap.engine",
+      "label": "Cache methods",
+      "ports": [
+        {
+          "contractId": "l042.heap.command",
+          "direction": "out",
+          "id": "out-l042.heap.command"
+        },
+        {
+          "contractId": "l042.heap.command",
+          "direction": "in",
+          "id": "in-l042.heap.command"
+        },
+        {
+          "contractId": "l042.heap.step3",
+          "direction": "out",
+          "id": "out-l042.heap.step3"
+        },
+        {
+          "contractId": "l042.heap.step4",
+          "direction": "out",
+          "id": "out-l042.heap.step4"
+        },
+        {
+          "contractId": "l042.heap.step7",
+          "direction": "out",
+          "id": "out-l042.heap.step7"
+        }
+      ],
+      "responsibility": "Validate TTL and linearize lookup/replace against a monotonic timestamp.",
+      "stateOwnership": [
+        "operation timestamp"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l042.heap.state",
+      "label": "RW-locked map",
+      "ports": [
+        {
+          "contractId": "l042.heap.command",
+          "direction": "in",
+          "id": "in-l042.heap.command"
+        },
+        {
+          "contractId": "l042.heap.step5",
+          "direction": "out",
+          "id": "out-l042.heap.step5"
+        }
+      ],
+      "responsibility": "Own immutable value, deadline and monotonically increasing generation per key.",
+      "stateOwnership": [
+        "key/value/deadline/generation"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l042.heap.n3",
+      "label": "Deadline calculator",
+      "ports": [
+        {
+          "contractId": "l042.heap.step3",
+          "direction": "in",
+          "id": "in-l042.heap.step3"
+        }
+      ],
+      "responsibility": "Treat zero TTL as immediate absence and reject negative TTL; use checked monotonic deadline arithmetic.",
+      "stateOwnership": [
+        "ttlMs, nowMs"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l042.heap.n4",
+      "label": "Expiry min-heap",
+      "ports": [
+        {
+          "contractId": "l042.heap.step4",
+          "direction": "in",
+          "id": "in-l042.heap.step4"
+        },
+        {
+          "contractId": "l042.heap.step6",
+          "direction": "out",
+          "id": "out-l042.heap.step6"
+        }
+      ],
+      "responsibility": "Push deadline/key/generation on put under exclusive mutation synchronization.",
+      "stateOwnership": [
+        "deadline, generation, key"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l042.heap.n5",
+      "label": "Passive cleanup",
+      "ports": [
+        {
+          "contractId": "l042.heap.step5",
+          "direction": "in",
+          "id": "in-l042.heap.step5"
+        }
+      ],
+      "responsibility": "Release shared lock, acquire exclusive lock, and compare generation/deadline again before removal.",
+      "stateOwnership": [
+        "observedGeneration, observedDeadline"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l042.heap.n6",
+      "label": "Bounded scavenger",
+      "ports": [
+        {
+          "contractId": "l042.heap.step6",
+          "direction": "in",
+          "id": "in-l042.heap.step6"
+        },
+        {
+          "contractId": "l042.heap.step8",
+          "direction": "out",
+          "id": "out-l042.heap.step8"
+        }
+      ],
+      "responsibility": "Pop at most a configured number of due records, deleting only matching generations.",
+      "stateOwnership": [
+        "sweepBudget, clockNow"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l042.heap.n7",
+      "label": "Capacity eviction",
+      "ports": [
+        {
+          "contractId": "l042.heap.step7",
+          "direction": "in",
+          "id": "in-l042.heap.step7"
+        }
+      ],
+      "responsibility": "Enforce a byte/entry budget independently of TTL and compact stale heap records under a bounded policy.",
+      "stateOwnership": [
+        "byteBudget, heapRatioLimit"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l042.heap.n8",
+      "label": "Shutdown coordinator",
+      "ports": [
+        {
+          "contractId": "l042.heap.step8",
+          "direction": "in",
+          "id": "in-l042.heap.step8"
+        }
+      ],
+      "responsibility": "Cancel future ticks, join current sweep and make post-close method behavior explicit.",
+      "stateOwnership": [
+        "closed, activeSweep"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.client",
+        "version": 1
+      },
+      "id": "l042.wheel.caller",
+      "label": "Caller",
+      "ports": [
+        {
+          "contractId": "l042.wheel.command",
+          "direction": "out",
+          "id": "out-l042.wheel.command"
+        }
+      ],
+      "responsibility": "Submit the declared operation with stable identity and observe explicit completion.",
+      "stateOwnership": [
+        "caller request and retry identity"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l042.wheel.system",
+      "label": "Sharded maps and hashed timing wheels",
+      "ports": [
+        {
+          "contractId": "l042.wheel.command",
+          "direction": "in",
+          "id": "in-l042.wheel.command"
+        },
+        {
+          "contractId": "l042.wheel.step3",
+          "direction": "out",
+          "id": "out-l042.wheel.step3-state"
+        },
+        {
+          "contractId": "l042.wheel.step5",
+          "direction": "out",
+          "id": "out-l042.wheel.step5-engine"
+        }
+      ],
+      "responsibility": "Preserve this stable boundary while refining its ownership and contracts.",
+      "stateOwnership": [
+        "logical operation state"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l042.wheel.engine",
+      "label": "Shard router",
+      "ports": [
+        {
+          "contractId": "l042.wheel.command",
+          "direction": "out",
+          "id": "out-l042.wheel.command"
+        },
+        {
+          "contractId": "l042.wheel.command",
+          "direction": "in",
+          "id": "in-l042.wheel.command"
+        },
+        {
+          "contractId": "l042.wheel.step5",
+          "direction": "out",
+          "id": "out-l042.wheel.step5"
+        }
+      ],
+      "responsibility": "Route each key consistently and capture a monotonic operation timestamp.",
+      "stateOwnership": [
+        "fixed hash seed"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l042.wheel.state",
+      "label": "Shard maps",
+      "ports": [
+        {
+          "contractId": "l042.wheel.command",
+          "direction": "in",
+          "id": "in-l042.wheel.command"
+        },
+        {
+          "contractId": "l042.wheel.step3",
+          "direction": "out",
+          "id": "out-l042.wheel.step3"
+        }
+      ],
+      "responsibility": "Own key values and generations under independent shard locks.",
+      "stateOwnership": [
+        "per-shard mutable maps"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l042.wheel.n3",
+      "label": "Per-shard method lock",
+      "ports": [
+        {
+          "contractId": "l042.wheel.step3",
+          "direction": "in",
+          "id": "in-l042.wheel.step3"
+        },
+        {
+          "contractId": "l042.wheel.step4",
+          "direction": "out",
+          "id": "out-l042.wheel.step4"
+        },
+        {
+          "contractId": "l042.wheel.step7",
+          "direction": "out",
+          "id": "out-l042.wheel.step7"
+        }
+      ],
+      "responsibility": "Use one shard mutex or RW lock, never a process-wide lock for ordinary operations.",
+      "stateOwnership": [
+        "shardId, keyHash"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l042.wheel.n4",
+      "label": "Timing wheel buckets",
+      "ports": [
+        {
+          "contractId": "l042.wheel.step4",
+          "direction": "in",
+          "id": "in-l042.wheel.step4"
+        },
+        {
+          "contractId": "l042.wheel.step6",
+          "direction": "out",
+          "id": "out-l042.wheel.step6"
+        }
+      ],
+      "responsibility": "Insert key/generation/deadline with wheel slot and remaining rounds.",
+      "stateOwnership": [
+        "slot, rounds, generation"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l042.wheel.n5",
+      "label": "Passive deadline check",
+      "ports": [
+        {
+          "contractId": "l042.wheel.step5",
+          "direction": "in",
+          "id": "in-l042.wheel.step5"
+        }
+      ],
+      "responsibility": "Check exact deadline during every get and conditionally remove an expired generation.",
+      "stateOwnership": [
+        "deadline, now"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l042.wheel.n6",
+      "label": "Bucket sweep",
+      "ports": [
+        {
+          "contractId": "l042.wheel.step6",
+          "direction": "in",
+          "id": "in-l042.wheel.step6"
+        },
+        {
+          "contractId": "l042.wheel.step8",
+          "direction": "out",
+          "id": "out-l042.wheel.step8"
+        }
+      ],
+      "responsibility": "Drain a bounded bucket segment and compare generation plus current deadline under the shard lock.",
+      "stateOwnership": [
+        "generation, tick"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l042.wheel.n7",
+      "label": "Shard budgets",
+      "ports": [
+        {
+          "contractId": "l042.wheel.step7",
+          "direction": "in",
+          "id": "in-l042.wheel.step7"
+        }
+      ],
+      "responsibility": "Bound each shard and report skew; choose explicit rejection or local eviction rather than borrowing unbounded memory.",
+      "stateOwnership": [
+        "shardBytes, shardBudget"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l042.wheel.n8",
+      "label": "Timer lifecycle",
+      "ports": [
+        {
+          "contractId": "l042.wheel.step8",
+          "direction": "in",
+          "id": "in-l042.wheel.step8"
+        }
+      ],
+      "responsibility": "Fence close state per shard, stop wheel scheduling and join drain tasks.",
+      "stateOwnership": [
+        "lifecycleEpoch, closed"
+      ],
+      "version": 1
+    }
+  ],
+  "contracts": [
+    {
+      "id": "l042.heap.command",
+      "request": {
+        "key": "string",
+        "nowMs": "monotonic integer",
+        "operation": "get|put",
+        "ttlMs": "nonnegative integer",
+        "value": "immutable bytes|null"
+      },
+      "response": {
+        "generation": "integer",
+        "hit": "boolean",
+        "value": "bytes|null"
+      },
+      "version": 1
+    },
+    {
+      "id": "l042.heap.step3",
+      "request": {
+        "nowMs": "monotonic integer",
+        "ttlMs": "nonnegative integer"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l042.heap.step4",
+      "request": {
+        "deadline": "integer",
+        "generation": "integer",
+        "key": "string"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l042.heap.step5",
+      "request": {
+        "observedDeadline": "integer",
+        "observedGeneration": "integer"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l042.heap.step6",
+      "request": {
+        "clockNow": "integer",
+        "sweepBudget": "positive integer"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l042.heap.step7",
+      "request": {
+        "byteBudget": "integer",
+        "heapRatioLimit": "number"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l042.heap.step8",
+      "request": {
+        "activeSweep": "boolean",
+        "closed": "boolean"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l042.wheel.command",
+      "request": {
+        "key": "string",
+        "nowMs": "monotonic integer",
+        "operation": "get|put",
+        "ttlMs": "nonnegative integer",
+        "value": "immutable bytes|null"
+      },
+      "response": {
+        "generation": "integer",
+        "hit": "boolean",
+        "value": "bytes|null"
+      },
+      "version": 1
+    },
+    {
+      "id": "l042.wheel.step3",
+      "request": {
+        "keyHash": "integer",
+        "shardId": "integer"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l042.wheel.step4",
+      "request": {
+        "generation": "integer",
+        "rounds": "integer",
+        "slot": "integer"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l042.wheel.step5",
+      "request": {
+        "deadline": "integer",
+        "now": "integer"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l042.wheel.step6",
+      "request": {
+        "generation": "integer",
+        "tick": "integer"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l042.wheel.step7",
+      "request": {
+        "shardBudget": "integer",
+        "shardBytes": "integer"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l042.wheel.step8",
+      "request": {
+        "closed": "boolean",
+        "lifecycleEpoch": "integer"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    }
+  ],
+  "execution": {
+    "implementation": null,
+    "kind": "conceptual-design"
+  },
+  "problem": {
+    "referenceId": "L042",
+    "requirements": [
+      {
+        "id": "r0",
+        "text": "A get linearizes against put and never returns an entry expired at its lookup timestamp."
+      },
+      {
+        "id": "r1",
+        "text": "Expired cleanup cannot remove a newer replacement value."
+      },
+      {
+        "id": "r2",
+        "text": "Bound memory with passive lookup expiry and bounded active sweeps; define zero/negative TTL and shutdown."
+      }
+    ],
+    "scope": "In-process get/put/expiry design with an injected monotonic clock. Compare a read/write-locked map plus expiry heap with sharded maps plus timing wheels. Shared read locks permit concurrent readers but are not lock-free.",
+    "studyLabel": "Concurrent cache with TTL"
+  },
+  "provenance": {
+    "kind": "authored-practice",
+    "note": "Authored interview preparation. Technical references support mechanisms, not the claim that a company asked this question."
+  },
+  "references": [
+    {
+      "id": "ref0",
+      "scope": "background",
+      "supports": "Shared read/exclusive write locking and upgrade limitations.",
+      "title": "ReadWriteLock",
+      "url": "https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/concurrent/locks/ReentrantReadWriteLock.html"
+    },
+    {
+      "id": "ref1",
+      "scope": "background",
+      "supports": "Access-order eviction requires external synchronization under concurrent mutation.",
+      "title": "Java LinkedHashMap",
+      "url": "https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/LinkedHashMap.html"
+    }
+  ],
+  "schema": "simulatte.composableStudy.v2",
+  "solutions": [
+    {
+      "acceptanceCases": [
+        {
+          "given": "A key has value A expiring at 10.",
+          "id": "case0",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Return A before 10 and absence at 10.",
+          "when": "Read at 9 and 10 with an injected monotonic clock."
+        },
+        {
+          "given": "A timer references generation 1 but put installed generation 2.",
+          "id": "case1",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Retain generation 2 and remove only the matching expired generation.",
+          "when": "Run the old expiry cleanup."
+        },
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-06-state.test.mjs",
+            "testName": "TTL exact deadline and generation checks preserve fresh replacement"
+          },
+          "given": "An old entry expires at 10 and a replacement at 29.",
+          "id": "bounded-mechanism",
+          "relatedRequirementIds": [
+            "r0"
+          ],
+          "then": "Return absence at expiry and preserve the newer generation from stale cleanup.",
+          "when": "Read at the exact boundary and invoke stale generation cleanup."
+        }
+      ],
+      "algorithms": [
+        {
+          "code": "get(k): readLock(); let observed;\n try { observed=map.get(k); if(!observed) return MISS;\n   if(clock()<observed.deadline) return observed.value;\n } finally { releaseReadLock(); }\n writeLock(); try { const current=map.get(k);\n   if(current && current.generation===observed.generation && clock()>=current.deadline) map.delete(k);\n } finally { releaseWriteLock(); }\n return MISS;\nput(k,value,ttl): writeLock(); try {\n if(!isFiniteNonnegativeDuration(ttl)) rejectInvalidTtl();\n const deadline=checkedAdd(clock(),ttl), generation=nextGeneration(k);\n if(ttl===0) { map.delete(k); return; }\n map.set(k,{value,deadline,generation}); heap.push({key:k,generation,deadline});\n } finally { releaseWriteLock(); }\nsweep: for(const record of popDueWithinBudget()) { writeLock(); try {\n const current=map.get(record.key);\n if(current && current.generation===record.generation && clock()>=current.deadline) map.delete(record.key);\n } finally { releaseWriteLock(); } }",
+          "guarantees": [
+            "Expiry comparison is now >= deadline.",
+            "An old heap record does not authorize deleting a replacement.",
+            "A newer put survives a stale reader cleanup.",
+            "Sweep work per tick is bounded; backlog remains observable.",
+            "TTL is not a memory-capacity policy.",
+            "No background task retains the cache after close returns."
+          ],
+          "id": "transition",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "engine"
+        }
+      ],
+      "apis": [
+        {
+          "errors": "Reject invalid input, stale versions and operations outside the declared boundary.",
+          "method": "METHOD",
+          "ownerNodeId": "engine",
+          "path": "Cache.get(key) / Cache.put(key,value,ttl)",
+          "request": "{\"operation\":\"get|put\",\"key\":\"string\",\"value\":\"immutable bytes|null\",\"ttlMs\":\"nonnegative integer\",\"nowMs\":\"monotonic integer\"}",
+          "response": "{\"hit\":\"boolean\",\"value\":\"bytes|null\",\"generation\":\"integer\"}"
+        }
+      ],
+      "assumptions": [
+        "All added stages are authored practice extending the canonical prompt.",
+        "Graphs specify conceptual mechanisms; reference models do not prove cloud execution, latency, physical durability or distributed safety."
+      ],
+      "chooseWhen": "An exact earliest-deadline sweep is useful at moderate write rates.",
+      "id": "heap",
+      "initialGraph": {
+        "edges": [],
+        "nodes": []
+      },
+      "stages": [
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l042.heap.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l042.heap.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l042.heap.command"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l042.heap.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l042.heap.system",
+                "id": "system",
+                "label": "Read/write lock and expiry heap",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "heap-s1",
+          "invariants": [
+            "A get linearizes against put and never returns an entry expired at its lookup timestamp."
+          ],
+          "number": 1,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l042.heap.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "l042.heap.system",
+                "id": "system",
+                "label": "Read/write lock and expiry heap",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l042.heap.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l042.heap.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l042.heap.command"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What does successful completion promise?",
+          "reason": "A get linearizes against put and never returns an entry expired at its lookup timestamp.",
+          "title": "Define the operation boundary"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l042.heap.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l042.heap.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l042.heap.command"
+                }
+              },
+              {
+                "contractId": "l042.heap.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l042.heap.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l042.heap.command"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l042.heap.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l042.heap.system",
+                "id": "system",
+                "label": "Read/write lock and expiry heap",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l042.heap.binding-s2",
+                "version": 1
+              },
+              {
+                "definitionId": "l042.heap.engine",
+                "id": "engine",
+                "label": "Cache methods",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l042.heap.state",
+                "id": "state",
+                "label": "RW-locked map",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "heap-s2",
+          "invariants": [
+            "operation timestamp belongs to Cache methods; key/value/deadline/generation belongs to RW-locked map."
+          ],
+          "number": 2,
+          "operations": [
+            {
+              "edges": [
+                {
+                  "contractId": "l042.heap.command",
+                  "from": {
+                    "nodeId": "engine",
+                    "portId": "out-l042.heap.command"
+                  },
+                  "id": "owned-state",
+                  "label": "Read or commit state",
+                  "mode": "storage",
+                  "to": {
+                    "nodeId": "state",
+                    "portId": "in-l042.heap.command"
+                  }
+                }
+              ],
+              "nodeId": "system",
+              "nodes": [
+                {
+                  "definitionId": "l042.heap.engine",
+                  "id": "engine",
+                  "label": "Cache methods",
+                  "position": {
+                    "x": 560,
+                    "y": 0
+                  },
+                  "version": 1
+                },
+                {
+                  "definitionId": "l042.heap.state",
+                  "id": "state",
+                  "label": "RW-locked map",
+                  "position": {
+                    "x": 840,
+                    "y": 0
+                  },
+                  "version": 1
+                }
+              ],
+              "op": "expand",
+              "subsystemId": "l042.heap.binding-s2"
+            }
+          ],
+          "question": "Which component owns the decision and its persistent or shared state?",
+          "reason": "Validate TTL and linearize lookup/replace against a monotonic timestamp. Own immutable value, deadline and monotonically increasing generation per key.",
+          "title": "Expose authority and state"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l042.heap.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l042.heap.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l042.heap.command"
+                }
+              },
+              {
+                "contractId": "l042.heap.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l042.heap.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l042.heap.command"
+                }
+              },
+              {
+                "contractId": "l042.heap.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l042.heap.step3-engine"
+                },
+                "id": "step3",
+                "label": "Deadline calculator",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l042.heap.step3"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l042.heap.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l042.heap.system",
+                "id": "system",
+                "label": "Read/write lock and expiry heap",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l042.heap.binding-s3",
+                "version": 1
+              },
+              {
+                "definitionId": "l042.heap.engine",
+                "id": "engine",
+                "label": "Cache methods",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l042.heap.state",
+                "id": "state",
+                "label": "RW-locked map",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l042.heap.n3",
+                "id": "n3",
+                "label": "Deadline calculator",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "heap-s3",
+          "invariants": [
+            "Expiry comparison is now >= deadline."
+          ],
+          "number": 3,
+          "operations": [
+            {
+              "nodeId": "system",
+              "op": "rebind",
+              "reason": "Expose this new typed path without mutating earlier binding definitions.",
+              "subsystemId": "l042.heap.binding-s3"
+            },
+            {
+              "node": {
+                "definitionId": "l042.heap.n3",
+                "id": "n3",
+                "label": "Deadline calculator",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l042.heap.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l042.heap.step3-engine"
+                },
+                "id": "step3",
+                "label": "Deadline calculator",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l042.heap.step3"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What does ttl=0 mean?",
+          "reason": "Treat zero TTL as immediate absence and reject negative TTL; use checked monotonic deadline arithmetic.",
+          "title": "Deadline calculator"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l042.heap.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l042.heap.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l042.heap.command"
+                }
+              },
+              {
+                "contractId": "l042.heap.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l042.heap.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l042.heap.command"
+                }
+              },
+              {
+                "contractId": "l042.heap.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l042.heap.step3-engine"
+                },
+                "id": "step3",
+                "label": "Deadline calculator",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l042.heap.step3"
+                }
+              },
+              {
+                "contractId": "l042.heap.step4",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l042.heap.step4-engine"
+                },
+                "id": "step4",
+                "label": "Expiry min-heap",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l042.heap.step4"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l042.heap.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l042.heap.system",
+                "id": "system",
+                "label": "Read/write lock and expiry heap",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l042.heap.binding-s4",
+                "version": 1
+              },
+              {
+                "definitionId": "l042.heap.engine",
+                "id": "engine",
+                "label": "Cache methods",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l042.heap.state",
+                "id": "state",
+                "label": "RW-locked map",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l042.heap.n3",
+                "id": "n3",
+                "label": "Deadline calculator",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l042.heap.n4",
+                "id": "n4",
+                "label": "Expiry min-heap",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "heap-s4",
+          "invariants": [
+            "An old heap record does not authorize deleting a replacement."
+          ],
+          "number": 4,
+          "operations": [
+            {
+              "nodeId": "system",
+              "op": "rebind",
+              "reason": "Expose this new typed path without mutating earlier binding definitions.",
+              "subsystemId": "l042.heap.binding-s4"
+            },
+            {
+              "node": {
+                "definitionId": "l042.heap.n4",
+                "id": "n4",
+                "label": "Expiry min-heap",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l042.heap.step4",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l042.heap.step4-engine"
+                },
+                "id": "step4",
+                "label": "Expiry min-heap",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l042.heap.step4"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How is the next expiration found?",
+          "reason": "Push deadline/key/generation on put under exclusive mutation synchronization.",
+          "title": "Expiry min-heap"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l042.heap.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l042.heap.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l042.heap.command"
+                }
+              },
+              {
+                "contractId": "l042.heap.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l042.heap.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l042.heap.command"
+                }
+              },
+              {
+                "contractId": "l042.heap.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l042.heap.step3-engine"
+                },
+                "id": "step3",
+                "label": "Deadline calculator",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l042.heap.step3"
+                }
+              },
+              {
+                "contractId": "l042.heap.step4",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l042.heap.step4-engine"
+                },
+                "id": "step4",
+                "label": "Expiry min-heap",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l042.heap.step4"
+                }
+              },
+              {
+                "contractId": "l042.heap.step5",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l042.heap.step5-state"
+                },
+                "id": "step5",
+                "label": "Passive cleanup",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l042.heap.step5"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l042.heap.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l042.heap.system",
+                "id": "system",
+                "label": "Read/write lock and expiry heap",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l042.heap.binding-s5",
+                "version": 1
+              },
+              {
+                "definitionId": "l042.heap.engine",
+                "id": "engine",
+                "label": "Cache methods",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l042.heap.state",
+                "id": "state",
+                "label": "RW-locked map",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l042.heap.n3",
+                "id": "n3",
+                "label": "Deadline calculator",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l042.heap.n4",
+                "id": "n4",
+                "label": "Expiry min-heap",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l042.heap.n5",
+                "id": "n5",
+                "label": "Passive cleanup",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "heap-s5",
+          "invariants": [
+            "A newer put survives a stale reader cleanup."
+          ],
+          "number": 5,
+          "operations": [
+            {
+              "nodeId": "system",
+              "op": "rebind",
+              "reason": "Expose this new typed path without mutating earlier binding definitions.",
+              "subsystemId": "l042.heap.binding-s5"
+            },
+            {
+              "node": {
+                "definitionId": "l042.heap.n5",
+                "id": "n5",
+                "label": "Passive cleanup",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l042.heap.step5",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l042.heap.step5-state"
+                },
+                "id": "step5",
+                "label": "Passive cleanup",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l042.heap.step5"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How can a read remove an expired entry safely?",
+          "reason": "Release shared lock, acquire exclusive lock, and compare generation/deadline again before removal.",
+          "title": "Passive cleanup"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l042.heap.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l042.heap.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l042.heap.command"
+                }
+              },
+              {
+                "contractId": "l042.heap.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l042.heap.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l042.heap.command"
+                }
+              },
+              {
+                "contractId": "l042.heap.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l042.heap.step3-engine"
+                },
+                "id": "step3",
+                "label": "Deadline calculator",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l042.heap.step3"
+                }
+              },
+              {
+                "contractId": "l042.heap.step4",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l042.heap.step4-engine"
+                },
+                "id": "step4",
+                "label": "Expiry min-heap",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l042.heap.step4"
+                }
+              },
+              {
+                "contractId": "l042.heap.step5",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l042.heap.step5-state"
+                },
+                "id": "step5",
+                "label": "Passive cleanup",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l042.heap.step5"
+                }
+              },
+              {
+                "contractId": "l042.heap.step6",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l042.heap.step6"
+                },
+                "id": "step6",
+                "label": "Bounded scavenger",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l042.heap.step6"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l042.heap.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l042.heap.system",
+                "id": "system",
+                "label": "Read/write lock and expiry heap",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l042.heap.binding-s5",
+                "version": 1
+              },
+              {
+                "definitionId": "l042.heap.engine",
+                "id": "engine",
+                "label": "Cache methods",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l042.heap.state",
+                "id": "state",
+                "label": "RW-locked map",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l042.heap.n3",
+                "id": "n3",
+                "label": "Deadline calculator",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l042.heap.n4",
+                "id": "n4",
+                "label": "Expiry min-heap",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l042.heap.n5",
+                "id": "n5",
+                "label": "Passive cleanup",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l042.heap.n6",
+                "id": "n6",
+                "label": "Bounded scavenger",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "heap-s6",
+          "invariants": [
+            "Sweep work per tick is bounded; backlog remains observable."
+          ],
+          "number": 6,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l042.heap.n6",
+                "id": "n6",
+                "label": "Bounded scavenger",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l042.heap.step6",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l042.heap.step6"
+                },
+                "id": "step6",
+                "label": "Bounded scavenger",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l042.heap.step6"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can expired keys leak indefinitely?",
+          "reason": "Pop at most a configured number of due records, deleting only matching generations.",
+          "title": "Bounded scavenger"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l042.heap.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l042.heap.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l042.heap.command"
+                }
+              },
+              {
+                "contractId": "l042.heap.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l042.heap.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l042.heap.command"
+                }
+              },
+              {
+                "contractId": "l042.heap.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l042.heap.step3-engine"
+                },
+                "id": "step3",
+                "label": "Deadline calculator",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l042.heap.step3"
+                }
+              },
+              {
+                "contractId": "l042.heap.step4",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l042.heap.step4-engine"
+                },
+                "id": "step4",
+                "label": "Expiry min-heap",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l042.heap.step4"
+                }
+              },
+              {
+                "contractId": "l042.heap.step5",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l042.heap.step5-state"
+                },
+                "id": "step5",
+                "label": "Passive cleanup",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l042.heap.step5"
+                }
+              },
+              {
+                "contractId": "l042.heap.step6",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l042.heap.step6"
+                },
+                "id": "step6",
+                "label": "Bounded scavenger",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l042.heap.step6"
+                }
+              },
+              {
+                "contractId": "l042.heap.step7",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l042.heap.step7-engine"
+                },
+                "id": "step7",
+                "label": "Capacity eviction",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l042.heap.step7"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l042.heap.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l042.heap.system",
+                "id": "system",
+                "label": "Read/write lock and expiry heap",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l042.heap.binding-s7",
+                "version": 1
+              },
+              {
+                "definitionId": "l042.heap.engine",
+                "id": "engine",
+                "label": "Cache methods",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l042.heap.state",
+                "id": "state",
+                "label": "RW-locked map",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l042.heap.n3",
+                "id": "n3",
+                "label": "Deadline calculator",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l042.heap.n4",
+                "id": "n4",
+                "label": "Expiry min-heap",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l042.heap.n5",
+                "id": "n5",
+                "label": "Passive cleanup",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l042.heap.n6",
+                "id": "n6",
+                "label": "Bounded scavenger",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l042.heap.n7",
+                "id": "n7",
+                "label": "Capacity eviction",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "heap-s7",
+          "invariants": [
+            "TTL is not a memory-capacity policy."
+          ],
+          "number": 7,
+          "operations": [
+            {
+              "nodeId": "system",
+              "op": "rebind",
+              "reason": "Expose this new typed path without mutating earlier binding definitions.",
+              "subsystemId": "l042.heap.binding-s7"
+            },
+            {
+              "node": {
+                "definitionId": "l042.heap.n7",
+                "id": "n7",
+                "label": "Capacity eviction",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l042.heap.step7",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l042.heap.step7-engine"
+                },
+                "id": "step7",
+                "label": "Capacity eviction",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l042.heap.step7"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Does long TTL allow unbounded growth?",
+          "reason": "Enforce a byte/entry budget independently of TTL and compact stale heap records under a bounded policy.",
+          "title": "Capacity eviction"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l042.heap.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l042.heap.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l042.heap.command"
+                }
+              },
+              {
+                "contractId": "l042.heap.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l042.heap.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l042.heap.command"
+                }
+              },
+              {
+                "contractId": "l042.heap.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l042.heap.step3-engine"
+                },
+                "id": "step3",
+                "label": "Deadline calculator",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l042.heap.step3"
+                }
+              },
+              {
+                "contractId": "l042.heap.step4",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l042.heap.step4-engine"
+                },
+                "id": "step4",
+                "label": "Expiry min-heap",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l042.heap.step4"
+                }
+              },
+              {
+                "contractId": "l042.heap.step5",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l042.heap.step5-state"
+                },
+                "id": "step5",
+                "label": "Passive cleanup",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l042.heap.step5"
+                }
+              },
+              {
+                "contractId": "l042.heap.step6",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l042.heap.step6"
+                },
+                "id": "step6",
+                "label": "Bounded scavenger",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l042.heap.step6"
+                }
+              },
+              {
+                "contractId": "l042.heap.step7",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l042.heap.step7-engine"
+                },
+                "id": "step7",
+                "label": "Capacity eviction",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l042.heap.step7"
+                }
+              },
+              {
+                "contractId": "l042.heap.step8",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l042.heap.step8"
+                },
+                "id": "step8",
+                "label": "Shutdown coordinator",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n8",
+                  "portId": "in-l042.heap.step8"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l042.heap.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l042.heap.system",
+                "id": "system",
+                "label": "Read/write lock and expiry heap",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l042.heap.binding-s7",
+                "version": 1
+              },
+              {
+                "definitionId": "l042.heap.engine",
+                "id": "engine",
+                "label": "Cache methods",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l042.heap.state",
+                "id": "state",
+                "label": "RW-locked map",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l042.heap.n3",
+                "id": "n3",
+                "label": "Deadline calculator",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l042.heap.n4",
+                "id": "n4",
+                "label": "Expiry min-heap",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l042.heap.n5",
+                "id": "n5",
+                "label": "Passive cleanup",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l042.heap.n6",
+                "id": "n6",
+                "label": "Bounded scavenger",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l042.heap.n7",
+                "id": "n7",
+                "label": "Capacity eviction",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l042.heap.n8",
+                "id": "n8",
+                "label": "Shutdown coordinator",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "heap-s8",
+          "invariants": [
+            "No background task retains the cache after close returns."
+          ],
+          "number": 8,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l042.heap.n8",
+                "id": "n8",
+                "label": "Shutdown coordinator",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l042.heap.step8",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l042.heap.step8"
+                },
+                "id": "step8",
+                "label": "Shutdown coordinator",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n8",
+                  "portId": "in-l042.heap.step8"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What happens while a sweep is stopping?",
+          "reason": "Cancel future ticks, join current sweep and make post-close method behavior explicit.",
+          "title": "Shutdown coordinator"
+        }
+      ],
+      "title": "Read/write lock and expiry heap",
+      "tradeoffs": [
+        "Heap entries for overwritten keys can accumulate without compaction.",
+        "Read/write lock upgrades must release read lock and recheck under write lock."
+      ]
+    },
+    {
+      "acceptanceCases": [
+        {
+          "given": "A wheel tick runs after an exact deadline.",
+          "id": "case0",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Return absence from the exact get deadline check.",
+          "when": "Read the key before the delayed tick."
+        },
+        {
+          "given": "A long-lived replacement shares a wheel slot with an old timer.",
+          "id": "case1",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Compare generation and retain the replacement.",
+          "when": "Drain the old timer record."
+        },
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-06-state.test.mjs",
+            "testName": "TTL exact deadline and generation checks preserve fresh replacement"
+          },
+          "given": "An old entry expires at 10 and a replacement at 29.",
+          "id": "bounded-mechanism",
+          "relatedRequirementIds": [
+            "r0"
+          ],
+          "then": "Return absence at expiry and preserve the newer generation from stale cleanup.",
+          "when": "Read at the exact boundary and invoke stale generation cleanup."
+        }
+      ],
+      "algorithms": [
+        {
+          "code": "put: lock(shard); requireOpen(); generation++; store(value,deadline);\n wheel.add(key,generation,deadline,slotAndRounds(deadline));\nget: lockRead(shard); return entry && now<entry.deadline ? entry.value : MISS;\ncleanup: lockWrite(shard); if(current.generation===record.generation && now>=current.deadline) remove();\ntick: processBoundedBucketSegment(); retainFutureRounds();",
+          "guarantees": [
+            "Same-key operations still serialize on one owner.",
+            "Wheel tick rounding does not redefine exact expiry.",
+            "A delayed sweep cannot make expired data readable.",
+            "Old bucket records cannot delete a fresh put.",
+            "Concurrent shards together remain under the total configured bound.",
+            "No put schedules into a closed timer generation."
+          ],
+          "id": "transition",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "engine"
+        }
+      ],
+      "apis": [
+        {
+          "errors": "Reject invalid input, stale versions and operations outside the declared boundary.",
+          "method": "METHOD",
+          "ownerNodeId": "engine",
+          "path": "Cache.get(key) / Cache.put(key,value,ttl)",
+          "request": "{\"operation\":\"get|put\",\"key\":\"string\",\"value\":\"immutable bytes|null\",\"ttlMs\":\"nonnegative integer\",\"nowMs\":\"monotonic integer\"}",
+          "response": "{\"hit\":\"boolean\",\"value\":\"bytes|null\",\"generation\":\"integer\"}"
+        }
+      ],
+      "assumptions": [
+        "All added stages are authored practice extending the canonical prompt.",
+        "Graphs specify conceptual mechanisms; reference models do not prove cloud execution, latency, physical durability or distributed safety."
+      ],
+      "chooseWhen": "High write concurrency benefits from independent shard locks and coarse scheduled cleanup.",
+      "id": "wheel",
+      "initialGraph": {
+        "edges": [],
+        "nodes": []
+      },
+      "stages": [
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l042.wheel.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l042.wheel.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l042.wheel.command"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l042.wheel.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l042.wheel.system",
+                "id": "system",
+                "label": "Sharded maps and hashed timing wheels",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "wheel-s1",
+          "invariants": [
+            "A get linearizes against put and never returns an entry expired at its lookup timestamp."
+          ],
+          "number": 1,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l042.wheel.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "l042.wheel.system",
+                "id": "system",
+                "label": "Sharded maps and hashed timing wheels",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l042.wheel.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l042.wheel.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l042.wheel.command"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What does successful completion promise?",
+          "reason": "A get linearizes against put and never returns an entry expired at its lookup timestamp.",
+          "title": "Define the operation boundary"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l042.wheel.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l042.wheel.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l042.wheel.command"
+                }
+              },
+              {
+                "contractId": "l042.wheel.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l042.wheel.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l042.wheel.command"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l042.wheel.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l042.wheel.system",
+                "id": "system",
+                "label": "Sharded maps and hashed timing wheels",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l042.wheel.binding-s2",
+                "version": 1
+              },
+              {
+                "definitionId": "l042.wheel.engine",
+                "id": "engine",
+                "label": "Shard router",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l042.wheel.state",
+                "id": "state",
+                "label": "Shard maps",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "wheel-s2",
+          "invariants": [
+            "fixed hash seed belongs to Shard router; per-shard mutable maps belongs to Shard maps."
+          ],
+          "number": 2,
+          "operations": [
+            {
+              "edges": [
+                {
+                  "contractId": "l042.wheel.command",
+                  "from": {
+                    "nodeId": "engine",
+                    "portId": "out-l042.wheel.command"
+                  },
+                  "id": "owned-state",
+                  "label": "Read or commit state",
+                  "mode": "storage",
+                  "to": {
+                    "nodeId": "state",
+                    "portId": "in-l042.wheel.command"
+                  }
+                }
+              ],
+              "nodeId": "system",
+              "nodes": [
+                {
+                  "definitionId": "l042.wheel.engine",
+                  "id": "engine",
+                  "label": "Shard router",
+                  "position": {
+                    "x": 560,
+                    "y": 0
+                  },
+                  "version": 1
+                },
+                {
+                  "definitionId": "l042.wheel.state",
+                  "id": "state",
+                  "label": "Shard maps",
+                  "position": {
+                    "x": 840,
+                    "y": 0
+                  },
+                  "version": 1
+                }
+              ],
+              "op": "expand",
+              "subsystemId": "l042.wheel.binding-s2"
+            }
+          ],
+          "question": "Which component owns the decision and its persistent or shared state?",
+          "reason": "Route each key consistently and capture a monotonic operation timestamp. Own key values and generations under independent shard locks.",
+          "title": "Expose authority and state"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l042.wheel.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l042.wheel.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l042.wheel.command"
+                }
+              },
+              {
+                "contractId": "l042.wheel.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l042.wheel.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l042.wheel.command"
+                }
+              },
+              {
+                "contractId": "l042.wheel.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l042.wheel.step3-state"
+                },
+                "id": "step3",
+                "label": "Per-shard method lock",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l042.wheel.step3"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l042.wheel.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l042.wheel.system",
+                "id": "system",
+                "label": "Sharded maps and hashed timing wheels",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l042.wheel.binding-s3",
+                "version": 1
+              },
+              {
+                "definitionId": "l042.wheel.engine",
+                "id": "engine",
+                "label": "Shard router",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l042.wheel.state",
+                "id": "state",
+                "label": "Shard maps",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l042.wheel.n3",
+                "id": "n3",
+                "label": "Per-shard method lock",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "wheel-s3",
+          "invariants": [
+            "Same-key operations still serialize on one owner."
+          ],
+          "number": 3,
+          "operations": [
+            {
+              "nodeId": "system",
+              "op": "rebind",
+              "reason": "Expose this new typed path without mutating earlier binding definitions.",
+              "subsystemId": "l042.wheel.binding-s3"
+            },
+            {
+              "node": {
+                "definitionId": "l042.wheel.n3",
+                "id": "n3",
+                "label": "Per-shard method lock",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l042.wheel.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l042.wheel.step3-state"
+                },
+                "id": "step3",
+                "label": "Per-shard method lock",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l042.wheel.step3"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can disjoint keys progress independently?",
+          "reason": "Use one shard mutex or RW lock, never a process-wide lock for ordinary operations.",
+          "title": "Per-shard method lock"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l042.wheel.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l042.wheel.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l042.wheel.command"
+                }
+              },
+              {
+                "contractId": "l042.wheel.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l042.wheel.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l042.wheel.command"
+                }
+              },
+              {
+                "contractId": "l042.wheel.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l042.wheel.step3-state"
+                },
+                "id": "step3",
+                "label": "Per-shard method lock",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l042.wheel.step3"
+                }
+              },
+              {
+                "contractId": "l042.wheel.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l042.wheel.step4"
+                },
+                "id": "step4",
+                "label": "Timing wheel buckets",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l042.wheel.step4"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l042.wheel.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l042.wheel.system",
+                "id": "system",
+                "label": "Sharded maps and hashed timing wheels",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l042.wheel.binding-s3",
+                "version": 1
+              },
+              {
+                "definitionId": "l042.wheel.engine",
+                "id": "engine",
+                "label": "Shard router",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l042.wheel.state",
+                "id": "state",
+                "label": "Shard maps",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l042.wheel.n3",
+                "id": "n3",
+                "label": "Per-shard method lock",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l042.wheel.n4",
+                "id": "n4",
+                "label": "Timing wheel buckets",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "wheel-s4",
+          "invariants": [
+            "Wheel tick rounding does not redefine exact expiry."
+          ],
+          "number": 4,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l042.wheel.n4",
+                "id": "n4",
+                "label": "Timing wheel buckets",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l042.wheel.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l042.wheel.step4"
+                },
+                "id": "step4",
+                "label": "Timing wheel buckets",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l042.wheel.step4"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Where are TTLs scheduled?",
+          "reason": "Insert key/generation/deadline with wheel slot and remaining rounds.",
+          "title": "Timing wheel buckets"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l042.wheel.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l042.wheel.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l042.wheel.command"
+                }
+              },
+              {
+                "contractId": "l042.wheel.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l042.wheel.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l042.wheel.command"
+                }
+              },
+              {
+                "contractId": "l042.wheel.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l042.wheel.step3-state"
+                },
+                "id": "step3",
+                "label": "Per-shard method lock",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l042.wheel.step3"
+                }
+              },
+              {
+                "contractId": "l042.wheel.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l042.wheel.step4"
+                },
+                "id": "step4",
+                "label": "Timing wheel buckets",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l042.wheel.step4"
+                }
+              },
+              {
+                "contractId": "l042.wheel.step5",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l042.wheel.step5-engine"
+                },
+                "id": "step5",
+                "label": "Passive deadline check",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l042.wheel.step5"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l042.wheel.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l042.wheel.system",
+                "id": "system",
+                "label": "Sharded maps and hashed timing wheels",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l042.wheel.binding-s5",
+                "version": 1
+              },
+              {
+                "definitionId": "l042.wheel.engine",
+                "id": "engine",
+                "label": "Shard router",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l042.wheel.state",
+                "id": "state",
+                "label": "Shard maps",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l042.wheel.n3",
+                "id": "n3",
+                "label": "Per-shard method lock",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l042.wheel.n4",
+                "id": "n4",
+                "label": "Timing wheel buckets",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l042.wheel.n5",
+                "id": "n5",
+                "label": "Passive deadline check",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "wheel-s5",
+          "invariants": [
+            "A delayed sweep cannot make expired data readable."
+          ],
+          "number": 5,
+          "operations": [
+            {
+              "nodeId": "system",
+              "op": "rebind",
+              "reason": "Expose this new typed path without mutating earlier binding definitions.",
+              "subsystemId": "l042.wheel.binding-s5"
+            },
+            {
+              "node": {
+                "definitionId": "l042.wheel.n5",
+                "id": "n5",
+                "label": "Passive deadline check",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l042.wheel.step5",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l042.wheel.step5-engine"
+                },
+                "id": "step5",
+                "label": "Passive deadline check",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l042.wheel.step5"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can an entry survive until a coarse tick?",
+          "reason": "Check exact deadline during every get and conditionally remove an expired generation.",
+          "title": "Passive deadline check"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l042.wheel.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l042.wheel.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l042.wheel.command"
+                }
+              },
+              {
+                "contractId": "l042.wheel.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l042.wheel.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l042.wheel.command"
+                }
+              },
+              {
+                "contractId": "l042.wheel.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l042.wheel.step3-state"
+                },
+                "id": "step3",
+                "label": "Per-shard method lock",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l042.wheel.step3"
+                }
+              },
+              {
+                "contractId": "l042.wheel.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l042.wheel.step4"
+                },
+                "id": "step4",
+                "label": "Timing wheel buckets",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l042.wheel.step4"
+                }
+              },
+              {
+                "contractId": "l042.wheel.step5",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l042.wheel.step5-engine"
+                },
+                "id": "step5",
+                "label": "Passive deadline check",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l042.wheel.step5"
+                }
+              },
+              {
+                "contractId": "l042.wheel.step6",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l042.wheel.step6"
+                },
+                "id": "step6",
+                "label": "Bucket sweep",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l042.wheel.step6"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l042.wheel.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l042.wheel.system",
+                "id": "system",
+                "label": "Sharded maps and hashed timing wheels",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l042.wheel.binding-s5",
+                "version": 1
+              },
+              {
+                "definitionId": "l042.wheel.engine",
+                "id": "engine",
+                "label": "Shard router",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l042.wheel.state",
+                "id": "state",
+                "label": "Shard maps",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l042.wheel.n3",
+                "id": "n3",
+                "label": "Per-shard method lock",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l042.wheel.n4",
+                "id": "n4",
+                "label": "Timing wheel buckets",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l042.wheel.n5",
+                "id": "n5",
+                "label": "Passive deadline check",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l042.wheel.n6",
+                "id": "n6",
+                "label": "Bucket sweep",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "wheel-s6",
+          "invariants": [
+            "Old bucket records cannot delete a fresh put."
+          ],
+          "number": 6,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l042.wheel.n6",
+                "id": "n6",
+                "label": "Bucket sweep",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l042.wheel.step6",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l042.wheel.step6"
+                },
+                "id": "step6",
+                "label": "Bucket sweep",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l042.wheel.step6"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can an old bucket delete a new value?",
+          "reason": "Drain a bounded bucket segment and compare generation plus current deadline under the shard lock.",
+          "title": "Bucket sweep"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l042.wheel.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l042.wheel.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l042.wheel.command"
+                }
+              },
+              {
+                "contractId": "l042.wheel.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l042.wheel.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l042.wheel.command"
+                }
+              },
+              {
+                "contractId": "l042.wheel.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l042.wheel.step3-state"
+                },
+                "id": "step3",
+                "label": "Per-shard method lock",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l042.wheel.step3"
+                }
+              },
+              {
+                "contractId": "l042.wheel.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l042.wheel.step4"
+                },
+                "id": "step4",
+                "label": "Timing wheel buckets",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l042.wheel.step4"
+                }
+              },
+              {
+                "contractId": "l042.wheel.step5",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l042.wheel.step5-engine"
+                },
+                "id": "step5",
+                "label": "Passive deadline check",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l042.wheel.step5"
+                }
+              },
+              {
+                "contractId": "l042.wheel.step6",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l042.wheel.step6"
+                },
+                "id": "step6",
+                "label": "Bucket sweep",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l042.wheel.step6"
+                }
+              },
+              {
+                "contractId": "l042.wheel.step7",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l042.wheel.step7"
+                },
+                "id": "step7",
+                "label": "Shard budgets",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l042.wheel.step7"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l042.wheel.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l042.wheel.system",
+                "id": "system",
+                "label": "Sharded maps and hashed timing wheels",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l042.wheel.binding-s5",
+                "version": 1
+              },
+              {
+                "definitionId": "l042.wheel.engine",
+                "id": "engine",
+                "label": "Shard router",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l042.wheel.state",
+                "id": "state",
+                "label": "Shard maps",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l042.wheel.n3",
+                "id": "n3",
+                "label": "Per-shard method lock",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l042.wheel.n4",
+                "id": "n4",
+                "label": "Timing wheel buckets",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l042.wheel.n5",
+                "id": "n5",
+                "label": "Passive deadline check",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l042.wheel.n6",
+                "id": "n6",
+                "label": "Bucket sweep",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l042.wheel.n7",
+                "id": "n7",
+                "label": "Shard budgets",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "wheel-s7",
+          "invariants": [
+            "Concurrent shards together remain under the total configured bound."
+          ],
+          "number": 7,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l042.wheel.n7",
+                "id": "n7",
+                "label": "Shard budgets",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l042.wheel.step7",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l042.wheel.step7"
+                },
+                "id": "step7",
+                "label": "Shard budgets",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l042.wheel.step7"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can skew fill one shard?",
+          "reason": "Bound each shard and report skew; choose explicit rejection or local eviction rather than borrowing unbounded memory.",
+          "title": "Shard budgets"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l042.wheel.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l042.wheel.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l042.wheel.command"
+                }
+              },
+              {
+                "contractId": "l042.wheel.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l042.wheel.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l042.wheel.command"
+                }
+              },
+              {
+                "contractId": "l042.wheel.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l042.wheel.step3-state"
+                },
+                "id": "step3",
+                "label": "Per-shard method lock",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l042.wheel.step3"
+                }
+              },
+              {
+                "contractId": "l042.wheel.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l042.wheel.step4"
+                },
+                "id": "step4",
+                "label": "Timing wheel buckets",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l042.wheel.step4"
+                }
+              },
+              {
+                "contractId": "l042.wheel.step5",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l042.wheel.step5-engine"
+                },
+                "id": "step5",
+                "label": "Passive deadline check",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l042.wheel.step5"
+                }
+              },
+              {
+                "contractId": "l042.wheel.step6",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l042.wheel.step6"
+                },
+                "id": "step6",
+                "label": "Bucket sweep",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l042.wheel.step6"
+                }
+              },
+              {
+                "contractId": "l042.wheel.step7",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l042.wheel.step7"
+                },
+                "id": "step7",
+                "label": "Shard budgets",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l042.wheel.step7"
+                }
+              },
+              {
+                "contractId": "l042.wheel.step8",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l042.wheel.step8"
+                },
+                "id": "step8",
+                "label": "Timer lifecycle",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n8",
+                  "portId": "in-l042.wheel.step8"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l042.wheel.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l042.wheel.system",
+                "id": "system",
+                "label": "Sharded maps and hashed timing wheels",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l042.wheel.binding-s5",
+                "version": 1
+              },
+              {
+                "definitionId": "l042.wheel.engine",
+                "id": "engine",
+                "label": "Shard router",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l042.wheel.state",
+                "id": "state",
+                "label": "Shard maps",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l042.wheel.n3",
+                "id": "n3",
+                "label": "Per-shard method lock",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l042.wheel.n4",
+                "id": "n4",
+                "label": "Timing wheel buckets",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l042.wheel.n5",
+                "id": "n5",
+                "label": "Passive deadline check",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l042.wheel.n6",
+                "id": "n6",
+                "label": "Bucket sweep",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l042.wheel.n7",
+                "id": "n7",
+                "label": "Shard budgets",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l042.wheel.n8",
+                "id": "n8",
+                "label": "Timer lifecycle",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "wheel-s8",
+          "invariants": [
+            "No put schedules into a closed timer generation."
+          ],
+          "number": 8,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l042.wheel.n8",
+                "id": "n8",
+                "label": "Timer lifecycle",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l042.wheel.step8",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l042.wheel.step8"
+                },
+                "id": "step8",
+                "label": "Timer lifecycle",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n8",
+                  "portId": "in-l042.wheel.step8"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can shutdown race a put?",
+          "reason": "Fence close state per shard, stop wheel scheduling and join drain tasks.",
+          "title": "Timer lifecycle"
+        }
+      ],
+      "title": "Sharded maps and hashed timing wheels",
+      "tradeoffs": [
+        "Wheel resolution makes cleanup approximate, so get still checks exact deadline.",
+        "Long TTLs need rounds counters or hierarchical wheel levels."
+      ]
+    }
+  ],
+  "subsystems": [
+    {
+      "definitionId": "l042.heap.system",
+      "id": "l042.heap.binding-s2",
+      "ports": [
+        {
+          "contractId": "l042.heap.command",
+          "direction": "in",
+          "id": "in-l042.heap.command",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-l042.heap.command"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l042.heap.system",
+      "id": "l042.heap.binding-s3",
+      "ports": [
+        {
+          "contractId": "l042.heap.command",
+          "direction": "in",
+          "id": "in-l042.heap.command",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-l042.heap.command"
+          }
+        },
+        {
+          "contractId": "l042.heap.step3",
+          "direction": "out",
+          "id": "out-l042.heap.step3-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l042.heap.step3"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l042.heap.system",
+      "id": "l042.heap.binding-s4",
+      "ports": [
+        {
+          "contractId": "l042.heap.command",
+          "direction": "in",
+          "id": "in-l042.heap.command",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-l042.heap.command"
+          }
+        },
+        {
+          "contractId": "l042.heap.step3",
+          "direction": "out",
+          "id": "out-l042.heap.step3-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l042.heap.step3"
+          }
+        },
+        {
+          "contractId": "l042.heap.step4",
+          "direction": "out",
+          "id": "out-l042.heap.step4-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l042.heap.step4"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l042.heap.system",
+      "id": "l042.heap.binding-s5",
+      "ports": [
+        {
+          "contractId": "l042.heap.command",
+          "direction": "in",
+          "id": "in-l042.heap.command",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-l042.heap.command"
+          }
+        },
+        {
+          "contractId": "l042.heap.step3",
+          "direction": "out",
+          "id": "out-l042.heap.step3-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l042.heap.step3"
+          }
+        },
+        {
+          "contractId": "l042.heap.step4",
+          "direction": "out",
+          "id": "out-l042.heap.step4-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l042.heap.step4"
+          }
+        },
+        {
+          "contractId": "l042.heap.step5",
+          "direction": "out",
+          "id": "out-l042.heap.step5-state",
+          "target": {
+            "nodeId": "state",
+            "portId": "out-l042.heap.step5"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l042.heap.system",
+      "id": "l042.heap.binding-s7",
+      "ports": [
+        {
+          "contractId": "l042.heap.command",
+          "direction": "in",
+          "id": "in-l042.heap.command",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-l042.heap.command"
+          }
+        },
+        {
+          "contractId": "l042.heap.step3",
+          "direction": "out",
+          "id": "out-l042.heap.step3-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l042.heap.step3"
+          }
+        },
+        {
+          "contractId": "l042.heap.step4",
+          "direction": "out",
+          "id": "out-l042.heap.step4-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l042.heap.step4"
+          }
+        },
+        {
+          "contractId": "l042.heap.step5",
+          "direction": "out",
+          "id": "out-l042.heap.step5-state",
+          "target": {
+            "nodeId": "state",
+            "portId": "out-l042.heap.step5"
+          }
+        },
+        {
+          "contractId": "l042.heap.step7",
+          "direction": "out",
+          "id": "out-l042.heap.step7-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l042.heap.step7"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l042.wheel.system",
+      "id": "l042.wheel.binding-s2",
+      "ports": [
+        {
+          "contractId": "l042.wheel.command",
+          "direction": "in",
+          "id": "in-l042.wheel.command",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-l042.wheel.command"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l042.wheel.system",
+      "id": "l042.wheel.binding-s3",
+      "ports": [
+        {
+          "contractId": "l042.wheel.command",
+          "direction": "in",
+          "id": "in-l042.wheel.command",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-l042.wheel.command"
+          }
+        },
+        {
+          "contractId": "l042.wheel.step3",
+          "direction": "out",
+          "id": "out-l042.wheel.step3-state",
+          "target": {
+            "nodeId": "state",
+            "portId": "out-l042.wheel.step3"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l042.wheel.system",
+      "id": "l042.wheel.binding-s5",
+      "ports": [
+        {
+          "contractId": "l042.wheel.command",
+          "direction": "in",
+          "id": "in-l042.wheel.command",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-l042.wheel.command"
+          }
+        },
+        {
+          "contractId": "l042.wheel.step3",
+          "direction": "out",
+          "id": "out-l042.wheel.step3-state",
+          "target": {
+            "nodeId": "state",
+            "portId": "out-l042.wheel.step3"
+          }
+        },
+        {
+          "contractId": "l042.wheel.step5",
+          "direction": "out",
+          "id": "out-l042.wheel.step5-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l042.wheel.step5"
+          }
+        }
+      ],
+      "version": 1
+    }
+  ],
+  "version": 1
+}

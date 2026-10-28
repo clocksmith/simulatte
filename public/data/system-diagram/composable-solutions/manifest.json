@@ -18,6 +18,14 @@
       "stages": 16
     },
     {
+      "path": "l002.json",
+      "problemId": "project-review",
+      "referenceId": "L002",
+      "sha256": "d84cc92bf85eca51023a29cddf91c9f66059bdca84d25a5bdfc640ca95d76ca7",
+      "solutions": 2,
+      "stages": 16
+    },
+    {
       "path": "l003.json",
       "problemId": "pagination",
       "referenceId": "L003",
@@ -90,6 +98,14 @@
       "stages": 18
     },
     {
+      "path": "l012.json",
+      "problemId": "meta-stories",
+      "referenceId": "L012",
+      "sha256": "fc6ea4cf03fee0ba1bf96f126620394fa40836153cf264870cd9ca90c55da7ab",
+      "solutions": 2,
+      "stages": 16
+    },
+    {
       "path": "l013.json",
       "problemId": "amazon-flash-sale",
       "referenceId": "L013",
@@ -106,6 +122,142 @@
       "stages": 16
     },
     {
+      "path": "l015.json",
+      "problemId": "microsoft-presence",
+      "referenceId": "L015",
+      "sha256": "8b39967059163cd54f7b4b482a58ea4b993120ee90ad91c7687c4ce343fc5451",
+      "solutions": 2,
+      "stages": 16
+    },
+    {
+      "path": "l016.json",
+      "problemId": "web-service",
+      "referenceId": "L016",
+      "sha256": "146ff78804a1520be13705e8ae89d314c0448f88aadfaeca28ce4aadb1840dc4",
+      "solutions": 2,
+      "stages": 16
+    },
+    {
+      "path": "l017.json",
+      "problemId": "chat-application",
+      "referenceId": "L017",
+      "sha256": "a2e49529cf8a3ea70f6b303809e62614fd062dd872fbeee130db13e32b86ff8b",
+      "solutions": 2,
+      "stages": 16
+    },
+    {
+      "path": "l018.json",
+      "problemId": "rag-assistant",
+      "referenceId": "L018",
+      "sha256": "0de4101ff6df95c320c3560bbff49101e4a4d902c61f068ad54dac269286f590",
+      "solutions": 2,
+      "stages": 16
+    },
+    {
+      "path": "l019.json",
+      "problemId": "video-distribution",
+      "referenceId": "L019",
+      "sha256": "26e00df475b7341eee1e4c9aeec53ae70f32bf4da1c468417434783df1d41f0d",
+      "solutions": 2,
+      "stages": 16
+    },
+    {
+      "path": "l020.json",
+      "problemId": "social-feed",
+      "referenceId": "L020",
+      "sha256": "8d1c405a0ccdd83e34120056779c27e11ab7c2f07d2592bff64de01aec60c08f",
+      "solutions": 2,
+      "stages": 16
+    },
+    {
+      "path": "l021.json",
+      "problemId": "agent-trajectories",
+      "referenceId": "L021",
+      "sha256": "a30b012fd186dd2a2c73f9b05a4bf8d263ad461a0302e127f888b696418a45e9",
+      "solutions": 2,
+      "stages": 16
+    },
+    {
+      "path": "l022.json",
+      "problemId": "spark-job",
+      "referenceId": "L022",
+      "sha256": "2f17b7556c0eda812c7f3acf69a6173e8a56387d0a4497ca53a45350d8cdd23e",
+      "solutions": 2,
+      "stages": 16
+    },
+    {
+      "path": "l023.json",
+      "problemId": "workspace-access",
+      "referenceId": "L023",
+      "sha256": "f7b89d96134ae02ab260db174b9f218751c2999cd249187358347c61122f98d9",
+      "solutions": 2,
+      "stages": 16
+    },
+    {
+      "path": "l024.json",
+      "problemId": "crawler-pipeline",
+      "referenceId": "L024",
+      "sha256": "9dee97cdd2734f15ece62579ad68175d8770dd8c94f19f1bf9332ec681426fb5",
+      "solutions": 2,
+      "stages": 16
+    },
+    {
+      "path": "l025.json",
+      "problemId": "streaming-burst",
+      "referenceId": "L025",
+      "sha256": "a5e7c791a4a8e285ef22503b87abc4854453c875bcef29ea376480118824fe81",
+      "solutions": 2,
+      "stages": 16
+    },
+    {
+      "path": "l026.json",
+      "problemId": "replica-recovery",
+      "referenceId": "L026",
+      "sha256": "f6cbf20d9cc857f7f6ecb0092d99854871d002e670e18e90c0ef74590e162bfb",
+      "solutions": 2,
+      "stages": 16
+    },
+    {
+      "path": "l027.json",
+      "problemId": "agent-recovery",
+      "referenceId": "L027",
+      "sha256": "4bcac089fdb7b71c0d0f6a471c5da5ba5ba4dc5876f69bffa1b87d4d3700ad68",
+      "solutions": 2,
+      "stages": 16
+    },
+    {
+      "path": "l028.json",
+      "problemId": "healthcare-ingestion",
+      "referenceId": "L028",
+      "sha256": "9ea04a1f2d8a17a1b9a5585736044f9009a03783d1c362d2ba02d48c85842bf1",
+      "solutions": 2,
+      "stages": 16
+    },
+    {
+      "path": "l029.json",
+      "problemId": "finance-reconciliation",
+      "referenceId": "L029",
+      "sha256": "cc1be450044c1c2d9fbb7c60845384bdb473915ef9b20b0932e3d88c360136dd",
+      "solutions": 2,
+      "stages": 16
+    },
+    {
+      "path": "l030.json",
+      "problemId": "lakehouse-late-data",
+      "referenceId": "L030",
+      "sha256": "a0bd435539459cde79c72f0218c6601e0259b1c09b1646006d3de7162524e644",
+      "solutions": 2,
+      "stages": 16
+    },
+    {
+      "path": "l031.json",
+      "problemId": "nested-chat",
+      "referenceId": "L031",
+      "sha256": "16d49041a2037e43e0cb3fd8a4c39f728788481cc3c7514b7142fa6f56f13a0e",
+      "solutions": 2,
+      "stages": 16
+    },
+    {
       "path": "l032.json",
       "problemId": "private-practice-1",
       "referenceId": "L032",
@@ -114,10 +266,114 @@
       "stages": 16
     },
     {
+      "path": "l033.json",
+      "problemId": "private-practice-2",
+      "referenceId": "L033",
+      "sha256": "90ca98e3f83e4a89048cce12e04f994aeb22a9d7ecd02015ddccd577a7aced91",
+      "solutions": 2,
+      "stages": 16
+    },
+    {
       "path": "l034.json",
       "problemId": "private-practice-3",
       "referenceId": "L034",
       "sha256": "ec53551f59ad7435a8ab1049652655d0e909ecb7faa4eec6da7f65138042999c",
+      "solutions": 2,
+      "stages": 16
+    },
+    {
+      "path": "l035.json",
+      "problemId": "private-practice-4",
+      "referenceId": "L035",
+      "sha256": "12e7a7d8580f6f6f737585a18b58027636e6673e618555e9c8eb332738adb320",
+      "solutions": 2,
+      "stages": 16
+    },
+    {
+      "path": "l036.json",
+      "problemId": "private-practice-5",
+      "referenceId": "L036",
+      "sha256": "770532841f81af96a6a1848770b7c5b6c277a8ea0cf89594dafbdeae52a19172",
+      "solutions": 2,
+      "stages": 16
+    },
+    {
+      "path": "l037.json",
+      "problemId": "private-practice-6",
+      "referenceId": "L037",
+      "sha256": "8e706b164f516a6035b9fbd2ab59c69f641569d9b60fb2bc3e478e8d92d0a98e",
+      "solutions": 2,
+      "stages": 16
+    },
+    {
+      "path": "l038.json",
+      "problemId": "private-practice-7",
+      "referenceId": "L038",
+      "sha256": "aa6116837b1a2e06dce172875d491cb6bd9a149502c040a0a33d476d04300236",
+      "solutions": 2,
+      "stages": 16
+    },
+    {
+      "path": "l039.json",
+      "problemId": "private-practice-8",
+      "referenceId": "L039",
+      "sha256": "431f1e626991ef8e689390224c3616d85646d22bdb4c0104daf353da7aca656d",
+      "solutions": 2,
+      "stages": 16
+    },
+    {
+      "path": "l040.json",
+      "problemId": "private-practice-9",
+      "referenceId": "L040",
+      "sha256": "482e4bd9b1ed2337f31730950dd5c8ecd89ddc1489052bc89fd9fd0267a0564d",
+      "solutions": 2,
+      "stages": 16
+    },
+    {
+      "path": "l041.json",
+      "problemId": "private-practice-10",
+      "referenceId": "L041",
+      "sha256": "b2350a5e8531d678727c4870540cabf5b7709aa2a67e123a0eeb008b4f9eccb7",
+      "solutions": 2,
+      "stages": 16
+    },
+    {
+      "path": "l042.json",
+      "problemId": "private-practice-11",
+      "referenceId": "L042",
+      "sha256": "3ec8fbf776efd312e79b3c53a80da881680be306f6e33ecfacc983e523f0d78a",
+      "solutions": 2,
+      "stages": 16
+    },
+    {
+      "path": "l043.json",
+      "problemId": "private-practice-12",
+      "referenceId": "L043",
+      "sha256": "8a9989741b98430438372a8c26b51fb9416c37bfb447b36f19b278ef2abdcf09",
+      "solutions": 2,
+      "stages": 16
+    },
+    {
+      "path": "l044.json",
+      "problemId": "private-practice-13",
+      "referenceId": "L044",
+      "sha256": "9f3ddc9f11ec4027d685ceacee69d2428318c9a46ed95d076a2dd4c161ea09b8",
+      "solutions": 2,
+      "stages": 16
+    },
+    {
+      "path": "l045.json",
+      "problemId": "private-practice-14",
+      "referenceId": "L045",
+      "sha256": "ea01ca70a79b9d3a3e38f84da6ff56fa8d9f9cc2abde6af426c8934ad3d9eac9",
+      "solutions": 2,
+      "stages": 16
+    },
+    {
+      "path": "l046.json",
+      "problemId": "private-practice-15",
+      "referenceId": "L046",
+      "sha256": "09f82681e094daefb300efd0747d22f5c4f906243115132e4e4f62fd87c091d3",
       "solutions": 2,
       "stages": 16
     }

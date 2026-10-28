@@ -1,0 +1,3567 @@
+{
+  "components": [
+    {
+      "extends": {
+        "id": "core.client",
+        "version": 1
+      },
+      "id": "l002.synchronous.caller",
+      "label": "Illustrative report user",
+      "ports": [
+        {
+          "contractId": "l002.synchronous.command",
+          "direction": "out",
+          "id": "out-l002.synchronous.command"
+        }
+      ],
+      "responsibility": "Invoke the documented API and retain returned outcomes.",
+      "stateOwnership": [
+        "caller-owned input"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l002.synchronous.owner",
+      "label": "Report API",
+      "ports": [
+        {
+          "contractId": "l002.synchronous.command",
+          "direction": "in",
+          "id": "in-l002.synchronous.command"
+        },
+        {
+          "contractId": "l002.synchronous.auth",
+          "direction": "out",
+          "id": "out-l002.synchronous.auth"
+        }
+      ],
+      "responsibility": "Authenticate a user, validate parameters and generate a bounded report within one request lifecycle.",
+      "stateOwnership": [
+        "request identity",
+        "response outcome"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l002.synchronous.auth",
+      "label": "Access check",
+      "ports": [
+        {
+          "contractId": "l002.synchronous.auth",
+          "direction": "in",
+          "id": "in-l002.synchronous.auth"
+        },
+        {
+          "contractId": "l002.synchronous.receipt",
+          "direction": "out",
+          "id": "out-l002.synchronous.receipt"
+        }
+      ],
+      "responsibility": "Validate principal and ownership before processing or returning an existing request receipt.",
+      "stateOwnership": [
+        "authorization decision"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l002.synchronous.receipt",
+      "label": "Request receipt store",
+      "ports": [
+        {
+          "contractId": "l002.synchronous.receipt",
+          "direction": "in",
+          "id": "in-l002.synchronous.receipt"
+        },
+        {
+          "contractId": "l002.synchronous.snapshot",
+          "direction": "out",
+          "id": "out-l002.synchronous.snapshot"
+        }
+      ],
+      "responsibility": "Bind owner/requestKey to a parameter hash and report ID atomically; identical retries share a receipt.",
+      "stateOwnership": [
+        "request keys",
+        "parameter hashes"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l002.synchronous.snapshot",
+      "label": "Source snapshot reader",
+      "ports": [
+        {
+          "contractId": "l002.synchronous.snapshot",
+          "direction": "in",
+          "id": "in-l002.synchronous.snapshot"
+        },
+        {
+          "contractId": "l002.synchronous.render",
+          "direction": "out",
+          "id": "out-l002.synchronous.render"
+        }
+      ],
+      "responsibility": "Choose an explicit read snapshot/cutoff and retain that input identity in report metadata.",
+      "stateOwnership": [
+        "source cutoff"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l002.synchronous.render",
+      "label": "Bounded renderer",
+      "ports": [
+        {
+          "contractId": "l002.synchronous.render",
+          "direction": "in",
+          "id": "in-l002.synchronous.render"
+        },
+        {
+          "contractId": "l002.synchronous.artifact",
+          "direction": "out",
+          "id": "out-l002.synchronous.artifact"
+        }
+      ],
+      "responsibility": "Enforce row, byte and work budgets; abort with explicit failure before publishing an incomplete artifact.",
+      "stateOwnership": [
+        "render buffer",
+        "budget counters"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l002.synchronous.artifact",
+      "label": "Immutable artifact store",
+      "ports": [
+        {
+          "contractId": "l002.synchronous.artifact",
+          "direction": "in",
+          "id": "in-l002.synchronous.artifact"
+        },
+        {
+          "contractId": "l002.synchronous.finish",
+          "direction": "out",
+          "id": "out-l002.synchronous.finish"
+        }
+      ],
+      "responsibility": "Store bytes under hash-addressed identity and bind output hash to the report; repeated identical writes are harmless.",
+      "stateOwnership": [
+        "immutable report bytes"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l002.synchronous.finish",
+      "label": "Completion commit",
+      "ports": [
+        {
+          "contractId": "l002.synchronous.finish",
+          "direction": "in",
+          "id": "in-l002.synchronous.finish"
+        },
+        {
+          "contractId": "l002.synchronous.review",
+          "direction": "out",
+          "id": "out-l002.synchronous.review"
+        }
+      ],
+      "responsibility": "Commit metadata referencing an already written artifact; if commit fails keep a retriable/uncertain receipt and reconcile orphan bytes explicitly.",
+      "stateOwnership": [
+        "completion metadata"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l002.synchronous.review",
+      "label": "Failure and load observations",
+      "ports": [
+        {
+          "contractId": "l002.synchronous.review",
+          "direction": "in",
+          "id": "in-l002.synchronous.review"
+        }
+      ],
+      "responsibility": "For this hypothetical design record request duration, timeouts, CPU work and database wait as proposed measurements. A tenfold input is a scenario, not observed capacity.",
+      "stateOwnership": [
+        "illustrative experiment plan"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.client",
+        "version": 1
+      },
+      "id": "l002.durable-jobs.caller",
+      "label": "Illustrative report user",
+      "ports": [
+        {
+          "contractId": "l002.durable-jobs.command",
+          "direction": "out",
+          "id": "out-l002.durable-jobs.command"
+        }
+      ],
+      "responsibility": "Invoke the documented API and retain returned outcomes.",
+      "stateOwnership": [
+        "caller-owned input"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l002.durable-jobs.owner",
+      "label": "Job submission API",
+      "ports": [
+        {
+          "contractId": "l002.durable-jobs.command",
+          "direction": "in",
+          "id": "in-l002.durable-jobs.command"
+        },
+        {
+          "contractId": "l002.durable-jobs.ledger",
+          "direction": "out",
+          "id": "out-l002.durable-jobs.ledger"
+        }
+      ],
+      "responsibility": "Persist a report job and dispatch intent atomically, return accepted, and let a leased worker publish completion later.",
+      "stateOwnership": [
+        "job metadata",
+        "request receipts"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l002.durable-jobs.ledger",
+      "label": "Job and request ledger",
+      "ports": [
+        {
+          "contractId": "l002.durable-jobs.ledger",
+          "direction": "in",
+          "id": "in-l002.durable-jobs.ledger"
+        },
+        {
+          "contractId": "l002.durable-jobs.outbox",
+          "direction": "out",
+          "id": "out-l002.durable-jobs.outbox"
+        },
+        {
+          "contractId": "l002.durable-jobs.status",
+          "direction": "out",
+          "id": "out-l002.durable-jobs.status"
+        }
+      ],
+      "responsibility": "Atomically create unique owner/requestKey receipt, parameter hash and job record; conflicting payloads reject.",
+      "stateOwnership": [
+        "jobs",
+        "idempotency receipts"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l002.durable-jobs.outbox",
+      "label": "Transactional dispatch outbox",
+      "ports": [
+        {
+          "contractId": "l002.durable-jobs.outbox",
+          "direction": "in",
+          "id": "in-l002.durable-jobs.outbox"
+        },
+        {
+          "contractId": "l002.durable-jobs.lease",
+          "direction": "out",
+          "id": "out-l002.durable-jobs.lease"
+        }
+      ],
+      "responsibility": "Commit outbox row with the job in the same database transaction; a dispatcher retries delivery by job ID.",
+      "stateOwnership": [
+        "outbox records",
+        "delivery cursor"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l002.durable-jobs.lease",
+      "label": "Fenced worker claim",
+      "ports": [
+        {
+          "contractId": "l002.durable-jobs.lease",
+          "direction": "in",
+          "id": "in-l002.durable-jobs.lease"
+        },
+        {
+          "contractId": "l002.durable-jobs.worker",
+          "direction": "out",
+          "id": "out-l002.durable-jobs.worker"
+        }
+      ],
+      "responsibility": "Claim job with monotonically increasing fencing token and lease; completion verifies current token.",
+      "stateOwnership": [
+        "lease owner",
+        "token",
+        "deadline"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l002.durable-jobs.worker",
+      "label": "Snapshot report worker",
+      "ports": [
+        {
+          "contractId": "l002.durable-jobs.worker",
+          "direction": "in",
+          "id": "in-l002.durable-jobs.worker"
+        },
+        {
+          "contractId": "l002.durable-jobs.objects",
+          "direction": "out",
+          "id": "out-l002.durable-jobs.objects"
+        }
+      ],
+      "responsibility": "Pin query cutoff and renderer version in the job before work; retries reuse them or explicitly create a new report version.",
+      "stateOwnership": [
+        "input snapshot ID",
+        "renderer version"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l002.durable-jobs.objects",
+      "label": "Immutable output repository",
+      "ports": [
+        {
+          "contractId": "l002.durable-jobs.objects",
+          "direction": "in",
+          "id": "in-l002.durable-jobs.objects"
+        },
+        {
+          "contractId": "l002.durable-jobs.recovery",
+          "direction": "out",
+          "id": "out-l002.durable-jobs.recovery"
+        }
+      ],
+      "responsibility": "Write immutable content by hash; completion records one authorized artifact choice under the current fencing token.",
+      "stateOwnership": [
+        "artifact bytes",
+        "hash keys"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l002.durable-jobs.status",
+      "label": "Versioned status API",
+      "ports": [
+        {
+          "contractId": "l002.durable-jobs.status",
+          "direction": "in",
+          "id": "in-l002.durable-jobs.status"
+        }
+      ],
+      "responsibility": "Authorize each read and report accepted/running/complete/failed/uncertain; complete requires verified artifact and fenced metadata commit.",
+      "stateOwnership": [
+        "status version",
+        "owner permissions"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l002.durable-jobs.recovery",
+      "label": "Lease and artifact reconciler",
+      "ports": [
+        {
+          "contractId": "l002.durable-jobs.recovery",
+          "direction": "in",
+          "id": "in-l002.durable-jobs.recovery"
+        }
+      ],
+      "responsibility": "Scan unfinished jobs and artifacts, verify identity/hash, requeue or reconcile with a fresh lease. Unknown irreversible effects stay uncertain.",
+      "stateOwnership": [
+        "recovery cursor",
+        "orphan artifacts"
+      ],
+      "version": 1
+    }
+  ],
+  "contracts": [
+    {
+      "id": "l002.synchronous.command",
+      "request": {
+        "ownerId": "authenticated subject",
+        "parameters": "versioned validated query",
+        "reportId": "caller-scoped UUID",
+        "requestKey": "stable idempotency key"
+      },
+      "response": {
+        "artifactHash": "sha256|null",
+        "reportId": "stable UUID",
+        "status": "accepted|running|complete|failed|uncertain",
+        "version": "integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l002.synchronous.auth",
+      "request": {
+        "ownerId": "authenticated subject",
+        "reportId": "UUID"
+      },
+      "response": {
+        "allowed": "boolean"
+      },
+      "version": 1
+    },
+    {
+      "id": "l002.synchronous.receipt",
+      "request": {
+        "hash": "parameters hash",
+        "key": "owner/requestKey"
+      },
+      "response": {
+        "reportId": "stable ID",
+        "state": "accepted|complete|failed"
+      },
+      "version": 1
+    },
+    {
+      "id": "l002.synchronous.snapshot",
+      "request": {
+        "cutoff": "snapshot identity",
+        "parameters": "validated query"
+      },
+      "response": {
+        "rows": "bounded source rows"
+      },
+      "version": 1
+    },
+    {
+      "id": "l002.synchronous.render",
+      "request": {
+        "budget": "declared limits",
+        "rows": "snapshot rows"
+      },
+      "response": {
+        "bytes": "complete report or failure"
+      },
+      "version": 1
+    },
+    {
+      "id": "l002.synchronous.artifact",
+      "request": {
+        "bytes": "complete output",
+        "hash": "sha256"
+      },
+      "response": {
+        "artifactKey": "content identity"
+      },
+      "version": 1
+    },
+    {
+      "id": "l002.synchronous.finish",
+      "request": {
+        "artifactHash": "hash",
+        "reportId": "stable ID"
+      },
+      "response": {
+        "status": "complete or uncertain"
+      },
+      "version": 1
+    },
+    {
+      "id": "l002.synchronous.review",
+      "request": {
+        "scenario": "hypothetical tenfold arrival workload"
+      },
+      "response": {
+        "neededEvidence": "latency, errors, queueing, CPU and DB receipts"
+      },
+      "version": 1
+    },
+    {
+      "id": "l002.durable-jobs.command",
+      "request": {
+        "ownerId": "authenticated subject",
+        "parameters": "versioned validated query",
+        "reportId": "caller-scoped UUID",
+        "requestKey": "stable idempotency key"
+      },
+      "response": {
+        "artifactHash": "sha256|null",
+        "reportId": "stable UUID",
+        "status": "accepted|running|complete|failed|uncertain",
+        "version": "integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l002.durable-jobs.ledger",
+      "request": {
+        "key": "owner/requestKey",
+        "parametersHash": "sha256"
+      },
+      "response": {
+        "jobId": "stable report ID"
+      },
+      "version": 1
+    },
+    {
+      "id": "l002.durable-jobs.outbox",
+      "request": {
+        "jobId": "stable ID"
+      },
+      "response": {
+        "dispatchIntent": "committed outbox row"
+      },
+      "version": 1
+    },
+    {
+      "id": "l002.durable-jobs.lease",
+      "request": {
+        "jobId": "ID",
+        "workerId": "identity"
+      },
+      "response": {
+        "token": "monotonic integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l002.durable-jobs.worker",
+      "request": {
+        "cutoff": "input identity",
+        "jobId": "ID",
+        "token": "fence"
+      },
+      "response": {
+        "artifactBytes": "bounded complete output"
+      },
+      "version": 1
+    },
+    {
+      "id": "l002.durable-jobs.objects",
+      "request": {
+        "bytes": "rendered report",
+        "hash": "sha256"
+      },
+      "response": {
+        "artifactKey": "immutable hash key"
+      },
+      "version": 1
+    },
+    {
+      "id": "l002.durable-jobs.status",
+      "request": {
+        "jobId": "ID",
+        "ownerId": "authenticated subject"
+      },
+      "response": {
+        "status": "versioned job state"
+      },
+      "version": 1
+    },
+    {
+      "id": "l002.durable-jobs.recovery",
+      "request": {
+        "artifact": "candidate hash",
+        "jobId": "ID",
+        "lease": "current token"
+      },
+      "response": {
+        "action": "complete|retry|uncertain"
+      },
+      "version": 1
+    }
+  ],
+  "execution": {
+    "implementation": null,
+    "kind": "conceptual-design"
+  },
+  "problem": {
+    "referenceId": "L002",
+    "requirements": [
+      {
+        "id": "r0",
+        "text": "Trace a specific report request through named state owners and separate accepted intent from completed output."
+      },
+      {
+        "id": "r1",
+        "text": "Explain a hypothetical failure and observable recovery without presenting it as an actual incident."
+      },
+      {
+        "id": "r2",
+        "text": "Compare structural choices at an illustrative tenfold workload and identify evidence needed to choose, without invented throughput results."
+      }
+    ],
+    "scope": "Explicitly illustrative worked examples, not the user's project, employment history or a claimed incident. Review a hypothetical report-generation product as two alternative designs: synchronous transactional requests and asynchronous durable jobs. All traffic, failures and scaling questions below are authored scenarios. Replace them with verified project facts before using as personal experience; no actual operated scale or business outcome is asserted.",
+    "studyLabel": "Illustrative project architecture review: report generation"
+  },
+  "provenance": {
+    "kind": "authored-practice",
+    "note": "Authored interview preparation. Technical references support mechanisms, not the claim that a company asked this question."
+  },
+  "references": [
+    {
+      "id": "ref0",
+      "scope": "background",
+      "supports": "Atomic transaction boundaries for illustrative durable metadata.",
+      "title": "PostgreSQL transactions",
+      "url": "https://www.postgresql.org/docs/18/tutorial-transactions.html"
+    },
+    {
+      "id": "ref1",
+      "scope": "background",
+      "supports": "Retry intent identities; no empirical result for this illustrative product is implied.",
+      "title": "AWS retry guidance",
+      "url": "https://aws.amazon.com/builders-library/making-retries-safe-with-idempotent-APIs/"
+    }
+  ],
+  "schema": "simulatte.composableStudy.v2",
+  "solutions": [
+    {
+      "acceptanceCases": [
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-08-mechanisms.test.mjs",
+            "testName": "batch-08 review: illustrative job identity and uncertain completion"
+          },
+          "given": "Illustrative request K accepted, response lost, and K retried.",
+          "id": "behavior",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Return the same report identity for identical intent; reject conflicting reuse without creating another job.",
+          "when": "Repeat identical parameters, then reuse K with different parameters."
+        },
+        {
+          "given": "Hypothetical worker completes an artifact before its metadata ACK is lost.",
+          "id": "boundary",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "No personal incident claim is made; completion references matching immutable bytes, while unknown external effects remain uncertain.",
+          "when": "Resume with the same job ID and verify artifact hash before marking complete."
+        }
+      ],
+      "algorithms": [
+        {
+          "code": "handle(request) { authorize(request.ownerId);\n const receipt=transaction(()=>insertOrReadSameIntent(request.requestKey,hash(request.parameters)));\n if(receipt.complete)return receipt;\n const input=readBoundedSnapshot(request.parameters);\n const bytes=renderWithLimits(input);const artifactHash=hash(bytes);\n artifactStore.putImmutable(artifactHash,bytes);\n return transaction(()=>markCompleteIfSameIntent(receipt.reportId,artifactHash,input.cutoff));\n}\n// Illustrative failure: artifact write succeeds, completion transaction fails.\n// Reconciliation checks hash and receipt before finishing; no actual incident is asserted.",
+          "guarantees": [
+            "Retry intent is stable; output publication and completion metadata are separate recoverable steps."
+          ],
+          "id": "mechanism-0",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "owner"
+        }
+      ],
+      "apis": [
+        {
+          "errors": "403 wrong owner; 409 key reused with different parameters; 422 invalid query; timeout is uncertain rather than automatic new work",
+          "method": "POST",
+          "ownerNodeId": "owner",
+          "path": "/illustrative/reports",
+          "request": "{\"reportId\":\"caller-scoped UUID\",\"ownerId\":\"authenticated subject\",\"parameters\":\"versioned validated query\",\"requestKey\":\"stable idempotency key\"}",
+          "response": "{\"status\":\"accepted|running|complete|failed|uncertain\",\"reportId\":\"stable UUID\",\"artifactHash\":\"sha256|null\",\"version\":\"integer\"}"
+        }
+      ],
+      "assumptions": [
+        "No project facts or production measurements are supplied. This is a transparent authored teaching example; storage and delivery guarantees are design requirements, not tested provider behavior.",
+        "All added requirements and walkthroughs are authored practice. Graphs specify design; reference tests prove only named bounded mechanisms."
+      ],
+      "chooseWhen": "Reports are small enough for a declared bounded request deadline and simplicity matters.",
+      "id": "synchronous",
+      "initialGraph": {
+        "edges": [],
+        "nodes": []
+      },
+      "stages": [
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l002.synchronous.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l002.synchronous.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l002.synchronous.command"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l002.synchronous.caller",
+                "id": "caller",
+                "label": "Illustrative report user",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l002.synchronous.owner",
+                "id": "owner",
+                "label": "Report API",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "synchronous-s1",
+          "invariants": [
+            "This is an illustrative request path, not a claim about a real project."
+          ],
+          "number": 1,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l002.synchronous.caller",
+                "id": "caller",
+                "label": "Illustrative report user",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "l002.synchronous.owner",
+                "id": "owner",
+                "label": "Report API",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l002.synchronous.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l002.synchronous.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l002.synchronous.command"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Which user action is being traced?",
+          "reason": "Authenticate a user, validate parameters and generate a bounded report within one request lifecycle.",
+          "title": "Expose Report API"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l002.synchronous.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l002.synchronous.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l002.synchronous.command"
+                }
+              },
+              {
+                "contractId": "l002.synchronous.auth",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l002.synchronous.auth"
+                },
+                "id": "use-auth",
+                "label": "Authorize report ownership",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "auth",
+                  "portId": "in-l002.synchronous.auth"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l002.synchronous.caller",
+                "id": "caller",
+                "label": "Illustrative report user",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l002.synchronous.owner",
+                "id": "owner",
+                "label": "Report API",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l002.synchronous.auth",
+                "id": "auth",
+                "label": "Access check",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "synchronous-s2",
+          "invariants": [
+            "Idempotency lookup never bypasses authorization."
+          ],
+          "number": 2,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l002.synchronous.auth",
+                "id": "auth",
+                "label": "Access check",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l002.synchronous.auth",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l002.synchronous.auth"
+                },
+                "id": "use-auth",
+                "label": "Authorize report ownership",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "auth",
+                  "portId": "in-l002.synchronous.auth"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "May a caller read another owner's report?",
+          "reason": "Validate principal and ownership before processing or returning an existing request receipt.",
+          "title": "Authorize report ownership"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l002.synchronous.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l002.synchronous.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l002.synchronous.command"
+                }
+              },
+              {
+                "contractId": "l002.synchronous.auth",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l002.synchronous.auth"
+                },
+                "id": "use-auth",
+                "label": "Authorize report ownership",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "auth",
+                  "portId": "in-l002.synchronous.auth"
+                }
+              },
+              {
+                "contractId": "l002.synchronous.receipt",
+                "from": {
+                  "nodeId": "auth",
+                  "portId": "out-l002.synchronous.receipt"
+                },
+                "id": "use-receipt",
+                "label": "Persist retry intent",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "receipt",
+                  "portId": "in-l002.synchronous.receipt"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l002.synchronous.caller",
+                "id": "caller",
+                "label": "Illustrative report user",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l002.synchronous.owner",
+                "id": "owner",
+                "label": "Report API",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l002.synchronous.auth",
+                "id": "auth",
+                "label": "Access check",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l002.synchronous.receipt",
+                "id": "receipt",
+                "label": "Request receipt store",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "synchronous-s3",
+          "invariants": [
+            "Same key with different parameters returns conflict."
+          ],
+          "number": 3,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l002.synchronous.receipt",
+                "id": "receipt",
+                "label": "Request receipt store",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l002.synchronous.receipt",
+                "from": {
+                  "nodeId": "auth",
+                  "portId": "out-l002.synchronous.receipt"
+                },
+                "id": "use-receipt",
+                "label": "Persist retry intent",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "receipt",
+                  "portId": "in-l002.synchronous.receipt"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What if the response is lost?",
+          "reason": "Bind owner/requestKey to a parameter hash and report ID atomically; identical retries share a receipt.",
+          "title": "Persist retry intent"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l002.synchronous.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l002.synchronous.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l002.synchronous.command"
+                }
+              },
+              {
+                "contractId": "l002.synchronous.auth",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l002.synchronous.auth"
+                },
+                "id": "use-auth",
+                "label": "Authorize report ownership",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "auth",
+                  "portId": "in-l002.synchronous.auth"
+                }
+              },
+              {
+                "contractId": "l002.synchronous.receipt",
+                "from": {
+                  "nodeId": "auth",
+                  "portId": "out-l002.synchronous.receipt"
+                },
+                "id": "use-receipt",
+                "label": "Persist retry intent",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "receipt",
+                  "portId": "in-l002.synchronous.receipt"
+                }
+              },
+              {
+                "contractId": "l002.synchronous.snapshot",
+                "from": {
+                  "nodeId": "receipt",
+                  "portId": "out-l002.synchronous.snapshot"
+                },
+                "id": "use-snapshot",
+                "label": "Freeze report inputs",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "snapshot",
+                  "portId": "in-l002.synchronous.snapshot"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l002.synchronous.caller",
+                "id": "caller",
+                "label": "Illustrative report user",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l002.synchronous.owner",
+                "id": "owner",
+                "label": "Report API",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l002.synchronous.auth",
+                "id": "auth",
+                "label": "Access check",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l002.synchronous.receipt",
+                "id": "receipt",
+                "label": "Request receipt store",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l002.synchronous.snapshot",
+                "id": "snapshot",
+                "label": "Source snapshot reader",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "synchronous-s4",
+          "invariants": [
+            "The report names the inputs it actually read."
+          ],
+          "number": 4,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l002.synchronous.snapshot",
+                "id": "snapshot",
+                "label": "Source snapshot reader",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l002.synchronous.snapshot",
+                "from": {
+                  "nodeId": "receipt",
+                  "portId": "out-l002.synchronous.snapshot"
+                },
+                "id": "use-snapshot",
+                "label": "Freeze report inputs",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "snapshot",
+                  "portId": "in-l002.synchronous.snapshot"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can a running query mix source versions?",
+          "reason": "Choose an explicit read snapshot/cutoff and retain that input identity in report metadata.",
+          "title": "Freeze report inputs"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l002.synchronous.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l002.synchronous.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l002.synchronous.command"
+                }
+              },
+              {
+                "contractId": "l002.synchronous.auth",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l002.synchronous.auth"
+                },
+                "id": "use-auth",
+                "label": "Authorize report ownership",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "auth",
+                  "portId": "in-l002.synchronous.auth"
+                }
+              },
+              {
+                "contractId": "l002.synchronous.receipt",
+                "from": {
+                  "nodeId": "auth",
+                  "portId": "out-l002.synchronous.receipt"
+                },
+                "id": "use-receipt",
+                "label": "Persist retry intent",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "receipt",
+                  "portId": "in-l002.synchronous.receipt"
+                }
+              },
+              {
+                "contractId": "l002.synchronous.snapshot",
+                "from": {
+                  "nodeId": "receipt",
+                  "portId": "out-l002.synchronous.snapshot"
+                },
+                "id": "use-snapshot",
+                "label": "Freeze report inputs",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "snapshot",
+                  "portId": "in-l002.synchronous.snapshot"
+                }
+              },
+              {
+                "contractId": "l002.synchronous.render",
+                "from": {
+                  "nodeId": "snapshot",
+                  "portId": "out-l002.synchronous.render"
+                },
+                "id": "use-render",
+                "label": "Generate within deadline",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "render",
+                  "portId": "in-l002.synchronous.render"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l002.synchronous.caller",
+                "id": "caller",
+                "label": "Illustrative report user",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l002.synchronous.owner",
+                "id": "owner",
+                "label": "Report API",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l002.synchronous.auth",
+                "id": "auth",
+                "label": "Access check",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l002.synchronous.receipt",
+                "id": "receipt",
+                "label": "Request receipt store",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l002.synchronous.snapshot",
+                "id": "snapshot",
+                "label": "Source snapshot reader",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l002.synchronous.render",
+                "id": "render",
+                "label": "Bounded renderer",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "synchronous-s5",
+          "invariants": [
+            "A partial byte stream is never advertised as complete."
+          ],
+          "number": 5,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l002.synchronous.render",
+                "id": "render",
+                "label": "Bounded renderer",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l002.synchronous.render",
+                "from": {
+                  "nodeId": "snapshot",
+                  "portId": "out-l002.synchronous.render"
+                },
+                "id": "use-render",
+                "label": "Generate within deadline",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "render",
+                  "portId": "in-l002.synchronous.render"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What if the report exceeds the request budget?",
+          "reason": "Enforce row, byte and work budgets; abort with explicit failure before publishing an incomplete artifact.",
+          "title": "Generate within deadline"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l002.synchronous.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l002.synchronous.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l002.synchronous.command"
+                }
+              },
+              {
+                "contractId": "l002.synchronous.auth",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l002.synchronous.auth"
+                },
+                "id": "use-auth",
+                "label": "Authorize report ownership",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "auth",
+                  "portId": "in-l002.synchronous.auth"
+                }
+              },
+              {
+                "contractId": "l002.synchronous.receipt",
+                "from": {
+                  "nodeId": "auth",
+                  "portId": "out-l002.synchronous.receipt"
+                },
+                "id": "use-receipt",
+                "label": "Persist retry intent",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "receipt",
+                  "portId": "in-l002.synchronous.receipt"
+                }
+              },
+              {
+                "contractId": "l002.synchronous.snapshot",
+                "from": {
+                  "nodeId": "receipt",
+                  "portId": "out-l002.synchronous.snapshot"
+                },
+                "id": "use-snapshot",
+                "label": "Freeze report inputs",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "snapshot",
+                  "portId": "in-l002.synchronous.snapshot"
+                }
+              },
+              {
+                "contractId": "l002.synchronous.render",
+                "from": {
+                  "nodeId": "snapshot",
+                  "portId": "out-l002.synchronous.render"
+                },
+                "id": "use-render",
+                "label": "Generate within deadline",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "render",
+                  "portId": "in-l002.synchronous.render"
+                }
+              },
+              {
+                "contractId": "l002.synchronous.artifact",
+                "from": {
+                  "nodeId": "render",
+                  "portId": "out-l002.synchronous.artifact"
+                },
+                "id": "use-artifact",
+                "label": "Publish named output",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "artifact",
+                  "portId": "in-l002.synchronous.artifact"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l002.synchronous.caller",
+                "id": "caller",
+                "label": "Illustrative report user",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l002.synchronous.owner",
+                "id": "owner",
+                "label": "Report API",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l002.synchronous.auth",
+                "id": "auth",
+                "label": "Access check",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l002.synchronous.receipt",
+                "id": "receipt",
+                "label": "Request receipt store",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l002.synchronous.snapshot",
+                "id": "snapshot",
+                "label": "Source snapshot reader",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l002.synchronous.render",
+                "id": "render",
+                "label": "Bounded renderer",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l002.synchronous.artifact",
+                "id": "artifact",
+                "label": "Immutable artifact store",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "synchronous-s6",
+          "invariants": [
+            "A completed receipt references immutable matching content."
+          ],
+          "number": 6,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l002.synchronous.artifact",
+                "id": "artifact",
+                "label": "Immutable artifact store",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l002.synchronous.artifact",
+                "from": {
+                  "nodeId": "render",
+                  "portId": "out-l002.synchronous.artifact"
+                },
+                "id": "use-artifact",
+                "label": "Publish named output",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "artifact",
+                  "portId": "in-l002.synchronous.artifact"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can retry overwrite a completed report?",
+          "reason": "Store bytes under hash-addressed identity and bind output hash to the report; repeated identical writes are harmless.",
+          "title": "Publish named output"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l002.synchronous.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l002.synchronous.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l002.synchronous.command"
+                }
+              },
+              {
+                "contractId": "l002.synchronous.auth",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l002.synchronous.auth"
+                },
+                "id": "use-auth",
+                "label": "Authorize report ownership",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "auth",
+                  "portId": "in-l002.synchronous.auth"
+                }
+              },
+              {
+                "contractId": "l002.synchronous.receipt",
+                "from": {
+                  "nodeId": "auth",
+                  "portId": "out-l002.synchronous.receipt"
+                },
+                "id": "use-receipt",
+                "label": "Persist retry intent",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "receipt",
+                  "portId": "in-l002.synchronous.receipt"
+                }
+              },
+              {
+                "contractId": "l002.synchronous.snapshot",
+                "from": {
+                  "nodeId": "receipt",
+                  "portId": "out-l002.synchronous.snapshot"
+                },
+                "id": "use-snapshot",
+                "label": "Freeze report inputs",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "snapshot",
+                  "portId": "in-l002.synchronous.snapshot"
+                }
+              },
+              {
+                "contractId": "l002.synchronous.render",
+                "from": {
+                  "nodeId": "snapshot",
+                  "portId": "out-l002.synchronous.render"
+                },
+                "id": "use-render",
+                "label": "Generate within deadline",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "render",
+                  "portId": "in-l002.synchronous.render"
+                }
+              },
+              {
+                "contractId": "l002.synchronous.artifact",
+                "from": {
+                  "nodeId": "render",
+                  "portId": "out-l002.synchronous.artifact"
+                },
+                "id": "use-artifact",
+                "label": "Publish named output",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "artifact",
+                  "portId": "in-l002.synchronous.artifact"
+                }
+              },
+              {
+                "contractId": "l002.synchronous.finish",
+                "from": {
+                  "nodeId": "artifact",
+                  "portId": "out-l002.synchronous.finish"
+                },
+                "id": "use-finish",
+                "label": "Separate output and receipt",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "finish",
+                  "portId": "in-l002.synchronous.finish"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l002.synchronous.caller",
+                "id": "caller",
+                "label": "Illustrative report user",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l002.synchronous.owner",
+                "id": "owner",
+                "label": "Report API",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l002.synchronous.auth",
+                "id": "auth",
+                "label": "Access check",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l002.synchronous.receipt",
+                "id": "receipt",
+                "label": "Request receipt store",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l002.synchronous.snapshot",
+                "id": "snapshot",
+                "label": "Source snapshot reader",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l002.synchronous.render",
+                "id": "render",
+                "label": "Bounded renderer",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l002.synchronous.artifact",
+                "id": "artifact",
+                "label": "Immutable artifact store",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l002.synchronous.finish",
+                "id": "finish",
+                "label": "Completion commit",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "synchronous-s7",
+          "invariants": [
+            "Remote artifact write and metadata transaction are not falsely called atomic."
+          ],
+          "number": 7,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l002.synchronous.finish",
+                "id": "finish",
+                "label": "Completion commit",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l002.synchronous.finish",
+                "from": {
+                  "nodeId": "artifact",
+                  "portId": "out-l002.synchronous.finish"
+                },
+                "id": "use-finish",
+                "label": "Separate output and receipt",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "finish",
+                  "portId": "in-l002.synchronous.finish"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Are object storage and database commit one transaction?",
+          "reason": "Commit metadata referencing an already written artifact; if commit fails keep a retriable/uncertain receipt and reconcile orphan bytes explicitly.",
+          "title": "Separate output and receipt"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l002.synchronous.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l002.synchronous.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l002.synchronous.command"
+                }
+              },
+              {
+                "contractId": "l002.synchronous.auth",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l002.synchronous.auth"
+                },
+                "id": "use-auth",
+                "label": "Authorize report ownership",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "auth",
+                  "portId": "in-l002.synchronous.auth"
+                }
+              },
+              {
+                "contractId": "l002.synchronous.receipt",
+                "from": {
+                  "nodeId": "auth",
+                  "portId": "out-l002.synchronous.receipt"
+                },
+                "id": "use-receipt",
+                "label": "Persist retry intent",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "receipt",
+                  "portId": "in-l002.synchronous.receipt"
+                }
+              },
+              {
+                "contractId": "l002.synchronous.snapshot",
+                "from": {
+                  "nodeId": "receipt",
+                  "portId": "out-l002.synchronous.snapshot"
+                },
+                "id": "use-snapshot",
+                "label": "Freeze report inputs",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "snapshot",
+                  "portId": "in-l002.synchronous.snapshot"
+                }
+              },
+              {
+                "contractId": "l002.synchronous.render",
+                "from": {
+                  "nodeId": "snapshot",
+                  "portId": "out-l002.synchronous.render"
+                },
+                "id": "use-render",
+                "label": "Generate within deadline",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "render",
+                  "portId": "in-l002.synchronous.render"
+                }
+              },
+              {
+                "contractId": "l002.synchronous.artifact",
+                "from": {
+                  "nodeId": "render",
+                  "portId": "out-l002.synchronous.artifact"
+                },
+                "id": "use-artifact",
+                "label": "Publish named output",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "artifact",
+                  "portId": "in-l002.synchronous.artifact"
+                }
+              },
+              {
+                "contractId": "l002.synchronous.finish",
+                "from": {
+                  "nodeId": "artifact",
+                  "portId": "out-l002.synchronous.finish"
+                },
+                "id": "use-finish",
+                "label": "Separate output and receipt",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "finish",
+                  "portId": "in-l002.synchronous.finish"
+                }
+              },
+              {
+                "contractId": "l002.synchronous.review",
+                "from": {
+                  "nodeId": "finish",
+                  "portId": "out-l002.synchronous.review"
+                },
+                "id": "use-review",
+                "label": "State what evidence is missing",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "review",
+                  "portId": "in-l002.synchronous.review"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l002.synchronous.caller",
+                "id": "caller",
+                "label": "Illustrative report user",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l002.synchronous.owner",
+                "id": "owner",
+                "label": "Report API",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l002.synchronous.auth",
+                "id": "auth",
+                "label": "Access check",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l002.synchronous.receipt",
+                "id": "receipt",
+                "label": "Request receipt store",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l002.synchronous.snapshot",
+                "id": "snapshot",
+                "label": "Source snapshot reader",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l002.synchronous.render",
+                "id": "render",
+                "label": "Bounded renderer",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l002.synchronous.artifact",
+                "id": "artifact",
+                "label": "Immutable artifact store",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l002.synchronous.finish",
+                "id": "finish",
+                "label": "Completion commit",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l002.synchronous.review",
+                "id": "review",
+                "label": "Failure and load observations",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "synchronous-s8",
+          "invariants": [
+            "No actual incident, throughput or user outcome is invented."
+          ],
+          "number": 8,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l002.synchronous.review",
+                "id": "review",
+                "label": "Failure and load observations",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l002.synchronous.review",
+                "from": {
+                  "nodeId": "finish",
+                  "portId": "out-l002.synchronous.review"
+                },
+                "id": "use-review",
+                "label": "State what evidence is missing",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "review",
+                  "portId": "in-l002.synchronous.review"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What would justify an asynchronous redesign?",
+          "reason": "For this hypothetical design record request duration, timeouts, CPU work and database wait as proposed measurements. A tenfold input is a scenario, not observed capacity.",
+          "title": "State what evidence is missing"
+        }
+      ],
+      "title": "Illustrative synchronous report request",
+      "tradeoffs": [
+        "Long work ties up request resources and client timeouts create uncertainty.",
+        "Tenfold load needs measured queue, database and CPU evidence; this example predicts no capacity number."
+      ]
+    },
+    {
+      "acceptanceCases": [
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-08-mechanisms.test.mjs",
+            "testName": "batch-08 review: illustrative job identity and uncertain completion"
+          },
+          "given": "Illustrative request K accepted, response lost, and K retried.",
+          "id": "behavior",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Return the same report identity for identical intent; reject conflicting reuse without creating another job.",
+          "when": "Repeat identical parameters, then reuse K with different parameters."
+        },
+        {
+          "given": "Hypothetical worker completes an artifact before its metadata ACK is lost.",
+          "id": "boundary",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "No personal incident claim is made; completion references matching immutable bytes, while unknown external effects remain uncertain.",
+          "when": "Resume with the same job ID and verify artifact hash before marking complete."
+        }
+      ],
+      "algorithms": [
+        {
+          "code": "submit(request) { authorize(request.ownerId); return transaction(()=>{\n const prior=findReceipt(request.ownerId,request.requestKey);\n if(prior)return sameHashOrConflict(prior,hash(request.parameters));\n const job=insertJobWithPinnedInputs(request);insertOutbox(job.id);return {reportId:job.id,status:\"accepted\"};\n}); }\nwork(jobId) { const lease=claimFenced(jobId); const bytes=renderPinnedInput(jobId);\n const digest=hash(bytes);artifactStore.putImmutable(digest,bytes);\n transaction(()=>{assertCurrentFence(jobId,lease.token);markComplete(jobId,digest);});\n}\n// Hypothetical scale review compares queue age and bounded worker resources under a declared workload.\n// It is a proposed experiment, not a measured production result.",
+          "guarantees": [
+            "Durable intent precedes dispatch; only current lease holder can commit completion."
+          ],
+          "id": "mechanism-0",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "owner"
+        }
+      ],
+      "apis": [
+        {
+          "errors": "403 wrong owner; 409 key reused with different parameters; 422 invalid query; timeout is uncertain rather than automatic new work",
+          "method": "POST",
+          "ownerNodeId": "owner",
+          "path": "/illustrative/reports",
+          "request": "{\"reportId\":\"caller-scoped UUID\",\"ownerId\":\"authenticated subject\",\"parameters\":\"versioned validated query\",\"requestKey\":\"stable idempotency key\"}",
+          "response": "{\"status\":\"accepted|running|complete|failed|uncertain\",\"reportId\":\"stable UUID\",\"artifactHash\":\"sha256|null\",\"version\":\"integer\"}"
+        }
+      ],
+      "assumptions": [
+        "No project facts or production measurements are supplied. This is a transparent authored teaching example; storage and delivery guarantees are design requirements, not tested provider behavior.",
+        "All added requirements and walkthroughs are authored practice. Graphs specify design; reference tests prove only named bounded mechanisms."
+      ],
+      "chooseWhen": "Reports may exceed a request deadline and explicit polling/notifications are acceptable.",
+      "id": "durable-jobs",
+      "initialGraph": {
+        "edges": [],
+        "nodes": []
+      },
+      "stages": [
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l002.durable-jobs.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l002.durable-jobs.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l002.durable-jobs.command"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l002.durable-jobs.caller",
+                "id": "caller",
+                "label": "Illustrative report user",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l002.durable-jobs.owner",
+                "id": "owner",
+                "label": "Job submission API",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "durable-jobs-s1",
+          "invariants": [
+            "An accepted response means durable intent, not a generated artifact."
+          ],
+          "number": 1,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l002.durable-jobs.caller",
+                "id": "caller",
+                "label": "Illustrative report user",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "l002.durable-jobs.owner",
+                "id": "owner",
+                "label": "Job submission API",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l002.durable-jobs.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l002.durable-jobs.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l002.durable-jobs.command"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What can the initial response promise?",
+          "reason": "Persist a report job and dispatch intent atomically, return accepted, and let a leased worker publish completion later.",
+          "title": "Expose Job submission API"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l002.durable-jobs.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l002.durable-jobs.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l002.durable-jobs.command"
+                }
+              },
+              {
+                "contractId": "l002.durable-jobs.ledger",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l002.durable-jobs.ledger"
+                },
+                "id": "use-ledger",
+                "label": "Commit one job identity",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "ledger",
+                  "portId": "in-l002.durable-jobs.ledger"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l002.durable-jobs.caller",
+                "id": "caller",
+                "label": "Illustrative report user",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l002.durable-jobs.owner",
+                "id": "owner",
+                "label": "Job submission API",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l002.durable-jobs.ledger",
+                "id": "ledger",
+                "label": "Job and request ledger",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "durable-jobs-s2",
+          "invariants": [
+            "Identical retries reuse report ID."
+          ],
+          "number": 2,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l002.durable-jobs.ledger",
+                "id": "ledger",
+                "label": "Job and request ledger",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l002.durable-jobs.ledger",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l002.durable-jobs.ledger"
+                },
+                "id": "use-ledger",
+                "label": "Commit one job identity",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "ledger",
+                  "portId": "in-l002.durable-jobs.ledger"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can a timeout submit duplicate jobs?",
+          "reason": "Atomically create unique owner/requestKey receipt, parameter hash and job record; conflicting payloads reject.",
+          "title": "Commit one job identity"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l002.durable-jobs.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l002.durable-jobs.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l002.durable-jobs.command"
+                }
+              },
+              {
+                "contractId": "l002.durable-jobs.ledger",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l002.durable-jobs.ledger"
+                },
+                "id": "use-ledger",
+                "label": "Commit one job identity",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "ledger",
+                  "portId": "in-l002.durable-jobs.ledger"
+                }
+              },
+              {
+                "contractId": "l002.durable-jobs.outbox",
+                "from": {
+                  "nodeId": "ledger",
+                  "portId": "out-l002.durable-jobs.outbox"
+                },
+                "id": "use-outbox",
+                "label": "Avoid lost dispatch",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "outbox",
+                  "portId": "in-l002.durable-jobs.outbox"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l002.durable-jobs.caller",
+                "id": "caller",
+                "label": "Illustrative report user",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l002.durable-jobs.owner",
+                "id": "owner",
+                "label": "Job submission API",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l002.durable-jobs.ledger",
+                "id": "ledger",
+                "label": "Job and request ledger",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l002.durable-jobs.outbox",
+                "id": "outbox",
+                "label": "Transactional dispatch outbox",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "durable-jobs-s3",
+          "invariants": [
+            "No accepted job exists without durable dispatch intent."
+          ],
+          "number": 3,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l002.durable-jobs.outbox",
+                "id": "outbox",
+                "label": "Transactional dispatch outbox",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l002.durable-jobs.outbox",
+                "from": {
+                  "nodeId": "ledger",
+                  "portId": "out-l002.durable-jobs.outbox"
+                },
+                "id": "use-outbox",
+                "label": "Avoid lost dispatch",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "outbox",
+                  "portId": "in-l002.durable-jobs.outbox"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What if enqueue fails after job commit?",
+          "reason": "Commit outbox row with the job in the same database transaction; a dispatcher retries delivery by job ID.",
+          "title": "Avoid lost dispatch"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l002.durable-jobs.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l002.durable-jobs.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l002.durable-jobs.command"
+                }
+              },
+              {
+                "contractId": "l002.durable-jobs.ledger",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l002.durable-jobs.ledger"
+                },
+                "id": "use-ledger",
+                "label": "Commit one job identity",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "ledger",
+                  "portId": "in-l002.durable-jobs.ledger"
+                }
+              },
+              {
+                "contractId": "l002.durable-jobs.outbox",
+                "from": {
+                  "nodeId": "ledger",
+                  "portId": "out-l002.durable-jobs.outbox"
+                },
+                "id": "use-outbox",
+                "label": "Avoid lost dispatch",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "outbox",
+                  "portId": "in-l002.durable-jobs.outbox"
+                }
+              },
+              {
+                "contractId": "l002.durable-jobs.lease",
+                "from": {
+                  "nodeId": "outbox",
+                  "portId": "out-l002.durable-jobs.lease"
+                },
+                "id": "use-lease",
+                "label": "Recover worker loss",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "lease",
+                  "portId": "in-l002.durable-jobs.lease"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l002.durable-jobs.caller",
+                "id": "caller",
+                "label": "Illustrative report user",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l002.durable-jobs.owner",
+                "id": "owner",
+                "label": "Job submission API",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l002.durable-jobs.ledger",
+                "id": "ledger",
+                "label": "Job and request ledger",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l002.durable-jobs.outbox",
+                "id": "outbox",
+                "label": "Transactional dispatch outbox",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l002.durable-jobs.lease",
+                "id": "lease",
+                "label": "Fenced worker claim",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "durable-jobs-s4",
+          "invariants": [
+            "Lease expiry alone never authorizes a stale token to commit."
+          ],
+          "number": 4,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l002.durable-jobs.lease",
+                "id": "lease",
+                "label": "Fenced worker claim",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l002.durable-jobs.lease",
+                "from": {
+                  "nodeId": "outbox",
+                  "portId": "out-l002.durable-jobs.lease"
+                },
+                "id": "use-lease",
+                "label": "Recover worker loss",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "lease",
+                  "portId": "in-l002.durable-jobs.lease"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can an expired worker publish stale completion?",
+          "reason": "Claim job with monotonically increasing fencing token and lease; completion verifies current token.",
+          "title": "Recover worker loss"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l002.durable-jobs.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l002.durable-jobs.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l002.durable-jobs.command"
+                }
+              },
+              {
+                "contractId": "l002.durable-jobs.ledger",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l002.durable-jobs.ledger"
+                },
+                "id": "use-ledger",
+                "label": "Commit one job identity",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "ledger",
+                  "portId": "in-l002.durable-jobs.ledger"
+                }
+              },
+              {
+                "contractId": "l002.durable-jobs.outbox",
+                "from": {
+                  "nodeId": "ledger",
+                  "portId": "out-l002.durable-jobs.outbox"
+                },
+                "id": "use-outbox",
+                "label": "Avoid lost dispatch",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "outbox",
+                  "portId": "in-l002.durable-jobs.outbox"
+                }
+              },
+              {
+                "contractId": "l002.durable-jobs.lease",
+                "from": {
+                  "nodeId": "outbox",
+                  "portId": "out-l002.durable-jobs.lease"
+                },
+                "id": "use-lease",
+                "label": "Recover worker loss",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "lease",
+                  "portId": "in-l002.durable-jobs.lease"
+                }
+              },
+              {
+                "contractId": "l002.durable-jobs.worker",
+                "from": {
+                  "nodeId": "lease",
+                  "portId": "out-l002.durable-jobs.worker"
+                },
+                "id": "use-worker",
+                "label": "Compute from pinned inputs",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "worker",
+                  "portId": "in-l002.durable-jobs.worker"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l002.durable-jobs.caller",
+                "id": "caller",
+                "label": "Illustrative report user",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l002.durable-jobs.owner",
+                "id": "owner",
+                "label": "Job submission API",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l002.durable-jobs.ledger",
+                "id": "ledger",
+                "label": "Job and request ledger",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l002.durable-jobs.outbox",
+                "id": "outbox",
+                "label": "Transactional dispatch outbox",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l002.durable-jobs.lease",
+                "id": "lease",
+                "label": "Fenced worker claim",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l002.durable-jobs.worker",
+                "id": "worker",
+                "label": "Snapshot report worker",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "durable-jobs-s5",
+          "invariants": [
+            "One job ID does not silently change input semantics."
+          ],
+          "number": 5,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l002.durable-jobs.worker",
+                "id": "worker",
+                "label": "Snapshot report worker",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l002.durable-jobs.worker",
+                "from": {
+                  "nodeId": "lease",
+                  "portId": "out-l002.durable-jobs.worker"
+                },
+                "id": "use-worker",
+                "label": "Compute from pinned inputs",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "worker",
+                  "portId": "in-l002.durable-jobs.worker"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Does a retry read different source data?",
+          "reason": "Pin query cutoff and renderer version in the job before work; retries reuse them or explicitly create a new report version.",
+          "title": "Compute from pinned inputs"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l002.durable-jobs.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l002.durable-jobs.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l002.durable-jobs.command"
+                }
+              },
+              {
+                "contractId": "l002.durable-jobs.ledger",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l002.durable-jobs.ledger"
+                },
+                "id": "use-ledger",
+                "label": "Commit one job identity",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "ledger",
+                  "portId": "in-l002.durable-jobs.ledger"
+                }
+              },
+              {
+                "contractId": "l002.durable-jobs.outbox",
+                "from": {
+                  "nodeId": "ledger",
+                  "portId": "out-l002.durable-jobs.outbox"
+                },
+                "id": "use-outbox",
+                "label": "Avoid lost dispatch",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "outbox",
+                  "portId": "in-l002.durable-jobs.outbox"
+                }
+              },
+              {
+                "contractId": "l002.durable-jobs.lease",
+                "from": {
+                  "nodeId": "outbox",
+                  "portId": "out-l002.durable-jobs.lease"
+                },
+                "id": "use-lease",
+                "label": "Recover worker loss",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "lease",
+                  "portId": "in-l002.durable-jobs.lease"
+                }
+              },
+              {
+                "contractId": "l002.durable-jobs.worker",
+                "from": {
+                  "nodeId": "lease",
+                  "portId": "out-l002.durable-jobs.worker"
+                },
+                "id": "use-worker",
+                "label": "Compute from pinned inputs",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "worker",
+                  "portId": "in-l002.durable-jobs.worker"
+                }
+              },
+              {
+                "contractId": "l002.durable-jobs.objects",
+                "from": {
+                  "nodeId": "worker",
+                  "portId": "out-l002.durable-jobs.objects"
+                },
+                "id": "use-objects",
+                "label": "Store complete artifacts",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "objects",
+                  "portId": "in-l002.durable-jobs.objects"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l002.durable-jobs.caller",
+                "id": "caller",
+                "label": "Illustrative report user",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l002.durable-jobs.owner",
+                "id": "owner",
+                "label": "Job submission API",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l002.durable-jobs.ledger",
+                "id": "ledger",
+                "label": "Job and request ledger",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l002.durable-jobs.outbox",
+                "id": "outbox",
+                "label": "Transactional dispatch outbox",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l002.durable-jobs.lease",
+                "id": "lease",
+                "label": "Fenced worker claim",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l002.durable-jobs.worker",
+                "id": "worker",
+                "label": "Snapshot report worker",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l002.durable-jobs.objects",
+                "id": "objects",
+                "label": "Immutable output repository",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "durable-jobs-s6",
+          "invariants": [
+            "Remote writes may duplicate, but stale workers cannot replace committed metadata."
+          ],
+          "number": 6,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l002.durable-jobs.objects",
+                "id": "objects",
+                "label": "Immutable output repository",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l002.durable-jobs.objects",
+                "from": {
+                  "nodeId": "worker",
+                  "portId": "out-l002.durable-jobs.objects"
+                },
+                "id": "use-objects",
+                "label": "Store complete artifacts",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "objects",
+                  "portId": "in-l002.durable-jobs.objects"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What if duplicate workers render the same job?",
+          "reason": "Write immutable content by hash; completion records one authorized artifact choice under the current fencing token.",
+          "title": "Store complete artifacts"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l002.durable-jobs.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l002.durable-jobs.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l002.durable-jobs.command"
+                }
+              },
+              {
+                "contractId": "l002.durable-jobs.ledger",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l002.durable-jobs.ledger"
+                },
+                "id": "use-ledger",
+                "label": "Commit one job identity",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "ledger",
+                  "portId": "in-l002.durable-jobs.ledger"
+                }
+              },
+              {
+                "contractId": "l002.durable-jobs.outbox",
+                "from": {
+                  "nodeId": "ledger",
+                  "portId": "out-l002.durable-jobs.outbox"
+                },
+                "id": "use-outbox",
+                "label": "Avoid lost dispatch",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "outbox",
+                  "portId": "in-l002.durable-jobs.outbox"
+                }
+              },
+              {
+                "contractId": "l002.durable-jobs.lease",
+                "from": {
+                  "nodeId": "outbox",
+                  "portId": "out-l002.durable-jobs.lease"
+                },
+                "id": "use-lease",
+                "label": "Recover worker loss",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "lease",
+                  "portId": "in-l002.durable-jobs.lease"
+                }
+              },
+              {
+                "contractId": "l002.durable-jobs.worker",
+                "from": {
+                  "nodeId": "lease",
+                  "portId": "out-l002.durable-jobs.worker"
+                },
+                "id": "use-worker",
+                "label": "Compute from pinned inputs",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "worker",
+                  "portId": "in-l002.durable-jobs.worker"
+                }
+              },
+              {
+                "contractId": "l002.durable-jobs.objects",
+                "from": {
+                  "nodeId": "worker",
+                  "portId": "out-l002.durable-jobs.objects"
+                },
+                "id": "use-objects",
+                "label": "Store complete artifacts",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "objects",
+                  "portId": "in-l002.durable-jobs.objects"
+                }
+              },
+              {
+                "contractId": "l002.durable-jobs.status",
+                "from": {
+                  "nodeId": "ledger",
+                  "portId": "out-l002.durable-jobs.status"
+                },
+                "id": "use-status",
+                "label": "Expose progress honestly",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "status",
+                  "portId": "in-l002.durable-jobs.status"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l002.durable-jobs.caller",
+                "id": "caller",
+                "label": "Illustrative report user",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l002.durable-jobs.owner",
+                "id": "owner",
+                "label": "Job submission API",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l002.durable-jobs.ledger",
+                "id": "ledger",
+                "label": "Job and request ledger",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l002.durable-jobs.outbox",
+                "id": "outbox",
+                "label": "Transactional dispatch outbox",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l002.durable-jobs.lease",
+                "id": "lease",
+                "label": "Fenced worker claim",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l002.durable-jobs.worker",
+                "id": "worker",
+                "label": "Snapshot report worker",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l002.durable-jobs.objects",
+                "id": "objects",
+                "label": "Immutable output repository",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l002.durable-jobs.status",
+                "id": "status",
+                "label": "Versioned status API",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "durable-jobs-s7",
+          "invariants": [
+            "Progress percentages, if used, are measured work or omitted."
+          ],
+          "number": 7,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l002.durable-jobs.status",
+                "id": "status",
+                "label": "Versioned status API",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l002.durable-jobs.status",
+                "from": {
+                  "nodeId": "ledger",
+                  "portId": "out-l002.durable-jobs.status"
+                },
+                "id": "use-status",
+                "label": "Expose progress honestly",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "status",
+                  "portId": "in-l002.durable-jobs.status"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can polling report complete before bytes exist?",
+          "reason": "Authorize each read and report accepted/running/complete/failed/uncertain; complete requires verified artifact and fenced metadata commit.",
+          "title": "Expose progress honestly"
+        },
+        {
+          "checkIds": [
+            "behavior",
+            "boundary"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l002.durable-jobs.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l002.durable-jobs.command"
+                },
+                "id": "command",
+                "label": "invoke API",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l002.durable-jobs.command"
+                }
+              },
+              {
+                "contractId": "l002.durable-jobs.ledger",
+                "from": {
+                  "nodeId": "owner",
+                  "portId": "out-l002.durable-jobs.ledger"
+                },
+                "id": "use-ledger",
+                "label": "Commit one job identity",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "ledger",
+                  "portId": "in-l002.durable-jobs.ledger"
+                }
+              },
+              {
+                "contractId": "l002.durable-jobs.outbox",
+                "from": {
+                  "nodeId": "ledger",
+                  "portId": "out-l002.durable-jobs.outbox"
+                },
+                "id": "use-outbox",
+                "label": "Avoid lost dispatch",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "outbox",
+                  "portId": "in-l002.durable-jobs.outbox"
+                }
+              },
+              {
+                "contractId": "l002.durable-jobs.lease",
+                "from": {
+                  "nodeId": "outbox",
+                  "portId": "out-l002.durable-jobs.lease"
+                },
+                "id": "use-lease",
+                "label": "Recover worker loss",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "lease",
+                  "portId": "in-l002.durable-jobs.lease"
+                }
+              },
+              {
+                "contractId": "l002.durable-jobs.worker",
+                "from": {
+                  "nodeId": "lease",
+                  "portId": "out-l002.durable-jobs.worker"
+                },
+                "id": "use-worker",
+                "label": "Compute from pinned inputs",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "worker",
+                  "portId": "in-l002.durable-jobs.worker"
+                }
+              },
+              {
+                "contractId": "l002.durable-jobs.objects",
+                "from": {
+                  "nodeId": "worker",
+                  "portId": "out-l002.durable-jobs.objects"
+                },
+                "id": "use-objects",
+                "label": "Store complete artifacts",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "objects",
+                  "portId": "in-l002.durable-jobs.objects"
+                }
+              },
+              {
+                "contractId": "l002.durable-jobs.status",
+                "from": {
+                  "nodeId": "ledger",
+                  "portId": "out-l002.durable-jobs.status"
+                },
+                "id": "use-status",
+                "label": "Expose progress honestly",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "status",
+                  "portId": "in-l002.durable-jobs.status"
+                }
+              },
+              {
+                "contractId": "l002.durable-jobs.recovery",
+                "from": {
+                  "nodeId": "objects",
+                  "portId": "out-l002.durable-jobs.recovery"
+                },
+                "id": "use-recovery",
+                "label": "Resolve hypothetical interruptions",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "recovery",
+                  "portId": "in-l002.durable-jobs.recovery"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l002.durable-jobs.caller",
+                "id": "caller",
+                "label": "Illustrative report user",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l002.durable-jobs.owner",
+                "id": "owner",
+                "label": "Job submission API",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l002.durable-jobs.ledger",
+                "id": "ledger",
+                "label": "Job and request ledger",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l002.durable-jobs.outbox",
+                "id": "outbox",
+                "label": "Transactional dispatch outbox",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l002.durable-jobs.lease",
+                "id": "lease",
+                "label": "Fenced worker claim",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l002.durable-jobs.worker",
+                "id": "worker",
+                "label": "Snapshot report worker",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l002.durable-jobs.objects",
+                "id": "objects",
+                "label": "Immutable output repository",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l002.durable-jobs.status",
+                "id": "status",
+                "label": "Versioned status API",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l002.durable-jobs.recovery",
+                "id": "recovery",
+                "label": "Lease and artifact reconciler",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "durable-jobs-s8",
+          "invariants": [
+            "Recovery does not claim an incident actually occurred or prove deployed reliability."
+          ],
+          "number": 8,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l002.durable-jobs.recovery",
+                "id": "recovery",
+                "label": "Lease and artifact reconciler",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l002.durable-jobs.recovery",
+                "from": {
+                  "nodeId": "objects",
+                  "portId": "out-l002.durable-jobs.recovery"
+                },
+                "id": "use-recovery",
+                "label": "Resolve hypothetical interruptions",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "recovery",
+                  "portId": "in-l002.durable-jobs.recovery"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What if the worker dies between object write and completion?",
+          "reason": "Scan unfinished jobs and artifacts, verify identity/hash, requeue or reconcile with a fresh lease. Unknown irreversible effects stay uncertain.",
+          "title": "Resolve hypothetical interruptions"
+        }
+      ],
+      "title": "Illustrative asynchronous durable report jobs",
+      "tradeoffs": [
+        "Job leases, recovery and versioned status add complexity.",
+        "Accepted is not complete; asynchronous dispatch alone establishes neither scale nor exactly-once external effects."
+      ]
+    }
+  ],
+  "subsystems": [],
+  "version": 1
+}

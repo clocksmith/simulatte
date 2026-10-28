@@ -1,0 +1,3984 @@
+{
+  "components": [
+    {
+      "extends": {
+        "id": "core.client",
+        "version": 1
+      },
+      "id": "l019.multi-cdn.caller",
+      "label": "Caller",
+      "ports": [
+        {
+          "contractId": "l019.multi-cdn.command",
+          "direction": "out",
+          "id": "out-l019.multi-cdn.command"
+        }
+      ],
+      "responsibility": "Submit the declared operation with stable identity and observe explicit completion.",
+      "stateOwnership": [
+        "caller request and retry identity"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l019.multi-cdn.system",
+      "label": "Multi-CDN health and origin steering",
+      "ports": [
+        {
+          "contractId": "l019.multi-cdn.command",
+          "direction": "in",
+          "id": "in-l019.multi-cdn.command"
+        },
+        {
+          "contractId": "l019.multi-cdn.step3",
+          "direction": "out",
+          "id": "out-l019.multi-cdn.step3-engine"
+        }
+      ],
+      "responsibility": "Preserve this stable boundary while refining its ownership and contracts.",
+      "stateOwnership": [
+        "logical operation state"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l019.multi-cdn.engine",
+      "label": "Playback resolver",
+      "ports": [
+        {
+          "contractId": "l019.multi-cdn.command",
+          "direction": "out",
+          "id": "out-l019.multi-cdn.command"
+        },
+        {
+          "contractId": "l019.multi-cdn.command",
+          "direction": "in",
+          "id": "in-l019.multi-cdn.command"
+        },
+        {
+          "contractId": "l019.multi-cdn.step3",
+          "direction": "out",
+          "id": "out-l019.multi-cdn.step3"
+        }
+      ],
+      "responsibility": "Authorize manifest and return immutable segment locations with a signed routing epoch.",
+      "stateOwnership": [
+        "routing decision"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l019.multi-cdn.state",
+      "label": "Asset catalogue",
+      "ports": [
+        {
+          "contractId": "l019.multi-cdn.command",
+          "direction": "in",
+          "id": "in-l019.multi-cdn.command"
+        }
+      ],
+      "responsibility": "Own immutable manifest versions and content hashes.",
+      "stateOwnership": [
+        "asset/version metadata"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l019.multi-cdn.n3",
+      "label": "Health steering",
+      "ports": [
+        {
+          "contractId": "l019.multi-cdn.step3",
+          "direction": "in",
+          "id": "in-l019.multi-cdn.step3"
+        },
+        {
+          "contractId": "l019.multi-cdn.step4",
+          "direction": "out",
+          "id": "out-l019.multi-cdn.step4"
+        },
+        {
+          "contractId": "l019.multi-cdn.step7",
+          "direction": "out",
+          "id": "out-l019.multi-cdn.step7"
+        }
+      ],
+      "responsibility": "Combine bounded health samples and capacity with locality; avoid routing solely on stale latency.",
+      "stateOwnership": [
+        "region, healthEpoch, capacity"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.cache",
+        "version": 1
+      },
+      "id": "l019.multi-cdn.n4",
+      "label": "Regional CDN",
+      "ports": [
+        {
+          "contractId": "l019.multi-cdn.step4",
+          "direction": "in",
+          "id": "in-l019.multi-cdn.step4"
+        },
+        {
+          "contractId": "l019.multi-cdn.step5",
+          "direction": "out",
+          "id": "out-l019.multi-cdn.step5"
+        }
+      ],
+      "responsibility": "Resolve a signed asset/version/segment cache key and serve verified immutable content.",
+      "stateOwnership": [
+        "cacheKey, contentHash"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.cache",
+        "version": 1
+      },
+      "id": "l019.multi-cdn.n5",
+      "label": "Origin shield",
+      "ports": [
+        {
+          "contractId": "l019.multi-cdn.step5",
+          "direction": "in",
+          "id": "in-l019.multi-cdn.step5"
+        },
+        {
+          "contractId": "l019.multi-cdn.step6",
+          "direction": "out",
+          "id": "out-l019.multi-cdn.step6"
+        }
+      ],
+      "responsibility": "Coalesce identical misses through a regional shield with bounded in-flight fetches.",
+      "stateOwnership": [
+        "segmentKey, fetchDeadline"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l019.multi-cdn.n6",
+      "label": "Replicated origin",
+      "ports": [
+        {
+          "contractId": "l019.multi-cdn.step6",
+          "direction": "in",
+          "id": "in-l019.multi-cdn.step6"
+        }
+      ],
+      "responsibility": "Publish a region as eligible only after manifest and all referenced segments have completion receipts.",
+      "stateOwnership": [
+        "assetVersion, complete"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.external",
+        "version": 1
+      },
+      "id": "l019.multi-cdn.n7",
+      "label": "Alternate CDN",
+      "ports": [
+        {
+          "contractId": "l019.multi-cdn.step7",
+          "direction": "in",
+          "id": "in-l019.multi-cdn.step7"
+        },
+        {
+          "contractId": "l019.multi-cdn.step8",
+          "direction": "out",
+          "id": "out-l019.multi-cdn.step8"
+        }
+      ],
+      "responsibility": "Return a distinct healthy provider with jittered bounded retry and an overall playback deadline.",
+      "stateOwnership": [
+        "providerId, attemptBudget"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l019.multi-cdn.n8",
+      "label": "Routing feedback",
+      "ports": [
+        {
+          "contractId": "l019.multi-cdn.step8",
+          "direction": "in",
+          "id": "in-l019.multi-cdn.step8"
+        }
+      ],
+      "responsibility": "Feed observed errors and deadline misses into the next signed routing generation.",
+      "stateOwnership": [
+        "routingEpoch, errorRate"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.client",
+        "version": 1
+      },
+      "id": "l019.peer-assisted.caller",
+      "label": "Caller",
+      "ports": [
+        {
+          "contractId": "l019.peer-assisted.command",
+          "direction": "out",
+          "id": "out-l019.peer-assisted.command"
+        }
+      ],
+      "responsibility": "Submit the declared operation with stable identity and observe explicit completion.",
+      "stateOwnership": [
+        "caller request and retry identity"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l019.peer-assisted.system",
+      "label": "Regional peers with deadline fallback",
+      "ports": [
+        {
+          "contractId": "l019.peer-assisted.command",
+          "direction": "in",
+          "id": "in-l019.peer-assisted.command"
+        },
+        {
+          "contractId": "l019.peer-assisted.step3",
+          "direction": "out",
+          "id": "out-l019.peer-assisted.step3-engine"
+        },
+        {
+          "contractId": "l019.peer-assisted.step6",
+          "direction": "out",
+          "id": "out-l019.peer-assisted.step6-engine"
+        }
+      ],
+      "responsibility": "Preserve this stable boundary while refining its ownership and contracts.",
+      "stateOwnership": [
+        "logical operation state"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l019.peer-assisted.engine",
+      "label": "Segment scheduler",
+      "ports": [
+        {
+          "contractId": "l019.peer-assisted.command",
+          "direction": "out",
+          "id": "out-l019.peer-assisted.command"
+        },
+        {
+          "contractId": "l019.peer-assisted.command",
+          "direction": "in",
+          "id": "in-l019.peer-assisted.command"
+        },
+        {
+          "contractId": "l019.peer-assisted.step3",
+          "direction": "out",
+          "id": "out-l019.peer-assisted.step3"
+        },
+        {
+          "contractId": "l019.peer-assisted.step6",
+          "direction": "out",
+          "id": "out-l019.peer-assisted.step6"
+        }
+      ],
+      "responsibility": "Choose a bounded peer attempt only when enough playback slack remains.",
+      "stateOwnership": [
+        "segment deadlines"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l019.peer-assisted.state",
+      "label": "Playback buffer",
+      "ports": [
+        {
+          "contractId": "l019.peer-assisted.command",
+          "direction": "in",
+          "id": "in-l019.peer-assisted.command"
+        }
+      ],
+      "responsibility": "Own verified segment sequence and current buffer horizon.",
+      "stateOwnership": [
+        "buffered immutable segments"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.directory",
+        "version": 1
+      },
+      "id": "l019.peer-assisted.n3",
+      "label": "Regional tracker",
+      "ports": [
+        {
+          "contractId": "l019.peer-assisted.step3",
+          "direction": "in",
+          "id": "in-l019.peer-assisted.step3"
+        },
+        {
+          "contractId": "l019.peer-assisted.step4",
+          "direction": "out",
+          "id": "out-l019.peer-assisted.step4"
+        }
+      ],
+      "responsibility": "Advertise short-lived possession claims scoped to region and asset version.",
+      "stateOwnership": [
+        "peerId, segmentKey, expiresAt"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.external",
+        "version": 1
+      },
+      "id": "l019.peer-assisted.n4",
+      "label": "Peer transport",
+      "ports": [
+        {
+          "contractId": "l019.peer-assisted.step4",
+          "direction": "in",
+          "id": "in-l019.peer-assisted.step4"
+        },
+        {
+          "contractId": "l019.peer-assisted.step5",
+          "direction": "out",
+          "id": "out-l019.peer-assisted.step5"
+        },
+        {
+          "contractId": "l019.peer-assisted.step8",
+          "direction": "out",
+          "id": "out-l019.peer-assisted.step8"
+        }
+      ],
+      "responsibility": "Attempt bounded direct transport within consent and upload quota.",
+      "stateOwnership": [
+        "segmentKey, attemptDeadline"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l019.peer-assisted.n5",
+      "label": "Integrity verifier",
+      "ports": [
+        {
+          "contractId": "l019.peer-assisted.step5",
+          "direction": "in",
+          "id": "in-l019.peer-assisted.step5"
+        }
+      ],
+      "responsibility": "Check the manifest hash before admitting a received segment.",
+      "stateOwnership": [
+        "expectedHash, actualHash"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.cache",
+        "version": 1
+      },
+      "id": "l019.peer-assisted.n6",
+      "label": "CDN fallback",
+      "ports": [
+        {
+          "contractId": "l019.peer-assisted.step6",
+          "direction": "in",
+          "id": "in-l019.peer-assisted.step6"
+        },
+        {
+          "contractId": "l019.peer-assisted.step7",
+          "direction": "out",
+          "id": "out-l019.peer-assisted.step7"
+        }
+      ],
+      "responsibility": "Start origin-backed retrieval before the reserved playback slack expires.",
+      "stateOwnership": [
+        "reservedSlackMs, segmentKey"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.cache",
+        "version": 1
+      },
+      "id": "l019.peer-assisted.n7",
+      "label": "Regional origin shield",
+      "ports": [
+        {
+          "contractId": "l019.peer-assisted.step7",
+          "direction": "in",
+          "id": "in-l019.peer-assisted.step7"
+        }
+      ],
+      "responsibility": "Coalesce segment misses and enforce origin concurrency for the fallback path.",
+      "stateOwnership": [
+        "inflightLimit, assetVersion"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l019.peer-assisted.n8",
+      "label": "Health and consent",
+      "ports": [
+        {
+          "contractId": "l019.peer-assisted.step8",
+          "direction": "in",
+          "id": "in-l019.peer-assisted.step8"
+        }
+      ],
+      "responsibility": "Expire claims, track integrity failures and honor immediate upload opt-out.",
+      "stateOwnership": [
+        "consentEpoch, badHashes"
+      ],
+      "version": 1
+    }
+  ],
+  "contracts": [
+    {
+      "id": "l019.multi-cdn.command",
+      "request": {
+        "assetVersion": "string",
+        "deadlineMs": "integer",
+        "region": "string",
+        "segmentId": "integer",
+        "token": "signed scope"
+      },
+      "response": {
+        "bytes": "byte[]",
+        "hash": "sha256",
+        "source": "cdn|peer|unavailable"
+      },
+      "version": 1
+    },
+    {
+      "id": "l019.multi-cdn.step3",
+      "request": {
+        "capacity": "integer",
+        "healthEpoch": "integer",
+        "region": "string"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l019.multi-cdn.step4",
+      "request": {
+        "cacheKey": "asset/version/segment",
+        "contentHash": "sha256"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l019.multi-cdn.step5",
+      "request": {
+        "fetchDeadline": "timestamp",
+        "segmentKey": "string"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l019.multi-cdn.step6",
+      "request": {
+        "assetVersion": "string",
+        "complete": "boolean"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l019.multi-cdn.step7",
+      "request": {
+        "attemptBudget": "integer",
+        "providerId": "string"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l019.multi-cdn.step8",
+      "request": {
+        "errorRate": "bounded sample",
+        "routingEpoch": "integer"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l019.peer-assisted.command",
+      "request": {
+        "assetVersion": "string",
+        "deadlineMs": "integer",
+        "region": "string",
+        "segmentId": "integer",
+        "token": "signed scope"
+      },
+      "response": {
+        "bytes": "byte[]",
+        "hash": "sha256",
+        "source": "cdn|peer|unavailable"
+      },
+      "version": 1
+    },
+    {
+      "id": "l019.peer-assisted.step3",
+      "request": {
+        "expiresAt": "timestamp",
+        "peerId": "ephemeral ID",
+        "segmentKey": "string"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l019.peer-assisted.step4",
+      "request": {
+        "attemptDeadline": "timestamp",
+        "segmentKey": "string"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l019.peer-assisted.step5",
+      "request": {
+        "actualHash": "sha256",
+        "expectedHash": "sha256"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l019.peer-assisted.step6",
+      "request": {
+        "reservedSlackMs": "integer",
+        "segmentKey": "string"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l019.peer-assisted.step7",
+      "request": {
+        "assetVersion": "string",
+        "inflightLimit": "integer"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l019.peer-assisted.step8",
+      "request": {
+        "badHashes": "integer",
+        "consentEpoch": "integer"
+      },
+      "response": {
+        "outcome": "accepted|rejected|pending",
+        "reason": "explicit domain reason",
+        "version": "nonnegative integer"
+      },
+      "version": 1
+    }
+  ],
+  "execution": {
+    "implementation": null,
+    "kind": "conceptual-design"
+  },
+  "problem": {
+    "referenceId": "L019",
+    "requirements": [
+      {
+        "id": "r0",
+        "text": "Keep immutable segment keys and signed manifest authorization separate from routing."
+      },
+      {
+        "id": "r1",
+        "text": "Fail over unhealthy regions without directing traffic to an unready origin."
+      },
+      {
+        "id": "r2",
+        "text": "Bound peer waiting and preserve a CDN fallback before playback deadline."
+      }
+    ],
+    "scope": "Extend L010 playback with regional CDN selection, origin shields and region-failure policy. Compare multi-CDN steering and bounded peer-assisted regional delivery. Segment identity/integrity and playback deadline remain explicit.",
+    "studyLabel": "Global video delivery steering"
+  },
+  "provenance": {
+    "kind": "authored-practice",
+    "note": "Authored interview preparation. Technical references support mechanisms, not the claim that a company asked this question."
+  },
+  "references": [
+    {
+      "id": "ref0",
+      "scope": "background",
+      "supports": "Cache freshness, invalidation and private-response restrictions.",
+      "title": "HTTP caching",
+      "url": "https://www.rfc-editor.org/rfc/rfc9111"
+    },
+    {
+      "id": "ref1",
+      "scope": "background",
+      "supports": "Playlists, media segment URIs and discontinuities.",
+      "title": "HLS",
+      "url": "https://www.rfc-editor.org/rfc/rfc8216"
+    }
+  ],
+  "schema": "simulatte.composableStudy.v2",
+  "solutions": [
+    {
+      "acceptanceCases": [
+        {
+          "given": "A replica lacks one referenced segment.",
+          "id": "case0",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Exclude the incomplete replica from eligible origins.",
+          "when": "Fail the active region."
+        },
+        {
+          "given": "A selected provider fails repeatedly.",
+          "id": "case1",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Stop and expose unavailability rather than retry forever.",
+          "when": "Exhaust the shared attempt or playback deadline budget."
+        },
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-05-state.test.mjs",
+            "testName": "origin eligibility excludes partial unhealthy and exhausted regions"
+          },
+          "given": "Four authored origins differ in completeness, health and capacity.",
+          "id": "bounded-mechanism",
+          "relatedRequirementIds": [
+            "r0"
+          ],
+          "then": "Return only the complete healthy origin with spare capacity.",
+          "when": "Filter eligible origins."
+        }
+      ],
+      "algorithms": [
+        {
+          "code": "const manifest = authorizeAsset(token, assetVersion);\nconst eligible = origins.filter(o => o.complete(manifest));\nconst route = chooseHealthyCapacity(region, eligible, healthEpoch);\nfor (const cdn of boundedFallbacks(route)) { if (deadlineExpired()) break;\n const bytes = fetchViaShield(cdn, segmentKey); if (verifyHash(bytes)) return bytes; }",
+          "guarantees": [
+            "Unknown health is not healthy capacity.",
+            "Authorization tokens do not create shared-user cache leaks.",
+            "Miss coalescing retains segment/version identity.",
+            "A partial replica is never an eligible origin.",
+            "Retry budgets include every attempted provider.",
+            "Feedback is measured telemetry, not proof of future capacity."
+          ],
+          "id": "transition",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "engine"
+        }
+      ],
+      "apis": [
+        {
+          "errors": "Reject invalid input, stale versions and operations outside the declared boundary.",
+          "method": "CALL",
+          "ownerNodeId": "engine",
+          "path": "L019/multi-cdn",
+          "request": "{\"assetVersion\":\"string\",\"segmentId\":\"integer\",\"region\":\"string\",\"deadlineMs\":\"integer\",\"token\":\"signed scope\"}",
+          "response": "{\"source\":\"cdn|peer|unavailable\",\"hash\":\"sha256\",\"bytes\":\"byte[]\"}"
+        }
+      ],
+      "assumptions": [
+        "All added stages are authored practice extending the canonical prompt.",
+        "Graphs specify conceptual mechanisms; reference models do not prove cloud execution, latency, physical durability or distributed safety."
+      ],
+      "chooseWhen": "Independent CDN providers reduce correlated edge failure and can be actively measured.",
+      "id": "multi-cdn",
+      "initialGraph": {
+        "edges": [],
+        "nodes": []
+      },
+      "stages": [
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l019.multi-cdn.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l019.multi-cdn.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l019.multi-cdn.command"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l019.multi-cdn.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l019.multi-cdn.system",
+                "id": "system",
+                "label": "Multi-CDN health and origin steering",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "multi-cdn-s1",
+          "invariants": [
+            "Keep immutable segment keys and signed manifest authorization separate from routing."
+          ],
+          "number": 1,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l019.multi-cdn.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "l019.multi-cdn.system",
+                "id": "system",
+                "label": "Multi-CDN health and origin steering",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l019.multi-cdn.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l019.multi-cdn.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l019.multi-cdn.command"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What does successful completion promise?",
+          "reason": "Keep immutable segment keys and signed manifest authorization separate from routing.",
+          "title": "Define the operation boundary"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l019.multi-cdn.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l019.multi-cdn.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l019.multi-cdn.command"
+                }
+              },
+              {
+                "contractId": "l019.multi-cdn.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l019.multi-cdn.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l019.multi-cdn.command"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l019.multi-cdn.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l019.multi-cdn.system",
+                "id": "system",
+                "label": "Multi-CDN health and origin steering",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l019.multi-cdn.binding-s2",
+                "version": 1
+              },
+              {
+                "definitionId": "l019.multi-cdn.engine",
+                "id": "engine",
+                "label": "Playback resolver",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l019.multi-cdn.state",
+                "id": "state",
+                "label": "Asset catalogue",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "multi-cdn-s2",
+          "invariants": [
+            "routing decision belongs to Playback resolver; asset/version metadata belongs to Asset catalogue."
+          ],
+          "number": 2,
+          "operations": [
+            {
+              "edges": [
+                {
+                  "contractId": "l019.multi-cdn.command",
+                  "from": {
+                    "nodeId": "engine",
+                    "portId": "out-l019.multi-cdn.command"
+                  },
+                  "id": "owned-state",
+                  "label": "Read or commit state",
+                  "mode": "storage",
+                  "to": {
+                    "nodeId": "state",
+                    "portId": "in-l019.multi-cdn.command"
+                  }
+                }
+              ],
+              "nodeId": "system",
+              "nodes": [
+                {
+                  "definitionId": "l019.multi-cdn.engine",
+                  "id": "engine",
+                  "label": "Playback resolver",
+                  "position": {
+                    "x": 560,
+                    "y": 0
+                  },
+                  "version": 1
+                },
+                {
+                  "definitionId": "l019.multi-cdn.state",
+                  "id": "state",
+                  "label": "Asset catalogue",
+                  "position": {
+                    "x": 840,
+                    "y": 0
+                  },
+                  "version": 1
+                }
+              ],
+              "op": "expand",
+              "subsystemId": "l019.multi-cdn.binding-s2"
+            }
+          ],
+          "question": "Which component owns the decision and its persistent or shared state?",
+          "reason": "Authorize manifest and return immutable segment locations with a signed routing epoch. Own immutable manifest versions and content hashes.",
+          "title": "Expose authority and state"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l019.multi-cdn.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l019.multi-cdn.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l019.multi-cdn.command"
+                }
+              },
+              {
+                "contractId": "l019.multi-cdn.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l019.multi-cdn.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l019.multi-cdn.command"
+                }
+              },
+              {
+                "contractId": "l019.multi-cdn.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l019.multi-cdn.step3-engine"
+                },
+                "id": "step3",
+                "label": "Health steering",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l019.multi-cdn.step3"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l019.multi-cdn.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l019.multi-cdn.system",
+                "id": "system",
+                "label": "Multi-CDN health and origin steering",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l019.multi-cdn.binding-s3",
+                "version": 1
+              },
+              {
+                "definitionId": "l019.multi-cdn.engine",
+                "id": "engine",
+                "label": "Playback resolver",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l019.multi-cdn.state",
+                "id": "state",
+                "label": "Asset catalogue",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l019.multi-cdn.n3",
+                "id": "n3",
+                "label": "Health steering",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "multi-cdn-s3",
+          "invariants": [
+            "Unknown health is not healthy capacity."
+          ],
+          "number": 3,
+          "operations": [
+            {
+              "nodeId": "system",
+              "op": "rebind",
+              "reason": "Expose this new typed path without mutating earlier binding definitions.",
+              "subsystemId": "l019.multi-cdn.binding-s3"
+            },
+            {
+              "node": {
+                "definitionId": "l019.multi-cdn.n3",
+                "id": "n3",
+                "label": "Health steering",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l019.multi-cdn.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l019.multi-cdn.step3-engine"
+                },
+                "id": "step3",
+                "label": "Health steering",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l019.multi-cdn.step3"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Which region should a viewer use?",
+          "reason": "Combine bounded health samples and capacity with locality; avoid routing solely on stale latency.",
+          "title": "Health steering"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l019.multi-cdn.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l019.multi-cdn.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l019.multi-cdn.command"
+                }
+              },
+              {
+                "contractId": "l019.multi-cdn.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l019.multi-cdn.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l019.multi-cdn.command"
+                }
+              },
+              {
+                "contractId": "l019.multi-cdn.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l019.multi-cdn.step3-engine"
+                },
+                "id": "step3",
+                "label": "Health steering",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l019.multi-cdn.step3"
+                }
+              },
+              {
+                "contractId": "l019.multi-cdn.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l019.multi-cdn.step4"
+                },
+                "id": "step4",
+                "label": "Regional CDN",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l019.multi-cdn.step4"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l019.multi-cdn.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l019.multi-cdn.system",
+                "id": "system",
+                "label": "Multi-CDN health and origin steering",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l019.multi-cdn.binding-s3",
+                "version": 1
+              },
+              {
+                "definitionId": "l019.multi-cdn.engine",
+                "id": "engine",
+                "label": "Playback resolver",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l019.multi-cdn.state",
+                "id": "state",
+                "label": "Asset catalogue",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l019.multi-cdn.n3",
+                "id": "n3",
+                "label": "Health steering",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l019.multi-cdn.n4",
+                "id": "n4",
+                "label": "Regional CDN",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "multi-cdn-s4",
+          "invariants": [
+            "Authorization tokens do not create shared-user cache leaks."
+          ],
+          "number": 4,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l019.multi-cdn.n4",
+                "id": "n4",
+                "label": "Regional CDN",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l019.multi-cdn.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l019.multi-cdn.step4"
+                },
+                "id": "step4",
+                "label": "Regional CDN",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l019.multi-cdn.step4"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Where do segment requests terminate?",
+          "reason": "Resolve a signed asset/version/segment cache key and serve verified immutable content.",
+          "title": "Regional CDN"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l019.multi-cdn.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l019.multi-cdn.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l019.multi-cdn.command"
+                }
+              },
+              {
+                "contractId": "l019.multi-cdn.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l019.multi-cdn.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l019.multi-cdn.command"
+                }
+              },
+              {
+                "contractId": "l019.multi-cdn.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l019.multi-cdn.step3-engine"
+                },
+                "id": "step3",
+                "label": "Health steering",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l019.multi-cdn.step3"
+                }
+              },
+              {
+                "contractId": "l019.multi-cdn.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l019.multi-cdn.step4"
+                },
+                "id": "step4",
+                "label": "Regional CDN",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l019.multi-cdn.step4"
+                }
+              },
+              {
+                "contractId": "l019.multi-cdn.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l019.multi-cdn.step5"
+                },
+                "id": "step5",
+                "label": "Origin shield",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l019.multi-cdn.step5"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l019.multi-cdn.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l019.multi-cdn.system",
+                "id": "system",
+                "label": "Multi-CDN health and origin steering",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l019.multi-cdn.binding-s3",
+                "version": 1
+              },
+              {
+                "definitionId": "l019.multi-cdn.engine",
+                "id": "engine",
+                "label": "Playback resolver",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l019.multi-cdn.state",
+                "id": "state",
+                "label": "Asset catalogue",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l019.multi-cdn.n3",
+                "id": "n3",
+                "label": "Health steering",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l019.multi-cdn.n4",
+                "id": "n4",
+                "label": "Regional CDN",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l019.multi-cdn.n5",
+                "id": "n5",
+                "label": "Origin shield",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "multi-cdn-s5",
+          "invariants": [
+            "Miss coalescing retains segment/version identity."
+          ],
+          "number": 5,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l019.multi-cdn.n5",
+                "id": "n5",
+                "label": "Origin shield",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l019.multi-cdn.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l019.multi-cdn.step5"
+                },
+                "id": "step5",
+                "label": "Origin shield",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l019.multi-cdn.step5"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How is a cold viral asset protected?",
+          "reason": "Coalesce identical misses through a regional shield with bounded in-flight fetches.",
+          "title": "Origin shield"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l019.multi-cdn.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l019.multi-cdn.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l019.multi-cdn.command"
+                }
+              },
+              {
+                "contractId": "l019.multi-cdn.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l019.multi-cdn.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l019.multi-cdn.command"
+                }
+              },
+              {
+                "contractId": "l019.multi-cdn.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l019.multi-cdn.step3-engine"
+                },
+                "id": "step3",
+                "label": "Health steering",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l019.multi-cdn.step3"
+                }
+              },
+              {
+                "contractId": "l019.multi-cdn.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l019.multi-cdn.step4"
+                },
+                "id": "step4",
+                "label": "Regional CDN",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l019.multi-cdn.step4"
+                }
+              },
+              {
+                "contractId": "l019.multi-cdn.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l019.multi-cdn.step5"
+                },
+                "id": "step5",
+                "label": "Origin shield",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l019.multi-cdn.step5"
+                }
+              },
+              {
+                "contractId": "l019.multi-cdn.step6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l019.multi-cdn.step6"
+                },
+                "id": "step6",
+                "label": "Replicated origin",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l019.multi-cdn.step6"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l019.multi-cdn.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l019.multi-cdn.system",
+                "id": "system",
+                "label": "Multi-CDN health and origin steering",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l019.multi-cdn.binding-s3",
+                "version": 1
+              },
+              {
+                "definitionId": "l019.multi-cdn.engine",
+                "id": "engine",
+                "label": "Playback resolver",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l019.multi-cdn.state",
+                "id": "state",
+                "label": "Asset catalogue",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l019.multi-cdn.n3",
+                "id": "n3",
+                "label": "Health steering",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l019.multi-cdn.n4",
+                "id": "n4",
+                "label": "Regional CDN",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l019.multi-cdn.n5",
+                "id": "n5",
+                "label": "Origin shield",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l019.multi-cdn.n6",
+                "id": "n6",
+                "label": "Replicated origin",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "multi-cdn-s6",
+          "invariants": [
+            "A partial replica is never an eligible origin."
+          ],
+          "number": 6,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l019.multi-cdn.n6",
+                "id": "n6",
+                "label": "Replicated origin",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l019.multi-cdn.step6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l019.multi-cdn.step6"
+                },
+                "id": "step6",
+                "label": "Replicated origin",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l019.multi-cdn.step6"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can failover read an incomplete asset?",
+          "reason": "Publish a region as eligible only after manifest and all referenced segments have completion receipts.",
+          "title": "Replicated origin"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l019.multi-cdn.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l019.multi-cdn.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l019.multi-cdn.command"
+                }
+              },
+              {
+                "contractId": "l019.multi-cdn.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l019.multi-cdn.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l019.multi-cdn.command"
+                }
+              },
+              {
+                "contractId": "l019.multi-cdn.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l019.multi-cdn.step3-engine"
+                },
+                "id": "step3",
+                "label": "Health steering",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l019.multi-cdn.step3"
+                }
+              },
+              {
+                "contractId": "l019.multi-cdn.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l019.multi-cdn.step4"
+                },
+                "id": "step4",
+                "label": "Regional CDN",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l019.multi-cdn.step4"
+                }
+              },
+              {
+                "contractId": "l019.multi-cdn.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l019.multi-cdn.step5"
+                },
+                "id": "step5",
+                "label": "Origin shield",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l019.multi-cdn.step5"
+                }
+              },
+              {
+                "contractId": "l019.multi-cdn.step6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l019.multi-cdn.step6"
+                },
+                "id": "step6",
+                "label": "Replicated origin",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l019.multi-cdn.step6"
+                }
+              },
+              {
+                "contractId": "l019.multi-cdn.step7",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l019.multi-cdn.step7"
+                },
+                "id": "step7",
+                "label": "Alternate CDN",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l019.multi-cdn.step7"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l019.multi-cdn.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l019.multi-cdn.system",
+                "id": "system",
+                "label": "Multi-CDN health and origin steering",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l019.multi-cdn.binding-s3",
+                "version": 1
+              },
+              {
+                "definitionId": "l019.multi-cdn.engine",
+                "id": "engine",
+                "label": "Playback resolver",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l019.multi-cdn.state",
+                "id": "state",
+                "label": "Asset catalogue",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l019.multi-cdn.n3",
+                "id": "n3",
+                "label": "Health steering",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l019.multi-cdn.n4",
+                "id": "n4",
+                "label": "Regional CDN",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l019.multi-cdn.n5",
+                "id": "n5",
+                "label": "Origin shield",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l019.multi-cdn.n6",
+                "id": "n6",
+                "label": "Replicated origin",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l019.multi-cdn.n7",
+                "id": "n7",
+                "label": "Alternate CDN",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "multi-cdn-s7",
+          "invariants": [
+            "Retry budgets include every attempted provider."
+          ],
+          "number": 7,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l019.multi-cdn.n7",
+                "id": "n7",
+                "label": "Alternate CDN",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l019.multi-cdn.step7",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l019.multi-cdn.step7"
+                },
+                "id": "step7",
+                "label": "Alternate CDN",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l019.multi-cdn.step7"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What if the preferred CDN fails?",
+          "reason": "Return a distinct healthy provider with jittered bounded retry and an overall playback deadline.",
+          "title": "Alternate CDN"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l019.multi-cdn.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l019.multi-cdn.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l019.multi-cdn.command"
+                }
+              },
+              {
+                "contractId": "l019.multi-cdn.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l019.multi-cdn.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l019.multi-cdn.command"
+                }
+              },
+              {
+                "contractId": "l019.multi-cdn.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l019.multi-cdn.step3-engine"
+                },
+                "id": "step3",
+                "label": "Health steering",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l019.multi-cdn.step3"
+                }
+              },
+              {
+                "contractId": "l019.multi-cdn.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l019.multi-cdn.step4"
+                },
+                "id": "step4",
+                "label": "Regional CDN",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l019.multi-cdn.step4"
+                }
+              },
+              {
+                "contractId": "l019.multi-cdn.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l019.multi-cdn.step5"
+                },
+                "id": "step5",
+                "label": "Origin shield",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l019.multi-cdn.step5"
+                }
+              },
+              {
+                "contractId": "l019.multi-cdn.step6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l019.multi-cdn.step6"
+                },
+                "id": "step6",
+                "label": "Replicated origin",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l019.multi-cdn.step6"
+                }
+              },
+              {
+                "contractId": "l019.multi-cdn.step7",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l019.multi-cdn.step7"
+                },
+                "id": "step7",
+                "label": "Alternate CDN",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l019.multi-cdn.step7"
+                }
+              },
+              {
+                "contractId": "l019.multi-cdn.step8",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l019.multi-cdn.step8"
+                },
+                "id": "step8",
+                "label": "Routing feedback",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n8",
+                  "portId": "in-l019.multi-cdn.step8"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l019.multi-cdn.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l019.multi-cdn.system",
+                "id": "system",
+                "label": "Multi-CDN health and origin steering",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l019.multi-cdn.binding-s3",
+                "version": 1
+              },
+              {
+                "definitionId": "l019.multi-cdn.engine",
+                "id": "engine",
+                "label": "Playback resolver",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l019.multi-cdn.state",
+                "id": "state",
+                "label": "Asset catalogue",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l019.multi-cdn.n3",
+                "id": "n3",
+                "label": "Health steering",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l019.multi-cdn.n4",
+                "id": "n4",
+                "label": "Regional CDN",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l019.multi-cdn.n5",
+                "id": "n5",
+                "label": "Origin shield",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l019.multi-cdn.n6",
+                "id": "n6",
+                "label": "Replicated origin",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l019.multi-cdn.n7",
+                "id": "n7",
+                "label": "Alternate CDN",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l019.multi-cdn.n8",
+                "id": "n8",
+                "label": "Routing feedback",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "multi-cdn-s8",
+          "invariants": [
+            "Feedback is measured telemetry, not proof of future capacity."
+          ],
+          "number": 8,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l019.multi-cdn.n8",
+                "id": "n8",
+                "label": "Routing feedback",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l019.multi-cdn.step8",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l019.multi-cdn.step8"
+                },
+                "id": "step8",
+                "label": "Routing feedback",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n8",
+                  "portId": "in-l019.multi-cdn.step8"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How is a bad failover stopped?",
+          "reason": "Feed observed errors and deadline misses into the next signed routing generation.",
+          "title": "Routing feedback"
+        }
+      ],
+      "title": "Multi-CDN health and origin steering",
+      "tradeoffs": [
+        "Provider cost and cache warmup differ.",
+        "DNS TTL and client stickiness delay steering convergence."
+      ]
+    },
+    {
+      "acceptanceCases": [
+        {
+          "given": "A peer returns bytes whose hash differs from manifest.",
+          "id": "case0",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Discard peer data and allow only a verified CDN segment.",
+          "when": "Verify then consider fallback."
+        },
+        {
+          "given": "A peer is unreachable.",
+          "id": "case1",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Cancel peer wait and start bounded CDN retrieval.",
+          "when": "Reach the reserved CDN start time."
+        },
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-05-state.test.mjs",
+            "testName": "origin eligibility excludes partial unhealthy and exhausted regions"
+          },
+          "given": "Four authored origins differ in completeness, health and capacity.",
+          "id": "bounded-mechanism",
+          "relatedRequirementIds": [
+            "r0"
+          ],
+          "then": "Return only the complete healthy origin with spare capacity.",
+          "when": "Filter eligible origins."
+        }
+      ],
+      "algorithms": [
+        {
+          "code": "const deadline = playbackDeadline(segment);\nif (slack(deadline) > cdnReserve && consent) tryPeerUntil(deadline-cdnReserve);\nif (!verifiedSegment) fetchCDNWithDeadline(segmentKey, deadline);\nverifyManifestHashBeforeBufferAdmission(); expirePeerClaims();",
+          "guarantees": [
+            "Tracker possession is a claim, not verified delivery.",
+            "Failed connectivity consumes a finite budget.",
+            "Corrupt bytes are discarded, never played.",
+            "Peer benefit cannot consume the entire playback deadline.",
+            "Peer churn does not grant unbounded origin fetches.",
+            "Opt-out stops new uploads; prior downloaded bytes cannot be recalled."
+          ],
+          "id": "transition",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "engine"
+        }
+      ],
+      "apis": [
+        {
+          "errors": "Reject invalid input, stale versions and operations outside the declared boundary.",
+          "method": "CALL",
+          "ownerNodeId": "engine",
+          "path": "L019/peer-assisted",
+          "request": "{\"assetVersion\":\"string\",\"segmentId\":\"integer\",\"region\":\"string\",\"deadlineMs\":\"integer\",\"token\":\"signed scope\"}",
+          "response": "{\"source\":\"cdn|peer|unavailable\",\"hash\":\"sha256\",\"bytes\":\"byte[]\"}"
+        }
+      ],
+      "assumptions": [
+        "All added stages are authored practice extending the canonical prompt.",
+        "Graphs specify conceptual mechanisms; reference models do not prove cloud execution, latency, physical durability or distributed safety."
+      ],
+      "chooseWhen": "Popular immutable segments have nearby opted-in peers and upload consent.",
+      "id": "peer-assisted",
+      "initialGraph": {
+        "edges": [],
+        "nodes": []
+      },
+      "stages": [
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l019.peer-assisted.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l019.peer-assisted.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l019.peer-assisted.command"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l019.peer-assisted.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l019.peer-assisted.system",
+                "id": "system",
+                "label": "Regional peers with deadline fallback",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "peer-assisted-s1",
+          "invariants": [
+            "Keep immutable segment keys and signed manifest authorization separate from routing."
+          ],
+          "number": 1,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l019.peer-assisted.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "l019.peer-assisted.system",
+                "id": "system",
+                "label": "Regional peers with deadline fallback",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l019.peer-assisted.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l019.peer-assisted.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l019.peer-assisted.command"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What does successful completion promise?",
+          "reason": "Keep immutable segment keys and signed manifest authorization separate from routing.",
+          "title": "Define the operation boundary"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l019.peer-assisted.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l019.peer-assisted.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l019.peer-assisted.command"
+                }
+              },
+              {
+                "contractId": "l019.peer-assisted.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l019.peer-assisted.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l019.peer-assisted.command"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l019.peer-assisted.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l019.peer-assisted.system",
+                "id": "system",
+                "label": "Regional peers with deadline fallback",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l019.peer-assisted.binding-s2",
+                "version": 1
+              },
+              {
+                "definitionId": "l019.peer-assisted.engine",
+                "id": "engine",
+                "label": "Segment scheduler",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l019.peer-assisted.state",
+                "id": "state",
+                "label": "Playback buffer",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "peer-assisted-s2",
+          "invariants": [
+            "segment deadlines belongs to Segment scheduler; buffered immutable segments belongs to Playback buffer."
+          ],
+          "number": 2,
+          "operations": [
+            {
+              "edges": [
+                {
+                  "contractId": "l019.peer-assisted.command",
+                  "from": {
+                    "nodeId": "engine",
+                    "portId": "out-l019.peer-assisted.command"
+                  },
+                  "id": "owned-state",
+                  "label": "Read or commit state",
+                  "mode": "storage",
+                  "to": {
+                    "nodeId": "state",
+                    "portId": "in-l019.peer-assisted.command"
+                  }
+                }
+              ],
+              "nodeId": "system",
+              "nodes": [
+                {
+                  "definitionId": "l019.peer-assisted.engine",
+                  "id": "engine",
+                  "label": "Segment scheduler",
+                  "position": {
+                    "x": 560,
+                    "y": 0
+                  },
+                  "version": 1
+                },
+                {
+                  "definitionId": "l019.peer-assisted.state",
+                  "id": "state",
+                  "label": "Playback buffer",
+                  "position": {
+                    "x": 840,
+                    "y": 0
+                  },
+                  "version": 1
+                }
+              ],
+              "op": "expand",
+              "subsystemId": "l019.peer-assisted.binding-s2"
+            }
+          ],
+          "question": "Which component owns the decision and its persistent or shared state?",
+          "reason": "Choose a bounded peer attempt only when enough playback slack remains. Own verified segment sequence and current buffer horizon.",
+          "title": "Expose authority and state"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l019.peer-assisted.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l019.peer-assisted.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l019.peer-assisted.command"
+                }
+              },
+              {
+                "contractId": "l019.peer-assisted.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l019.peer-assisted.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l019.peer-assisted.command"
+                }
+              },
+              {
+                "contractId": "l019.peer-assisted.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l019.peer-assisted.step3-engine"
+                },
+                "id": "step3",
+                "label": "Regional tracker",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l019.peer-assisted.step3"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l019.peer-assisted.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l019.peer-assisted.system",
+                "id": "system",
+                "label": "Regional peers with deadline fallback",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l019.peer-assisted.binding-s3",
+                "version": 1
+              },
+              {
+                "definitionId": "l019.peer-assisted.engine",
+                "id": "engine",
+                "label": "Segment scheduler",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l019.peer-assisted.state",
+                "id": "state",
+                "label": "Playback buffer",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l019.peer-assisted.n3",
+                "id": "n3",
+                "label": "Regional tracker",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "peer-assisted-s3",
+          "invariants": [
+            "Tracker possession is a claim, not verified delivery."
+          ],
+          "number": 3,
+          "operations": [
+            {
+              "nodeId": "system",
+              "op": "rebind",
+              "reason": "Expose this new typed path without mutating earlier binding definitions.",
+              "subsystemId": "l019.peer-assisted.binding-s3"
+            },
+            {
+              "node": {
+                "definitionId": "l019.peer-assisted.n3",
+                "id": "n3",
+                "label": "Regional tracker",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l019.peer-assisted.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l019.peer-assisted.step3-engine"
+                },
+                "id": "step3",
+                "label": "Regional tracker",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l019.peer-assisted.step3"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How are plausible peers discovered?",
+          "reason": "Advertise short-lived possession claims scoped to region and asset version.",
+          "title": "Regional tracker"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l019.peer-assisted.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l019.peer-assisted.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l019.peer-assisted.command"
+                }
+              },
+              {
+                "contractId": "l019.peer-assisted.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l019.peer-assisted.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l019.peer-assisted.command"
+                }
+              },
+              {
+                "contractId": "l019.peer-assisted.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l019.peer-assisted.step3-engine"
+                },
+                "id": "step3",
+                "label": "Regional tracker",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l019.peer-assisted.step3"
+                }
+              },
+              {
+                "contractId": "l019.peer-assisted.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l019.peer-assisted.step4"
+                },
+                "id": "step4",
+                "label": "Peer transport",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l019.peer-assisted.step4"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l019.peer-assisted.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l019.peer-assisted.system",
+                "id": "system",
+                "label": "Regional peers with deadline fallback",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l019.peer-assisted.binding-s3",
+                "version": 1
+              },
+              {
+                "definitionId": "l019.peer-assisted.engine",
+                "id": "engine",
+                "label": "Segment scheduler",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l019.peer-assisted.state",
+                "id": "state",
+                "label": "Playback buffer",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l019.peer-assisted.n3",
+                "id": "n3",
+                "label": "Regional tracker",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l019.peer-assisted.n4",
+                "id": "n4",
+                "label": "Peer transport",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "peer-assisted-s4",
+          "invariants": [
+            "Failed connectivity consumes a finite budget."
+          ],
+          "number": 4,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l019.peer-assisted.n4",
+                "id": "n4",
+                "label": "Peer transport",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l019.peer-assisted.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l019.peer-assisted.step4"
+                },
+                "id": "step4",
+                "label": "Peer transport",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l019.peer-assisted.step4"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can a peer block playback?",
+          "reason": "Attempt bounded direct transport within consent and upload quota.",
+          "title": "Peer transport"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l019.peer-assisted.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l019.peer-assisted.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l019.peer-assisted.command"
+                }
+              },
+              {
+                "contractId": "l019.peer-assisted.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l019.peer-assisted.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l019.peer-assisted.command"
+                }
+              },
+              {
+                "contractId": "l019.peer-assisted.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l019.peer-assisted.step3-engine"
+                },
+                "id": "step3",
+                "label": "Regional tracker",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l019.peer-assisted.step3"
+                }
+              },
+              {
+                "contractId": "l019.peer-assisted.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l019.peer-assisted.step4"
+                },
+                "id": "step4",
+                "label": "Peer transport",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l019.peer-assisted.step4"
+                }
+              },
+              {
+                "contractId": "l019.peer-assisted.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l019.peer-assisted.step5"
+                },
+                "id": "step5",
+                "label": "Integrity verifier",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l019.peer-assisted.step5"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l019.peer-assisted.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l019.peer-assisted.system",
+                "id": "system",
+                "label": "Regional peers with deadline fallback",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l019.peer-assisted.binding-s3",
+                "version": 1
+              },
+              {
+                "definitionId": "l019.peer-assisted.engine",
+                "id": "engine",
+                "label": "Segment scheduler",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l019.peer-assisted.state",
+                "id": "state",
+                "label": "Playback buffer",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l019.peer-assisted.n3",
+                "id": "n3",
+                "label": "Regional tracker",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l019.peer-assisted.n4",
+                "id": "n4",
+                "label": "Peer transport",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l019.peer-assisted.n5",
+                "id": "n5",
+                "label": "Integrity verifier",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "peer-assisted-s5",
+          "invariants": [
+            "Corrupt bytes are discarded, never played."
+          ],
+          "number": 5,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l019.peer-assisted.n5",
+                "id": "n5",
+                "label": "Integrity verifier",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l019.peer-assisted.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l019.peer-assisted.step5"
+                },
+                "id": "step5",
+                "label": "Integrity verifier",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l019.peer-assisted.step5"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "May untrusted peer bytes enter the buffer?",
+          "reason": "Check the manifest hash before admitting a received segment.",
+          "title": "Integrity verifier"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l019.peer-assisted.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l019.peer-assisted.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l019.peer-assisted.command"
+                }
+              },
+              {
+                "contractId": "l019.peer-assisted.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l019.peer-assisted.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l019.peer-assisted.command"
+                }
+              },
+              {
+                "contractId": "l019.peer-assisted.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l019.peer-assisted.step3-engine"
+                },
+                "id": "step3",
+                "label": "Regional tracker",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l019.peer-assisted.step3"
+                }
+              },
+              {
+                "contractId": "l019.peer-assisted.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l019.peer-assisted.step4"
+                },
+                "id": "step4",
+                "label": "Peer transport",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l019.peer-assisted.step4"
+                }
+              },
+              {
+                "contractId": "l019.peer-assisted.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l019.peer-assisted.step5"
+                },
+                "id": "step5",
+                "label": "Integrity verifier",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l019.peer-assisted.step5"
+                }
+              },
+              {
+                "contractId": "l019.peer-assisted.step6",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l019.peer-assisted.step6-engine"
+                },
+                "id": "step6",
+                "label": "CDN fallback",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l019.peer-assisted.step6"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l019.peer-assisted.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l019.peer-assisted.system",
+                "id": "system",
+                "label": "Regional peers with deadline fallback",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l019.peer-assisted.binding-s6",
+                "version": 1
+              },
+              {
+                "definitionId": "l019.peer-assisted.engine",
+                "id": "engine",
+                "label": "Segment scheduler",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l019.peer-assisted.state",
+                "id": "state",
+                "label": "Playback buffer",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l019.peer-assisted.n3",
+                "id": "n3",
+                "label": "Regional tracker",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l019.peer-assisted.n4",
+                "id": "n4",
+                "label": "Peer transport",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l019.peer-assisted.n5",
+                "id": "n5",
+                "label": "Integrity verifier",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l019.peer-assisted.n6",
+                "id": "n6",
+                "label": "CDN fallback",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "peer-assisted-s6",
+          "invariants": [
+            "Peer benefit cannot consume the entire playback deadline."
+          ],
+          "number": 6,
+          "operations": [
+            {
+              "nodeId": "system",
+              "op": "rebind",
+              "reason": "Expose this new typed path without mutating earlier binding definitions.",
+              "subsystemId": "l019.peer-assisted.binding-s6"
+            },
+            {
+              "node": {
+                "definitionId": "l019.peer-assisted.n6",
+                "id": "n6",
+                "label": "CDN fallback",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l019.peer-assisted.step6",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l019.peer-assisted.step6-engine"
+                },
+                "id": "step6",
+                "label": "CDN fallback",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l019.peer-assisted.step6"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "When does the CDN take over?",
+          "reason": "Start origin-backed retrieval before the reserved playback slack expires.",
+          "title": "CDN fallback"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l019.peer-assisted.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l019.peer-assisted.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l019.peer-assisted.command"
+                }
+              },
+              {
+                "contractId": "l019.peer-assisted.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l019.peer-assisted.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l019.peer-assisted.command"
+                }
+              },
+              {
+                "contractId": "l019.peer-assisted.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l019.peer-assisted.step3-engine"
+                },
+                "id": "step3",
+                "label": "Regional tracker",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l019.peer-assisted.step3"
+                }
+              },
+              {
+                "contractId": "l019.peer-assisted.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l019.peer-assisted.step4"
+                },
+                "id": "step4",
+                "label": "Peer transport",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l019.peer-assisted.step4"
+                }
+              },
+              {
+                "contractId": "l019.peer-assisted.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l019.peer-assisted.step5"
+                },
+                "id": "step5",
+                "label": "Integrity verifier",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l019.peer-assisted.step5"
+                }
+              },
+              {
+                "contractId": "l019.peer-assisted.step6",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l019.peer-assisted.step6-engine"
+                },
+                "id": "step6",
+                "label": "CDN fallback",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l019.peer-assisted.step6"
+                }
+              },
+              {
+                "contractId": "l019.peer-assisted.step7",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l019.peer-assisted.step7"
+                },
+                "id": "step7",
+                "label": "Regional origin shield",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l019.peer-assisted.step7"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l019.peer-assisted.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l019.peer-assisted.system",
+                "id": "system",
+                "label": "Regional peers with deadline fallback",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l019.peer-assisted.binding-s6",
+                "version": 1
+              },
+              {
+                "definitionId": "l019.peer-assisted.engine",
+                "id": "engine",
+                "label": "Segment scheduler",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l019.peer-assisted.state",
+                "id": "state",
+                "label": "Playback buffer",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l019.peer-assisted.n3",
+                "id": "n3",
+                "label": "Regional tracker",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l019.peer-assisted.n4",
+                "id": "n4",
+                "label": "Peer transport",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l019.peer-assisted.n5",
+                "id": "n5",
+                "label": "Integrity verifier",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l019.peer-assisted.n6",
+                "id": "n6",
+                "label": "CDN fallback",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l019.peer-assisted.n7",
+                "id": "n7",
+                "label": "Regional origin shield",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "peer-assisted-s7",
+          "invariants": [
+            "Peer churn does not grant unbounded origin fetches."
+          ],
+          "number": 7,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l019.peer-assisted.n7",
+                "id": "n7",
+                "label": "Regional origin shield",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l019.peer-assisted.step7",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l019.peer-assisted.step7"
+                },
+                "id": "step7",
+                "label": "Regional origin shield",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l019.peer-assisted.step7"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How is fallback load bounded during peer churn?",
+          "reason": "Coalesce segment misses and enforce origin concurrency for the fallback path.",
+          "title": "Regional origin shield"
+        },
+        {
+          "checkIds": [
+            "case0",
+            "case1"
+          ],
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l019.peer-assisted.command",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l019.peer-assisted.command"
+                },
+                "id": "request",
+                "label": "Submit operation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "system",
+                  "portId": "in-l019.peer-assisted.command"
+                }
+              },
+              {
+                "contractId": "l019.peer-assisted.command",
+                "from": {
+                  "nodeId": "engine",
+                  "portId": "out-l019.peer-assisted.command"
+                },
+                "id": "owned-state",
+                "label": "Read or commit state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l019.peer-assisted.command"
+                }
+              },
+              {
+                "contractId": "l019.peer-assisted.step3",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l019.peer-assisted.step3-engine"
+                },
+                "id": "step3",
+                "label": "Regional tracker",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l019.peer-assisted.step3"
+                }
+              },
+              {
+                "contractId": "l019.peer-assisted.step4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l019.peer-assisted.step4"
+                },
+                "id": "step4",
+                "label": "Peer transport",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l019.peer-assisted.step4"
+                }
+              },
+              {
+                "contractId": "l019.peer-assisted.step5",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l019.peer-assisted.step5"
+                },
+                "id": "step5",
+                "label": "Integrity verifier",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l019.peer-assisted.step5"
+                }
+              },
+              {
+                "contractId": "l019.peer-assisted.step6",
+                "from": {
+                  "nodeId": "system",
+                  "portId": "out-l019.peer-assisted.step6-engine"
+                },
+                "id": "step6",
+                "label": "CDN fallback",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l019.peer-assisted.step6"
+                }
+              },
+              {
+                "contractId": "l019.peer-assisted.step7",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l019.peer-assisted.step7"
+                },
+                "id": "step7",
+                "label": "Regional origin shield",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l019.peer-assisted.step7"
+                }
+              },
+              {
+                "contractId": "l019.peer-assisted.step8",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l019.peer-assisted.step8"
+                },
+                "id": "step8",
+                "label": "Health and consent",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n8",
+                  "portId": "in-l019.peer-assisted.step8"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l019.peer-assisted.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l019.peer-assisted.system",
+                "id": "system",
+                "label": "Regional peers with deadline fallback",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l019.peer-assisted.binding-s6",
+                "version": 1
+              },
+              {
+                "definitionId": "l019.peer-assisted.engine",
+                "id": "engine",
+                "label": "Segment scheduler",
+                "parentId": "system",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l019.peer-assisted.state",
+                "id": "state",
+                "label": "Playback buffer",
+                "parentId": "system",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l019.peer-assisted.n3",
+                "id": "n3",
+                "label": "Regional tracker",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l019.peer-assisted.n4",
+                "id": "n4",
+                "label": "Peer transport",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l019.peer-assisted.n5",
+                "id": "n5",
+                "label": "Integrity verifier",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l019.peer-assisted.n6",
+                "id": "n6",
+                "label": "CDN fallback",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l019.peer-assisted.n7",
+                "id": "n7",
+                "label": "Regional origin shield",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l019.peer-assisted.n8",
+                "id": "n8",
+                "label": "Health and consent",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "peer-assisted-s8",
+          "invariants": [
+            "Opt-out stops new uploads; prior downloaded bytes cannot be recalled."
+          ],
+          "number": 8,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l019.peer-assisted.n8",
+                "id": "n8",
+                "label": "Health and consent",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l019.peer-assisted.step8",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l019.peer-assisted.step8"
+                },
+                "id": "step8",
+                "label": "Health and consent",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "n8",
+                  "portId": "in-l019.peer-assisted.step8"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How are poor peers removed?",
+          "reason": "Expire claims, track integrity failures and honor immediate upload opt-out.",
+          "title": "Health and consent"
+        }
+      ],
+      "title": "Regional peers with deadline fallback",
+      "tradeoffs": [
+        "NAT reachability and churn make peer delivery uncertain.",
+        "Privacy, integrity and upload budgets are additional product obligations."
+      ]
+    }
+  ],
+  "subsystems": [
+    {
+      "definitionId": "l019.multi-cdn.system",
+      "id": "l019.multi-cdn.binding-s2",
+      "ports": [
+        {
+          "contractId": "l019.multi-cdn.command",
+          "direction": "in",
+          "id": "in-l019.multi-cdn.command",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-l019.multi-cdn.command"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l019.multi-cdn.system",
+      "id": "l019.multi-cdn.binding-s3",
+      "ports": [
+        {
+          "contractId": "l019.multi-cdn.command",
+          "direction": "in",
+          "id": "in-l019.multi-cdn.command",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-l019.multi-cdn.command"
+          }
+        },
+        {
+          "contractId": "l019.multi-cdn.step3",
+          "direction": "out",
+          "id": "out-l019.multi-cdn.step3-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l019.multi-cdn.step3"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l019.peer-assisted.system",
+      "id": "l019.peer-assisted.binding-s2",
+      "ports": [
+        {
+          "contractId": "l019.peer-assisted.command",
+          "direction": "in",
+          "id": "in-l019.peer-assisted.command",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-l019.peer-assisted.command"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l019.peer-assisted.system",
+      "id": "l019.peer-assisted.binding-s3",
+      "ports": [
+        {
+          "contractId": "l019.peer-assisted.command",
+          "direction": "in",
+          "id": "in-l019.peer-assisted.command",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-l019.peer-assisted.command"
+          }
+        },
+        {
+          "contractId": "l019.peer-assisted.step3",
+          "direction": "out",
+          "id": "out-l019.peer-assisted.step3-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l019.peer-assisted.step3"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l019.peer-assisted.system",
+      "id": "l019.peer-assisted.binding-s6",
+      "ports": [
+        {
+          "contractId": "l019.peer-assisted.command",
+          "direction": "in",
+          "id": "in-l019.peer-assisted.command",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-l019.peer-assisted.command"
+          }
+        },
+        {
+          "contractId": "l019.peer-assisted.step3",
+          "direction": "out",
+          "id": "out-l019.peer-assisted.step3-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l019.peer-assisted.step3"
+          }
+        },
+        {
+          "contractId": "l019.peer-assisted.step6",
+          "direction": "out",
+          "id": "out-l019.peer-assisted.step6-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l019.peer-assisted.step6"
+          }
+        }
+      ],
+      "version": 1
+    }
+  ],
+  "version": 1
+}

@@ -1,0 +1,4420 @@
+{
+  "components": [
+    {
+      "extends": {
+        "id": "core.service",
+        "version": 1
+      },
+      "id": "l015.leases.d0",
+      "label": "Presence ingress",
+      "ports": [
+        {
+          "contractId": "l015.leases.c0",
+          "direction": "in",
+          "id": "in-l015.leases.c0"
+        },
+        {
+          "contractId": "l015.leases.c2",
+          "direction": "out",
+          "id": "out-l015.leases.c2-control"
+        },
+        {
+          "contractId": "l015.leases.c1",
+          "direction": "in",
+          "id": "in-l015.leases.c1-state"
+        }
+      ],
+      "responsibility": "Start with authenticated user, device, session generation and sequence.",
+      "stateOwnership": [
+        "session generation"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l015.leases.d1",
+      "label": "Session authority",
+      "ports": [
+        {
+          "contractId": "l015.leases.c1",
+          "direction": "in",
+          "id": "in-l015.leases.c1"
+        }
+      ],
+      "responsibility": "Expand ingress and retain the greatest generation/sequence per device.",
+      "stateOwnership": [
+        "session lease records"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l015.leases.d2",
+      "label": "Heartbeat lease",
+      "ports": [
+        {
+          "contractId": "l015.leases.c2",
+          "direction": "in",
+          "id": "in-l015.leases.c2"
+        },
+        {
+          "contractId": "l015.leases.c1",
+          "direction": "out",
+          "id": "out-l015.leases.c1"
+        },
+        {
+          "contractId": "l015.leases.c3",
+          "direction": "out",
+          "id": "out-l015.leases.c3"
+        }
+      ],
+      "responsibility": "Refresh a bounded deadline only for a current session; old generations are rejected.",
+      "stateOwnership": [
+        "expiry deadlines"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l015.leases.d3",
+      "label": "User reduction",
+      "ports": [
+        {
+          "contractId": "l015.leases.c3",
+          "direction": "in",
+          "id": "in-l015.leases.c3"
+        },
+        {
+          "contractId": "l015.leases.c4",
+          "direction": "out",
+          "id": "out-l015.leases.c4"
+        }
+      ],
+      "responsibility": "Aggregate all unexpired devices and explicit availability settings.",
+      "stateOwnership": [
+        "aggregate version"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.log",
+        "version": 1
+      },
+      "id": "l015.leases.d4",
+      "label": "Transition outbox",
+      "ports": [
+        {
+          "contractId": "l015.leases.c4",
+          "direction": "in",
+          "id": "in-l015.leases.c4"
+        },
+        {
+          "contractId": "l015.leases.c4",
+          "direction": "out",
+          "id": "out-l015.leases.c4"
+        }
+      ],
+      "responsibility": "Commit aggregate changes and ordered transition intent under one user owner.",
+      "stateOwnership": [
+        "transition outbox"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.service",
+        "version": 1
+      },
+      "id": "l015.leases.d5",
+      "label": "Subscription filter",
+      "ports": [
+        {
+          "contractId": "l015.leases.c5",
+          "direction": "in",
+          "id": "in-l015.leases.c5"
+        },
+        {
+          "contractId": "l015.leases.c6",
+          "direction": "out",
+          "id": "out-l015.leases.c6"
+        }
+      ],
+      "responsibility": "Authorize channel/contact subscriptions and cap their cardinality.",
+      "stateOwnership": [
+        "subscription ACL epoch"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l015.leases.d6",
+      "label": "Snapshot cursor",
+      "ports": [
+        {
+          "contractId": "l015.leases.c6",
+          "direction": "in",
+          "id": "in-l015.leases.c6"
+        },
+        {
+          "contractId": "l015.leases.c3",
+          "direction": "out",
+          "id": "out-l015.leases.c3"
+        },
+        {
+          "contractId": "l015.leases.c4",
+          "direction": "in",
+          "id": "in-l015.leases.c4"
+        },
+        {
+          "contractId": "l015.leases.c7",
+          "direction": "out",
+          "id": "out-l015.leases.c7"
+        }
+      ],
+      "responsibility": "Capture a revisioned snapshot then replay transitions strictly after its cursor.",
+      "stateOwnership": [
+        "snapshot revision"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "l015.leases.d7",
+      "label": "Gap recovery",
+      "ports": [
+        {
+          "contractId": "l015.leases.c7",
+          "direction": "in",
+          "id": "in-l015.leases.c7"
+        },
+        {
+          "contractId": "l015.leases.c2",
+          "direction": "out",
+          "id": "out-l015.leases.c2"
+        }
+      ],
+      "responsibility": "Signal resnapshot rather than inventing continuity; expire leases after owner failover.",
+      "stateOwnership": [
+        "retention floor"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.client",
+        "version": 1
+      },
+      "id": "l015.leases.caller",
+      "label": "Caller",
+      "ports": [
+        {
+          "contractId": "l015.leases.c0",
+          "direction": "out",
+          "id": "out-l015.leases.c0"
+        },
+        {
+          "contractId": "l015.leases.c5",
+          "direction": "out",
+          "id": "out-l015.leases.c5"
+        }
+      ],
+      "responsibility": "Submit the declared operation with authenticated identity and preserve its retry identity.",
+      "stateOwnership": [
+        "request identity"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l015.leases.control",
+      "label": "Command control",
+      "ports": [
+        {
+          "contractId": "l015.leases.c1",
+          "direction": "out",
+          "id": "out-l015.leases.c1"
+        },
+        {
+          "contractId": "l015.leases.c0",
+          "direction": "in",
+          "id": "in-l015.leases.c0"
+        },
+        {
+          "contractId": "l015.leases.c2",
+          "direction": "out",
+          "id": "out-l015.leases.c2"
+        }
+      ],
+      "responsibility": "Start with authenticated user, device, session generation and sequence.",
+      "stateOwnership": [
+        "validated command and version"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.service",
+        "version": 1
+      },
+      "id": "l015.events.d0",
+      "label": "Session append",
+      "ports": [
+        {
+          "contractId": "l015.events.c0",
+          "direction": "in",
+          "id": "in-l015.events.c0"
+        },
+        {
+          "contractId": "l015.events.c2",
+          "direction": "out",
+          "id": "out-l015.events.c2-state"
+        },
+        {
+          "contractId": "l015.events.c7",
+          "direction": "out",
+          "id": "out-l015.events.c7-state"
+        }
+      ],
+      "responsibility": "Record authenticated open, heartbeat and close events with stable identity.",
+      "stateOwnership": [
+        "event identity"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.log",
+        "version": 1
+      },
+      "id": "l015.events.d1",
+      "label": "Presence journal",
+      "ports": [
+        {
+          "contractId": "l015.events.c1",
+          "direction": "in",
+          "id": "in-l015.events.c1"
+        },
+        {
+          "contractId": "l015.events.c2",
+          "direction": "out",
+          "id": "out-l015.events.c2"
+        },
+        {
+          "contractId": "l015.events.c7",
+          "direction": "out",
+          "id": "out-l015.events.c7"
+        }
+      ],
+      "responsibility": "Expand ingress into an append handler and retained session journal.",
+      "stateOwnership": [
+        "session events"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l015.events.d2",
+      "label": "Session fold",
+      "ports": [
+        {
+          "contractId": "l015.events.c2",
+          "direction": "in",
+          "id": "in-l015.events.c2"
+        },
+        {
+          "contractId": "l015.events.c3",
+          "direction": "in",
+          "id": "in-l015.events.c3"
+        },
+        {
+          "contractId": "l015.events.c4",
+          "direction": "out",
+          "id": "out-l015.events.c4"
+        }
+      ],
+      "responsibility": "Fold each session by generation then sequence; close tombstones fence old beats.",
+      "stateOwnership": [
+        "per-session folded state"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "l015.events.d3",
+      "label": "Expiry events",
+      "ports": [
+        {
+          "contractId": "l015.events.c3",
+          "direction": "out",
+          "id": "out-l015.events.c3"
+        }
+      ],
+      "responsibility": "Schedule expiry against last accepted heartbeat and recheck its version before closing.",
+      "stateOwnership": [
+        "timer versions"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.store",
+        "version": 1
+      },
+      "id": "l015.events.d4",
+      "label": "User projection",
+      "ports": [
+        {
+          "contractId": "l015.events.c4",
+          "direction": "in",
+          "id": "in-l015.events.c4"
+        }
+      ],
+      "responsibility": "Reduce active sessions into a monotonic user projection with source offsets.",
+      "stateOwnership": [
+        "user view and watermark"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.service",
+        "version": 1
+      },
+      "id": "l015.events.d5",
+      "label": "ACL projection",
+      "ports": [
+        {
+          "contractId": "l015.events.c5",
+          "direction": "in",
+          "id": "in-l015.events.c5"
+        },
+        {
+          "contractId": "l015.events.c6",
+          "direction": "out",
+          "id": "out-l015.events.c6"
+        }
+      ],
+      "responsibility": "Resolve current observer permission independently from stale presence projection.",
+      "stateOwnership": [
+        "ACL epochs"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l015.events.d6",
+      "label": "Snapshot barrier",
+      "ports": [
+        {
+          "contractId": "l015.events.c6",
+          "direction": "in",
+          "id": "in-l015.events.c6"
+        },
+        {
+          "contractId": "l015.events.c4",
+          "direction": "out",
+          "id": "out-l015.events.c4"
+        }
+      ],
+      "responsibility": "Return materialized state at a source watermark then stream greater versions.",
+      "stateOwnership": [
+        "snapshot watermark"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "l015.events.d7",
+      "label": "Rebuild worker",
+      "ports": [
+        {
+          "contractId": "l015.events.c7",
+          "direction": "in",
+          "id": "in-l015.events.c7"
+        },
+        {
+          "contractId": "l015.events.c4",
+          "direction": "out",
+          "id": "out-l015.events.c4"
+        }
+      ],
+      "responsibility": "Replay retained journal into a new view and swap at a verified barrier.",
+      "stateOwnership": [
+        "rebuild cursor"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.client",
+        "version": 1
+      },
+      "id": "l015.events.caller",
+      "label": "Caller",
+      "ports": [
+        {
+          "contractId": "l015.events.c0",
+          "direction": "out",
+          "id": "out-l015.events.c0"
+        },
+        {
+          "contractId": "l015.events.c5",
+          "direction": "out",
+          "id": "out-l015.events.c5"
+        }
+      ],
+      "responsibility": "Submit the declared operation with authenticated identity and preserve its retry identity.",
+      "stateOwnership": [
+        "request identity"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.module",
+        "version": 1
+      },
+      "id": "l015.events.control",
+      "label": "Command control",
+      "ports": [
+        {
+          "contractId": "l015.events.c1",
+          "direction": "out",
+          "id": "out-l015.events.c1"
+        },
+        {
+          "contractId": "l015.events.c0",
+          "direction": "in",
+          "id": "in-l015.events.c0"
+        }
+      ],
+      "responsibility": "Record authenticated open, heartbeat and close events with stable identity.",
+      "stateOwnership": [
+        "validated command and version"
+      ],
+      "version": 1
+    }
+  ],
+  "contracts": [
+    {
+      "id": "l015.leases.c0",
+      "request": {
+        "deviceId": "uuid",
+        "epoch": "integer",
+        "seq": "integer",
+        "userId": "uuid"
+      },
+      "response": {
+        "accepted": "boolean"
+      },
+      "version": 1
+    },
+    {
+      "id": "l015.leases.c1",
+      "request": {
+        "deadline": "timestamp",
+        "epoch": "integer",
+        "seq": "integer"
+      },
+      "response": {
+        "version": "integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l015.leases.c2",
+      "request": {
+        "now": "timestamp",
+        "sessionId": "uuid"
+      },
+      "response": {
+        "deadline": "timestamp"
+      },
+      "version": 1
+    },
+    {
+      "id": "l015.leases.c3",
+      "request": {
+        "now": "timestamp",
+        "userId": "uuid"
+      },
+      "response": {
+        "online": "boolean",
+        "version": "integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l015.leases.c4",
+      "request": {
+        "userId": "uuid",
+        "version": "integer"
+      },
+      "response": {
+        "eventId": "uuid"
+      },
+      "version": 1
+    },
+    {
+      "id": "l015.leases.c5",
+      "request": {
+        "observerId": "uuid",
+        "targetIds": "uuid[]"
+      },
+      "response": {
+        "allowedIds": "uuid[]"
+      },
+      "version": 1
+    },
+    {
+      "id": "l015.leases.c6",
+      "request": {
+        "after": "cursor|null",
+        "targetIds": "uuid[]"
+      },
+      "response": {
+        "cursor": "string",
+        "states": "presence[]"
+      },
+      "version": 1
+    },
+    {
+      "id": "l015.leases.c7",
+      "request": {
+        "after": "cursor"
+      },
+      "response": {
+        "status": "delta|resnapshot"
+      },
+      "version": 1
+    },
+    {
+      "id": "l015.events.c0",
+      "request": {
+        "epoch": "integer",
+        "kind": "open|beat|close",
+        "seq": "integer",
+        "sessionId": "uuid"
+      },
+      "response": {
+        "offset": "integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l015.events.c1",
+      "request": {
+        "eventId": "uuid",
+        "sessionId": "uuid"
+      },
+      "response": {
+        "offset": "integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l015.events.c2",
+      "request": {
+        "closed": "boolean",
+        "epoch": "integer",
+        "seq": "integer"
+      },
+      "response": {
+        "accepted": "boolean"
+      },
+      "version": 1
+    },
+    {
+      "id": "l015.events.c3",
+      "request": {
+        "expectedSeq": "integer",
+        "sessionId": "uuid"
+      },
+      "response": {
+        "expired": "boolean"
+      },
+      "version": 1
+    },
+    {
+      "id": "l015.events.c4",
+      "request": {
+        "offset": "integer",
+        "userId": "uuid"
+      },
+      "response": {
+        "online": "boolean",
+        "watermark": "integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l015.events.c5",
+      "request": {
+        "observerId": "uuid",
+        "targetId": "uuid"
+      },
+      "response": {
+        "allowed": "boolean"
+      },
+      "version": 1
+    },
+    {
+      "id": "l015.events.c6",
+      "request": {
+        "targets": "uuid[]"
+      },
+      "response": {
+        "states": "presence[]",
+        "watermark": "integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l015.events.c7",
+      "request": {
+        "fromOffset": "integer"
+      },
+      "response": {
+        "readyAt": "integer|null"
+      },
+      "version": 1
+    }
+  ],
+  "execution": {
+    "implementation": null,
+    "kind": "conceptual-design"
+  },
+  "problem": {
+    "referenceId": "L015",
+    "requirements": [
+      {
+        "id": "r0",
+        "text": "Fence delayed heartbeats and distinguish device sessions."
+      },
+      {
+        "id": "r1",
+        "text": "Aggregate active leases and define offline after lease expiration."
+      },
+      {
+        "id": "r2",
+        "text": "Provide snapshot-plus-delta synchronization with explicit gaps."
+      }
+    ],
+    "scope": "Track per-device heartbeats, aggregate user availability and distribute authorized transitions. Presence is a bounded-staleness observation, never proof that a person is available.",
+    "studyLabel": "Presence and session leases"
+  },
+  "provenance": {
+    "kind": "authored-practice",
+    "note": "Authored interview preparation. Technical references support mechanisms, not the claim that a company asked this question."
+  },
+  "references": [
+    {
+      "id": "ref0",
+      "scope": "background",
+      "supports": "Lease-backed ownership and transaction revisions, not perfect failure detection.",
+      "title": "etcd concurrency API",
+      "url": "https://etcd.io/docs/v3.6/dev-guide/api_concurrency_reference_v3/"
+    },
+    {
+      "id": "ref1",
+      "scope": "background",
+      "supports": "Event identifiers and reconnection; application replay retention is separately required.",
+      "title": "Server-sent events",
+      "url": "https://html.spec.whatwg.org/multipage/server-sent-events.html"
+    }
+  ],
+  "schema": "simulatte.composableStudy.v2",
+  "solutions": [
+    {
+      "acceptanceCases": [
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-01-mechanisms.test.mjs",
+            "testName": "L015 bounded mechanism"
+          },
+          "given": "Device epoch 3 sequence 8 has an active lease and a second device is connected.",
+          "id": "mechanism",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Old/duplicate heartbeats do not extend its lease; the second active device keeps the user online.",
+          "when": "Deliver epoch 2 sequence 99, duplicate sequence 8, then close only the first device."
+        },
+        {
+          "given": "Two devices are active and only one misses its lease deadline.",
+          "id": "expiry",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "The other device keeps the user online; late stale beats cannot resurrect the expired generation.",
+          "when": "Expire that device after rechecking heartbeat version."
+        },
+        {
+          "given": "A login cursor predates retained transition history.",
+          "id": "gap",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Return resnapshot explicitly and synchronize snapshot plus greater revisions.",
+          "when": "Resume subscription."
+        },
+        {
+          "given": "An observer loses channel membership.",
+          "id": "acl",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Recheck the subscription authorization epoch and stop delivery.",
+          "when": "Deliver a queued transition."
+        }
+      ],
+      "algorithms": [
+        {
+          "code": "if (beat.epoch < current.epoch || (beat.epoch === current.epoch && beat.seq <= current.seq)) return current;\nreturn {...beat, deadline: now + ttl};",
+          "guarantees": [
+            "The code states the bounded decision rule; unimplemented helpers remain pseudocode.",
+            "External effects, distributed failure and latency require separate execution evidence."
+          ],
+          "id": "bounded-rule",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "n2"
+        },
+        {
+          "code": "if (cursor < retainedFloor) return {status:\"resnapshot\"};\nconst snapshot = readAtRevision(revision);\nreturn {snapshot, deltas: eventsAfter(revision)};\n// Timer expiry compares the last heartbeat sequence before closing a session.",
+          "guarantees": [
+            "Signal resnapshot rather than inventing continuity; expire leases after owner failover."
+          ],
+          "id": "recover",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "n7"
+        }
+      ],
+      "apis": [
+        {
+          "errors": "401 unauthenticated; 409 stale identity/version; 429 bounded capacity; 503 unavailable authority",
+          "method": "POST",
+          "ownerNodeId": "control",
+          "path": "/l015/leases",
+          "request": "{\"userId\":\"uuid\",\"deviceId\":\"uuid\",\"epoch\":\"integer\",\"seq\":\"integer\"}",
+          "response": "{\"accepted\":\"boolean\"}"
+        },
+        {
+          "errors": "403 unauthorized scope; 404 absent identity; 410 expired retained history",
+          "method": "GET",
+          "ownerNodeId": "state",
+          "path": "/l015/leases/state",
+          "request": "{\"epoch\":\"integer\",\"seq\":\"integer\",\"deadline\":\"timestamp\"}",
+          "response": "{\"version\":\"integer\"}"
+        }
+      ],
+      "assumptions": [
+        "Authority time controls expiry; mobile suspension can look disconnected."
+      ],
+      "chooseWhen": "Per-user serialization and low-latency reads matter.",
+      "id": "leases",
+      "initialGraph": {
+        "edges": [],
+        "nodes": []
+      },
+      "stages": [
+        {
+          "checkIds": [
+            "mechanism",
+            "expiry",
+            "gap",
+            "acl"
+          ],
+          "explanation": "Start with authenticated user, device, session generation and sequence. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l015.leases.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l015.leases.c0"
+                },
+                "id": "request",
+                "label": "submit presence and session leases",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l015.leases.c0"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l015.leases.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l015.leases.d0",
+                "id": "boundary",
+                "label": "Presence ingress",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "leases-s1",
+          "invariants": [
+            "Start with authenticated user, device, session generation and sequence. State owner: Presence ingress (session generation)."
+          ],
+          "number": 1,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l015.leases.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "l015.leases.d0",
+                "id": "boundary",
+                "label": "Presence ingress",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l015.leases.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l015.leases.c0"
+                },
+                "id": "request",
+                "label": "submit presence and session leases",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l015.leases.c0"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What identifies a heartbeat?",
+          "reason": "Start with authenticated user, device, session generation and sequence.",
+          "title": "Presence ingress"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "expiry",
+            "gap",
+            "acl"
+          ],
+          "explanation": "Expand ingress and retain the greatest generation/sequence per device. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l015.leases.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l015.leases.c0"
+                },
+                "id": "request",
+                "label": "submit presence and session leases",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l015.leases.c0"
+                }
+              },
+              {
+                "contractId": "l015.leases.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l015.leases.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l015.leases.c1"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l015.leases.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l015.leases.d0",
+                "id": "boundary",
+                "label": "Presence ingress",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l015-leases-boundary-binding-1",
+                "version": 1
+              },
+              {
+                "definitionId": "l015.leases.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l015.leases.d1",
+                "id": "state",
+                "label": "Session authority",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "leases-s2",
+          "invariants": [
+            "Expand ingress and retain the greatest generation/sequence per device. State owner: Session authority (session lease records)."
+          ],
+          "number": 2,
+          "operations": [
+            {
+              "edges": [
+                {
+                  "contractId": "l015.leases.c1",
+                  "from": {
+                    "nodeId": "control",
+                    "portId": "out-l015.leases.c1"
+                  },
+                  "id": "commit",
+                  "label": "commit versioned state",
+                  "mode": "storage",
+                  "to": {
+                    "nodeId": "state",
+                    "portId": "in-l015.leases.c1"
+                  }
+                }
+              ],
+              "nodeId": "boundary",
+              "nodes": [
+                {
+                  "definitionId": "l015.leases.control",
+                  "id": "control",
+                  "label": "Command control",
+                  "position": {
+                    "x": 560,
+                    "y": 0
+                  },
+                  "version": 1
+                },
+                {
+                  "definitionId": "l015.leases.d1",
+                  "id": "state",
+                  "label": "Session authority",
+                  "position": {
+                    "x": 840,
+                    "y": 0
+                  },
+                  "version": 1
+                }
+              ],
+              "op": "expand",
+              "subsystemId": "l015-leases-boundary-binding-1"
+            }
+          ],
+          "question": "Can old traffic resurrect a session?",
+          "reason": "Expand ingress and retain the greatest generation/sequence per device.",
+          "title": "Session authority"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "expiry",
+            "gap",
+            "acl"
+          ],
+          "explanation": "Refresh a bounded deadline only for a current session; old generations are rejected. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l015.leases.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l015.leases.c0"
+                },
+                "id": "request",
+                "label": "submit presence and session leases",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l015.leases.c0"
+                }
+              },
+              {
+                "contractId": "l015.leases.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l015.leases.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l015.leases.c1"
+                }
+              },
+              {
+                "contractId": "l015.leases.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l015.leases.c2-control"
+                },
+                "id": "beat",
+                "label": "refresh session lease",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l015.leases.c2"
+                }
+              },
+              {
+                "contractId": "l015.leases.c1",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l015.leases.c1"
+                },
+                "id": "lease-state",
+                "label": "compare session generation",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l015.leases.c1-state"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l015.leases.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l015.leases.d0",
+                "id": "boundary",
+                "label": "Presence ingress",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l015-leases-boundary-binding-2",
+                "version": 1
+              },
+              {
+                "definitionId": "l015.leases.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l015.leases.d1",
+                "id": "state",
+                "label": "Session authority",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l015.leases.d2",
+                "id": "n2",
+                "label": "Heartbeat lease",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "leases-s3",
+          "invariants": [
+            "Refresh a bounded deadline only for a current session; old generations are rejected. State owner: Heartbeat lease (expiry deadlines)."
+          ],
+          "number": 3,
+          "operations": [
+            {
+              "nodeId": "boundary",
+              "op": "rebind",
+              "reason": "Select a new immutable exposure binding before connecting the added responsibility; prior stage binding remains unchanged.",
+              "subsystemId": "l015-leases-boundary-binding-2"
+            },
+            {
+              "node": {
+                "definitionId": "l015.leases.d2",
+                "id": "n2",
+                "label": "Heartbeat lease",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l015.leases.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l015.leases.c2-control"
+                },
+                "id": "beat",
+                "label": "refresh session lease",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l015.leases.c2"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l015.leases.c1",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l015.leases.c1"
+                },
+                "id": "lease-state",
+                "label": "compare session generation",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l015.leases.c1-state"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What if a client vanishes?",
+          "reason": "Refresh a bounded deadline only for a current session; old generations are rejected.",
+          "title": "Heartbeat lease"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "expiry",
+            "gap",
+            "acl"
+          ],
+          "explanation": "Aggregate all unexpired devices and explicit availability settings. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l015.leases.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l015.leases.c0"
+                },
+                "id": "request",
+                "label": "submit presence and session leases",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l015.leases.c0"
+                }
+              },
+              {
+                "contractId": "l015.leases.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l015.leases.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l015.leases.c1"
+                }
+              },
+              {
+                "contractId": "l015.leases.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l015.leases.c2-control"
+                },
+                "id": "beat",
+                "label": "refresh session lease",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l015.leases.c2"
+                }
+              },
+              {
+                "contractId": "l015.leases.c1",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l015.leases.c1"
+                },
+                "id": "lease-state",
+                "label": "compare session generation",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l015.leases.c1-state"
+                }
+              },
+              {
+                "contractId": "l015.leases.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l015.leases.c3"
+                },
+                "id": "reduce",
+                "label": "reduce active devices",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l015.leases.c3"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l015.leases.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l015.leases.d0",
+                "id": "boundary",
+                "label": "Presence ingress",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l015-leases-boundary-binding-2",
+                "version": 1
+              },
+              {
+                "definitionId": "l015.leases.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l015.leases.d1",
+                "id": "state",
+                "label": "Session authority",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l015.leases.d2",
+                "id": "n2",
+                "label": "Heartbeat lease",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l015.leases.d3",
+                "id": "n3",
+                "label": "User reduction",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "leases-s4",
+          "invariants": [
+            "Aggregate all unexpired devices and explicit availability settings. State owner: User reduction (aggregate version)."
+          ],
+          "number": 4,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l015.leases.d3",
+                "id": "n3",
+                "label": "User reduction",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l015.leases.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l015.leases.c3"
+                },
+                "id": "reduce",
+                "label": "reduce active devices",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l015.leases.c3"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Does one closed tab imply offline?",
+          "reason": "Aggregate all unexpired devices and explicit availability settings.",
+          "title": "User reduction"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "expiry",
+            "gap",
+            "acl"
+          ],
+          "explanation": "Commit aggregate changes and ordered transition intent under one user owner. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l015.leases.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l015.leases.c0"
+                },
+                "id": "request",
+                "label": "submit presence and session leases",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l015.leases.c0"
+                }
+              },
+              {
+                "contractId": "l015.leases.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l015.leases.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l015.leases.c1"
+                }
+              },
+              {
+                "contractId": "l015.leases.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l015.leases.c2-control"
+                },
+                "id": "beat",
+                "label": "refresh session lease",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l015.leases.c2"
+                }
+              },
+              {
+                "contractId": "l015.leases.c1",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l015.leases.c1"
+                },
+                "id": "lease-state",
+                "label": "compare session generation",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l015.leases.c1-state"
+                }
+              },
+              {
+                "contractId": "l015.leases.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l015.leases.c3"
+                },
+                "id": "reduce",
+                "label": "reduce active devices",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l015.leases.c3"
+                }
+              },
+              {
+                "contractId": "l015.leases.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l015.leases.c4"
+                },
+                "id": "transition",
+                "label": "append changed status",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l015.leases.c4"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l015.leases.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l015.leases.d0",
+                "id": "boundary",
+                "label": "Presence ingress",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l015-leases-boundary-binding-2",
+                "version": 1
+              },
+              {
+                "definitionId": "l015.leases.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l015.leases.d1",
+                "id": "state",
+                "label": "Session authority",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l015.leases.d2",
+                "id": "n2",
+                "label": "Heartbeat lease",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l015.leases.d3",
+                "id": "n3",
+                "label": "User reduction",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l015.leases.d4",
+                "id": "n4",
+                "label": "Transition outbox",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "leases-s5",
+          "invariants": [
+            "Commit aggregate changes and ordered transition intent under one user owner. State owner: Transition outbox (transition outbox)."
+          ],
+          "number": 5,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l015.leases.d4",
+                "id": "n4",
+                "label": "Transition outbox",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l015.leases.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l015.leases.c4"
+                },
+                "id": "transition",
+                "label": "append changed status",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l015.leases.c4"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How are status changes published?",
+          "reason": "Commit aggregate changes and ordered transition intent under one user owner.",
+          "title": "Transition outbox"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "expiry",
+            "gap",
+            "acl"
+          ],
+          "explanation": "Authorize channel/contact subscriptions and cap their cardinality. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l015.leases.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l015.leases.c0"
+                },
+                "id": "request",
+                "label": "submit presence and session leases",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l015.leases.c0"
+                }
+              },
+              {
+                "contractId": "l015.leases.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l015.leases.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l015.leases.c1"
+                }
+              },
+              {
+                "contractId": "l015.leases.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l015.leases.c2-control"
+                },
+                "id": "beat",
+                "label": "refresh session lease",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l015.leases.c2"
+                }
+              },
+              {
+                "contractId": "l015.leases.c1",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l015.leases.c1"
+                },
+                "id": "lease-state",
+                "label": "compare session generation",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l015.leases.c1-state"
+                }
+              },
+              {
+                "contractId": "l015.leases.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l015.leases.c3"
+                },
+                "id": "reduce",
+                "label": "reduce active devices",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l015.leases.c3"
+                }
+              },
+              {
+                "contractId": "l015.leases.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l015.leases.c4"
+                },
+                "id": "transition",
+                "label": "append changed status",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l015.leases.c4"
+                }
+              },
+              {
+                "contractId": "l015.leases.c5",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l015.leases.c5"
+                },
+                "id": "subscribe",
+                "label": "authorize presence subscription",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l015.leases.c5"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l015.leases.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l015.leases.d0",
+                "id": "boundary",
+                "label": "Presence ingress",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l015-leases-boundary-binding-2",
+                "version": 1
+              },
+              {
+                "definitionId": "l015.leases.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l015.leases.d1",
+                "id": "state",
+                "label": "Session authority",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l015.leases.d2",
+                "id": "n2",
+                "label": "Heartbeat lease",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l015.leases.d3",
+                "id": "n3",
+                "label": "User reduction",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l015.leases.d4",
+                "id": "n4",
+                "label": "Transition outbox",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l015.leases.d5",
+                "id": "n5",
+                "label": "Subscription filter",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "leases-s6",
+          "invariants": [
+            "Authorize channel/contact subscriptions and cap their cardinality. State owner: Subscription filter (subscription ACL epoch)."
+          ],
+          "number": 6,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l015.leases.d5",
+                "id": "n5",
+                "label": "Subscription filter",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l015.leases.c5",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l015.leases.c5"
+                },
+                "id": "subscribe",
+                "label": "authorize presence subscription",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l015.leases.c5"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Who may observe presence?",
+          "reason": "Authorize channel/contact subscriptions and cap their cardinality.",
+          "title": "Subscription filter"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "expiry",
+            "gap",
+            "acl"
+          ],
+          "explanation": "Capture a revisioned snapshot then replay transitions strictly after its cursor. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l015.leases.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l015.leases.c0"
+                },
+                "id": "request",
+                "label": "submit presence and session leases",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l015.leases.c0"
+                }
+              },
+              {
+                "contractId": "l015.leases.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l015.leases.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l015.leases.c1"
+                }
+              },
+              {
+                "contractId": "l015.leases.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l015.leases.c2-control"
+                },
+                "id": "beat",
+                "label": "refresh session lease",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l015.leases.c2"
+                }
+              },
+              {
+                "contractId": "l015.leases.c1",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l015.leases.c1"
+                },
+                "id": "lease-state",
+                "label": "compare session generation",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l015.leases.c1-state"
+                }
+              },
+              {
+                "contractId": "l015.leases.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l015.leases.c3"
+                },
+                "id": "reduce",
+                "label": "reduce active devices",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l015.leases.c3"
+                }
+              },
+              {
+                "contractId": "l015.leases.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l015.leases.c4"
+                },
+                "id": "transition",
+                "label": "append changed status",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l015.leases.c4"
+                }
+              },
+              {
+                "contractId": "l015.leases.c5",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l015.leases.c5"
+                },
+                "id": "subscribe",
+                "label": "authorize presence subscription",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l015.leases.c5"
+                }
+              },
+              {
+                "contractId": "l015.leases.c6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l015.leases.c6"
+                },
+                "id": "snapshot",
+                "label": "load snapshot and cursor",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l015.leases.c6"
+                }
+              },
+              {
+                "contractId": "l015.leases.c3",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l015.leases.c3"
+                },
+                "id": "aggregate",
+                "label": "read current presence",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l015.leases.c3"
+                }
+              },
+              {
+                "contractId": "l015.leases.c4",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l015.leases.c4"
+                },
+                "id": "delta",
+                "label": "replay after revision",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l015.leases.c4"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l015.leases.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l015.leases.d0",
+                "id": "boundary",
+                "label": "Presence ingress",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l015-leases-boundary-binding-2",
+                "version": 1
+              },
+              {
+                "definitionId": "l015.leases.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l015.leases.d1",
+                "id": "state",
+                "label": "Session authority",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l015.leases.d2",
+                "id": "n2",
+                "label": "Heartbeat lease",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l015.leases.d3",
+                "id": "n3",
+                "label": "User reduction",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l015.leases.d4",
+                "id": "n4",
+                "label": "Transition outbox",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l015.leases.d5",
+                "id": "n5",
+                "label": "Subscription filter",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l015.leases.d6",
+                "id": "n6",
+                "label": "Snapshot cursor",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "leases-s7",
+          "invariants": [
+            "Capture a revisioned snapshot then replay transitions strictly after its cursor. State owner: Snapshot cursor (snapshot revision)."
+          ],
+          "number": 7,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l015.leases.d6",
+                "id": "n6",
+                "label": "Snapshot cursor",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l015.leases.c6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l015.leases.c6"
+                },
+                "id": "snapshot",
+                "label": "load snapshot and cursor",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l015.leases.c6"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l015.leases.c3",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l015.leases.c3"
+                },
+                "id": "aggregate",
+                "label": "read current presence",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l015.leases.c3"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l015.leases.c4",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l015.leases.c4"
+                },
+                "id": "delta",
+                "label": "replay after revision",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l015.leases.c4"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can login miss a transition?",
+          "reason": "Capture a revisioned snapshot then replay transitions strictly after its cursor.",
+          "title": "Snapshot cursor"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "expiry",
+            "gap",
+            "acl"
+          ],
+          "explanation": "Signal resnapshot rather than inventing continuity; expire leases after owner failover. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l015.leases.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l015.leases.c0"
+                },
+                "id": "request",
+                "label": "submit presence and session leases",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l015.leases.c0"
+                }
+              },
+              {
+                "contractId": "l015.leases.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l015.leases.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l015.leases.c1"
+                }
+              },
+              {
+                "contractId": "l015.leases.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l015.leases.c2-control"
+                },
+                "id": "beat",
+                "label": "refresh session lease",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l015.leases.c2"
+                }
+              },
+              {
+                "contractId": "l015.leases.c1",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l015.leases.c1"
+                },
+                "id": "lease-state",
+                "label": "compare session generation",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l015.leases.c1-state"
+                }
+              },
+              {
+                "contractId": "l015.leases.c3",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l015.leases.c3"
+                },
+                "id": "reduce",
+                "label": "reduce active devices",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l015.leases.c3"
+                }
+              },
+              {
+                "contractId": "l015.leases.c4",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l015.leases.c4"
+                },
+                "id": "transition",
+                "label": "append changed status",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l015.leases.c4"
+                }
+              },
+              {
+                "contractId": "l015.leases.c5",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l015.leases.c5"
+                },
+                "id": "subscribe",
+                "label": "authorize presence subscription",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l015.leases.c5"
+                }
+              },
+              {
+                "contractId": "l015.leases.c6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l015.leases.c6"
+                },
+                "id": "snapshot",
+                "label": "load snapshot and cursor",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l015.leases.c6"
+                }
+              },
+              {
+                "contractId": "l015.leases.c3",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l015.leases.c3"
+                },
+                "id": "aggregate",
+                "label": "read current presence",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l015.leases.c3"
+                }
+              },
+              {
+                "contractId": "l015.leases.c4",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l015.leases.c4"
+                },
+                "id": "delta",
+                "label": "replay after revision",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l015.leases.c4"
+                }
+              },
+              {
+                "contractId": "l015.leases.c7",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l015.leases.c7"
+                },
+                "id": "resume",
+                "label": "check delta retention floor",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l015.leases.c7"
+                }
+              },
+              {
+                "contractId": "l015.leases.c2",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l015.leases.c2"
+                },
+                "id": "expire",
+                "label": "expire stale owner leases",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l015.leases.c2"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l015.leases.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l015.leases.d0",
+                "id": "boundary",
+                "label": "Presence ingress",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l015-leases-boundary-binding-2",
+                "version": 1
+              },
+              {
+                "definitionId": "l015.leases.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l015.leases.d1",
+                "id": "state",
+                "label": "Session authority",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l015.leases.d2",
+                "id": "n2",
+                "label": "Heartbeat lease",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l015.leases.d3",
+                "id": "n3",
+                "label": "User reduction",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l015.leases.d4",
+                "id": "n4",
+                "label": "Transition outbox",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l015.leases.d5",
+                "id": "n5",
+                "label": "Subscription filter",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l015.leases.d6",
+                "id": "n6",
+                "label": "Snapshot cursor",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l015.leases.d7",
+                "id": "n7",
+                "label": "Gap recovery",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "leases-s8",
+          "invariants": [
+            "Signal resnapshot rather than inventing continuity; expire leases after owner failover. State owner: Gap recovery (retention floor)."
+          ],
+          "number": 8,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l015.leases.d7",
+                "id": "n7",
+                "label": "Gap recovery",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l015.leases.c7",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l015.leases.c7"
+                },
+                "id": "resume",
+                "label": "check delta retention floor",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l015.leases.c7"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l015.leases.c2",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l015.leases.c2"
+                },
+                "id": "expire",
+                "label": "expire stale owner leases",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l015.leases.c2"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What if retained deltas expired?",
+          "reason": "Signal resnapshot rather than inventing continuity; expire leases after owner failover.",
+          "title": "Gap recovery"
+        }
+      ],
+      "title": "Partitioned lease authority",
+      "tradeoffs": [
+        "Lease partitions need failover fencing; clock and timeout choices create stale or false-offline observations."
+      ]
+    },
+    {
+      "acceptanceCases": [
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-01-mechanisms.test.mjs",
+            "testName": "L015 bounded mechanism"
+          },
+          "given": "Device epoch 3 sequence 8 has an active lease and a second device is connected.",
+          "id": "mechanism",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Old/duplicate heartbeats do not extend its lease; the second active device keeps the user online.",
+          "when": "Deliver epoch 2 sequence 99, duplicate sequence 8, then close only the first device."
+        },
+        {
+          "given": "A heartbeat arrives after its expiry timer was scheduled.",
+          "id": "expiry",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "The timer cannot close the refreshed session; a close tombstone fences older beats.",
+          "when": "Process the timer with the old expected sequence."
+        },
+        {
+          "given": "A new client snapshots view watermark 20 while event 21 arrives.",
+          "id": "gap",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Event 21 is delivered once by identity; retention gaps require resnapshot.",
+          "when": "Stream events after watermark 20."
+        },
+        {
+          "given": "A projected online state is cached after observer revocation.",
+          "id": "acl",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Current ACL filtering denies the subscription independently of presence lag.",
+          "when": "Subscribe using the cached target."
+        }
+      ],
+      "algorithms": [
+        {
+          "code": "if (beat.epoch < current.epoch || (beat.epoch === current.epoch && beat.seq <= current.seq)) return current;\nreturn {...beat, deadline: now + ttl};",
+          "guarantees": [
+            "The code states the bounded decision rule; unimplemented helpers remain pseudocode.",
+            "External effects, distributed failure and latency require separate execution evidence."
+          ],
+          "id": "bounded-rule",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "n2"
+        },
+        {
+          "code": "const shadow = emptyProjection();\nfor (const event of journal.from(checkpoint)) foldIfNewerSessionVersion(shadow, event);\nif (shadow.watermark >= publicationBarrier) atomicallySwapProjection(shadow);\n// A journal retention gap blocks rebuild until a new authoritative snapshot exists.",
+          "guarantees": [
+            "Replay retained journal into a new view and swap at a verified barrier."
+          ],
+          "id": "recover",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "n7"
+        }
+      ],
+      "apis": [
+        {
+          "errors": "401 unauthenticated; 409 stale identity/version; 429 bounded capacity; 503 unavailable authority",
+          "method": "POST",
+          "ownerNodeId": "control",
+          "path": "/l015/events",
+          "request": "{\"sessionId\":\"uuid\",\"epoch\":\"integer\",\"seq\":\"integer\",\"kind\":\"open|beat|close\"}",
+          "response": "{\"offset\":\"integer\"}"
+        },
+        {
+          "errors": "403 unauthorized scope; 404 absent identity; 410 expired retained history",
+          "method": "GET",
+          "ownerNodeId": "state",
+          "path": "/l015/events/state",
+          "request": "{\"eventId\":\"uuid\",\"sessionId\":\"uuid\"}",
+          "response": "{\"offset\":\"integer\"}"
+        }
+      ],
+      "assumptions": [
+        "Event append order is partition-local; viewers receive versioned state rather than a global order."
+      ],
+      "chooseWhen": "Auditable session transitions and replay are more valuable than immediate writes.",
+      "id": "events",
+      "initialGraph": {
+        "edges": [],
+        "nodes": []
+      },
+      "stages": [
+        {
+          "checkIds": [
+            "mechanism",
+            "expiry",
+            "gap",
+            "acl"
+          ],
+          "explanation": "Record authenticated open, heartbeat and close events with stable identity. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l015.events.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l015.events.c0"
+                },
+                "id": "request",
+                "label": "submit presence and session leases",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l015.events.c0"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l015.events.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l015.events.d0",
+                "id": "boundary",
+                "label": "Session append",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "events-s1",
+          "invariants": [
+            "Record authenticated open, heartbeat and close events with stable identity. State owner: Session append (event identity)."
+          ],
+          "number": 1,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l015.events.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "l015.events.d0",
+                "id": "boundary",
+                "label": "Session append",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l015.events.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l015.events.c0"
+                },
+                "id": "request",
+                "label": "submit presence and session leases",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l015.events.c0"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What is a session event?",
+          "reason": "Record authenticated open, heartbeat and close events with stable identity.",
+          "title": "Session append"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "expiry",
+            "gap",
+            "acl"
+          ],
+          "explanation": "Expand ingress into an append handler and retained session journal. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l015.events.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l015.events.c0"
+                },
+                "id": "request",
+                "label": "submit presence and session leases",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l015.events.c0"
+                }
+              },
+              {
+                "contractId": "l015.events.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l015.events.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l015.events.c1"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l015.events.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l015.events.d0",
+                "id": "boundary",
+                "label": "Session append",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l015-events-boundary-binding-1",
+                "version": 1
+              },
+              {
+                "definitionId": "l015.events.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l015.events.d1",
+                "id": "state",
+                "label": "Presence journal",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "events-s2",
+          "invariants": [
+            "Expand ingress into an append handler and retained session journal. State owner: Presence journal (session events)."
+          ],
+          "number": 2,
+          "operations": [
+            {
+              "edges": [
+                {
+                  "contractId": "l015.events.c1",
+                  "from": {
+                    "nodeId": "control",
+                    "portId": "out-l015.events.c1"
+                  },
+                  "id": "commit",
+                  "label": "commit versioned state",
+                  "mode": "storage",
+                  "to": {
+                    "nodeId": "state",
+                    "portId": "in-l015.events.c1"
+                  }
+                }
+              ],
+              "nodeId": "boundary",
+              "nodes": [
+                {
+                  "definitionId": "l015.events.control",
+                  "id": "control",
+                  "label": "Command control",
+                  "position": {
+                    "x": 560,
+                    "y": 0
+                  },
+                  "version": 1
+                },
+                {
+                  "definitionId": "l015.events.d1",
+                  "id": "state",
+                  "label": "Presence journal",
+                  "position": {
+                    "x": 840,
+                    "y": 0
+                  },
+                  "version": 1
+                }
+              ],
+              "op": "expand",
+              "subsystemId": "l015-events-boundary-binding-1"
+            }
+          ],
+          "question": "What survives projection loss?",
+          "reason": "Expand ingress into an append handler and retained session journal.",
+          "title": "Presence journal"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "expiry",
+            "gap",
+            "acl"
+          ],
+          "explanation": "Fold each session by generation then sequence; close tombstones fence old beats. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l015.events.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l015.events.c0"
+                },
+                "id": "request",
+                "label": "submit presence and session leases",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l015.events.c0"
+                }
+              },
+              {
+                "contractId": "l015.events.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l015.events.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l015.events.c1"
+                }
+              },
+              {
+                "contractId": "l015.events.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l015.events.c2-state"
+                },
+                "id": "fold",
+                "label": "fold session events",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l015.events.c2"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l015.events.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l015.events.d0",
+                "id": "boundary",
+                "label": "Session append",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l015-events-boundary-binding-2",
+                "version": 1
+              },
+              {
+                "definitionId": "l015.events.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l015.events.d1",
+                "id": "state",
+                "label": "Presence journal",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l015.events.d2",
+                "id": "n2",
+                "label": "Session fold",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "events-s3",
+          "invariants": [
+            "Fold each session by generation then sequence; close tombstones fence old beats. State owner: Session fold (per-session folded state)."
+          ],
+          "number": 3,
+          "operations": [
+            {
+              "nodeId": "boundary",
+              "op": "rebind",
+              "reason": "Select a new immutable exposure binding before connecting the added responsibility; prior stage binding remains unchanged.",
+              "subsystemId": "l015-events-boundary-binding-2"
+            },
+            {
+              "node": {
+                "definitionId": "l015.events.d2",
+                "id": "n2",
+                "label": "Session fold",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l015.events.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l015.events.c2-state"
+                },
+                "id": "fold",
+                "label": "fold session events",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l015.events.c2"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How are duplicates ordered?",
+          "reason": "Fold each session by generation then sequence; close tombstones fence old beats.",
+          "title": "Session fold"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "expiry",
+            "gap",
+            "acl"
+          ],
+          "explanation": "Schedule expiry against last accepted heartbeat and recheck its version before closing. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l015.events.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l015.events.c0"
+                },
+                "id": "request",
+                "label": "submit presence and session leases",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l015.events.c0"
+                }
+              },
+              {
+                "contractId": "l015.events.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l015.events.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l015.events.c1"
+                }
+              },
+              {
+                "contractId": "l015.events.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l015.events.c2-state"
+                },
+                "id": "fold",
+                "label": "fold session events",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l015.events.c2"
+                }
+              },
+              {
+                "contractId": "l015.events.c3",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l015.events.c3"
+                },
+                "id": "timer",
+                "label": "expire expected heartbeat",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l015.events.c3"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l015.events.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l015.events.d0",
+                "id": "boundary",
+                "label": "Session append",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l015-events-boundary-binding-2",
+                "version": 1
+              },
+              {
+                "definitionId": "l015.events.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l015.events.d1",
+                "id": "state",
+                "label": "Presence journal",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l015.events.d2",
+                "id": "n2",
+                "label": "Session fold",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l015.events.d3",
+                "id": "n3",
+                "label": "Expiry events",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "events-s4",
+          "invariants": [
+            "Schedule expiry against last accepted heartbeat and recheck its version before closing. State owner: Expiry events (timer versions)."
+          ],
+          "number": 4,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l015.events.d3",
+                "id": "n3",
+                "label": "Expiry events",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l015.events.c3",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l015.events.c3"
+                },
+                "id": "timer",
+                "label": "expire expected heartbeat",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l015.events.c3"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Who synthesizes disconnect?",
+          "reason": "Schedule expiry against last accepted heartbeat and recheck its version before closing.",
+          "title": "Expiry events"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "expiry",
+            "gap",
+            "acl"
+          ],
+          "explanation": "Reduce active sessions into a monotonic user projection with source offsets. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l015.events.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l015.events.c0"
+                },
+                "id": "request",
+                "label": "submit presence and session leases",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l015.events.c0"
+                }
+              },
+              {
+                "contractId": "l015.events.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l015.events.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l015.events.c1"
+                }
+              },
+              {
+                "contractId": "l015.events.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l015.events.c2-state"
+                },
+                "id": "fold",
+                "label": "fold session events",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l015.events.c2"
+                }
+              },
+              {
+                "contractId": "l015.events.c3",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l015.events.c3"
+                },
+                "id": "timer",
+                "label": "expire expected heartbeat",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l015.events.c3"
+                }
+              },
+              {
+                "contractId": "l015.events.c4",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l015.events.c4"
+                },
+                "id": "project",
+                "label": "project user state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l015.events.c4"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l015.events.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l015.events.d0",
+                "id": "boundary",
+                "label": "Session append",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l015-events-boundary-binding-2",
+                "version": 1
+              },
+              {
+                "definitionId": "l015.events.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l015.events.d1",
+                "id": "state",
+                "label": "Presence journal",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l015.events.d2",
+                "id": "n2",
+                "label": "Session fold",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l015.events.d3",
+                "id": "n3",
+                "label": "Expiry events",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l015.events.d4",
+                "id": "n4",
+                "label": "User projection",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "events-s5",
+          "invariants": [
+            "Reduce active sessions into a monotonic user projection with source offsets. State owner: User projection (user view and watermark)."
+          ],
+          "number": 5,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l015.events.d4",
+                "id": "n4",
+                "label": "User projection",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l015.events.c4",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l015.events.c4"
+                },
+                "id": "project",
+                "label": "project user state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l015.events.c4"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How is multi-device state derived?",
+          "reason": "Reduce active sessions into a monotonic user projection with source offsets.",
+          "title": "User projection"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "expiry",
+            "gap",
+            "acl"
+          ],
+          "explanation": "Resolve current observer permission independently from stale presence projection. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l015.events.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l015.events.c0"
+                },
+                "id": "request",
+                "label": "submit presence and session leases",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l015.events.c0"
+                }
+              },
+              {
+                "contractId": "l015.events.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l015.events.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l015.events.c1"
+                }
+              },
+              {
+                "contractId": "l015.events.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l015.events.c2-state"
+                },
+                "id": "fold",
+                "label": "fold session events",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l015.events.c2"
+                }
+              },
+              {
+                "contractId": "l015.events.c3",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l015.events.c3"
+                },
+                "id": "timer",
+                "label": "expire expected heartbeat",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l015.events.c3"
+                }
+              },
+              {
+                "contractId": "l015.events.c4",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l015.events.c4"
+                },
+                "id": "project",
+                "label": "project user state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l015.events.c4"
+                }
+              },
+              {
+                "contractId": "l015.events.c5",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l015.events.c5"
+                },
+                "id": "authorize",
+                "label": "authorize observer",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l015.events.c5"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l015.events.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l015.events.d0",
+                "id": "boundary",
+                "label": "Session append",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l015-events-boundary-binding-2",
+                "version": 1
+              },
+              {
+                "definitionId": "l015.events.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l015.events.d1",
+                "id": "state",
+                "label": "Presence journal",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l015.events.d2",
+                "id": "n2",
+                "label": "Session fold",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l015.events.d3",
+                "id": "n3",
+                "label": "Expiry events",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l015.events.d4",
+                "id": "n4",
+                "label": "User projection",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l015.events.d5",
+                "id": "n5",
+                "label": "ACL projection",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "events-s6",
+          "invariants": [
+            "Resolve current observer permission independently from stale presence projection. State owner: ACL projection (ACL epochs)."
+          ],
+          "number": 6,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l015.events.d5",
+                "id": "n5",
+                "label": "ACL projection",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l015.events.c5",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l015.events.c5"
+                },
+                "id": "authorize",
+                "label": "authorize observer",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l015.events.c5"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "Can removed contacts retain access?",
+          "reason": "Resolve current observer permission independently from stale presence projection.",
+          "title": "ACL projection"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "expiry",
+            "gap",
+            "acl"
+          ],
+          "explanation": "Return materialized state at a source watermark then stream greater versions. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l015.events.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l015.events.c0"
+                },
+                "id": "request",
+                "label": "submit presence and session leases",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l015.events.c0"
+                }
+              },
+              {
+                "contractId": "l015.events.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l015.events.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l015.events.c1"
+                }
+              },
+              {
+                "contractId": "l015.events.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l015.events.c2-state"
+                },
+                "id": "fold",
+                "label": "fold session events",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l015.events.c2"
+                }
+              },
+              {
+                "contractId": "l015.events.c3",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l015.events.c3"
+                },
+                "id": "timer",
+                "label": "expire expected heartbeat",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l015.events.c3"
+                }
+              },
+              {
+                "contractId": "l015.events.c4",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l015.events.c4"
+                },
+                "id": "project",
+                "label": "project user state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l015.events.c4"
+                }
+              },
+              {
+                "contractId": "l015.events.c5",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l015.events.c5"
+                },
+                "id": "authorize",
+                "label": "authorize observer",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l015.events.c5"
+                }
+              },
+              {
+                "contractId": "l015.events.c6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l015.events.c6"
+                },
+                "id": "sync",
+                "label": "start snapshot sync",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l015.events.c6"
+                }
+              },
+              {
+                "contractId": "l015.events.c4",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l015.events.c4"
+                },
+                "id": "view",
+                "label": "read watermark snapshot",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l015.events.c4"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l015.events.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l015.events.d0",
+                "id": "boundary",
+                "label": "Session append",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l015-events-boundary-binding-2",
+                "version": 1
+              },
+              {
+                "definitionId": "l015.events.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l015.events.d1",
+                "id": "state",
+                "label": "Presence journal",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l015.events.d2",
+                "id": "n2",
+                "label": "Session fold",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l015.events.d3",
+                "id": "n3",
+                "label": "Expiry events",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l015.events.d4",
+                "id": "n4",
+                "label": "User projection",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l015.events.d5",
+                "id": "n5",
+                "label": "ACL projection",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l015.events.d6",
+                "id": "n6",
+                "label": "Snapshot barrier",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "events-s7",
+          "invariants": [
+            "Return materialized state at a source watermark then stream greater versions. State owner: Snapshot barrier (snapshot watermark)."
+          ],
+          "number": 7,
+          "operations": [
+            {
+              "node": {
+                "definitionId": "l015.events.d6",
+                "id": "n6",
+                "label": "Snapshot barrier",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l015.events.c6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l015.events.c6"
+                },
+                "id": "sync",
+                "label": "start snapshot sync",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l015.events.c6"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l015.events.c4",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l015.events.c4"
+                },
+                "id": "view",
+                "label": "read watermark snapshot",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l015.events.c4"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "How does initial login synchronize?",
+          "reason": "Return materialized state at a source watermark then stream greater versions.",
+          "title": "Snapshot barrier"
+        },
+        {
+          "checkIds": [
+            "mechanism",
+            "expiry",
+            "gap",
+            "acl"
+          ],
+          "explanation": "Replay retained journal into a new view and swap at a verified barrier. The graph is an authored conceptual design; guarantees require the named deployment contracts.",
+          "graph": {
+            "edges": [
+              {
+                "contractId": "l015.events.c0",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l015.events.c0"
+                },
+                "id": "request",
+                "label": "submit presence and session leases",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l015.events.c0"
+                }
+              },
+              {
+                "contractId": "l015.events.c1",
+                "from": {
+                  "nodeId": "control",
+                  "portId": "out-l015.events.c1"
+                },
+                "id": "commit",
+                "label": "commit versioned state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "state",
+                  "portId": "in-l015.events.c1"
+                }
+              },
+              {
+                "contractId": "l015.events.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l015.events.c2-state"
+                },
+                "id": "fold",
+                "label": "fold session events",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l015.events.c2"
+                }
+              },
+              {
+                "contractId": "l015.events.c3",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l015.events.c3"
+                },
+                "id": "timer",
+                "label": "expire expected heartbeat",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n2",
+                  "portId": "in-l015.events.c3"
+                }
+              },
+              {
+                "contractId": "l015.events.c4",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l015.events.c4"
+                },
+                "id": "project",
+                "label": "project user state",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l015.events.c4"
+                }
+              },
+              {
+                "contractId": "l015.events.c5",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l015.events.c5"
+                },
+                "id": "authorize",
+                "label": "authorize observer",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n5",
+                  "portId": "in-l015.events.c5"
+                }
+              },
+              {
+                "contractId": "l015.events.c6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l015.events.c6"
+                },
+                "id": "sync",
+                "label": "start snapshot sync",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l015.events.c6"
+                }
+              },
+              {
+                "contractId": "l015.events.c4",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l015.events.c4"
+                },
+                "id": "view",
+                "label": "read watermark snapshot",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l015.events.c4"
+                }
+              },
+              {
+                "contractId": "l015.events.c7",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l015.events.c7-state"
+                },
+                "id": "replay",
+                "label": "replay retained journal",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l015.events.c7"
+                }
+              },
+              {
+                "contractId": "l015.events.c4",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l015.events.c4"
+                },
+                "id": "swap",
+                "label": "publish rebuilt view",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l015.events.c4"
+                }
+              }
+            ],
+            "nodes": [
+              {
+                "definitionId": "l015.events.caller",
+                "id": "caller",
+                "label": "Caller",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l015.events.d0",
+                "id": "boundary",
+                "label": "Session append",
+                "position": {
+                  "x": 280,
+                  "y": 0
+                },
+                "subsystemId": "l015-events-boundary-binding-3",
+                "version": 1
+              },
+              {
+                "definitionId": "l015.events.control",
+                "id": "control",
+                "label": "Command control",
+                "parentId": "boundary",
+                "position": {
+                  "x": 560,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l015.events.d1",
+                "id": "state",
+                "label": "Presence journal",
+                "parentId": "boundary",
+                "position": {
+                  "x": 840,
+                  "y": 0
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l015.events.d2",
+                "id": "n2",
+                "label": "Session fold",
+                "position": {
+                  "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l015.events.d3",
+                "id": "n3",
+                "label": "Expiry events",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l015.events.d4",
+                "id": "n4",
+                "label": "User projection",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l015.events.d5",
+                "id": "n5",
+                "label": "ACL projection",
+                "position": {
+                  "x": 840,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l015.events.d6",
+                "id": "n6",
+                "label": "Snapshot barrier",
+                "position": {
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l015.events.d7",
+                "id": "n7",
+                "label": "Rebuild worker",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              }
+            ]
+          },
+          "id": "events-s8",
+          "invariants": [
+            "Replay retained journal into a new view and swap at a verified barrier. State owner: Rebuild worker (rebuild cursor)."
+          ],
+          "number": 8,
+          "operations": [
+            {
+              "nodeId": "boundary",
+              "op": "rebind",
+              "reason": "Select a new immutable exposure binding before connecting the added responsibility; prior stage binding remains unchanged.",
+              "subsystemId": "l015-events-boundary-binding-3"
+            },
+            {
+              "node": {
+                "definitionId": "l015.events.d7",
+                "id": "n7",
+                "label": "Rebuild worker",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l015.events.c7",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l015.events.c7-state"
+                },
+                "id": "replay",
+                "label": "replay retained journal",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l015.events.c7"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l015.events.c4",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l015.events.c4"
+                },
+                "id": "swap",
+                "label": "publish rebuilt view",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l015.events.c4"
+                }
+              },
+              "op": "connect"
+            }
+          ],
+          "question": "What if the view is lost?",
+          "reason": "Replay retained journal into a new view and swap at a verified barrier.",
+          "title": "Rebuild worker"
+        }
+      ],
+      "title": "Session event log and materialized views",
+      "tradeoffs": [
+        "Asynchronous projections add visible lag and require retained events plus tombstones."
+      ]
+    }
+  ],
+  "subsystems": [
+    {
+      "definitionId": "l015.leases.d0",
+      "id": "l015-leases-boundary-binding-1",
+      "ports": [
+        {
+          "contractId": "l015.leases.c0",
+          "direction": "in",
+          "id": "in-l015.leases.c0",
+          "target": {
+            "nodeId": "control",
+            "portId": "in-l015.leases.c0"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l015.leases.d0",
+      "id": "l015-leases-boundary-binding-2",
+      "ports": [
+        {
+          "contractId": "l015.leases.c0",
+          "direction": "in",
+          "id": "in-l015.leases.c0",
+          "target": {
+            "nodeId": "control",
+            "portId": "in-l015.leases.c0"
+          }
+        },
+        {
+          "contractId": "l015.leases.c2",
+          "direction": "out",
+          "id": "out-l015.leases.c2-control",
+          "target": {
+            "nodeId": "control",
+            "portId": "out-l015.leases.c2"
+          }
+        },
+        {
+          "contractId": "l015.leases.c1",
+          "direction": "in",
+          "id": "in-l015.leases.c1-state",
+          "target": {
+            "nodeId": "state",
+            "portId": "in-l015.leases.c1"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l015.events.d0",
+      "id": "l015-events-boundary-binding-1",
+      "ports": [
+        {
+          "contractId": "l015.events.c0",
+          "direction": "in",
+          "id": "in-l015.events.c0",
+          "target": {
+            "nodeId": "control",
+            "portId": "in-l015.events.c0"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l015.events.d0",
+      "id": "l015-events-boundary-binding-2",
+      "ports": [
+        {
+          "contractId": "l015.events.c0",
+          "direction": "in",
+          "id": "in-l015.events.c0",
+          "target": {
+            "nodeId": "control",
+            "portId": "in-l015.events.c0"
+          }
+        },
+        {
+          "contractId": "l015.events.c2",
+          "direction": "out",
+          "id": "out-l015.events.c2-state",
+          "target": {
+            "nodeId": "state",
+            "portId": "out-l015.events.c2"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l015.events.d0",
+      "id": "l015-events-boundary-binding-3",
+      "ports": [
+        {
+          "contractId": "l015.events.c0",
+          "direction": "in",
+          "id": "in-l015.events.c0",
+          "target": {
+            "nodeId": "control",
+            "portId": "in-l015.events.c0"
+          }
+        },
+        {
+          "contractId": "l015.events.c2",
+          "direction": "out",
+          "id": "out-l015.events.c2-state",
+          "target": {
+            "nodeId": "state",
+            "portId": "out-l015.events.c2"
+          }
+        },
+        {
+          "contractId": "l015.events.c7",
+          "direction": "out",
+          "id": "out-l015.events.c7-state",
+          "target": {
+            "nodeId": "state",
+            "portId": "out-l015.events.c7"
+          }
+        }
+      ],
+      "version": 1
+    }
+  ],
+  "version": 1
+}
