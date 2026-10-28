@@ -1,0 +1,50 @@
+{
+  "schema": "simulatte.reviewedStudyLive.v1",
+  "build": "f826ab859c232bf4bf8721cd130394e4823a1d8c-6b775148b098",
+  "ok": true,
+  "scope": "Fresh Chromium desktop and 390px views on both live editors; exact changed problem bytes; not physical-device proof",
+  "rows": [
+    {
+      "width": 1440,
+      "route": "/lucyd?problem=L031&approach=remote&stage=8",
+      "title": "Lucyd study workspace",
+      "noHorizontalPageOverflow": true,
+      "nodes": 16,
+      "errors": []
+    },
+    {
+      "width": 1440,
+      "route": "/system-diagram?problem=L031&approach=design-remote&stage=8",
+      "title": "Lucyd · Simulatte World",
+      "noHorizontalPageOverflow": true,
+      "nodes": 0,
+      "errors": []
+    },
+    {
+      "width": 390,
+      "route": "/lucyd?problem=L031&approach=remote&stage=8",
+      "title": "Lucyd study workspace",
+      "noHorizontalPageOverflow": true,
+      "nodes": 16,
+      "errors": []
+    },
+    {
+      "width": 390,
+      "route": "/system-diagram?problem=L031&approach=design-remote&stage=8",
+      "title": "Lucyd · Simulatte World",
+      "noHorizontalPageOverflow": true,
+      "nodes": 0,
+      "errors": []
+    }
+  ],
+  "files": [
+    {
+      "path": "public/data/system-diagram/composable-solutions/l031.json",
+      "sha256": "5513ec9d94155140c010592a4221aba815ed5abf3761fb9b5c93a7f66ac04382"
+    },
+    {
+      "path": "public/data/system-diagram/composable-solutions/l041.json",
+      "sha256": "164fe29d07f6d852dae8dfde1f18309d1294f6e1965d705da13ffc79b1d41e71"
+    }
+  ]
+}
