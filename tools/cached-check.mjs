@@ -49,6 +49,9 @@ const KNOWN_CHECKS = {
   'autonomy-data': {
     inputs: [
       'tools/simulatte/check-autonomy-data.mjs',
+      'public/simulatte',
+      'public/shared',
+      'public/index.html',
       'public/data/simulatte/autonomy-manifest.json',
       'public/data/simulatte/worlds/nyc-core-autonomy-v1.json',
       'public/data/simulatte/policies',

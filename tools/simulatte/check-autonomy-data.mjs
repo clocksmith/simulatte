@@ -3,7 +3,7 @@ import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const TOOL_DIR = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(TOOL_DIR, '../..');
@@ -69,12 +69,14 @@ function resolveGeometryReference(registryFile, reference) {
   return value;
 }
 
-function publicAutonomyJavaScript() {
+export function publicAutonomyJavaScript(publicRoot = PUBLIC) {
   const roots = ['simulatte', 'shared']
-    .map((directory) => path.join(PUBLIC, directory));
+    .map((directory) => path.join(publicRoot, directory));
   const files = [];
   const walk = (directory) => fs.readdirSync(directory, { withFileTypes: true }).forEach((entry) => {
     const file = path.join(directory, entry.name);
+    // Match check-source-size: pinned third-party distributions keep their upstream bytes.
+    if (entry.isDirectory() && entry.name === 'vendor') return;
     if (entry.isDirectory()) walk(file);
     else if (entry.isFile() && entry.name.endsWith('.js')) files.push(file);
   });
@@ -193,9 +195,9 @@ function resolvePluginDatasets(profile) {
   return values;
 }
 
-try {
-  main();
-} catch (error) {
-  console.error(error && error.stack || error);
-  process.exit(1);
+if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
+  try { main(); } catch (error) {
+    console.error(error && error.stack || error);
+    process.exit(1);
+  }
 }
