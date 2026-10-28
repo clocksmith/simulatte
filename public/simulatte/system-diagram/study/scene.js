@@ -8,7 +8,7 @@
   else root.SimulatteStudyScene = api;
 })(globalThis, function (Spatial, Routing, Text, Checker) {
   'use strict';
-  const BOX = {w: 200, h: 80}, PAD = 34, TITLE = 26, LABEL_SIZE = 16, EDGE_LABEL_SIZE = 14, INK = 0.52;
+  const BOX = {w: 200, h: 80}, PAD = 34, TITLE = 26, INK = 0.52;
   const FILL = {client: '#e7f5ff', service: '#ebfbee', module: '#f8f9fa', store: '#f3f0ff', log: '#fff4e6', queue: '#ffe8cc', worker: '#e6fcf5', cache: '#fff9db', directory: '#f1f3f5', external: '#ffffff'};
   const CHANGE = {added: '#1971c2', changed: '#9c36b5', merged: '#2f9e44', removed: '#adb5bd', none: '#1e1e1e'};
   const MODE_STROKE = {'request-response': 'solid', 'event-stream': 'dashed', storage: 'solid', 'local-call': 'dotted'};
@@ -42,7 +42,7 @@
   function text(id, value, {x, y, size, containerId = null, align = 'center', color = CHANGE.none, study}) {
     const m = Text.measure(value, size), s = {width: m.width, height: m.height};
     return base(id, 'text', {x: containerId ? x - s.width / 2 : x, y: containerId ? y - s.height / 2 : y, width: s.width, height: s.height, strokeColor: color, text: value, originalText: value,
-      fontSize: size, fontFamily: Spatial.metrics.fontFamily, textAlign: align, verticalAlign: containerId ? 'middle' : 'top', containerId, lineHeight: 1.25, baseline: Math.round(size * 0.9), customData: {study}});
+      fontSize: size, fontFamily: Spatial.metrics.fontFamily, textAlign: align, verticalAlign: containerId ? 'middle' : 'top', containerId, lineHeight: Spatial.policy.label.lineHeight, baseline: Math.round(size * 0.9), customData: {study}});
   }
   const rect = (x, y, w, h) => ({x, y, w, h});
   const overlaps = (a, b, pad = 0) => a.x < b.x + b.w + pad && b.x < a.x + a.w + pad && a.y < b.y + b.h + pad && b.y < a.y + a.h + pad;
@@ -76,6 +76,7 @@
 
   // Build the authored scene for one stage. stageIndex -1 shows the initial graph.
   function build(document, solution, stageIndex, options = {}) {
+    const LABEL_SIZE=Spatial.policy.node.fontSize, EDGE_LABEL_SIZE=Spatial.policy.label.fontSize;
     const graph = stageIndex < 0 ? solution.initialGraph : solution.stages[stageIndex].graph;
     const before = stageIndex <= 0 ? (stageIndex < 0 ? graph : solution.initialGraph) : solution.stages[stageIndex - 1].graph;
     const definitions = new Map(document.components.map(c => [c.id, c])), subsystems = new Map(document.subsystems.map(s => [s.id, s]));
@@ -179,7 +180,7 @@
   // A label bound to a learner's arrow, placed at its middle point.
   function labelFor(arrow, value, color) {
     const last = arrow.points[arrow.points.length - 1], mid = arrow.points.length % 2 ? arrow.points[(arrow.points.length - 1) / 2] : [last[0] / 2, last[1] / 2];
-    return text(`${arrow.id}:contract`, value, {x: arrow.x + mid[0], y: arrow.y + mid[1], size: EDGE_LABEL_SIZE, containerId: arrow.id, color, study: {role: 'user-connection-label'}});
+    return text(`${arrow.id}:contract`, value, {x: arrow.x + mid[0], y: arrow.y + mid[1], size: Spatial.policy.label.fontSize, containerId: arrow.id, color, study: {role: 'user-connection-label'}});
   }
   return Object.freeze({PREFIX, EDITABLE, BOX, layout, build, describe, changesFor, diff, applyOverlay, isEmpty, isStudy, wrap, portMatches, labelFor});
 });

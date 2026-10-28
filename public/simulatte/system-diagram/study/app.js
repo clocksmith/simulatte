@@ -3,11 +3,12 @@
 // saved in this browser and exported with the untouched authored document.
 (function (root) {
   'use strict';
-  const {React, ReactDOM, ExcalidrawLib: X, SimulatteComposableStudy: Study, SimulatteStudyScene: Scene, SimulatteSpatialLayout: Spatial, SimulatteStageShortcuts: StageShortcuts, SimulatteStudyWorkspace: Store, SimulatteStudyPanels: P} = root;
+  const {React, ReactDOM, ExcalidrawLib: X, SimulatteComposableStudy: Study, SimulatteStudyScene: Scene, SimulatteSpatialLayout: Spatial, SimulatteStageShortcuts: StageShortcuts, SimulatteStudyGuide: StudyGuide, SimulatteStudyWorkspace: Store, SimulatteStudyPanels: P} = root;
   for (const [name, value] of Object.entries({React, ReactDOM, X, Study, Scene, Store, P})) if (!value) throw Error(`Study workspace needs ${name} loaded first`);
   const {createElement: h, useState, useEffect, useRef, useCallback, useMemo} = React;
   const {Excalidraw, MainMenu, Footer, Sidebar} = X;
   const DATA = new URL('../../../data/system-diagram/', document.baseURI);
+  const STUDY_KEY='simulatte.studyMode.v1';
   const THEME_KEY = 'simulatte.theme.v1', SIDEBAR = 'study', CONNECTED = '#1971c2';
   const TABS = [['stage', 'Stage'], ['inspect', 'Inspect'], ['approach', 'Approach'], ['problem', 'Problem'], ['file', 'File']];
 
@@ -52,6 +53,9 @@
     const [preview, setPreview] = useState(null);
     const [confirmDiscard, setConfirmDiscard] = useState(false);
     const [docked, setDocked] = useState(false);
+    const [studyMode,setStudyMode]=useState(()=>storage.get(STUDY_KEY)!=='off');
+    const studyModeRef=useRef(studyMode);studyModeRef.current=studyMode;
+    const toggleStudyMode=()=>setStudyMode(current=>{const next=!current;try{storage.set(STUDY_KEY,next?'on':'off');}catch{}return next;});
     const setWs = next => { wsRef.current = next; setWsState(next); };
     const solution = solutionOf(ws);
     // Read-only view for scripted acceptance checks; it exposes state, never mutators.
@@ -77,7 +81,7 @@
       authoredRef.current = authored;
       loadingRef.current = true;
       if (overlay?.files) excalidraw.addFiles(Object.values(overlay.files));
-      excalidraw.updateScene({elements: X.restoreElements(Scene.applyOverlay(authored, overlay), null), appState: {selectedElementIds: {}, editingTextElement: null, name: `${next.document.problem.referenceId} ${sol.title}`}, captureUpdate: X.CaptureUpdateAction.NEVER});
+      excalidraw.updateScene({elements: X.restoreElements(Scene.applyOverlay(authored, overlay), null), appState: {selectedElementIds: {}, editingTextElement: null, currentItemFontFamily: Spatial.metrics.fontFamily, name: `${next.document.problem.referenceId} ${sol.title}`}, captureUpdate: X.CaptureUpdateAction.NEVER});
       excalidraw.history.clear();
       versionRef.current = X.getSceneVersion(excalidraw.getSceneElementsIncludingDeleted());
       loadingRef.current = false;
@@ -87,7 +91,7 @@
         const boxes=authored.filter(e=>e.customData?.study?.role==='node');
         const width=Math.max(...boxes.map(e=>e.x+e.width))-Math.min(...boxes.map(e=>e.x)),height=Math.max(...boxes.map(e=>e.y+e.height))-Math.min(...boxes.map(e=>e.y));
         const changed=boxes.filter(e=>e.customData.study.change),wouldShrink=Math.min((state.width-150)/width,(state.height-180)/height)<minimum;
-        excalidraw.scrollToContent(wouldShrink&&changed.length?changed:undefined,{fitToContent:true,minZoom:minimum,maxZoom:1,animate:false});
+        excalidraw.scrollToContent(wouldShrink&&changed.length?changed:undefined,{fitToContent:true,minZoom:minimum,maxZoom:1,animate:false,canvasOffsets:{top:92,bottom:studyModeRef.current?240:76,left:20,right:document.querySelector('.sw-sidebar')?.getBoundingClientRect().width+20||20}});
       });
       setBuilt(result); writeQuery(next);
     }, []);
@@ -146,6 +150,7 @@
         next ||= Store.create(published);
         await Spatial.prepare(next.document);
         if (load !== loadRef.current) return;
+        if (view.resetStage) next = Store.withView(next, {stageIndex:0, collapsed:[], showRemoved:false});
         const sol = next.document.solutions.find(s => s.id === view.approach);
         if (sol) next = Store.withView(next, {solutionId: sol.id, stageIndex: Number.isInteger(view.stage) && view.stage >= 0 && view.stage <= sol.stages.length ? view.stage - 1 : 0});
         setWs(next); render(next, {fit: true}); setSaveStatus(status);
@@ -158,7 +163,7 @@
       (async () => {
         try {
           // Use the same font for measured layout and the first restored canvas.
-          await Promise.all(['16px Excalifont', '14px Excalifont'].map(font => document.fonts.load(font)));
+          await Promise.all(['18px Nunito', '16px Nunito'].map(font => document.fonts.load(font)));
           const [manifest, problems, policy, metrics] = await Promise.all(['composable-solutions/manifest.json','problems.json','spatial-policy.json','study-font-metrics.json'].map(p => fetchText(new URL(p, DATA)).then(JSON.parse)));
           Spatial.configure(policy, metrics);
           const byRef = new Map(problems.problems.map(p => [p.referenceId, p]));
@@ -287,9 +292,9 @@
     },[api,navigate]);
     const stepper = solution && h(P.Stepper, {stageIndex, minIndex, count: solution.stages.length, title: stageTitle, edited, onStep: step, onReset: resetStage});
     const pickers = h(P.Pickers, {catalogue, referenceId: ws?.document.problem.referenceId, solutions: ws?.document.solutions, solutionId: ws?.view.solutionId,
-      onProblem: ref => { if (ref !== wsRef.current?.document.problem.referenceId) openProblem(ref); },
-      onSolution: id => { if (id !== wsRef.current?.view.solutionId) navigate({solutionId: id, stageIndex: 0}, {fit: true}); }});
-    const trigger = h(Sidebar.Trigger, {name: SIDEBAR, tab: 'stage', title: 'Study notes', className: 'sw-trigger'}, 'Study');
+      onProblem: ref => openProblem(ref, {resetStage:true}),
+      onSolution: id => navigate({solutionId: id, stageIndex: 0,collapsed:[],showRemoved:false}, {fit: true})});
+    const trigger = h(Sidebar.Trigger, {name: SIDEBAR, tab: 'stage', title: 'Study notes', className: 'sw-trigger'}, 'Notes');
     const openStudy = () => apiRef.current?.toggleSidebar({name: SIDEBAR, tab: 'stage', force: true});
     const panel = tab => {
       if (!ws || !solution) return h('p', {className: 'sw-muted'}, 'Loading study…');
@@ -304,13 +309,14 @@
     return h('div', {className: 'sw-root'},
       h(Excalidraw, {
         excalidrawAPI: value => { if (value && apiRef.current !== value) { apiRef.current = value; setApi(value); } },
-        initialData: {elements: [], appState: {theme: themeRef.current, viewBackgroundColor: '#ffffff', currentItemFontFamily: 5}},
+        initialData: {elements: [], appState: {theme: themeRef.current, viewBackgroundColor: '#ffffff', currentItemFontFamily: 6}},
         onChange, autoFocus: true, name: 'Lucyd study',
         UIOptions: {canvasActions: {loadScene: false, saveToActiveFile: false, export: false}},
         renderTopRightUI: isMobile => (isMobile ? null : h('div', {className: 'sw-top', onKeyDown: isolateKeys}, pickers, trigger)),
       },
       h(MainMenu, null,
         h(MainMenu.Item, {onSelect: openStudy}, 'Study notes and stages'),
+        h(MainMenu.Item, {onSelect: toggleStudyMode}, `Study mode: ${studyMode?'On':'Off'}`),
         h(MainMenu.Item, {onSelect: () => fileInput.current?.click()}, 'Import study JSON…'),
         h(MainMenu.Item, {onSelect: exportWorkspace}, 'Export study workspace'),
         h(MainMenu.Item, {onSelect: exportAuthored}, 'Export authored document'),
@@ -322,12 +328,16 @@
         h(MainMenu.DefaultItems.Help, null),
         h(MainMenu.Separator, null),
         h(MainMenu.ItemLink, {href: '../../../system-diagram'}, 'Open simulation editor')),
-      h(Footer, null, h('div', {className: 'sw-footer', onKeyDown: isolateKeys}, stepper, h('span', {className: 'sw-save', role: 'status'}, saveStatus))),
+      h(Footer, null, h('div', {className: 'sw-footer', onKeyDown: isolateKeys},
+        h('button',{className:'sw-mode-toggle','aria-label':'Study mode','aria-pressed':studyMode,onClick:toggleStudyMode,title:'Show or hide the solution sequence guide'},'Study'),
+        !studyMode&&h('div',{className:'sw-compact-stepper'},stepper),
+        h('span', {className: 'sw-save', role: 'status'}, saveStatus))),
       h(Sidebar, {name: SIDEBAR, docked, onDock: setDocked, className: 'sw-sidebar'},
         h(Sidebar.Header, null, h('span', {className: 'sw-sidebar-title'}, ws ? `${ws.document.problem.referenceId} · ${solution?.title || ''}` : 'Study')),
         h(Sidebar.Tabs, {onKeyDown: isolateKeys},
           h(Sidebar.TabTriggers, null, TABS.map(([tab, label]) => h(Sidebar.TabTrigger, {key: tab, tab}, label))),
           TABS.map(([tab]) => h(Sidebar.Tab, {key: tab, tab}, panel(tab)))))),
+      studyMode&&solution&&h('div',{className:'sw-guide-wrap sw-footer','aria-label':'Study sequence guide',onKeyDown:isolateKeys},stepper,h(StudyGuide,{solution,stageIndex,onSelect:i=>navigate({stageIndex:i})})),
       h('input', {ref: fileInput, type: 'file', accept: 'application/json,.json', hidden: true, onChange: onFile, 'aria-label': 'Study JSON file'}),
       h(P.Dialog, {open: !!preview, title: 'Open this study file?', onClose: () => setPreview(null), actions: [{label: 'Cancel', onClick: () => setPreview(null)}, {label: 'Export current first', onClick: exportWorkspace}, {label: 'Replace current workspace', primary: true, onClick: confirmImport}]},
         preview && (() => { const s = Store.summary(preview.parsed.workspace); return h('div', null, h('p', null, h('b', null, `${s.referenceId} · ${s.studyLabel}`)), h('ul', {className: 'sw-list'}, s.approaches.map(a => h('li', {key: a}, a))),

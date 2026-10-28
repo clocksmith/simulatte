@@ -13,6 +13,12 @@
       "id": "layer-shortcut-modifier-priority",
       "reason": "Single-step actions must not shadow native Alt/Option front/back actions.",
       "upstreamSource": "https://github.com/excalidraw/excalidraw/blob/v0.18.1/packages/excalidraw/actions/actionZindex.tsx"
+    },
+    {
+      "asset": "chunk-K2UTITRG.js",
+      "id": "direct-text-rasterization",
+      "reason": "Text bypasses nearest-neighbor cached bitmap resampling and draws at the canvas device-pixel ratio and current zoom; shapes and images retain upstream caching.",
+      "upstreamSource": "https://github.com/excalidraw/excalidraw/blob/v0.18.1/packages/excalidraw/renderer/renderElement.ts"
     }
   ],
   "files": [
@@ -31,9 +37,9 @@
       "sourceSha256": "6ca0a6b4a49be83ed6beb32f845648ca4927c592cc0f4ba43a909624f5659493"
     },
     {
-      "change": "Only bare module specifiers are rewritten.",
+      "change": "Bare module specifiers are rewritten; text draws directly at display resolution instead of resampling cached bitmaps.",
       "path": "chunk-K2UTITRG.js",
-      "sha256": "815c3b2b9c379f546c7cdb462dd3bacb1223772fa01ca6c13a578ea863cba34f",
+      "sha256": "ba884a9b5a1128c98c956356985594fd28bc58ff1e1009bf6622d7fb02e47cf2",
       "source": "https://registry.npmjs.org/@excalidraw/excalidraw/-/excalidraw-0.18.1.tgz#package/dist/prod/chunk-K2UTITRG.js",
       "sourceSha256": "72b54e8e9b3c17c69f1dd5e40203bfaed62313bc611b86ecb8a1625a12562e51"
     },

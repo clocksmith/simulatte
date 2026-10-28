@@ -30,7 +30,7 @@ Evolve intent into executable architecture; study sourced problems with editable
 - Canonical problems share public/private code paths; compatibility registries are generated.
 - Published problems have two structurally distinct approaches minimum, each with eight runnable stages, challenges and checks. Optional conceptual preludes do not count.
 - Stages retain edits and personal diagrams; replay configured demand without claiming matched closed-loop arrivals.
-- Side rails: one two-state component, max 360px.
+- Simulation rails: max 360px; study Notes: viewport-bounded 480px.
 - WebGL effects are opt-in and run-state-only; SVG stays authoritative.
 - Parameters resolve kernel/class/instance. Unknown values refuse; layout cannot affect results.
 - Subsystems pin typed, bounded, acyclic definitions; publishing preserves accepted runs.

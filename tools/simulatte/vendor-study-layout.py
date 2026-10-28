@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Pin ELK's prebuilt distributions and derive Excalifont advance metrics, without a bundler."""
+"""Pin ELK's prebuilt distributions and derive Nunito advance metrics, without a bundler."""
 import base64
 import hashlib
 import io
@@ -25,7 +25,7 @@ with tarfile.open(fileobj=io.BytesIO(data), mode='r:gz') as archive:
         (target / name).write_bytes(content)
         receipt['sha256'][name] = hashlib.sha256(content).hexdigest()
 (target / 'versions.json').write_text(json.dumps(receipt, indent=2, sort_keys=True) + '\n')
-font_paths = sorted((VENDOR / 'modern/fonts/Excalifont').glob('*.woff2'))
+font_paths = sorted((VENDOR / 'modern/fonts/Nunito').glob('*.woff2'))
 if not font_paths:
     raise ValueError('Vendor modern Excalidraw before deriving font metrics')
 advances = {}
@@ -42,6 +42,6 @@ for font_path in font_paths:
         if str(code) in advances and advances[str(code)] != advance:
             raise ValueError('Conflicting font subset advance')
         advances[str(code)] = advance
-metrics = {'schema': 'simulatte.studyFontMetrics.v1', 'fontFamily': 5, 'fontName': 'Excalifont', 'fontHashes': font_hashes, 'unitsPerEm': units, 'advances': advances, 'unknownAdvance': units, 'generator': 'tools/simulatte/vendor-study-layout.py'}
+metrics = {'schema': 'simulatte.studyFontMetrics.v1', 'fontFamily': 6, 'fontName': 'Nunito', 'fontHashes': font_hashes, 'unitsPerEm': units, 'advances': advances, 'unknownAdvance': units, 'generator': 'tools/simulatte/vendor-study-layout.py'}
 (ROOT / 'public/data/system-diagram/study-font-metrics.json').write_text(json.dumps(metrics, indent=2, sort_keys=True) + '\n')
-print('Pinned ELK 0.12.0; derived', len(advances), 'Excalifont glyph advances')
+print('Pinned ELK 0.12.0; derived', len(advances), 'Nunito glyph advances')

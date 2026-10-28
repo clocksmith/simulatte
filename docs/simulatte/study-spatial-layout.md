@@ -4,7 +4,7 @@ Owner: [study workspace](../../public/simulatte/system-diagram/study/CATSCAN.md)
 
 The workspace at `/lucyd` projects the exact authored stage graph. Geometry is a presentation result, not an edit to the solution or its contracts. Old physical entrypoint URLs remain compatible.
 
-[Spatial policy](../../public/data/system-diagram/spatial-policy.json) governs dimensions, clearance, routing costs and search limits. [Font metrics](../../public/data/system-diagram/study-font-metrics.json) derive from the vendored Excalifont subsets. Unknown glyphs reserve one em; the browser audit separately checks restored text bounds.
+[Spatial policy](../../public/data/system-diagram/spatial-policy.json) governs dimensions, clearance, routing costs and search limits. [Font metrics](../../public/data/system-diagram/study-font-metrics.json) derive from the vendored Nunito subsets. Unknown glyphs reserve one em; the browser audit separately checks restored text bounds.
 
 ## Composition
 
@@ -30,3 +30,5 @@ LUCYD_PLAYWRIGHT_MODULE=/path/to/playwright node tools/simulatte/audit-study-spa
 The source audit covers every authored stage and each individually collapsed subsystem. Its receipt hashes documents, policy, font metrics and geometry implementation. World deployment refuses stale or failing spatial proof; it does not rerun the campaign for unchanged inputs. The browser audit independently checks restored Excalidraw geometry and text bounds after real stage navigation. These are bounded machine checks, not a substitute for reviewing screenshots or proof of readability on every physical device.
 
 The two new authored problem sets are L006 Saved-search email digests and L008 Recurring subscription payments. Each has two eight-stage approaches, explicit API/message shapes, state ownership, pseudocode, tradeoffs, technical background citations and acceptance scenarios. Their reference tests exercise bounded state transitions, not a real mail provider, payment processor or distributed deployment.
+
+Default node/label sizes are 18/16px, with a minimum automatic reading zoom of 0.85. Text bypasses the upstream nearest-neighbor element bitmap cache and draws into the device-resolution canvas. Other element caching remains native. The workspace uses normal canvas image resampling instead of CSS pixelated scaling.

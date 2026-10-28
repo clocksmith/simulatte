@@ -21,7 +21,7 @@ Observed by scripted mouse, keyboard and emulated touch input; rows cite [the au
 
 ## 2. Integration requirements (this page, pinned to 0.17.6)
 
-- Load the vendored build and its fonts from `vendor/`; nothing from a CDN. Load Virgil before the first stage: 0.17.6 refreshes only unbound text when fonts arrive.
+- Load the vendored build and its fonts from `vendor/`; nothing from a CDN. Load Nunito before measuring and drawing the first stage. It is the default for authored diagrams and new text.
 - Each stage is drawn fresh from its authored graph with stable element ids (`study:n:<node>`, `study:e:<edge>`, `study:b:<boundary>`). Learner edits are stored as an overlay: field patches to authored elements, removed ids, the learner's own elements and their image files. Text size and bound-text position are engine-derived and never stored as edits.
 - Stage navigation replaces the scene without an undo step and clears engine history, so undo never reaches another stage. Edits persist in the overlay.
 - Keys typed in study controls (pickers, stepper, sidebar) stop at those controls; dialogs sit outside the canvas container.
@@ -39,3 +39,5 @@ Observed by scripted mouse, keyboard and emulated touch input; rows cite [the au
 - Workspace files (`simulatte.studyWorkspace.v1`) hold the untouched document, overlays keyed by approach and stage, view settings and any unknown fields. Imports validate fully before replacing work. Browser autosave reports success or failure; export is the durable copy.
 
 Stage navigation: Page Down advances and Page Up goes back within the selected approach. The buttons show PgUp/PgDn hints on desktop and tooltips include Mac laptop Fn+arrow equivalents. Typing, open dialogs, active drawing gestures and modified key combinations retain their native behavior.
+
+Problem and approach selections always start at stage 1, while retaining independent edits. Explicit stage links and imported workspace views remain exact. Study mode toggles a centered guide containing every stage title and the current rationale. Notes defaults to a viewport-bounded 480px panel with high-contrast tabs and body text.

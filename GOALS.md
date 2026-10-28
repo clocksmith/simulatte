@@ -77,7 +77,10 @@ display, with Lucyd branding and compact study controls. Keep drawing changes to
 verified compatibility fixes rather than rebuilding the canvas experience. Serve it
 canonically at `/lucyd`, with the newer native font picker. Generate deterministic
 compound layouts and obstacle-routed arrows; reject overlapping authored geometry
-before publication. Keep text readable while focusing each stage’s changes.
+before publication. Default diagrams and new text to Nunito and rasterize text at
+display resolution. Diagram selection starts at stage one. Study mode offers a
+centered sequence guide; Notes opens a wider, high-contrast panel on demand.
+Keep text readable while focusing each stage’s changes.
 Give authored problems permanent L-number references in the chooser, brief and
 shareable URL. Reordering or removing problems never renumbers or reuses IDs.
 

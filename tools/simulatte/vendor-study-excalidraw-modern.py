@@ -82,9 +82,13 @@ for member in archive.getmembers():
     start=text.index('name:"'+action+'"');end=text.index('PanelComponent:',start);snippet=text[start:end]
     if snippet.count('&&!e.shiftKey&&e.code')!=1:raise RuntimeError('Re-review upstream layer shortcut '+action)
     text=text[:start]+snippet.replace('&&!e.shiftKey&&e.code','&&!e.shiftKey&&!e.altKey&&e.code')+text[end:]
+  if relative=='chunk-K2UTITRG.js':
+   old='if(he.generateElementShape(e,i),i.isExporting){'
+   if text.count(old)!=1:raise RuntimeError('Re-review upstream text rasterization boundary')
+   text=text.replace(old,'if(he.generateElementShape(e,i),i.isExporting||e.type==="text"){')
   data=text.encode()
  target=OUT/relative;target.parent.mkdir(parents=True,exist_ok=True);target.write_bytes(data)
- records.append({'path':relative,'source':ARCHIVE+'#'+member.name,'sourceSha256':sha(original),'sha256':sha(data),'change':('Bare module specifiers are rewritten; two single-step layer shortcuts reject Alt to preserve native front/back shortcuts.' if relative=='index.js' else 'Only bare module specifiers are rewritten.') if original!=data else 'Unmodified published asset.'})
+ records.append({'path':relative,'source':ARCHIVE+'#'+member.name,'sourceSha256':sha(original),'sha256':sha(data),'change':('Bare module specifiers are rewritten; two single-step layer shortcuts reject Alt to preserve native front/back shortcuts.' if relative=='index.js' else ('Bare module specifiers are rewritten; text draws directly at display resolution instead of resampling cached bitmaps.' if relative=='chunk-K2UTITRG.js' else 'Only bare module specifiers are rewritten.')) if original!=data else 'Unmodified published asset.'})
 # All modules share the existing, pinned React18.2 UMD instance.
 react=['Children','Component','Fragment','Profiler','PureComponent','StrictMode','Suspense','__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED','cloneElement','createContext','createElement','createFactory','createRef','forwardRef','isValidElement','lazy','memo','startTransition','unstable_act','useCallback','useContext','useDebugValue','useDeferredValue','useEffect','useId','useImperativeHandle','useInsertionEffect','useLayoutEffect','useMemo','useReducer','useRef','useState','useSyncExternalStore','useTransition','version']
 dom=['__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED','createPortal','createRoot','findDOMNode','flushSync','hydrate','hydrateRoot','render','unmountComponentAtNode','unstable_batchedUpdates','unstable_renderSubtreeIntoContainer','version']
@@ -97,6 +101,7 @@ jsx=download(jsx_url)
 records.append({'path':'jsx-runtime.js','source':jsx_url,'sourceSha256':sha(jsx),'sha256':sha((OUT/'jsx-runtime.js').read_bytes()),'change':'Static module adapter around upstream production JSX runtime.'})
 for name in ['react.js','react-dom.js']:records.append({'path':name,'source':'local adapter to vendored React18.2.0 UMD','sha256':sha((OUT/name).read_bytes()),'change':'Named ESM exports of existing React globals; no second React instance.'})
 receipt={'schema':'simulatte.vendoredBrowserModules.v1','package':'@excalidraw/excalidraw','version':VERSION,'archive':{'url':ARCHIVE,'sha512':INTEGRITY},'generator':'tools/simulatte/vendor-study-excalidraw-modern.py','react':'18.2.0, shared UMD globals','runtimeNetwork':'Same-origin only. Upstream CDN fallbacks are disallowed by the browser audit.','compatibilityPatches':[{'id':'layer-shortcut-modifier-priority','asset':'index.js','actions':['sendBackward','bringForward'],'upstreamSource':'https://github.com/excalidraw/excalidraw/blob/v0.18.1/packages/excalidraw/actions/actionZindex.tsx','reason':'Single-step actions must not shadow native Alt/Option front/back actions.'}],'files':sorted(records,key=lambda r:r['path'])}
+receipt['compatibilityPatches'].append({'id':'direct-text-rasterization','asset':'chunk-K2UTITRG.js','upstreamSource':'https://github.com/excalidraw/excalidraw/blob/v0.18.1/packages/excalidraw/renderer/renderElement.ts','reason':'Text bypasses nearest-neighbor cached bitmap resampling and draws at the canvas device-pixel ratio and current zoom; shapes and images retain upstream caching.'})
 (OUT/'versions.json').write_text(json.dumps(receipt,indent=2,sort_keys=True)+'\n')
 print(json.dumps({'version':VERSION,'files':len(records),'dependencies':len(visited),'directory':str(OUT.relative_to(ROOT))}))
 

@@ -3,7 +3,7 @@
   "version": 1,
   "seed": 1,
   "node": {
-    "fontSize": 16,
+    "fontSize": 18,
     "labelWidth": 190,
     "minWidth": 230,
     "minHeight": 92,
@@ -18,7 +18,7 @@
     "nodeGap": 100,
     "layerGap": 160,
     "aspectRatio": 1.6,
-    "minimumReadingZoom": 0.7
+    "minimumReadingZoom": 0.85
   },
   "routing": {
     "clearance": 18,
@@ -30,10 +30,10 @@
     "maxSearchStates": 60000
   },
   "label": {
-    "fontSize": 14,
+    "fontSize": 16,
     "maxWidth": 112,
     "padding": 4,
-    "lineHeight": 1.25
+    "lineHeight": 1.35
   },
   "limits": {
     "maxNodes": 100,

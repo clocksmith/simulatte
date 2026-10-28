@@ -4,43 +4,44 @@ Parent: [Lucyd](../CATSCAN.md)
 
 ## Target
 
-Study authored system-design solutions stage by stage on an open Excalidraw canvas, drawing freely while the authored progression stays intact.
+Study authored solutions stage by stage on an editable Excalidraw canvas.
 
 ## Authority
 
-- Owns the workspace page, stage projection onto the canvas, per-stage learner overlays, typed-connection choices, browser autosave and workspace import/export.
-- Does not own authored solutions; the composable study contract and its content owners do.
-- Keeps Excalidraw's native drawing UI and gestures; the pinned 0.18.1 build owns behavior, with reproducible compatibility patches recorded in `vendor/modern/versions.json`.
+- Owns page controls, stage projection, learner overlays, autosave and import/export.
+- Does not own authored solutions; the composable contract does.
+- Pinned Excalidraw 0.18.1 owns native gestures; patches are recorded in `vendor/modern/versions.json`.
 
 ## Scope
 
-This directory, served canonically at `/lucyd`; physical entrypoint links remain compatible.
+This directory, canonical route `/lucyd`; legacy entrypoints remain compatible.
 
 ## Contracts
 
-- Input: [composable study contract](../../../../docs/simulatte/composable-study-contract.md) documents listed in the [manifest](../../../data/system-diagram/composable-solutions/manifest.json).
-- Output: `simulatte.studyWorkspace.v1` files from [workspace-store.js](workspace-store.js); behavior in the [workspace specification](../../../../docs/simulatte/study-workspace-spec.md).
+- Input: [composable contract](../../../../docs/simulatte/composable-study-contract.md), [catalogue](../../../data/system-diagram/composable-solutions/manifest.json).
+- Output: `simulatte.studyWorkspace.v1` in [workspace-store.js](workspace-store.js); [workspace specification](../../../../docs/simulatte/study-workspace-spec.md).
 
 ## Invariants
 
-- Replay matches the contract validator exactly; mismatched stage graphs are refused, never repaired.
-- Authored documents are never edited. Learner changes live only in the overlay of the stage where they were made.
-- Navigation never enters undo history; undo never crosses a stage.
-- Every authored stage has deterministic compound layout, obstacle-routed connections and checked text clearance. Spatial layout never changes graph meaning.
-- Drawn arrows become typed connections only through matching ports.
-- Imports validate before replacing anything, name the failing location and keep unknown fields.
-- Page Up/Down step within an approach only outside typing, dialogs and active gestures.
-- Study controls never trigger canvas shortcuts. Open canvas; notes open on demand.
+- Replay exactly matches the validator; refuse mismatched graphs.
+- Never edit authored documents. Keep learner overlays independently per stage.
+- Navigation never enters undo history; undo never crosses stages.
+- Diagram selection starts at stage one; explicit deep links and imported workspace views retain their requested stage.
+- Nunito is the default. Measure its real advances; draw text at display resolution.
+- Compound layouts, routes and text clearance are deterministic and checked; geometry never changes meaning.
+- Only matching ports create typed connections.
+- Validate imports before replacement; retain unknown fields and current work on failure.
+- Page Up/Down navigate outside typing, dialogs and active gestures.
+- Study mode toggles a centered sequence guide. Notes open on demand, viewport-bounded at 480px with readable contrast.
+- Study controls never trigger canvas shortcuts.
 
 ## Acceptance
 
-- Evidence: [workspace tests](../../../../tests/study-workspace.test.cjs) and the [gesture audit](../../../../tools/simulatte/audit-study-workspace.cjs) recorded in [acceptance](../../../../docs/simulatte/study-workspace-acceptance.md).
-- Spatial evidence: [composition policy and audits](../../../../docs/simulatte/study-spatial-layout.md).
-- Emulated touch is not physical-device proof.
+- Evidence: [Workspace tests](../../../../tests/study-workspace.test.cjs), [gesture audit](../../../../tools/simulatte/audit-study-workspace.cjs), [reading audit](../../../../tools/simulatte/audit-study-reading.cjs), [spatial policy](../../../../docs/simulatte/study-spatial-layout.md), and [acceptance receipts](../../../../docs/simulatte/study-workspace-acceptance.md). Emulated touch is not physical-device proof.
 
 ## Non-goals
 
-Executing or proving the architectures, generating solution content, real-time collaboration, or replacing the simulation editor.
+Architecture execution/proof, content generation, collaboration, or replacing the simulation editor.
 
 ## Freedom
 

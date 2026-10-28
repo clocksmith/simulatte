@@ -8,7 +8,7 @@ The existing `/system-diagram` simulator is a separate surface and is not judged
 
 ## Resolved boundary
 
-The first review found an unfinished scaffold (`study.html` loading two missing scripts), a parser without `reconnect`, whole-approach edits and permanent side columns. That scaffold was removed. The workspace now embeds the vendored Excalidraw 0.17.6 canvas with floating controls and an on-demand study sidebar. Its adapter replays every contract operation, including v2 `rebind` and replacement labels, identically to the validator. Learner edits live in per-stage overlays of a `simulatte.studyWorkspace.v1` envelope; the authored document is never modified.
+The first review found an unfinished scaffold (`study.html` loading two missing scripts), a parser without `reconnect`, whole-approach edits and permanent side columns. That scaffold was removed. That release embedded the vendored Excalidraw 0.17.6 canvas with floating controls and an on-demand study sidebar. Its adapter replays every contract operation, including v2 `rebind` and replacement labels, identically to the validator. Learner edits live in per-stage overlays of a `simulatte.studyWorkspace.v1` envelope; the authored document is never modified.
 
 Latest full baseline: `LUCYD_PLAYWRIGHT_MODULE=… node tools/simulatte/audit-study-workspace.cjs` wrote [workspace-acceptance.json](../../artifacts/composable-study/workspace-acceptance.json) with 88 of 89 checks passing, using Chromium 143 at 1440x900 and iPhone 13 touch emulation, against all twelve published problems. Source-level checks: `node --test tests/study-workspace.test.cjs` (10 tests).
 
@@ -53,7 +53,7 @@ Current spatial work: [composition contract](study-spatial-layout.md). The sourc
 The study workspace now uses Excalidraw 0.18.1 and its native newer font picker. The [vendor record](study-canvas-vendor.md) describes pinned files, licenses, local dependency imports and the retained shortcut compatibility fix.
 
 - [Source spatial audit](../../artifacts/composable-study/spatial-audit.json): 235 stages, 522 expanded/individually collapsed views; all pass. This is generated geometry evidence.
-- [Browser spatial audit](../../artifacts/composable-study/spatial-browser-audit.json): all 235 stages pass restored element geometry and text-containment checks. The reading zoom is at least 0.7; large diagrams require native panning or explicit Fit all. Perpendicular crossings are recorded separately from overlaps.
+- [Browser spatial audit](../../artifacts/composable-study/spatial-browser-audit.json): all 235 stages pass restored element geometry and text-containment checks. The reading zoom is at least 0.85; large diagrams require native panning or explicit Fit all. Perpendicular crossings are recorded separately from overlaps.
 - [Drawing/editing](../../artifacts/composable-study/workspace-modern-drawing-editing.json): 23/23, including keyboard focus, drawing and advertised layer shortcuts.
 - [Files/touch](../../artifacts/composable-study/workspace-modern-files-touch.json): 19/19, including independent stage edits, undo boundaries, JSON/image round-trips, 2,000 learner elements, pinch and cancellation. Cancellation removes the draft via the newer `newElement` API. The audit pans to off-screen targets and measures drag distances in scene coordinates at the current zoom.
 - [Fonts](../../artifacts/composable-study/modern-fonts.json): 8/8, including native font selection, legacy font IDs and JSON persistence.
@@ -63,3 +63,10 @@ The earlier `workspace-modern-focused*.json` receipts retain the failing upgrade
 Stage keyboard navigation: [shortcut audit](../../artifacts/composable-study/stage-shortcuts.json) passes 8/8 checks for visible hints, next/previous movement, stage boundaries and typing/dialog/gesture guards. Two focused unit tests exercise modifier and state guards. The live font check in [modern-fonts-live.json](../../artifacts/composable-study/modern-fonts-live.json) passes all eight checks and verifies the production engine hash. Font checks await actual font readiness rather than assuming a network download finishes within a fixed delay.
 
 Production verification at `https://simulatte.world/lucyd`: all 235 stages pass the browser spatial audit, and all 8 stage-shortcut checks pass in [stage-shortcuts-live.json](../../artifacts/composable-study/stage-shortcuts-live.json). The [release receipt](../../artifacts/live-release/2026-10-28T00-20-23-220Z/report.json) verifies deployed build `6cbe64d4fa40a3637b140f1d60ffc6e134583925-08d2c07e8d17`. The legacy study URL redirects to `/lucyd` while preserving the query, and `/lucyd` uses `Cache-Control: no-cache`.
+
+
+## Nunito and Study readability
+
+[Reading audit](../../artifacts/composable-study/reading.json): 20/20 checks pass in Chromium with DPR1/light, DPR2/dark and a 390px touch viewport. It verifies Nunito for authored diagrams and new text, direct display-canvas text draws at normal and fractional zoom, backing-store resolution, normal image resampling, contrast, centered stage selection, mode toggling, saved-problem/approach stage-one resets and mobile bounds. Tested tab/supporting-text contrast is at least 7.57:1 light and 8.96:1 dark. Notes defaults to 480px (472px measured content width), bounded by the viewport. The guide moves outside Excalidraw's desktop-only Footer so it also appears on phones.
+
+Explicit deep links and workspace imports retain their requested view. Selecting a problem or approach starts at stage one while preserving edits. The current spatial audits pass all 235 stages and 522 expanded/collapsed views using Nunito metrics and 18/16px node/connection text. These are browser and geometry checks, not physical-device font qualification.

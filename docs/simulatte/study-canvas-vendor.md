@@ -56,3 +56,5 @@ exact workspace JSON round-trip retaining the selected font. That audit covers
 one desktop Chromium; it does not establish physical-device behavior or all
 scripts' glyph coverage. Spatial geometry, drawing gestures and file interaction
 checks have separate receipts.
+
+Lucyd defaults to Nunito for generated diagrams and new text. The `direct-text-rasterization` patch routes text through the native direct drawing path at the display pixel ratio and current zoom, avoiding resampled nearest-neighbor text bitmaps. Shapes and images retain their native caching. The generator records the original and patched renderer hashes.
