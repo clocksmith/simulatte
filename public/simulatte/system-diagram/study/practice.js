@@ -10,7 +10,7 @@
  }
  function beginReview(workspace,solution,stage){const old=entry(workspace,solution,stage);return update(workspace,solution,stage,{answer:'',revealed:false,previousAttempts:[...(old.previousAttempts||[]),{answer:old.answer,rating:old.rating,reviewedAt:old.reviewedAt}].slice(-10)});}
  function due(workspaces,now=Date.now()){
-  return workspaces.flatMap(w=>Object.values(w.practice||{}).filter(p=>p.rating==='shaky'||(p.rating==='solid'&&now-(p.reviewedAt||0)>=7*86400000))).sort((a,b)=>(a.rating==='shaky'?0:1)-(b.rating==='shaky'?0:1)||(a.reviewedAt||0)-(b.reviewedAt||0));
+  const latest=new Map();for(const w of workspaces)for(const p of Object.values(w.practice||{})){const id=p.referenceId+'/'+p.solutionId+'/'+p.stageIndex,old=latest.get(id);if(!old||(p.reviewedAt||0)>(old.reviewedAt||0))latest.set(id,p);}return [...latest.values()].filter(p=>p.rating==='shaky'||(p.rating==='solid'&&now-(p.reviewedAt||0)>=7*86400000)).sort((a,b)=>(a.rating==='shaky'?0:1)-(b.rating==='shaky'?0:1)||(a.reviewedAt||0)-(b.reviewedAt||0));
  }
  function hidden(workspace,solution,stage,enabled){return !!(enabled&&stage&&!entry(workspace,solution,stage).revealed);}
  function Panel({workspace,solution,stageIndex,onPatch,onCompare,onOpen,reviewItems}){

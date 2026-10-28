@@ -9,6 +9,8 @@
   const {Excalidraw, MainMenu, Footer, Sidebar} = X;
   const DATA = new URL('../../../data/system-diagram/', document.baseURI);
   const STUDY_KEY='simulatte.studyMode.v1';
+  const comparison=new URLSearchParams(root.location.search).get('compare');
+  const workspaceKey=ref=>Store.storageKey(ref)+(comparison?'::compare:'+comparison:'');
   const Theme=root.SimulatteStudyTheme;
   const THEME_KEY = 'simulatte.theme.v1', SIDEBAR = 'study', CONNECTED = '#1971c2';
   const TABS = [['practice','Practice'], ['stage', 'Stage'], ['inspect', 'Inspect'], ['approach', 'Approach'], ['problem', 'Problem'], ['file', 'File']];
@@ -78,7 +80,7 @@
       clearTimeout(timers.current.save);
       timers.current.save = setTimeout(() => {
         const current = wsRef.current; if (!current) return;
-        try { storage.set(Store.storageKey(current.document.problem.referenceId), Store.serialize(current)); setSaveStatus(`Saved in this browser at ${clock()}`); }
+        try { storage.set(workspaceKey(current.document.problem.referenceId), Store.serialize(current)); setSaveStatus(`Saved in ${comparison?"this comparison window":"this browser"} at ${clock()}`); }
         catch (error) { setSaveStatus(`Not saved in this browser (${error.message}). Export to keep your work.`); }
       }, 300);
     }, []);
@@ -147,16 +149,16 @@
     // response can never undo navigation or a later choice made while it was in flight.
     const openProblem = useCallback(async (referenceId, view = {}) => {
       const load = ++loadRef.current;
-      if (wsRef.current) { capture(); clearTimeout(timers.current.save); try { storage.set(Store.storageKey(wsRef.current.document.problem.referenceId), Store.serialize(wsRef.current)); } catch { /* reported on next save */ } }
+      if (wsRef.current) { capture(); clearTimeout(timers.current.save); try { storage.set(workspaceKey(wsRef.current.document.problem.referenceId), Store.serialize(wsRef.current)); } catch { /* reported on next save */ } }
       const item = catalogueRef.current.find(c => c.referenceId === referenceId);
       try {
-        if(!item?.path && storage.get(Store.storageKey(referenceId))){const next=Store.parse(storage.get(Store.storageKey(referenceId))).workspace;await Spatial.prepare(next.document);if(load!==loadRef.current)return;setWs(next);render(next,{fit:true});return;}
+        if(!item?.path && storage.get(workspaceKey(referenceId))){const next=Store.parse(storage.get(workspaceKey(referenceId))).workspace;await Spatial.prepare(next.document);if(load!==loadRef.current)return;setWs(next);render(next,{fit:true});return;}
         if (!item?.path) throw Error(`${referenceId} is not in the study catalogue`);
         const published = Study.parse(await fetchText(new URL(`composable-solutions/${item.path}`, DATA)));
         if (load !== loadRef.current) return;
         publishedRef.current.set(referenceId, published);
         let next = null, status = 'Published solution loaded. Your edits will be saved in this browser.';
-        const saved = storage.get(Store.storageKey(referenceId));
+        const saved = storage.get(workspaceKey(referenceId))||(comparison?storage.get(Store.storageKey(referenceId)):null);
         if (saved) {
           try { next = Store.parse(saved).workspace; status = 'Restored your saved workspace from this browser.'; }
           catch (error) { status = `Your saved workspace could not be read (${error.message}); showing the published version.`; }
@@ -351,7 +353,7 @@
     const concealed=ws&&solution?Practice.hidden(ws,solution,solution.stages[stageIndex],answerFirst):false;
     const panel = tab => {
       if (!ws || !solution) return h('p', {className: 'sw-muted'}, 'Loading study…');
-      if(tab==='practice')return h(Practice.Panel,{workspace:ws,solution,stageIndex,onPatch:patchPractice,reviewItems:reviewItems(),onOpen:async item=>{await openProblem(item.referenceId,{approach:item.solutionId,stage:item.stageIndex+1});const current=wsRef.current,sol=solutionOf(current);if(current.document.problem.referenceId!==item.referenceId||sol.id!==item.solutionId)return;setWs(Practice.beginReview(current,sol,sol.stages[current.view.stageIndex]));save();enablePractice();},onCompare:id=>{const other=ws.document.solutions.find(s=>s.id===id),q=new URLSearchParams({problem:ws.document.problem.referenceId,approach:id,stage:String(Math.min(stageIndex+1,other.stages.length))});root.open('/lucyd?'+q,'lucyd-compare-'+id,'popup,width='+Math.floor(screen.availWidth/2)+',height='+screen.availHeight+',left='+Math.floor(screen.availWidth/2));}});
+      if(tab==='practice')return h(Practice.Panel,{workspace:ws,solution,stageIndex,onPatch:patchPractice,reviewItems:reviewItems(),onOpen:async item=>{await openProblem(item.referenceId,{approach:item.solutionId,stage:item.stageIndex+1});const current=wsRef.current,sol=solutionOf(current);if(current.document.problem.referenceId!==item.referenceId||sol.id!==item.solutionId)return;setWs(Practice.beginReview(current,sol,sol.stages[current.view.stageIndex]));save();enablePractice();},onCompare:id=>{const other=ws.document.solutions.find(s=>s.id===id),q=new URLSearchParams({problem:ws.document.problem.referenceId,approach:id,stage:String(Math.min(stageIndex+1,other.stages.length)),compare:id});root.open('/lucyd?'+q,'lucyd-compare-'+id,'popup,width='+Math.floor(screen.availWidth/2)+',height='+screen.availHeight+',left='+Math.floor(screen.availWidth/2));}});
       if (tab === 'stage') return [h('div', {key: 'p', className: 'sw-sidebar-controls'}, pickers, h('div', {className: 'sw-mobile-only'}, stepper)), h(P.StagePanel, {key: 's',concealed,solution, stageIndex, built, edited, onReset: resetStage, showRemoved: ws.view.showRemoved, onToggleRemoved: v => navigate({showRemoved: v}), followups})];
       if (tab === 'inspect') return h(P.InspectPanel, {info, onToggleCollapse: () => toggleCollapse(info.node.id), onConnect: connect, onDisconnect: disconnect});
       if (tab === 'approach') return h(P.ApproachPanel, {solution});
