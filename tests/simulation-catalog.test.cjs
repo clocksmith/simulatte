@@ -35,7 +35,7 @@ test('every catalog entry has safe SVG line art and appears in the gallery', asy
   const launch = html.split('<!-- SIMULATION_CATALOG_START -->')[1].split('<!-- SIMULATION_CATALOG_END -->')[0];
   assert.doesNotMatch(launch, /simulation-catalog|gallery-controls|catalog-entry|aria-roledescription="carousel"/);
   for (const page of catalog.pages) {
-    assert.equal(launch.split(`<h2 class="preview-heading">${page.displayName} `).length - 1, 1);
+    assert.equal(launch.split(`<h2 class="preview-heading">${page.launchName || page.displayName} `).length - 1, 1);
     if (page.limitations) assert.ok(launch.includes(page.limitations));
   }
   assert.doesNotMatch(gallery, /<img|<script|<image|<foreignObject/i);
@@ -46,7 +46,7 @@ test('every catalog entry has safe SVG line art and appears in the gallery', asy
     const art=fs.readFileSync(path.join(root, 'public', page.previewAsset), 'utf8');
     assert.match(art, /viewBox="0 0 720 680"/);
     assert.doesNotMatch(art, /<(?:script|image|foreignObject)\b|\bon\w+\s*=|(?:href|src)\s*=\s*["'](?!#)/i);
-    assert.ok(gallery.includes(`href=".${page.path}" aria-label="Open ${page.displayName}"`));
+    assert.ok(gallery.includes(`href=".${page.launchPath || page.path}" aria-label="Open ${page.launchName || page.displayName}"`));
     assert.ok(gallery.includes(art.trim()));
   }
   assert.match(gallery, /class="launch-bike" transform="translate\(295 310\)"/);
@@ -76,6 +76,7 @@ test('System Diagram Simulator is a declared executable catalog/profile route wi
   const html = fs.readFileSync(path.join(root, 'public', page.entry), 'utf8');
   assert.match(html, /<base href="\/simulatte\/system-diagram\/">/);
   const home = fs.readFileSync(path.join(root, 'public/index.html'), 'utf8');
-  assert.equal((home.match(/aria-label="Open System Diagram Simulator"/g) || []).length, 1);
+  assert.equal((home.match(/href="\.\/lucyd" aria-label="Open Lucyd"/g) || []).length, 1);
+  assert.doesNotMatch(home, /href="\.\/system-diagram"/);
   assert.doesNotMatch(home, /aria-label="World workbench"/);
 });

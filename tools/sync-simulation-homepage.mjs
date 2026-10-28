@@ -7,13 +7,14 @@ const path = fileURLToPath(new URL('../public/index.html', import.meta.url));
 const escape = text => String(text).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const states = { available: 'Available', experimental: 'Experimental', 'in-development': 'In development' };
 const preview = page => {
+  const launchPath = page.launchPath || page.path, launchName = page.launchName || page.displayName;
   if (!page.previewAsset?.endsWith('.svg')) throw new Error('SVG illustration missing: ' + page.path);
   const art = fs.readFileSync(fileURLToPath(new URL('../public' + page.previewAsset, import.meta.url)), 'utf8').trim();
   if (!/^<svg\b/.test(art) || /<(?:script|image|foreignObject)\b|\bon\w+\s*=|(?:href|src)\s*=\s*["'](?!#)/i.test(art)) throw new Error('Unsafe illustration: ' + page.path);
-  return `<a class="launch-link simulation-preview" href=".${escape(page.path)}" aria-label="Open ${escape(page.displayName)}">
+  return `<a class="launch-link simulation-preview" href=".${escape(launchPath)}" aria-label="Open ${escape(launchName)}">
         ${art}
         <div class="preview-copy">
-          <h2 class="preview-heading">${escape(page.displayName)} <span aria-hidden="true">↗</span></h2>
+          <h2 class="preview-heading">${escape(launchName)} <span aria-hidden="true">↗</span></h2>
           <p class="preview-description">${escape(page.description)}</p>
           <span class="catalog-state">${states[page.readiness]}</span>${page.limitations ? `\n          <p class="catalog-limit">${escape(page.limitations)}</p>` : ''}
         </div>

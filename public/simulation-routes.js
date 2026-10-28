@@ -6,6 +6,8 @@
   const pages=Object.freeze([
 {
   "path": "/system-diagram",
+  "launchPath": "/lucyd",
+  "launchName": "Lucyd",
   "tier": "datacenter",
   "profile": "system-diagram-v1",
   "profilePath": "/data/system-diagram/profile.json",
