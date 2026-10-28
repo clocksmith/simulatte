@@ -41,7 +41,7 @@ Every row needs a recorded action and observed result. A button, source function
 
 - The Option-layer shortcut conflict is fixed and verified by scripted browser input. Physical keyboard/layout variants remain unverified.
 - Excalidraw's image tool opens the File System Access picker, which scripted Chromium cannot answer; images were verified by dropping a PNG file.
-- Layout follows authored positions. Some authored layouts cross connectors over components; graph validation makes no visual-quality claim.
+- Authored geometry now has separate spatial and browser checks below. Learner edits can change that geometry; graph validation alone makes no visual-quality claim.
 - No physical touch device, screen-reader or performance-campaign evidence.
 
 The contract/content owner maintains solution data and cross-checks.
@@ -72,3 +72,13 @@ Production verification at `https://simulatte.world/lucyd`: all 235 stages pass 
 Explicit deep links and workspace imports retain their requested view. Selecting a problem or approach starts at stage one while preserving edits. The current spatial audits pass all 235 stages and 522 expanded/collapsed views using Nunito metrics and 18/16px node/connection text. These are browser and geometry checks, not physical-device font qualification.
 
 Production reading check: [reading-live.json](../../artifacts/composable-study/reading-live.json) passes all 20 checks against `/lucyd`, including direct Nunito drawing at fractional zoom, both display scales, both theme contrasts, stage-one selection resets, the guide and mobile layout. [Release identity](../../artifacts/live-release/2026-10-28T00-51-56-243Z/report.json) verifies build `31534f345b00590360dc24957bf9bbca5f53bdbe-f169ef1bf86d`.
+
+## Complete eight-batch catalogue integration
+
+The current catalogue contains 46 problems, 92 approaches and 747 stages. [Patch intake](../../artifacts/composable-study/patch-intake.json) records the archive hash, all eight applied batch commits, 67 verified archive members, the forward integration path and Downloads cleanup. The generated catalogue retains the newer Nunito metrics rather than replacing them with historical package receipts.
+
+[Source geometry](../../artifacts/composable-study/spatial-audit.json) passes all 747 stages and 1,392 expanded/individually collapsed views. Dense URL-counting labels use deterministic detours without smaller text or omitted edges. The checker now also rejects self-crossing paths. Source and browser campaigns refuse receipts if their input hashes change during execution.
+
+[Contract and reference audit](../../artifacts/composable-study/audit.json) passes 33 contract tests and 100 bounded reference-model tests. The CachedFile correction leases a block before asynchronous publication, closing the completion/eviction pinning gap. These tests do not establish production concurrency, database durability, or cloud capacity. The eight batch integration test files pass 25 checks; the focused routing regression passes six tests when run with batch 03.
+
+[Browser geometry audit](../../artifacts/composable-study/spatial-browser-audit.json) passes all 747 stages against the current source and font metrics, with zero page/HTTP/checker errors. Dense L022 final-stage screenshots were inspected at reading zoom and Fit all. Large architectures still need panning at reading zoom; perpendicular crossings are reported separately and are not junctions.

@@ -7,7 +7,7 @@
   for(let i=0;i<shapes.length;i++)for(let j=i+1;j<shapes.length;j++){const [a,s]=shapes[i],[b,t]=shapes[j];if(!ancestor(a,b)&&!ancestor(b,a)&&R.overlap(s.r,t.r,2))errors.push({kind:'node-overlap',ids:[a,b]});}
   const leaf=shapes.filter(([,s])=>s.mode!=='boundary');
   const headers=shapes.filter(([,s])=>s.mode==='boundary').map(([id,s])=>({id,x:s.r.x,y:s.r.y,w:s.r.w,h:Layout.policy.boundary.header}));
-  for(const route of routes){for(const header of headers){if(R.overlap(route.label,header,2))errors.push({kind:'label-header-overlap',ids:[route.id,header.id]});if(R.segments(route.points).some(([a,b])=>R.segmentHits(a,b,header)))errors.push({kind:'edge-through-header',ids:[route.id,header.id]});}
+  for(const route of routes){if(R.selfIntersects(route.points))errors.push({kind:'self-crossing-edge',ids:[route.id]});for(const header of headers){if(R.overlap(route.label,header,2))errors.push({kind:'label-header-overlap',ids:[route.id,header.id]});if(R.segments(route.points).some(([a,b])=>R.segmentHits(a,b,header)))errors.push({kind:'edge-through-header',ids:[route.id,header.id]});}
    for(const [id,s]of leaf){if(id!==route.source&&id!==route.target&&R.segments(route.points).some(([a,b])=>R.segmentHits(a,b,R.inflate(s.r,4))))errors.push({kind:'edge-through-node',ids:[route.id,id]});if(R.overlap(route.label,s.r,4))errors.push({kind:'label-node-overlap',ids:[route.id,id]});}
    for(const [a,b]of R.segments(route.points))if(a[0]!==b[0]&&a[1]!==b[1])errors.push({kind:'non-orthogonal-edge',ids:[route.id]});
   }

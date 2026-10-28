@@ -1,5 +1,6 @@
 (function(root,factory){const node=typeof module==='object'&&module.exports;const api=factory(node?require('./spatial-layout.js'):root.SimulatteSpatialLayout,node?require('./spatial-text.js'):root.SimulatteSpatialText);if(node)module.exports=api;else root.SimulatteSpatialRouting=api;})(globalThis,function(Layout,Text){
  'use strict';
+ class RoutingFailure extends Error {}
  const overlap=(a,b,p=0)=>a.x<b.x+b.w+p&&b.x<a.x+a.w+p&&a.y<b.y+b.h+p&&b.y<a.y+a.h+p;
  const inflate=(r,p)=>({x:r.x-p,y:r.y-p,w:r.w+2*p,h:r.h+2*p});
  const center=r=>[r.x+r.w/2,r.y+r.h/2];
@@ -7,6 +8,7 @@
  function relation(a,b,c,d,inclusive=false){const h=a[1]===b[1],k=c[1]===d[1];if(h===k){if((h?a[1]!==c[1]:a[0]!==c[0]))return 0;const axis=h?0:1;return Math.min(Math.max(a[axis],b[axis]),Math.max(c[axis],d[axis]))-Math.max(Math.min(a[axis],b[axis]),Math.min(c[axis],d[axis]))>0?2:0;}const [p,q,r,s]=h?[a,b,c,d]:[c,d,a,b];return (inclusive?r[0]>=Math.min(p[0],q[0])&&r[0]<=Math.max(p[0],q[0])&&p[1]>=Math.min(r[1],s[1])&&p[1]<=Math.max(r[1],s[1]):r[0]>Math.min(p[0],q[0])&&r[0]<Math.max(p[0],q[0])&&p[1]>Math.min(r[1],s[1])&&p[1]<Math.max(r[1],s[1]))?1:0;}
  const segments=points=>points.slice(1).map((p,i)=>[points[i],p]);
  function simplify(points){points=points.filter((p,i)=>!i||p[0]!==points[i-1][0]||p[1]!==points[i-1][1]);return points.filter((p,i)=>!i||i===points.length-1||!((points[i-1][0]===p[0]&&p[0]===points[i+1][0])||(points[i-1][1]===p[1]&&p[1]===points[i+1][1])));}
+ function selfIntersects(points){const ss=segments(simplify(points));for(let i=0;i<ss.length;i++)for(let j=i+2;j<ss.length;j++)if(relation(...ss[i],...ss[j]))return true;return false;}
  class Heap{constructor(){this.a=[];}push(v){const a=this.a;let i=a.length;a.push(v);while(i){const p=(i-1)>>1;if(a[p].f<=v.f)break;a[i]=a[p];i=p;}a[i]=v;}pop(){const a=this.a,top=a[0],last=a.pop();if(a.length){let i=0;while(i*2+1<a.length){let j=i*2+1;if(j+1<a.length&&a[j+1].f<a[j].f)j++;if(a[j].f>=last.f)break;a[i]=a[j];i=j;}a[i]=last;}return top;}}
  function path(start,end,obstacles,prior,extra=[]){
   const p=Layout.policy.routing,xs=new Set([start[0],end[0]]),ys=new Set([start[1],end[1]]);
@@ -18,7 +20,7 @@
   const ix=X.indexOf(start[0]),iy=Y.indexOf(start[1]),tx=X.indexOf(end[0]),ty=Y.indexOf(end[1]);
   const key=(x,y,d)=>(y*X.length+x)*3+d,heap=new Heap(),best=new Map(),previous=new Map(),coords=new Map(),allSegments=prior.flatMap(segments);
   const first=key(ix,iy,0);heap.push({x:ix,y:iy,d:0,g:0,f:0,k:first});best.set(first,0);let visited=0,found;
-  while(heap.a.length){const n=heap.pop();if(n.g!==best.get(n.k))continue;if(++visited>p.maxSearchStates)throw Error('Spatial routing search limit exceeded');if(n.x===tx&&n.y===ty){found=n;break;}
+  while(heap.a.length){const n=heap.pop();if(n.g!==best.get(n.k))continue;if(++visited>p.maxSearchStates)throw new RoutingFailure('Spatial routing search limit exceeded');if(n.x===tx&&n.y===ty){found=n;break;}
    const a=[X[n.x],Y[n.y]];
    for(const [dx,dy,d]of [[1,0,1],[0,1,2],[-1,0,1],[0,-1,2]]){const x=n.x+dx,y=n.y+dy;if(x<0||y<0||x>=X.length||y>=Y.length)continue;const b=[X[x],Y[y]];
     if(obstacles.some(r=>segmentHits(a,b,r)))continue;
@@ -27,7 +29,7 @@
     if(g>=(best.get(k)??Infinity))continue;best.set(k,g);previous.set(k,n.k);coords.set(k,b);heap.push({x,y,d,g,f:g+Math.abs(b[0]-end[0])+Math.abs(b[1]-end[1]),k});
    }
   }
-  if(!found)throw Error('No obstacle-free connection route');let k=found.k,out=[];while(k!==first){out.push(coords.get(k));k=previous.get(k);}out.push(start);return simplify(out.reverse());
+  if(!found)throw new RoutingFailure('No obstacle-free connection route');let k=found.k,out=[];while(k!==first){out.push(coords.get(k));k=previous.get(k);}out.push(start);return simplify(out.reverse());
  }
  function project(document,graph,view){
   const subs=new Map(document.subsystems.map(s=>[s.id,s]));
@@ -48,9 +50,17 @@
    function place(ps){for(const [s,t]of segments(ps).sort((a,b)=>Math.hypot(b[1][0]-b[0][0],b[1][1]-b[0][1])-Math.hypot(a[1][0]-a[0][0],a[1][1]-a[0][1]))){for(const f of [.5,.35,.65]){const c=[s[0]+(t[0]-s[0])*f,s[1]+(t[1]-s[1])*f],r={x:c[0]-label.w/2,y:c[1]-label.h/2,w:label.w,h:label.h};if(free(r,ps))return {r,c};}}return null;}
    placement=place(points);
    if(!placement){
-    const maxX=Math.max(...leaf.map(r=>r.x+r.w),...labels.map(r=>r.x+r.w)),minY=Math.min(...leaf.map(r=>r.y));let success=false;
-    for(let attempt=0;attempt<12&&!success;attempt++){const c=[maxX+p.laneGap*(attempt+2)+label.w/2,minY-p.clearance-label.h*(attempt+1)],r={x:c[0]-label.w/2,y:c[1]-label.h/2,w:label.w,h:label.h};if(!free(r))continue;try{const left=[c[0]-label.w/2-8,c[1]],right=[c[0]+label.w/2+8,c[1]],one=path(a.escape,left,obstacles.concat(inflate(r,1)),prior,[left,right]),two=path(right,b.escape,obstacles.concat(inflate(r,1)),prior.concat([one]),[left,right]);points=simplify([...one,right,...two.slice(1)]);placement={r,c};success=true;}catch{}}
-    if(!success)throw Error('No readable label placement for '+plan.id);
+    const candidates=[],seen=new Set(),put=c=>{const key=c.join(',');if(seen.has(key))return;seen.add(key);const r={x:c[0]-label.w/2,y:c[1]-label.h/2,w:label.w,h:label.h};if(free(r))candidates.push({c,r});};
+    // Try nearby empty space before growing the drawing's perimeter. Both directions
+    // through a label corridor are valid; always approaching from the left traps dense graphs.
+    for(const [s,t]of segments(points)){const c=[(s[0]+t[0])/2,(s[1]+t[1])/2];for(const [dx,dy]of [[label.w/2+p.laneGap,0],[-label.w/2-p.laneGap,0],[0,label.h/2+p.laneGap],[0,-label.h/2-p.laneGap]])put([c[0]+dx,c[1]+dy]);}
+    const occupied=leaf.concat(labels),priorPoints=prior.flat(),minX=Math.min(...occupied.map(r=>r.x),...priorPoints.map(q=>q[0])),maxX=Math.max(...occupied.map(r=>r.x+r.w),...priorPoints.map(q=>q[0])),minY=Math.min(...occupied.map(r=>r.y),...priorPoints.map(q=>q[1])),maxY=Math.max(...occupied.map(r=>r.y+r.h),...priorPoints.map(q=>q[1]));
+    for(const gap of [p.laneGap*2,p.laneGap*4])for(const x of [minX-gap-label.w/2,maxX+gap+label.w/2])for(const y of [minY-gap-label.h/2,maxY+gap+label.h/2])put([x,y]);
+    const distance=(s,t)=>Math.abs(s[0]-t[0])+Math.abs(s[1]-t[1]),options=[];
+    for(const candidate of candidates){const {c}=candidate,h=label.h/2+8,w=label.w/2+8;for(const [entry,exit]of [[[c[0]-w,c[1]],[c[0]+w,c[1]]],[[c[0]+w,c[1]],[c[0]-w,c[1]]],[[c[0],c[1]-h],[c[0],c[1]+h]],[[c[0],c[1]+h],[c[0],c[1]-h]]])options.push({...candidate,entry,exit,cost:distance(a.escape,entry)+distance(entry,exit)+distance(exit,b.escape)});}
+    options.sort((a,b)=>a.cost-b.cost);let lastError=null;
+    for(const {r,c,entry,exit}of options.slice(0,p.maxLabelDetours)){try{const blocked=obstacles.concat(inflate(r,1)),one=path(a.escape,entry,blocked,prior,[entry,exit]),two=path(exit,b.escape,blocked,prior.concat([one]),[entry,exit]);const candidate=simplify([...one,exit,...two.slice(1)]);if(selfIntersects([a.point,...candidate,b.point]))continue;points=candidate;placement={r,c};break;}catch(error){if(!(error instanceof RoutingFailure))throw error;lastError=error;}}
+    if(!placement)throw new RoutingFailure('No readable label placement for '+plan.id+(lastError?': '+lastError.message:''));
    }
    labels.push(placement.r);points=simplify([a.point,...points,b.point]);
    // Keep the native bound label at an explicit middle vertex, not at a diagonal midpoint.
@@ -62,5 +72,5 @@
   }
   return routed;
  }
- return {route,project,overlap,segmentHits,segments,relation,inflate};
+ return {route,project,overlap,segmentHits,segments,relation,inflate,selfIntersects};
 });

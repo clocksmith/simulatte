@@ -27,7 +27,8 @@
     "bendCost": 32,
     "crossingCost": 120,
     "sharedSegmentCost": 1000,
-    "maxSearchStates": 60000
+    "maxSearchStates": 60000,
+    "maxLabelDetours": 24
   },
   "label": {
     "fontSize": 16,

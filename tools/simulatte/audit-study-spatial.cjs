@@ -15,7 +15,7 @@ function inputHashes(){
 }
 async function main(){const out=path.join(ROOT,'artifacts/composable-study/spatial-audit.json');
  if(process.argv.includes('--check')){const receipt=JSON.parse(fs.readFileSync(out,'utf8'));if(!receipt.ok||JSON.stringify(receipt.inputHashes)!==JSON.stringify(inputHashes()))throw Error('Spatial proof is stale or failed; run node tools/simulatte/audit-study-spatial.cjs');console.log('Spatial proof is current: '+receipt.stageCount+' stages, '+receipt.variants+' views');return;}
- const manifest=require(path.join(DATA,'manifest.json')),docs=manifest.problems.map(p=>require(path.join(DATA,p.path))),report=await audit(docs);report.inputHashes=inputHashes();fs.mkdirSync(path.dirname(out),{recursive:true});fs.writeFileSync(out,JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify({ok:report.ok,stages:report.stageCount,variants:report.variants,failed:report.rows.filter(r=>!r.ok).length,out}));if(!report.ok)process.exitCode=1;}
+ const inputs=inputHashes(),manifest=require(path.join(DATA,'manifest.json')),docs=manifest.problems.map(p=>require(path.join(DATA,p.path))),report=await audit(docs);if(JSON.stringify(inputs)!==JSON.stringify(inputHashes()))throw Error('Spatial inputs changed during audit; rerun against one immutable input set');report.inputHashes=inputs;fs.mkdirSync(path.dirname(out),{recursive:true});fs.writeFileSync(out,JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify({ok:report.ok,stages:report.stageCount,variants:report.variants,failed:report.rows.filter(r=>!r.ok).length,out}));if(!report.ok)process.exitCode=1;}
 
 if(require.main===module)main().catch(e=>{console.error(e);process.exitCode=1});
 module.exports={audit,inputHashes};

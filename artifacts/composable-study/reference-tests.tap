@@ -1,538 +1,610 @@
 TAP version 13
-# Subtest: workspace epoch and tenant fencing rejects stale proof
-ok 1 - workspace epoch and tenant fencing rejects stale proof
+# Subtest: L012 bounded mechanism
+ok 1 - L012 bounded mechanism
   ---
-  duration_ms: 0.914292
+  duration_ms: 0.82325
+  type: 'test'
+  ...
+# Subtest: L015 bounded mechanism
+ok 2 - L015 bounded mechanism
+  ---
+  duration_ms: 0.7
+  type: 'test'
+  ...
+# Subtest: L017 bounded mechanism
+ok 3 - L017 bounded mechanism
+  ---
+  duration_ms: 0.152041
+  type: 'test'
+  ...
+# Subtest: L020 bounded mechanism
+ok 4 - L020 bounded mechanism
+  ---
+  duration_ms: 0.186125
+  type: 'test'
+  ...
+# Subtest: L018 bounded mechanism
+ok 5 - L018 bounded mechanism
+  ---
+  duration_ms: 1.06975
+  type: 'test'
+  ...
+# Subtest: L021 bounded mechanism
+ok 6 - L021 bounded mechanism
+  ---
+  duration_ms: 0.163667
+  type: 'test'
+  ...
+# Subtest: L027 bounded mechanism
+ok 7 - L027 bounded mechanism
+  ---
+  duration_ms: 1.076541
+  type: 'test'
+  ...
+# Subtest: L031 bounded mechanism
+ok 8 - L031 bounded mechanism
+  ---
+  duration_ms: 4.688
+  type: 'test'
+  ...
+# Subtest: L022 bounded mechanism
+ok 9 - L022 bounded mechanism
+  ---
+  duration_ms: 1.977542
+  type: 'test'
+  ...
+# Subtest: L030 bounded mechanism
+ok 10 - L030 bounded mechanism
+  ---
+  duration_ms: 0.575792
+  type: 'test'
+  ...
+# Subtest: L044 bounded mechanism
+ok 11 - L044 bounded mechanism
+  ---
+  duration_ms: 0.268375
+  type: 'test'
+  ...
+# Subtest: L045 bounded mechanism
+ok 12 - L045 bounded mechanism
+  ---
+  duration_ms: 1.181208
+  type: 'test'
+  ...
+# Subtest: workspace epoch and tenant fencing rejects stale proof
+ok 13 - workspace epoch and tenant fencing rejects stale proof
+  ---
+  duration_ms: 0.873583
   type: 'test'
   ...
 # Subtest: manifest publication waits for committed partition coverage
-ok 2 - manifest publication waits for committed partition coverage
+ok 14 - manifest publication waits for committed partition coverage
   ---
-  duration_ms: 0.282041
+  duration_ms: 0.525375
   type: 'test'
   ...
 # Subtest: approval binds identity revision hash and next transition
-ok 3 - approval binds identity revision hash and next transition
+ok 15 - approval binds identity revision hash and next transition
   ---
-  duration_ms: 0.14775
+  duration_ms: 0.373917
   type: 'test'
   ...
 # Subtest: paired online and snapshot mechanisms preserve missing mismatch and duplicates
-ok 4 - paired online and snapshot mechanisms preserve missing mismatch and duplicates
+ok 16 - paired online and snapshot mechanisms preserve missing mismatch and duplicates
   ---
-  duration_ms: 1.030166
+  duration_ms: 2.966583
   type: 'test'
   ...
 # Subtest: stable job identity deduplicates local intent and rejects conflicting input
-ok 5 - stable job identity deduplicates local intent and rejects conflicting input
+ok 17 - stable job identity deduplicates local intent and rejects conflicting input
   ---
-  duration_ms: 0.7695
+  duration_ms: 1.111708
   type: 'test'
   ...
 # Subtest: origin eligibility excludes partial unhealthy and exhausted regions
-ok 6 - origin eligibility excludes partial unhealthy and exhausted regions
+ok 18 - origin eligibility excludes partial unhealthy and exhausted regions
   ---
-  duration_ms: 0.807791
+  duration_ms: 0.697458
   type: 'test'
   ...
 # Subtest: fence comparison and bounded committed suffix retain recovery boundary
-ok 7 - fence comparison and bounded committed suffix retain recovery boundary
+ok 19 - fence comparison and bounded committed suffix retain recovery boundary
   ---
-  duration_ms: 0.227875
+  duration_ms: 0.177333
   type: 'test'
   ...
 # Subtest: resource vectors and interval identities prevent local overspend and double charge
-ok 8 - resource vectors and interval identities prevent local overspend and double charge
+ok 20 - resource vectors and interval identities prevent local overspend and double charge
   ---
-  duration_ms: 0.220708
+  duration_ms: 0.207875
   type: 'test'
   ...
 # Subtest: viewport ranges are clamped and independent of full result size
-ok 9 - viewport ranges are clamped and independent of full result size
+ok 21 - viewport ranges are clamped and independent of full result size
   ---
-  duration_ms: 0.7955
+  duration_ms: 1.604166
   type: 'test'
   ...
 # Subtest: range planner intersects unaligned blocks and partial EOF
-ok 10 - range planner intersects unaligned blocks and partial EOF
+ok 22 - range planner intersects unaligned blocks and partial EOF
   ---
-  duration_ms: 0.411708
+  duration_ms: 0.45
   type: 'test'
   ...
 # Subtest: single flight reserves bytes shares failures pins buffers and retries by revision
-ok 11 - single flight reserves bytes shares failures pins buffers and retries by revision
+ok 23 - single flight reserves bytes shares failures pins buffers and retries by revision
   ---
-  duration_ms: 0.651583
+  duration_ms: 0.646667
   type: 'test'
   ...
 # Subtest: TTL exact deadline and generation checks preserve fresh replacement
-ok 12 - TTL exact deadline and generation checks preserve fresh replacement
+ok 24 - TTL exact deadline and generation checks preserve fresh replacement
   ---
-  duration_ms: 0.265459
+  duration_ms: 0.322875
   type: 'test'
   ...
 # Subtest: WAL framed suffix preserves tombstones rejects gaps and separates sync watermark
-ok 13 - WAL framed suffix preserves tombstones rejects gaps and separates sync watermark
+ok 25 - WAL framed suffix preserves tombstones rejects gaps and separates sync watermark
   ---
-  duration_ms: 1.197708
+  duration_ms: 1.129458
   type: 'test'
   ...
 # Subtest: read lease pins before publication and closes the completion eviction gap
-ok 14 - read lease pins before publication and closes the completion eviction gap
+ok 26 - read lease pins before publication and closes the completion eviction gap
   ---
-  duration_ms: 0.49375
+  duration_ms: 0.478791
   type: 'test'
   ...
 # Subtest: batch-07 lazy: deferred branching and exact short circuit
-ok 15 - batch-07 lazy: deferred branching and exact short circuit
+ok 27 - batch-07 lazy: deferred branching and exact short circuit
   ---
-  duration_ms: 0.948916
+  duration_ms: 1.890958
   type: 'test'
   ...
 # Subtest: batch-07 rope: weighted split and splice match scalar arrays
-ok 16 - batch-07 rope: weighted split and splice match scalar arrays
+ok 28 - batch-07 rope: weighted split and splice match scalar arrays
   ---
-  duration_ms: 3.38075
+  duration_ms: 2.153667
   type: 'test'
   ...
 # Subtest: batch-07 firewall: priority trie agrees with ordered scan
-ok 17 - batch-07 firewall: priority trie agrees with ordered scan
+ok 29 - batch-07 firewall: priority trie agrees with ordered scan
   ---
-  duration_ms: 46.721583
+  duration_ms: 15.317209
   type: 'test'
   ...
 # Subtest: batch-07 lexer: delimiters quotes chunks and token separation
-ok 18 - batch-07 lexer: delimiters quotes chunks and token separation
+ok 30 - batch-07 lexer: delimiters quotes chunks and token separation
   ---
-  duration_ms: 3.051375
+  duration_ms: 2.082875
   type: 'test'
   ...
 # Subtest: batch-08 queue: blocked predicates wakeups close and cancellation
-ok 19 - batch-08 queue: blocked predicates wakeups close and cancellation
+ok 31 - batch-08 queue: blocked predicates wakeups close and cancellation
   ---
-  duration_ms: 1.011958
+  duration_ms: 92.076291
   type: 'test'
   ...
 # Subtest: batch-08 counter: rollover boundary rollback and exact admission
-ok 20 - batch-08 counter: rollover boundary rollback and exact admission
+ok 32 - batch-08 counter: rollover boundary rollback and exact admission
   ---
-  duration_ms: 30.418542
+  duration_ms: 65.5965
   type: 'test'
   ...
 # Subtest: batch-08 streaming: bounded slots and coalesced fill
-ok 21 - batch-08 streaming: bounded slots and coalesced fill
+ok 33 - batch-08 streaming: bounded slots and coalesced fill
   ---
-  duration_ms: 1.680958
+  duration_ms: 1.842958
   type: 'test'
   ...
 # Subtest: batch-08 review: illustrative job identity and uncertain completion
-ok 22 - batch-08 review: illustrative job identity and uncertain completion
+ok 34 - batch-08 review: illustrative job identity and uncertain completion
   ---
-  duration_ms: 1.230125
+  duration_ms: 0.478625
   type: 'test'
   ...
 # Subtest: chat.idempotent-send: retrying a send after a lost reply never creates a second message
-ok 23 - chat.idempotent-send: retrying a send after a lost reply never creates a second message
+ok 35 - chat.idempotent-send: retrying a send after a lost reply never creates a second message
   ---
-  duration_ms: 1.861292
+  duration_ms: 1.630625
   type: 'test'
   ...
 # Subtest: chat.ordering: concurrent senders get one gap-free sequence per conversation
-ok 24 - chat.ordering: concurrent senders get one gap-free sequence per conversation
+ok 36 - chat.ordering: concurrent senders get one gap-free sequence per conversation
   ---
-  duration_ms: 8.97275
+  duration_ms: 1.3415
   type: 'test'
   ...
 # Subtest: chat.optimistic: a composed message shows as sending and is replaced, not duplicated, when confirmed
-ok 25 - chat.optimistic: a composed message shows as sending and is replaced, not duplicated, when confirmed
+ok 37 - chat.optimistic: a composed message shows as sending and is replaced, not duplicated, when confirmed
   ---
-  duration_ms: 0.405083
+  duration_ms: 0.503167
   type: 'test'
   ...
 # Subtest: chat.out-of-order: pushes are buffered until the gap fills and duplicates are dropped
-ok 26 - chat.out-of-order: pushes are buffered until the gap fills and duplicates are dropped
+ok 38 - chat.out-of-order: pushes are buffered until the gap fills and duplicates are dropped
   ---
-  duration_ms: 0.121542
+  duration_ms: 0.226125
   type: 'test'
   ...
 # Subtest: chat.reconnect: replaying history after lastSeq delivers every missed message exactly once
-ok 27 - chat.reconnect: replaying history after lastSeq delivers every missed message exactly once
+ok 39 - chat.reconnect: replaying history after lastSeq delivers every missed message exactly once
   ---
-  duration_ms: 0.677334
+  duration_ms: 33.739417
   type: 'test'
   ...
 # Subtest: chat.cursor: acknowledgements only move forward
-ok 28 - chat.cursor: acknowledgements only move forward
+ok 40 - chat.cursor: acknowledgements only move forward
   ---
-  duration_ms: 0.132292
+  duration_ms: 0.219125
   type: 'test'
   ...
 # Subtest: chat.inbox-sync: repeated or lost syncs return each message once per recipient
-ok 29 - chat.inbox-sync: repeated or lost syncs return each message once per recipient
+ok 41 - chat.inbox-sync: repeated or lost syncs return each message once per recipient
   ---
-  duration_ms: 0.397292
+  duration_ms: 44.081292
   type: 'test'
   ...
 # Subtest: chat.inbox-own-message: a send whose reply was lost is confirmed by sync and shown once
-ok 30 - chat.inbox-own-message: a send whose reply was lost is confirmed by sync and shown once
+ok 42 - chat.inbox-own-message: a send whose reply was lost is confirmed by sync and shown once
   ---
-  duration_ms: 0.145583
+  duration_ms: 0.950916
   type: 'test'
   ...
 # Subtest: comments.tree-path: a subtree is one prefix range and path order is depth-first
-ok 31 - comments.tree-path: a subtree is one prefix range and path order is depth-first
+ok 43 - comments.tree-path: a subtree is one prefix range and path order is depth-first
   ---
-  duration_ms: 1.8865
+  duration_ms: 2.477458
   type: 'test'
   ...
 # Subtest: comments.tree-build: levels are ranked and wide or deep branches become "more" stubs with counts
-ok 32 - comments.tree-build: levels are ranked and wide or deep branches become "more" stubs with counts
+ok 44 - comments.tree-build: levels are ranked and wide or deep branches become "more" stubs with counts
   ---
-  duration_ms: 0.520208
+  duration_ms: 0.584417
   type: 'test'
   ...
 # Subtest: comments.best-ranking: "best" prefers confident ratios over raw totals
-ok 33 - comments.best-ranking: "best" prefers confident ratios over raw totals
+ok 45 - comments.best-ranking: "best" prefers confident ratios over raw totals
   ---
-  duration_ms: 0.095167
+  duration_ms: 0.182041
   type: 'test'
   ...
 # Subtest: comments.vote-idempotent: one current vote per user; retries are no-ops and changes emit the difference
-ok 34 - comments.vote-idempotent: one current vote per user; retries are no-ops and changes emit the difference
+ok 46 - comments.vote-idempotent: one current vote per user; retries are no-ops and changes emit the difference
   ---
-  duration_ms: 0.498416
+  duration_ms: 0.3675
   type: 'test'
   ...
 # Subtest: comments.batched-deltas: a vote storm on one comment becomes one counter write per flush
-ok 35 - comments.batched-deltas: a vote storm on one comment becomes one counter write per flush
+ok 47 - comments.batched-deltas: a vote storm on one comment becomes one counter write per flush
   ---
-  duration_ms: 2.498917
+  duration_ms: 2.858625
   type: 'test'
   ...
 # Subtest: comments.delta-redelivery: redelivered vote events are not counted twice
-ok 36 - comments.delta-redelivery: redelivered vote events are not counted twice
+ok 48 - comments.delta-redelivery: redelivered vote events are not counted twice
   ---
-  duration_ms: 0.081209
+  duration_ms: 0.185208
   type: 'test'
   ...
 # Subtest: comments.optimistic-vote: the score moves at once and reverts if the server rejects
-ok 37 - comments.optimistic-vote: the score moves at once and reverts if the server rejects
+ok 49 - comments.optimistic-vote: the score moves at once and reverts if the server rejects
   ---
-  duration_ms: 1.091208
+  duration_ms: 0.49125
   type: 'test'
   ...
 # Subtest: comments.vote-coalesce: rapid clicks send at most one request in flight and the last intent wins
-ok 38 - comments.vote-coalesce: rapid clicks send at most one request in flight and the last intent wins
+ok 50 - comments.vote-coalesce: rapid clicks send at most one request in flight and the last intent wins
   ---
-  duration_ms: 4.329
+  duration_ms: 7.896291
   type: 'test'
   ...
 # Subtest: comments.score-versions: live updates apply only when newer
-ok 39 - comments.score-versions: live updates apply only when newer
+ok 51 - comments.score-versions: live updates apply only when newer
   ---
-  duration_ms: 0.825208
+  duration_ms: 0.843541
   type: 'test'
   ...
 # Subtest: comments.read-time-score: the derived score always equals the sum of current votes
-ok 40 - comments.read-time-score: the derived score always equals the sum of current votes
+ok 52 - comments.read-time-score: the derived score always equals the sum of current votes
   ---
-  duration_ms: 1.256958
+  duration_ms: 1.107166
   type: 'test'
   ...
 # Subtest: comments.single-flight: concurrent misses and stale reads trigger one build at a time
-ok 41 - comments.single-flight: concurrent misses and stale reads trigger one build at a time
+ok 53 - comments.single-flight: concurrent misses and stale reads trigger one build at a time
   ---
-  duration_ms: 2.922041
+  duration_ms: 5.316958
   type: 'test'
   ...
 # Subtest: comments.etag-poll: polling an unchanged snapshot returns 304
-ok 42 - comments.etag-poll: polling an unchanged snapshot returns 304
+ok 54 - comments.etag-poll: polling an unchanged snapshot returns 304
   ---
-  duration_ms: 1.081167
+  duration_ms: 4.611083
   type: 'test'
   ...
 # Subtest: flash.naive-oversell: read-then-write lets every concurrent buyer see stock
-ok 43 - flash.naive-oversell: read-then-write lets every concurrent buyer see stock
+ok 55 - flash.naive-oversell: read-then-write lets every concurrent buyer see stock
   ---
-  duration_ms: 2.836875
+  duration_ms: 5.35125
   type: 'test'
   ...
 # Subtest: flash.atomic-reserve: conditional decrement grants exactly the stock and never goes negative
-ok 44 - flash.atomic-reserve: conditional decrement grants exactly the stock and never goes negative
+ok 56 - flash.atomic-reserve: conditional decrement grants exactly the stock and never goes negative
   ---
-  duration_ms: 3.875917
+  duration_ms: 5.277458
   type: 'test'
   ...
 # Subtest: flash.idempotent-checkout: a retried submission with the same key returns the same reservation
-ok 45 - flash.idempotent-checkout: a retried submission with the same key returns the same reservation
+ok 57 - flash.idempotent-checkout: a retried submission with the same key returns the same reservation
   ---
-  duration_ms: 0.155917
+  duration_ms: 0.200125
   type: 'test'
   ...
 # Subtest: flash.per-user-limit: one buyer cannot hold more than the limit across keys
-ok 46 - flash.per-user-limit: one buyer cannot hold more than the limit across keys
+ok 58 - flash.per-user-limit: one buyer cannot hold more than the limit across keys
   ---
-  duration_ms: 0.142209
+  duration_ms: 0.175375
   type: 'test'
   ...
 # Subtest: flash.webhook-dedupe: duplicate and late contradicting webhooks do not change a final state
-ok 47 - flash.webhook-dedupe: duplicate and late contradicting webhooks do not change a final state
+ok 59 - flash.webhook-dedupe: duplicate and late contradicting webhooks do not change a final state
   ---
-  duration_ms: 0.426667
+  duration_ms: 0.441959
   type: 'test'
   ...
 # Subtest: flash.expiry-returns-stock: expired holds return stock, and a payment after release becomes a refund
-ok 48 - flash.expiry-returns-stock: expired holds return stock, and a payment after release becomes a refund
+ok 60 - flash.expiry-returns-stock: expired holds return stock, and a payment after release becomes a refund
   ---
-  duration_ms: 0.176458
+  duration_ms: 0.183792
   type: 'test'
   ...
 # Subtest: flash.unknown-not-released: the sweeper leaves payment-pending holds for the reconciler
-ok 49 - flash.unknown-not-released: the sweeper leaves payment-pending holds for the reconciler
+ok 61 - flash.unknown-not-released: the sweeper leaves payment-pending holds for the reconciler
   ---
-  duration_ms: 0.239333
+  duration_ms: 0.265875
   type: 'test'
   ...
 # Subtest: flash.invariant: random interleavings of reserve, pay, fail, sweep and retries conserve stock
-ok 50 - flash.invariant: random interleavings of reserve, pay, fail, sweep and retries conserve stock
+ok 62 - flash.invariant: random interleavings of reserve, pay, fail, sweep and retries conserve stock
   ---
-  duration_ms: 14.467875
+  duration_ms: 14.769834
   type: 'test'
   ...
 # Subtest: flash.bucket-no-oversell: bucketed stock grants exactly the total and drains every bucket before sold out
-ok 51 - flash.bucket-no-oversell: bucketed stock grants exactly the total and drains every bucket before sold out
+ok 63 - flash.bucket-no-oversell: bucketed stock grants exactly the total and drains every bucket before sold out
   ---
-  duration_ms: 0.895417
+  duration_ms: 8.763625
   type: 'test'
   ...
 # Subtest: flash.admission-rate: the waiting room admits a fixed number per tick and tokens work once
-ok 52 - flash.admission-rate: the waiting room admits a fixed number per tick and tokens work once
+ok 64 - flash.admission-rate: the waiting room admits a fixed number per tick and tokens work once
   ---
-  duration_ms: 0.571542
+  duration_ms: 81.160333
   type: 'test'
   ...
 # Subtest: flash.actor-no-oversell: one actor applying an ordered log grants exactly the stock
-ok 53 - flash.actor-no-oversell: one actor applying an ordered log grants exactly the stock
+ok 65 - flash.actor-no-oversell: one actor applying an ordered log grants exactly the stock
   ---
-  duration_ms: 1.711208
+  duration_ms: 3.9135
   type: 'test'
   ...
 # Subtest: flash.actor-dedupe: a command written twice by a retrying producer is applied once
-ok 54 - flash.actor-dedupe: a command written twice by a retrying producer is applied once
+ok 66 - flash.actor-dedupe: a command written twice by a retrying producer is applied once
   ---
-  duration_ms: 0.153667
+  duration_ms: 0.191334
   type: 'test'
   ...
 # Subtest: flash.actor-replay: snapshot plus the commands after its offset rebuilds the same state
-ok 55 - flash.actor-replay: snapshot plus the commands after its offset rebuilds the same state
+ok 67 - flash.actor-replay: snapshot plus the commands after its offset rebuilds the same state
   ---
-  duration_ms: 1.585541
+  duration_ms: 7.492666
   type: 'test'
   ...
 # Subtest: flash.actor-expiry-race: the log order decides between payment and expiry
-ok 56 - flash.actor-expiry-race: the log order decides between payment and expiry
+ok 68 - flash.actor-expiry-race: the log order decides between payment and expiry
   ---
-  duration_ms: 0.10625
+  duration_ms: 0.211292
   type: 'test'
   ...
 # Subtest: alert page commit is atomic with its checkpoint
-ok 57 - alert page commit is atomic with its checkpoint
+ok 69 - alert page commit is atomic with its checkpoint
   ---
-  duration_ms: 0.674
+  duration_ms: 1.202209
   type: 'test'
   ...
 # Subtest: search versions remain distinct while repeated listing matches deduplicate
-ok 58 - search versions remain distinct while repeated listing matches deduplicate
+ok 70 - search versions remain distinct while repeated listing matches deduplicate
   ---
-  duration_ms: 1.109959
+  duration_ms: 1.243833
   type: 'test'
   ...
 # Subtest: frozen digest contents survive retries and deduplicate listings
-ok 59 - frozen digest contents survive retries and deduplicate listings
+ok 71 - frozen digest contents survive retries and deduplicate listings
   ---
-  duration_ms: 0.520875
+  duration_ms: 0.745833
   type: 'test'
   ...
 # Subtest: unsubscribe before dispatch suppresses a queued digest
-ok 60 - unsubscribe before dispatch suppresses a queued digest
+ok 72 - unsubscribe before dispatch suppresses a queued digest
   ---
-  duration_ms: 0.0675
+  duration_ms: 0.39975
   type: 'test'
   ...
 # Subtest: lost send acknowledgement remains uncertain rather than delivered
-ok 61 - lost send acknowledgement remains uncertain rather than delivered
+ok 73 - lost send acknowledgement remains uncertain rather than delivered
   ---
-  duration_ms: 0.053958
+  duration_ms: 0.165458
   type: 'test'
   ...
 # Subtest: billing command replay returns original receipt and rejects another owner
-ok 62 - billing command replay returns original receipt and rejects another owner
+ok 74 - billing command replay returns original receipt and rejects another owner
   ---
-  duration_ms: 0.189125
+  duration_ms: 0.621125
   type: 'test'
   ...
 # Subtest: repeated renewal retains invoice and payment attempt identity
-ok 63 - repeated renewal retains invoice and payment attempt identity
+ok 75 - repeated renewal retains invoice and payment attempt identity
   ---
-  duration_ms: 0.189542
+  duration_ms: 0.523709
   type: 'test'
   ...
 # Subtest: recovery preserves an uncertain charge identity
-ok 64 - recovery preserves an uncertain charge identity
+ok 76 - recovery preserves an uncertain charge identity
   ---
-  duration_ms: 0.044
+  duration_ms: 0.140375
   type: 'test'
   ...
 # Subtest: reordered event notifications reconcile to authoritative paid state
-ok 65 - reordered event notifications reconcile to authoritative paid state
+ok 77 - reordered event notifications reconcile to authoritative paid state
   ---
-  duration_ms: 0.8825
+  duration_ms: 0.567542
   type: 'test'
   ...
 # Subtest: late payment settles without reactivating canceled entitlement
-ok 66 - late payment settles without reactivating canceled entitlement
+ok 78 - late payment settles without reactivating canceled entitlement
   ---
-  duration_ms: 0.34775
+  duration_ms: 0.61425
   type: 'test'
   ...
 # Subtest: pagination.offset-shift: with OFFSET, an insert between requests repeats a row on the next page
-ok 67 - pagination.offset-shift: with OFFSET, an insert between requests repeats a row on the next page
+ok 79 - pagination.offset-shift: with OFFSET, an insert between requests repeats a row on the next page
   ---
-  duration_ms: 0.589542
+  duration_ms: 1.274958
   type: 'test'
   ...
 # Subtest: pagination.keyset-stable: inserts and deletes between pages never repeat or skip rows that existed throughout
-ok 68 - pagination.keyset-stable: inserts and deletes between pages never repeat or skip rows that existed throughout
+ok 80 - pagination.keyset-stable: inserts and deletes between pages never repeat or skip rows that existed throughout
   ---
-  duration_ms: 0.445209
+  duration_ms: 1.137625
   type: 'test'
   ...
 # Subtest: pagination.limit-plus-one: hasMore is exact without counting the table
-ok 69 - pagination.limit-plus-one: hasMore is exact without counting the table
+ok 81 - pagination.limit-plus-one: hasMore is exact without counting the table
   ---
-  duration_ms: 0.085958
+  duration_ms: 0.227542
   type: 'test'
   ...
 # Subtest: pagination.cursor-tamper: a forged or edited cursor is rejected
-ok 70 - pagination.cursor-tamper: a forged or edited cursor is rejected
+ok 82 - pagination.cursor-tamper: a forged or edited cursor is rejected
   ---
-  duration_ms: 1.611958
+  duration_ms: 2.133625
   type: 'test'
   ...
 # Subtest: pagination.cursor-binds-query: a cursor cannot be replayed against a different filter or sort
-ok 71 - pagination.cursor-binds-query: a cursor cannot be replayed against a different filter or sort
+ok 83 - pagination.cursor-binds-query: a cursor cannot be replayed against a different filter or sort
   ---
-  duration_ms: 0.472625
+  duration_ms: 18.599625
   type: 'test'
   ...
 # Subtest: pagination.shard-merge: the same keyset bound on every shard reproduces single-node pages
-ok 72 - pagination.shard-merge: the same keyset bound on every shard reproduces single-node pages
+ok 84 - pagination.shard-merge: the same keyset bound on every shard reproduces single-node pages
   ---
-  duration_ms: 0.516334
+  duration_ms: 8.612917
   type: 'test'
   ...
 # Subtest: pagination.client-dedupe: repeated scroll events send one request per page
-ok 73 - pagination.client-dedupe: repeated scroll events send one request per page
+ok 85 - pagination.client-dedupe: repeated scroll events send one request per page
   ---
-  duration_ms: 0.43875
+  duration_ms: 3.96075
   type: 'test'
   ...
 # Subtest: pagination.stale-response: a response for a superseded filter is dropped
-ok 74 - pagination.stale-response: a response for a superseded filter is dropped
+ok 86 - pagination.stale-response: a response for a superseded filter is dropped
   ---
-  duration_ms: 0.258
+  duration_ms: 22.014458
   type: 'test'
   ...
 # Subtest: pagination.snapshot-stable: re-ranking during a session never repeats or skips results
-ok 75 - pagination.snapshot-stable: re-ranking during a session never repeats or skips results
+ok 87 - pagination.snapshot-stable: re-ranking during a session never repeats or skips results
   ---
-  duration_ms: 0.72775
+  duration_ms: 13.384417
   type: 'test'
   ...
 # Subtest: pagination.hydrate-deleted: pages show current row values and drop deleted rows with a count
-ok 76 - pagination.hydrate-deleted: pages show current row values and drop deleted rows with a count
+ok 88 - pagination.hydrate-deleted: pages show current row values and drop deleted rows with a count
   ---
-  duration_ms: 0.659542
+  duration_ms: 1.064916
   type: 'test'
   ...
 # Subtest: pagination.session-expired-reanchor: after a session expires the client restarts without showing repeats
-ok 77 - pagination.session-expired-reanchor: after a session expires the client restarts without showing repeats
+ok 89 - pagination.session-expired-reanchor: after a session expires the client restarts without showing repeats
   ---
-  duration_ms: 1.618125
+  duration_ms: 1.054
   type: 'test'
   ...
 # Subtest: timeline.idempotent-post: a retried post with the same clientId returns the same tweet
-ok 78 - timeline.idempotent-post: a retried post with the same clientId returns the same tweet
+ok 90 - timeline.idempotent-post: a retried post with the same clientId returns the same tweet
   ---
-  duration_ms: 0.520625
+  duration_ms: 1.331625
   type: 'test'
   ...
 # Subtest: timeline.fanout-write: a post lands at the head of every follower timeline
-ok 79 - timeline.fanout-write: a post lands at the head of every follower timeline
+ok 91 - timeline.fanout-write: a post lands at the head of every follower timeline
   ---
-  duration_ms: 1.099708
+  duration_ms: 1.35575
   type: 'test'
   ...
 # Subtest: timeline.bounded: timelines keep only the newest cap entries
-ok 80 - timeline.bounded: timelines keep only the newest cap entries
+ok 92 - timeline.bounded: timelines keep only the newest cap entries
   ---
-  duration_ms: 1.024084
+  duration_ms: 10.245625
   type: 'test'
   ...
 # Subtest: timeline.rebuild-on-miss: rebuilding an evicted timeline matches what fan-out wrote
-ok 81 - timeline.rebuild-on-miss: rebuilding an evicted timeline matches what fan-out wrote
+ok 93 - timeline.rebuild-on-miss: rebuilding an evicted timeline matches what fan-out wrote
   ---
-  duration_ms: 1.164417
+  duration_ms: 3.035083
   type: 'test'
   ...
 # Subtest: timeline.hybrid-merge: skipping fan-out for celebrities and merging at read equals the pure pull timeline
-ok 82 - timeline.hybrid-merge: skipping fan-out for celebrities and merging at read equals the pure pull timeline
+ok 94 - timeline.hybrid-merge: skipping fan-out for celebrities and merging at read equals the pure pull timeline
   ---
-  duration_ms: 0.748417
+  duration_ms: 2.02325
   type: 'test'
   ...
 # Subtest: timeline.celebrity-writes: one celebrity post costs zero timeline writes in hybrid mode
-ok 83 - timeline.celebrity-writes: one celebrity post costs zero timeline writes in hybrid mode
+ok 95 - timeline.celebrity-writes: one celebrity post costs zero timeline writes in hybrid mode
   ---
-  duration_ms: 0.121084
+  duration_ms: 0.310958
   type: 'test'
   ...
 # Subtest: timeline.hydrate-deleted: a deleted tweet disappears from timelines that still hold its id
-ok 84 - timeline.hydrate-deleted: a deleted tweet disappears from timelines that still hold its id
+ok 96 - timeline.hydrate-deleted: a deleted tweet disappears from timelines that still hold its id
   ---
-  duration_ms: 0.14325
+  duration_ms: 0.386625
   type: 'test'
   ...
 # Subtest: timeline.pull-merge: the pull timeline is the newest posts across everyone followed
-ok 85 - timeline.pull-merge: the pull timeline is the newest posts across everyone followed
+ok 97 - timeline.pull-merge: the pull timeline is the newest posts across everyone followed
   ---
-  duration_ms: 1.064875
+  duration_ms: 1.287458
   type: 'test'
   ...
 # Subtest: timeline.pull-cursor: posts published between pages never repeat or shift older pages
-ok 86 - timeline.pull-cursor: posts published between pages never repeat or shift older pages
+ok 98 - timeline.pull-cursor: posts published between pages never repeat or shift older pages
   ---
-  duration_ms: 0.845459
+  duration_ms: 2.279
   type: 'test'
   ...
 # Subtest: timeline.client-merge: live posts wait above the list, pages append below, and nothing shows twice
-ok 87 - timeline.client-merge: live posts wait above the list, pages append below, and nothing shows twice
+ok 99 - timeline.client-merge: live posts wait above the list, pages append below, and nothing shows twice
   ---
-  duration_ms: 1.041459
+  duration_ms: 1.274875
   type: 'test'
   ...
 # Subtest: timeline.read-your-writes: an own post shows at once and is replaced, not duplicated, when it comes back
-ok 88 - timeline.read-your-writes: an own post shows at once and is replaced, not duplicated, when it comes back
+ok 100 - timeline.read-your-writes: an own post shows at once and is replaced, not duplicated, when it comes back
   ---
-  duration_ms: 0.56025
+  duration_ms: 0.823083
   type: 'test'
   ...
-1..88
-# tests 88
+1..100
+# tests 100
 # suites 0
-# pass 88
+# pass 100
 # fail 0
 # cancelled 0
 # skipped 0
 # todo 0
-# duration_ms 220.514833
+# duration_ms 544.375334

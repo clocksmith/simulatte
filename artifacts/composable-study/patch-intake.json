@@ -1,0 +1,69 @@
+{
+  "application": "Applied ready batches 04-08 from the earlier package, then full corrected 01/02 and batch 03. Batches 04-08 are identical across packages. No duplicate correction patches applied.",
+  "archive": "lucyd-study-content-all-eight-patches.zip",
+  "archiveSha256": "26a79e981643e9aad7573ca83094de2c1b23d616185a694bb150f247d5ae53b2",
+  "catalogue": {
+    "approaches": 92,
+    "problems": 46,
+    "stages": 747
+  },
+  "cleanup": {
+    "status": "Integrated Lucyd ZIPs and extracted Downloads folders moved to macOS Trash by concurrent session; verified absent from Downloads.",
+    "unrelatedFiles": "New Gamma JSON batches and hospital PDF remain untouched."
+  },
+  "evidence": {
+    "browser": "artifacts/composable-study/spatial-browser-audit.json",
+    "contract": "artifacts/composable-study/audit.json",
+    "spatial": "artifacts/composable-study/spatial-audit.json"
+  },
+  "integrationPatch": "Registered all eight authoring modules and regenerated catalogue/audits with current generators instead of overwriting Nunito geometry receipts with archive output.",
+  "localCorrections": [
+    "L035 acquire a read lease before asynchronous block publication, preventing completion/eviction pinning race; named bounded reference test.",
+    "L022 deterministic bidirectional label detours; reject self-crossing routes; regression retains all connections and font sizes.",
+    "Spatial audits snapshot input hashes before execution and refuse proof if inputs change."
+  ],
+  "patches": [
+    {
+      "batch": 1,
+      "commit": "d7844f1d1e95728a41298d49a3e7b7249476ce7e",
+      "sha256": "e772674976301a992e2a2c995bd520ff5b861a0287f669383cf0dd49693a8fba"
+    },
+    {
+      "batch": 2,
+      "commit": "137a176ab7ba4a58bc73438005179a39cafa485b",
+      "sha256": "fb76dc2592c2f8a6aa7712f52d0ee88167edc3b7fe650b37fdd5dfbcc3195069"
+    },
+    {
+      "batch": 3,
+      "commit": "ccf86cb7c2210257167d7b0680197b216cc57893",
+      "sha256": "c71e1cfc9a8d1068f8597178496ace724540d749bd2ae501b47382f72485af55"
+    },
+    {
+      "batch": 4,
+      "commit": "b3b1af926908de38f56c92ac0485263059bda976",
+      "sha256": "75c65cfcd7907fd0be33a70c063c10a771d4da88a9c6cb821bf80919786f08e3"
+    },
+    {
+      "batch": 5,
+      "commit": "01127478b6030a86a776b45e2b5a5ba945282c85",
+      "sha256": "ba220361c080d57adf9c236dad6c40012a188345e41c1b7b1bf6aeb3257ffafc"
+    },
+    {
+      "batch": 6,
+      "commit": "988f3af013abb0c769fcab4c3e1f9b83cfa6b0cf",
+      "sha256": "284de56a8ab0ebbd8fcdda4483e25f6136d3247f86222073ea98c0014951a576"
+    },
+    {
+      "batch": 7,
+      "commit": "41e23d0e37f7abc0f62071773be4b87355e80f3a",
+      "sha256": "d8d79edcc992bcd513b3ef45bb78355b2e24e80f56c90011f643426ef334f368"
+    },
+    {
+      "batch": 8,
+      "commit": "e4000bf4e18aafbfff253c67385723a96e643e44",
+      "sha256": "7d8544631b0e802529efda219fa3dda216f7ab3b2ffb5cb75a027da54539e869"
+    }
+  ],
+  "schema": "simulatte.studyPatchIntake.v1",
+  "verifiedMembers": 67
+}

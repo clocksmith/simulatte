@@ -2,7 +2,7 @@
 const fs=require('node:fs'),path=require('node:path');
 const {chromium}=require(process.env.LUCYD_PLAYWRIGHT_MODULE||'@playwright/test');
 const ROOT=path.resolve(__dirname,'../..'),base=process.argv[2]||'http://127.0.0.1:4173/lucyd';
-async function main(){const browser=await chromium.launch({headless:true}),context=await browser.newContext({viewport:{width:1600,height:1000}}),page=await context.newPage(),errors=[],rows=[];try{page.on('pageerror',e=>errors.push(e.message));page.on('response',r=>{if(r.status()>=400)errors.push('HTTP '+r.status()+' '+r.url());});
+async function main(){const inputHashes=require('./audit-study-spatial.cjs').inputHashes,inputs=inputHashes();const browser=await chromium.launch({headless:true}),context=await browser.newContext({viewport:{width:1600,height:1000}}),page=await context.newPage(),errors=[],rows=[];try{page.on('pageerror',e=>errors.push(e.message));page.on('response',r=>{if(r.status()>=400)errors.push('HTTP '+r.status()+' '+r.url());});
  await page.goto(base+'?problem=L004&approach=push&stage=1');await page.waitForFunction(()=>globalThis.SimulatteStudyInspector?.ready());
  const refs=await page.locator('select[aria-label="Problem"] option').evaluateAll(rows=>rows.map(r=>r.value));
  for(const id of refs){await page.selectOption('select[aria-label="Problem"]',id);await page.waitForFunction(id=>SimulatteStudyInspector.workspace()?.document.problem.referenceId===id,id);const solutions=await page.evaluate(()=>SimulatteStudyInspector.workspace().document.solutions.map(s=>({id:s.id,stages:s.stages.length})));
@@ -20,7 +20,8 @@ async function main(){const browser=await chromium.launch({headless:true}),conte
  console.log(id,sol.id,'rendered');}
  }
  await page.goto(base+'?problem=L004&approach=push&stage=9');await page.waitForFunction(()=>globalThis.SimulatteStudyInspector?.ready());await page.waitForTimeout(300);const shot=path.join(ROOT,'artifacts/composable-study/chat-readable.png');await page.screenshot({path:shot});
- const report={schema:'simulatte.studySpatialBrowserAudit.v1',url:base,inputHashes:require('./audit-study-spatial.cjs').inputHashes(),canvasVersion:require('../../public/simulatte/system-diagram/study/vendor/modern/versions.json').version,viewport:{width:1600,height:1000},layer:'Chromium restored Excalidraw element geometry and screenshot; not physical phone or human adjudication',ok:!errors.length&&rows.every(r=>r.ok),errors,stages:rows.length,rows,screenshot:path.relative(ROOT,shot)};const out=path.join(ROOT,'artifacts/composable-study/spatial-browser-audit.json');fs.writeFileSync(out,JSON.stringify(report,null,2)+'\n');await browser.close();console.log(JSON.stringify({ok:report.ok,stages:rows.length,failed:rows.filter(r=>!r.ok).length,errors,out}));if(!report.ok)process.exitCode=1;
+ if(JSON.stringify(inputs)!==JSON.stringify(inputHashes()))throw Error('Spatial inputs changed during browser audit; rerun');
+ const report={schema:'simulatte.studySpatialBrowserAudit.v1',url:base,inputHashes:inputs,canvasVersion:require('../../public/simulatte/system-diagram/study/vendor/modern/versions.json').version,viewport:{width:1600,height:1000},layer:'Chromium restored Excalidraw element geometry and screenshot; not physical phone or human adjudication',ok:!errors.length&&rows.every(r=>r.ok),errors,stages:rows.length,rows,screenshot:path.relative(ROOT,shot)};const out=path.join(ROOT,'artifacts/composable-study/spatial-browser-audit.json');fs.writeFileSync(out,JSON.stringify(report,null,2)+'\n');await browser.close();console.log(JSON.stringify({ok:report.ok,stages:rows.length,failed:rows.filter(r=>!r.ok).length,errors,out}));if(!report.ok)process.exitCode=1;
  }finally{await browser.close();}
 }
 main().catch(e=>{console.error(e);process.exitCode=1});

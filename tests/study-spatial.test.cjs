@@ -19,3 +19,10 @@ test('nested collapse resolves to the visible outer boundary',()=>{
  const graph={nodes:[{id:'outer',subsystemId:'o'},{id:'inner',subsystemId:'i',parentId:'outer'},{id:'leaf',parentId:'inner'}],edges:[]};
  assert.equal(Layout.resolve(graph,new Map(),{nodeId:'leaf',portId:'in'},new Set(['outer','inner'])),'outer');
 });
+test('dense URL-counting final stages place labels without reducing font size or omitting edges',async()=>{
+ const d=require('../public/data/system-diagram/composable-solutions/l022.json');await Layout.prepare(d);
+ for(const solution of d.solutions){const g=solution.stages.at(-1).graph,view=Layout.shapes(d,solution,g),routes=Routing.route(d,g,view);
+  const result=Check.check(g,view,routes);assert.equal(result.ok,true,JSON.stringify(result.errors));assert.equal(routes.length,g.edges.length);
+  assert.deepEqual(routes.map(r=>r.id).sort(),g.edges.map(e=>e.id).sort());
+ }
+});
