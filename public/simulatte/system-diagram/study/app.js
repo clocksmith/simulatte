@@ -11,7 +11,7 @@
   const STUDY_KEY='simulatte.studyMode.v1';
   const Theme=root.SimulatteStudyTheme;
   const THEME_KEY = 'simulatte.theme.v1', SIDEBAR = 'study', CONNECTED = '#1971c2';
-  const TABS = [['stage', 'Stage'], ['inspect', 'Inspect'], ['approach', 'Approach'], ['problem', 'Problem'], ['file', 'File']];
+  const TABS = [['practice','Practice'], ['stage', 'Stage'], ['inspect', 'Inspect'], ['approach', 'Approach'], ['problem', 'Problem'], ['file', 'File']];
 
   const storage = {
     get(key) { try { return root.localStorage.getItem(key); } catch { return null; } },
@@ -41,7 +41,7 @@
 
   function App() {
     const apiRef = useRef(null), wsRef = useRef(null), authoredRef = useRef([]), loadingRef = useRef(false), versionRef = useRef(-1);
-    const renderGeneration = useRef(0), pointerActive = useRef(false);
+    const renderGeneration = useRef(0), pointerActive = useRef(false), reviewCache=useRef({ref:null,others:[]});
     const selectionRef = useRef(''), themeRef = useRef(initialTheme()), timers = useRef({}), publishedRef = useRef(new Map()), catalogueRef = useRef([]), fileInput = useRef(null), loadRef = useRef(0);
     const [api, setApi] = useState(null);
     const [themeMode,setThemeMode]=useState(()=>Theme.preference(storage.get(THEME_KEY)));
@@ -63,6 +63,9 @@
     const [preview, setPreview] = useState(null);
     const [confirmDiscard, setConfirmDiscard] = useState(false);
     const [docked, setDocked] = useState(false);
+    const [answerFirst,setAnswerFirst]=useState(()=>storage.get('simulatte.answerFirst.v1')==='on');
+    const Practice=root.SimulatteStudyPractice;
+    const enablePractice=()=>{setAnswerFirst(true);storage.set('simulatte.answerFirst.v1','on');apiRef.current?.toggleSidebar({name:SIDEBAR,tab:'practice',force:true});};
     const [studyMode,setStudyMode]=useState(()=>storage.get(STUDY_KEY)!=='off');
     const studyModeRef=useRef(studyMode);studyModeRef.current=studyMode;
     const toggleStudyMode=()=>setStudyMode(current=>{const next=!current;try{storage.set(STUDY_KEY,next?'on':'off');}catch{}return next;});
@@ -147,6 +150,7 @@
       if (wsRef.current) { capture(); clearTimeout(timers.current.save); try { storage.set(Store.storageKey(wsRef.current.document.problem.referenceId), Store.serialize(wsRef.current)); } catch { /* reported on next save */ } }
       const item = catalogueRef.current.find(c => c.referenceId === referenceId);
       try {
+        if(!item?.path && storage.get(Store.storageKey(referenceId))){const next=Store.parse(storage.get(Store.storageKey(referenceId))).workspace;await Spatial.prepare(next.document);if(load!==loadRef.current)return;setWs(next);render(next,{fit:true});return;}
         if (!item?.path) throw Error(`${referenceId} is not in the study catalogue`);
         const published = Study.parse(await fetchText(new URL(`composable-solutions/${item.path}`, DATA)));
         if (load !== loadRef.current) return;
@@ -180,7 +184,8 @@
           const list = manifest.problems.map(p => ({...byRef.get(p.referenceId), referenceId: p.referenceId, path: p.path, title: byRef.get(p.referenceId)?.title || p.referenceId}));
           catalogueRef.current = list; setCatalogue(list);
           const query = readQuery(), start = list.find(p => p.referenceId === query.problem) || list[0];
-          if (start) await openProblem(start.referenceId, query);
+          if (start && !root.SimulatteStudyLiveInput.enabled(root)) await openProblem(start.referenceId, query);
+          if(root.SimulatteStudyLiveInput.enabled(root))root.parent.postMessage({type:'lucyd.live.ready'},root.location.origin);
         } catch (error) { setNotice({title: 'Could not load the study catalogue', message: error.message}); }
       })();
     }, [api, openProblem]);
@@ -220,6 +225,41 @@
       if (!catalogueRef.current.some(c => c.referenceId === ref)) { const list = [...catalogueRef.current, {referenceId: ref, title: `${next.document.problem.studyLabel} (imported)`}]; catalogueRef.current = list; setCatalogue(list); }
       setWs(next); render(next, {fit: true}); save();
     };
+    // A paired local workbench may supply unverified design documents. Ordinary hosted pages
+    // never enable this input. Only the actual same-origin parent can send or receive a workspace.
+    useEffect(() => {
+      const Live=root.SimulatteStudyLiveInput;
+      if(!api || !Live.enabled(root))return;
+      let revision=-1, generation=0;
+      const send=(type,extra={})=>root.parent.postMessage({type,...extra},root.location.origin);
+      const receive=async event=>{
+        if(!Live.allowed(event,root))return;
+        const value=event.data;
+        if(value?.type==='lucyd.problem.open' && catalogueRef.current.some(c=>c.referenceId===value.referenceId)){await openProblem(value.referenceId,{resetStage:true});return;}
+        if(value?.type==='lucyd.workspace.request'){
+          capture();const current=wsRef.current;
+          if(current)send('lucyd.workspace',{requestId:value.requestId,workspace:JSON.parse(Store.serialize(current))});
+          return;
+        }
+        if(value?.type!=='lucyd.live.workspace' || !Number.isSafeInteger(value.revision) || value.revision<=revision)return;
+        const mine=++generation,load=loadRef.current;
+        try{
+          const incoming=Store.parse(JSON.stringify(value.workspace)).workspace;
+          await Spatial.prepare(incoming.document);
+          if(mine!==generation||load!==loadRef.current)return;
+          ++loadRef.current;capture();
+          const next=value.preserveEdits===false?incoming:Live.merge(wsRef.current,incoming,Store);
+          const ref=next.document.problem.referenceId;
+          if(!catalogueRef.current.some(c=>c.referenceId===ref)){
+            const list=[...catalogueRef.current,{referenceId:ref,title:next.document.problem.studyLabel}];catalogueRef.current=list;setCatalogue(list);
+          }
+          const first=!wsRef.current;revision=value.revision;setWs(next);render(next,{fit:first});save();
+          setSaveStatus('Live suggestions updated. Your stage edits are preserved.');send('lucyd.live.applied',{revision});
+        }catch(error){send('lucyd.live.error',{message:error.message});}
+      };
+      root.addEventListener('message',receive);
+      return()=>{++generation;root.removeEventListener('message',receive);};
+    },[api,capture,render,save,openProblem]);
     const exportWorkspace = () => { capture(); const current = wsRef.current; if (current) download(`${current.document.problem.referenceId.toLowerCase()}-study-workspace.json`, Store.serialize(current)); };
     const exportAuthored = () => { const current = wsRef.current; if (current) download(`${current.document.problem.referenceId.toLowerCase()}.json`, Study.serialize(current.document)); };
     const discardEdits = () => {
@@ -302,13 +342,17 @@
     },[api,navigate]);
     const stepper = solution && h(P.Stepper, {stageIndex, minIndex, count: solution.stages.length, title: stageTitle, edited, onStep: step, onReset: resetStage});
     const pickers = h(P.Pickers, {catalogue, referenceId: ws?.document.problem.referenceId, solutions: ws?.document.solutions, solutionId: ws?.view.solutionId,
-      onProblem: ref => openProblem(ref, {resetStage:true}),
+      onProblem: ref => {if(root.SimulatteStudyLiveInput.enabled(root))root.parent.postMessage({type:'lucyd.user.navigation'},root.location.origin);openProblem(ref,{resetStage:true});},
       onSolution: id => navigate({solutionId: id, stageIndex: 0,collapsed:[],showRemoved:false}, {fit: true})});
     const trigger = h(Sidebar.Trigger, {name: SIDEBAR, tab: 'stage', title: 'Study notes', className: 'sw-trigger'}, 'Notes');
     const openStudy = () => apiRef.current?.toggleSidebar({name: SIDEBAR, tab: 'stage', force: true});
+    const patchPractice=patch=>{const current=wsRef.current,sol=solutionOf(current),stage=sol.stages[current.view.stageIndex];if(!stage)return;setWs(Practice.update(current,sol,stage,patch));save();};
+    const reviewItems=()=>{const current=wsRef.current,ref=current.document.problem.referenceId;if(reviewCache.current.ref!==ref){const others=[];try{for(let i=0;i<root.localStorage.length;i++){const key=root.localStorage.key(i);if(key.startsWith(Store.STORAGE_PREFIX)&&key!==Store.storageKey(ref)){try{others.push(Store.parse(root.localStorage.getItem(key)).workspace);}catch{}}}}catch{}reviewCache.current={ref,others};}return Practice.due([current,...reviewCache.current.others]);};
+    const concealed=ws&&solution?Practice.hidden(ws,solution,solution.stages[stageIndex],answerFirst):false;
     const panel = tab => {
       if (!ws || !solution) return h('p', {className: 'sw-muted'}, 'Loading study…');
-      if (tab === 'stage') return [h('div', {key: 'p', className: 'sw-sidebar-controls'}, pickers, h('div', {className: 'sw-mobile-only'}, stepper)), h(P.StagePanel, {key: 's', solution, stageIndex, built, edited, onReset: resetStage, showRemoved: ws.view.showRemoved, onToggleRemoved: v => navigate({showRemoved: v}), followups})];
+      if(tab==='practice')return h(Practice.Panel,{workspace:ws,solution,stageIndex,onPatch:patchPractice,reviewItems:reviewItems(),onOpen:item=>openProblem(item.referenceId,{approach:item.solutionId,stage:item.stageIndex+1}),onCompare:id=>{const other=ws.document.solutions.find(s=>s.id===id),q=new URLSearchParams({problem:ws.document.problem.referenceId,approach:id,stage:String(Math.min(stageIndex+1,other.stages.length))});root.open('/lucyd?'+q,'lucyd-compare-'+id,'popup,width='+Math.floor(screen.availWidth/2)+',height='+screen.availHeight+',left='+Math.floor(screen.availWidth/2));}});
+      if (tab === 'stage') return [h('div', {key: 'p', className: 'sw-sidebar-controls'}, pickers, h('div', {className: 'sw-mobile-only'}, stepper)), h(P.StagePanel, {key: 's',concealed,solution, stageIndex, built, edited, onReset: resetStage, showRemoved: ws.view.showRemoved, onToggleRemoved: v => navigate({showRemoved: v}), followups})];
       if (tab === 'inspect') return h(P.InspectPanel, {info, onToggleCollapse: () => toggleCollapse(info.node.id), onConnect: connect, onDisconnect: disconnect});
       if (tab === 'approach') return h(P.ApproachPanel, {solution});
       if (tab === 'problem') return h(P.ProblemPanel, {document: ws.document, entry});
@@ -341,7 +385,7 @@
         // so this approach opens there as design stages beside the problem's runnable approaches.
         h(MainMenu.ItemLink, {href: ws && solution ? `../../../system-diagram?problem=${encodeURIComponent(ws.document.problem.referenceId)}&approach=design-${encodeURIComponent(solution.id)}` : '../../../system-diagram'}, ws && solution ? 'Open this approach in the simulation editor' : 'Open simulation editor')),
       h(Footer, null, h('div', {className: 'sw-footer', onKeyDown: isolateKeys},
-        h('button',{className:'sw-mode-toggle','aria-label':'Study mode','aria-pressed':studyMode,onClick:toggleStudyMode,title:'Show or hide the solution sequence guide'},'Study'),
+        h('button',{className:'sw-mode-toggle','aria-label':'Study mode','aria-pressed':studyMode,onClick:toggleStudyMode,title:'Show or hide the solution sequence guide'},'Study'),h('button',{className:'sw-button',onClick:enablePractice,title:'Answer the stage question before reading; track weak spots'},'Practice'),
         !studyMode&&h('div',{className:'sw-compact-stepper'},stepper),
         h('span', {className: 'sw-save', role: 'status'}, saveStatus))),
       h(Sidebar, {name: SIDEBAR, docked, onDock: setDocked, className: 'sw-sidebar'},
@@ -349,7 +393,7 @@
         h(Sidebar.Tabs, {onKeyDown: isolateKeys},
           h(Sidebar.TabTriggers, null, TABS.map(([tab, label]) => h(Sidebar.TabTrigger, {key: tab, tab}, label))),
           TABS.map(([tab]) => h(Sidebar.Tab, {key: tab, tab}, panel(tab)))))),
-      studyMode&&solution&&h('div',{className:'sw-guide-wrap sw-footer','aria-label':'Study sequence guide',onKeyDown:isolateKeys},stepper,h(StudyGuide,{solution,stageIndex,onSelect:i=>navigate({stageIndex:i})})),
+      studyMode&&solution&&h('div',{className:'sw-guide-wrap sw-footer','aria-label':'Study sequence guide',onKeyDown:isolateKeys},stepper,h(StudyGuide,{solution,stageIndex,concealed,onReveal:()=>patchPractice({revealed:true}),onSelect:i=>navigate({stageIndex:i})})),
       h('input', {ref: fileInput, type: 'file', accept: 'application/json,.json', hidden: true, onChange: onFile, 'aria-label': 'Study JSON file'}),
       h(P.Dialog, {open: !!preview, title: 'Open this study file?', onClose: () => setPreview(null), actions: [{label: 'Cancel', onClick: () => setPreview(null)}, {label: 'Export current first', onClick: exportWorkspace}, {label: 'Replace current workspace', primary: true, onClick: confirmImport}]},
         preview && (() => { const s = Store.summary(preview.parsed.workspace); return h('div', null, h('p', null, h('b', null, `${s.referenceId} · ${s.studyLabel}`)), h('ul', {className: 'sw-list'}, s.approaches.map(a => h('li', {key: a}, a))),

@@ -4,7 +4,7 @@ Parent: [Lucyd](../CATSCAN.md)
 
 ## Target
 
-Study authored solutions stage by stage on an editable Excalidraw canvas.
+Study solutions on an editable Excalidraw canvas.
 
 ## Authority
 
@@ -20,7 +20,7 @@ This directory, canonical route `/lucyd`; legacy entrypoints remain compatible.
 
 - Input: [composable contract](../../../../docs/simulatte/composable-study-contract.md), [catalogue](../../../data/system-diagram/composable-solutions/manifest.json).
 - Output: `simulatte.studyWorkspace.v1` in [workspace-store.js](workspace-store.js); [workspace specification](../../../../docs/simulatte/study-workspace-spec.md).
-- Each approach also opens in the simulation editor through the shared [architecture model](../../../../docs/simulatte/architecture-model.md).
+- Approaches open in the simulation editor through the [architecture model](../../../../docs/simulatte/architecture-model.md).
 
 ## Invariants
 
@@ -28,14 +28,16 @@ This directory, canonical route `/lucyd`; legacy entrypoints remain compatible.
 - Never edit authored documents. Keep learner overlays independently per stage.
 - Navigation never enters undo history; undo never crosses stages.
 - Diagram selection starts at stage one; explicit deep links and imported workspace views retain their requested stage.
-- Nunito is the default. Measure its real advances; draw text at display resolution.
+- Nunito defaults; measure advances and render at display resolution.
+- Answers, reveal state and self-assessment persist with learner work; review never implies automated grading.
 - Compound layouts, routes and text clearance are deterministic and checked; geometry never changes meaning.
 - Only matching ports create typed connections.
 - Validate imports before replacement; retain unknown fields and current work on failure.
-- Page Up/Down navigate outside typing, dialogs and active gestures.
+- Opt-in parent embedding accepts validated same-origin documents, preserving overlays. Hosted use has no model provider.
+- Page Up/Down skips typing, dialogs and gestures.
 - Study mode shows a centered guide with 50–75-word explanations and safe background links. Notes are viewport-bounded at 480px.
 - Theme defaults to System and tracks OS changes; explicit Light/Dark overrides persist.
-- Study controls never trigger canvas shortcuts.
+- Controls isolate canvas shortcuts.
 
 ## Acceptance
 

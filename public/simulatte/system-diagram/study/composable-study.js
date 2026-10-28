@@ -10,7 +10,7 @@
   const SCHEMA = 'simulatte.composableStudy.v2';
   const SCHEMAS = ['simulatte.composableStudy.v1', SCHEMA];   // v2 adds rebind and replacement labels
   const MAX_BYTES = 8 * 1024 * 1024;
-  const MODES = ['request-response', 'event-stream', 'storage', 'local-call'];
+  const MODES = ['request-response', 'event-stream', 'storage', 'local-call', 'message'];
   const clone = value => structuredClone(value);
   function fail(path, message) { const error = Error(`${path}: ${message}`); error.path = path; throw error; }
   function list(value, path) { if (!Array.isArray(value)) fail(path, 'expected an array'); return value; }

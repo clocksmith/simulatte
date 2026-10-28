@@ -17,7 +17,7 @@
     return evidence ? h('span', {className: 'sw-evidence tested'}, `Reference test: ${evidence.testFile} › ${evidence.testName}`) : h('span', {className: 'sw-evidence'}, 'Specification: no executed evidence');
   }
 
-  function StagePanel({solution, stageIndex, built, edited, onReset, showRemoved, onToggleRemoved, followups}) {
+  function StagePanel({concealed,solution, stageIndex, built, edited, onReset, showRemoved, onToggleRemoved, followups}) {
     if (stageIndex < 0) return h('div', {className: 'sw-panel'}, h('p', {className: 'sw-eyebrow'}, 'STARTING POINT'), h('h2', null, solution.title), h('p', null, 'The initial graph before the first stage.'));
     const stage = solution.stages[stageIndex], checks = new Map(solution.acceptanceCases.map(c => [c.id, c]));
     const c = built?.changes, count = (map, kind) => [...(map?.values() || [])].filter(v => v === kind).length;
@@ -25,18 +25,18 @@
       h('p', {className: 'sw-eyebrow'}, `STAGE ${stageIndex + 1} OF ${solution.stages.length}`),
       h('h2', null, stage.title),
       h(Section, {title: 'Question'}, h('p', null, stage.question)),
-      h(Section, {title: 'Why this stage'}, h('p', null, stage.reason)),
-      h(Section, {title: 'Explanation', hidden: !stage.explanation}, h('p', null, root.SimulatteStudyText.render(stage.explanation||'',h))),
-      h(Section, {title: 'Board notes', hidden: !stage.notes?.length}, h(List, {items: stage.notes})),
+      h(Section, {title: 'Why this stage',hidden:concealed}, h('p', null, stage.reason)),
+      h(Section, {title: 'Explanation', hidden: concealed||!stage.explanation}, h('p', null, root.SimulatteStudyText.render(stage.explanation||'',h))),
+      h(Section, {title: 'Board notes', hidden: concealed||!stage.notes?.length}, h(List, {items: stage.notes})),
       h(Section, {title: 'Follow-ups answered', hidden: !stage.followupIds?.length}, h(List, {items: stage.followupIds, render: id => followups?.get(id) ? `${followups.get(id).title}: ${followups.get(id).prompt}` : id})),
       h(Section, {title: 'Changes in this stage'},
         h('p', {className: 'sw-legend'}, h('span', {className: 'added'}, `${count(c?.node, 'added') + count(c?.node, 'merged')} added`), h('span', {className: 'changed'}, `${count(c?.node, 'changed')} changed`),
           h('span', {className: 'removed'}, `${c?.removedNodes.length || 0} removed`), h('span', null, `${count(c?.edge, 'added')} new connections`)),
         h(List, {items: built?.summary}),
         h('label', {className: 'sw-check'}, h('input', {type: 'checkbox', checked: showRemoved, onChange: e => onToggleRemoved(e.target.checked)}), 'Show removed components')),
-      h(Section, {title: 'Code', hidden: !stage.code?.length}, (stage.code || []).map(block => h(Code, {key: block.id, block}))),
-      h(Section, {title: 'Invariants', hidden: !stage.invariants?.length}, h(List, {items: stage.invariants})),
-      h(Section, {title: 'Correctness checks', hidden: !stage.checkIds.length}, stage.checkIds.map(id => checks.get(id)).filter(Boolean).map(check => h('div', {className: 'sw-case', key: check.id},
+      h(Section, {title: 'Code', hidden: concealed||!stage.code?.length}, (stage.code || []).map(block => h(Code, {key: block.id, block}))),
+      h(Section, {title: 'Invariants', hidden: concealed||!stage.invariants?.length}, h(List, {items: stage.invariants})),
+      h(Section, {title: 'Correctness checks', hidden: concealed||!stage.checkIds.length}, stage.checkIds.map(id => checks.get(id)).filter(Boolean).map(check => h('div', {className: 'sw-case', key: check.id},
         h('p', null, h('b', null, 'Given '), check.given), h('p', null, h('b', null, 'When '), check.when), h('p', null, h('b', null, 'Then '), check.then), h(Evidence, {evidence: check.evidence})))),
       h(Section, {title: 'Your edits'}, edited
         ? h('div', {className: 'sw-row'}, h('span', null, 'This stage has your edits. Other stages and the authored solution are unchanged.'), h('button', {className: 'sw-button', onClick: onReset}, 'Reset stage'))
