@@ -1,0 +1,13 @@
+{
+  "schema": "simulatte.lucydDiscoveryCheck.v1",
+  "url": "https://simulatte.world/lucyd?problem=L001&approach=dedicated&stage=1",
+  "build": "9aa18b53330fb1d89ded73ea148d6fd37aae80b2-1005bf6c63f6",
+  "homepageLink": "./lucyd",
+  "darkMode": {
+    "document": "dark",
+    "canvas": "dark",
+    "preference": "dark"
+  },
+  "passed": true,
+  "scope": "Chromium live homepage navigation and native dark-mode selection/reload"
+}
