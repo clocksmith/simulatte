@@ -1,0 +1,709 @@
+{
+  "schema": "simulatte.studyReadingAudit.v1",
+  "url": "https://simulatte.world/lucyd",
+  "scope": "Chromium DPR1/light and DPR2/dark, real display text draws, computed text contrast and actual selection controls",
+  "passed": true,
+  "rows": [
+    {
+      "name": "Nunito at device scale 1",
+      "pass": true,
+      "observed": {
+        "fonts": [
+          6
+        ],
+        "defaultFont": 6,
+        "draws": 34,
+        "directNunito": true,
+        "canvases": [
+          {
+            "ratio": 1,
+            "rendering": "auto"
+          },
+          {
+            "ratio": 1,
+            "rendering": "auto"
+          }
+        ],
+        "zoom": 1
+      }
+    },
+    {
+      "name": "Direct text at fractional zoom and scale 1",
+      "pass": true,
+      "observed": {
+        "zoom": 0.9,
+        "draws": [
+          {
+            "font": "16px Nunito, \"Segoe UI Emoji\"",
+            "scale": 1
+          },
+          {
+            "font": "16px Nunito, \"Segoe UI Emoji\"",
+            "scale": 1
+          },
+          {
+            "font": "16px Nunito, \"Segoe UI Emoji\"",
+            "scale": 1
+          },
+          {
+            "font": "16px Nunito, \"Segoe UI Emoji\"",
+            "scale": 1
+          },
+          {
+            "font": "16px Nunito, \"Segoe UI Emoji\"",
+            "scale": 1
+          },
+          {
+            "font": "16px Nunito, \"Segoe UI Emoji\"",
+            "scale": 1
+          },
+          {
+            "font": "18px Nunito, \"Segoe UI Emoji\"",
+            "scale": 0.8999999761581421
+          },
+          {
+            "font": "18px Nunito, \"Segoe UI Emoji\"",
+            "scale": 0.8999999761581421
+          },
+          {
+            "font": "18px Nunito, \"Segoe UI Emoji\"",
+            "scale": 0.8999999761581421
+          },
+          {
+            "font": "18px Nunito, \"Segoe UI Emoji\"",
+            "scale": 0.8999999761581421
+          },
+          {
+            "font": "18px Nunito, \"Segoe UI Emoji\"",
+            "scale": 0.8999999761581421
+          },
+          {
+            "font": "18px Nunito, \"Segoe UI Emoji\"",
+            "scale": 0.8999999761581421
+          },
+          {
+            "font": "18px Nunito, \"Segoe UI Emoji\"",
+            "scale": 0.8999999761581421
+          },
+          {
+            "font": "18px Nunito, \"Segoe UI Emoji\"",
+            "scale": 0.8999999761581421
+          },
+          {
+            "font": "18px Nunito, \"Segoe UI Emoji\"",
+            "scale": 0.8999999761581421
+          },
+          {
+            "font": "18px Nunito, \"Segoe UI Emoji\"",
+            "scale": 0.8999999761581421
+          },
+          {
+            "font": "18px Nunito, \"Segoe UI Emoji\"",
+            "scale": 0.8999999761581421
+          },
+          {
+            "font": "18px Nunito, \"Segoe UI Emoji\"",
+            "scale": 0.8999999761581421
+          },
+          {
+            "font": "18px Nunito, \"Segoe UI Emoji\"",
+            "scale": 0.8999999761581421
+          },
+          {
+            "font": "18px Nunito, \"Segoe UI Emoji\"",
+            "scale": 0.8999999761581421
+          },
+          {
+            "font": "18px Nunito, \"Segoe UI Emoji\"",
+            "scale": 0.8999999761581421
+          },
+          {
+            "font": "16px Nunito, \"Segoe UI Emoji\"",
+            "scale": 0.8999999761581421
+          },
+          {
+            "font": "16px Nunito, \"Segoe UI Emoji\"",
+            "scale": 0.8999999761581421
+          },
+          {
+            "font": "16px Nunito, \"Segoe UI Emoji\"",
+            "scale": 0.8999999761581421
+          },
+          {
+            "font": "16px Nunito, \"Segoe UI Emoji\"",
+            "scale": 0.8999999761581421
+          },
+          {
+            "font": "16px Nunito, \"Segoe UI Emoji\"",
+            "scale": 0.8999999761581421
+          },
+          {
+            "font": "16px Nunito, \"Segoe UI Emoji\"",
+            "scale": 0.8999999761581421
+          },
+          {
+            "font": "16px Nunito, \"Segoe UI Emoji\"",
+            "scale": 0.8999999761581421
+          },
+          {
+            "font": "16px Nunito, \"Segoe UI Emoji\"",
+            "scale": 0.8999999761581421
+          },
+          {
+            "font": "16px Nunito, \"Segoe UI Emoji\"",
+            "scale": 0.8999999761581421
+          },
+          {
+            "font": "16px Nunito, \"Segoe UI Emoji\"",
+            "scale": 0.8999999761581421
+          },
+          {
+            "font": "16px Nunito, \"Segoe UI Emoji\"",
+            "scale": 0.8999999761581421
+          },
+          {
+            "font": "16px Nunito, \"Segoe UI Emoji\"",
+            "scale": 0.8999999761581421
+          },
+          {
+            "font": "16px Nunito, \"Segoe UI Emoji\"",
+            "scale": 0.8999999761581421
+          },
+          {
+            "font": "16px Nunito, \"Segoe UI Emoji\"",
+            "scale": 0.8999999761581421
+          },
+          {
+            "font": "16px Nunito, \"Segoe UI Emoji\"",
+            "scale": 0.8999999761581421
+          },
+          {
+            "font": "16px Nunito, \"Segoe UI Emoji\"",
+            "scale": 0.8999999761581421
+          },
+          {
+            "font": "16px Nunito, \"Segoe UI Emoji\"",
+            "scale": 0.8999999761581421
+          },
+          {
+            "font": "16px Nunito, \"Segoe UI Emoji\"",
+            "scale": 0.8999999761581421
+          },
+          {
+            "font": "16px Nunito, \"Segoe UI Emoji\"",
+            "scale": 0.8999999761581421
+          }
+        ],
+        "dpr": 1
+      }
+    },
+    {
+      "name": "Study contrast in light",
+      "pass": true,
+      "observed": {
+        "width": 472,
+        "theme": "light",
+        "items": [
+          {
+            "text": "Stage",
+            "fg": "rgb(255, 255, 255)",
+            "bg": "rgb(67, 56, 202)",
+            "ratio": 7.9031114800249425
+          },
+          {
+            "text": "Inspect",
+            "fg": "rgb(32, 39, 53)",
+            "bg": "rgb(238, 241, 247)",
+            "ratio": 13.228949129522453
+          },
+          {
+            "text": "Approach",
+            "fg": "rgb(32, 39, 53)",
+            "bg": "rgb(238, 241, 247)",
+            "ratio": 13.228949129522453
+          },
+          {
+            "text": "Problem",
+            "fg": "rgb(32, 39, 53)",
+            "bg": "rgb(238, 241, 247)",
+            "ratio": 13.228949129522453
+          },
+          {
+            "text": "File",
+            "fg": "rgb(32, 39, 53)",
+            "bg": "rgb(238, 241, 247)",
+            "ratio": 13.228949129522453
+          },
+          {
+            "text": "Question",
+            "fg": "rgb(71, 85, 105)",
+            "bg": "rgb(255, 255, 255)",
+            "ratio": 7.577663953533317
+          },
+          {
+            "text": "Why this stage",
+            "fg": "rgb(71, 85, 105)",
+            "bg": "rgb(255, 255, 255)",
+            "ratio": 7.577663953533317
+          },
+          {
+            "text": "Explanation",
+            "fg": "rgb(71, 85, 105)",
+            "bg": "rgb(255, 255, 255)",
+            "ratio": 7.577663953533317
+          },
+          {
+            "text": "Board notes",
+            "fg": "rgb(71, 85, 105)",
+            "bg": "rgb(255, 255, 255)",
+            "ratio": 7.577663953533317
+          },
+          {
+            "text": "Follow-ups answered",
+            "fg": "rgb(71, 85, 105)",
+            "bg": "rgb(255, 255, 255)",
+            "ratio": 7.577663953533317
+          },
+          {
+            "text": "Changes in this stage",
+            "fg": "rgb(71, 85, 105)",
+            "bg": "rgb(255, 255, 255)",
+            "ratio": 7.577663953533317
+          },
+          {
+            "text": "Invariants",
+            "fg": "rgb(71, 85, 105)",
+            "bg": "rgb(255, 255, 255)",
+            "ratio": 7.577663953533317
+          },
+          {
+            "text": "Correctness checks",
+            "fg": "rgb(71, 85, 105)",
+            "bg": "rgb(255, 255, 255)",
+            "ratio": 7.577663953533317
+          },
+          {
+            "text": "Specification: no executed evidence",
+            "fg": "rgb(71, 85, 105)",
+            "bg": "rgb(255, 255, 255)",
+            "ratio": 7.577663953533317
+          },
+          {
+            "text": "Your edits",
+            "fg": "rgb(71, 85, 105)",
+            "bg": "rgb(255, 255, 255)",
+            "ratio": 7.577663953533317
+          },
+          {
+            "text": "Authored layout. Edits you make here stay ",
+            "fg": "rgb(71, 85, 105)",
+            "bg": "rgb(255, 255, 255)",
+            "ratio": 7.577663953533317
+          },
+          {
+            "text": "Authored design and correctness criteria. ",
+            "fg": "rgb(71, 85, 105)",
+            "bg": "rgb(255, 255, 255)",
+            "ratio": 7.577663953533317
+          }
+        ]
+      }
+    },
+    {
+      "name": "Centered sequence guide at scale 1",
+      "pass": true,
+      "observed": {
+        "steps": 9,
+        "expected": 9,
+        "current": "Stage 9: Offline devices and scale",
+        "explanation": true,
+        "centered": true,
+        "inside": true
+      }
+    },
+    {
+      "name": "Sequence stage selection 1",
+      "pass": true
+    },
+    {
+      "name": "Study mode can be hidden 1",
+      "pass": true
+    },
+    {
+      "name": "Study mode restores its guide 1",
+      "pass": true
+    },
+    {
+      "name": "Returning to a saved problem starts at stage one",
+      "pass": true,
+      "observed": {
+        "before": 3,
+        "after": 0
+      }
+    },
+    {
+      "name": "Changing approach starts at stage one",
+      "pass": true
+    },
+    {
+      "name": "Returning to an approach starts at stage one",
+      "pass": true
+    },
+    {
+      "name": "Nunito at device scale 2",
+      "pass": true,
+      "observed": {
+        "fonts": [
+          6
+        ],
+        "defaultFont": 6,
+        "draws": 34,
+        "directNunito": true,
+        "canvases": [
+          {
+            "ratio": 2,
+            "rendering": "auto"
+          },
+          {
+            "ratio": 2,
+            "rendering": "auto"
+          }
+        ],
+        "zoom": 1
+      }
+    },
+    {
+      "name": "Direct text at fractional zoom and scale 2",
+      "pass": true,
+      "observed": {
+        "zoom": 0.9,
+        "draws": [
+          {
+            "font": "16px Nunito, \"Segoe UI Emoji\"",
+            "scale": 2
+          },
+          {
+            "font": "16px Nunito, \"Segoe UI Emoji\"",
+            "scale": 2
+          },
+          {
+            "font": "16px Nunito, \"Segoe UI Emoji\"",
+            "scale": 2
+          },
+          {
+            "font": "16px Nunito, \"Segoe UI Emoji\"",
+            "scale": 2
+          },
+          {
+            "font": "16px Nunito, \"Segoe UI Emoji\"",
+            "scale": 2
+          },
+          {
+            "font": "16px Nunito, \"Segoe UI Emoji\"",
+            "scale": 2
+          },
+          {
+            "font": "18px Nunito, \"Segoe UI Emoji\"",
+            "scale": 1.7999999523162842
+          },
+          {
+            "font": "18px Nunito, \"Segoe UI Emoji\"",
+            "scale": 1.7999999523162842
+          },
+          {
+            "font": "18px Nunito, \"Segoe UI Emoji\"",
+            "scale": 1.7999999523162842
+          },
+          {
+            "font": "18px Nunito, \"Segoe UI Emoji\"",
+            "scale": 1.7999999523162842
+          },
+          {
+            "font": "18px Nunito, \"Segoe UI Emoji\"",
+            "scale": 1.7999999523162842
+          },
+          {
+            "font": "18px Nunito, \"Segoe UI Emoji\"",
+            "scale": 1.7999999523162842
+          },
+          {
+            "font": "18px Nunito, \"Segoe UI Emoji\"",
+            "scale": 1.7999999523162842
+          },
+          {
+            "font": "18px Nunito, \"Segoe UI Emoji\"",
+            "scale": 1.7999999523162842
+          },
+          {
+            "font": "18px Nunito, \"Segoe UI Emoji\"",
+            "scale": 1.7999999523162842
+          },
+          {
+            "font": "18px Nunito, \"Segoe UI Emoji\"",
+            "scale": 1.7999999523162842
+          },
+          {
+            "font": "18px Nunito, \"Segoe UI Emoji\"",
+            "scale": 1.7999999523162842
+          },
+          {
+            "font": "18px Nunito, \"Segoe UI Emoji\"",
+            "scale": 1.7999999523162842
+          },
+          {
+            "font": "18px Nunito, \"Segoe UI Emoji\"",
+            "scale": 1.7999999523162842
+          },
+          {
+            "font": "18px Nunito, \"Segoe UI Emoji\"",
+            "scale": 1.7999999523162842
+          },
+          {
+            "font": "18px Nunito, \"Segoe UI Emoji\"",
+            "scale": 1.7999999523162842
+          },
+          {
+            "font": "16px Nunito, \"Segoe UI Emoji\"",
+            "scale": 1.7999999523162842
+          },
+          {
+            "font": "16px Nunito, \"Segoe UI Emoji\"",
+            "scale": 1.7999999523162842
+          },
+          {
+            "font": "16px Nunito, \"Segoe UI Emoji\"",
+            "scale": 1.7999999523162842
+          },
+          {
+            "font": "16px Nunito, \"Segoe UI Emoji\"",
+            "scale": 1.7999999523162842
+          },
+          {
+            "font": "16px Nunito, \"Segoe UI Emoji\"",
+            "scale": 1.7999999523162842
+          },
+          {
+            "font": "16px Nunito, \"Segoe UI Emoji\"",
+            "scale": 1.7999999523162842
+          },
+          {
+            "font": "16px Nunito, \"Segoe UI Emoji\"",
+            "scale": 1.7999999523162842
+          },
+          {
+            "font": "16px Nunito, \"Segoe UI Emoji\"",
+            "scale": 1.7999999523162842
+          },
+          {
+            "font": "16px Nunito, \"Segoe UI Emoji\"",
+            "scale": 1.7999999523162842
+          },
+          {
+            "font": "16px Nunito, \"Segoe UI Emoji\"",
+            "scale": 1.7999999523162842
+          },
+          {
+            "font": "16px Nunito, \"Segoe UI Emoji\"",
+            "scale": 1.7999999523162842
+          },
+          {
+            "font": "16px Nunito, \"Segoe UI Emoji\"",
+            "scale": 1.7999999523162842
+          },
+          {
+            "font": "16px Nunito, \"Segoe UI Emoji\"",
+            "scale": 1.7999999523162842
+          },
+          {
+            "font": "16px Nunito, \"Segoe UI Emoji\"",
+            "scale": 1.7999999523162842
+          },
+          {
+            "font": "16px Nunito, \"Segoe UI Emoji\"",
+            "scale": 1.7999999523162842
+          },
+          {
+            "font": "16px Nunito, \"Segoe UI Emoji\"",
+            "scale": 1.7999999523162842
+          },
+          {
+            "font": "16px Nunito, \"Segoe UI Emoji\"",
+            "scale": 1.7999999523162842
+          },
+          {
+            "font": "16px Nunito, \"Segoe UI Emoji\"",
+            "scale": 1.7999999523162842
+          },
+          {
+            "font": "16px Nunito, \"Segoe UI Emoji\"",
+            "scale": 1.7999999523162842
+          }
+        ],
+        "dpr": 2
+      }
+    },
+    {
+      "name": "Study contrast in dark",
+      "pass": true,
+      "observed": {
+        "width": 472,
+        "theme": "dark",
+        "items": [
+          {
+            "text": "Stage",
+            "fg": "rgb(25, 23, 47)",
+            "bg": "rgb(199, 196, 255)",
+            "ratio": 10.596702601115073
+          },
+          {
+            "text": "Inspect",
+            "fg": "rgb(238, 241, 247)",
+            "bg": "rgb(52, 56, 65)",
+            "ratio": 10.38058873093957
+          },
+          {
+            "text": "Approach",
+            "fg": "rgb(238, 241, 247)",
+            "bg": "rgb(52, 56, 65)",
+            "ratio": 10.38058873093957
+          },
+          {
+            "text": "Problem",
+            "fg": "rgb(238, 241, 247)",
+            "bg": "rgb(52, 56, 65)",
+            "ratio": 10.38058873093957
+          },
+          {
+            "text": "File",
+            "fg": "rgb(238, 241, 247)",
+            "bg": "rgb(52, 56, 65)",
+            "ratio": 10.38058873093957
+          },
+          {
+            "text": "Question",
+            "fg": "rgb(186, 197, 214)",
+            "bg": "rgb(35, 35, 41)",
+            "ratio": 8.962987274632967
+          },
+          {
+            "text": "Why this stage",
+            "fg": "rgb(186, 197, 214)",
+            "bg": "rgb(35, 35, 41)",
+            "ratio": 8.962987274632967
+          },
+          {
+            "text": "Explanation",
+            "fg": "rgb(186, 197, 214)",
+            "bg": "rgb(35, 35, 41)",
+            "ratio": 8.962987274632967
+          },
+          {
+            "text": "Board notes",
+            "fg": "rgb(186, 197, 214)",
+            "bg": "rgb(35, 35, 41)",
+            "ratio": 8.962987274632967
+          },
+          {
+            "text": "Follow-ups answered",
+            "fg": "rgb(186, 197, 214)",
+            "bg": "rgb(35, 35, 41)",
+            "ratio": 8.962987274632967
+          },
+          {
+            "text": "Changes in this stage",
+            "fg": "rgb(186, 197, 214)",
+            "bg": "rgb(35, 35, 41)",
+            "ratio": 8.962987274632967
+          },
+          {
+            "text": "Invariants",
+            "fg": "rgb(186, 197, 214)",
+            "bg": "rgb(35, 35, 41)",
+            "ratio": 8.962987274632967
+          },
+          {
+            "text": "Correctness checks",
+            "fg": "rgb(186, 197, 214)",
+            "bg": "rgb(35, 35, 41)",
+            "ratio": 8.962987274632967
+          },
+          {
+            "text": "Specification: no executed evidence",
+            "fg": "rgb(186, 197, 214)",
+            "bg": "rgb(35, 35, 41)",
+            "ratio": 8.962987274632967
+          },
+          {
+            "text": "Your edits",
+            "fg": "rgb(186, 197, 214)",
+            "bg": "rgb(35, 35, 41)",
+            "ratio": 8.962987274632967
+          },
+          {
+            "text": "Authored layout. Edits you make here stay ",
+            "fg": "rgb(186, 197, 214)",
+            "bg": "rgb(35, 35, 41)",
+            "ratio": 8.962987274632967
+          },
+          {
+            "text": "Authored design and correctness criteria. ",
+            "fg": "rgb(186, 197, 214)",
+            "bg": "rgb(35, 35, 41)",
+            "ratio": 8.962987274632967
+          }
+        ]
+      }
+    },
+    {
+      "name": "Centered sequence guide at scale 2",
+      "pass": true,
+      "observed": {
+        "steps": 9,
+        "expected": 9,
+        "current": "Stage 9: Offline devices and scale",
+        "explanation": true,
+        "centered": true,
+        "inside": true
+      }
+    },
+    {
+      "name": "Sequence stage selection 2",
+      "pass": true
+    },
+    {
+      "name": "Study mode can be hidden 2",
+      "pass": true
+    },
+    {
+      "name": "Study mode restores its guide 2",
+      "pass": true
+    },
+    {
+      "name": "Phone sequence guide stays within the viewport",
+      "pass": true,
+      "observed": {
+        "left": 8,
+        "right": 382,
+        "bottom": 776,
+        "width": 390,
+        "height": 844,
+        "steps": 9
+      }
+    },
+    {
+      "name": "Phone stage chips navigate",
+      "pass": true
+    },
+    {
+      "name": "Phone Notes stays in view without a competing guide",
+      "pass": true,
+      "observed": {
+        "left": 24,
+        "right": 390,
+        "width": 390,
+        "guideHidden": true
+      }
+    }
+  ],
+  "pageProblems": []
+}
