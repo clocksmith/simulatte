@@ -8,6 +8,7 @@
   const {createElement: h, useState, useEffect, useRef, useCallback, useMemo} = React;
   const {Excalidraw, MainMenu, Footer, Sidebar} = X;
   const DATA = new URL('../../../data/system-diagram/', document.baseURI);
+  const EMBED_ROLE=root.SimulatteStudyLiveInput.role(root), COMPACT=!!EMBED_ROLE, READ_ONLY=EMBED_ROLE==='observer';
   const STUDY_KEY='simulatte.studyMode.v1';
   const comparison=new URLSearchParams(root.location.search).get('compare');
   const workspaceKey=ref=>Store.storageKey(ref)+(comparison?'::compare:'+comparison:'');
@@ -77,6 +78,7 @@
     useEffect(() => { root.SimulatteStudyInspector = Object.freeze({ready: () => !!apiRef.current && !!wsRef.current, elements: () => apiRef.current?.getSceneElements() || [], files: () => Object.keys(apiRef.current?.getFiles() || {}), appState: () => apiRef.current?.getAppState() || null, workspace: () => wsRef.current}); }, []);
 
     const save = useCallback(() => {
+      if(READ_ONLY)return;
       clearTimeout(timers.current.save);
       timers.current.save = setTimeout(() => {
         const current = wsRef.current; if (!current) return;
@@ -96,7 +98,7 @@
       authoredRef.current = authored;
       loadingRef.current = true;
       if (overlay?.files) excalidraw.addFiles(Object.values(overlay.files));
-      excalidraw.updateScene({elements: X.restoreElements(Scene.applyOverlay(authored, overlay), null), appState: {selectedElementIds: {}, editingTextElement: null, currentItemFontFamily: Spatial.metrics.fontFamily, name: `${next.document.problem.referenceId} ${sol.title}`}, captureUpdate: X.CaptureUpdateAction.NEVER});
+      excalidraw.updateScene({elements: X.restoreElements(Scene.applyOverlay(authored, overlay), null, {repairBindings:true,refreshDimensions:true}), appState: {selectedElementIds: {}, editingTextElement: null, currentItemFontFamily: Spatial.metrics.fontFamily, name: `${next.document.problem.referenceId} ${sol.title}`}, captureUpdate: X.CaptureUpdateAction.NEVER});
       excalidraw.history.clear();
       versionRef.current = X.getSceneVersion(excalidraw.getSceneElementsIncludingDeleted());
       loadingRef.current = false;
@@ -106,13 +108,14 @@
         const boxes=authored.filter(e=>e.customData?.study?.role==='node');
         const width=Math.max(...boxes.map(e=>e.x+e.width))-Math.min(...boxes.map(e=>e.x)),height=Math.max(...boxes.map(e=>e.y+e.height))-Math.min(...boxes.map(e=>e.y));
         const changed=boxes.filter(e=>e.customData.study.change),wouldShrink=Math.min((state.width-150)/width,(state.height-180)/height)<minimum;
-        excalidraw.scrollToContent(wouldShrink&&changed.length?changed:undefined,{fitToContent:true,minZoom:minimum,maxZoom:1,animate:false,canvasOffsets:{top:92,bottom:studyModeRef.current?300:76,left:20,right:document.querySelector('.sw-sidebar')?.getBoundingClientRect().width+20||20}});
+        excalidraw.scrollToContent(wouldShrink&&changed.length?changed:undefined,{fitToContent:true,minZoom:minimum,maxZoom:1,animate:false,canvasOffsets:{top:92,bottom:!COMPACT&&studyModeRef.current?300:76,left:20,right:document.querySelector('.sw-sidebar')?.getBoundingClientRect().width+20||20}});
       });
       setBuilt(result); writeQuery(next);
     }, []);
 
     // Turn whatever is on the canvas into this stage's overlay.
     const capture = useCallback(() => {
+      if(READ_ONLY)return;
       clearTimeout(timers.current.capture);
       const excalidraw = apiRef.current, current = wsRef.current; if (!excalidraw || !current) return;
       const sol = solutionOf(current), key = stageKeyOf(current), previous = Store.overlayFor(current, sol.id, key);
@@ -250,12 +253,12 @@
           await Spatial.prepare(incoming.document);
           if(mine!==generation||load!==loadRef.current)return;
           ++loadRef.current;capture();
-          const next=value.preserveEdits===false?incoming:Live.merge(wsRef.current,incoming,Store);
+          const next=READ_ONLY||value.preserveEdits===false?incoming:Live.merge(wsRef.current,incoming,Store);
           const ref=next.document.problem.referenceId;
           if(!catalogueRef.current.some(c=>c.referenceId===ref)){
             const list=[...catalogueRef.current,{referenceId:ref,title:next.document.problem.studyLabel}];catalogueRef.current=list;setCatalogue(list);
           }
-          const first=!wsRef.current;revision=value.revision;setWs(next);render(next,{fit:first});save();
+          const first=!wsRef.current;revision=value.revision;setWs(next);render(next,{fit:first||!!value.fit});save();
           setSaveStatus('Live suggestions updated. Your stage edits are preserved.');send('lucyd.live.applied',{revision});
         }catch(error){send('lucyd.live.error',{message:error.message});}
       };
@@ -334,6 +337,7 @@
       if (!api) return;
       const onStageKey = event => {
         const modalOpen=!!document.querySelector('dialog[open]');
+        if(COMPACT)return;
         const delta=StageShortcuts.direction(event,api.getAppState(),modalOpen);
         if (!delta || pointerActive.current || !wsRef.current) return;
         event.preventDefault(); event.stopImmediatePropagation(); step(delta);
@@ -362,15 +366,15 @@
         onImport: () => fileInput.current?.click(), onExport: exportWorkspace, onExportAuthored: exportAuthored, onUsePublished: () => setConfirmDiscard(true)});
     };
 
-    return h('div', {className: 'sw-root'},
+    return h('div', {className: 'sw-root', 'data-role': EMBED_ROLE||'study'},
       h(Excalidraw, {
         excalidrawAPI: value => { if (value && apiRef.current !== value) { apiRef.current = value; setApi(value); } },
         initialData: {elements: [], appState: {theme: themeRef.current, viewBackgroundColor: '#ffffff', currentItemFontFamily: 6}},
-        onChange, autoFocus: true, name: 'Lucyd study',
+        onChange, autoFocus: true, name: 'Lucyd', viewModeEnabled: READ_ONLY?true:undefined,
         UIOptions: {canvasActions: {loadScene: false, saveToActiveFile: false, export: false}},
-        renderTopRightUI: isMobile => (isMobile ? null : h('div', {className: 'sw-top', onKeyDown: isolateKeys}, pickers, trigger)),
+        renderTopRightUI: isMobile => (isMobile||COMPACT ? null : h('div', {className: 'sw-top', onKeyDown: isolateKeys}, pickers, trigger)),
       },
-      h(MainMenu, null,
+      COMPACT ? h(MainMenu, null) : h(MainMenu, null,
         h(MainMenu.Item, {onSelect: openStudy}, 'Study notes and stages'),
         h(MainMenu.Item, {onSelect: toggleStudyMode}, `Study mode: ${studyMode?'On':'Off'}`),
         h(MainMenu.Item, {onSelect: () => fileInput.current?.click()}, 'Import study JSON…'),
@@ -386,16 +390,16 @@
         // The simulation editor reads the same study document through the shared architecture model,
         // so this approach opens there as design stages beside the problem's runnable approaches.
         h(MainMenu.ItemLink, {href: ws && solution ? `../../../system-diagram?problem=${encodeURIComponent(ws.document.problem.referenceId)}&approach=design-${encodeURIComponent(solution.id)}` : '../../../system-diagram'}, ws && solution ? 'Open this approach in the simulation editor' : 'Open simulation editor')),
-      h(Footer, null, h('div', {className: 'sw-footer', onKeyDown: isolateKeys},
+      !COMPACT&&h(Footer, null, h('div', {className: 'sw-footer', onKeyDown: isolateKeys},
         h('button',{className:'sw-mode-toggle','aria-label':'Study mode','aria-pressed':studyMode,onClick:toggleStudyMode,title:'Show or hide the solution sequence guide'},'Study'),h('button',{className:'sw-button',onClick:enablePractice,title:'Answer the stage question before reading; track weak spots'},'Practice'),
         !studyMode&&h('div',{className:'sw-compact-stepper'},stepper),
         h('span', {className: 'sw-save', role: 'status'}, saveStatus))),
-      h(Sidebar, {name: SIDEBAR, docked, onDock: setDocked, className: 'sw-sidebar'},
+      !COMPACT&&h(Sidebar, {name: SIDEBAR, docked, onDock: setDocked, className: 'sw-sidebar'},
         h(Sidebar.Header, null, h('span', {className: 'sw-sidebar-title'}, ws ? `${ws.document.problem.referenceId} · ${solution?.title || ''}` : 'Study')),
         h(Sidebar.Tabs, {onKeyDown: isolateKeys},
           h(Sidebar.TabTriggers, null, TABS.map(([tab, label]) => h(Sidebar.TabTrigger, {key: tab, tab}, label))),
           TABS.map(([tab]) => h(Sidebar.Tab, {key: tab, tab}, panel(tab)))))),
-      studyMode&&solution&&h('div',{className:'sw-guide-wrap sw-footer','aria-label':'Study sequence guide',onKeyDown:isolateKeys},stepper,h(StudyGuide,{solution,stageIndex,concealed,onReveal:()=>patchPractice({revealed:true}),onSelect:i=>navigate({stageIndex:i})})),
+      !COMPACT&&studyMode&&solution&&h('div',{className:'sw-guide-wrap sw-footer','aria-label':'Study sequence guide',onKeyDown:isolateKeys},stepper,h(StudyGuide,{solution,stageIndex,concealed,onReveal:()=>patchPractice({revealed:true}),onSelect:i=>navigate({stageIndex:i})})),
       h('input', {ref: fileInput, type: 'file', accept: 'application/json,.json', hidden: true, onChange: onFile, 'aria-label': 'Study JSON file'}),
       h(P.Dialog, {open: !!preview, title: 'Open this study file?', onClose: () => setPreview(null), actions: [{label: 'Cancel', onClick: () => setPreview(null)}, {label: 'Export current first', onClick: exportWorkspace}, {label: 'Replace current workspace', primary: true, onClick: confirmImport}]},
         preview && (() => { const s = Store.summary(preview.parsed.workspace); return h('div', null, h('p', null, h('b', null, `${s.referenceId} · ${s.studyLabel}`)), h('ul', {className: 'sw-list'}, s.approaches.map(a => h('li', {key: a}, a))),

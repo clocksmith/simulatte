@@ -128,3 +128,6 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: var(--sw-bg)
 .sw-theme-control select { font:inherit; color:inherit; background:var(--sw-panel-bg); border:1px solid var(--sw-line); border-radius:6px; padding:5px 8px; }
 
 .sw-guide-explanation { scrollbar-width:thin; scrollbar-color:var(--sw-tab-active) transparent; padding-right:6px; }
+
+/* Embedded observer uses Excalidraw view mode: pan/zoom without edit gestures. */
+.sw-root[data-role=observer] .App-menu_top,.sw-root[data-role=observer] .layer-ui__wrapper__top-right,.sw-root[data-role=observer] .help-icon,.sw-root[data-role=observer] .undo-redo-buttons{display:none!important}

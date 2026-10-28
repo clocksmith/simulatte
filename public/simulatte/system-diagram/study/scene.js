@@ -133,14 +133,16 @@
   // Overlay = what the learner changed relative to the authored scene for this stage. Entries for
   // authored elements not in the current view (inside a collapsed subsystem) carry over from `previous`.
   function diff(authored, current, previous = null) {
-    const byId = new Map(authored.map(el => [el.id, el])), seen = new Set(), patches = {}, removed = [], elements = [];
+    const byId = new Map(authored.map(el => [el.id, el])), currentById = new Map(current.map(el => [el.id, el])), seen = new Set(), patches = {}, removed = [], elements = [];
     for (const el of current) {
       const original = byId.get(el.id);
       if (!original) { if (!el.isDeleted) elements.push(el); continue; }
       seen.add(el.id);
       if (el.isDeleted) { removed.push(el.id); continue; }
       const patch = {};
-      for (const field of EDITABLE) if (!derived(el, field) && !equal(el[field], original[field])) patch[field] = el[field] === undefined ? null : structuredClone(el[field]);
+      const oldContainer=byId.get(el.containerId),container=currentById.get(el.containerId);
+      const containerChanged=oldContainer&&container&&['x','y','width','height','angle','points'].some(key=>!equal(container[key],oldContainer[key]));
+      for (const field of EDITABLE) if ((!derived(el, field)||containerChanged) && !equal(el[field], original[field])) patch[field] = el[field] === undefined ? null : structuredClone(el[field]);
       if (Object.keys(patch).length) patches[el.id] = patch;
     }
     for (const id of byId.keys()) if (!seen.has(id)) removed.push(id);
@@ -160,6 +162,16 @@
       if (el.boundElements) el.boundElements = el.boundElements.filter(b => present.has(b.id));
       for (const side of ['startBinding', 'endBinding']) if (el[side] && !present.has(el[side].elementId)) el[side] = null;
       if (el.containerId && !present.has(el.containerId)) el.containerId = null;
+    }
+    // Older snapshots omitted derived label coordinates. Re-anchor labels whose
+    // rectangular container moved; explicit current coordinates remain authoritative.
+    const originals=new Map(authored.map(el=>[el.id,el])), restored=new Map(out.map(el=>[el.id,el]));
+    for(const el of out){
+      if(el.type!=='text'||!el.containerId)continue;
+      const before=originals.get(el.containerId),after=restored.get(el.containerId),patch=overlay.patches?.[el.id]||{};
+      if(!before||after?.type!=='rectangle')continue;
+      if(!Object.hasOwn(patch,'x'))el.x+=after.x-before.x+(after.width-before.width)/2;
+      if(!Object.hasOwn(patch,'y'))el.y+=after.y-before.y+(after.height-before.height)/2;
     }
     return out.concat(structuredClone(overlay.elements || []).filter(el => !ids.has(el.id)));
   }

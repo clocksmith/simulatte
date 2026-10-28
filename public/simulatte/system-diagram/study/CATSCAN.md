@@ -4,13 +4,13 @@ Parent: [Lucyd](../CATSCAN.md)
 
 ## Target
 
-Study solutions on an editable Excalidraw canvas.
+Study on Excalidraw; embedded drivers edit, observers read.
 
 ## Authority
 
 - Owns page controls, stage projection, learner overlays, autosave and import/export.
-- Does not own authored solutions; the composable contract does.
-- Pinned Excalidraw 0.18.1 owns native gestures; patches are recorded in `vendor/modern/versions.json`.
+- Does not own authored solutions.
+- Excalidraw 0.18.1 owns gestures; patches: `vendor/modern/versions.json`.
 
 ## Scope
 
@@ -27,13 +27,14 @@ This directory, canonical route `/lucyd`; legacy entrypoints remain compatible.
 - Replay exactly matches the validator; refuse mismatched graphs.
 - Never edit authored documents. Keep learner overlays independently per stage.
 - Navigation never enters undo history; undo never crosses stages.
-- Diagram selection starts at stage one; explicit deep links and imported workspace views retain their requested stage.
+- Default to stage one; deep links and imports retain their stage.
 - Nunito defaults; measure advances and render at display resolution.
-- Answers, reveal state and self-assessment persist with learner work; review never implies automated grading.
-- Compound layouts, routes and text clearance are deterministic and checked; geometry never changes meaning.
+- Persist answers, reveals and self-assessment; review never implies grading.
+- Check deterministic layouts, routes and text clearance; geometry never changes meaning.
 - Only matching ports create typed connections.
 - Validate imports before replacement; retain unknown fields and current work on failure.
-- Opt-in parent embedding accepts validated same-origin documents, preserving overlays. Hosted use has no model provider.
+- Same-origin parent embeds validate documents. Drivers use minimal editing controls; observers use read-only snapshots without local saves. Ordinary embeds preserve overlays. No hosted model provider.
+- Restored overlays preserve bindings and move bound labels with boxes.
 - Page Up/Down skips typing, dialogs and gestures.
 - Study mode shows a centered guide with 50–75-word explanations and safe background links. Notes are viewport-bounded at 480px.
 - Theme defaults to System and tracks OS changes; explicit Light/Dark overrides persist.

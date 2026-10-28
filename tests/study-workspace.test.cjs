@@ -128,3 +128,18 @@ test('import failures name the offending location', () => {
   assert.throws(() => store.parse(JSON.stringify(badDoc)), /document\..*unsupported operation teleport/);
   assert.throws(() => store.parse('{'), /file: not JSON/);
 });
+
+
+test('moved boxes retain bound-label coordinates across snapshots and old overlay restores',()=>{
+ const doc=study.parse(raw[first]),solution=doc.solutions[0],authored=scene.build(doc,solution,0).elements;
+ const node=authored.find(el=>el.customData.study.role==='node'),label=authored.find(el=>el.type==='text'&&el.containerId===node.id);
+ const current=authored.map(el=>el.id===node.id||el.id===label.id?{...el,x:el.x+140,y:el.y+60}:el);
+ const overlay=scene.diff(authored,current),restored=scene.applyOverlay(authored,overlay);
+ assert.equal(overlay.patches[label.id].x,label.x+140);
+ assert.equal(restored.find(el=>el.id===label.id).y,label.y+60);
+ delete overlay.patches[label.id];
+ const legacy=scene.applyOverlay(authored,overlay);
+ assert.equal(legacy.find(el=>el.id===label.id).x,label.x+140);
+ assert.equal(legacy.find(el=>el.id===label.id).y,label.y+60);
+ assert.equal(authored.find(el=>el.id===label.id).x,label.x);
+});
