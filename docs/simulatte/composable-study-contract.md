@@ -54,6 +54,6 @@ node --test tests/composable-study.test.cjs tests/composable-priority.test.cjs t
 node tools/simulatte/audit-composable-study.cjs
 ```
 
-These are conceptual architecture documents, not `systemDiagram` kernel documents. The running Lucyd simulation catalogue is unchanged. Consumer integration, edited-workspace round trips and Excalidraw rendering need their own checks. No UI or deployment completion follows from generating this bundle.
+These are conceptual architecture documents, not `systemDiagram` kernel documents. They convert losslessly through the [shared architecture model](architecture-model.md), and the simulation editor opens each approach as unbound design stages; the runnable Lucyd catalogue is unchanged. Consumer integration, edited-workspace round trips and Excalidraw rendering need their own checks. No UI or deployment completion follows from generating this bundle.
 
 The audit owns `artifacts/composable-study/audit.json` and its raw TAP receipts. Optional `--priority-archive <directory>` verifies the preserved first batch's reference tests and hashes; `--consumer <module>` verifies parsing; `--workspace <module>` verifies pure-data workspace round trips with separate stage overlays and preserved metadata. These checks establish no browser gestures, clipboard or file-download behavior.

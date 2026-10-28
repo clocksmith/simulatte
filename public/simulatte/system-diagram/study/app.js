@@ -327,7 +327,9 @@
         h(MainMenu.DefaultItems.ChangeCanvasBackground, null),
         h(MainMenu.DefaultItems.Help, null),
         h(MainMenu.Separator, null),
-        h(MainMenu.ItemLink, {href: '../../../system-diagram'}, 'Open simulation editor')),
+        // The simulation editor reads the same study document through the shared architecture model,
+        // so this approach opens there as design stages beside the problem's runnable approaches.
+        h(MainMenu.ItemLink, {href: ws && solution ? `../../../system-diagram?problem=${encodeURIComponent(ws.document.problem.referenceId)}&approach=design-${encodeURIComponent(solution.id)}` : '../../../system-diagram'}, ws && solution ? 'Open this approach in the simulation editor' : 'Open simulation editor')),
       h(Footer, null, h('div', {className: 'sw-footer', onKeyDown: isolateKeys},
         h('button',{className:'sw-mode-toggle','aria-label':'Study mode','aria-pressed':studyMode,onClick:toggleStudyMode,title:'Show or hide the solution sequence guide'},'Study'),
         !studyMode&&h('div',{className:'sw-compact-stepper'},stepper),

@@ -20,6 +20,7 @@ This directory, canonical route `/lucyd`; legacy entrypoints remain compatible.
 
 - Input: [composable contract](../../../../docs/simulatte/composable-study-contract.md), [catalogue](../../../data/system-diagram/composable-solutions/manifest.json).
 - Output: `simulatte.studyWorkspace.v1` in [workspace-store.js](workspace-store.js); [workspace specification](../../../../docs/simulatte/study-workspace-spec.md).
+- Each approach also opens in the simulation editor through the shared [architecture model](../../../../docs/simulatte/architecture-model.md).
 
 ## Invariants
 

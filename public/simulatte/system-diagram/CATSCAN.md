@@ -8,11 +8,10 @@ Evolve intent into executable architecture; study sourced problems with editable
 
 ## Authority
 
-- Owns documents, refinement, lowering, kernels, study and observations.
+- Owns documents, [architecture model](architecture-model.js), refinement, lowering, kernels, study, observations and encrypted practice; 256one retains career records.
 - Coordinator owns rounds/checkpoints/replay; World UI owns controls.
-- Owns encrypted practice; 256one retains career records.
 - Does not own Create or provisioning.
-- [Deployment child](deployment/CATSCAN.md) owns optional implementation bindings/exports, not implicit provisioning.
+- [Deployment child](deployment/CATSCAN.md) owns optional bindings and exports.
 
 ## Scope
 
@@ -21,27 +20,27 @@ Evolve intent into executable architecture; study sourced problems with editable
 ## Contracts
 
 - Input: [goals](../../../GOALS.md), [library](../../data/system-diagram/class-library.json), [configuration](../../data/system-diagram/config.json).
-- Output: [contracts](../../../docs/simulatte/system-diagram.md), [validator](diagram.js), [study model](problem-model.js).
+- Output: [contracts](../../../docs/simulatte/system-diagram.md), [validator](diagram.js), [study model](problem-model.js), [architecture model](../../../docs/simulatte/architecture-model.md).
 
 ## Invariants
 
 - Evolution layers 0–5: sketch, simulation, specification, deployment, operation, system. Detail levels 0–4: context, capabilities, architecture, internals, implementation. Neither axis changes compiler phases.
 - Strict v4 remains compatible. v5 refinement preserves identity/external contracts; unbound behavior refuses execution/deployment.
 - Canonical problems share public/private code paths; compatibility registries are generated.
-- Published problems have two structurally distinct approaches minimum, each with eight runnable stages, challenges and checks. Optional conceptual preludes do not count.
+- Published problems need two structurally distinct approaches of eight runnable stages with challenges and checks; preludes and design approaches do not count.
 - Stages retain edits and personal diagrams; replay configured demand without claiming matched closed-loop arrivals.
-- Simulation rails: max 360px; study Notes: viewport-bounded 480px.
+- Simulation rails max 360px; study Notes viewport-bounded 480px.
 - WebGL effects are opt-in and run-state-only; SVG stays authoritative.
 - Parameters resolve kernel/class/instance. Unknown values refuse; layout cannot affect results.
 - Subsystems pin typed, bounded, acyclic definitions; publishing preserves accepted runs.
 - Requests, attempts/effects, rejections/timeouts remain distinguishable. Seed/controls reproduce coordinator execution.
 - Synthetic assumptions establish neither production capacity nor provider truth.
-- Publish authored problems openly. Encrypt personal notes/private drafts. Lock clears private keys, chooser, snapshots, histories, dialogs, playback.
+- Publish authored problems. Encrypt personal notes/private drafts. Lock clears private keys, chooser, snapshots, histories, dialogs, playback.
 - Attribute published exercises, candidate reports and authored practice distinctly.
 
 ## Acceptance
 
-- Evidence: [Document tests](../../../tests/system-diagram-document.test.cjs), [study execution](../../../tests/lucyd-problem-model.test.cjs), [refinement](../../../tests/lucyd-predesign.test.cjs), [navigation/privacy](../../../tests/system-diagram-solution-navigation.test.cjs).
+- Evidence: [Document tests](../../../tests/system-diagram-document.test.cjs), [study execution](../../../tests/lucyd-problem-model.test.cjs), [refinement](../../../tests/lucyd-predesign.test.cjs), [navigation/privacy](../../../tests/system-diagram-solution-navigation.test.cjs), [architecture](../../../tests/architecture-model.test.cjs).
 - Desktop/mobile journeys verify behavior separately from human comprehension.
 
 ## Non-goals
