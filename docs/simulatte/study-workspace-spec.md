@@ -37,3 +37,5 @@ Observed by scripted mouse, keyboard and emulated touch input; rows cite [the au
 - Expanded subsystems draw as an enclosing boundary; where that boundary would cover unrelated components, the parent is drawn as a box with dotted exposed-port mappings. Collapse and expand are view settings.
 - A learner arrow between two components becomes a typed connection only through an out-port and in-port with the same contract in one containment scope; otherwise the reason is shown and the arrow stays a sketch. Grouping never declares a subsystem.
 - Workspace files (`simulatte.studyWorkspace.v1`) hold the untouched document, overlays keyed by approach and stage, view settings and any unknown fields. Imports validate fully before replacing work. Browser autosave reports success or failure; export is the durable copy.
+
+Stage navigation: Page Down advances and Page Up goes back within the selected approach. The buttons show PgUp/PgDn hints on desktop and tooltips include Mac laptop Fn+arrow equivalents. Typing, open dialogs, active drawing gestures and modified key combinations retain their native behavior.

@@ -3,7 +3,7 @@
 // saved in this browser and exported with the untouched authored document.
 (function (root) {
   'use strict';
-  const {React, ReactDOM, ExcalidrawLib: X, SimulatteComposableStudy: Study, SimulatteStudyScene: Scene, SimulatteSpatialLayout: Spatial, SimulatteStudyWorkspace: Store, SimulatteStudyPanels: P} = root;
+  const {React, ReactDOM, ExcalidrawLib: X, SimulatteComposableStudy: Study, SimulatteStudyScene: Scene, SimulatteSpatialLayout: Spatial, SimulatteStageShortcuts: StageShortcuts, SimulatteStudyWorkspace: Store, SimulatteStudyPanels: P} = root;
   for (const [name, value] of Object.entries({React, ReactDOM, X, Study, Scene, Store, P})) if (!value) throw Error(`Study workspace needs ${name} loaded first`);
   const {createElement: h, useState, useEffect, useRef, useCallback, useMemo} = React;
   const {Excalidraw, MainMenu, Footer, Sidebar} = X;
@@ -40,7 +40,7 @@
 
   function App() {
     const apiRef = useRef(null), wsRef = useRef(null), authoredRef = useRef([]), loadingRef = useRef(false), versionRef = useRef(-1);
-    const renderGeneration = useRef(0);
+    const renderGeneration = useRef(0), pointerActive = useRef(false);
     const selectionRef = useRef(''), themeRef = useRef(initialTheme()), timers = useRef({}), publishedRef = useRef(new Map()), catalogueRef = useRef([]), fileInput = useRef(null), loadRef = useRef(0);
     const [api, setApi] = useState(null);
     const [catalogue, setCatalogue] = useState([]);
@@ -273,6 +273,18 @@
       const lowest = sol.initialGraph.nodes.length ? -1 : 0, target = Math.max(lowest, Math.min(sol.stages.length - 1, current.view.stageIndex + delta));
       if (target !== current.view.stageIndex) navigate({stageIndex: target});
     };
+    useEffect(() => {
+      if (!api) return;
+      const onStageKey = event => {
+        const modalOpen=!!document.querySelector('dialog[open]');
+        const delta=StageShortcuts.direction(event,api.getAppState(),modalOpen);
+        if (!delta || pointerActive.current || !wsRef.current) return;
+        event.preventDefault(); event.stopImmediatePropagation(); step(delta);
+      };
+      const down=e=>{if(e.target?.closest?.('canvas'))pointerActive.current=true;},up=()=>{pointerActive.current=false;};
+      root.addEventListener('keydown',onStageKey,true);root.addEventListener('pointerdown',down,true);root.addEventListener('pointerup',up,true);root.addEventListener('pointercancel',up,true);root.addEventListener('blur',up);
+      return () => {root.removeEventListener('keydown',onStageKey,true);root.removeEventListener('pointerdown',down,true);root.removeEventListener('pointerup',up,true);root.removeEventListener('pointercancel',up,true);root.removeEventListener('blur',up);};
+    },[api,navigate]);
     const stepper = solution && h(P.Stepper, {stageIndex, minIndex, count: solution.stages.length, title: stageTitle, edited, onStep: step, onReset: resetStage});
     const pickers = h(P.Pickers, {catalogue, referenceId: ws?.document.problem.referenceId, solutions: ws?.document.solutions, solutionId: ws?.view.solutionId,
       onProblem: ref => { if (ref !== wsRef.current?.document.problem.referenceId) openProblem(ref); },

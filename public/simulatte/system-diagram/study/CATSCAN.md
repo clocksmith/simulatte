@@ -29,6 +29,7 @@ This directory, served canonically at `/lucyd`; physical entrypoint links remain
 - Every authored stage has deterministic compound layout, obstacle-routed connections and checked text clearance. Spatial layout never changes graph meaning.
 - Drawn arrows become typed connections only through matching ports.
 - Imports validate before replacing anything, name the failing location and keep unknown fields.
+- Page Up/Down step within an approach only outside typing, dialogs and active gestures.
 - Study controls never trigger canvas shortcuts. Open canvas; notes open on demand.
 
 ## Acceptance

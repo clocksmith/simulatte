@@ -116,8 +116,8 @@
   // Arrows come first so they never move when the stage title changes length.
   function Stepper({stageIndex, minIndex, count, title, edited, onStep, onReset}) {
     return h('div', {className: 'sw-stepper', role: 'group', 'aria-label': 'Stage'},
-      h('button', {className: 'sw-icon', disabled: stageIndex <= minIndex, onClick: () => onStep(-1), 'aria-label': 'Previous stage', title: 'Previous stage'}, '‹'),
-      h('button', {className: 'sw-icon', disabled: stageIndex >= count - 1, onClick: () => onStep(1), 'aria-label': 'Next stage', title: 'Next stage'}, '›'),
+      h('button', {className: 'sw-icon', disabled: stageIndex <= minIndex, onClick: () => onStep(-1), 'aria-label': 'Previous stage', title: 'Previous stage · Page Up (Mac laptop: Fn+↑)', 'aria-keyshortcuts':'PageUp'}, '‹', h('kbd',{className:'sw-key-hint','aria-hidden':true},'PgUp')),
+      h('button', {className: 'sw-icon', disabled: stageIndex >= count - 1, onClick: () => onStep(1), 'aria-label': 'Next stage', title: 'Next stage · Page Down (Mac laptop: Fn+↓)', 'aria-keyshortcuts':'PageDown'}, '›', h('kbd',{className:'sw-key-hint','aria-hidden':true},'PgDn')),
       h('span', {className: 'sw-stage-title'}, h('b', null, stageIndex < 0 ? 'Start' : `${stageIndex + 1}/${count}`), ' ', title),
       edited && h('button', {className: 'sw-pill', onClick: onReset, title: 'Reset this stage to the authored layout'}, 'Edited · reset'));
   }

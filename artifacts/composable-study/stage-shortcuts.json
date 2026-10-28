@@ -1,0 +1,87 @@
+{
+  "schema": "simulatte.studyStageShortcutAudit.v1",
+  "url": "http://127.0.0.1:4173/lucyd?problem=L004&approach=push&stage=9",
+  "scope": "Native keyboard events and visible hints in desktop Chromium",
+  "passed": true,
+  "rows": [
+    {
+      "name": "visible shortcut hints",
+      "pass": true,
+      "observed": [
+        "PgUp",
+        "PgDn"
+      ]
+    },
+    {
+      "name": "Page Down advances within the current approach",
+      "pass": true,
+      "observed": {
+        "solutionId": "push",
+        "stageIndex": 1,
+        "collapsed": [],
+        "showRemoved": false
+      }
+    },
+    {
+      "name": "Page Up returns to the previous stage",
+      "pass": true,
+      "observed": {
+        "solutionId": "push",
+        "stageIndex": 0,
+        "collapsed": [],
+        "showRemoved": false
+      }
+    },
+    {
+      "name": "first-stage boundary is clamped",
+      "pass": true,
+      "observed": {
+        "solutionId": "push",
+        "stageIndex": 0,
+        "collapsed": [],
+        "showRemoved": false
+      }
+    },
+    {
+      "name": "text editing does not change stages",
+      "pass": true,
+      "observed": {
+        "solutionId": "push",
+        "stageIndex": 0,
+        "collapsed": [],
+        "showRemoved": false
+      }
+    },
+    {
+      "name": "modal dialog keeps stage navigation inactive",
+      "pass": true,
+      "observed": {
+        "solutionId": "push",
+        "stageIndex": 0,
+        "collapsed": [],
+        "showRemoved": false
+      }
+    },
+    {
+      "name": "active pointer gesture does not change stages",
+      "pass": true,
+      "observed": {
+        "solutionId": "push",
+        "stageIndex": 0,
+        "collapsed": [],
+        "showRemoved": false
+      }
+    },
+    {
+      "name": "last-stage boundary is clamped and solution stays selected",
+      "pass": true,
+      "observed": {
+        "solutionId": "push",
+        "stageIndex": 8,
+        "collapsed": [],
+        "showRemoved": false
+      }
+    }
+  ],
+  "pageProblems": []
+}
