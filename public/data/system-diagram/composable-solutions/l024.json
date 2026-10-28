@@ -199,7 +199,7 @@
           "id": "out-l024.frontier.step8"
         }
       ],
-      "responsibility": "Commit unique source/revision/parser outputs and completion marker atomically.",
+      "responsibility": "Under the current lease epoch, commit unique source/revision/parser outputs, quarantined rejects and the completion marker atomically; an existing output returns duplicate with its original provenance.",
       "stateOwnership": [
         "sourceRevision, recordIds"
       ],
@@ -459,9 +459,9 @@
           "id": "out-l024.manifest.step8"
         }
       ],
-      "responsibility": "Compare every expected partition receipt and atomically swap the active manifest pointer.",
+      "responsibility": "Require every expected partition receipt, then compare-and-swap the active pointer from the generation this run expected to its own newer generation.",
       "stateOwnership": [
-        "expectedPartitions, generation"
+        "expectedPartitions, expectedActive, generation"
       ],
       "version": 1
     },
@@ -490,14 +490,14 @@
     {
       "id": "l024.frontier.command",
       "request": {
-        "revision": "etag or content hash",
         "scheduleId": "uuid",
         "scheduledFor": "UTC timestamp",
-        "sourceId": "canonical origin/path"
+        "seedUrls": "canonical origin/path[]"
       },
       "response": {
+        "pendingByOrigin": "origin to pending lease count",
         "runId": "schedule/instant identity",
-        "state": "queued|running|committed|quarantined"
+        "state": "queued|running|committed|partial"
       },
       "version": 1
     },
@@ -583,14 +583,14 @@
     {
       "id": "l024.manifest.command",
       "request": {
-        "revision": "etag or content hash",
+        "manifestHash": "sha256 of the frozen source revision list",
         "scheduleId": "uuid",
-        "scheduledFor": "UTC timestamp",
-        "sourceId": "canonical origin/path"
+        "scheduledFor": "UTC timestamp"
       },
       "response": {
+        "generation": "integer|null",
         "runId": "schedule/instant identity",
-        "state": "queued|running|committed|quarantined"
+        "state": "staging|published|incomplete|refused"
       },
       "version": 1
     },
@@ -650,6 +650,7 @@
     {
       "id": "l024.manifest.step7",
       "request": {
+        "expectedActive": "integer",
         "expectedPartitions": "integer",
         "generation": "integer"
       },
@@ -725,7 +726,6 @@
           "given": "A worker commits output but loses its acknowledgement.",
           "id": "case0",
           "relatedRequirementIds": [
-            "r0",
             "r1",
             "r2"
           ],
@@ -736,7 +736,6 @@
           "given": "A parser rejects one fetched record.",
           "id": "case1",
           "relatedRequirementIds": [
-            "r0",
             "r1",
             "r2"
           ],
@@ -744,23 +743,33 @@
           "when": "Finish the bounded run."
         },
         {
-          "evidence": {
-            "kind": "reference-test",
-            "testFile": "tools/simulatte/study-reference/batch-04-state.test.mjs",
-            "testName": "manifest publication waits for committed partition coverage"
-          },
-          "given": "Two expected partitions have one committed and one quarantined receipt.",
-          "id": "bounded-mechanism",
+          "given": "The scheduler fires the same tick twice and one origin has more URLs than its pending bound.",
+          "id": "case2",
           "relatedRequirementIds": [
             "r0"
           ],
-          "then": "Retain the prior generation until both receipts are committed.",
-          "when": "Attempt generation publication then commit the second receipt."
+          "then": "Both triggers return one runId; that origin holds only its bound of pending leases while the rest wait.",
+          "when": "Create the run and fill the frontier."
+        },
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-04-state.test.mjs",
+            "testName": "L024 frontier output commit is lease-fenced and deduplicated by source revision and parser"
+          },
+          "given": "Source S revision r1 is leased at epoch 1; its worker commits but loses the acknowledgement, and one record fails parsing.",
+          "id": "bounded-mechanism",
+          "relatedRequirementIds": [
+            "r1",
+            "r2"
+          ],
+          "then": "The retry returns duplicate with the original provenance; the stale worker is rejected and marks nothing done; the invalid record stays quarantined once and out of the output.",
+          "when": "Reassign the lease to epoch 2 and retry r1; then let the epoch-1 worker commit revision r2 late."
         }
       ],
       "algorithms": [
         {
-          "code": "const run = insertRunIfAbsent(scheduleId, scheduledFor);\nconst claim = claimEligibleOriginLease(run); const bytes = boundedFetch(claim);\nconst records = parse(bytes, parserVersion); transaction(() => {\n assertLeaseEpoch(claim); insertOutputsUnique(sourceId, revision, parserVersion, records); markDone(claim); });",
+          "code": "const run = insertRunIfAbsent(scheduleId, scheduledFor);\nconst claim = claimEligibleOriginLease(run); const bytes = boundedFetch(claim);\nconst {records, rejected} = parse(bytes, parserVersion); transaction(() => {\n assertLeaseEpoch(claim); // a reassigned lease fences the stale worker\n if (outputExists(sourceId, revision, parserVersion)) return markDone(claim, \"duplicate\"); // keeps original provenance\n quarantine(rejected); insertOutputs(sourceId, revision, parserVersion, records, provenance(claim)); markDone(claim); });",
           "guarantees": [
             "Retries consume the same per-origin budget.",
             "A timeout is retryable intent, not evidence of an empty source.",
@@ -776,12 +785,12 @@
       ],
       "apis": [
         {
-          "errors": "Reject invalid input, stale versions and operations outside the declared boundary.",
+          "errors": "400 seed URL outside the configured origins; 409 scheduleId and scheduledFor already bound to a different seed set (an identical trigger returns the existing runId)",
           "method": "CALL",
           "ownerNodeId": "engine",
           "path": "L024/frontier",
-          "request": "{\"scheduleId\":\"uuid\",\"scheduledFor\":\"UTC timestamp\",\"sourceId\":\"canonical origin/path\",\"revision\":\"etag or content hash\"}",
-          "response": "{\"runId\":\"schedule/instant identity\",\"state\":\"queued|running|committed|quarantined\"}"
+          "request": "{\"scheduleId\":\"uuid\",\"scheduledFor\":\"UTC timestamp\",\"seedUrls\":\"canonical origin/path[]\"}",
+          "response": "{\"runId\":\"schedule/instant identity\",\"state\":\"queued|running|committed|partial\",\"pendingByOrigin\":\"origin to pending lease count\"}"
         }
       ],
       "assumptions": [
@@ -797,10 +806,9 @@
       "stages": [
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case2"
           ],
-          "explanation": "Resolve schedules into stable run IDs and bound pending work per origin. [A directed acyclic graph](https://en.wikipedia.org/wiki/Directed_acyclic_graph) expresses work that depends on earlier results. A scheduler must track completed dependencies and distinguish logical tasks from retry attempts before releasing downstream work. Consider this case: A worker commits output but loses its acknowledgement. Retry the same source revision under a new lease.",
+          "explanation": "Resolve schedules into stable run IDs and bound pending work per origin. A (scheduleId, scheduledFor) pair creates at most one run, and pending leases per origin never exceed the configured bound. [A directed acyclic graph](https://en.wikipedia.org/wiki/Directed_acyclic_graph) expresses work that depends on earlier results. A scheduler must track completed dependencies and distinguish logical tasks from retry attempts before releasing downstream work.",
           "graph": {
             "edges": [
               {
@@ -843,7 +851,7 @@
           },
           "id": "frontier-s1",
           "invariants": [
-            "Resolve schedules into stable run IDs and bound pending work per origin."
+            "A (scheduleId, scheduledFor) pair creates at most one run, and pending leases per origin never exceed the configured bound."
           ],
           "number": 1,
           "operations": [
@@ -891,16 +899,16 @@
               "op": "connect"
             }
           ],
-          "question": "What does successful completion promise?",
+          "question": "How does one schedule tick become one stable run with bounded per-origin pending work?",
           "reason": "Resolve schedules into stable run IDs and bound pending work per origin.",
           "title": "Define the operation boundary"
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "bounded-mechanism",
+            "case0"
           ],
-          "explanation": "Create one run per schedule/instant and admit only configured origins. Own normalized URL/revision keys, lease owner, attempts and next eligible time. run identity belongs to Run coordinator; URL leases belongs to Frontier. [A crawler](https://en.wikipedia.org/wiki/Web_crawler) chooses which URLs to fetch and when. Scheduling must balance discovery with per-site limits, while canonicalization and duplicate checks prevent repeated or unbounded work.",
+          "explanation": "Create one run per schedule/instant and admit only configured origins. Own normalized URL/revision keys, lease owner, attempts and next eligible time. Lease owner, epoch, attempts and next eligible time live only in the frontier; a worker's claim is valid only for the current lease epoch. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources. A newer owner needs a token that the resource checks, not merely a belief that ownership changed.",
           "graph": {
             "edges": [
               {
@@ -980,7 +988,7 @@
           },
           "id": "frontier-s2",
           "invariants": [
-            "run identity belongs to Run coordinator; URL leases belongs to Frontier."
+            "Lease owner, epoch, attempts and next eligible time live only in the frontier; a worker's claim is valid only for the current lease epoch."
           ],
           "number": 2,
           "operations": [
@@ -1028,16 +1036,15 @@
               "subsystemId": "l024.frontier.binding-s2"
             }
           ],
-          "question": "Which component owns the decision and its persistent or shared state?",
+          "question": "Who owns URL leases, attempts and next-eligible times?",
           "reason": "Create one run per schedule/instant and admit only configured origins. Own normalized URL/revision keys, lease owner, attempts and next eligible time.",
           "title": "Expose authority and state"
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case2"
           ],
-          "explanation": "Grant a bounded concurrent permit after robots and minimum-delay checks. Retries consume the same per-origin budget. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version. Consider this case: A worker commits output but loses its acknowledgement. Retry the same source revision under a new lease.",
+          "explanation": "Grant a bounded concurrent permit after robots and minimum-delay checks. Retries consume the same per-origin budget. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version. Consider this case: The scheduler fires the same tick twice and one origin has more URLs than its pending bound.",
           "graph": {
             "edges": [
               {
@@ -1188,8 +1195,7 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case0"
           ],
           "explanation": "Use finite response-size/time limits and conditional validators; retain status and receipt. A timeout is retryable intent, not evidence of an empty source. [A condition variable](https://en.wikipedia.org/wiki/Condition_variable) lets a thread sleep until shared state may have changed. Waking does not guarantee success, so the protected condition must be checked again. Consider this case: A worker commits output but loses its acknowledgement.",
           "graph": {
@@ -1360,10 +1366,9 @@
         },
         {
           "checkIds": [
-            "case0",
             "case1"
           ],
-          "explanation": "Parse retained bytes with a pinned parser version and emit schema errors to quarantine. Invalid records never enter the accepted output table. [Data ingestion](https://en.wikipedia.org/wiki/Data_integration) moves source records into a usable destination. Stable source identity and progress records distinguish genuinely new data from repeated delivery or a restarted import. Consider this case: A worker commits output but loses its acknowledgement.",
+          "explanation": "Parse retained bytes with a pinned parser version and emit schema errors to quarantine. Invalid records never enter the accepted output table. [Data ingestion](https://en.wikipedia.org/wiki/Data_integration) moves source records into a usable destination. Stable source identity and progress records distinguish genuinely new data from repeated delivery or a restarted import. Consider this case: A parser rejects one fetched record. Finish the bounded run.",
           "graph": {
             "edges": [
               {
@@ -1556,10 +1561,10 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "bounded-mechanism",
+            "case0"
           ],
-          "explanation": "Commit unique source/revision/parser outputs and completion marker atomically. The completion marker never outruns output commit. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call. Consider this case: A worker commits output but loses its acknowledgement. Retry the same source revision under a new lease.",
+          "explanation": "Under the current lease epoch, commit unique source/revision/parser outputs, quarantined rejects and the completion marker atomically; an existing output returns duplicate with its original provenance. The completion marker never outruns output commit. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call.",
           "graph": {
             "edges": [
               {
@@ -1771,15 +1776,14 @@
             }
           ],
           "question": "When may the frontier advance?",
-          "reason": "Commit unique source/revision/parser outputs and completion marker atomically.",
+          "reason": "Under the current lease epoch, commit unique source/revision/parser outputs, quarantined rejects and the completion marker atomically; an existing output returns duplicate with its original provenance.",
           "title": "Output transaction"
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "bounded-mechanism"
           ],
-          "explanation": "Fence expired lease holders and retry with the same run/revision identity. A stale worker cannot complete a reassigned lease. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources. A newer owner needs a token that the resource checks, not merely a belief that ownership changed. Consider this case: A worker commits output but loses its acknowledgement.",
+          "explanation": "Fence expired lease holders and retry with the same run/revision identity. A stale worker cannot complete a reassigned lease. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources. A newer owner needs a token that the resource checks, not merely a belief that ownership changed. Consider this case: Source S revision r1 is leased at epoch 1; its worker commits but loses the acknowledgement, and one record fails parsing.",
           "graph": {
             "edges": [
               {
@@ -2027,7 +2031,7 @@
         {
           "checkIds": [
             "case0",
-            "case1"
+            "bounded-mechanism"
           ],
           "explanation": "Retain source URL, receipt hash, parser version, scheduled instant and terminal state. A record is attributable to immutable inputs. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return. Consider this case: A worker commits output but loses its acknowledgement.",
           "graph": {
@@ -2305,7 +2309,6 @@
           "given": "A partition output is complete but a worker restarts.",
           "id": "case0",
           "relatedRequirementIds": [
-            "r0",
             "r1",
             "r2"
           ],
@@ -2316,37 +2319,53 @@
           "given": "One manifest partition is quarantined or missing.",
           "id": "case1",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
             "r2"
           ],
           "then": "Refuse pointer swap and retain the prior generation.",
           "when": "Attempt publication."
         },
         {
-          "evidence": {
-            "kind": "reference-test",
-            "testFile": "tools/simulatte/study-reference/batch-04-state.test.mjs",
-            "testName": "manifest publication waits for committed partition coverage"
-          },
-          "given": "Two expected partitions have one committed and one quarantined receipt.",
-          "id": "bounded-mechanism",
+          "given": "Two triggers for the same scheduledFor arrive, the second after a source changed.",
+          "id": "case2",
           "relatedRequirementIds": [
             "r0"
           ],
-          "then": "Retain the prior generation until both receipts are committed.",
-          "when": "Attempt generation publication then commit the second receipt."
+          "then": "The first freeze wins; the second trigger returns the same runId and manifestHash instead of freezing a new snapshot.",
+          "when": "Freeze the manifest."
+        },
+        {
+          "given": "A failed run left staging output while generation 3 is active.",
+          "id": "case3",
+          "relatedRequirementIds": [
+            "r2"
+          ],
+          "then": "Abandoned staging is deleted; generation 3 and its provenance are kept.",
+          "when": "Run the retention planner after lease expiry and the retention period."
+        },
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-04-state.test.mjs",
+            "testName": "L024 manifest publication compares and swaps the prior generation and refuses older runs"
+          },
+          "given": "Generation 1 is active; run 3, a slower run 2 and run 4 all started while 1 was active, and run 3 first has one quarantined partition.",
+          "id": "bounded-mechanism",
+          "relatedRequirementIds": [
+            "r2"
+          ],
+          "then": "Run 3 publishes only when complete; runs 2 and 4 fail the compare-and-swap; run 2 then fails the newer-generation check while run 4 publishes, so the pointer never moves backward.",
+          "when": "Publish run 3 before and after its last receipt commits; publish runs 2 and 4 expecting 1; then publish run 2 and run 4 expecting 3."
         }
       ],
       "algorithms": [
         {
-          "code": "const manifest = freezeSources(scheduledFor);\nfor (const range of partition(manifest)) enqueueUnique(manifest.hash, range);\nwriteStagingOutputsUnderLease();\ntransaction(() => { requireAllPartitionReceipts(manifest); compareAndSwapActiveGeneration(manifest.hash); });",
+          "code": "const manifest = freezeSourcesOnce(scheduleId, scheduledFor);\nfor (const range of partition(manifest)) enqueueUnique(manifest.hash, range);\nwriteStagingOutputsUnderLease();\ntransaction(() => { requireAllPartitionReceipts(manifest);\n const active = lockActiveGeneration();\n if (active !== run.expectedActive || run.generation <= active) return \"refused\";\n setActiveGeneration(run.generation); }); // compare-and-swap from the expected generation, forward only",
           "guarantees": [
             "Ranges are disjoint and cover exactly the frozen manifest.",
             "A reassignment retains the same partition identity.",
             "Quarantine counts remain visible in run completeness.",
             "Readers cannot confuse staging rows with the published snapshot.",
-            "Only a complete accepted generation is published.",
+            "Only a complete run publishes, by compare-and-swap from the generation it expected to a strictly newer one; a late older run never rolls the pointer back.",
             "Cleanup never deletes the active generation."
           ],
           "id": "transition",
@@ -2356,12 +2375,12 @@
       ],
       "apis": [
         {
-          "errors": "Reject invalid input, stale versions and operations outside the declared boundary.",
+          "errors": "409 scheduledFor already frozen with a different manifestHash; 412 publication refused because the active generation changed since this run started or is not older than this run",
           "method": "CALL",
           "ownerNodeId": "engine",
           "path": "L024/manifest",
-          "request": "{\"scheduleId\":\"uuid\",\"scheduledFor\":\"UTC timestamp\",\"sourceId\":\"canonical origin/path\",\"revision\":\"etag or content hash\"}",
-          "response": "{\"runId\":\"schedule/instant identity\",\"state\":\"queued|running|committed|quarantined\"}"
+          "request": "{\"scheduleId\":\"uuid\",\"scheduledFor\":\"UTC timestamp\",\"manifestHash\":\"sha256 of the frozen source revision list\"}",
+          "response": "{\"runId\":\"schedule/instant identity\",\"generation\":\"integer|null\",\"state\":\"staging|published|incomplete|refused\"}"
         }
       ],
       "assumptions": [
@@ -2377,10 +2396,9 @@
       "stages": [
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case2"
           ],
-          "explanation": "Resolve schedules into stable run IDs and bound pending work per origin. [A directed acyclic graph](https://en.wikipedia.org/wiki/Directed_acyclic_graph) expresses work that depends on earlier results. A scheduler must track completed dependencies and distinguish logical tasks from retry attempts before releasing downstream work. Consider this case: A partition output is complete but a worker restarts. Reprocess that partition.",
+          "explanation": "Resolve schedules into stable run IDs and bound pending work per origin. A scheduled instant binds one manifestHash; a second trigger for that instant returns the same run instead of freezing a new snapshot. [A directed acyclic graph](https://en.wikipedia.org/wiki/Directed_acyclic_graph) expresses work that depends on earlier results. A scheduler must track completed dependencies and distinguish logical tasks from retry attempts before releasing downstream work.",
           "graph": {
             "edges": [
               {
@@ -2423,7 +2441,7 @@
           },
           "id": "manifest-s1",
           "invariants": [
-            "Resolve schedules into stable run IDs and bound pending work per origin."
+            "A scheduled instant binds one manifestHash; a second trigger for that instant returns the same run instead of freezing a new snapshot."
           ],
           "number": 1,
           "operations": [
@@ -2471,16 +2489,16 @@
               "op": "connect"
             }
           ],
-          "question": "What does successful completion promise?",
+          "question": "Which frozen manifest does one scheduled instant commit to?",
           "reason": "Resolve schedules into stable run IDs and bound pending work per origin.",
           "title": "Define the operation boundary"
         },
         {
           "checkIds": [
-            "case0",
+            "case2",
             "case1"
           ],
-          "explanation": "Freeze an input manifest for one scheduled instant. Own immutable source revision lists and partition bounds. manifest identity belongs to Snapshot planner; manifest hash and partitions belongs to Manifest store. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version.",
+          "explanation": "Freeze an input manifest for one scheduled instant. Own immutable source revision lists and partition bounds. The manifest store holds immutable revision lists; partitions reference them by hash and never copy mutable source state. [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers. Publishing one reference lets each reader keep a consistent version.",
           "graph": {
             "edges": [
               {
@@ -2560,7 +2578,7 @@
           },
           "id": "manifest-s2",
           "invariants": [
-            "manifest identity belongs to Snapshot planner; manifest hash and partitions belongs to Manifest store."
+            "The manifest store holds immutable revision lists; partitions reference them by hash and never copy mutable source state."
           ],
           "number": 2,
           "operations": [
@@ -2608,16 +2626,15 @@
               "subsystemId": "l024.manifest.binding-s2"
             }
           ],
-          "question": "Which component owns the decision and its persistent or shared state?",
+          "question": "Who owns the frozen manifest and its partition bounds?",
           "reason": "Freeze an input manifest for one scheduled instant. Own immutable source revision lists and partition bounds.",
           "title": "Expose authority and state"
         },
         {
           "checkIds": [
-            "case0",
             "case1"
           ],
-          "explanation": "Split the manifest by deterministic ranges with stable partition IDs. Ranges are disjoint and cover exactly the frozen manifest. [Partitioning](https://en.wikipedia.org/wiki/Partition_%28database%29) divides data and work among owners. The key determines where requests go; skew, ownership changes, and operations spanning partitions require additional coordination. Consider this case: A partition output is complete but a worker restarts. Reprocess that partition.",
+          "explanation": "Split the manifest by deterministic ranges with stable partition IDs. Ranges are disjoint and cover exactly the frozen manifest. [Partitioning](https://en.wikipedia.org/wiki/Partition_%28database%29) divides data and work among owners. The key determines where requests go; skew, ownership changes, and operations spanning partitions require additional coordination. Consider this case: One manifest partition is quarantined or missing. Attempt publication.",
           "graph": {
             "edges": [
               {
@@ -2768,8 +2785,7 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case0"
           ],
           "explanation": "Lease partitions and read their immutable input revision list. A reassignment retains the same partition identity. [Partitioning](https://en.wikipedia.org/wiki/Partition_%28database%29) divides data and work among owners. The key determines where requests go; skew, ownership changes, and operations spanning partitions require additional coordination. Consider this case: A partition output is complete but a worker restarts. Reprocess that partition.",
           "graph": {
@@ -2940,10 +2956,9 @@
         },
         {
           "checkIds": [
-            "case0",
             "case1"
           ],
-          "explanation": "Apply a pinned schema/parser and retain rejected inputs separately. Quarantine counts remain visible in run completeness. [Data ingestion](https://en.wikipedia.org/wiki/Data_integration) moves source records into a usable destination. Stable source identity and progress records distinguish genuinely new data from repeated delivery or a restarted import. Consider this case: A partition output is complete but a worker restarts. Reprocess that partition.",
+          "explanation": "Apply a pinned schema/parser and retain rejected inputs separately. Quarantine counts remain visible in run completeness. [Data ingestion](https://en.wikipedia.org/wiki/Data_integration) moves source records into a usable destination. Stable source identity and progress records distinguish genuinely new data from repeated delivery or a restarted import. Consider this case: One manifest partition is quarantined or missing. Attempt publication.",
           "graph": {
             "edges": [
               {
@@ -3356,10 +3371,10 @@
         },
         {
           "checkIds": [
-            "case0",
+            "bounded-mechanism",
             "case1"
           ],
-          "explanation": "Compare every expected partition receipt and atomically swap the active manifest pointer. Only a complete accepted generation is published. [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers. Publishing one reference lets each reader keep a consistent version. Consider this case: A partition output is complete but a worker restarts. Reprocess that partition.",
+          "explanation": "Require every expected partition receipt, then compare-and-swap the active pointer from the generation this run expected to its own newer generation. Only a complete run publishes, by compare-and-swap from the generation it expected to a strictly newer one; a late older run never rolls the pointer back. [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers. Publishing one reference lets each reader keep a consistent version.",
           "graph": {
             "edges": [
               {
@@ -3559,7 +3574,7 @@
           },
           "id": "manifest-s7",
           "invariants": [
-            "Only a complete accepted generation is published."
+            "Only a complete run publishes, by compare-and-swap from the generation it expected to a strictly newer one; a late older run never rolls the pointer back."
           ],
           "number": 7,
           "operations": [
@@ -3595,15 +3610,14 @@
             }
           ],
           "question": "When is a complete generation exposed?",
-          "reason": "Compare every expected partition receipt and atomically swap the active manifest pointer.",
+          "reason": "Require every expected partition receipt, then compare-and-swap the active pointer from the generation this run expected to its own newer generation.",
           "title": "Atomic publication"
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case3"
           ],
-          "explanation": "Delete abandoned staging only after lease expiry and retention; preserve published provenance. Cleanup never deletes the active generation. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources. A newer owner needs a token that the resource checks, not merely a belief that ownership changed. Consider this case: A partition output is complete but a worker restarts. Reprocess that partition.",
+          "explanation": "Delete abandoned staging only after lease expiry and retention; preserve published provenance. Cleanup never deletes the active generation. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources. A newer owner needs a token that the resource checks, not merely a belief that ownership changed. Consider this case: A failed run left staging output while generation 3 is active.",
           "graph": {
             "edges": [
               {

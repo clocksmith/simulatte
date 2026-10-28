@@ -154,7 +154,7 @@
           "id": "in-l040.ring-monitor.notEmpty"
         }
       ],
-      "responsibility": "Taker loops while empty and open under the same lock; put writes slot and count before signaling notEmpty.",
+      "responsibility": "Taker loops while empty and open under the same lock; put writes slot and count before signaling notEmpty once.",
       "stateOwnership": [
         "consumer wait set"
       ],
@@ -194,7 +194,7 @@
           "id": "in-l040.ring-monitor.interrupt"
         }
       ],
-      "responsibility": "Await interruption unwinds through finally; if no mutation occurred the operation has no queue effect. Once mutation commits, return success rather than retroactively cancel it.",
+      "responsibility": "Interruption unwinds through finally and changes nothing unless a mutation committed, which still returns success. Before rethrowing, the waiter, back under the lock, re-tests its predicate and signals once if it holds, passing on a signal it may have absorbed; Java's Condition redirects it itself.",
       "stateOwnership": [
         "waiter cancellation state"
       ],
@@ -390,7 +390,7 @@
           "id": "out-l040.two-lock-linked.shutdown"
         }
       ],
-      "responsibility": "Release local mutation lock before acquiring the opposite lock for empty-to-nonempty or full-to-nonfull signal. Propagate local signals when further work is possible.",
+      "responsibility": "Release local mutation lock before acquiring the opposite lock for empty-to-nonempty or full-to-nonfull signal. Propagate local signals when further work is possible, and let an interrupted waiter re-test count and re-signal its own condition under its own lock before propagating.",
       "stateOwnership": [
         "boundary transition flags"
       ],
@@ -436,7 +436,7 @@
           "id": "in-l040.two-lock-linked.cancel"
         }
       ],
-      "responsibility": "Use while loops with closed checks on the relevant condition; interrupted await exits before linking/unlinking, unlocking in finally.",
+      "responsibility": "Use while loops with closed checks on the relevant condition; an interrupted await exits before linking/unlinking, first passes on a possibly absorbed signal when its predicate holds (Java's Condition redirects it itself), and unlocks in finally.",
       "stateOwnership": [
         "pending operation outcome"
       ],
@@ -645,7 +645,7 @@
         "text": "Define interrupt/close behavior and a deadlock-free lock order without busy waiting."
       }
     ],
-    "scope": "Authored in-process concurrency study: a fixed-capacity circular buffer with one lock versus a linked FIFO with separate put/take locks and an atomic count. Both use condition variables, predicate loops and explicit wakeup rules. Graph modules are local synchronization/state responsibilities, not network services. No persistence, process recovery or unconditional fairness claim.",
+    "scope": "Authored in-process concurrency study: a fixed-capacity circular buffer with one lock versus a linked FIFO with separate put/take locks and an atomic count. Both use condition variables, predicate loops and explicit wakeup rules. Java's Condition redirects a signal when it lets an interrupt win over that signal; on condition variables without that rule, an interrupted waiter that may have absorbed a signal re-tests its predicate and signals again before propagating. Graph modules are local synchronization/state responsibilities, not network services. No persistence, process recovery or unconditional fairness claim.",
     "studyLabel": "Bounded blocking queue with condition waits"
   },
   "provenance": {
@@ -656,7 +656,7 @@
     {
       "id": "ref0",
       "scope": "background",
-      "supports": "Lock-associated waits, spurious wakeups and a bounded-buffer example.",
+      "supports": "Lock-associated waits, spurious wakeups, a bounded-buffer example, and the rule that an implementation favoring an interrupt over a signal must redirect that signal to another waiting thread.",
       "title": "Java Condition",
       "url": "https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/concurrent/locks/Condition.html"
     },
@@ -678,33 +678,49 @@
             "testFile": "tools/simulatte/study-reference/batch-08-mechanisms.test.mjs",
             "testName": "batch-08 queue: blocked predicates wakeups close and cancellation"
           },
-          "given": "Capacity one, producer P1 fills, P2 waits, consumer removes.",
+          "given": "Capacity one, producer P1 fills, P2 waits, consumer removes; plus enumerated put/take orders for capacities one to three.",
           "id": "behavior",
           "relatedRequirementIds": [
             "r0",
-            "r1",
-            "r2"
+            "r1"
           ],
-          "then": "Predicate loop keeps P2 blocked while full; after reacquiring it publishes one item and size remains bounded.",
-          "when": "Wake P2 spuriously before the removal, then notify after removal."
+          "then": "The predicate loop keeps P2 blocked while full; after the removal it publishes exactly one item; every enumerated order keeps FIFO data and size within capacity.",
+          "when": "Wake P2 spuriously before the removal, then notify after removal, and drain each enumerated queue after close."
         },
         {
-          "given": "Empty queue with a waiting taker, interrupt and close racing.",
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-08-mechanisms.test.mjs",
+            "testName": "batch-08 queue: blocked predicates wakeups close and cancellation"
+          },
+          "given": "A waiting producer, an empty queue with a waiting taker, and a close.",
           "id": "boundary",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
             "r2"
           ],
-          "then": "Canceled operations mutate nothing; closure wakes all wait sets; drained closed queue terminates; no lock is retained on errors.",
-          "when": "Cancel the waiter, close, then attempt put/take."
+          "then": "The canceled operation mutates nothing; closure resolves every waiter; put after close is rejected; takes drain the remaining item before closed-empty.",
+          "when": "Cancel the waiting producer, close, then attempt put and take."
+        },
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-08-mechanisms.test.mjs",
+            "testName": "batch-08 queue: interrupted waiter passes a consumed signal on"
+          },
+          "given": "Two takers waiting on notEmpty on a condition variable that does not redirect signals; one put signals the first taker.",
+          "id": "handoff",
+          "relatedRequirementIds": [
+            "r2"
+          ],
+          "then": "The interrupted taker finds an item and signals again; the second taker wakes and takes the item; interrupting an unsignaled waiter signals nobody.",
+          "when": "Interrupt the signaled taker before it returns to the lock."
         }
       ],
       "algorithms": [
         {
-          "code": "put(x) { requireNonNull(x); lock(); try {\n while(count==capacity && !closed) notFull.await();\n if(closed)throw Closed(); slots[tail]=x;tail=(tail+1)%capacity;count++;\n notEmpty.signal(); } finally {unlock();} }\ntake() { lock(); try { while(count==0 && !closed)notEmpty.await();\n if(count==0)throw ClosedEmpty(); const x=slots[head];slots[head]=null;\n head=(head+1)%capacity;count--;notFull.signal();return x;\n } finally {unlock();} }\nclose() {lock();try{closed=true;notFull.signalAll();notEmpty.signalAll();}finally{unlock();}}",
+          "code": "put(x) { requireNonNull(x); lock(); try {\n while(count==capacity && !closed) awaitPassingOn(notFull, ()=>count<capacity);\n if(closed)throw Closed(); slots[tail]=x;tail=(tail+1)%capacity;count++;\n notEmpty.signal(); } finally {unlock();} }\ntake() { lock(); try { while(count==0 && !closed) awaitPassingOn(notEmpty, ()=>count>0);\n if(count==0)throw ClosedEmpty(); const x=slots[head];slots[head]=null;\n head=(head+1)%capacity;count--;notFull.signal();return x;\n } finally {unlock();} }\nawaitPassingOn(condition, ready) { try { condition.await(); }       // await returns holding the lock\n catch(Interrupted e) { if(ready()) condition.signal(); throw e; } } // pass on a signal this waiter may have absorbed\nclose() {lock();try{closed=true;notFull.signalAll();notEmpty.signalAll();}finally{unlock();}}",
           "guarantees": [
-            "No busy waiting; all predicate rechecks occur under the owning mutex."
+            "No busy waiting; all predicate rechecks occur under the owning mutex; an interrupted waiter never strands another waiter whose predicate holds."
           ],
           "id": "mechanism-0",
           "language": "typescript-pseudocode",
@@ -734,8 +750,7 @@
       "stages": [
         {
           "checkIds": [
-            "behavior",
-            "boundary"
+            "behavior"
           ],
           "explanation": "Serialize every ring mutation under one mutex; notFull and notEmpty belong to that same mutex. The condition await atomically releases its associated lock and reacquires it before returning. [A condition variable](https://en.wikipedia.org/wiki/Condition_variable) lets a thread sleep until shared state may have changed. Waking does not guarantee success, so the protected condition must be checked again.",
           "graph": {
@@ -834,10 +849,9 @@
         },
         {
           "checkIds": [
-            "behavior",
-            "boundary"
+            "behavior"
           ],
-          "explanation": "Allocate exactly capacity slots; wrap head/tail modulo capacity and clear a taken slot to release references. Occupied count never exceeds capacity. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources. A newer owner needs a token that the resource checks, not merely a belief that ownership changed. Consider this case: Capacity one, producer P1 fills, P2 waits, consumer removes.",
+          "explanation": "Allocate exactly capacity slots; wrap head/tail modulo capacity and clear a taken slot to release references. Occupied count never exceeds capacity. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources. A newer owner needs a token that the resource checks, not merely a belief that ownership changed. Consider this case: Capacity one, producer P1 fills, P2 waits, consumer removes; plus enumerated put/take orders for capacities one to three.",
           "graph": {
             "edges": [
               {
@@ -945,8 +959,7 @@
         },
         {
           "checkIds": [
-            "behavior",
-            "boundary"
+            "behavior"
           ],
           "explanation": "Guard count, indices, slots and closed flag with one mutex; release in finally on every exit. No queue field is read for a decision without the mutex. [A lock](https://en.wikipedia.org/wiki/Lock_%28computer_science%29) gives one thread exclusive access to protected state. Correctness depends on protecting the whole decision and update, and releasing ownership on every exit.",
           "graph": {
@@ -1080,8 +1093,7 @@
         },
         {
           "checkIds": [
-            "behavior",
-            "boundary"
+            "behavior"
           ],
           "explanation": "Under mutex, while full and not closed await notFull; after every return, test again before mutation. Notification is permission to recheck, not a reserved slot. [A lock](https://en.wikipedia.org/wiki/Lock_%28computer_science%29) gives one thread exclusive access to protected state. Correctness depends on protecting the whole decision and update, and releasing ownership on every exit.",
           "graph": {
@@ -1240,9 +1252,9 @@
         {
           "checkIds": [
             "behavior",
-            "boundary"
+            "handoff"
           ],
-          "explanation": "Taker loops while empty and open under the same lock; put writes slot and count before signaling notEmpty. Predicate test, wait registration and publication share synchronization. [A condition variable](https://en.wikipedia.org/wiki/Condition_variable) lets a thread sleep until shared state may have changed. Waking does not guarantee success, so the protected condition must be checked again.",
+          "explanation": "Taker loops while empty and open under the same lock; put writes slot and count before signaling notEmpty once. Predicate test, wait registration and publication share synchronization. [A condition variable](https://en.wikipedia.org/wiki/Condition_variable) lets a thread sleep until shared state may have changed. Waking does not guarantee success, so the protected condition must be checked again.",
           "graph": {
             "edges": [
               {
@@ -1417,13 +1429,12 @@
             }
           ],
           "question": "Can a consumer miss a put signal?",
-          "reason": "Taker loops while empty and open under the same lock; put writes slot and count before signaling notEmpty.",
+          "reason": "Taker loops while empty and open under the same lock; put writes slot and count before signaling notEmpty once.",
           "title": "Wake takers after publication"
         },
         {
           "checkIds": [
-            "behavior",
-            "boundary"
+            "behavior"
           ],
           "explanation": "Put linearizes at count increment after slot write; take linearizes at removal/count decrement, then signals notFull while locked. Each successful take returns the oldest published item exactly once. [Linearizability](https://en.wikipedia.org/wiki/Linearizability) assigns each completed operation one instant when it takes effect. Concurrent callers may overlap, but their visible outcomes must fit a valid sequential order.",
           "graph": {
@@ -1629,10 +1640,10 @@
         },
         {
           "checkIds": [
-            "behavior",
-            "boundary"
+            "boundary",
+            "handoff"
           ],
-          "explanation": "Await interruption unwinds through finally; if no mutation occurred the operation has no queue effect. Once mutation commits, return success rather than retroactively cancel it. Cancellation does not undo another thread's publication. [A queue](https://en.wikipedia.org/wiki/Queue_%28abstract_data_type%29) separates accepting work from completing it. Capacity, ordering, ownership, and shutdown behavior determine what producers and consumers may safely assume about each item.",
+          "explanation": "Interruption unwinds through finally and changes nothing unless a mutation committed, which still returns success. Before rethrowing, the waiter, back under the lock, re-tests its predicate and signals once if it holds, passing on a signal it may have absorbed; Java's Condition redirects it itself. Cancellation neither undoes a publication nor strands a waiter whose predicate holds. [A condition variable](https://en.wikipedia.org/wiki/Condition_variable) lets a thread sleep until shared state may have changed.",
           "graph": {
             "edges": [
               {
@@ -1819,7 +1830,7 @@
           },
           "id": "ring-monitor-s7",
           "invariants": [
-            "Cancellation does not undo another thread's publication."
+            "Cancellation neither undoes a publication nor strands a waiter whose predicate holds."
           ],
           "number": 7,
           "operations": [
@@ -1854,13 +1865,12 @@
               "op": "connect"
             }
           ],
-          "question": "Can interruption lose an item?",
-          "reason": "Await interruption unwinds through finally; if no mutation occurred the operation has no queue effect. Once mutation commits, return success rather than retroactively cancel it.",
+          "question": "Can interruption lose an item or a wakeup?",
+          "reason": "Interruption unwinds through finally and changes nothing unless a mutation committed, which still returns success. Before rethrowing, the waiter, back under the lock, re-tests its predicate and signals once if it holds, passing on a signal it may have absorbed; Java's Condition redirects it itself.",
           "title": "Cancel before mutation"
         },
         {
           "checkIds": [
-            "behavior",
             "boundary"
           ],
           "explanation": "Closing the queue means no new items may enter; it does not mean discarding items already accepted. Set the closed flag under the same mutex that protects the queue, then wake both producers and consumers. Each awakened thread rechecks its condition: producers fail, while consumers drain remaining items before reporting closed-and-empty. [Condition variables](https://en.wikipedia.org/wiki/Condition_variable) make those waiting threads sleep without continuously polling.",
@@ -2126,35 +2136,74 @@
           "evidence": {
             "kind": "reference-test",
             "testFile": "tools/simulatte/study-reference/batch-08-mechanisms.test.mjs",
-            "testName": "batch-08 queue: blocked predicates wakeups close and cancellation"
+            "testName": "batch-08 queue two-lock: lock order and crossing signals"
           },
-          "given": "Capacity one, producer P1 fills, P2 waits, consumer removes.",
+          "given": "Capacity two filled until full, then alternating takes and puts, plus 400 seeded put/take operations on capacity three.",
           "id": "behavior",
           "relatedRequirementIds": [
             "r0",
-            "r1",
-            "r2"
+            "r1"
           ],
-          "then": "Predicate loop keeps P2 blocked while full; after reacquiring it publishes one item and size remains bounded.",
-          "when": "Wake P2 spuriously before the removal, then notify after removal."
+          "then": "put on a full queue and take on an empty one change nothing, as each would wait on its own lock's condition; items leave in FIFO order and count stays within capacity; the empty-to-nonempty put signals notEmpty holding only takeLock, and the full-to-nonfull take signals notFull holding only putLock.",
+          "when": "Run them through the two-lock transitions while recording each lock acquisition and signal."
         },
         {
-          "given": "Empty queue with a waiting taker, interrupt and close racing.",
-          "id": "boundary",
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-08-mechanisms.test.mjs",
+            "testName": "batch-08 queue two-lock: lock order and crossing signals"
+          },
+          "given": "The same recorded trace, including close.",
+          "id": "lock-order",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
             "r2"
           ],
-          "then": "Canceled operations mutate nothing; closure wakes all wait sets; drained closed queue terminates; no lock is retained on errors.",
-          "when": "Cancel the waiter, close, then attempt put/take."
+          "then": "The only nested acquisition is close taking takeLock while holding putLock; no put or take path ever holds both locks.",
+          "when": "List every acquisition made while another lock was held."
+        },
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-08-mechanisms.test.mjs",
+            "testName": "batch-08 queue two-lock: lock order and crossing signals"
+          },
+          "given": "A closed two-lock queue that still holds one item.",
+          "id": "boundary",
+          "relatedRequirementIds": [
+            "r2"
+          ],
+          "then": "put reports closed; the first take drains the remaining item and the second reports closed-empty; no lock remains held.",
+          "when": "Put, then take twice."
+        },
+        {
+          "given": "A producer links a node and increments the atomic count while a consumer polls under takeLock.",
+          "id": "publication",
+          "relatedRequirementIds": [
+            "r1"
+          ],
+          "then": "It reads the linked node's item, never a null next. This relies on the platform's release/acquire guarantee and is not exercised by the single-threaded reference model.",
+          "when": "The consumer observes count > 0 with acquire semantics."
+        },
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-08-mechanisms.test.mjs",
+            "testName": "batch-08 queue: interrupted waiter passes a consumed signal on"
+          },
+          "given": "Two consumers waiting on notEmpty on a condition variable that does not redirect signals; a put signals one of them.",
+          "id": "handoff",
+          "relatedRequirementIds": [
+            "r2"
+          ],
+          "then": "It re-tests count, signals notEmpty again, and the other consumer takes the item.",
+          "when": "The signaled consumer is interrupted before it returns to takeLock."
         }
       ],
       "algorithms": [
         {
-          "code": "put(x) { let old; putLock.lockInterruptibly(); try {\n while(count.get()==capacity && !closed)notFull.await();if(closed)throw Closed();\n tail.next=node(x);tail=tail.next;old=count.getAndIncrement();\n if(old+1<capacity)notFull.signal();\n } finally {putLock.unlock();}\n if(old==0)signalUnderTakeLock(notEmpty);\n}\ntake() { let old,x;takeLock.lockInterruptibly();try {\n while(count.get()==0 && !closed)notEmpty.await();if(count.get()==0)throw ClosedEmpty();\n x=head.next.item;head=head.next;head.item=null;old=count.getAndDecrement();\n if(old>1)notEmpty.signal();}finally{takeLock.unlock();}\n if(old==capacity)signalUnderPutLock(notFull);return x; }\n// close acquires putLock then takeLock, wakes both sets, then releases reverse order.",
+          "code": "put(x) { let old=-1; putLock.lockInterruptibly(); try {\n while(count.get()==capacity && !closed) awaitPassingOn(notFull, ()=>count.get()<capacity);\n if(closed)throw Closed();\n tail.next=node(x);tail=tail.next;old=count.getAndIncrement();\n if(old+1<capacity)notFull.signal();\n } finally {putLock.unlock();}\n if(old==0)signalUnderTakeLock(notEmpty);     // putLock already released\n}\ntake() { let old,x;takeLock.lockInterruptibly();try {\n while(count.get()==0 && !closed) awaitPassingOn(notEmpty, ()=>count.get()>0);\n if(count.get()==0)throw ClosedEmpty();\n x=head.next.item;head=head.next;head.item=null;old=count.getAndDecrement();\n if(old>1)notEmpty.signal();}finally{takeLock.unlock();}\n if(old==capacity)signalUnderPutLock(notFull);return x; }   // takeLock already released\n// awaitPassingOn: on interrupt, re-test the predicate under the held lock and signal once if it holds.\n// close acquires putLock then takeLock, wakes both sets, then releases reverse order.",
           "guarantees": [
-            "Count provides cross-lock publication; crossing signals occur after releasing the local lock."
+            "Count provides cross-lock publication; crossing signals occur after releasing the local lock; only close nests locks, in putLock-then-takeLock order."
           ],
           "id": "mechanism-0",
           "language": "typescript-pseudocode",
@@ -2184,8 +2233,7 @@
       "stages": [
         {
           "checkIds": [
-            "behavior",
-            "boundary"
+            "behavior"
           ],
           "explanation": "Serialize producers with putLock, consumers with takeLock, and publish count through an atomic counter with release/acquire ordering. Link publication precedes atomic count increment; acquiring the count synchronizes consumer visibility. [A queue](https://en.wikipedia.org/wiki/Queue_%28abstract_data_type%29) separates accepting work from completing it. Capacity, ordering, ownership, and shutdown behavior determine what producers and consumers may safely assume about each item.",
           "graph": {
@@ -2284,8 +2332,7 @@
         },
         {
           "checkIds": [
-            "behavior",
-            "boundary"
+            "behavior"
           ],
           "explanation": "Use a dummy head; producer appends through tail under putLock, consumer advances dummy head under takeLock and clears detached references. Only published nodes with positive count may be removed. [A lock](https://en.wikipedia.org/wiki/Lock_%28computer_science%29) gives one thread exclusive access to protected state. Correctness depends on protecting the whole decision and update, and releasing ownership on every exit.",
           "graph": {
@@ -2395,10 +2442,9 @@
         },
         {
           "checkIds": [
-            "behavior",
-            "boundary"
+            "behavior"
           ],
-          "explanation": "putLock protects producer wait predicate and tail links. notFull is associated only with putLock. One producer publishes one tail link at a time. [A lock](https://en.wikipedia.org/wiki/Lock_%28computer_science%29) gives one thread exclusive access to protected state. Correctness depends on protecting the whole decision and update, and releasing ownership on every exit. Consider this case: Capacity one, producer P1 fills, P2 waits, consumer removes.",
+          "explanation": "putLock protects producer wait predicate and tail links. notFull is associated only with putLock. One producer publishes one tail link at a time. [A lock](https://en.wikipedia.org/wiki/Lock_%28computer_science%29) gives one thread exclusive access to protected state. Correctness depends on protecting the whole decision and update, and releasing ownership on every exit. Consider this case: Capacity two filled until full, then alternating takes and puts, plus 400 seeded put/take operations on capacity three.",
           "graph": {
             "edges": [
               {
@@ -2530,10 +2576,9 @@
         },
         {
           "checkIds": [
-            "behavior",
-            "boundary"
+            "behavior"
           ],
-          "explanation": "takeLock protects head and notEmpty waiting; consume only after atomic count observes a published entry. One consumer advances head at a time. [A lock](https://en.wikipedia.org/wiki/Lock_%28computer_science%29) gives one thread exclusive access to protected state. Correctness depends on protecting the whole decision and update, and releasing ownership on every exit. Consider this case: Capacity one, producer P1 fills, P2 waits, consumer removes.",
+          "explanation": "takeLock protects head and notEmpty waiting; consume only after atomic count observes a published entry. One consumer advances head at a time. [A lock](https://en.wikipedia.org/wiki/Lock_%28computer_science%29) gives one thread exclusive access to protected state. Correctness depends on protecting the whole decision and update, and releasing ownership on every exit. Consider this case: Capacity two filled until full, then alternating takes and puts, plus 400 seeded put/take operations on capacity three.",
           "graph": {
             "edges": [
               {
@@ -2689,8 +2734,7 @@
         },
         {
           "checkIds": [
-            "behavior",
-            "boundary"
+            "publication"
           ],
           "explanation": "A producer links then atomic getAndIncrement; consumer checks count with acquire semantics before following next. Decrement follows removal. Count transitions publish link writes; count remains within capacity. [A queue](https://en.wikipedia.org/wiki/Queue_%28abstract_data_type%29) separates accepting work from completing it. Capacity, ordering, ownership, and shutdown behavior determine what producers and consumers may safely assume about each item.",
           "graph": {
@@ -2873,9 +2917,9 @@
         {
           "checkIds": [
             "behavior",
-            "boundary"
+            "handoff"
           ],
-          "explanation": "Release local mutation lock before acquiring the opposite lock for empty-to-nonempty or full-to-nonfull signal. Propagate local signals when further work is possible. Normal put/take never hold both locks simultaneously. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources. A newer owner needs a token that the resource checks, not merely a belief that ownership changed.",
+          "explanation": "Release local mutation lock before acquiring the opposite lock for empty-to-nonempty or full-to-nonfull signal. Propagate local signals when further work is possible, and let an interrupted waiter re-test count and re-signal its own condition under its own lock before propagating. Normal put/take never hold both locks simultaneously. [A condition variable](https://en.wikipedia.org/wiki/Condition_variable) lets a thread sleep until shared state may have changed. Waking does not guarantee success, so the protected condition must be checked again.",
           "graph": {
             "edges": [
               {
@@ -3074,12 +3118,12 @@
             }
           ],
           "question": "Could put hold putLock while waiting for takeLock?",
-          "reason": "Release local mutation lock before acquiring the opposite lock for empty-to-nonempty or full-to-nonfull signal. Propagate local signals when further work is possible.",
+          "reason": "Release local mutation lock before acquiring the opposite lock for empty-to-nonempty or full-to-nonfull signal. Propagate local signals when further work is possible, and let an interrupted waiter re-test count and re-signal its own condition under its own lock before propagating.",
           "title": "Signal without lock inversion"
         },
         {
           "checkIds": [
-            "behavior",
+            "lock-order",
             "boundary"
           ],
           "explanation": "Close takes putLock then takeLock, sets shared closed, and signals both wait sets before releasing in reverse order; puts test closed under putLock. Any path that holds both locks uses putLock then takeLock. [A lock](https://en.wikipedia.org/wiki/Lock_%28computer_science%29) gives one thread exclusive access to protected state. Correctness depends on protecting the whole decision and update, and releasing ownership on every exit.",
@@ -3310,10 +3354,10 @@
         },
         {
           "checkIds": [
-            "behavior",
-            "boundary"
+            "boundary",
+            "handoff"
           ],
-          "explanation": "Use while loops with closed checks on the relevant condition; interrupted await exits before linking/unlinking, unlocking in finally. No semaphore permit accounting exists to leak; count changes only with data mutation. [A condition variable](https://en.wikipedia.org/wiki/Condition_variable) lets a thread sleep until shared state may have changed. Waking does not guarantee success, so the protected condition must be checked again.",
+          "explanation": "Use while loops with closed checks on the relevant condition; an interrupted await exits before linking/unlinking, first passes on a possibly absorbed signal when its predicate holds (Java's Condition redirects it itself), and unlocks in finally. No semaphore permit accounting exists to leak; count changes only with data mutation. [A condition variable](https://en.wikipedia.org/wiki/Condition_variable) lets a thread sleep until shared state may have changed. Waking does not guarantee success, so the protected condition must be checked again.",
           "graph": {
             "edges": [
               {
@@ -3559,8 +3603,8 @@
               "op": "connect"
             }
           ],
-          "question": "Can canceled waiters consume a permit?",
-          "reason": "Use while loops with closed checks on the relevant condition; interrupted await exits before linking/unlinking, unlocking in finally.",
+          "question": "Can canceled waiters consume a permit or a wakeup?",
+          "reason": "Use while loops with closed checks on the relevant condition; an interrupted await exits before linking/unlinking, first passes on a possibly absorbed signal when its predicate holds (Java's Condition redirects it itself), and unlocks in finally.",
           "title": "Remove waiters without queue mutation"
         }
       ],

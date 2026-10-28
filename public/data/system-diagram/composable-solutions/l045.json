@@ -44,7 +44,7 @@
           "id": "in-l045.central.c1"
         }
       ],
-      "responsibility": "Expand planner; persist remaining dependencies, attempt epochs and selected output receipts.",
+      "responsibility": "Expand planner; persist remaining dependencies, task generations, attempt epochs and per-generation selected output receipts.",
       "stateOwnership": [
         "DAG state and epochs"
       ],
@@ -69,7 +69,7 @@
           "id": "out-l045.central.c3"
         }
       ],
-      "responsibility": "Enqueue only when all distinct predecessor output receipts exist.",
+      "responsibility": "Enqueue only when every declared predecessor has a current output receipt.",
       "stateOwnership": [
         "ready task identities"
       ],
@@ -144,7 +144,7 @@
           "id": "out-l045.central.c6"
         }
       ],
-      "responsibility": "Launch a bounded speculative attempt and atomically select the first valid successful result per logical task.",
+      "responsibility": "Launch a bounded speculative attempt and atomically select the first valid successful result per task and generation.",
       "stateOwnership": [
         "selected attempt ID"
       ],
@@ -169,9 +169,9 @@
           "id": "out-l045.central.c2"
         }
       ],
-      "responsibility": "Deduplicate selected predecessor completion before reducing child dependency counts.",
+      "responsibility": "Record the selected completion per declared parent and compute readiness from the declared parent set; duplicates and undeclared parents change nothing.",
       "stateOwnership": [
-        "completion receipts and counters"
+        "completion receipts per declared parent"
       ],
       "version": 1
     },
@@ -199,7 +199,7 @@
           "id": "out-l045.central.c2"
         }
       ],
-      "responsibility": "Fence failed attempts, retain valid artifacts, and regenerate only missing lineage; cancel losing speculative work.",
+      "responsibility": "Fence failed attempts, retain valid artifacts, advance the producer generation of each lost artifact and revoke receipts held by unstarted children; cancel losing speculative work.",
       "stateOwnership": [
         "recovery frontier"
       ],
@@ -334,7 +334,7 @@
           "id": "out-l045.partitioned.c3"
         }
       ],
-      "responsibility": "Deduplicate prerequisite completion IDs at each child actor before emitting ready state.",
+      "responsibility": "Deduplicate completion event IDs at each child actor, ignore undeclared parents and apply revocations for lost generations before emitting ready state.",
       "stateOwnership": [
         "child prerequisite set"
       ],
@@ -409,7 +409,7 @@
           "id": "out-l045.partitioned.c6"
         }
       ],
-      "responsibility": "Each task owner atomically selects one valid artifact receipt and emits stable completion identity.",
+      "responsibility": "Each task owner, under its current epoch, atomically selects one valid artifact receipt per task and generation and emits stable completion identity.",
       "stateOwnership": [
         "winner receipt and loser attempts"
       ],
@@ -464,7 +464,7 @@
           "id": "out-l045.partitioned.c3"
         }
       ],
-      "responsibility": "Advance owner epoch, replay journals and pending completion outboxes, and reschedule only artifacts missing from lineage.",
+      "responsibility": "Advance owner epoch, replay journals, resend undelivered outbox events under their original IDs, and reschedule every task whose winning artifact is missing in a new generation.",
       "stateOwnership": [
         "shard recovery offsets"
       ],
@@ -577,6 +577,7 @@
       "request": {
         "artifactHash": "sha256",
         "attemptId": "uuid",
+        "generation": "integer",
         "taskId": "uuid"
       },
       "response": {
@@ -588,10 +589,11 @@
       "id": "l045.central.c6",
       "request": {
         "childId": "uuid",
+        "generation": "integer",
         "parentId": "uuid"
       },
       "response": {
-        "remaining": "integer"
+        "ready": "boolean"
       },
       "version": 1
     },
@@ -632,11 +634,12 @@
       "id": "l045.partitioned.c2",
       "request": {
         "childId": "uuid",
-        "parentId": "uuid",
-        "receipt": "immutable ref"
+        "eventId": "task@generation->child",
+        "kind": "complete|revoke",
+        "parentId": "uuid"
       },
       "response": {
-        "remaining": "integer"
+        "ready": "boolean"
       },
       "version": 1
     },
@@ -666,10 +669,12 @@
       "id": "l045.partitioned.c5",
       "request": {
         "attemptId": "uuid",
+        "generation": "integer",
+        "ownerEpoch": "integer",
         "taskId": "uuid"
       },
       "response": {
-        "winner": "uuid"
+        "winner": "uuid|null"
       },
       "version": 1
     },
@@ -747,55 +752,55 @@
           "evidence": {
             "kind": "reference-test",
             "testFile": "tools/simulatte/study-reference/batch-03-mechanisms.test.mjs",
-            "testName": "L045 bounded mechanism"
+            "testName": "L045 central winner is keyed by generation and readiness by declared parents"
           },
-          "given": "Two speculative attempts finish for one task whose child also depends on another predecessor.",
+          "given": "Task T has attempts a and b in generation 0; child C declares parents P1 and P2.",
           "id": "mechanism",
           "relatedRequirementIds": [
             "r0",
-            "r1",
             "r2"
           ],
-          "then": "Exactly one attempt is selected; the child becomes ready only after both distinct predecessor receipts exist.",
-          "when": "Select a winner and deliver duplicate selected completion, then the other predecessor."
+          "then": "a wins generation 0; after the loss the stale b is rejected and c wins generation 1; C becomes ready only when both declared parents hold receipts, and again after P1 is redelivered.",
+          "when": "Select a, then b; lose T's artifact and finish the stale b and a recomputed c; deliver P1 twice, an undeclared PX, then P2; revoke and redeliver P1."
         },
         {
           "given": "A task graph contains a cycle or a child lacks one committed parent output.",
           "id": "dag",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
-            "r2"
+            "r0"
           ],
           "then": "Reject the cycle and keep the incomplete child blocked.",
           "when": "Compile and schedule."
         },
         {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-03-mechanisms.test.mjs",
+            "testName": "L045 central winner is keyed by generation and readiness by declared parents"
+          },
           "given": "Two attempts finish successfully for one logical task.",
           "id": "speculation",
           "relatedRequirementIds": [
             "r0",
-            "r1",
             "r2"
           ],
-          "then": "Publish one selected artifact and decrement each child prerequisite once.",
+          "then": "Publish one selected artifact and record each child prerequisite once.",
           "when": "Compare-and-set the winner and deliver completion twice."
         },
         {
           "given": "A compute worker is lost but shuffle persists; later a block is deleted.",
           "id": "loss",
           "relatedRequirementIds": [
-            "r0",
             "r1",
             "r2"
           ],
-          "then": "Reuse retained blocks after CPU loss and recompute only missing artifact lineage; bounded spill preserves the declared memory limit.",
+          "then": "Reuse retained blocks after CPU loss and recompute only missing artifact lineage in a new generation; bounded spill preserves the declared memory limit.",
           "when": "Recover each fault separately."
         }
       ],
       "algorithms": [
         {
-          "code": "if (!allPredecessorReceiptsPresent(task)) return \"blocked\";\nif (task.winner) return task.winner;\nassert(validArtifact(attempt.artifact));\nreturn compareAndSetWinner(task.id, null, attempt.id);\n// Only the selected receipt emits completion; losing attempts never decrement children again.",
+          "code": "if (![...task.declaredParents].every(p => receipts.has(p))) return \"blocked\";\nif (attempt.generation !== task.generation) return \"stale-generation\";\nassert(validArtifact(attempt.artifact));\nreturn compareAndSetWinner([task.id, task.generation], null, attempt.id);\n// Only the selected receipt emits completion; artifact loss advances task.generation so a recomputed attempt can win.",
           "guarantees": [
             "The code states the bounded decision rule; unimplemented helpers remain pseudocode.",
             "External effects, distributed failure and latency require separate execution evidence."
@@ -805,9 +810,9 @@
           "ownerNodeId": "n5"
         },
         {
-          "code": "for (const failed of expiredAttemptLeases(now)) fenceAttempt(failed);\nfor (const artifact of missingArtifactManifest()) enqueueLineageProducer(artifact);\nfor (const task of tasksWithWinner()) cancelNonWinningAttempts(task);\n// CPU heartbeat loss does not delete separately retained shuffle; only selected outputs release children.",
+          "code": "for (const failed of expiredAttemptLeases(now)) fenceAttempt(failed);\nfor (const artifact of missingArtifactManifest()) {\n const task = producerOf(artifact); task.generation++; // the lost winner no longer satisfies readers\n for (const child of unstartedChildren(task)) revokeReceipt(child, task.id);\n enqueueAttempt(task, task.generation);\n}\nfor (const task of tasksWithWinner()) cancelNonWinningAttempts(task, task.generation);\n// CPU heartbeat loss does not delete separately retained shuffle; only selected outputs release children.",
           "guarantees": [
-            "Fence failed attempts, retain valid artifacts, and regenerate only missing lineage; cancel losing speculative work."
+            "Fence failed attempts, retain valid artifacts, advance the producer generation of each lost artifact and revoke receipts held by unstarted children; cancel losing speculative work."
           ],
           "id": "recover",
           "language": "typescript-pseudocode",
@@ -816,7 +821,7 @@
       ],
       "apis": [
         {
-          "errors": "401 unauthenticated; 409 stale identity/version; 429 bounded capacity; 503 unavailable authority",
+          "errors": "400 cycle or edge to an undeclared task; 413 DAG exceeds the declared task limit",
           "method": "POST",
           "ownerNodeId": "control",
           "path": "/l045/central",
@@ -824,12 +829,12 @@
           "response": "{\"stages\":\"stage definitions[]\"}"
         },
         {
-          "errors": "403 unauthorized scope; 404 absent identity; 410 expired retained history",
+          "errors": "404 unknown jobId or taskId",
           "method": "GET",
           "ownerNodeId": "state",
           "path": "/l045/central/state",
           "request": "{\"jobId\":\"uuid\",\"taskId\":\"uuid\"}",
-          "response": "{\"state\":\"blocked|ready|running|done\"}"
+          "response": "{\"state\":\"blocked|ready|running|done\",\"generation\":\"integer\",\"winnerAttemptId\":\"uuid|null\"}"
         }
       ],
       "assumptions": [
@@ -844,12 +849,9 @@
       "stages": [
         {
           "checkIds": [
-            "mechanism",
-            "dag",
-            "speculation",
-            "loss"
+            "dag"
           ],
-          "explanation": "Validate acyclicity and coalesce narrow dependencies while separating wide shuffle edges. Validate acyclicity and coalesce narrow dependencies while separating wide shuffle edges. State owner: DAG planner (DAG and stage identities). Validate acyclicity and coalesce narrow dependencies while separating wide shuffle edges. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A directed acyclic graph](https://en.wikipedia.org/wiki/Directed_acyclic_graph) expresses work that depends on earlier results.",
+          "explanation": "Validate acyclicity and coalesce narrow dependencies while separating wide shuffle edges. A cyclic graph or an edge to an undeclared task is rejected before any stage exists. Validate acyclicity and coalesce narrow dependencies while separating wide shuffle edges. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A directed acyclic graph](https://en.wikipedia.org/wiki/Directed_acyclic_graph) expresses work that depends on earlier results.",
           "graph": {
             "edges": [
               {
@@ -892,7 +894,7 @@
           },
           "id": "central-s1",
           "invariants": [
-            "Validate acyclicity and coalesce narrow dependencies while separating wide shuffle edges. State owner: DAG planner (DAG and stage identities)."
+            "A cyclic graph or an edge to an undeclared task is rejected before any stage exists."
           ],
           "number": 1,
           "operations": [
@@ -947,11 +949,9 @@
         {
           "checkIds": [
             "mechanism",
-            "dag",
-            "speculation",
             "loss"
           ],
-          "explanation": "Expand planner; persist remaining dependencies, attempt epochs and selected output receipts. Expand planner; persist remaining dependencies, attempt epochs and selected output receipts. State owner: Coordinator state (DAG state and epochs). Expand planner; persist remaining dependencies, attempt epochs and selected output receipts. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes.",
+          "explanation": "Expand planner; persist remaining dependencies, task generations, attempt epochs and per-generation selected output receipts. Each task's current generation, attempt epochs and per-generation winner persist with the job and survive scheduler loss. Expand planner; persist remaining dependencies, task generations, attempt epochs and per-generation selected output receipts. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes.",
           "graph": {
             "edges": [
               {
@@ -1031,7 +1031,7 @@
           },
           "id": "central-s2",
           "invariants": [
-            "Expand planner; persist remaining dependencies, attempt epochs and selected output receipts. State owner: Coordinator state (DAG state and epochs)."
+            "Each task's current generation, attempt epochs and per-generation winner persist with the job and survive scheduler loss."
           ],
           "number": 2,
           "operations": [
@@ -1080,17 +1080,15 @@
             }
           ],
           "question": "What survives scheduler loss?",
-          "reason": "Expand planner; persist remaining dependencies, attempt epochs and selected output receipts.",
+          "reason": "Expand planner; persist remaining dependencies, task generations, attempt epochs and per-generation selected output receipts.",
           "title": "Coordinator state"
         },
         {
           "checkIds": [
-            "mechanism",
             "dag",
-            "speculation",
-            "loss"
+            "mechanism"
           ],
-          "explanation": "Enqueue only when all distinct predecessor output receipts exist. Enqueue only when all distinct predecessor output receipts exist. State owner: Ready queue (ready task identities). Enqueue only when all distinct predecessor output receipts exist. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A queue](https://en.wikipedia.org/wiki/Queue_%28abstract_data_type%29) separates accepting work from completing it. Capacity, ordering, ownership, and shutdown behavior determine what producers and consumers may safely assume about each item.",
+          "explanation": "Enqueue only when every declared predecessor has a current output receipt. A task is enqueued only when every declared parent holds a current receipt; undeclared or repeated receipts never count. Enqueue only when every declared predecessor has a current output receipt. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A queue](https://en.wikipedia.org/wiki/Queue_%28abstract_data_type%29) separates accepting work from completing it.",
           "graph": {
             "edges": [
               {
@@ -1194,7 +1192,7 @@
           },
           "id": "central-s3",
           "invariants": [
-            "Enqueue only when all distinct predecessor output receipts exist. State owner: Ready queue (ready task identities)."
+            "A task is enqueued only when every declared parent holds a current receipt; undeclared or repeated receipts never count."
           ],
           "number": 3,
           "operations": [
@@ -1236,17 +1234,14 @@
             }
           ],
           "question": "When does a task become runnable?",
-          "reason": "Enqueue only when all distinct predecessor output receipts exist.",
+          "reason": "Enqueue only when every declared predecessor has a current output receipt.",
           "title": "Ready queue"
         },
         {
           "checkIds": [
-            "mechanism",
-            "dag",
-            "speculation",
             "loss"
           ],
-          "explanation": "Assign tasks under epoch leases and record locality hints without confusing them with correctness authority. Assign tasks under epoch leases and record locality hints without confusing them with correctness authority. State owner: Worker leases (worker lease and task attempt). [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources. A newer owner needs a token that the resource checks, not merely a belief that ownership changed.",
+          "explanation": "Assign tasks under epoch leases and record locality hints without confusing them with correctness authority. A heartbeat only extends a lease; an attempt completes only with an immutable output receipt. Assign tasks under epoch leases and record locality hints without confusing them with correctness authority. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources.",
           "graph": {
             "edges": [
               {
@@ -1374,7 +1369,7 @@
           },
           "id": "central-s4",
           "invariants": [
-            "Assign tasks under epoch leases and record locality hints without confusing them with correctness authority. State owner: Worker leases (worker lease and task attempt)."
+            "A heartbeat only extends a lease; an attempt completes only with an immutable output receipt."
           ],
           "number": 4,
           "operations": [
@@ -1415,12 +1410,9 @@
         },
         {
           "checkIds": [
-            "mechanism",
-            "dag",
-            "speculation",
             "loss"
           ],
-          "explanation": "Retain partition blocks separately and enforce bounded spill and backpressure. Retain partition blocks separately and enforce bounded spill and backpressure. State owner: Shuffle storage (block checksums and spill manifests). Retain partition blocks separately and enforce bounded spill and backpressure. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Stream processing](https://en.wikipedia.org/wiki/Stream_processing) updates results as events arrive.",
+          "explanation": "Retain partition blocks separately and enforce bounded spill and backpressure. Blocks outlive the executor that wrote them, and spill stays within the declared memory budget. Retain partition blocks separately and enforce bounded spill and backpressure. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Stream processing](https://en.wikipedia.org/wiki/Stream_processing) updates results as events arrive. Arrival order may differ from event time, so late-data rules and bounded retained state are part of the result definition.",
           "graph": {
             "edges": [
               {
@@ -1572,7 +1564,7 @@
           },
           "id": "central-s5",
           "invariants": [
-            "Retain partition blocks separately and enforce bounded spill and backpressure. State owner: Shuffle storage (block checksums and spill manifests)."
+            "Blocks outlive the executor that wrote them, and spill stays within the declared memory budget."
           ],
           "number": 5,
           "operations": [
@@ -1613,12 +1605,10 @@
         },
         {
           "checkIds": [
-            "mechanism",
-            "dag",
             "speculation",
-            "loss"
+            "mechanism"
           ],
-          "explanation": "Launch a bounded speculative attempt and atomically select the first valid successful result per logical task. Launch a bounded speculative attempt and atomically select the first valid successful result per logical task. State owner: Attempt selection (selected attempt ID). [A directed acyclic graph](https://en.wikipedia.org/wiki/Directed_acyclic_graph) expresses work that depends on earlier results. A scheduler must track completed dependencies and distinguish logical tasks from retry attempts before releasing downstream work.",
+          "explanation": "Launch a bounded speculative attempt and atomically select the first valid successful result per task and generation. At most one winner exists per (taskId, generation); an attempt from an older generation is never selected. Launch a bounded speculative attempt and atomically select the first valid successful result per task and generation. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A directed acyclic graph](https://en.wikipedia.org/wiki/Directed_acyclic_graph) expresses work that depends on earlier results.",
           "graph": {
             "edges": [
               {
@@ -1794,7 +1784,7 @@
           },
           "id": "central-s6",
           "invariants": [
-            "Launch a bounded speculative attempt and atomically select the first valid successful result per logical task. State owner: Attempt selection (selected attempt ID)."
+            "At most one winner exists per (taskId, generation); an attempt from an older generation is never selected."
           ],
           "number": 6,
           "operations": [
@@ -1830,17 +1820,15 @@
             }
           ],
           "question": "Can speculation produce two outputs?",
-          "reason": "Launch a bounded speculative attempt and atomically select the first valid successful result per logical task.",
+          "reason": "Launch a bounded speculative attempt and atomically select the first valid successful result per task and generation.",
           "title": "Attempt selection"
         },
         {
           "checkIds": [
-            "mechanism",
-            "dag",
             "speculation",
-            "loss"
+            "mechanism"
           ],
-          "explanation": "Deduplicate selected predecessor completion before reducing child dependency counts. Deduplicate selected predecessor completion before reducing child dependency counts. State owner: Dependency release (completion receipts and counters). Deduplicate selected predecessor completion before reducing child dependency counts. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A directed acyclic graph](https://en.wikipedia.org/wiki/Directed_acyclic_graph) expresses work that depends on earlier results.",
+          "explanation": "Record the selected completion per declared parent and compute readiness from the declared parent set; duplicates and undeclared parents change nothing. Readiness is computed from the declared parent set; a duplicate or undeclared completion never releases a child. [Idempotence](https://en.wikipedia.org/wiki/Idempotence) means repeating the same logical operation does not repeat its effect. Stable request identities let a retry recover an existing outcome instead of creating another change.",
           "graph": {
             "edges": [
               {
@@ -2054,7 +2042,7 @@
           },
           "id": "central-s7",
           "invariants": [
-            "Deduplicate selected predecessor completion before reducing child dependency counts. State owner: Dependency release (completion receipts and counters)."
+            "Readiness is computed from the declared parent set; a duplicate or undeclared completion never releases a child."
           ],
           "number": 7,
           "operations": [
@@ -2107,17 +2095,15 @@
             }
           ],
           "question": "How do children start once?",
-          "reason": "Deduplicate selected predecessor completion before reducing child dependency counts.",
+          "reason": "Record the selected completion per declared parent and compute readiness from the declared parent set; duplicates and undeclared parents change nothing.",
           "title": "Dependency release"
         },
         {
           "checkIds": [
-            "mechanism",
-            "dag",
-            "speculation",
-            "loss"
+            "loss",
+            "mechanism"
           ],
-          "explanation": "Fence failed attempts, retain valid artifacts, and regenerate only missing lineage; cancel losing speculative work. Fence failed attempts, retain valid artifacts, and regenerate only missing lineage; cancel losing speculative work. State owner: Lineage rescheduler (recovery frontier). Fence failed attempts, retain valid artifacts, and regenerate only missing lineage; cancel losing speculative work. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A checkpoint](https://en.wikipedia.org/wiki/Checkpointing) records enough progress to restart without repeating everything.",
+          "explanation": "Fence failed attempts, retain valid artifacts, advance the producer generation of each lost artifact and revoke receipts held by unstarted children; cancel losing speculative work. Artifact loss advances its producer's generation so a recomputed attempt can win; CPU loss alone recomputes nothing. [A queue](https://en.wikipedia.org/wiki/Queue_%28abstract_data_type%29) separates accepting work from completing it. Capacity, ordering, ownership, and shutdown behavior determine what producers and consumers may safely assume about each item.",
           "graph": {
             "edges": [
               {
@@ -2383,7 +2369,7 @@
           },
           "id": "central-s8",
           "invariants": [
-            "Fence failed attempts, retain valid artifacts, and regenerate only missing lineage; cancel losing speculative work. State owner: Lineage rescheduler (recovery frontier)."
+            "Artifact loss advances its producer's generation so a recomputed attempt can win; CPU loss alone recomputes nothing."
           ],
           "number": 8,
           "operations": [
@@ -2459,7 +2445,7 @@
             }
           ],
           "question": "What is recomputed after loss?",
-          "reason": "Fence failed attempts, retain valid artifacts, and regenerate only missing lineage; cancel losing speculative work.",
+          "reason": "Fence failed attempts, retain valid artifacts, advance the producer generation of each lost artifact and revoke receipts held by unstarted children; cancel losing speculative work.",
           "title": "Lineage rescheduler"
         }
       ],
@@ -2474,25 +2460,23 @@
           "evidence": {
             "kind": "reference-test",
             "testFile": "tools/simulatte/study-reference/batch-03-mechanisms.test.mjs",
-            "testName": "L045 bounded mechanism"
+            "testName": "L045 partitioned owner epoch fences arbitration and failover recomputes lost artifacts"
           },
-          "given": "Two speculative attempts finish for one task whose child also depends on another predecessor.",
+          "given": "Shard epoch 1 owns tasks T1 and T2, both feeding child C on another shard; T1's completion was delivered and T2's is still in the outbox.",
           "id": "mechanism",
           "relatedRequirementIds": [
             "r0",
             "r1",
             "r2"
           ],
-          "then": "Exactly one attempt is selected; the child becomes ready only after both distinct predecessor receipts exist.",
-          "when": "Select a winner and deliver duplicate selected completion, then the other predecessor."
+          "then": "Epoch 0 is fenced; failover moves to epoch 2, resends T2's event under its original ID, revokes T1's generation-0 completion and reschedules T1 in generation 1 while T2 is untouched; C counts each event once and is ready only after T1's generation-1 completion.",
+          "when": "Arbitrate from epoch 0, fail over with T1's artifact lost, deliver events twice, then select a recomputed T1 attempt."
         },
         {
           "given": "Task partitioning receives a cycle or an unknown parent ID.",
           "id": "dag",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
-            "r2"
+            "r0"
           ],
           "then": "Reject the graph without partially releasing a ready frontier.",
           "when": "Validate before assigning owner shards."
@@ -2502,17 +2486,20 @@
           "id": "speculation",
           "relatedRequirementIds": [
             "r0",
-            "r1",
             "r2"
           ],
           "then": "One immutable receipt wins; each child deduplicates predecessor ID independently.",
           "when": "Choose a winner under task-owner epoch and apply child inbox transitions."
         },
         {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-03-mechanisms.test.mjs",
+            "testName": "L045 partitioned owner epoch fences arbitration and failover recomputes lost artifacts"
+          },
           "given": "A shard owner fails after publishing only part of its completion outbox.",
           "id": "loss",
           "relatedRequirementIds": [
-            "r0",
             "r1",
             "r2"
           ],
@@ -2522,7 +2509,7 @@
       ],
       "algorithms": [
         {
-          "code": "if (!allPredecessorReceiptsPresent(task)) return \"blocked\";\nif (task.winner) return task.winner;\nassert(validArtifact(attempt.artifact));\nreturn compareAndSetWinner(task.id, null, attempt.id);\n// Only the selected receipt emits completion; losing attempts never decrement children again.",
+          "code": "if (ownerEpoch !== shard.epoch) return \"fenced\";\nif (attempt.generation !== task.generation || !validArtifact(attempt.artifact)) return \"rejected\";\nconst winner = compareAndSetWinner([task.id, task.generation], null, attempt.id);\nif (winner === attempt.id) for (const child of task.children) outbox.appendUnique(task.id + \"@\" + task.generation + \"->\" + child);\nreturn winner;",
           "guarantees": [
             "The code states the bounded decision rule; unimplemented helpers remain pseudocode.",
             "External effects, distributed failure and latency require separate execution evidence."
@@ -2532,9 +2519,9 @@
           "ownerNodeId": "n5"
         },
         {
-          "code": "const epoch = advanceShardEpoch(shardId);\nconst tasks = replayTaskJournal(shardId);\nfor (const task of tasks) {\n resendPendingCompletionIds(task.outbox);\n if (!task.winner && allPredecessorReceiptsPresent(task)) leaseReadyTask(task, epoch);\n}\n// Child inbox deduplication tolerates replay; old-owner completion cannot overwrite current attempt state.",
+          "code": "const epoch = advanceShardEpoch(shardId);\nfor (const task of replayTaskJournal(shardId)) {\n const winner = task.winners.get(task.generation);\n if (winner && !artifactStore.has(winner.artifact)) {\n  revokeGenerationCompletions(task, task.generation); // cancel undelivered, emit revocations for delivered\n  task.generation++; leaseReadyTask(task, epoch);\n } else if (!winner && allPredecessorReceiptsPresent(task)) leaseReadyTask(task, epoch);\n resendPendingCompletionIds(task.outbox); // original event IDs; child inboxes deduplicate\n}",
           "guarantees": [
-            "Advance owner epoch, replay journals and pending completion outboxes, and reschedule only artifacts missing from lineage."
+            "Advance owner epoch, replay journals, resend undelivered outbox events under their original IDs, and reschedule every task whose winning artifact is missing in a new generation."
           ],
           "id": "recover",
           "language": "typescript-pseudocode",
@@ -2543,7 +2530,7 @@
       ],
       "apis": [
         {
-          "errors": "401 unauthenticated; 409 stale identity/version; 429 bounded capacity; 503 unavailable authority",
+          "errors": "400 cycle or unknown parent ID; 409 dagId already bound to a different task set",
           "method": "POST",
           "ownerNodeId": "control",
           "path": "/l045/partitioned",
@@ -2551,12 +2538,12 @@
           "response": "{\"owners\":\"task/shard map\"}"
         },
         {
-          "errors": "403 unauthorized scope; 404 absent identity; 410 expired retained history",
+          "errors": "404 unknown dagId or taskId; 503 owner shard is failing over",
           "method": "GET",
           "ownerNodeId": "state",
           "path": "/l045/partitioned/state",
-          "request": "{\"taskId\":\"uuid\",\"ownerEpoch\":\"integer\"}",
-          "response": "{\"version\":\"integer\"}"
+          "request": "{\"dagId\":\"uuid\",\"taskId\":\"uuid\"}",
+          "response": "{\"ownerShard\":\"uuid\",\"ownerEpoch\":\"integer\",\"generation\":\"integer\",\"state\":\"blocked|ready|running|done\"}"
         }
       ],
       "assumptions": [
@@ -2571,12 +2558,9 @@
       "stages": [
         {
           "checkIds": [
-            "mechanism",
-            "dag",
-            "speculation",
-            "loss"
+            "dag"
           ],
-          "explanation": "Validate graph and assign each stable task ID to one owner shard. Validate graph and assign each stable task ID to one owner shard. State owner: DAG partitioner (DAG hash and ownership map). Validate graph and assign each stable task ID to one owner shard. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Partitioning](https://en.wikipedia.org/wiki/Partition_%28database%29) divides data and work among owners.",
+          "explanation": "Validate graph and assign each stable task ID to one owner shard. Every task ID maps to exactly one owner shard; a cyclic graph or unknown parent is rejected before any assignment. Validate graph and assign each stable task ID to one owner shard. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Partitioning](https://en.wikipedia.org/wiki/Partition_%28database%29) divides data and work among owners.",
           "graph": {
             "edges": [
               {
@@ -2619,7 +2603,7 @@
           },
           "id": "partitioned-s1",
           "invariants": [
-            "Validate graph and assign each stable task ID to one owner shard. State owner: DAG partitioner (DAG hash and ownership map)."
+            "Every task ID maps to exactly one owner shard; a cyclic graph or unknown parent is rejected before any assignment."
           ],
           "number": 1,
           "operations": [
@@ -2673,12 +2657,10 @@
         },
         {
           "checkIds": [
-            "mechanism",
-            "dag",
-            "speculation",
-            "loss"
+            "loss",
+            "mechanism"
           ],
-          "explanation": "Expand partitioner with task transition logs and committed predecessor receipts. Expand partitioner with task transition logs and committed predecessor receipts. State owner: Task actor journal (task journal and ownership epoch). Expand partitioner with task transition logs and committed predecessor receipts. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Partitioning](https://en.wikipedia.org/wiki/Partition_%28database%29) divides data and work among owners.",
+          "explanation": "Expand partitioner with task transition logs and committed predecessor receipts. A shard journal records each task's generation, winner and outbox under the owner epoch that wrote it. Expand partitioner with task transition logs and committed predecessor receipts. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Partitioning](https://en.wikipedia.org/wiki/Partition_%28database%29) divides data and work among owners. The key determines where requests go; skew, ownership changes, and operations spanning partitions require additional coordination.",
           "graph": {
             "edges": [
               {
@@ -2758,7 +2740,7 @@
           },
           "id": "partitioned-s2",
           "invariants": [
-            "Expand partitioner with task transition logs and committed predecessor receipts. State owner: Task actor journal (task journal and ownership epoch)."
+            "A shard journal records each task's generation, winner and outbox under the owner epoch that wrote it."
           ],
           "number": 2,
           "operations": [
@@ -2812,12 +2794,10 @@
         },
         {
           "checkIds": [
-            "mechanism",
-            "dag",
             "speculation",
-            "loss"
+            "mechanism"
           ],
-          "explanation": "Deduplicate prerequisite completion IDs at each child actor before emitting ready state. Deduplicate prerequisite completion IDs at each child actor before emitting ready state. State owner: Completion inbox (child prerequisite set). Deduplicate prerequisite completion IDs at each child actor before emitting ready state. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Idempotence](https://en.wikipedia.org/wiki/Idempotence) means repeating the same logical operation does not repeat its effect.",
+          "explanation": "Deduplicate completion event IDs at each child actor, ignore undeclared parents and apply revocations for lost generations before emitting ready state. A child applies each completion or revocation event ID once and computes readiness only from its declared parents. [Idempotence](https://en.wikipedia.org/wiki/Idempotence) means repeating the same logical operation does not repeat its effect. Stable request identities let a retry recover an existing outcome instead of creating another change.",
           "graph": {
             "edges": [
               {
@@ -2921,7 +2901,7 @@
           },
           "id": "partitioned-s3",
           "invariants": [
-            "Deduplicate prerequisite completion IDs at each child actor before emitting ready state. State owner: Completion inbox (child prerequisite set)."
+            "A child applies each completion or revocation event ID once and computes readiness only from its declared parents."
           ],
           "number": 3,
           "operations": [
@@ -2963,17 +2943,14 @@
             }
           ],
           "question": "Can delivery release twice?",
-          "reason": "Deduplicate prerequisite completion IDs at each child actor before emitting ready state.",
+          "reason": "Deduplicate completion event IDs at each child actor, ignore undeclared parents and apply revocations for lost generations before emitting ready state.",
           "title": "Completion inbox"
         },
         {
           "checkIds": [
-            "mechanism",
-            "dag",
-            "speculation",
-            "loss"
+            "dag"
           ],
-          "explanation": "Publish ready tasks under owner epoch and lease bounded work to executors. Publish ready tasks under owner epoch and lease bounded work to executors. State owner: Shard ready frontier (frontier entries and leases). Publish ready tasks under owner epoch and lease bounded work to executors. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources.",
+          "explanation": "Publish ready tasks under owner epoch and lease bounded work to executors. A task enters the frontier only with every declared predecessor receipt and only under the current owner epoch. Publish ready tasks under owner epoch and lease bounded work to executors. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes.",
           "graph": {
             "edges": [
               {
@@ -3101,7 +3078,7 @@
           },
           "id": "partitioned-s4",
           "invariants": [
-            "Publish ready tasks under owner epoch and lease bounded work to executors. State owner: Shard ready frontier (frontier entries and leases)."
+            "A task enters the frontier only with every declared predecessor receipt and only under the current owner epoch."
           ],
           "number": 4,
           "operations": [
@@ -3142,12 +3119,9 @@
         },
         {
           "checkIds": [
-            "mechanism",
-            "dag",
-            "speculation",
             "loss"
           ],
-          "explanation": "Route typed partition artifacts via checksum manifests with per-partition FIFO/backpressure and spill. Route typed partition artifacts via checksum manifests with per-partition FIFO/backpressure and spill. State owner: Artifact exchange (artifact manifests and spill budget). Route typed partition artifacts via checksum manifests with per-partition FIFO/backpressure and spill. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Partitioning](https://en.wikipedia.org/wiki/Partition_%28database%29) divides data and work among owners.",
+          "explanation": "Route typed partition artifacts via checksum manifests with per-partition FIFO/backpressure and spill. Artifacts are addressed by task, generation and partition with a checksum, and spill stays within the partition budget. Route typed partition artifacts via checksum manifests with per-partition FIFO/backpressure and spill. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Partitioning](https://en.wikipedia.org/wiki/Partition_%28database%29) divides data and work among owners.",
           "graph": {
             "edges": [
               {
@@ -3299,7 +3273,7 @@
           },
           "id": "partitioned-s5",
           "invariants": [
-            "Route typed partition artifacts via checksum manifests with per-partition FIFO/backpressure and spill. State owner: Artifact exchange (artifact manifests and spill budget)."
+            "Artifacts are addressed by task, generation and partition with a checksum, and spill stays within the partition budget."
           ],
           "number": 5,
           "operations": [
@@ -3340,12 +3314,10 @@
         },
         {
           "checkIds": [
-            "mechanism",
-            "dag",
             "speculation",
-            "loss"
+            "mechanism"
           ],
-          "explanation": "Each task owner atomically selects one valid artifact receipt and emits stable completion identity. Each task owner atomically selects one valid artifact receipt and emits stable completion identity. State owner: Commit arbiter (winner receipt and loser attempts). [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call.",
+          "explanation": "Each task owner, under its current epoch, atomically selects one valid artifact receipt per task and generation and emits stable completion identity. Only the current owner epoch arbitrates, and it selects at most one winner per (taskId, generation). [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return.",
           "graph": {
             "edges": [
               {
@@ -3521,7 +3493,7 @@
           },
           "id": "partitioned-s6",
           "invariants": [
-            "Each task owner atomically selects one valid artifact receipt and emits stable completion identity. State owner: Commit arbiter (winner receipt and loser attempts)."
+            "Only the current owner epoch arbitrates, and it selects at most one winner per (taskId, generation)."
           ],
           "number": 6,
           "operations": [
@@ -3557,17 +3529,15 @@
             }
           ],
           "question": "How is a speculative winner chosen?",
-          "reason": "Each task owner atomically selects one valid artifact receipt and emits stable completion identity.",
+          "reason": "Each task owner, under its current epoch, atomically selects one valid artifact receipt per task and generation and emits stable completion identity.",
           "title": "Commit arbiter"
         },
         {
           "checkIds": [
-            "mechanism",
-            "dag",
             "speculation",
             "loss"
           ],
-          "explanation": "Deliver selected task completion to dependent-owner inboxes through a durable replayable outbox. Deliver selected task completion to dependent-owner inboxes through a durable replayable outbox. State owner: Completion fan-out (completion outbox and delivery offsets). Deliver selected task completion to dependent-owner inboxes through a durable replayable outbox. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Change data capture](https://en.wikipedia.org/wiki/Change_data_capture) turns committed data changes into an ordered stream for other components.",
+          "explanation": "Deliver selected task completion to dependent-owner inboxes through a durable replayable outbox. Completion events carry a stable ID (task, generation, child) and stay in the outbox until delivered. Deliver selected task completion to dependent-owner inboxes through a durable replayable outbox. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Change data capture](https://en.wikipedia.org/wiki/Change_data_capture) turns committed data changes into an ordered stream for other components.",
           "graph": {
             "edges": [
               {
@@ -3781,7 +3751,7 @@
           },
           "id": "partitioned-s7",
           "invariants": [
-            "Deliver selected task completion to dependent-owner inboxes through a durable replayable outbox. State owner: Completion fan-out (completion outbox and delivery offsets)."
+            "Completion events carry a stable ID (task, generation, child) and stay in the outbox until delivered."
           ],
           "number": 7,
           "operations": [
@@ -3839,12 +3809,10 @@
         },
         {
           "checkIds": [
-            "mechanism",
-            "dag",
-            "speculation",
-            "loss"
+            "loss",
+            "mechanism"
           ],
-          "explanation": "Advance owner epoch, replay journals and pending completion outboxes, and reschedule only artifacts missing from lineage. Advance owner epoch, replay journals and pending completion outboxes, and reschedule only artifacts missing from lineage. State owner: Shard recovery (shard recovery offsets). [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return.",
+          "explanation": "Advance owner epoch, replay journals, resend undelivered outbox events under their original IDs, and reschedule every task whose winning artifact is missing in a new generation. Failover advances the owner epoch, resends undelivered events unchanged, and reschedules every task whose winning artifact is missing, revoking that generation's completions. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes.",
           "graph": {
             "edges": [
               {
@@ -4110,7 +4078,7 @@
           },
           "id": "partitioned-s8",
           "invariants": [
-            "Advance owner epoch, replay journals and pending completion outboxes, and reschedule only artifacts missing from lineage. State owner: Shard recovery (shard recovery offsets)."
+            "Failover advances the owner epoch, resends undelivered events unchanged, and reschedules every task whose winning artifact is missing, revoking that generation's completions."
           ],
           "number": 8,
           "operations": [
@@ -4186,7 +4154,7 @@
             }
           ],
           "question": "What happens after owner failover?",
-          "reason": "Advance owner epoch, replay journals and pending completion outboxes, and reschedule only artifacts missing from lineage.",
+          "reason": "Advance owner epoch, replay journals, resend undelivered outbox events under their original IDs, and reschedule every task whose winning artifact is missing in a new generation.",
           "title": "Shard recovery"
         }
       ],

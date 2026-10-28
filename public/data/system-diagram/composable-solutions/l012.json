@@ -102,6 +102,11 @@
           "contractId": "l012.pull.c1",
           "direction": "out",
           "id": "out-l012.pull.c1"
+        },
+        {
+          "contractId": "l012.pull.c6",
+          "direction": "out",
+          "id": "out-l012.pull.c6"
         }
       ],
       "responsibility": "Join current audience epoch on each read before issuing bounded access.",
@@ -152,6 +157,11 @@
           "contractId": "l012.pull.c5",
           "direction": "in",
           "id": "in-l012.pull.c5"
+        },
+        {
+          "contractId": "l012.pull.c6",
+          "direction": "out",
+          "id": "out-l012.pull.c6"
         }
       ],
       "responsibility": "Union viewed identities per user and story; a read retry is idempotent.",
@@ -174,7 +184,7 @@
           "id": "in-l012.pull.c6"
         }
       ],
-      "responsibility": "Check now < expiresAt while authorizing every metadata and media response.",
+      "responsibility": "Check now < expiresAt on every tray, metadata, media and view response; the guard sits behind both the tray cursor and audience authorization.",
       "stateOwnership": [
         "authorization clock policy"
       ],
@@ -780,34 +790,38 @@
             "testFile": "tools/simulatte/study-reference/batch-01-mechanisms.test.mjs",
             "testName": "L012 bounded mechanism"
           },
-          "given": "A published story expires at time 100 and its viewer remains allowed.",
+          "given": "A published story expires at time 100 and its viewer is in the current audience.",
           "id": "mechanism",
           "relatedRequirementIds": [
-            "r0",
             "r1",
             "r2"
           ],
-          "then": "Only the time-99 allowed read succeeds; expiry does not claim immediate byte erasure.",
-          "when": "Authorize at times 99 and 100, then revoke the viewer."
+          "then": "Only the time-99 read by the allowed viewer succeeds.",
+          "when": "The expiry guard authorizes a read at 99 and at 100, then at 99 after the viewer is revoked."
+        },
+        {
+          "given": "An upload has two renditions and only one digest is verified.",
+          "id": "publish",
+          "relatedRequirementIds": [
+            "r0"
+          ],
+          "then": "The story stays pending and invisible, and the retry returns the same pending story rather than a second one.",
+          "when": "The client publishes the story, then retries the same command."
         },
         {
           "given": "A story expires at 100 but deletion is delayed.",
           "id": "expiry",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
             "r2"
           ],
-          "then": "Reject visibility; report pending byte deletion separately.",
-          "when": "Read at 100 through tray and media authorization."
+          "then": "Every path is rejected by the expiry guard; pending byte deletion is reported separately.",
+          "when": "Read at 100 through the tray, metadata, media and view paths."
         },
         {
           "given": "A friend loses access after a tray cursor is issued.",
           "id": "acl",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
-            "r2"
+            "r1"
           ],
           "then": "Recheck current audience and deny the revoked viewer.",
           "when": "Dereference the old pointer."
@@ -816,9 +830,7 @@
           "given": "Two devices record the same story view in reverse order.",
           "id": "views",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
-            "r2"
+            "r1"
           ],
           "then": "Viewed remains true and no retry clears it.",
           "when": "Merge their viewed sets."
@@ -826,7 +838,7 @@
       ],
       "algorithms": [
         {
-          "code": "const visible = actorAllowed && now < story.expiresAt;\nif (!visible) return {status:403};\nreturn {status:200, storyId:story.id};",
+          "code": "// Expiry guard (n6). Tray (n4), metadata and media authorization (n3) and view recording (n5) all call it.\n// allowed comes from the current audience epoch, never from a cached tray entry.\nconst visible=(story,allowed,now)=>allowed&&now<story.expiresAt;",
           "guarantees": [
             "The code states the bounded decision rule; unimplemented helpers remain pseudocode.",
             "External effects, distributed failure and latency require separate execution evidence."
@@ -857,10 +869,10 @@
         {
           "errors": "403 unauthorized scope; 404 absent identity; 410 expired retained history",
           "method": "GET",
-          "ownerNodeId": "state",
-          "path": "/l012/pull/state",
-          "request": "{\"storyId\":\"uuid\",\"expectedVersion\":\"integer\"}",
-          "response": "{\"version\":\"integer\",\"visible\":\"boolean\"}"
+          "ownerNodeId": "n3",
+          "path": "/l012/pull/stories/{storyId}",
+          "request": "{\"viewerId\":\"authenticated user\",\"storyId\":\"uuid\"}",
+          "response": "{\"state\":\"pending|published|expired\",\"renditions\":\"short-lived media URLs[]\",\"viewed\":\"boolean\"}"
         }
       ],
       "assumptions": [
@@ -875,12 +887,9 @@
       "stages": [
         {
           "checkIds": [
-            "mechanism",
-            "expiry",
-            "acl",
-            "views"
+            "publish"
           ],
-          "explanation": "Start with upload intent; publication requires verified immutable media. Start with upload intent; publication requires verified immutable media. State owner: Stories API (story command identities). Start with upload intent; publication requires verified immutable media. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Transcoding](https://en.wikipedia.org/wiki/Transcoding) creates new media representations from an uploaded source. Publication should reference completed outputs, while retries and cleanup must not expose a partially processed asset.",
+          "explanation": "Start with upload intent; publication requires verified immutable media. storyId is the idempotency key: a retried command with the same storyId and actorId returns the existing story state and never creates a second story. Start with upload intent; publication requires verified immutable media. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Transcoding](https://en.wikipedia.org/wiki/Transcoding) creates new media representations from an uploaded source.",
           "graph": {
             "edges": [
               {
@@ -923,7 +932,7 @@
           },
           "id": "pull-s1",
           "invariants": [
-            "Start with upload intent; publication requires verified immutable media. State owner: Stories API (story command identities)."
+            "storyId is the idempotency key: a retried command with the same storyId and actorId returns the existing story state and never creates a second story."
           ],
           "number": 1,
           "operations": [
@@ -977,12 +986,9 @@
         },
         {
           "checkIds": [
-            "mechanism",
-            "expiry",
-            "acl",
-            "views"
+            "publish"
           ],
-          "explanation": "Expand the API into command handling and a versioned metadata authority. Expand the API into command handling and a versioned metadata authority. State owner: Story ledger (owner, expiry, media digest). Expand the API into command handling and a versioned metadata authority. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Transcoding](https://en.wikipedia.org/wiki/Transcoding) creates new media representations from an uploaded source.",
+          "explanation": "Expand the API into command handling and a versioned metadata authority. Story metadata changes only by compare-and-swap on expectedVersion; owner and expiresAt are immutable after the first commit. Expand the API into command handling and a versioned metadata authority. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Transcoding](https://en.wikipedia.org/wiki/Transcoding) creates new media representations from an uploaded source.",
           "graph": {
             "edges": [
               {
@@ -1062,7 +1068,7 @@
           },
           "id": "pull-s2",
           "invariants": [
-            "Expand the API into command handling and a versioned metadata authority. State owner: Story ledger (owner, expiry, media digest)."
+            "Story metadata changes only by compare-and-swap on expectedVersion; owner and expiresAt are immutable after the first commit."
           ],
           "number": 2,
           "operations": [
@@ -1116,12 +1122,9 @@
         },
         {
           "checkIds": [
-            "mechanism",
-            "expiry",
-            "acl",
-            "views"
+            "publish"
           ],
-          "explanation": "Validate size, digest and codec output before publishing a rendition manifest. Validate size, digest and codec output before publishing a rendition manifest. State owner: Media finalize (upload receipts). Validate size, digest and codec output before publishing a rendition manifest. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers.",
+          "explanation": "Validate size, digest and codec output before publishing a rendition manifest. A story is published only after every rendition digest is verified; until then it stays pending and invisible. Validate size, digest and codec output before publishing a rendition manifest. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers.",
           "graph": {
             "edges": [
               {
@@ -1239,7 +1242,7 @@
           },
           "id": "pull-s3",
           "invariants": [
-            "Validate size, digest and codec output before publishing a rendition manifest. State owner: Media finalize (upload receipts)."
+            "A story is published only after every rendition digest is verified; until then it stays pending and invisible."
           ],
           "number": 3,
           "operations": [
@@ -1304,11 +1307,9 @@
         {
           "checkIds": [
             "mechanism",
-            "expiry",
-            "acl",
-            "views"
+            "acl"
           ],
-          "explanation": "Join current audience epoch on each read before issuing bounded access. Join current audience epoch on each read before issuing bounded access. State owner: Audience join (audience epochs). Join current audience epoch on each read before issuing bounded access. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes.",
+          "explanation": "Join current audience epoch on each read before issuing bounded access. Every read joins the viewer against the current audience epoch; an access decision made under an older epoch is never reused. Join current audience epoch on each read before issuing bounded access. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes.",
           "graph": {
             "edges": [
               {
@@ -1464,7 +1465,7 @@
           },
           "id": "pull-s4",
           "invariants": [
-            "Join current audience epoch on each read before issuing bounded access. State owner: Audience join (audience epochs)."
+            "Every read joins the viewer against the current audience epoch; an access decision made under an older epoch is never reused."
           ],
           "number": 4,
           "operations": [
@@ -1528,12 +1529,9 @@
         },
         {
           "checkIds": [
-            "mechanism",
-            "expiry",
-            "acl",
-            "views"
+            "acl"
           ],
-          "explanation": "Use a stable story publication cursor and filter expired entries at the server. Use a stable story publication cursor and filter expired entries at the server. State owner: Tray cursor (publication cursor). Use a stable story publication cursor and filter expired entries at the server. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A cursor](https://en.wikipedia.org/wiki/Cursor_%28databases%29) records where a query should continue.",
+          "explanation": "Use a stable story publication cursor and filter expired entries at the server. The tray orders stories by publication sequence then storyId, so a page boundary neither repeats nor skips a story; tray entries are pointers, not grants. Use a stable story publication cursor and filter expired entries at the server. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A cursor](https://en.wikipedia.org/wiki/Cursor_%28databases%29) records where a query should continue.",
           "graph": {
             "edges": [
               {
@@ -1727,7 +1725,7 @@
           },
           "id": "pull-s5",
           "invariants": [
-            "Use a stable story publication cursor and filter expired entries at the server. State owner: Tray cursor (publication cursor)."
+            "The tray orders stories by publication sequence then storyId, so a page boundary neither repeats nor skips a story; tray entries are pointers, not grants."
           ],
           "number": 5,
           "operations": [
@@ -1785,12 +1783,9 @@
         },
         {
           "checkIds": [
-            "mechanism",
-            "expiry",
-            "acl",
             "views"
           ],
-          "explanation": "Union viewed identities per user and story; a read retry is idempotent. Union viewed identities per user and story; a read retry is idempotent. State owner: Viewed register (viewed story set). Union viewed identities per user and story; a read retry is idempotent. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Transcoding](https://en.wikipedia.org/wiki/Transcoding) creates new media representations from an uploaded source.",
+          "explanation": "Union viewed identities per user and story; a read retry is idempotent. Viewed state for a (viewer, story) pair only moves from false to true; duplicate or reordered view records cannot clear it. Union viewed identities per user and story; a read retry is idempotent. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Idempotence](https://en.wikipedia.org/wiki/Idempotence) means repeating the same logical operation does not repeat its effect.",
           "graph": {
             "edges": [
               {
@@ -2008,7 +2003,7 @@
           },
           "id": "pull-s6",
           "invariants": [
-            "Union viewed identities per user and story; a read retry is idempotent. State owner: Viewed register (viewed story set)."
+            "Viewed state for a (viewer, story) pair only moves from false to true; duplicate or reordered view records cannot clear it."
           ],
           "number": 6,
           "operations": [
@@ -2050,11 +2045,9 @@
         {
           "checkIds": [
             "mechanism",
-            "expiry",
-            "acl",
-            "views"
+            "expiry"
           ],
-          "explanation": "Check now < expiresAt while authorizing every metadata and media response. Check now < expiresAt while authorizing every metadata and media response. State owner: Expiry guard (authorization clock policy). Check now < expiresAt while authorizing every metadata and media response. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid.",
+          "explanation": "Check now < expiresAt on every tray, metadata, media and view response; the guard sits behind both the tray cursor and audience authorization. Tray, metadata, media and view responses all pass the expiry guard; a story with now >= expiresAt is never returned, whatever the purge state. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid. Expiration must be checked at the point of use, even when background cleanup runs later.",
           "graph": {
             "edges": [
               {
@@ -2191,6 +2184,34 @@
                 },
                 "id": "expiry",
                 "label": "check visibility deadline",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l012.pull.c6"
+                }
+              },
+              {
+                "contractId": "l012.pull.c6",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l012.pull.c6"
+                },
+                "id": "expiry-authorize",
+                "label": "check deadline before metadata and media",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l012.pull.c6"
+                }
+              },
+              {
+                "contractId": "l012.pull.c6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l012.pull.c6"
+                },
+                "id": "expiry-view",
+                "label": "check deadline before recording a view",
                 "mode": "request-response",
                 "to": {
                   "nodeId": "n6",
@@ -2296,7 +2317,7 @@
           },
           "id": "pull-s7",
           "invariants": [
-            "Check now < expiresAt while authorizing every metadata and media response. State owner: Expiry guard (authorization clock policy)."
+            "Tray, metadata, media and view responses all pass the expiry guard; a story with now >= expiresAt is never returned, whatever the purge state."
           ],
           "number": 7,
           "operations": [
@@ -2329,20 +2350,51 @@
                 }
               },
               "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l012.pull.c6",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l012.pull.c6"
+                },
+                "id": "expiry-authorize",
+                "label": "check deadline before metadata and media",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l012.pull.c6"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l012.pull.c6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l012.pull.c6"
+                },
+                "id": "expiry-view",
+                "label": "check deadline before recording a view",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l012.pull.c6"
+                }
+              },
+              "op": "connect"
             }
           ],
           "question": "Does a delayed timer leak a story?",
-          "reason": "Check now < expiresAt while authorizing every metadata and media response.",
+          "reason": "Check now < expiresAt on every tray, metadata, media and view response; the guard sits behind both the tray cursor and audience authorization.",
           "title": "Expiry guard"
         },
         {
           "checkIds": [
-            "mechanism",
-            "expiry",
-            "acl",
-            "views"
+            "expiry"
           ],
-          "explanation": "Reconcile expired metadata with media deletion receipts; retain explicit backup policy. Reconcile expired metadata with media deletion receipts; retain explicit backup policy. State owner: Purge sweeper (purge cursor and receipts). Reconcile expired metadata with media deletion receipts; retain explicit backup policy. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid.",
+          "explanation": "Reconcile expired metadata with media deletion receipts; retain explicit backup policy. The purge cursor advances only after each deletion receipt or pending key is recorded; deletion lag never changes visibility. Reconcile expired metadata with media deletion receipts; retain explicit backup policy. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid.",
           "graph": {
             "edges": [
               {
@@ -2479,6 +2531,34 @@
                 },
                 "id": "expiry",
                 "label": "check visibility deadline",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l012.pull.c6"
+                }
+              },
+              {
+                "contractId": "l012.pull.c6",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l012.pull.c6"
+                },
+                "id": "expiry-authorize",
+                "label": "check deadline before metadata and media",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n6",
+                  "portId": "in-l012.pull.c6"
+                }
+              },
+              {
+                "contractId": "l012.pull.c6",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l012.pull.c6"
+                },
+                "id": "expiry-view",
+                "label": "check deadline before recording a view",
                 "mode": "request-response",
                 "to": {
                   "nodeId": "n6",
@@ -2622,7 +2702,7 @@
           },
           "id": "pull-s8",
           "invariants": [
-            "Reconcile expired metadata with media deletion receipts; retain explicit backup policy. State owner: Purge sweeper (purge cursor and receipts)."
+            "The purge cursor advances only after each deletion receipt or pending key is recorded; deletion lag never changes visibility."
           ],
           "number": 8,
           "operations": [
@@ -2692,22 +2772,28 @@
             "testFile": "tools/simulatte/study-reference/batch-01-mechanisms.test.mjs",
             "testName": "L012 bounded mechanism"
           },
-          "given": "A published story expires at time 100 and its viewer remains allowed.",
+          "given": "A viewer's inbox pointer refers to a story that expires at time 100.",
           "id": "mechanism",
           "relatedRequirementIds": [
-            "r0",
             "r1",
             "r2"
           ],
-          "then": "Only the time-99 allowed read succeeds; expiry does not claim immediate byte erasure.",
-          "when": "Authorize at times 99 and 100, then revoke the viewer."
+          "then": "Only the time-99 dereference by the allowed viewer returns the story.",
+          "when": "Read authorization dereferences it at 99 and at 100, then at 99 after the viewer leaves the audience."
+        },
+        {
+          "given": "A transcode retry runs after a crash that left one rendition written.",
+          "id": "publish",
+          "relatedRequirementIds": [
+            "r0"
+          ],
+          "then": "Publication waits for a verified manifest at deterministic keys, and the outbox holds one fan-out intent for the story.",
+          "when": "Commit publication."
         },
         {
           "given": "Fan-out is delayed past the original expiry.",
           "id": "expiry",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
             "r2"
           ],
           "then": "Drop the expired insert and deny the read even before sweep completion.",
@@ -2717,9 +2803,7 @@
           "given": "A recipient is removed after fan-out.",
           "id": "acl",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
-            "r2"
+            "r1"
           ],
           "then": "Current authorization denies access; inbox presence cannot override it.",
           "when": "Read the materialized pointer."
@@ -2728,9 +2812,7 @@
           "given": "Two devices submit duplicate view identities.",
           "id": "views",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
-            "r2"
+            "r1"
           ],
           "then": "Persist one viewed identity without modifying feed ordering.",
           "when": "Merge view events."
@@ -2738,7 +2820,7 @@
       ],
       "algorithms": [
         {
-          "code": "const visible = actorAllowed && now < story.expiresAt;\nif (!visible) return {status:403};\nreturn {status:200, storyId:story.id};",
+          "code": "// Read authorization (n5) dereferences an inbox pointer; allowed is the current audience decision from story authority.\nconst visible=(story,allowed,now)=>allowed&&now<story.expiresAt;",
           "guarantees": [
             "The code states the bounded decision rule; unimplemented helpers remain pseudocode.",
             "External effects, distributed failure and latency require separate execution evidence."
@@ -2769,10 +2851,10 @@
         {
           "errors": "403 unauthorized scope; 404 absent identity; 410 expired retained history",
           "method": "GET",
-          "ownerNodeId": "state",
-          "path": "/l012/push/state",
-          "request": "{\"storyId\":\"uuid\",\"digest\":\"sha256\"}",
-          "response": "{\"version\":\"integer\",\"outboxId\":\"uuid\"}"
+          "ownerNodeId": "n5",
+          "path": "/l012/push/inbox",
+          "request": "{\"viewerId\":\"authenticated user\",\"after\":\"cursor|null\",\"limit\":\"1..100\"}",
+          "response": "{\"stories\":\"authorized unexpired story ids[]\",\"next\":\"cursor|null\"}"
         }
       ],
       "assumptions": [
@@ -2787,12 +2869,9 @@
       "stages": [
         {
           "checkIds": [
-            "mechanism",
-            "expiry",
-            "acl",
-            "views"
+            "publish"
           ],
-          "explanation": "Accept a stable story identity and retain pending upload status. Accept a stable story identity and retain pending upload status. State owner: Publish gateway (publication receipts). Accept a stable story identity and retain pending upload status. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Transcoding](https://en.wikipedia.org/wiki/Transcoding) creates new media representations from an uploaded source. Publication should reference completed outputs, while retries and cleanup must not expose a partially processed asset.",
+          "explanation": "Accept a stable story identity and retain pending upload status. Publication is keyed by storyId; the gateway acknowledges acceptance only, never visibility. Accept a stable story identity and retain pending upload status. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Transcoding](https://en.wikipedia.org/wiki/Transcoding) creates new media representations from an uploaded source. Publication should reference completed outputs, while retries and cleanup must not expose a partially processed asset.",
           "graph": {
             "edges": [
               {
@@ -2835,7 +2914,7 @@
           },
           "id": "push-s1",
           "invariants": [
-            "Accept a stable story identity and retain pending upload status. State owner: Publish gateway (publication receipts)."
+            "Publication is keyed by storyId; the gateway acknowledges acceptance only, never visibility."
           ],
           "number": 1,
           "operations": [
@@ -2889,12 +2968,9 @@
         },
         {
           "checkIds": [
-            "mechanism",
-            "expiry",
-            "acl",
-            "views"
+            "publish"
           ],
-          "explanation": "Expand the gateway; commit immutable story metadata and outbox intent together. Expand the gateway; commit immutable story metadata and outbox intent together. State owner: Publish outbox (story metadata and outbox). Expand the gateway; commit immutable story metadata and outbox intent together. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Change data capture](https://en.wikipedia.org/wiki/Change_data_capture) turns committed data changes into an ordered stream for other components.",
+          "explanation": "Expand the gateway; commit immutable story metadata and outbox intent together. Story metadata and its outbox intent commit in one transaction, so a committed story has exactly one fan-out intent. Expand the gateway; commit immutable story metadata and outbox intent together. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Change data capture](https://en.wikipedia.org/wiki/Change_data_capture) turns committed data changes into an ordered stream for other components.",
           "graph": {
             "edges": [
               {
@@ -2974,7 +3050,7 @@
           },
           "id": "push-s2",
           "invariants": [
-            "Expand the gateway; commit immutable story metadata and outbox intent together. State owner: Publish outbox (story metadata and outbox)."
+            "Story metadata and its outbox intent commit in one transaction, so a committed story has exactly one fan-out intent."
           ],
           "number": 2,
           "operations": [
@@ -3028,12 +3104,9 @@
         },
         {
           "checkIds": [
-            "mechanism",
-            "expiry",
-            "acl",
-            "views"
+            "publish"
           ],
-          "explanation": "Write deterministic rendition keys and verify completion before releasing publication. Write deterministic rendition keys and verify completion before releasing publication. State owner: Transcode queue (rendition attempts). Write deterministic rendition keys and verify completion before releasing publication. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes.",
+          "explanation": "Write deterministic rendition keys and verify completion before releasing publication. Rendition keys derive from storyId and codecVersion; a retried transcode rewrites the same keys and publication waits for a verified manifest. Write deterministic rendition keys and verify completion before releasing publication. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Transcoding](https://en.wikipedia.org/wiki/Transcoding) creates new media representations from an uploaded source.",
           "graph": {
             "edges": [
               {
@@ -3151,7 +3224,7 @@
           },
           "id": "push-s3",
           "invariants": [
-            "Write deterministic rendition keys and verify completion before releasing publication. State owner: Transcode queue (rendition attempts)."
+            "Rendition keys derive from storyId and codecVersion; a retried transcode rewrites the same keys and publication waits for a verified manifest."
           ],
           "number": 3,
           "operations": [
@@ -3215,12 +3288,9 @@
         },
         {
           "checkIds": [
-            "mechanism",
-            "expiry",
-            "acl",
-            "views"
+            "expiry"
           ],
-          "explanation": "Retain recipient pages and deduplicate inbox insertion by viewer/story. Retain recipient pages and deduplicate inbox insertion by viewer/story. State owner: Fan-out log (recipient page checkpoints). Retain recipient pages and deduplicate inbox insertion by viewer/story. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Idempotence](https://en.wikipedia.org/wiki/Idempotence) means repeating the same logical operation does not repeat its effect. Stable request identities let a retry recover an existing outcome instead of creating another change.",
+          "explanation": "Retain recipient pages and deduplicate inbox insertion by viewer/story. Fan-out advances a recipient page checkpoint only after that page's inbox upserts commit, and skips inserts whose story has already expired. Retain recipient pages and deduplicate inbox insertion by viewer/story. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Transcoding](https://en.wikipedia.org/wiki/Transcoding) creates new media representations from an uploaded source.",
           "graph": {
             "edges": [
               {
@@ -3362,7 +3432,7 @@
           },
           "id": "push-s4",
           "invariants": [
-            "Retain recipient pages and deduplicate inbox insertion by viewer/story. State owner: Fan-out log (recipient page checkpoints)."
+            "Fan-out advances a recipient page checkpoint only after that page's inbox upserts commit, and skips inserts whose story has already expired."
           ],
           "number": 4,
           "operations": [
@@ -3409,12 +3479,10 @@
         },
         {
           "checkIds": [
-            "mechanism",
             "expiry",
-            "acl",
-            "views"
+            "acl"
           ],
-          "explanation": "Store ranked pointers with expiry and source version, not media ownership. Store ranked pointers with expiry and source version, not media ownership. State owner: Viewer inbox (unique viewer/story pointers). Store ranked pointers with expiry and source version, not media ownership. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Transcoding](https://en.wikipedia.org/wiki/Transcoding) creates new media representations from an uploaded source.",
+          "explanation": "Store ranked pointers with expiry and source version, not media ownership. An inbox holds at most one row per (viewer, story), carrying expiresAt and source version; a row is a pointer, not a grant. Store ranked pointers with expiry and source version, not media ownership. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid.",
           "graph": {
             "edges": [
               {
@@ -3580,7 +3648,7 @@
           },
           "id": "push-s5",
           "invariants": [
-            "Store ranked pointers with expiry and source version, not media ownership. State owner: Viewer inbox (unique viewer/story pointers)."
+            "An inbox holds at most one row per (viewer, story), carrying expiresAt and source version; a row is a pointer, not a grant."
           ],
           "number": 5,
           "operations": [
@@ -3623,10 +3691,9 @@
           "checkIds": [
             "mechanism",
             "expiry",
-            "acl",
-            "views"
+            "acl"
           ],
-          "explanation": "Recheck current audience and expiry when dereferencing inbox pointers. Recheck current audience and expiry when dereferencing inbox pointers. State owner: Read authorization (current authorization epoch). Recheck current audience and expiry when dereferencing inbox pointers. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid. Expiration must be checked at the point of use, even when background cleanup runs later.",
+          "explanation": "Recheck current audience and expiry when dereferencing inbox pointers. Dereferencing a pointer rechecks current audience and expiresAt against the story authority; inbox presence alone never authorizes. Recheck current audience and expiry when dereferencing inbox pointers. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid. Expiration must be checked at the point of use, even when background cleanup runs later.",
           "graph": {
             "edges": [
               {
@@ -3844,7 +3911,7 @@
           },
           "id": "push-s6",
           "invariants": [
-            "Recheck current audience and expiry when dereferencing inbox pointers. State owner: Read authorization (current authorization epoch)."
+            "Dereferencing a pointer rechecks current audience and expiresAt against the story authority; inbox presence alone never authorizes."
           ],
           "number": 6,
           "operations": [
@@ -3919,12 +3986,9 @@
         },
         {
           "checkIds": [
-            "mechanism",
-            "expiry",
-            "acl",
             "views"
           ],
-          "explanation": "Merge viewed identities independently from feed order; duplicates do not reset progress. Merge viewed identities independently from feed order; duplicates do not reset progress. State owner: View merge (viewed identities). Merge viewed identities independently from feed order; duplicates do not reset progress. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Idempotence](https://en.wikipedia.org/wiki/Idempotence) means repeating the same logical operation does not repeat its effect.",
+          "explanation": "Merge viewed identities independently from feed order; duplicates do not reset progress. Viewed identities are a grow-only set per viewer, independent of inbox order. Merge viewed identities independently from feed order; duplicates do not reset progress. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Idempotence](https://en.wikipedia.org/wiki/Idempotence) means repeating the same logical operation does not repeat its effect.",
           "graph": {
             "edges": [
               {
@@ -4166,7 +4230,7 @@
           },
           "id": "push-s7",
           "invariants": [
-            "Merge viewed identities independently from feed order; duplicates do not reset progress. State owner: View merge (viewed identities)."
+            "Viewed identities are a grow-only set per viewer, independent of inbox order."
           ],
           "number": 7,
           "operations": [
@@ -4207,12 +4271,9 @@
         },
         {
           "checkIds": [
-            "mechanism",
-            "expiry",
-            "acl",
-            "views"
+            "expiry"
           ],
-          "explanation": "Read-time expiry is authoritative; sweep derived inbox pointers and objects asynchronously. Read-time expiry is authoritative; sweep derived inbox pointers and objects asynchronously. State owner: Expiry reconciliation (sweep checkpoints). Read-time expiry is authoritative; sweep derived inbox pointers and objects asynchronously. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid.",
+          "explanation": "Read-time expiry is authoritative; sweep derived inbox pointers and objects asynchronously. A sweep removes an inbox row only if its source version still matches; read-time expiry stays authoritative while sweeps lag. Read-time expiry is authoritative; sweep derived inbox pointers and objects asynchronously. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid.",
           "graph": {
             "edges": [
               {
@@ -4492,7 +4553,7 @@
           },
           "id": "push-s8",
           "invariants": [
-            "Read-time expiry is authoritative; sweep derived inbox pointers and objects asynchronously. State owner: Expiry reconciliation (sweep checkpoints)."
+            "A sweep removes an inbox row only if its source version still matches; read-time expiry stays authoritative while sweeps lag."
           ],
           "number": 8,
           "operations": [

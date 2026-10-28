@@ -129,7 +129,7 @@
           "id": "in-l029.keyed.step3"
         }
       ],
-      "responsibility": "Deduplicate event IDs and reject conflicting side values.",
+      "responsibility": "Replay the stored reply for a redelivered event ID; record a different value for an already-admitted side as a conflict without replacing it.",
       "stateOwnership": [
         "side, value"
       ],
@@ -204,7 +204,7 @@
           "id": "out-l029.keyed.step8"
         }
       ],
-      "responsibility": "Apply pair ID once and preserve mismatch explanation.",
+      "responsibility": "Apply pair ID once, preserve the mismatch explanation and list recorded conflicts beside the result.",
       "stateOwnership": [
         "pairId, reason"
       ],
@@ -224,7 +224,7 @@
           "id": "in-l029.keyed.step7"
         }
       ],
-      "responsibility": "Record deadline without fabricating a counterpart; late arrivals follow reopen/new-revision policy.",
+      "responsibility": "At the deadline mark a still-waiting pair overdue with its missing side, without fabricating a counterpart; a late side then resolves it to matched or mismatch.",
       "stateOwnership": [
         "deadline, missingSide"
       ],
@@ -414,7 +414,7 @@
           "id": "out-l029.batch-join.step6"
         }
       ],
-      "responsibility": "Write matched, mismatch, missing-left and missing-right rows explicitly.",
+      "responsibility": "Write matched, mismatch, missing-left, missing-right and conflict rows explicitly.",
       "stateOwnership": [
         "status"
       ],
@@ -502,8 +502,9 @@
         "value": "integer"
       },
       "response": {
+        "missingSide": "left|right|null",
         "pairId": "entity/revision identity",
-        "state": "waiting|matched|mismatch|conflict"
+        "state": "waiting|overdue|matched|mismatch|conflict"
       },
       "version": 1
     },
@@ -588,15 +589,15 @@
     {
       "id": "l029.batch-join.command",
       "request": {
-        "entityId": "uuid",
-        "eventId": "uuid",
-        "revision": "integer",
-        "side": "left|right",
-        "value": "integer"
+        "leftManifestHash": "sha256",
+        "rightManifestHash": "sha256",
+        "runId": "uuid",
+        "supersedesGeneration": "integer|null"
       },
       "response": {
-        "pairId": "entity/revision identity",
-        "state": "waiting|matched|mismatch|conflict"
+        "generation": "integer|null",
+        "outcomes": "matched/mismatch/missing-left/missing-right/conflict counts",
+        "state": "staging|published|incomplete"
       },
       "version": 1
     },
@@ -629,7 +630,7 @@
     {
       "id": "l029.batch-join.step5",
       "request": {
-        "status": "matched|mismatch|missing-left|missing-right"
+        "status": "matched|mismatch|missing-left|missing-right|conflict"
       },
       "response": {
         "outcome": "accepted|rejected|pending",
@@ -723,8 +724,7 @@
           "id": "case0",
           "relatedRequirementIds": [
             "r0",
-            "r1",
-            "r2"
+            "r1"
           ],
           "then": "Create one matched pair and one result intent.",
           "when": "Process all receipts for one key/revision."
@@ -733,37 +733,56 @@
           "given": "Only left 7 arrives before the deadline.",
           "id": "case1",
           "relatedRequirementIds": [
-            "r0",
+            "r2"
+          ],
+          "then": "Report overdue with missing right, then mismatch for the late right 8; never invent equality.",
+          "when": "Expire the timer and later receive right 8."
+        },
+        {
+          "given": "The result for a mismatched pair is delivered twice and a conflict is recorded later.",
+          "id": "case2",
+          "relatedRequirementIds": [
             "r1",
             "r2"
           ],
-          "then": "Keep missing status, then apply explicit mismatch policy; never invent equality.",
-          "when": "Expire the timer and later receive right 8."
+          "then": "The projection shows one mismatch with its explanation and lists the conflict beside it.",
+          "when": "Apply the deliveries to the projection."
+        },
+        {
+          "given": "A pair reached matched but its result notification was lost.",
+          "id": "case3",
+          "relatedRequirementIds": [
+            "r2"
+          ],
+          "then": "The scan republishes under the original pairId and the projection applies it once.",
+          "when": "Scan terminal pairs against the outbox and projection."
         },
         {
           "evidence": {
             "kind": "reference-test",
             "testFile": "tools/simulatte/study-reference/batch-04-state.test.mjs",
-            "testName": "paired online and snapshot mechanisms preserve missing mismatch and duplicates"
+            "testName": "L029 keyed pair keeps one terminal result and records conflicts and overdue sides"
           },
-          "given": "Bounded typed scalar left/right records are supplied.",
+          "given": "Pair x@1 receives left 7 twice, left 7 under a new event ID, right 7 and then left 8; pair y@1 receives only left 7 before its deadline.",
           "id": "bounded-mechanism",
           "relatedRequirementIds": [
-            "r0"
+            "r0",
+            "r1",
+            "r2"
           ],
-          "then": "Retain missing and mismatched rows, collapse exact repeats and classify conflicting side values.",
-          "when": "Run keyed admission and a full outer snapshot join."
+          "then": "x is matched with one result; left 8 returns conflict and is recorded while x stays matched; y becomes overdue with missing right, then a late mismatch, never matched.",
+          "when": "Admit the submissions, expire y, then admit a late right 8 for y."
         }
       ],
       "algorithms": [
         {
-          "code": "transaction(() => { const pair = lockPair(entityId, revision);\n insertSideOrCheckEqual(pair, side, value, eventId);\n if (pair.hasBoth && !pair.terminal) { pair.state = pair.left === pair.right ? \"matched\" : \"mismatch\";\n insertResultUnique(pair.id, pair.state); } });",
+          "code": "transaction(() => { const pair = lockPair(entityId, revision);\n if (pair.replies.has(eventId)) return pair.replies.get(eventId); // redelivery\n const prior = pair[side];\n if (prior !== undefined && prior !== value) { appendConflict(pair, side, value, eventId); return remember(pair, eventId, \"conflict\"); }\n if (prior === undefined) pair[side] = value; // an equal repeat is suppressed\n if (pair.left !== undefined && pair.right !== undefined && !pair.terminal) {\n  pair.state = pair.left === pair.right ? \"matched\" : \"mismatch\"; pair.terminal = true; insertResultUnique(pair.id, pair.state); }\n return remember(pair, eventId, pair.state); });\n// Timer: a non-terminal waiting pair past its deadline becomes overdue with missingSide; a late side then resolves it.",
           "guarantees": [
-            "The first admitted side is immutable.",
+            "The first admitted value per side is immutable; a different value is recorded as a conflict and never changes the pair state.",
             "No tolerance or missing-value default is invented.",
-            "One key/revision produces one terminal result.",
+            "One key/revision produces one terminal result; a later conflict is recorded, not emitted as a second result.",
             "A mismatch is a visible terminal outcome.",
-            "Overdue is not matched.",
+            "Overdue is a visible non-terminal state, never matched.",
             "Repair retains the original pair identity."
           ],
           "id": "transition",
@@ -773,12 +792,12 @@
       ],
       "apis": [
         {
-          "errors": "Reject invalid input, stale versions and operations outside the declared boundary.",
+          "errors": "400 side is not left or right, or value is not a safe integer; 503 pair partition is moving owners, retry with the same eventId",
           "method": "CALL",
           "ownerNodeId": "engine",
           "path": "L029/keyed",
           "request": "{\"entityId\":\"uuid\",\"revision\":\"integer\",\"side\":\"left|right\",\"value\":\"integer\",\"eventId\":\"uuid\"}",
-          "response": "{\"state\":\"waiting|matched|mismatch|conflict\",\"pairId\":\"entity/revision identity\"}"
+          "response": "{\"state\":\"waiting|overdue|matched|mismatch|conflict\",\"missingSide\":\"left|right|null\",\"pairId\":\"entity/revision identity\"}"
         }
       ],
       "assumptions": [
@@ -794,10 +813,9 @@
       "stages": [
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "bounded-mechanism"
           ],
-          "explanation": "Match only the same key and revision with equal scalar value. [Record linkage](https://en.wikipedia.org/wiki/Record_linkage) identifies entries that refer to the same real-world entity. A matching rule needs explicit uncertainty handling so an ambiguous similarity does not silently become authoritative identity. Consider this case: Left 7 arrives twice then right 7. Process all receipts for one key/revision.",
+          "explanation": "Match only the same key and revision with equal scalar value. A submission binds entityId, revision, side, value and eventId, and the reply is one of waiting, overdue, matched, mismatch or conflict. [Record linkage](https://en.wikipedia.org/wiki/Record_linkage) identifies entries that refer to the same real-world entity. A matching rule needs explicit uncertainty handling so an ambiguous similarity does not silently become authoritative identity.",
           "graph": {
             "edges": [
               {
@@ -840,7 +858,7 @@
           },
           "id": "keyed-s1",
           "invariants": [
-            "Match only the same key and revision with equal scalar value."
+            "A submission binds entityId, revision, side, value and eventId, and the reply is one of waiting, overdue, matched, mismatch or conflict."
           ],
           "number": 1,
           "operations": [
@@ -888,16 +906,16 @@
               "op": "connect"
             }
           ],
-          "question": "What does successful completion promise?",
+          "question": "Which key, revision and side does one submission bind, and which pair states can it report?",
           "reason": "Match only the same key and revision with equal scalar value.",
           "title": "Define the operation boundary"
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "bounded-mechanism",
+            "case0"
           ],
-          "explanation": "Admit one immutable side value per key/revision. Own left/right receipts and terminal match identity. current pair transition belongs to Pair matcher; key/revision records belongs to Pair state. [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers. Publishing one reference lets each reader keep a consistent version.",
+          "explanation": "Admit one immutable side value per key/revision. Own left/right receipts and terminal match identity. Pair state changes only under the pair lock; side values, recorded conflicts and the single terminal result live in one pair row. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return.",
           "graph": {
             "edges": [
               {
@@ -977,7 +995,7 @@
           },
           "id": "keyed-s2",
           "invariants": [
-            "current pair transition belongs to Pair matcher; key/revision records belongs to Pair state."
+            "Pair state changes only under the pair lock; side values, recorded conflicts and the single terminal result live in one pair row."
           ],
           "number": 2,
           "operations": [
@@ -1025,16 +1043,16 @@
               "subsystemId": "l029.keyed.binding-s2"
             }
           ],
-          "question": "Which component owns the decision and its persistent or shared state?",
+          "question": "Who owns the pair transition and its immutable side receipts?",
           "reason": "Admit one immutable side value per key/revision. Own left/right receipts and terminal match identity.",
           "title": "Expose authority and state"
         },
         {
           "checkIds": [
             "case0",
-            "case1"
+            "bounded-mechanism"
           ],
-          "explanation": "Deduplicate event IDs and reject conflicting side values. The first admitted side is immutable. [Idempotence](https://en.wikipedia.org/wiki/Idempotence) means repeating the same logical operation does not repeat its effect. Stable request identities let a retry recover an existing outcome instead of creating another change. Consider this case: Left 7 arrives twice then right 7. Process all receipts for one key/revision.",
+          "explanation": "Replay the stored reply for a redelivered event ID; record a different value for an already-admitted side as a conflict without replacing it. The first admitted value per side is immutable; a different value is recorded as a conflict and never changes the pair state. [Collaborative editing](https://en.wikipedia.org/wiki/Operational_transformation) must reconcile concurrent edits against an agreed document version. Sending changes is only one part; reconnects also need a way to recover missing updates and conflicts.",
           "graph": {
             "edges": [
               {
@@ -1138,7 +1156,7 @@
           },
           "id": "keyed-s3",
           "invariants": [
-            "The first admitted side is immutable."
+            "The first admitted value per side is immutable; a different value is recorded as a conflict and never changes the pair state."
           ],
           "number": 3,
           "operations": [
@@ -1180,13 +1198,13 @@
             }
           ],
           "question": "Can repeated delivery replace a value?",
-          "reason": "Deduplicate event IDs and reject conflicting side values.",
+          "reason": "Replay the stored reply for a redelivered event ID; record a different value for an already-admitted side as a conflict without replacing it.",
           "title": "Side inbox"
         },
         {
           "checkIds": [
             "case0",
-            "case1"
+            "bounded-mechanism"
           ],
           "explanation": "Use exact typed scalar equality after both sides arrive. No tolerance or missing-value default is invented. [Record linkage](https://en.wikipedia.org/wiki/Record_linkage) identifies entries that refer to the same real-world entity. A matching rule needs explicit uncertainty handling so an ambiguous similarity does not silently become authoritative identity. Consider this case: Left 7 arrives twice then right 7. Process all receipts for one key/revision.",
           "graph": {
@@ -1364,9 +1382,9 @@
         {
           "checkIds": [
             "case0",
-            "case1"
+            "bounded-mechanism"
           ],
-          "explanation": "Commit terminal state and one pair-result intent atomically. One key/revision produces one terminal result. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return. Consider this case: Left 7 arrives twice then right 7. Process all receipts for one key/revision.",
+          "explanation": "Commit terminal state and one pair-result intent atomically. One key/revision produces one terminal result; a later conflict is recorded, not emitted as a second result. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return.",
           "graph": {
             "edges": [
               {
@@ -1518,7 +1536,7 @@
           },
           "id": "keyed-s5",
           "invariants": [
-            "One key/revision produces one terminal result."
+            "One key/revision produces one terminal result; a later conflict is recorded, not emitted as a second result."
           ],
           "number": 5,
           "operations": [
@@ -1559,10 +1577,9 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case2"
           ],
-          "explanation": "Apply pair ID once and preserve mismatch explanation. A mismatch is a visible terminal outcome. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return. Consider this case: Left 7 arrives twice then right 7. Process all receipts for one key/revision.",
+          "explanation": "Apply pair ID once, preserve the mismatch explanation and list recorded conflicts beside the result. A mismatch is a visible terminal outcome. [Collaborative editing](https://en.wikipedia.org/wiki/Operational_transformation) must reconcile concurrent edits against an agreed document version. Sending changes is only one part; reconnects also need a way to recover missing updates and conflicts.",
           "graph": {
             "edges": [
               {
@@ -1774,15 +1791,15 @@
             }
           ],
           "question": "What if result delivery repeats?",
-          "reason": "Apply pair ID once and preserve mismatch explanation.",
+          "reason": "Apply pair ID once, preserve the mismatch explanation and list recorded conflicts beside the result.",
           "title": "Result projection"
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case1",
+            "bounded-mechanism"
           ],
-          "explanation": "Record deadline without fabricating a counterpart; late arrivals follow reopen/new-revision policy. Overdue is not matched. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid. Expiration must be checked at the point of use, even when background cleanup runs later. Consider this case: Left 7 arrives twice then right 7. Process all receipts for one key/revision.",
+          "explanation": "At the deadline mark a still-waiting pair overdue with its missing side, without fabricating a counterpart; a late side then resolves it to matched or mismatch. Overdue is a visible non-terminal state, never matched. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid. Expiration must be checked at the point of use, even when background cleanup runs later.",
           "graph": {
             "edges": [
               {
@@ -1982,7 +1999,7 @@
           },
           "id": "keyed-s7",
           "invariants": [
-            "Overdue is not matched."
+            "Overdue is a visible non-terminal state, never matched."
           ],
           "number": 7,
           "operations": [
@@ -2024,15 +2041,14 @@
             }
           ],
           "question": "When is waiting considered overdue?",
-          "reason": "Record deadline without fabricating a counterpart; late arrivals follow reopen/new-revision policy.",
+          "reason": "At the deadline mark a still-waiting pair overdue with its missing side, without fabricating a counterpart; a late side then resolves it to matched or mismatch.",
           "title": "Missing-side timer"
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case3"
           ],
-          "explanation": "Scan durable terminal pairs against outbox/projection and repair missing publication. Repair retains the original pair identity. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return. Consider this case: Left 7 arrives twice then right 7. Process all receipts for one key/revision.",
+          "explanation": "Scan durable terminal pairs against outbox/projection and repair missing publication. Repair retains the original pair identity. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return. Consider this case: A pair reached matched but its result notification was lost.",
           "graph": {
             "edges": [
               {
@@ -2309,8 +2325,7 @@
           "id": "case0",
           "relatedRequirementIds": [
             "r0",
-            "r1",
-            "r2"
+            "r1"
           ],
           "then": "Emit one matched row.",
           "when": "Full-outer join the normalized key/revision sets."
@@ -2319,31 +2334,49 @@
           "given": "A frozen snapshot contains only one side.",
           "id": "case1",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
             "r2"
           ],
           "then": "Publish missing evidence first; create a linked new generation for the late input.",
           "when": "Publish then ingest a late counterpart."
         },
         {
-          "evidence": {
-            "kind": "reference-test",
-            "testFile": "tools/simulatte/study-reference/batch-04-state.test.mjs",
-            "testName": "paired online and snapshot mechanisms preserve missing mismatch and duplicates"
-          },
-          "given": "Bounded typed scalar left/right records are supplied.",
-          "id": "bounded-mechanism",
+          "given": "Rows for one key/revision are spread across many input files.",
+          "id": "case2",
           "relatedRequirementIds": [
             "r0"
           ],
-          "then": "Retain missing and mismatched rows, collapse exact repeats and classify conflicting side values.",
-          "when": "Run keyed admission and a full outer snapshot join."
+          "then": "Each key/revision lands in one join partition and yields one outcome row.",
+          "when": "Hash partition both sides with the same function over key and revision."
+        },
+        {
+          "given": "One declared right-side partition receipt is missing.",
+          "id": "case3",
+          "relatedRequirementIds": [
+            "r2"
+          ],
+          "then": "Publication is refused and the run reports incomplete, with its match rate shown separately.",
+          "when": "Attempt publication."
+        },
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-04-state.test.mjs",
+            "testName": "L029 batch join classifies exact repeats conflicts mismatches and missing sides per key and revision"
+          },
+          "given": "Frozen left rows repeat a@1=7 exactly and carry d@1 as both 5 and 6, plus a@2=7 and b@1=8; right rows hold a@1=7, b@1=9, c@1=9 and d@1=5.",
+          "id": "bounded-mechanism",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "a@1 is matched once, a@2 missing-right, b@1 mismatch, c@1 missing-left and d@1 conflict; no conflicting duplicate becomes a winner.",
+          "when": "Run the full outer snapshot join."
         }
       ],
       "algorithms": [
         {
-          "code": "const run = freeze(leftManifest, rightManifest);\nconst classified = classifyExactAndConflictingDuplicates(run);\nfor (const key of fullOuterKeys(classified)) emit(classifyPair(key));\nrequireAllPartitionReceipts(); publishGeneration(run.id);",
+          "code": "const run = freeze(leftManifest, rightManifest);\nconst sides = groupDistinctValues(run.rows, r => [r.key, r.revision, r.side]); // exact repeats collapse\nfor (const k of fullOuterKeys(sides)) emit(k, conflicting(sides, k) ? \"conflict\"\n : !sides.left(k) ? \"missing-left\" : !sides.right(k) ? \"missing-right\"\n : sides.left(k) === sides.right(k) ? \"matched\" : \"mismatch\");\nrequireAllPartitionReceipts(); publishGeneration(run.id);",
           "guarantees": [
             "Conflicting duplicates do not become arbitrary winners.",
             "Each key/revision belongs to exactly one join partition.",
@@ -2359,12 +2392,12 @@
       ],
       "apis": [
         {
-          "errors": "Reject invalid input, stale versions and operations outside the declared boundary.",
+          "errors": "404 supersedesGeneration unknown; 409 runId already bound to different manifests; 412 an input or partition receipt is missing, publication refused",
           "method": "CALL",
           "ownerNodeId": "engine",
           "path": "L029/batch-join",
-          "request": "{\"entityId\":\"uuid\",\"revision\":\"integer\",\"side\":\"left|right\",\"value\":\"integer\",\"eventId\":\"uuid\"}",
-          "response": "{\"state\":\"waiting|matched|mismatch|conflict\",\"pairId\":\"entity/revision identity\"}"
+          "request": "{\"runId\":\"uuid\",\"leftManifestHash\":\"sha256\",\"rightManifestHash\":\"sha256\",\"supersedesGeneration\":\"integer|null\"}",
+          "response": "{\"generation\":\"integer|null\",\"state\":\"staging|published|incomplete\",\"outcomes\":\"matched/mismatch/missing-left/missing-right/conflict counts\"}"
         }
       ],
       "assumptions": [
@@ -2380,10 +2413,9 @@
       "stages": [
         {
           "checkIds": [
-            "case0",
             "case1"
           ],
-          "explanation": "Match only the same key and revision with equal scalar value. [Record linkage](https://en.wikipedia.org/wiki/Record_linkage) identifies entries that refer to the same real-world entity. A matching rule needs explicit uncertainty handling so an ambiguous similarity does not silently become authoritative identity. Consider this case: Both frozen sides contain equal values plus duplicate receipts. Full-outer join the normalized key/revision sets.",
+          "explanation": "Match only the same key and revision with equal scalar value. A run binds exactly one left and one right manifest hash; rows that arrive later belong to a later run. [Record linkage](https://en.wikipedia.org/wiki/Record_linkage) identifies entries that refer to the same real-world entity. A matching rule needs explicit uncertainty handling so an ambiguous similarity does not silently become authoritative identity.",
           "graph": {
             "edges": [
               {
@@ -2426,7 +2458,7 @@
           },
           "id": "batch-join-s1",
           "invariants": [
-            "Match only the same key and revision with equal scalar value."
+            "A run binds exactly one left and one right manifest hash; rows that arrive later belong to a later run."
           ],
           "number": 1,
           "operations": [
@@ -2474,16 +2506,16 @@
               "op": "connect"
             }
           ],
-          "question": "What does successful completion promise?",
+          "question": "Which frozen left and right manifests does one reconciliation run compare?",
           "reason": "Match only the same key and revision with equal scalar value.",
           "title": "Define the operation boundary"
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case1",
+            "bounded-mechanism"
           ],
-          "explanation": "Freeze left and right manifest identities for a reconciliation run. Own immutable left/right rows with source receipt hashes. run identity belongs to Join planner; manifest hashes belongs to Input snapshots. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version.",
+          "explanation": "Freeze left and right manifest identities for a reconciliation run. Own immutable left/right rows with source receipt hashes. Input snapshots are immutable by manifest hash and keep every delivered row, including repeats; the planner reads them and never edits rows. [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers. Publishing one reference lets each reader keep a consistent version.",
           "graph": {
             "edges": [
               {
@@ -2563,7 +2595,7 @@
           },
           "id": "batch-join-s2",
           "invariants": [
-            "run identity belongs to Join planner; manifest hashes belongs to Input snapshots."
+            "Input snapshots are immutable by manifest hash and keep every delivered row, including repeats; the planner reads them and never edits rows."
           ],
           "number": 2,
           "operations": [
@@ -2611,14 +2643,14 @@
               "subsystemId": "l029.batch-join.binding-s2"
             }
           ],
-          "question": "Which component owns the decision and its persistent or shared state?",
+          "question": "Who freezes the manifests and who owns the immutable input rows?",
           "reason": "Freeze left and right manifest identities for a reconciliation run. Own immutable left/right rows with source receipt hashes.",
           "title": "Expose authority and state"
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "bounded-mechanism",
+            "case0"
           ],
           "explanation": "Group key/revision/side, collapse exact repeats and isolate conflicting values. Conflicting duplicates do not become arbitrary winners. [Idempotence](https://en.wikipedia.org/wiki/Idempotence) means repeating the same logical operation does not repeat its effect. Stable request identities let a retry recover an existing outcome instead of creating another change. Consider this case: Both frozen sides contain equal values plus duplicate receipts. Full-outer join the normalized key/revision sets.",
           "graph": {
@@ -2771,10 +2803,9 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case2"
           ],
-          "explanation": "Hash partition both sides by the same key/revision function and full-outer join. Each key/revision belongs to exactly one join partition. [Partitioning](https://en.wikipedia.org/wiki/Partition_%28database%29) divides data and work among owners. The key determines where requests go; skew, ownership changes, and operations spanning partitions require additional coordination. Consider this case: Both frozen sides contain equal values plus duplicate receipts. Full-outer join the normalized key/revision sets.",
+          "explanation": "Hash partition both sides by the same key/revision function and full-outer join. Each key/revision belongs to exactly one join partition. [Partitioning](https://en.wikipedia.org/wiki/Partition_%28database%29) divides data and work among owners. The key determines where requests go; skew, ownership changes, and operations spanning partitions require additional coordination. Consider this case: Rows for one key/revision are spread across many input files.",
           "graph": {
             "edges": [
               {
@@ -2943,10 +2974,10 @@
         },
         {
           "checkIds": [
-            "case0",
+            "bounded-mechanism",
             "case1"
           ],
-          "explanation": "Write matched, mismatch, missing-left and missing-right rows explicitly. An inner join cannot hide unmatched records. [Record linkage](https://en.wikipedia.org/wiki/Record_linkage) identifies entries that refer to the same real-world entity. A matching rule needs explicit uncertainty handling so an ambiguous similarity does not silently become authoritative identity. Consider this case: Both frozen sides contain equal values plus duplicate receipts. Full-outer join the normalized key/revision sets.",
+          "explanation": "Write matched, mismatch, missing-left, missing-right and conflict rows explicitly. An inner join cannot hide unmatched records. [Collaborative editing](https://en.wikipedia.org/wiki/Operational_transformation) must reconcile concurrent edits against an agreed document version. Sending changes is only one part; reconnects also need a way to recover missing updates and conflicts. Consider this case: A frozen snapshot contains only one side. Publish then ingest a late counterpart.",
           "graph": {
             "edges": [
               {
@@ -3134,15 +3165,14 @@
             }
           ],
           "question": "Where are missing records retained?",
-          "reason": "Write matched, mismatch, missing-left and missing-right rows explicitly.",
+          "reason": "Write matched, mismatch, missing-left, missing-right and conflict rows explicitly.",
           "title": "Outcome table"
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case3"
           ],
-          "explanation": "Require every declared input and partition receipt before publication. Run completeness and match rate are separate. [Partitioning](https://en.wikipedia.org/wiki/Partition_%28database%29) divides data and work among owners. The key determines where requests go; skew, ownership changes, and operations spanning partitions require additional coordination. Consider this case: Both frozen sides contain equal values plus duplicate receipts. Full-outer join the normalized key/revision sets.",
+          "explanation": "Require every declared input and partition receipt before publication. Run completeness and match rate are separate. [Partitioning](https://en.wikipedia.org/wiki/Partition_%28database%29) divides data and work among owners. The key determines where requests go; skew, ownership changes, and operations spanning partitions require additional coordination. Consider this case: One declared right-side partition receipt is missing. Attempt publication.",
           "graph": {
             "edges": [
               {
@@ -3359,10 +3389,10 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case1",
+            "case3"
           ],
-          "explanation": "Swap one active generation pointer after all outputs are committed. Readers never mix outputs from two runs. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call. Consider this case: Both frozen sides contain equal values plus duplicate receipts.",
+          "explanation": "Swap one active generation pointer after all outputs are committed. Readers never mix outputs from two runs. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call. Consider this case: A frozen snapshot contains only one side. Publish then ingest a late counterpart.",
           "graph": {
             "edges": [
               {
@@ -3603,10 +3633,9 @@
         },
         {
           "checkIds": [
-            "case0",
             "case1"
           ],
-          "explanation": "Create a linked new reconciliation generation and retain old missing evidence. Historical results remain attributable to their frozen inputs. [A control loop](https://en.wikipedia.org/wiki/Control_loop) compares desired state with observed state and applies corrections. Repeated execution must converge safely, especially when a previous action succeeded but its reply was lost. Consider this case: Both frozen sides contain equal values plus duplicate receipts.",
+          "explanation": "Create a linked new reconciliation generation and retain old missing evidence. Historical results remain attributable to their frozen inputs. [A control loop](https://en.wikipedia.org/wiki/Control_loop) compares desired state with observed state and applies corrections. Repeated execution must converge safely, especially when a previous action succeeded but its reply was lost. Consider this case: A frozen snapshot contains only one side.",
           "graph": {
             "edges": [
               {

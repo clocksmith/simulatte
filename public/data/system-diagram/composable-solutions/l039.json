@@ -442,13 +442,12 @@
     {
       "id": "l039.stream-dfa.command",
       "request": {
-        "chunk": "string of Unicode code units",
-        "grammar": "fixed declared subset",
+        "chunk": "string of UTF-16 code units for feed",
         "operation": "feed|finish"
       },
       "response": {
-        "diagnostic": "unterminated block|string or none",
-        "output": "comment-free text preserving newlines and token separation"
+        "diagnostic": "unterminated block|string at finish, or none",
+        "output": "comment-free text resolved so far; append-only"
       },
       "version": 1
     },
@@ -535,13 +534,13 @@
     {
       "id": "l039.span-scanner.command",
       "request": {
-        "chunk": "string of Unicode code units",
-        "grammar": "fixed declared subset",
+        "chunk": "string of UTF-16 code units for feed",
         "operation": "feed|finish"
       },
       "response": {
-        "diagnostic": "unterminated block|string or none",
-        "output": "comment-free text preserving newlines and token separation"
+        "buffered": "code units retained after feed",
+        "output": "stripped text, returned only by finish",
+        "sourceMap": "original/output ranges from finish"
       },
       "version": 1
     },
@@ -666,28 +665,45 @@
           "evidence": {
             "kind": "reference-test",
             "testFile": "tools/simulatte/study-reference/batch-07-mechanisms.test.mjs",
-            "testName": "batch-07 lexer: delimiters quotes chunks and token separation"
+            "testName": "batch-07 lexer stream-dfa: chunk-independent states and token separation"
           },
           "given": "Quoted delimiters, escaped quotes, doubled quotes, // and -- lines, and multiline blocks.",
           "id": "behavior",
           "relatedRequirementIds": [
             "r0",
-            "r1",
             "r2"
           ],
-          "then": "Outputs match; strings remain byte-for-byte; comment text disappears while newlines and separating whitespace remain.",
-          "when": "Feed whole input and every possible two-chunk split to both implementations."
+          "then": "Quoted text is unchanged; each comment becomes one separating space plus its CR/LF code units; a/**/b becomes a b.",
+          "when": "Feed each whole input and finish."
         },
         {
-          "given": "The sequences /*/, ///*, a*/b, and an unterminated string.",
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-07-mechanisms.test.mjs",
+            "testName": "batch-07 lexer stream-dfa: chunk-independent states and token separation"
+          },
+          "given": "The same inputs.",
+          "id": "chunks",
+          "relatedRequirementIds": [
+            "r1"
+          ],
+          "then": "Every split produces the whole-input output, and the output after the first chunk is a prefix of it: an ambiguous final /, -, quote or star is held rather than emitted early.",
+          "when": "Feed every two-chunk split, and separately one code unit at a time."
+        },
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-07-mechanisms.test.mjs",
+            "testName": "batch-07 lexer stream-dfa: chunk-independent states and token separation"
+          },
+          "given": "The sequences /*/, ///* and a*/b, an unterminated string, a backslash at EOF, and a feed after finish.",
           "id": "boundary",
           "relatedRequirementIds": [
             "r0",
-            "r1",
             "r2"
           ],
-          "then": "/*/ reports unterminated block; ///* is a line comment; a*/b is ordinary text; unterminated strings report an error.",
-          "when": "Finish the lexer."
+          "then": "/*/ and unterminated literals throw SyntaxError at finish; ///* is one line comment; a*/b is ordinary text; feeding a finished stripper rejects.",
+          "when": "Finish each input after every split."
         }
       ],
       "algorithms": [
@@ -703,12 +719,12 @@
       ],
       "apis": [
         {
-          "errors": "finish throws SyntaxError for unterminated block or quoted literal; feed after finish rejects",
+          "errors": "finish throws SyntaxError for an unterminated block or quoted literal; feed after finish rejects; text already emitted is not retracted",
           "method": "CALL",
           "ownerNodeId": "owner",
           "path": "CommentStripper.feed/finish",
-          "request": "{\"operation\":\"feed|finish\",\"chunk\":\"string of Unicode code units\",\"grammar\":\"fixed declared subset\"}",
-          "response": "{\"output\":\"comment-free text preserving newlines and token separation\",\"diagnostic\":\"unterminated block|string or none\"}"
+          "request": "{\"operation\":\"feed|finish\",\"chunk\":\"string of UTF-16 code units for feed\"}",
+          "response": "{\"output\":\"comment-free text resolved so far; append-only\",\"diagnostic\":\"unterminated block|string at finish, or none\"}"
         }
       ],
       "assumptions": [
@@ -724,8 +740,7 @@
       "stages": [
         {
           "checkIds": [
-            "behavior",
-            "boundary"
+            "behavior"
           ],
           "explanation": "Consume characters once with state CODE, SINGLE, DOUBLE, LINE or BLOCK; preserve one pending delimiter character across chunks. Only CODE state recognizes comment openers. [Lexical analysis](https://en.wikipedia.org/wiki/Lexical_analysis) reads characters while tracking their meaning in the current context. The same delimiter can be ordinary text inside a string and syntax outside it.",
           "graph": {
@@ -824,8 +839,7 @@
         },
         {
           "checkIds": [
-            "behavior",
-            "boundary"
+            "chunks"
           ],
           "explanation": "Hold at most one undecided /, -, quote or block-star until the next code unit or explicit EOF resolves it. feed boundaries cannot change output. [Lexical analysis](https://en.wikipedia.org/wiki/Lexical_analysis) reads characters while tracking their meaning in the current context. The same delimiter can be ordinary text inside a string and syntax outside it.",
           "graph": {
@@ -935,8 +949,7 @@
         },
         {
           "checkIds": [
-            "behavior",
-            "boundary"
+            "behavior"
           ],
           "explanation": "Enter matching quote state from CODE; copy characters verbatim and treat delimiter bytes only as literal content while quoted. A delimiter inside a literal never changes comment state. [Lexical analysis](https://en.wikipedia.org/wiki/Lexical_analysis) reads characters while tracking their meaning in the current context. The same delimiter can be ordinary text inside a string and syntax outside it.",
           "graph": {
@@ -1070,8 +1083,7 @@
         },
         {
           "checkIds": [
-            "behavior",
-            "boundary"
+            "behavior"
           ],
           "explanation": "Backslash copies the following code unit literally; doubled matching quotes remain inside the same literal. Escapes preserve original bytes and do not reinterpret adjacent comment markers. [Record linkage](https://en.wikipedia.org/wiki/Record_linkage) identifies entries that refer to the same real-world entity. A matching rule needs explicit uncertainty handling so an ambiguous similarity does not silently become authoritative identity.",
           "graph": {
@@ -1619,8 +1631,7 @@
         },
         {
           "checkIds": [
-            "behavior",
-            "boundary"
+            "behavior"
           ],
           "explanation": "Append the opener separator and retained newlines to a terminal-owned output sink; never join lexical tokens across removed comments. a/**/b becomes a b. [Lexical analysis](https://en.wikipedia.org/wiki/Lexical_analysis) reads characters while tracking their meaning in the current context. The same delimiter can be ordinary text inside a string and syntax outside it. Consider this case: Quoted delimiters, escaped quotes, doubled quotes, // and -- lines, and multiline blocks.",
           "graph": {
@@ -1850,7 +1861,6 @@
         },
         {
           "checkIds": [
-            "behavior",
             "boundary"
           ],
           "explanation": "Flush ordinary pending characters, finish a line comment at EOF, and reject BLOCK or unclosed quote state. Mark finished exactly once. EOF is explicit and independent from chunk completion. [Lexical analysis](https://en.wikipedia.org/wiki/Lexical_analysis) reads characters while tracking their meaning in the current context. The same delimiter can be ordinary text inside a string and syntax outside it.",
@@ -2116,33 +2126,50 @@
           "evidence": {
             "kind": "reference-test",
             "testFile": "tools/simulatte/study-reference/batch-07-mechanisms.test.mjs",
-            "testName": "batch-07 lexer: delimiters quotes chunks and token separation"
+            "testName": "batch-07 lexer span-scanner: buffered spans and atomic result"
           },
           "given": "Quoted delimiters, escaped quotes, doubled quotes, // and -- lines, and multiline blocks.",
           "id": "behavior",
           "relatedRequirementIds": [
             "r0",
-            "r1",
             "r2"
           ],
-          "then": "Outputs match; strings remain byte-for-byte; comment text disappears while newlines and separating whitespace remain.",
-          "when": "Feed whole input and every possible two-chunk split to both implementations."
+          "then": "Spans are adjacent, nonempty and cover the source exactly once; literal spans are copied unchanged; each comment renders as one space plus its CR/LF code units.",
+          "when": "Scan spans and render each whole buffer."
         },
         {
-          "given": "The sequences /*/, ///*, a*/b, and an unterminated string.",
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-07-mechanisms.test.mjs",
+            "testName": "batch-07 lexer span-scanner: buffered spans and atomic result"
+          },
+          "given": "The same inputs split at every code unit.",
+          "id": "chunks",
+          "relatedRequirementIds": [
+            "r1"
+          ],
+          "then": "feed returns only the buffered length, and finish returns the whole-buffer output, so a delimiter straddling the split is still recognized.",
+          "when": "Feed the two chunks to the buffered stripper, then finish."
+        },
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-07-mechanisms.test.mjs",
+            "testName": "batch-07 lexer span-scanner: buffered spans and atomic result"
+          },
+          "given": "ab /*x, x \"y, /*/, an unterminated string and a backslash at EOF.",
           "id": "boundary",
           "relatedRequirementIds": [
             "r0",
-            "r1",
             "r2"
           ],
-          "then": "/*/ reports unterminated block; ///* is a line comment; a*/b is ordinary text; unterminated strings report an error.",
-          "when": "Finish the lexer."
+          "then": "Each throws SyntaxError naming the opener's original offset (3 for the block in ab /*x, 2 for the quote in x \"y) and no partial output is returned.",
+          "when": "Finish each input after every split."
         }
       ],
       "algorithms": [
         {
-          "code": "strip(source) { const spans=[]; let i=0;\n while(i<source.length) {\n  if(isQuote(source[i])) {const end=scanQuoted(source,i); spans.push(literal(i,end));i=end;}\n  else if(isLineOpener(source,i)) {const end=scanToNewline(source,i+2);spans.push(comment(i,end));i=end;}\n  else if(source.startsWith(\"/*\",i)) {const end=scanFirstClosingPair(source,i+2);\n   if(end<0)throw SyntaxError(\"unterminated block at \"+i);spans.push(comment(i,end));i=end;}\n  else {spans.push(plain(i,i+1));i++;}\n }\n return spans.map(s=>s.comment?\" \"+newlines(source.slice(s.start,s.end)):source.slice(s.start,s.end)).join(\"\");\n}",
+          "code": "strip(source) { const spans=[]; let i=0;\n while(i<source.length) {\n  if(isQuote(source[i])) {const end=scanQuoted(source,i); spans.push(literal(i,end));i=end;}\n  else if(isLineOpener(source,i)) {const end=scanToNewline(source,i+2);spans.push(comment(i,end));i=end;}\n  else if(source.startsWith(\"/*\",i)) {const end=scanFirstClosingPair(source,i+2);\n   if(end<0)throw SyntaxError(\"unterminated block at \"+i);spans.push(comment(i,end));i=end;}\n  else {const end=nextSpecialOrEnd(source,i);spans.push(plain(i,end));i=end;}\n }\n return spans.map(s=>s.comment?\" \"+newlines(source.slice(s.start,s.end)):source.slice(s.start,s.end)).join(\"\");\n}",
           "guarantees": [
             "Original offsets remain stable; memory O(n); no full-language parser claim."
           ],
@@ -2153,12 +2180,12 @@
       ],
       "apis": [
         {
-          "errors": "finish throws SyntaxError for unterminated block or quoted literal; feed after finish rejects",
+          "errors": "finish throws SyntaxError naming the opener's original offset and returns no output; feed after finish rejects",
           "method": "CALL",
           "ownerNodeId": "owner",
           "path": "CommentStripper.feed/finish",
-          "request": "{\"operation\":\"feed|finish\",\"chunk\":\"string of Unicode code units\",\"grammar\":\"fixed declared subset\"}",
-          "response": "{\"output\":\"comment-free text preserving newlines and token separation\",\"diagnostic\":\"unterminated block|string or none\"}"
+          "request": "{\"operation\":\"feed|finish\",\"chunk\":\"string of UTF-16 code units for feed\"}",
+          "response": "{\"buffered\":\"code units retained after feed\",\"output\":\"stripped text, returned only by finish\",\"sourceMap\":\"original/output ranges from finish\"}"
         }
       ],
       "assumptions": [
@@ -2174,8 +2201,7 @@
       "stages": [
         {
           "checkIds": [
-            "behavior",
-            "boundary"
+            "behavior"
           ],
           "explanation": "Retain the source, tokenize nonoverlapping literal/comment/plain spans, then reconstruct from source slices and comment whitespace. Comment deletion never changes scanner offsets in the original source. [Lexical analysis](https://en.wikipedia.org/wiki/Lexical_analysis) reads characters while tracking their meaning in the current context. The same delimiter can be ordinary text inside a string and syntax outside it.",
           "graph": {
@@ -2274,10 +2300,9 @@
         },
         {
           "checkIds": [
-            "behavior",
-            "boundary"
+            "chunks"
           ],
-          "explanation": "Read the entire input into an immutable source and use half-open code-unit ranges. Every span refers to original input offsets. [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers. Publishing one reference lets each reader keep a consistent version. Consider this case: Quoted delimiters, escaped quotes, doubled quotes, // and -- lines, and multiline blocks.",
+          "explanation": "Read the entire input into an immutable source and use half-open code-unit ranges. Every span refers to original input offsets. [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers. Publishing one reference lets each reader keep a consistent version. Consider this case: The same inputs split at every code unit.",
           "graph": {
             "edges": [
               {
@@ -2385,8 +2410,7 @@
         },
         {
           "checkIds": [
-            "behavior",
-            "boundary"
+            "behavior"
           ],
           "explanation": "At a quote, scan matching delimiter with escapes/doubled-quote rules and emit a literal span without scanning its body for comments. Literal spans copy source bytes exactly. [Lexical analysis](https://en.wikipedia.org/wiki/Lexical_analysis) reads characters while tracking their meaning in the current context. The same delimiter can be ordinary text inside a string and syntax outside it.",
           "graph": {
@@ -2520,8 +2544,7 @@
         },
         {
           "checkIds": [
-            "behavior",
-            "boundary"
+            "behavior"
           ],
           "explanation": "At CODE // or -- record through the last nonnewline character; leave CR/LF to the next plain span. A line comment may end at EOF without error. [Lexical analysis](https://en.wikipedia.org/wiki/Lexical_analysis) reads characters while tracking their meaning in the current context. The same delimiter can be ordinary text inside a string and syntax outside it.",
           "graph": {
@@ -2679,10 +2702,9 @@
         },
         {
           "checkIds": [
-            "behavior",
             "boundary"
           ],
-          "explanation": "At CODE /* search the first */ while counting newlines for diagnostics; reject EOF with no closer. No nested block grammar is inferred. [A search index](https://en.wikipedia.org/wiki/Search_engine_indexing) maps query terms to candidate records. The interface must still associate each response with the active query and preserve the user’s chosen filters. Consider this case: Quoted delimiters, escaped quotes, doubled quotes, // and -- lines, and multiline blocks.",
+          "explanation": "At CODE /* search the first */ while counting newlines for diagnostics; reject EOF with no closer. No nested block grammar is inferred. [A search index](https://en.wikipedia.org/wiki/Search_engine_indexing) maps query terms to candidate records. The interface must still associate each response with the active query and preserve the user’s chosen filters. Consider this case: ab /*x, x \"y, /*/, an unterminated string and a backslash at EOF.",
           "graph": {
             "edges": [
               {
@@ -2862,8 +2884,7 @@
         },
         {
           "checkIds": [
-            "behavior",
-            "boundary"
+            "behavior"
           ],
           "explanation": "Append adjacent disjoint spans covering source exactly once; keep original start/end and span kind. No overlap, gap or reordered source interval is permitted. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version. Consider this case: Quoted delimiters, escaped quotes, doubled quotes, // and -- lines, and multiline blocks.",
           "graph": {
@@ -3069,8 +3090,7 @@
         },
         {
           "checkIds": [
-            "behavior",
-            "boundary"
+            "behavior"
           ],
           "explanation": "Copy plain/literal slices; replace each comment with one space plus its original CR/LF code units. Record emitted intervals for source mapping. a/**/b retains a token boundary and line counts stay stable. [Lexical analysis](https://en.wikipedia.org/wiki/Lexical_analysis) reads characters while tracking their meaning in the current context. The same delimiter can be ordinary text inside a string and syntax outside it.",
           "graph": {
@@ -3300,7 +3320,6 @@
         },
         {
           "checkIds": [
-            "behavior",
             "boundary"
           ],
           "explanation": "Validate every span and EOF state before joining output pieces; errors report original opener offset without returning a successful partial result. Malformed input returns no successful output artifact. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version.",

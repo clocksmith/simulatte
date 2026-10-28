@@ -131,7 +131,7 @@
       ],
       "responsibility": "Verify prior index/term, durably append the matching suffix and reject log mismatch.",
       "stateOwnership": [
-        "prevIndex, prevTerm, entries"
+        "leaderTerm, prevIndex, prevTerm, entries"
       ],
       "version": 1
     },
@@ -181,7 +181,7 @@
       ],
       "responsibility": "Apply committed entries in index order and use a verified leadership/read-index barrier.",
       "stateOwnership": [
-        "readIndex, appliedIndex"
+        "applied index and state machine values"
       ],
       "version": 1
     },
@@ -201,7 +201,7 @@
       ],
       "responsibility": "Persist votes and term; reject candidates whose logs are not sufficiently up to date.",
       "stateOwnership": [
-        "candidateLastTerm, candidateLastIndex"
+        "candidateTerm, candidateLastTerm, candidateLastIndex"
       ],
       "version": 1
     },
@@ -221,7 +221,7 @@
       ],
       "responsibility": "Install a checksummed snapshot with last included index/term, then append the suffix.",
       "stateOwnership": [
-        "lastIncludedIndex, lastIncludedTerm"
+        "lastIncludedIndex, lastIncludedTerm, snapshotChecksum"
       ],
       "version": 1
     },
@@ -376,7 +376,7 @@
       ],
       "responsibility": "For zero declared loss within the selected failure model, await a durable backup receipt before success.",
       "stateOwnership": [
-        "lsn, checksum"
+        "lsn, checksum, fence"
       ],
       "version": 1
     },
@@ -446,7 +446,7 @@
       ],
       "responsibility": "Carry a minimum LSN token and wait or route to primary when a replica is behind.",
       "stateOwnership": [
-        "minimumLsn, appliedLsn"
+        "replica applied LSN"
       ],
       "version": 1
     },
@@ -497,12 +497,13 @@
       "request": {
         "clientId": "uuid",
         "key": "string",
-        "minimumCommit": "integer",
-        "requestSeq": "integer",
+        "requestSeq": "integer per-client sequence",
         "value": "bytes"
       },
       "response": {
-        "commitIndex": "integer",
+        "commitIndex": "integer index of this command once committed",
+        "leaderHint": "node ID|null",
+        "result": "bytes|null",
         "status": "committed|not-leader|unavailable",
         "term": "integer"
       },
@@ -512,13 +513,14 @@
       "id": "l026.quorum-log.step3",
       "request": {
         "entries": "record[]",
+        "leaderTerm": "integer",
         "prevIndex": "integer",
         "prevTerm": "integer"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "matchIndex": "integer durably persisted",
+        "success": "boolean",
+        "term": "integer"
       },
       "version": 1
     },
@@ -529,22 +531,20 @@
         "matchIndexes": "integer[]"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "commitIndex": "integer; advances only over a current-term entry"
       },
       "version": 1
     },
     {
       "id": "l026.quorum-log.step5",
       "request": {
-        "appliedIndex": "integer",
-        "readIndex": "integer"
+        "key": "string",
+        "readIndex": "integer from the leadership barrier"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "appliedIndex": "integer",
+        "status": "ok|wait|not-leader",
+        "value": "bytes|null"
       },
       "version": 1
     },
@@ -552,12 +552,12 @@
       "id": "l026.quorum-log.step6",
       "request": {
         "candidateLastIndex": "integer",
-        "candidateLastTerm": "integer"
+        "candidateLastTerm": "integer",
+        "candidateTerm": "integer"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "term": "integer persisted before replying",
+        "voteGranted": "boolean"
       },
       "version": 1
     },
@@ -565,12 +565,12 @@
       "id": "l026.quorum-log.step7",
       "request": {
         "lastIncludedIndex": "integer",
-        "lastIncludedTerm": "integer"
+        "lastIncludedTerm": "integer",
+        "snapshotChecksum": "sha256"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "installed": "boolean",
+        "nextIndex": "integer"
       },
       "version": 1
     },
@@ -582,25 +582,24 @@
         "result": "bytes"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "originalResult": "bytes|null",
+        "status": "new|duplicate"
       },
       "version": 1
     },
     {
       "id": "l026.fenced-primary.command",
       "request": {
-        "clientId": "uuid",
+        "inputHash": "sha256 of key and value",
         "key": "string",
-        "minimumCommit": "integer",
-        "requestSeq": "integer",
+        "requestId": "uuid stable across retries",
         "value": "bytes"
       },
       "response": {
-        "commitIndex": "integer",
-        "status": "committed|not-leader|unavailable",
-        "term": "integer"
+        "durableCopies": "integer",
+        "fence": "integer fence the write was accepted under",
+        "lsn": "integer|null",
+        "status": "acknowledged|duplicate|fenced|unavailable"
       },
       "version": 1
     },
@@ -608,12 +607,12 @@
       "id": "l026.fenced-primary.step3",
       "request": {
         "checksum": "sha256",
+        "fence": "integer",
         "lsn": "integer"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "durableLsn": "integer",
+        "status": "durable|stale-fence"
       },
       "version": 1
     },
@@ -624,9 +623,8 @@
         "token": "monotonic integer"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "currentFence": "integer",
+        "status": "installed|stale"
       },
       "version": 1
     },
@@ -637,22 +635,21 @@
         "durableLsn": "integer"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "decision": "promote|refuse|promote-with-declared-loss",
+        "survivor": "node ID|null"
       },
       "version": 1
     },
     {
       "id": "l026.fenced-primary.step6",
       "request": {
-        "appliedLsn": "integer",
-        "minimumLsn": "integer"
+        "key": "string",
+        "minimumLsn": "integer session token"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "appliedLsn": "integer",
+        "status": "ok|wait|route-to-primary",
+        "value": "bytes|null"
       },
       "version": 1
     },
@@ -663,9 +660,8 @@
         "snapshotLsn": "integer"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "resumeLsn": "integer",
+        "status": "follower-ready|rejected"
       },
       "version": 1
     },
@@ -676,9 +672,8 @@
         "requestId": "uuid"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "receipt": "LSN and fence|null",
+        "state": "acknowledged|lost-before-ack|unknown"
       },
       "version": 1
     }
@@ -734,9 +729,7 @@
           "given": "A former leader is isolated from a majority.",
           "id": "case0",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
-            "r2"
+            "r1"
           ],
           "then": "The old leader cannot commit a new write; implementation safety remains a specification.",
           "when": "A newer term elects another leader."
@@ -745,12 +738,38 @@
           "given": "A follower installs snapshot through index 10.",
           "id": "case1",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
             "r2"
           ],
           "then": "Apply one ordered committed prefix and retain request deduplication.",
           "when": "Replay suffix entries 11 and 12 twice."
+        },
+        {
+          "given": "A leader appended index 9 but only a minority has matched it.",
+          "id": "case2",
+          "relatedRequirementIds": [
+            "r0",
+            "r1"
+          ],
+          "then": "Do not report committed until a current-term majority matches 9; a local append is not acknowledgement.",
+          "when": "The client waits for its response."
+        },
+        {
+          "given": "A replica applied index 6 while the read barrier is 9.",
+          "id": "case3",
+          "relatedRequirementIds": [
+            "r0"
+          ],
+          "then": "Serve only after applying through 9; otherwise wait or redirect.",
+          "when": "A client asks for a linearizable read."
+        },
+        {
+          "given": "A committed write's response is lost.",
+          "id": "case4",
+          "relatedRequirementIds": [
+            "r0"
+          ],
+          "then": "Return the original stored result without a second effect.",
+          "when": "Retry the same clientId/requestSeq."
         },
         {
           "evidence": {
@@ -761,7 +780,8 @@
           "given": "Installed fence is 5 and snapshot index is 10.",
           "id": "bounded-mechanism",
           "relatedRequirementIds": [
-            "r0"
+            "r1",
+            "r2"
           ],
           "then": "Reject token 4, stop before uncommitted 13, and reject a suffix gap; this is not consensus proof.",
           "when": "Compare token 4 and replay contiguous committed suffix through 12."
@@ -785,12 +805,12 @@
       ],
       "apis": [
         {
-          "errors": "Reject invalid input, stale versions and operations outside the declared boundary.",
+          "errors": "Followers return not-leader with a hint; without a current-term majority the leader returns unavailable. Neither proves the command did not execute.",
           "method": "CALL",
           "ownerNodeId": "engine",
           "path": "L026/quorum-log",
-          "request": "{\"clientId\":\"uuid\",\"requestSeq\":\"integer\",\"key\":\"string\",\"value\":\"bytes\",\"minimumCommit\":\"integer\"}",
-          "response": "{\"term\":\"integer\",\"commitIndex\":\"integer\",\"status\":\"committed|not-leader|unavailable\"}"
+          "request": "{\"clientId\":\"uuid\",\"requestSeq\":\"integer per-client sequence\",\"key\":\"string\",\"value\":\"bytes\"}",
+          "response": "{\"status\":\"committed|not-leader|unavailable\",\"term\":\"integer\",\"commitIndex\":\"integer index of this command once committed\",\"leaderHint\":\"node ID|null\",\"result\":\"bytes|null\"}"
         }
       ],
       "assumptions": [
@@ -806,10 +826,9 @@
       "stages": [
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case2"
           ],
-          "explanation": "Distinguish acknowledged durable writes, committed prefixes and lagging applied state. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call. Consider this case: A former leader is isolated from a majority. A newer term elects another leader.",
+          "explanation": "Distinguish acknowledged durable writes, committed prefixes and lagging applied state. committed means the command's entry from the leader's current term sits at a majority-committed index and its result is stored with clientId/requestSeq; not-leader and unavailable leave the outcome to a same-sequence retry. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call.",
           "graph": {
             "edges": [
               {
@@ -852,7 +871,7 @@
           },
           "id": "quorum-log-s1",
           "invariants": [
-            "Distinguish acknowledged durable writes, committed prefixes and lagging applied state."
+            "committed means the command's entry from the leader's current term sits at a majority-committed index and its result is stored with clientId/requestSeq; not-leader and unavailable leave the outcome to a same-sequence retry."
           ],
           "number": 1,
           "operations": [
@@ -906,10 +925,9 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case2"
           ],
-          "explanation": "Assign one log index per deduplicated command in the current term. Own indexed terms and checksummed command entries before acknowledgement. term and commit index belongs to Leader state machine; log prefix belongs to Local durable log. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return.",
+          "explanation": "Assign one log index per deduplicated command in the current term. Own indexed terms and checksummed command entries before acknowledgement. Only the current-term leader assigns log indexes; each replica's durable log owns its own entries, terms and votes. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return.",
           "graph": {
             "edges": [
               {
@@ -989,7 +1007,7 @@
           },
           "id": "quorum-log-s2",
           "invariants": [
-            "term and commit index belongs to Leader state machine; log prefix belongs to Local durable log."
+            "Only the current-term leader assigns log indexes; each replica's durable log owns its own entries, terms and votes."
           ],
           "number": 2,
           "operations": [
@@ -1043,10 +1061,9 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case2"
           ],
-          "explanation": "Verify prior index/term, durably append the matching suffix and reject log mismatch. An acknowledgement names a persisted matching prefix. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return. Consider this case: A former leader is isolated from a majority.",
+          "explanation": "Verify prior index/term, durably append the matching suffix and reject log mismatch. An acknowledgement names a persisted matching prefix. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return. Consider this case: A leader appended index 9 but only a minority has matched it.",
           "graph": {
             "edges": [
               {
@@ -1198,7 +1215,7 @@
         {
           "checkIds": [
             "case0",
-            "case1"
+            "case2"
           ],
           "explanation": "Advance only with the consensus current-term rule and a majority of the active configuration. A bare count without term/configuration is insufficient. [Raft](https://en.wikipedia.org/wiki/Raft_%28algorithm%29) coordinates a replicated log through an elected leader and majority agreement. Terms and voting rules prevent an outdated leader from deciding new committed entries alone. Consider this case: A former leader is isolated from a majority.",
           "graph": {
@@ -1369,10 +1386,9 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case3"
           ],
-          "explanation": "Apply committed entries in index order and use a verified leadership/read-index barrier. Read success requires appliedIndex at least the read barrier. [An index](https://en.wikipedia.org/wiki/Database_index) maintains a structure that narrows a search without scanning every record. Faster reads come with storage costs and extra work whenever indexed data changes. Consider this case: A former leader is isolated from a majority.",
+          "explanation": "Apply committed entries in index order and use a verified leadership/read-index barrier. Read success requires appliedIndex at least the read barrier. [An index](https://en.wikipedia.org/wiki/Database_index) maintains a structure that narrows a search without scanning every record. Faster reads come with storage costs and extra work whenever indexed data changes. Consider this case: A replica applied index 6 while the read barrier is 9.",
           "graph": {
             "edges": [
               {
@@ -1566,7 +1582,7 @@
         {
           "checkIds": [
             "case0",
-            "case1"
+            "bounded-mechanism"
           ],
           "explanation": "Persist votes and term; reject candidates whose logs are not sufficiently up to date. Timeout triggers an election, not proof that the old leader is dead. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return.",
           "graph": {
@@ -1791,10 +1807,10 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case1",
+            "bounded-mechanism"
           ],
-          "explanation": "Install a checksummed snapshot with last included index/term, then append the suffix. Snapshot and suffix meet at one verified boundary. [A snapshot](https://en.wikipedia.org/wiki/Snapshot_isolation) gives one read operation a fixed view of data. Later writes may change the live system without changing the rows that reader sees. Consider this case: A former leader is isolated from a majority. A newer term elects another leader.",
+          "explanation": "Install a checksummed snapshot with last included index/term, then append the suffix. Snapshot and suffix meet at one verified boundary. [A snapshot](https://en.wikipedia.org/wiki/Snapshot_isolation) gives one read operation a fixed view of data. Later writes may change the live system without changing the rows that reader sees. Consider this case: A follower installs snapshot through index 10. Replay suffix entries 11 and 12 twice.",
           "graph": {
             "edges": [
               {
@@ -2035,10 +2051,10 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case1",
+            "case4"
           ],
-          "explanation": "Persist client sequence/result in the replicated state machine. A repeated command sequence returns its original committed result. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call. Consider this case: A former leader is isolated from a majority. A newer term elects another leader.",
+          "explanation": "Persist client sequence/result in the replicated state machine. A repeated command sequence returns its original committed result. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call. Consider this case: A follower installs snapshot through index 10. Replay suffix entries 11 and 12 twice.",
           "graph": {
             "edges": [
               {
@@ -2314,9 +2330,7 @@
           "given": "A stale primary still believes its lease is valid.",
           "id": "case0",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
-            "r2"
+            "r1"
           ],
           "then": "The storage mutation boundary rejects token 4.",
           "when": "It writes with token 4 after token 5 is installed."
@@ -2326,11 +2340,43 @@
           "id": "case1",
           "relatedRequirementIds": [
             "r0",
-            "r1",
             "r2"
           ],
           "then": "Refuse promotion or explicitly declare the loss policy; never claim zero loss.",
           "when": "Attempt zero-loss promotion."
+        },
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-05-state.test.mjs",
+            "testName": "fenced append checks the fence and request receipt in one step"
+          },
+          "given": "A write is appended at LSN 12 but its response is lost.",
+          "id": "case2",
+          "relatedRequirementIds": [
+            "r0",
+            "r1"
+          ],
+          "then": "appendIfFenceAtLeast returns the existing LSN 12 receipt without a second entry and rejects the stale fence.",
+          "when": "The client retries the same requestId; a stale primary holding fence 4 also retries after fence 5 is installed."
+        },
+        {
+          "given": "The backup receipt for LSN 12 has not arrived.",
+          "id": "case3",
+          "relatedRequirementIds": [
+            "r0"
+          ],
+          "then": "Wait for the durable backup receipt; an async policy must report its potential-loss window.",
+          "when": "The primary is ready to acknowledge."
+        },
+        {
+          "given": "A session token requires LSN 12 and the replica applied 10.",
+          "id": "case4",
+          "relatedRequirementIds": [
+            "r0"
+          ],
+          "then": "Wait or route to the primary; never return the LSN 10 view.",
+          "when": "Read from the replica."
         },
         {
           "evidence": {
@@ -2341,7 +2387,8 @@
           "given": "Installed fence is 5 and snapshot index is 10.",
           "id": "bounded-mechanism",
           "relatedRequirementIds": [
-            "r0"
+            "r1",
+            "r2"
           ],
           "then": "Reject token 4, stop before uncommitted 13, and reject a suffix gap; this is not consensus proof.",
           "when": "Compare token 4 and replay contiguous committed suffix through 12."
@@ -2349,7 +2396,7 @@
       ],
       "algorithms": [
         {
-          "code": "const fence = coordination.acquireMonotonicFence();\nwrite: storage.rejectIfFenceOlder(fence); appendDurable(lsn,requestId,command);\nawaitBackupDurable(lsn); persistResponseReceipt(); acknowledge(lsn);\npromote: requireSurvivorAtLeast(acknowledgedLsn); installNewFence();\nrejoin: replaceOldAuthorityWithFollowerSnapshotAndSuffix();",
+          "code": "const fence = coordination.acquireMonotonicFence();\nwrite: const r = storage.appendIfFenceAtLeast(fence, requestId, inputHash, command); // one atomic step: fence check, receipt lookup, append, receipt insert\nif (r.status === \"fenced\") return {status: \"fenced\"}; // a duplicate returns the original LSN and appends nothing\nawaitBackupDurable(r.lsn); acknowledge(r.status === \"duplicate\" ? \"duplicate\" : \"acknowledged\", r.lsn);\npromote: requireSurvivorAtLeast(acknowledgedLsn); installNewFence();\nrejoin: replaceOldAuthorityWithFollowerSnapshotAndSuffix();",
           "guarantees": [
             "Async acknowledgement instead exposes an explicit potential-loss window.",
             "Lease timeout without storage enforcement is insufficient.",
@@ -2365,12 +2412,12 @@
       ],
       "apis": [
         {
-          "errors": "Reject invalid input, stale versions and operations outside the declared boundary.",
+          "errors": "Reject a reused requestId with a different inputHash; fenced means a newer fence is installed and the client must find the current primary.",
           "method": "CALL",
           "ownerNodeId": "engine",
           "path": "L026/fenced-primary",
-          "request": "{\"clientId\":\"uuid\",\"requestSeq\":\"integer\",\"key\":\"string\",\"value\":\"bytes\",\"minimumCommit\":\"integer\"}",
-          "response": "{\"term\":\"integer\",\"commitIndex\":\"integer\",\"status\":\"committed|not-leader|unavailable\"}"
+          "request": "{\"requestId\":\"uuid stable across retries\",\"key\":\"string\",\"value\":\"bytes\",\"inputHash\":\"sha256 of key and value\"}",
+          "response": "{\"status\":\"acknowledged|duplicate|fenced|unavailable\",\"fence\":\"integer fence the write was accepted under\",\"lsn\":\"integer|null\",\"durableCopies\":\"integer\"}"
         }
       ],
       "assumptions": [
@@ -2386,10 +2433,10 @@
       "stages": [
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case2",
+            "case3"
           ],
-          "explanation": "Distinguish acknowledged durable writes, committed prefixes and lagging applied state. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call. Consider this case: A stale primary still believes its lease is valid. It writes with token 4 after token 5 is installed.",
+          "explanation": "Distinguish acknowledged durable writes, committed prefixes and lagging applied state. acknowledged means the write was appended under a current fence at the returned LSN, a durable backup receipt exists, and the requestId receipt names that LSN; a retry returns the same receipt instead of appending again. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call.",
           "graph": {
             "edges": [
               {
@@ -2432,7 +2479,7 @@
           },
           "id": "fenced-primary-s1",
           "invariants": [
-            "Distinguish acknowledged durable writes, committed prefixes and lagging applied state."
+            "acknowledged means the write was appended under a current fence at the returned LSN, a durable backup receipt exists, and the requestId receipt names that LSN; a retry returns the same receipt instead of appending again."
           ],
           "number": 1,
           "operations": [
@@ -2486,10 +2533,9 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case2"
           ],
-          "explanation": "Require a current monotonically increasing storage fence on every mutation. Own durable sequenced writes and client result receipts. current fence token belongs to Primary writer; journal LSN belongs to Primary journal. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call.",
+          "explanation": "Require a current monotonically increasing storage fence on every mutation. Own durable sequenced writes and client result receipts. The primary writer proposes writes, but only the storage boundary decides fence acceptance and request receipts, in one atomic append. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call.",
           "graph": {
             "edges": [
               {
@@ -2569,7 +2615,7 @@
           },
           "id": "fenced-primary-s2",
           "invariants": [
-            "current fence token belongs to Primary writer; journal LSN belongs to Primary journal."
+            "The primary writer proposes writes, but only the storage boundary decides fence acceptance and request receipts, in one atomic append."
           ],
           "number": 2,
           "operations": [
@@ -2623,8 +2669,7 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case3"
           ],
           "explanation": "For zero declared loss within the selected failure model, await a durable backup receipt before success. Async acknowledgement instead exposes an explicit potential-loss window. [Collaborative editing](https://en.wikipedia.org/wiki/Operational_transformation) must reconcile concurrent edits against an agreed document version. Sending changes is only one part; reconnects also need a way to recover missing updates and conflicts.",
           "graph": {
@@ -2778,7 +2823,8 @@
         {
           "checkIds": [
             "case0",
-            "case1"
+            "case2",
+            "bounded-mechanism"
           ],
           "explanation": "Issue monotonic fencing tokens and enforce them at the storage mutation boundary. Lease timeout without storage enforcement is insufficient. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources. A newer owner needs a token that the resource checks, not merely a belief that ownership changed. Consider this case: A stale primary still believes its lease is valid.",
           "graph": {
@@ -2955,7 +3001,6 @@
         },
         {
           "checkIds": [
-            "case0",
             "case1"
           ],
           "explanation": "Compare durable acknowledgement watermark and available log prefixes before selecting a survivor. Do not promote below the acknowledged boundary unless data loss is explicitly accepted. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return.",
@@ -3151,8 +3196,7 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case4"
           ],
           "explanation": "Carry a minimum LSN token and wait or route to primary when a replica is behind. A stale replica cannot satisfy the stronger read token. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return.",
           "graph": {
@@ -3371,10 +3415,10 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case1",
+            "bounded-mechanism"
           ],
-          "explanation": "Rejoin as a follower under the new fence and restore verified snapshot plus journal suffix. Recovery never restores the old write authority. [A snapshot](https://en.wikipedia.org/wiki/Snapshot_isolation) gives one read operation a fixed view of data. Later writes may change the live system without changing the rows that reader sees. Consider this case: A stale primary still believes its lease is valid.",
+          "explanation": "Rejoin as a follower under the new fence and restore verified snapshot plus journal suffix. Recovery never restores the old write authority. [A snapshot](https://en.wikipedia.org/wiki/Snapshot_isolation) gives one read operation a fixed view of data. Later writes may change the live system without changing the rows that reader sees. Consider this case: A backup is below the last acknowledged LSN. Attempt zero-loss promotion.",
           "graph": {
             "edges": [
               {
@@ -3615,8 +3659,7 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case2"
           ],
           "explanation": "Retain request IDs, promotion decisions and acknowledged LSN boundary for client retry resolution. A missing receipt is not automatically proof of nonexecution. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return.",
           "graph": {

@@ -21,7 +21,7 @@
       "path": "l002.json",
       "problemId": "project-review",
       "referenceId": "L002",
-      "sha256": "696681c834a7b436c96df4512f73d0f8e59f7ce14386d1cfad0792deb6d4182b",
+      "sha256": "09b004dd8e76b41e3679d358ed6039bccc1c887e58ac23fe7bcce34acfebbbed",
       "solutions": 2,
       "stages": 16
     },
@@ -101,7 +101,7 @@
       "path": "l012.json",
       "problemId": "meta-stories",
       "referenceId": "L012",
-      "sha256": "4e4d58c67163143ce4c933b4e614959bd3ab3b7fe78faf18aa59742e432b59bf",
+      "sha256": "de8aa618087bfa87fce5966785aab030938c74f234f3834150145416d6e95aec",
       "solutions": 2,
       "stages": 16
     },
@@ -125,7 +125,7 @@
       "path": "l015.json",
       "problemId": "microsoft-presence",
       "referenceId": "L015",
-      "sha256": "e640a3259111b334fa20ce6c8cbc972a9ddb7b4b779eb4b55be9059514ecc5cf",
+      "sha256": "9268a3711175104ed863a7b372e220fb22b7da468d583189a48d6645bc4764c3",
       "solutions": 2,
       "stages": 16
     },
@@ -133,7 +133,7 @@
       "path": "l016.json",
       "problemId": "web-service",
       "referenceId": "L016",
-      "sha256": "0103b4631428774edcdb10ca678d2fe2b54ad4a54d2ecc24919aedf5439ebe8a",
+      "sha256": "234f45f2a158a256cc21ac729c6fc0dea582169857d4da0d3fa790c8d76a3550",
       "solutions": 2,
       "stages": 16
     },
@@ -141,7 +141,7 @@
       "path": "l017.json",
       "problemId": "chat-application",
       "referenceId": "L017",
-      "sha256": "5e15c34fe93b9e9fff605c3b259c5f1830086cec7c88f8074537508947b6f022",
+      "sha256": "112a5f680204ceb320449a59bbeeb64d60164c9fd78cc0d56c0589f44576555a",
       "solutions": 2,
       "stages": 16
     },
@@ -149,7 +149,7 @@
       "path": "l018.json",
       "problemId": "rag-assistant",
       "referenceId": "L018",
-      "sha256": "2bb01b76583b7b9c38a91f95e6908bf59f7faf9dea0b5b6ef5780ec026f6b0e7",
+      "sha256": "7f3f1ba5a7903bb9980c32c5947378872b1ab5d5cf9e2556df0239b6300e7e9e",
       "solutions": 2,
       "stages": 16
     },
@@ -157,7 +157,7 @@
       "path": "l019.json",
       "problemId": "video-distribution",
       "referenceId": "L019",
-      "sha256": "5f6b236ceb134259de7319ef33ae19f016133359c952bdccdb43fdb037f85efd",
+      "sha256": "c1dc4393c48550f1850cdb45d28bb9ee70cf7e63455992a2b43964c7db84720b",
       "solutions": 2,
       "stages": 16
     },
@@ -165,7 +165,7 @@
       "path": "l020.json",
       "problemId": "social-feed",
       "referenceId": "L020",
-      "sha256": "6be4937480f25fe493145db80d38d66fc1d6ec394879308ee97805248bd5bf0b",
+      "sha256": "e237cf0290f8992f3aa3795cc28325614a98bfa56e89a5b838e5809c1f4a7631",
       "solutions": 2,
       "stages": 16
     },
@@ -173,7 +173,7 @@
       "path": "l021.json",
       "problemId": "agent-trajectories",
       "referenceId": "L021",
-      "sha256": "539ac45d2ae28033cbb9f26ef9dffb2cc3cad0c5e5fd73a5178a84028b9a2b7b",
+      "sha256": "eb8f5de92f125d3ed7f2263904043d1f12a7d907634c63267fb856f54f84fc8a",
       "solutions": 2,
       "stages": 16
     },
@@ -181,7 +181,7 @@
       "path": "l022.json",
       "problemId": "spark-job",
       "referenceId": "L022",
-      "sha256": "0dc207fa15e761c821a353de5baef7c9053918b08b99474b9e5181124a1cb9ed",
+      "sha256": "f66b035f6c4b595ffdd1ea4c0659253e2434f3134693dc1183581b46641da216",
       "solutions": 2,
       "stages": 16
     },
@@ -189,7 +189,7 @@
       "path": "l023.json",
       "problemId": "workspace-access",
       "referenceId": "L023",
-      "sha256": "1aa4bdd044825d1e88f892d6ca18bdd64124ef8c429721fba25ea3c44e75fe28",
+      "sha256": "24004824d6f20fb30fe2604ffeb98d1c2b86aa3db60f603816eaa11d8c3d4c04",
       "solutions": 2,
       "stages": 16
     },
@@ -197,7 +197,7 @@
       "path": "l024.json",
       "problemId": "crawler-pipeline",
       "referenceId": "L024",
-      "sha256": "f411d7cdf3498263d8e49b2db322b4d46c6d2f789073752790d8864ce29ff72e",
+      "sha256": "fb2e21b1cd8acf02400ac1a406da74376a0dff8d2ea3c706eee9ed936bfc2e6c",
       "solutions": 2,
       "stages": 16
     },
@@ -205,7 +205,7 @@
       "path": "l025.json",
       "problemId": "streaming-burst",
       "referenceId": "L025",
-      "sha256": "9e086c3d0bb61f0800b601766c125741b3d3e60688391f0a74d2a0442880741d",
+      "sha256": "8ccd4a654e89c9607baaaf87d23668aaeb561b37036bea325d26f1f5e4f8c09c",
       "solutions": 2,
       "stages": 16
     },
@@ -213,7 +213,7 @@
       "path": "l026.json",
       "problemId": "replica-recovery",
       "referenceId": "L026",
-      "sha256": "5173f2d8e538d0b87cd30216ea8082c42bdf189a402c3a71cc73da2a327753f8",
+      "sha256": "615267a4c7735146b972275e24758e4cb6e3fc1b7d6d33b5dd8b49ab98460e12",
       "solutions": 2,
       "stages": 16
     },
@@ -221,7 +221,7 @@
       "path": "l027.json",
       "problemId": "agent-recovery",
       "referenceId": "L027",
-      "sha256": "9299f5fd1a89d513610668a565b1728e5909c290662a26173eacc5cdbd63f5e1",
+      "sha256": "a6d6fcdc3c49a65598efc0e5a7e90a2f80dbbcda5e6ca49dc2818d8600dac11c",
       "solutions": 2,
       "stages": 16
     },
@@ -229,7 +229,7 @@
       "path": "l028.json",
       "problemId": "healthcare-ingestion",
       "referenceId": "L028",
-      "sha256": "fe19e5c97d50748c026fc4357cae287dc08ac34f63edc4f0309f3276eb783edd",
+      "sha256": "5cf59a50dd33f9018f7c414b2d2c09d9c2d438b7f3797b44aff7fc1ab216ed2e",
       "solutions": 2,
       "stages": 16
     },
@@ -237,7 +237,7 @@
       "path": "l029.json",
       "problemId": "finance-reconciliation",
       "referenceId": "L029",
-      "sha256": "9d90ae01c9f05eeb151501546b0aae295ceb9311d54667cdaabeef2e6b59f45c",
+      "sha256": "0ae7aed5ba8ed9141357af833d10659ca38de06e77a23a004cc572833f18faac",
       "solutions": 2,
       "stages": 16
     },
@@ -245,7 +245,7 @@
       "path": "l030.json",
       "problemId": "lakehouse-late-data",
       "referenceId": "L030",
-      "sha256": "160bba854c907c9af5e3094aa12b1f53b1a7eedc55e70913a20f149a9ecd7d0d",
+      "sha256": "1ff572e6259badb2f10f32f14b5dcfe68bcdaeb3605f9dc786982d1c85fdb5d4",
       "solutions": 2,
       "stages": 16
     },
@@ -253,7 +253,7 @@
       "path": "l031.json",
       "problemId": "nested-chat",
       "referenceId": "L031",
-      "sha256": "be66bb811832f21760329300222b940082ab4ed5c153f19f988b7ee54ae12c07",
+      "sha256": "ddbc5e8c4170f697b764f206ca94eac564e16c01998099b7d59612b46fde1b6d",
       "solutions": 2,
       "stages": 16
     },
@@ -269,7 +269,7 @@
       "path": "l033.json",
       "problemId": "private-practice-2",
       "referenceId": "L033",
-      "sha256": "0f55631711db724692501b37cde42e56d6ead44147309408fe84093a4f947e83",
+      "sha256": "a079af2ccf27b14a0ee6aa41cfeea068a211db426514a1d387a38908b21fe902",
       "solutions": 2,
       "stages": 16
     },
@@ -285,7 +285,7 @@
       "path": "l035.json",
       "problemId": "private-practice-4",
       "referenceId": "L035",
-      "sha256": "acf2003acd85cbbb3c10d7abdd82bf593f9d1931bb84d70638eba2bf17b67353",
+      "sha256": "34ea4a07bcdc88d7f37f2de8705e8e54d736f4f1c2db36477777d8d6d927c9c6",
       "solutions": 2,
       "stages": 16
     },
@@ -293,7 +293,7 @@
       "path": "l036.json",
       "problemId": "private-practice-5",
       "referenceId": "L036",
-      "sha256": "80e121161390920c8a866dc01217cab725da92894449dd5065dd96718a7b5ff1",
+      "sha256": "21d82f059020214afc354ce11fed3a69bf46d8ad8c494fe7ce8eecedfb7ebebe",
       "solutions": 2,
       "stages": 16
     },
@@ -301,7 +301,7 @@
       "path": "l037.json",
       "problemId": "private-practice-6",
       "referenceId": "L037",
-      "sha256": "51e3b07df300ece88c26ac11a7462131ce570347604a47b9cf41fe60575d6275",
+      "sha256": "f20adbd84e9edbd729a41697535cae15f88f4294fa43debd38e524ad9f32bbc6",
       "solutions": 2,
       "stages": 16
     },
@@ -309,7 +309,7 @@
       "path": "l038.json",
       "problemId": "private-practice-7",
       "referenceId": "L038",
-      "sha256": "cb6a0dcd99bf83a4d7bc0e374887e6e54c9ee9e731c2ead9fb70d30b678a8e9b",
+      "sha256": "e9c3af7e3c764e75948f6ae7a4f11e13ccd7055394f5535bc6e0a89b2765b1e8",
       "solutions": 2,
       "stages": 16
     },
@@ -317,7 +317,7 @@
       "path": "l039.json",
       "problemId": "private-practice-8",
       "referenceId": "L039",
-      "sha256": "d152c31d5e10478c07a191638c2d661a8bd744f2b4ac241312dcf5b8dc376e22",
+      "sha256": "bc3cee715e49ea6d591be869a145b7081aade8f0895029b231ad2d3d5dec30ce",
       "solutions": 2,
       "stages": 16
     },
@@ -325,7 +325,7 @@
       "path": "l040.json",
       "problemId": "private-practice-9",
       "referenceId": "L040",
-      "sha256": "dea671a5d9eee8731ba97e025233d726bfb835b406b3cec7d414a9a50a97993b",
+      "sha256": "477d57eba988ee5bc7862f9dadc9493f2b35f606198f51ab5ab32046e66abe2b",
       "solutions": 2,
       "stages": 16
     },
@@ -333,7 +333,7 @@
       "path": "l041.json",
       "problemId": "private-practice-10",
       "referenceId": "L041",
-      "sha256": "fca52a9714be1ce5c1e3d5f99795ccf6dbfd5e07d3ea46a43ff9d9574ba7e65f",
+      "sha256": "6572b96881ae5a57523314654c1eba5372bb91784b4347061e93da2999fe4e4e",
       "solutions": 2,
       "stages": 16
     },
@@ -341,7 +341,7 @@
       "path": "l042.json",
       "problemId": "private-practice-11",
       "referenceId": "L042",
-      "sha256": "639e8a2030aee8b52bfa8c6d481703ac9de668012911e4b9b8ffdc82304ded8b",
+      "sha256": "987ff17fb4f0366a1cab8fd0c25f55be0f498910e70fd213c5af25c8935eca07",
       "solutions": 2,
       "stages": 16
     },
@@ -349,7 +349,7 @@
       "path": "l043.json",
       "problemId": "private-practice-12",
       "referenceId": "L043",
-      "sha256": "764e9bd679770177604d30ecc87a4d0c5a5ebc7ae6fc0ab99f43de1b7e7ac9d9",
+      "sha256": "8ecdca41d949035433e76f15f8d30aadca1b6a9dff54c60b806f27b5cd3b127f",
       "solutions": 2,
       "stages": 16
     },
@@ -357,7 +357,7 @@
       "path": "l044.json",
       "problemId": "private-practice-13",
       "referenceId": "L044",
-      "sha256": "67e8deb39f5956b55c0c61418187bc1292ae5e2569521a8ea5a12be6c9252906",
+      "sha256": "306e419644e3ff80a270a64f1a48d80576bd3ca9b957b3ef4e86efd9e51ae88f",
       "solutions": 2,
       "stages": 16
     },
@@ -365,7 +365,7 @@
       "path": "l045.json",
       "problemId": "private-practice-14",
       "referenceId": "L045",
-      "sha256": "0b1c3ebe06990be4274f8893a959b3d13486f63bc4074edcee4aa7a78fd2aa96",
+      "sha256": "9a1b9eba7b9d19838292decf5a8eeb41390a57230ccdff9d566e9ea48f384c2e",
       "solutions": 2,
       "stages": 16
     },
@@ -373,7 +373,7 @@
       "path": "l046.json",
       "problemId": "private-practice-15",
       "referenceId": "L046",
-      "sha256": "f956e87ebc654a9b8aa3ff448c7cb906ccfef77fce797cf854b2252eb4c7ee35",
+      "sha256": "e386f49ba02955aed860d866282654dfb1298828ba36516d45a15181bddefcb5",
       "solutions": 2,
       "stages": 16
     }

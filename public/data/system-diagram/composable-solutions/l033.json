@@ -161,7 +161,7 @@
       ],
       "responsibility": "Order by selected keys plus a unique tie-breaker within one immutable result snapshot.",
       "stateOwnership": [
-        "snapshotId, lastSortKey, lastRowId"
+        "immutable snapshot ordering"
       ],
       "version": 1
     },
@@ -386,7 +386,7 @@
       ],
       "responsibility": "Persist immutable query result chunks keyed by query generation and sequence.",
       "stateOwnership": [
-        "queryGeneration, chunkSeq, hash"
+        "immutable chunks by generation and sequence"
       ],
       "version": 1
     },
@@ -409,9 +409,9 @@
           "id": "out-l033.stream-spool.step5"
         }
       ],
-      "responsibility": "Send only chunks covered by explicit byte credit; grant more only after bounded admission or release.",
+      "responsibility": "Send only chunks covered by explicit byte credit; each grant subtracts retained bytes and credit already granted but not yet received.",
       "stateOwnership": [
-        "creditBytes, chunkBytes"
+        "granted, received and retained byte counts"
       ],
       "version": 1
     },
@@ -496,7 +496,7 @@
       ],
       "responsibility": "Resume from the spool using snapshot/generation plus last contiguous sequence; fail explicitly if expired.",
       "stateOwnership": [
-        "lastAckSeq, spoolExpiresAt"
+        "snapshotId, generation, lastAckSeq"
       ],
       "version": 1
     }
@@ -510,12 +510,14 @@
         "generation": "integer",
         "limit": "bounded integer",
         "queryId": "uuid",
+        "requestId": "uuid stable across retries",
         "sort": "ordered column IDs and directions"
       },
       "response": {
         "generation": "integer",
         "nextCursor": "opaque|null",
-        "rows": "typed row[]",
+        "rows": "typed row[] in snapshot total order",
+        "snapshotExpiresAt": "timestamp",
         "snapshotId": "uuid"
       },
       "version": 1
@@ -527,9 +529,10 @@
         "requestId": "uuid"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "generation": "integer",
+        "jobId": "uuid",
+        "snapshotId": "uuid",
+        "status": "created|existing"
       },
       "version": 1
     },
@@ -538,12 +541,12 @@
       "request": {
         "lastRowId": "unique ID",
         "lastSortKey": "tuple",
+        "limit": "bounded integer",
         "snapshotId": "uuid"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "nextCursor": "opaque|null",
+        "rows": "typed row[]"
       },
       "version": 1
     },
@@ -555,9 +558,8 @@
         "viewportHeight": "pixels"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "end": "exclusive index",
+        "start": "inclusive index"
       },
       "version": 1
     },
@@ -569,9 +571,8 @@
         "start": "inclusive index"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "placeholderIndices": "indices awaiting page data",
+        "renderedRows": "integer <= end - start"
       },
       "version": 1
     },
@@ -582,9 +583,8 @@
         "sortFilterHash": "sha256"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "generation": "integer",
+        "snapshotId": "uuid of the new server snapshot"
       },
       "version": 1
     },
@@ -595,27 +595,31 @@
         "responseGeneration": "integer"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "decision": "admit|discard"
       },
       "version": 1
     },
     {
       "id": "l033.stream-spool.command",
       "request": {
-        "cursor": "opaque snapshot cursor|null",
+        "creditBytes": "nonnegative byte credit granted with this request",
         "filter": "validated predicate",
         "generation": "integer",
-        "limit": "bounded integer",
         "queryId": "uuid",
+        "resumeAfterSeq": "last contiguous acknowledged chunk sequence|null",
+        "snapshotId": "uuid|null; set when resuming",
         "sort": "ordered column IDs and directions"
       },
       "response": {
+        "chunkBytes": "integer within outstanding credit",
+        "chunkSeq": "integer",
+        "creditRemaining": "integer",
         "generation": "integer",
-        "nextCursor": "opaque|null",
+        "hash": "sha256",
         "rows": "typed row[]",
-        "snapshotId": "uuid"
+        "snapshotId": "uuid",
+        "spoolExpiresAt": "timestamp",
+        "status": "chunk|end|expired|canceled"
       },
       "version": 1
     },
@@ -627,22 +631,21 @@
         "queryGeneration": "integer"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "chunk": "bytes|null",
+        "expiresAt": "timestamp",
+        "status": "found|expired"
       },
       "version": 1
     },
     {
       "id": "l033.stream-spool.step4",
       "request": {
-        "chunkBytes": "integer",
-        "creditBytes": "nonnegative integer"
+        "grantBytes": "budget minus retained and outstanding bytes",
+        "outstandingBytes": "granted bytes not yet received"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "chunkBytes": "integer <= outstandingBytes",
+        "chunkSeq": "integer"
       },
       "version": 1
     },
@@ -653,9 +656,8 @@
         "resumeAfter": "integer"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "ackSeq": "last contiguous sequence",
+        "status": "admitted|duplicate|buffered|rejected"
       },
       "version": 1
     },
@@ -666,9 +668,8 @@
         "visibleStart": "integer"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "placeholderIndices": "indices needing a spool fetch",
+        "rows": "retained rows in range"
       },
       "version": 1
     },
@@ -679,22 +680,22 @@
         "newGeneration": "integer"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "activeGeneration": "integer",
+        "revokedCreditBytes": "integer"
       },
       "version": 1
     },
     {
       "id": "l033.stream-spool.step8",
       "request": {
+        "generation": "integer",
         "lastAckSeq": "integer",
-        "spoolExpiresAt": "timestamp"
+        "snapshotId": "uuid"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "nextSeq": "integer",
+        "spoolExpiresAt": "timestamp",
+        "status": "resumed|expired"
       },
       "version": 1
     }
@@ -750,9 +751,7 @@
           "given": "A fixed-height grid has 100000 rows.",
           "id": "case0",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
-            "r2"
+            "r0"
           ],
           "then": "Return clamped half-open ranges bounded by viewport plus overscan.",
           "when": "Compute the viewport near the beginning, middle and end."
@@ -761,12 +760,39 @@
           "given": "Sort generation 2 supersedes generation 1.",
           "id": "case1",
           "relatedRequirementIds": [
-            "r0",
             "r1",
             "r2"
           ],
           "then": "Discard it and retain generation-2 snapshot identity.",
           "when": "A generation-1 response arrives after cancellation."
+        },
+        {
+          "given": "A query submission times out.",
+          "id": "case2",
+          "relatedRequirementIds": [
+            "r1",
+            "r2"
+          ],
+          "then": "Receive the same job and snapshot identity; no second query runs.",
+          "when": "Retry with the same requestId."
+        },
+        {
+          "given": "Rows tie on the sort key across a page boundary.",
+          "id": "case3",
+          "relatedRequirementIds": [
+            "r1"
+          ],
+          "then": "No row is skipped or repeated because the snapshot and unique tie-breaker are fixed.",
+          "when": "Fetch the next page with its cursor."
+        },
+        {
+          "given": "Scrolling fetches pages beyond the retained-byte budget.",
+          "id": "case4",
+          "relatedRequirementIds": [
+            "r0"
+          ],
+          "then": "Evict least recently used pages so retained bytes stay within budget; evicted pages are refetched by cursor.",
+          "when": "Admit another page."
         },
         {
           "evidence": {
@@ -801,12 +827,12 @@
       ],
       "apis": [
         {
-          "errors": "Reject invalid input, stale versions and operations outside the declared boundary.",
+          "errors": "Reject unknown or expired snapshots, unbounded limits and generations older than the active one; a retried requestId returns the existing job and snapshot.",
           "method": "CALL",
           "ownerNodeId": "engine",
           "path": "L033/cursor",
-          "request": "{\"queryId\":\"uuid\",\"generation\":\"integer\",\"sort\":\"ordered column IDs and directions\",\"filter\":\"validated predicate\",\"cursor\":\"opaque snapshot cursor|null\",\"limit\":\"bounded integer\"}",
-          "response": "{\"snapshotId\":\"uuid\",\"generation\":\"integer\",\"rows\":\"typed row[]\",\"nextCursor\":\"opaque|null\"}"
+          "request": "{\"requestId\":\"uuid stable across retries\",\"queryId\":\"uuid\",\"generation\":\"integer\",\"sort\":\"ordered column IDs and directions\",\"filter\":\"validated predicate\",\"cursor\":\"opaque snapshot cursor|null\",\"limit\":\"bounded integer\"}",
+          "response": "{\"snapshotId\":\"uuid\",\"generation\":\"integer\",\"rows\":\"typed row[] in snapshot total order\",\"nextCursor\":\"opaque|null\",\"snapshotExpiresAt\":\"timestamp\"}"
         }
       ],
       "assumptions": [
@@ -822,10 +848,9 @@
       "stages": [
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case3"
           ],
-          "explanation": "Render only the viewport plus overscan while bounding retained rows and bytes. [A cursor](https://en.wikipedia.org/wiki/Cursor_%28databases%29) records where a query should continue. Its ordering fields must distinguish equal values, and its validity depends on the query and access permissions. Consider this case: A fixed-height grid has 100000 rows. Compute the viewport near the beginning, middle and end.",
+          "explanation": "Render only the viewport plus overscan while bounding retained rows and bytes. A page returns at most limit rows from one immutable snapshot in its total sort order for the stated generation; nextCursor resumes exactly after the last returned row. [A cursor](https://en.wikipedia.org/wiki/Cursor_%28databases%29) records where a query should continue. Its ordering fields must distinguish equal values, and its validity depends on the query and access permissions.",
           "graph": {
             "edges": [
               {
@@ -868,7 +893,7 @@
           },
           "id": "cursor-s1",
           "invariants": [
-            "Render only the viewport plus overscan while bounding retained rows and bytes."
+            "A page returns at most limit rows from one immutable snapshot in its total sort order for the stated generation; nextCursor resumes exactly after the last returned row."
           ],
           "number": 1,
           "operations": [
@@ -922,10 +947,9 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case4"
           ],
-          "explanation": "Own query generation and reject responses from old sorts or canceled queries. Own a bounded LRU of snapshot/cursor pages and retained-byte count. active generation belongs to Grid controller; page bytes and eviction order belongs to Page cache. [A cache](https://en.wikipedia.org/wiki/Cache_replacement_policies) keeps reusable results in limited memory. Eviction controls space, while ownership and invalidation rules determine whether a returned value is still safe to use.",
+          "explanation": "Own query generation and reject responses from old sorts or canceled queries. Own a bounded LRU of snapshot/cursor pages and retained-byte count. The grid controller alone decides the active generation; the page cache alone owns retained page bytes and their eviction order. [A cache](https://en.wikipedia.org/wiki/Cache_replacement_policies) keeps reusable results in limited memory. Eviction controls space, while ownership and invalidation rules determine whether a returned value is still safe to use.",
           "graph": {
             "edges": [
               {
@@ -1005,7 +1029,7 @@
           },
           "id": "cursor-s2",
           "invariants": [
-            "active generation belongs to Grid controller; page bytes and eviction order belongs to Page cache."
+            "The grid controller alone decides the active generation; the page cache alone owns retained page bytes and their eviction order."
           ],
           "number": 2,
           "operations": [
@@ -1059,10 +1083,9 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case2"
           ],
-          "explanation": "Submit a stable request ID and receive one job/snapshot identity. A timed-out submit retry retains its request identity. [A snapshot](https://en.wikipedia.org/wiki/Snapshot_isolation) gives one read operation a fixed view of data. Later writes may change the live system without changing the rows that reader sees. Consider this case: A fixed-height grid has 100000 rows. Compute the viewport near the beginning, middle and end.",
+          "explanation": "Submit a stable request ID and receive one job/snapshot identity. A timed-out submit retry retains its request identity. [A snapshot](https://en.wikipedia.org/wiki/Snapshot_isolation) gives one read operation a fixed view of data. Later writes may change the live system without changing the rows that reader sees. Consider this case: A query submission times out. Retry with the same requestId.",
           "graph": {
             "edges": [
               {
@@ -1213,10 +1236,9 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case3"
           ],
-          "explanation": "Order by selected keys plus a unique tie-breaker within one immutable result snapshot. All pages share one snapshot and total ordering. [A snapshot](https://en.wikipedia.org/wiki/Snapshot_isolation) gives one read operation a fixed view of data. Later writes may change the live system without changing the rows that reader sees. Consider this case: A fixed-height grid has 100000 rows. Compute the viewport near the beginning, middle and end.",
+          "explanation": "Order by selected keys plus a unique tie-breaker within one immutable result snapshot. All pages share one snapshot and total ordering. [A snapshot](https://en.wikipedia.org/wiki/Snapshot_isolation) gives one read operation a fixed view of data. Later writes may change the live system without changing the rows that reader sees. Consider this case: Rows tie on the sort key across a page boundary.",
           "graph": {
             "edges": [
               {
@@ -1386,7 +1408,7 @@
         {
           "checkIds": [
             "case0",
-            "case1"
+            "bounded-mechanism"
           ],
           "explanation": "Compute half-open visible indices from scrollTop and fixed rowHeight, clamp and add bounded overscan. DOM row count depends on viewport, not total result size. [A cursor](https://en.wikipedia.org/wiki/Cursor_%28databases%29) records where a query should continue. Its ordering fields must distinguish equal values, and its validity depends on the query and access permissions. Consider this case: A fixed-height grid has 100000 rows.",
           "graph": {
@@ -1587,8 +1609,7 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case0"
           ],
           "explanation": "Render only the computed range with stable row keys and loading placeholders. Selection uses row identity, never recycled DOM position. [A cursor](https://en.wikipedia.org/wiki/Cursor_%28databases%29) records where a query should continue. Its ordering fields must distinguish equal values, and its validity depends on the query and access permissions. Consider this case: A fixed-height grid has 100000 rows. Compute the viewport near the beginning, middle and end.",
           "graph": {
@@ -1807,10 +1828,9 @@
         },
         {
           "checkIds": [
-            "case0",
             "case1"
           ],
-          "explanation": "Push global ordering/filtering to the server and issue a new snapshot generation. Sorting one cached page never claims to sort all results. [A search index](https://en.wikipedia.org/wiki/Search_engine_indexing) maps query terms to candidate records. The interface must still associate each response with the active query and preserve the user’s chosen filters. Consider this case: A fixed-height grid has 100000 rows.",
+          "explanation": "Push global ordering/filtering to the server and issue a new snapshot generation. Sorting one cached page never claims to sort all results. [A search index](https://en.wikipedia.org/wiki/Search_engine_indexing) maps query terms to candidate records. The interface must still associate each response with the active query and preserve the user’s chosen filters. Consider this case: Sort generation 2 supersedes generation 1.",
           "graph": {
             "edges": [
               {
@@ -2057,10 +2077,9 @@
         },
         {
           "checkIds": [
-            "case0",
             "case1"
           ],
-          "explanation": "Abort requests when possible and reject every response whose generation differs. Cancellation is best effort; generation comparison is mandatory. [A race condition](https://en.wikipedia.org/wiki/Race_condition) makes an outcome depend on which operation finishes first. Responses need an identity or generation check so an older request cannot overwrite newer user intent. Consider this case: A fixed-height grid has 100000 rows.",
+          "explanation": "Abort requests when possible and reject every response whose generation differs. Cancellation is best effort; generation comparison is mandatory. [A race condition](https://en.wikipedia.org/wiki/Race_condition) makes an outcome depend on which operation finishes first. Responses need an identity or generation check so an older request cannot overwrite newer user intent. Consider this case: Sort generation 2 supersedes generation 1. A generation-1 response arrives after cancellation.",
           "graph": {
             "edges": [
               {
@@ -2336,9 +2355,7 @@
           "given": "Chunks contain many more rows than the viewport.",
           "id": "case0",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
-            "r2"
+            "r0"
           ],
           "then": "DOM and decoded-byte bounds are enforced independently.",
           "when": "Render the current range and evict distant chunks."
@@ -2347,12 +2364,45 @@
           "given": "A reconnect or old stream delivers generation 1 after generation 2 begins.",
           "id": "case1",
           "relatedRequirementIds": [
-            "r0",
             "r1",
             "r2"
           ],
           "then": "Discard stale chunks; expired spool yields explicit unavailable state.",
           "when": "Validate chunk metadata."
+        },
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-06-state.test.mjs",
+            "testName": "credit grants subtract outstanding credit and retained bytes"
+          },
+          "given": "100 bytes of credit are outstanding and 40 bytes have been received and retained.",
+          "id": "case2",
+          "relatedRequirementIds": [
+            "r0",
+            "r2"
+          ],
+          "then": "Grant budget minus retained and outstanding bytes, which is 0 here; a chunk beyond outstanding credit is rejected.",
+          "when": "The controller considers another grant before any release."
+        },
+        {
+          "given": "Chunk 5 arrives before chunk 4, then chunk 4 arrives twice.",
+          "id": "case3",
+          "relatedRequirementIds": [
+            "r2"
+          ],
+          "then": "Buffer 5 within the reorder window, admit 4 once and advance the acknowledgement to 5; a missing chunk is never skipped.",
+          "when": "Assemble the chunks."
+        },
+        {
+          "given": "Chunk 3 was evicted from the client cache.",
+          "id": "case4",
+          "relatedRequirementIds": [
+            "r0",
+            "r2"
+          ],
+          "then": "Refetch it from the spool by generation and sequence, or show explicit expiry.",
+          "when": "The user scrolls back to it."
         },
         {
           "evidence": {
@@ -2371,7 +2421,7 @@
       ],
       "algorithms": [
         {
-          "code": "reserve(decodedBytes + inFlightBytes <= budget);\ngrantCredit(freeBytes); onChunk(c) { requireGeneration(c); verifyHash(c);\n if (c.seq <= ack) ignoreDuplicate(); else bufferWithinWindow(c); advanceContiguousAck(); }\nonDisconnect: resumeFromSpool(snapshotId,generation,ack);\nonSort: revokeCredit(); cancelJob(); createNewGeneration();",
+          "code": "grant = max(0, budget - retainedDecodedBytes - outstandingCredit); outstandingCredit += grant; sendCredit(grant); // credit already granted still counts; in-flight chunks sit inside it\nonChunk(c) { requireGeneration(c); requireWithinCredit(c.bytes); outstandingCredit -= c.bytes; retainedDecodedBytes += c.bytes; verifyHash(c);\n if (c.seq <= ack) ignoreDuplicate(); else bufferWithinWindow(c); advanceContiguousAck(); }\nonEvict(bytes) { retainedDecodedBytes -= bytes; } // the next grant reflects freed bytes\nonDisconnect: resumeFromSpool(snapshotId,generation,ack);\nonSort: revokeCredit(); cancelJob(); createNewGeneration();",
           "guarantees": [
             "Spool retention and expiration are visible to clients.",
             "Decoded and in-flight bytes count toward admission budget.",
@@ -2387,12 +2437,12 @@
       ],
       "apis": [
         {
-          "errors": "Reject invalid input, stale versions and operations outside the declared boundary.",
+          "errors": "Reject chunks from another generation, chunks larger than outstanding credit and resume points the spool no longer holds; expired is explicit, never an empty success.",
           "method": "CALL",
           "ownerNodeId": "engine",
           "path": "L033/stream-spool",
-          "request": "{\"queryId\":\"uuid\",\"generation\":\"integer\",\"sort\":\"ordered column IDs and directions\",\"filter\":\"validated predicate\",\"cursor\":\"opaque snapshot cursor|null\",\"limit\":\"bounded integer\"}",
-          "response": "{\"snapshotId\":\"uuid\",\"generation\":\"integer\",\"rows\":\"typed row[]\",\"nextCursor\":\"opaque|null\"}"
+          "request": "{\"queryId\":\"uuid\",\"generation\":\"integer\",\"sort\":\"ordered column IDs and directions\",\"filter\":\"validated predicate\",\"creditBytes\":\"nonnegative byte credit granted with this request\",\"snapshotId\":\"uuid|null; set when resuming\",\"resumeAfterSeq\":\"last contiguous acknowledged chunk sequence|null\"}",
+          "response": "{\"status\":\"chunk|end|expired|canceled\",\"snapshotId\":\"uuid\",\"generation\":\"integer\",\"chunkSeq\":\"integer\",\"chunkBytes\":\"integer within outstanding credit\",\"hash\":\"sha256\",\"rows\":\"typed row[]\",\"creditRemaining\":\"integer\",\"spoolExpiresAt\":\"timestamp\"}"
         }
       ],
       "assumptions": [
@@ -2408,10 +2458,9 @@
       "stages": [
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case3"
           ],
-          "explanation": "Render only the viewport plus overscan while bounding retained rows and bytes. [A cursor](https://en.wikipedia.org/wiki/Cursor_%28databases%29) records where a query should continue. Its ordering fields must distinguish equal values, and its validity depends on the query and access permissions. Consider this case: Chunks contain many more rows than the viewport. Render the current range and evict distant chunks.",
+          "explanation": "Render only the viewport plus overscan while bounding retained rows and bytes. Each chunk carries snapshot, generation and sequence, fits within granted credit and passes its hash; end means every sequence through the last was delivered, and expired is explicit. [A cursor](https://en.wikipedia.org/wiki/Cursor_%28databases%29) records where a query should continue. Its ordering fields must distinguish equal values, and its validity depends on the query and access permissions.",
           "graph": {
             "edges": [
               {
@@ -2454,7 +2503,7 @@
           },
           "id": "stream-spool-s1",
           "invariants": [
-            "Render only the viewport plus overscan while bounding retained rows and bytes."
+            "Each chunk carries snapshot, generation and sequence, fits within granted credit and passes its hash; end means every sequence through the last was delivered, and expired is explicit."
           ],
           "number": 1,
           "operations": [
@@ -2508,10 +2557,9 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case2"
           ],
-          "explanation": "Own query generation, granted byte credit and received chunk sequence. Own retained decoded chunks under a total byte budget. active stream credit belongs to Stream controller; cached chunks belongs to Bounded chunk cache. [A race condition](https://en.wikipedia.org/wiki/Race_condition) makes an outcome depend on which operation finishes first. Responses need an identity or generation check so an older request cannot overwrite newer user intent.",
+          "explanation": "Own query generation, granted byte credit and received chunk sequence. Own retained decoded chunks under a total byte budget. The stream controller alone grants credit and tracks the contiguous acknowledged sequence; the bounded chunk cache alone owns retained decoded bytes. [A race condition](https://en.wikipedia.org/wiki/Race_condition) makes an outcome depend on which operation finishes first. Responses need an identity or generation check so an older request cannot overwrite newer user intent.",
           "graph": {
             "edges": [
               {
@@ -2591,7 +2639,7 @@
           },
           "id": "stream-spool-s2",
           "invariants": [
-            "active stream credit belongs to Stream controller; cached chunks belongs to Bounded chunk cache."
+            "The stream controller alone grants credit and tracks the contiguous acknowledged sequence; the bounded chunk cache alone owns retained decoded bytes."
           ],
           "number": 2,
           "operations": [
@@ -2645,10 +2693,9 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case4"
           ],
-          "explanation": "Persist immutable query result chunks keyed by query generation and sequence. Spool retention and expiration are visible to clients. [A search index](https://en.wikipedia.org/wiki/Search_engine_indexing) maps query terms to candidate records. The interface must still associate each response with the active query and preserve the user’s chosen filters. Consider this case: Chunks contain many more rows than the viewport.",
+          "explanation": "Persist immutable query result chunks keyed by query generation and sequence. Spool retention and expiration are visible to clients. [A search index](https://en.wikipedia.org/wiki/Search_engine_indexing) maps query terms to candidate records. The interface must still associate each response with the active query and preserve the user’s chosen filters. Consider this case: Chunk 3 was evicted from the client cache. The user scrolls back to it.",
           "graph": {
             "edges": [
               {
@@ -2799,10 +2846,9 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case2"
           ],
-          "explanation": "Send only chunks covered by explicit byte credit; grant more only after bounded admission or release. Decoded and in-flight bytes count toward admission budget. [Backpressure](https://en.wikipedia.org/wiki/Flow_control_%28data%29) prevents producers from outrunning the next component indefinitely. The design must choose whether excess work waits, is rejected, or is dropped with an explicit outcome.",
+          "explanation": "Send only chunks covered by explicit byte credit; each grant subtracts retained bytes and credit already granted but not yet received. Decoded and in-flight bytes count toward admission budget. [Backpressure](https://en.wikipedia.org/wiki/Flow_control_%28data%29) prevents producers from outrunning the next component indefinitely. The design must choose whether excess work waits, is rejected, or is dropped with an explicit outcome.",
           "graph": {
             "edges": [
               {
@@ -2966,15 +3012,14 @@
             }
           ],
           "question": "How is a fast producer slowed?",
-          "reason": "Send only chunks covered by explicit byte credit; grant more only after bounded admission or release.",
+          "reason": "Send only chunks covered by explicit byte credit; each grant subtracts retained bytes and credit already granted but not yet received.",
           "title": "Credit transport"
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case3"
           ],
-          "explanation": "Verify sequence/hash and retain a bounded reorder window; resume from acknowledged contiguous chunk. A missing chunk is never silently skipped. [Stream processing](https://en.wikipedia.org/wiki/Stream_processing) updates results as events arrive. Arrival order may differ from event time, so late-data rules and bounded retained state are part of the result definition. Consider this case: Chunks contain many more rows than the viewport.",
+          "explanation": "Verify sequence/hash and retain a bounded reorder window; resume from acknowledged contiguous chunk. A missing chunk is never silently skipped. [Stream processing](https://en.wikipedia.org/wiki/Stream_processing) updates results as events arrive. Arrival order may differ from event time, so late-data rules and bounded retained state are part of the result definition. Consider this case: Chunk 5 arrives before chunk 4, then chunk 4 arrives twice.",
           "graph": {
             "edges": [
               {
@@ -3168,7 +3213,7 @@
         {
           "checkIds": [
             "case0",
-            "case1"
+            "bounded-mechanism"
           ],
           "explanation": "Project only the visible index range and use placeholders for unretained chunks. Retained chunks and visible DOM rows have separate bounds. [An index](https://en.wikipedia.org/wiki/Database_index) maintains a structure that narrows a search without scanning every record. Faster reads come with storage costs and extra work whenever indexed data changes. Consider this case: Chunks contain many more rows than the viewport.",
           "graph": {
@@ -3393,10 +3438,9 @@
         },
         {
           "checkIds": [
-            "case0",
             "case1"
           ],
-          "explanation": "Cancel the old job, revoke its credit and create a new server-side query generation. Old chunks cannot enter the new grid. [A race condition](https://en.wikipedia.org/wiki/Race_condition) makes an outcome depend on which operation finishes first. Responses need an identity or generation check so an older request cannot overwrite newer user intent. Consider this case: Chunks contain many more rows than the viewport.",
+          "explanation": "Cancel the old job, revoke its credit and create a new server-side query generation. Old chunks cannot enter the new grid. [A race condition](https://en.wikipedia.org/wiki/Race_condition) makes an outcome depend on which operation finishes first. Responses need an identity or generation check so an older request cannot overwrite newer user intent. Consider this case: A reconnect or old stream delivers generation 1 after generation 2 begins.",
           "graph": {
             "edges": [
               {
@@ -3643,10 +3687,10 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case1",
+            "case4"
           ],
-          "explanation": "Resume from the spool using snapshot/generation plus last contiguous sequence; fail explicitly if expired. Reconnect cannot pretend expired chunks still exist. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid. Expiration must be checked at the point of use, even when background cleanup runs later. Consider this case: Chunks contain many more rows than the viewport.",
+          "explanation": "Resume from the spool using snapshot/generation plus last contiguous sequence; fail explicitly if expired. Reconnect cannot pretend expired chunks still exist. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid. Expiration must be checked at the point of use, even when background cleanup runs later. Consider this case: A reconnect or old stream delivers generation 1 after generation 2 begins.",
           "graph": {
             "edges": [
               {

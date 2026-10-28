@@ -41,7 +41,8 @@
       ],
       "responsibility": "Authenticate a user, validate parameters and generate a bounded report within one request lifecycle.",
       "stateOwnership": [
-        "request identity",
+        "owner-scoped request receipts",
+        "attempt tokens",
         "response outcome"
       ],
       "version": 1
@@ -65,7 +66,7 @@
           "id": "out-l002.synchronous.receipt"
         }
       ],
-      "responsibility": "Validate principal and ownership before processing or returning an existing request receipt.",
+      "responsibility": "Authenticate the principal and require request.ownerId to equal it before reading any receipt; receipts are keyed by (ownerId, requestKey), so a read can only return the caller's own receipt.",
       "stateOwnership": [
         "authorization decision"
       ],
@@ -90,10 +91,11 @@
           "id": "out-l002.synchronous.snapshot"
         }
       ],
-      "responsibility": "Bind owner/requestKey to a parameter hash and report ID atomically; identical retries share a receipt.",
+      "responsibility": "One transaction inserts or reads the receipt for (ownerId, requestKey) with parameter hash, report ID, source cutoff, running status, attempt token and deadline. A retry during a live attempt returns running; after the deadline it gets the next token and keeps the stored cutoff.",
       "stateOwnership": [
-        "request keys",
-        "parameter hashes"
+        "receipts by (ownerId, requestKey)",
+        "parameter hashes",
+        "attempt token and deadline"
       ],
       "version": 1
     },
@@ -116,9 +118,9 @@
           "id": "out-l002.synchronous.render"
         }
       ],
-      "responsibility": "Choose an explicit read snapshot/cutoff and retain that input identity in report metadata.",
+      "responsibility": "Read source rows at the snapshot cutoff stored in the receipt when it was first accepted, never one chosen per attempt, so every attempt renders the same inputs.",
       "stateOwnership": [
-        "source cutoff"
+        "stored source cutoff"
       ],
       "version": 1
     },
@@ -192,7 +194,7 @@
           "id": "out-l002.synchronous.review"
         }
       ],
-      "responsibility": "Commit metadata referencing an already written artifact; if commit fails keep a retriable/uncertain receipt and reconcile orphan bytes explicitly.",
+      "responsibility": "Commit metadata by compare-and-set from running to complete, only for an issued attempt token and a verified artifact hash. A later completion gets the committed receipt back and its bytes become an orphan to reconcile; a failed commit leaves the receipt running until its deadline.",
       "stateOwnership": [
         "completion metadata"
       ],
@@ -230,6 +232,11 @@
           "contractId": "l002.durable-jobs.command",
           "direction": "out",
           "id": "out-l002.durable-jobs.command"
+        },
+        {
+          "contractId": "l002.durable-jobs.read",
+          "direction": "out",
+          "id": "out-l002.durable-jobs.read"
         }
       ],
       "responsibility": "Invoke the documented API and retain returned outcomes.",
@@ -340,7 +347,7 @@
           "id": "out-l002.durable-jobs.worker"
         }
       ],
-      "responsibility": "Claim job with monotonically increasing fencing token and lease; completion verifies current token.",
+      "responsibility": "Claim in one transaction only when the job is accepted or its current lease has expired: raise the fencing token, record the worker and a new deadline. Reject claims on complete jobs and on unexpired leases; completion verifies the current token.",
       "stateOwnership": [
         "lease owner",
         "token",
@@ -367,7 +374,7 @@
           "id": "out-l002.durable-jobs.objects"
         }
       ],
-      "responsibility": "Pin query cutoff and renderer version in the job before work; retries reuse them or explicitly create a new report version.",
+      "responsibility": "Pin query cutoff and renderer version in the job before work; retries reuse them or explicitly create a new report version. Worker count and lease length are the knobs an illustrative tenfold scenario would measure through queue age and worker utilization.",
       "stateOwnership": [
         "input snapshot ID",
         "renderer version"
@@ -412,9 +419,14 @@
           "contractId": "l002.durable-jobs.status",
           "direction": "in",
           "id": "in-l002.durable-jobs.status"
+        },
+        {
+          "contractId": "l002.durable-jobs.read",
+          "direction": "in",
+          "id": "in-l002.durable-jobs.read"
         }
       ],
-      "responsibility": "Authorize each read and report accepted/running/complete/failed/uncertain; complete requires verified artifact and fenced metadata commit.",
+      "responsibility": "Authorize each read and report accepted/running/complete/failed/uncertain; complete requires verified artifact and fenced metadata commit. Progress percentages, if used, are measured work or omitted.",
       "stateOwnership": [
         "status version",
         "owner permissions"
@@ -447,16 +459,15 @@
     {
       "id": "l002.synchronous.command",
       "request": {
-        "ownerId": "authenticated subject",
+        "ownerId": "authenticated subject; must equal the caller",
         "parameters": "versioned validated query",
-        "reportId": "caller-scoped UUID",
-        "requestKey": "stable idempotency key"
+        "requestKey": "stable idempotency key, scoped to the owner"
       },
       "response": {
         "artifactHash": "sha256|null",
-        "reportId": "stable UUID",
-        "status": "accepted|running|complete|failed|uncertain",
-        "version": "integer"
+        "cutoff": "source cutoff stored in the receipt",
+        "reportId": "stable UUID for (ownerId, requestKey)",
+        "status": "complete|running|failed|uncertain"
       },
       "version": 1
     },
@@ -464,7 +475,7 @@
       "id": "l002.synchronous.auth",
       "request": {
         "ownerId": "authenticated subject",
-        "reportId": "UUID"
+        "requestKey": "owner-scoped key"
       },
       "response": {
         "allowed": "boolean"
@@ -475,18 +486,19 @@
       "id": "l002.synchronous.receipt",
       "request": {
         "hash": "parameters hash",
-        "key": "owner/requestKey"
+        "key": "(ownerId, requestKey)"
       },
       "response": {
+        "attempt": "token",
         "reportId": "stable ID",
-        "state": "accepted|complete|failed"
+        "state": "render|running|complete|conflict"
       },
       "version": 1
     },
     {
       "id": "l002.synchronous.snapshot",
       "request": {
-        "cutoff": "snapshot identity",
+        "cutoff": "receipt's stored cutoff",
         "parameters": "validated query"
       },
       "response": {
@@ -520,10 +532,11 @@
       "id": "l002.synchronous.finish",
       "request": {
         "artifactHash": "hash",
+        "attempt": "issued token",
         "reportId": "stable ID"
       },
       "response": {
-        "status": "complete or uncertain"
+        "status": "complete, already complete, or still running"
       },
       "version": 1
     },
@@ -540,16 +553,26 @@
     {
       "id": "l002.durable-jobs.command",
       "request": {
-        "ownerId": "authenticated subject",
+        "ownerId": "authenticated subject; must equal the caller",
         "parameters": "versioned validated query",
-        "reportId": "caller-scoped UUID",
-        "requestKey": "stable idempotency key"
+        "requestKey": "stable idempotency key, scoped to the owner"
       },
       "response": {
-        "artifactHash": "sha256|null",
-        "reportId": "stable UUID",
+        "reportId": "stable job ID for (ownerId, requestKey)",
+        "status": "accepted"
+      },
+      "version": 1
+    },
+    {
+      "id": "l002.durable-jobs.read",
+      "request": {
+        "ownerId": "authenticated subject",
+        "reportId": "job ID"
+      },
+      "response": {
+        "artifactHash": "sha256 when complete",
         "status": "accepted|running|complete|failed|uncertain",
-        "version": "integer"
+        "version": "status version"
       },
       "version": 1
     },
@@ -578,10 +601,11 @@
       "id": "l002.durable-jobs.lease",
       "request": {
         "jobId": "ID",
+        "now": "claim time",
         "workerId": "identity"
       },
       "response": {
-        "token": "monotonic integer"
+        "token": "monotonic integer or rejection"
       },
       "version": 1
     },
@@ -683,35 +707,69 @@
           "evidence": {
             "kind": "reference-test",
             "testFile": "tools/simulatte/study-reference/batch-08-mechanisms.test.mjs",
-            "testName": "batch-08 review: illustrative job identity and uncertain completion"
+            "testName": "batch-08 review synchronous: owner-scoped receipts, stored cutoff and first completion"
           },
-          "given": "Illustrative request K accepted, response lost, and K retried.",
+          "given": "Illustrative request K from owner A is accepted and its response lost; owner B presents the same key K.",
           "id": "behavior",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
-            "r2"
+            "r0"
           ],
-          "then": "Return the same report identity for identical intent; reject conflicting reuse without creating another job.",
-          "when": "Repeat identical parameters, then reuse K with different parameters."
+          "then": "A's identical retry returns the same report ID; conflicting reuse returns 409 without new work; B gets its own receipt and never A's report; B acting as A is forbidden.",
+          "when": "A retries K with identical parameters, then reuses K with different parameters; B submits K, and B claims to be A."
         },
         {
-          "given": "Hypothetical worker completes an artifact before its metadata ACK is lost.",
-          "id": "boundary",
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-08-mechanisms.test.mjs",
+            "testName": "batch-08 review synchronous: owner-scoped receipts, stored cutoff and first completion"
+          },
+          "given": "Illustrative retries of K overlap: a second arrives while the first attempt is running and a third after the first attempt's deadline.",
+          "id": "race",
           "relatedRequirementIds": [
             "r0",
-            "r1",
+            "r1"
+          ],
+          "then": "The second retry renders nothing and returns running; the third takes attempt token 2 but renders from the cutoff stored at first acceptance; the first completion commits and the later one returns the committed receipt unchanged.",
+          "when": "Both rendering attempts finish, the first one first."
+        },
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-08-mechanisms.test.mjs",
+            "testName": "batch-08 review synchronous: owner-scoped receipts, stored cutoff and first completion"
+          },
+          "given": "A hypothetical attempt whose artifact write succeeds but whose completion is lost or reports a mismatched hash.",
+          "id": "boundary",
+          "relatedRequirementIds": [
+            "r1"
+          ],
+          "then": "The mismatched completion is rejected and the receipt stays running; the retry keeps the report ID and stored cutoff and completes once; a completion for an attempt never issued is rejected. No personal incident claim is made.",
+          "when": "Complete with the mismatched hash, retry after the attempt deadline, and complete with verified bytes."
+        },
+        {
+          "given": "An illustrative report whose rows or bytes exceed the declared request budget.",
+          "id": "budget",
+          "relatedRequirementIds": [
+            "r1"
+          ],
+          "then": "The attempt aborts before any artifact write and the receipt records failed; no partial byte stream is presented as complete.",
+          "when": "Rendering reaches the limit."
+        },
+        {
+          "given": "An illustrative tenfold arrival scenario for this hypothetical product.",
+          "id": "scale",
+          "relatedRequirementIds": [
             "r2"
           ],
-          "then": "No personal incident claim is made; completion references matching immutable bytes, while unknown external effects remain uncertain.",
-          "when": "Resume with the same job ID and verify artifact hash before marking complete."
+          "then": "The plan names the measurements needed (request duration, timeouts, CPU work, database wait) and the evidence that would justify durable jobs; no throughput number, incident or outcome is asserted.",
+          "when": "Plan how to decide whether to keep synchronous requests."
         }
       ],
       "algorithms": [
         {
-          "code": "handle(request) { authorize(request.ownerId);\n const receipt=transaction(()=>insertOrReadSameIntent(request.requestKey,hash(request.parameters)));\n if(receipt.complete)return receipt;\n const input=readBoundedSnapshot(request.parameters);\n const bytes=renderWithLimits(input);const artifactHash=hash(bytes);\n artifactStore.putImmutable(artifactHash,bytes);\n return transaction(()=>markCompleteIfSameIntent(receipt.reportId,artifactHash,input.cutoff));\n}\n// Illustrative failure: artifact write succeeds, completion transaction fails.\n// Reconciliation checks hash and receipt before finishing; no actual incident is asserted.",
+          "code": "handle(request) { const principal=authenticate();\n if(principal!==request.ownerId) throw Forbidden();\n const begun=transaction(()=>beginAttempt(principal,request.requestKey,hash(request.parameters)));\n // beginAttempt keys receipts by (ownerId, requestKey): conflict on a different hash; complete -> return it;\n // running before its deadline -> {status:\"running\"}; otherwise issue the next attempt token,\n // keeping the cutoff stored when the receipt was first accepted.\n if(begun.action!==\"render\") return begun.receipt;\n const input=readSnapshotAt(request.parameters,begun.cutoff);\n const bytes=renderWithLimits(input); const artifactHash=hash(bytes);\n artifactStore.putImmutable(artifactHash,bytes);\n return transaction(()=>completeIfRunning(principal,request.requestKey,begun.attempt,artifactHash));\n // completeIfRunning: first verified completion wins; later ones return the committed receipt unchanged.\n}\n// Illustrative failure: the artifact write succeeds and the completion transaction fails; the receipt\n// stays running until its deadline, then a retry reuses the stored cutoff. No actual incident is asserted.",
           "guarantees": [
-            "Retry intent is stable; output publication and completion metadata are separate recoverable steps."
+            "Retry intent is owner-scoped; one attempt is live at a time; all attempts read one stored cutoff; the first completion wins."
           ],
           "id": "mechanism-0",
           "language": "typescript-pseudocode",
@@ -720,12 +778,12 @@
       ],
       "apis": [
         {
-          "errors": "403 wrong owner; 409 key reused with different parameters; 422 invalid query; timeout is uncertain rather than automatic new work",
+          "errors": "403 when ownerId differs from the authenticated subject; 409 key reused with different parameters; 422 invalid query; a retry while an attempt is live returns running instead of rendering again; a timeout is uncertain rather than automatic new work",
           "method": "POST",
           "ownerNodeId": "owner",
           "path": "/illustrative/reports",
-          "request": "{\"reportId\":\"caller-scoped UUID\",\"ownerId\":\"authenticated subject\",\"parameters\":\"versioned validated query\",\"requestKey\":\"stable idempotency key\"}",
-          "response": "{\"status\":\"accepted|running|complete|failed|uncertain\",\"reportId\":\"stable UUID\",\"artifactHash\":\"sha256|null\",\"version\":\"integer\"}"
+          "request": "{\"ownerId\":\"authenticated subject; must equal the caller\",\"requestKey\":\"stable idempotency key, scoped to the owner\",\"parameters\":\"versioned validated query\"}",
+          "response": "{\"status\":\"complete|running|failed|uncertain\",\"reportId\":\"stable UUID for (ownerId, requestKey)\",\"artifactHash\":\"sha256|null\",\"cutoff\":\"source cutoff stored in the receipt\"}"
         }
       ],
       "assumptions": [
@@ -741,10 +799,9 @@
       "stages": [
         {
           "checkIds": [
-            "behavior",
-            "boundary"
+            "behavior"
           ],
-          "explanation": "Authenticate a user, validate parameters and generate a bounded report within one request lifecycle. This is an illustrative request path, not a claim about a real project. [An API contract](https://en.wikipedia.org/wiki/Application_programming_interface) states what callers send, what an outcome means, and how failures are reported. It should remain clear before the implementation is split into more components.",
+          "explanation": "Authenticate a user, validate parameters and generate a bounded report within one request lifecycle. This illustrative path returns a finished report or an explicit running, failed or uncertain status in one request; it is not a claim about a real project. [An API contract](https://en.wikipedia.org/wiki/Application_programming_interface) states what callers send, what an outcome means, and how failures are reported. It should remain clear before the implementation is split into more components.",
           "graph": {
             "edges": [
               {
@@ -787,7 +844,7 @@
           },
           "id": "synchronous-s1",
           "invariants": [
-            "This is an illustrative request path, not a claim about a real project."
+            "This illustrative path returns a finished report or an explicit running, failed or uncertain status in one request; it is not a claim about a real project."
           ],
           "number": 1,
           "operations": [
@@ -841,10 +898,9 @@
         },
         {
           "checkIds": [
-            "behavior",
-            "boundary"
+            "behavior"
           ],
-          "explanation": "Validate principal and ownership before processing or returning an existing request receipt. Idempotency lookup never bypasses authorization. [Access control](https://en.wikipedia.org/wiki/Access_control) decides whether an authenticated identity may perform a particular action. The check must apply to the actual resource and operation, including cached and asynchronous paths. Consider this case: Illustrative request K accepted, response lost, and K retried.",
+          "explanation": "Authenticate the principal and require request.ownerId to equal it before reading any receipt; receipts are keyed by (ownerId, requestKey), so a read can only return the caller's own receipt. Idempotency lookup never bypasses authorization. [Access control](https://en.wikipedia.org/wiki/Access_control) decides whether an authenticated identity may perform a particular action. The check must apply to the actual resource and operation, including cached and asynchronous paths.",
           "graph": {
             "edges": [
               {
@@ -947,15 +1003,15 @@
             }
           ],
           "question": "May a caller read another owner's report?",
-          "reason": "Validate principal and ownership before processing or returning an existing request receipt.",
+          "reason": "Authenticate the principal and require request.ownerId to equal it before reading any receipt; receipts are keyed by (ownerId, requestKey), so a read can only return the caller's own receipt.",
           "title": "Authorize report ownership"
         },
         {
           "checkIds": [
             "behavior",
-            "boundary"
+            "race"
           ],
-          "explanation": "Bind owner/requestKey to a parameter hash and report ID atomically; identical retries share a receipt. Same key with different parameters returns conflict. [Backoff](https://en.wikipedia.org/wiki/Exponential_backoff) spaces repeated attempts so failures do not create a burst of extra traffic. A retry still needs a stable identity and a clear stopping condition. Consider this case: Illustrative request K accepted, response lost, and K retried.",
+          "explanation": "One transaction inserts or reads the receipt for (ownerId, requestKey) with parameter hash, report ID, source cutoff, running status, attempt token and deadline. A retry during a live attempt returns running; after the deadline it gets the next token and keeps the stored cutoff. At most one attempt per receipt is live; reused keys with different parameters conflict. [Backoff](https://en.wikipedia.org/wiki/Exponential_backoff) spaces repeated attempts so failures do not create a burst of extra traffic.",
           "graph": {
             "edges": [
               {
@@ -1046,7 +1102,7 @@
           },
           "id": "synchronous-s3",
           "invariants": [
-            "Same key with different parameters returns conflict."
+            "At most one attempt per receipt is live; reused keys with different parameters conflict."
           ],
           "number": 3,
           "operations": [
@@ -1082,15 +1138,14 @@
             }
           ],
           "question": "What if the response is lost?",
-          "reason": "Bind owner/requestKey to a parameter hash and report ID atomically; identical retries share a receipt.",
+          "reason": "One transaction inserts or reads the receipt for (ownerId, requestKey) with parameter hash, report ID, source cutoff, running status, attempt token and deadline. A retry during a live attempt returns running; after the deadline it gets the next token and keeps the stored cutoff.",
           "title": "Persist retry intent"
         },
         {
           "checkIds": [
-            "behavior",
-            "boundary"
+            "race"
           ],
-          "explanation": "Choose an explicit read snapshot/cutoff and retain that input identity in report metadata. The report names the inputs it actually read. [A snapshot](https://en.wikipedia.org/wiki/Snapshot_isolation) gives one read operation a fixed view of data. Later writes may change the live system without changing the rows that reader sees. Consider this case: Illustrative request K accepted, response lost, and K retried.",
+          "explanation": "Read source rows at the snapshot cutoff stored in the receipt when it was first accepted, never one chosen per attempt, so every attempt renders the same inputs. Every attempt of one receipt reads the same stored cutoff. [A snapshot](https://en.wikipedia.org/wiki/Snapshot_isolation) gives one read operation a fixed view of data. Later writes may change the live system without changing the rows that reader sees.",
           "graph": {
             "edges": [
               {
@@ -1205,7 +1260,7 @@
           },
           "id": "synchronous-s4",
           "invariants": [
-            "The report names the inputs it actually read."
+            "Every attempt of one receipt reads the same stored cutoff."
           ],
           "number": 4,
           "operations": [
@@ -1241,13 +1296,12 @@
             }
           ],
           "question": "Can a running query mix source versions?",
-          "reason": "Choose an explicit read snapshot/cutoff and retain that input identity in report metadata.",
+          "reason": "Read source rows at the snapshot cutoff stored in the receipt when it was first accepted, never one chosen per attempt, so every attempt renders the same inputs.",
           "title": "Freeze report inputs"
         },
         {
           "checkIds": [
-            "behavior",
-            "boundary"
+            "budget"
           ],
           "explanation": "Enforce row, byte and work budgets; abort with explicit failure before publishing an incomplete artifact. A partial byte stream is never advertised as complete. [A race condition](https://en.wikipedia.org/wiki/Race_condition) makes an outcome depend on which operation finishes first. Responses need an identity or generation check so an older request cannot overwrite newer user intent.",
           "graph": {
@@ -1429,10 +1483,9 @@
         },
         {
           "checkIds": [
-            "behavior",
             "boundary"
           ],
-          "explanation": "Store bytes under hash-addressed identity and bind output hash to the report; repeated identical writes are harmless. A completed receipt references immutable matching content. [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers. Publishing one reference lets each reader keep a consistent version. Consider this case: Illustrative request K accepted, response lost, and K retried.",
+          "explanation": "Store bytes under hash-addressed identity and bind output hash to the report; repeated identical writes are harmless. A completed receipt references immutable matching content. [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers. Publishing one reference lets each reader keep a consistent version. Consider this case: A hypothetical attempt whose artifact write succeeds but whose completion is lost or reports a mismatched hash.",
           "graph": {
             "edges": [
               {
@@ -1636,10 +1689,10 @@
         },
         {
           "checkIds": [
-            "behavior",
+            "race",
             "boundary"
           ],
-          "explanation": "Commit metadata referencing an already written artifact; if commit fails keep a retriable/uncertain receipt and reconcile orphan bytes explicitly. Remote artifact write and metadata transaction are not falsely called atomic. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call.",
+          "explanation": "Commit metadata by compare-and-set from running to complete, only for an issued attempt token and a verified artifact hash. A later completion gets the committed receipt back and its bytes become an orphan to reconcile; a failed commit leaves the receipt running until its deadline. The first verified completion wins; the artifact write and metadata commit are not called atomic. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure.",
           "graph": {
             "edges": [
               {
@@ -1733,7 +1786,7 @@
                   "portId": "out-l002.synchronous.finish"
                 },
                 "id": "use-finish",
-                "label": "Separate output and receipt",
+                "label": "Let the first completion win",
                 "mode": "local-call",
                 "to": {
                   "nodeId": "finish",
@@ -1826,7 +1879,7 @@
           },
           "id": "synchronous-s7",
           "invariants": [
-            "Remote artifact write and metadata transaction are not falsely called atomic."
+            "The first verified completion wins; the artifact write and metadata commit are not called atomic."
           ],
           "number": 7,
           "operations": [
@@ -1851,7 +1904,7 @@
                   "portId": "out-l002.synchronous.finish"
                 },
                 "id": "use-finish",
-                "label": "Separate output and receipt",
+                "label": "Let the first completion win",
                 "mode": "local-call",
                 "to": {
                   "nodeId": "finish",
@@ -1862,13 +1915,12 @@
             }
           ],
           "question": "Are object storage and database commit one transaction?",
-          "reason": "Commit metadata referencing an already written artifact; if commit fails keep a retriable/uncertain receipt and reconcile orphan bytes explicitly.",
-          "title": "Separate output and receipt"
+          "reason": "Commit metadata by compare-and-set from running to complete, only for an issued attempt token and a verified artifact hash. A later completion gets the committed receipt back and its bytes become an orphan to reconcile; a failed commit leaves the receipt running until its deadline.",
+          "title": "Let the first completion win"
         },
         {
           "checkIds": [
-            "behavior",
-            "boundary"
+            "scale"
           ],
           "explanation": "For this hypothetical design record request duration, timeouts, CPU work and database wait as proposed measurements. A tenfold input is a scenario, not observed capacity. No actual incident, throughput or user outcome is invented. [Backoff](https://en.wikipedia.org/wiki/Exponential_backoff) spaces repeated attempts so failures do not create a burst of extra traffic. A retry still needs a stable identity and a clear stopping condition.",
           "graph": {
@@ -1964,7 +2016,7 @@
                   "portId": "out-l002.synchronous.finish"
                 },
                 "id": "use-finish",
-                "label": "Separate output and receipt",
+                "label": "Let the first completion win",
                 "mode": "local-call",
                 "to": {
                   "nodeId": "finish",
@@ -2133,35 +2185,59 @@
           "evidence": {
             "kind": "reference-test",
             "testFile": "tools/simulatte/study-reference/batch-08-mechanisms.test.mjs",
-            "testName": "batch-08 review: illustrative job identity and uncertain completion"
+            "testName": "batch-08 review durable-jobs: job identity, lease-checked claims and fenced completion"
           },
-          "given": "Illustrative request K accepted, response lost, and K retried.",
+          "given": "Illustrative request K is accepted and its response lost; another owner reads the job and submits its own K.",
           "id": "behavior",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
-            "r2"
+            "r0"
           ],
-          "then": "Return the same report identity for identical intent; reject conflicting reuse without creating another job.",
-          "when": "Repeat identical parameters, then reuse K with different parameters."
+          "then": "The same report ID and a single outbox row are reused; conflicting reuse is rejected without a new job; the other owner's read is forbidden and its own K creates a separate job.",
+          "when": "Retry K with identical parameters, then reuse K with different parameters."
         },
         {
-          "given": "Hypothetical worker completes an artifact before its metadata ACK is lost.",
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-08-mechanisms.test.mjs",
+            "testName": "batch-08 review durable-jobs: job identity, lease-checked claims and fenced completion"
+          },
+          "given": "A hypothetical job claimed by worker 1 with a 10-unit lease.",
+          "id": "lease",
+          "relatedRequirementIds": [
+            "r1"
+          ],
+          "then": "The claim at 5 is rejected while the lease is live; the claim at 11 raises the fence; worker 1's late completion is rejected as stale; the claim after completion is rejected.",
+          "when": "Worker 2 claims at time 5 and again at time 11; worker 1 then tries to complete; a third claim arrives after completion."
+        },
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-08-mechanisms.test.mjs",
+            "testName": "batch-08 review durable-jobs: job identity, lease-checked claims and fenced completion"
+          },
+          "given": "A hypothetical worker writes an artifact and its metadata acknowledgement is lost.",
           "id": "boundary",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
+            "r1"
+          ],
+          "then": "Corrupt bytes are rejected and the job stays running; verified bytes complete it under the current fence; a retry of K returns the completed artifact. No personal incident claim is made.",
+          "when": "Resume under a fresh lease and complete with the job's current token, first with corrupt bytes and then with verified bytes."
+        },
+        {
+          "given": "The same illustrative tenfold arrival scenario.",
+          "id": "scale",
+          "relatedRequirementIds": [
             "r2"
           ],
-          "then": "No personal incident claim is made; completion references matching immutable bytes, while unknown external effects remain uncertain.",
-          "when": "Resume with the same job ID and verify artifact hash before marking complete."
+          "then": "The plan names queue age, worker utilization and lease expiry rate as proposed measurements under a declared workload; no capacity number or production result is asserted.",
+          "when": "Plan how to size workers and leases."
         }
       ],
       "algorithms": [
         {
-          "code": "submit(request) { authorize(request.ownerId); return transaction(()=>{\n const prior=findReceipt(request.ownerId,request.requestKey);\n if(prior)return sameHashOrConflict(prior,hash(request.parameters));\n const job=insertJobWithPinnedInputs(request);insertOutbox(job.id);return {reportId:job.id,status:\"accepted\"};\n}); }\nwork(jobId) { const lease=claimFenced(jobId); const bytes=renderPinnedInput(jobId);\n const digest=hash(bytes);artifactStore.putImmutable(digest,bytes);\n transaction(()=>{assertCurrentFence(jobId,lease.token);markComplete(jobId,digest);});\n}\n// Hypothetical scale review compares queue age and bounded worker resources under a declared workload.\n// It is a proposed experiment, not a measured production result.",
+          "code": "submit(request) { if(authenticate()!==request.ownerId) throw Forbidden(); return transaction(()=>{\n const prior=findReceipt(request.ownerId,request.requestKey);\n if(prior)return sameHashOrConflict(prior,hash(request.parameters));\n const job=insertJobWithPinnedInputs(request);insertOutbox(job.id);return {reportId:job.id,status:\"accepted\"};\n}); }\nclaim(jobId,workerId,now) { return transaction(()=>{ const job=jobs.get(jobId);\n if(job.status===\"complete\") throw AlreadyComplete();\n if(job.status===\"running\" && job.lease.deadline>now) throw LeaseHeld();\n job.token++; job.status=\"running\"; job.lease={workerId,deadline:now+leaseMs}; return job.token; }); }\nwork(jobId) { const token=claim(jobId,workerId,clock.now()); const bytes=renderPinnedInput(jobId);\n const digest=hash(bytes);artifactStore.putImmutable(digest,bytes);\n transaction(()=>{assertCurrentFence(jobId,token);markComplete(jobId,digest);});\n}\n// Hypothetical scale review compares queue age and bounded worker resources under a declared workload.\n// It is a proposed experiment, not a measured production result.",
           "guarantees": [
-            "Durable intent precedes dispatch; only current lease holder can commit completion."
+            "Durable intent precedes dispatch; a claim needs an accepted job or an expired lease; only the current lease holder can commit completion."
           ],
           "id": "mechanism-0",
           "language": "typescript-pseudocode",
@@ -2170,12 +2246,20 @@
       ],
       "apis": [
         {
-          "errors": "403 wrong owner; 409 key reused with different parameters; 422 invalid query; timeout is uncertain rather than automatic new work",
+          "errors": "403 wrong owner; 409 key reused with different parameters; 422 invalid query; after a timeout the caller retries with the same key",
           "method": "POST",
           "ownerNodeId": "owner",
           "path": "/illustrative/reports",
-          "request": "{\"reportId\":\"caller-scoped UUID\",\"ownerId\":\"authenticated subject\",\"parameters\":\"versioned validated query\",\"requestKey\":\"stable idempotency key\"}",
-          "response": "{\"status\":\"accepted|running|complete|failed|uncertain\",\"reportId\":\"stable UUID\",\"artifactHash\":\"sha256|null\",\"version\":\"integer\"}"
+          "request": "{\"ownerId\":\"authenticated subject; must equal the caller\",\"requestKey\":\"stable idempotency key, scoped to the owner\",\"parameters\":\"versioned validated query\"}",
+          "response": "{\"status\":\"accepted\",\"reportId\":\"stable job ID for (ownerId, requestKey)\"}"
+        },
+        {
+          "errors": "403 for another owner; reads never change job state",
+          "method": "GET",
+          "ownerNodeId": "status",
+          "path": "/illustrative/reports/{reportId}",
+          "request": "{\"ownerId\":\"authenticated subject\",\"reportId\":\"job ID\"}",
+          "response": "{\"status\":\"accepted|running|complete|failed|uncertain\",\"version\":\"status version\",\"artifactHash\":\"sha256 when complete\"}"
         }
       ],
       "assumptions": [
@@ -2191,8 +2275,7 @@
       "stages": [
         {
           "checkIds": [
-            "behavior",
-            "boundary"
+            "behavior"
           ],
           "explanation": "Persist a report job and dispatch intent atomically, return accepted, and let a leased worker publish completion later. An accepted response means durable intent, not a generated artifact. [An API contract](https://en.wikipedia.org/wiki/Application_programming_interface) states what callers send, what an outcome means, and how failures are reported. It should remain clear before the implementation is split into more components.",
           "graph": {
@@ -2204,7 +2287,7 @@
                   "portId": "out-l002.durable-jobs.command"
                 },
                 "id": "command",
-                "label": "invoke API",
+                "label": "commands",
                 "mode": "request-response",
                 "to": {
                   "nodeId": "owner",
@@ -2275,7 +2358,7 @@
                   "portId": "out-l002.durable-jobs.command"
                 },
                 "id": "command",
-                "label": "invoke API",
+                "label": "commands",
                 "mode": "request-response",
                 "to": {
                   "nodeId": "owner",
@@ -2291,10 +2374,9 @@
         },
         {
           "checkIds": [
-            "behavior",
-            "boundary"
+            "behavior"
           ],
-          "explanation": "Atomically create unique owner/requestKey receipt, parameter hash and job record; conflicting payloads reject. Identical retries reuse report ID. [Collaborative editing](https://en.wikipedia.org/wiki/Operational_transformation) must reconcile concurrent edits against an agreed document version. Sending changes is only one part; reconnects also need a way to recover missing updates and conflicts. Consider this case: Illustrative request K accepted, response lost, and K retried.",
+          "explanation": "Atomically create unique owner/requestKey receipt, parameter hash and job record; conflicting payloads reject. Identical retries reuse report ID. [Collaborative editing](https://en.wikipedia.org/wiki/Operational_transformation) must reconcile concurrent edits against an agreed document version. Sending changes is only one part; reconnects also need a way to recover missing updates and conflicts. Consider this case: Illustrative request K is accepted and its response lost; another owner reads the job and submits its own K.",
           "graph": {
             "edges": [
               {
@@ -2304,7 +2386,7 @@
                   "portId": "out-l002.durable-jobs.command"
                 },
                 "id": "command",
-                "label": "invoke API",
+                "label": "commands",
                 "mode": "request-response",
                 "to": {
                   "nodeId": "owner",
@@ -2402,8 +2484,7 @@
         },
         {
           "checkIds": [
-            "behavior",
-            "boundary"
+            "behavior"
           ],
           "explanation": "Commit outbox row with the job in the same database transaction; a dispatcher retries delivery by job ID. No accepted job exists without durable dispatch intent. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call.",
           "graph": {
@@ -2415,7 +2496,7 @@
                   "portId": "out-l002.durable-jobs.command"
                 },
                 "id": "command",
-                "label": "invoke API",
+                "label": "commands",
                 "mode": "request-response",
                 "to": {
                   "nodeId": "owner",
@@ -2537,10 +2618,9 @@
         },
         {
           "checkIds": [
-            "behavior",
-            "boundary"
+            "lease"
           ],
-          "explanation": "Claim job with monotonically increasing fencing token and lease; completion verifies current token. Lease expiry alone never authorizes a stale token to commit. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources. A newer owner needs a token that the resource checks, not merely a belief that ownership changed.",
+          "explanation": "Claim in one transaction only when the job is accepted or its current lease has expired: raise the fencing token, record the worker and a new deadline. Reject claims on complete jobs and on unexpired leases; completion verifies the current token. A claim never raises the fence while a live lease exists, and lease expiry alone never lets a stale token commit. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources.",
           "graph": {
             "edges": [
               {
@@ -2550,7 +2630,7 @@
                   "portId": "out-l002.durable-jobs.command"
                 },
                 "id": "command",
-                "label": "invoke API",
+                "label": "commands",
                 "mode": "request-response",
                 "to": {
                   "nodeId": "owner",
@@ -2655,7 +2735,7 @@
           },
           "id": "durable-jobs-s4",
           "invariants": [
-            "Lease expiry alone never authorizes a stale token to commit."
+            "A claim never raises the fence while a live lease exists, and lease expiry alone never lets a stale token commit."
           ],
           "number": 4,
           "operations": [
@@ -2691,15 +2771,15 @@
             }
           ],
           "question": "Can an expired worker publish stale completion?",
-          "reason": "Claim job with monotonically increasing fencing token and lease; completion verifies current token.",
+          "reason": "Claim in one transaction only when the job is accepted or its current lease has expired: raise the fencing token, record the worker and a new deadline. Reject claims on complete jobs and on unexpired leases; completion verifies the current token.",
           "title": "Recover worker loss"
         },
         {
           "checkIds": [
-            "behavior",
-            "boundary"
+            "lease",
+            "scale"
           ],
-          "explanation": "Pin query cutoff and renderer version in the job before work; retries reuse them or explicitly create a new report version. One job ID does not silently change input semantics. [Backoff](https://en.wikipedia.org/wiki/Exponential_backoff) spaces repeated attempts so failures do not create a burst of extra traffic. A retry still needs a stable identity and a clear stopping condition.",
+          "explanation": "Pin query cutoff and renderer version in the job before work; retries reuse them or explicitly create a new report version. Worker count and lease length are the knobs an illustrative tenfold scenario would measure through queue age and worker utilization. One job ID does not silently change input semantics. [Backoff](https://en.wikipedia.org/wiki/Exponential_backoff) spaces repeated attempts so failures do not create a burst of extra traffic.",
           "graph": {
             "edges": [
               {
@@ -2709,7 +2789,7 @@
                   "portId": "out-l002.durable-jobs.command"
                 },
                 "id": "command",
-                "label": "invoke API",
+                "label": "commands",
                 "mode": "request-response",
                 "to": {
                   "nodeId": "owner",
@@ -2874,12 +2954,11 @@
             }
           ],
           "question": "Does a retry read different source data?",
-          "reason": "Pin query cutoff and renderer version in the job before work; retries reuse them or explicitly create a new report version.",
+          "reason": "Pin query cutoff and renderer version in the job before work; retries reuse them or explicitly create a new report version. Worker count and lease length are the knobs an illustrative tenfold scenario would measure through queue age and worker utilization.",
           "title": "Compute from pinned inputs"
         },
         {
           "checkIds": [
-            "behavior",
             "boundary"
           ],
           "explanation": "Write immutable content by hash; completion records one authorized artifact choice under the current fencing token. Remote writes may duplicate, but stale workers cannot replace committed metadata. [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers. Publishing one reference lets each reader keep a consistent version.",
@@ -2892,7 +2971,7 @@
                   "portId": "out-l002.durable-jobs.command"
                 },
                 "id": "command",
-                "label": "invoke API",
+                "label": "commands",
                 "mode": "request-response",
                 "to": {
                   "nodeId": "owner",
@@ -3086,10 +3165,9 @@
         },
         {
           "checkIds": [
-            "behavior",
-            "boundary"
+            "behavior"
           ],
-          "explanation": "Authorize each read and report accepted/running/complete/failed/uncertain; complete requires verified artifact and fenced metadata commit. Progress percentages, if used, are measured work or omitted. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources. A newer owner needs a token that the resource checks, not merely a belief that ownership changed.",
+          "explanation": "Authorize each read and report accepted/running/complete/failed/uncertain; complete requires verified artifact and fenced metadata commit. Progress percentages, if used, are measured work or omitted. Every status read is authorized for its owner and changes no job state. [Access control](https://en.wikipedia.org/wiki/Access_control) decides whether an authenticated identity may perform a particular action. The check must apply to the actual resource and operation, including cached and asynchronous paths.",
           "graph": {
             "edges": [
               {
@@ -3099,7 +3177,7 @@
                   "portId": "out-l002.durable-jobs.command"
                 },
                 "id": "command",
-                "label": "invoke API",
+                "label": "commands",
                 "mode": "request-response",
                 "to": {
                   "nodeId": "owner",
@@ -3188,6 +3266,20 @@
                 "to": {
                   "nodeId": "status",
                   "portId": "in-l002.durable-jobs.status"
+                }
+              },
+              {
+                "contractId": "l002.durable-jobs.read",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l002.durable-jobs.read"
+                },
+                "id": "read",
+                "label": "read-only query",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "status",
+                  "portId": "in-l002.durable-jobs.read"
                 }
               }
             ],
@@ -3276,7 +3368,7 @@
           },
           "id": "durable-jobs-s7",
           "invariants": [
-            "Progress percentages, if used, are measured work or omitted."
+            "Every status read is authorized for its owner and changes no job state."
           ],
           "number": 7,
           "operations": [
@@ -3309,15 +3401,31 @@
                 }
               },
               "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l002.durable-jobs.read",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l002.durable-jobs.read"
+                },
+                "id": "read",
+                "label": "read-only query",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "status",
+                  "portId": "in-l002.durable-jobs.read"
+                }
+              },
+              "op": "connect"
             }
           ],
           "question": "Can polling report complete before bytes exist?",
-          "reason": "Authorize each read and report accepted/running/complete/failed/uncertain; complete requires verified artifact and fenced metadata commit.",
+          "reason": "Authorize each read and report accepted/running/complete/failed/uncertain; complete requires verified artifact and fenced metadata commit. Progress percentages, if used, are measured work or omitted.",
           "title": "Expose progress honestly"
         },
         {
           "checkIds": [
-            "behavior",
             "boundary"
           ],
           "explanation": "Scan unfinished jobs and artifacts, verify identity/hash, requeue or reconcile with a fresh lease. Unknown irreversible effects stay uncertain. Recovery does not claim an incident actually occurred or prove deployed reliability. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources. A newer owner needs a token that the resource checks, not merely a belief that ownership changed.",
@@ -3330,7 +3438,7 @@
                   "portId": "out-l002.durable-jobs.command"
                 },
                 "id": "command",
-                "label": "invoke API",
+                "label": "commands",
                 "mode": "request-response",
                 "to": {
                   "nodeId": "owner",
@@ -3419,6 +3527,20 @@
                 "to": {
                   "nodeId": "status",
                   "portId": "in-l002.durable-jobs.status"
+                }
+              },
+              {
+                "contractId": "l002.durable-jobs.read",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l002.durable-jobs.read"
+                },
+                "id": "read",
+                "label": "read-only query",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "status",
+                  "portId": "in-l002.durable-jobs.read"
                 }
               },
               {

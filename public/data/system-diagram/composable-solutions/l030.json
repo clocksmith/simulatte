@@ -124,7 +124,7 @@
           "id": "out-l030.incremental.c6"
         }
       ],
-      "responsibility": "Update floor(eventTime/windowSize) half-open sum/count after deduplicating event IDs.",
+      "responsibility": "Update the half-open window [floor(eventTime/width)*width, +width) once per event ID; each open window owns its own event-ID set.",
       "stateOwnership": [
         "key/window sum, count and dedupe"
       ],
@@ -149,7 +149,7 @@
           "id": "out-l030.incremental.c4"
         }
       ],
-      "responsibility": "Advance a monotonic watermark under declared partition/idleness policy and route older events to quarantine.",
+      "responsibility": "Advance a monotonic watermark (max event time minus allowed lateness) under declared idleness policy; quarantine events whose window already closed and evict closed windows with their event IDs.",
       "stateOwnership": [
         "watermark and late-event reasons"
       ],
@@ -404,7 +404,7 @@
           "id": "out-l030.microbatch.c6"
         }
       ],
-      "responsibility": "Use the frozen batch watermark; eligible events update windows, older events enter a retained quarantine dataset.",
+      "responsibility": "Use the frozen batch watermark: events whose window end is above it update windows; events for closed windows enter a retained quarantine dataset.",
       "stateOwnership": [
         "batch watermark and quarantine"
       ],
@@ -424,7 +424,7 @@
           "id": "in-l030.microbatch.c6"
         }
       ],
-      "responsibility": "Commit touched-window aggregates and batch receipt together, or recompute from selected immutable batches.",
+      "responsibility": "Commit touched-window deltas, the per-window event-ID index and the batch receipt in one transaction; drop the ID index of windows the watermark has closed.",
       "stateOwnership": [
         "window versions and batch receipts"
       ],
@@ -573,7 +573,8 @@
       "id": "l030.incremental.c5",
       "request": {
         "eventTime": "integer",
-        "watermark": "integer"
+        "watermark": "integer",
+        "windowEnd": "integer"
       },
       "response": {
         "route": "window|quarantine"
@@ -660,7 +661,8 @@
       "id": "l030.microbatch.c5",
       "request": {
         "batchWatermark": "integer",
-        "eventTime": "integer"
+        "eventTime": "integer",
+        "windowEnd": "integer"
       },
       "response": {
         "route": "eligible|quarantine"
@@ -671,6 +673,7 @@
       "id": "l030.microbatch.c6",
       "request": {
         "batchId": "uuid",
+        "eventIds": "key/window/event ID rows[]",
         "windowDeltas": "key/window/sum/count[]"
       },
       "response": {
@@ -709,7 +712,7 @@
         "text": "Bound memory, spill deterministically and commit progress with state/output."
       }
     ],
-    "scope": "Finite events carry explicit event timestamps and schema-version transitions. Compare incremental keyed event-time state with immutable microbatch recomputation. Watermarks express a lateness policy; bounded memory/spill and replay are explicit.",
+    "scope": "Finite events carry explicit event timestamps and schema-version transitions. Compare incremental keyed event-time state with immutable microbatch recomputation. Watermarks express a lateness policy: as in the cited Spark guide, a late event still updates its window until the watermark passes that window's end. Bounded memory/spill and replay are explicit.",
     "studyLabel": "Event-time windows and schema evolution"
   },
   "provenance": {
@@ -740,55 +743,65 @@
           "evidence": {
             "kind": "reference-test",
             "testFile": "tools/simulatte/study-reference/batch-03-mechanisms.test.mjs",
-            "testName": "L030 bounded mechanism"
+            "testName": "L030 incremental windows follow window-end lateness and evict finalized state"
           },
-          "given": "A 10ms tumbling window sees timestamps 9,10, a duplicate ID, and a timestamp below watermark 5.",
+          "given": "10ms windows with 5ms allowed lateness receive times 9, 10, a duplicate 9, an out-of-order 4, an unknown schema, then 25, a straggler at 7 and a redelivered 10.",
           "id": "mechanism",
           "relatedRequirementIds": [
             "r0",
             "r1",
             "r2"
           ],
-          "then": "Time 9 maps to [0,10), time 10 to [10,20); the duplicate is ignored and timestamp 4 quarantined.",
-          "when": "Apply mixed-schema canonical values to the bounded window fold."
+          "then": "Time 4 still counts in the open [0,10) window; at watermark 20 windows [0,10) and [10,20) are emitted and their sums and event IDs evicted, so the straggler and the redelivery are quarantined rather than recounted; the duplicate is ignored and the unknown schema quarantined.",
+          "when": "Fold them through the incremental window state."
         },
         {
           "given": "An event lands exactly at a tumbling-window boundary.",
           "id": "boundary",
           "relatedRequirementIds": [
             "r0",
-            "r1",
-            "r2"
+            "r1"
           ],
           "then": "Assign the event to the new half-open window, independent of arrival order.",
           "when": "Decode its version and compute floor(eventTime/width)."
         },
         {
-          "given": "Watermark is 5 and events at 4 and 5 arrive.",
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-03-mechanisms.test.mjs",
+            "testName": "L030 incremental windows follow window-end lateness and evict finalized state"
+          },
+          "given": "Windows are 10ms, allowed lateness is 5ms and the max event time seen is 17, so the watermark is 12.",
           "id": "late",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
-            "r2"
+            "r1"
           ],
-          "then": "Quarantine time 4 and allow time 5; idle partitions must follow an explicit policy.",
-          "when": "Classify both under the declared event-time policy."
+          "then": "Time 4 is quarantined because window [0,10) closed at watermark 12; time 11 still updates the open [10,20) window although it is below the watermark.",
+          "when": "Events at times 4 and 11 arrive."
         },
         {
           "given": "A worker crashes after output is written but before source checkpoint commit.",
           "id": "replay",
           "relatedRequirementIds": [
             "r0",
-            "r1",
             "r2"
           ],
           "then": "Deduplicate or reconcile versioned output so sum/count do not double; unknown schema versions remain quarantined.",
           "when": "Restore and replay the same event identities."
+        },
+        {
+          "given": "A partition's FIFO reaches its byte budget while window state is spilling.",
+          "id": "backpressure",
+          "relatedRequirementIds": [
+            "r2"
+          ],
+          "then": "Admission pauses for that partition; queued events keep offset order and none is dropped or reordered.",
+          "when": "The source offers more events for that partition."
         }
       ],
       "algorithms": [
         {
-          "code": "if (seen.has(event.id)) return \"duplicate\";\nseen.add(event.id);\nif (event.time < watermark) return \"quarantine\";\nconst start = Math.floor(event.time / width) * width;\nwindows[start] ??= {sum:0,count:0}; windows[start].sum += event.value; windows[start].count++;",
+          "code": "const value = decode(event.schemaVersion, event.payload); // unknown versions go to quarantine\nconst start = Math.floor(event.time / width) * width;\nif (start + width <= watermark) return quarantine(event, \"late\"); // its window already closed\nconst win = open.get(start) ?? openWindow(start);\nif (win.ids.has(event.id)) return \"duplicate\";\nwin.ids.add(event.id); win.sum += value; win.count++;\nmaxEventTime = Math.max(maxEventTime, event.time); watermark = Math.max(watermark, maxEventTime - lateness);\nfor (const [s, w] of open) if (s + width <= watermark) { emitFinal(s, w.sum, w.count); open.delete(s); } // evicts sums and IDs",
           "guarantees": [
             "The code states the bounded decision rule; unimplemented helpers remain pseudocode.",
             "External effects, distributed failure and latency require separate execution evidence."
@@ -798,7 +811,7 @@
           "ownerNodeId": "n4"
         },
         {
-          "code": "const cp = loadCommittedCheckpoint();\nrestoreWindowState(cp.stateRefs, cp.dedupeRefs, cp.watermark);\nfor (const event of source.after(cp.offsets)) applyIfNewEventId(event);\ncommitOutputVersionsWithCheckpoint();\n// Finalize a window only under the declared watermark rule; late quarantine is retained separately.",
+          "code": "const cp = loadCommittedCheckpoint();\nrestoreWindowState(cp.openWindows, cp.watermark); // each open window carries its event-ID set\nfor (const event of source.after(cp.offsets)) applyIfNewEventId(event);\ncommitOutputVersionsWithCheckpoint();\n// Closed windows were emitted and evicted before the checkpoint; their late events stay in quarantine.",
           "guarantees": [
             "Restore a checkpoint, deduplicate replayed IDs and publish versioned window results; finality follows the declared watermark rule."
           ],
@@ -809,7 +822,7 @@
       ],
       "apis": [
         {
-          "errors": "401 unauthenticated; 409 stale identity/version; 429 bounded capacity; 503 unavailable authority",
+          "errors": "400 unknown schemaVersion or non-integer eventTime; 429 partition FIFO at its byte budget, retry with the same eventId",
           "method": "POST",
           "ownerNodeId": "control",
           "path": "/l030/incremental",
@@ -817,12 +830,12 @@
           "response": "{\"accepted\":\"boolean\"}"
         },
         {
-          "errors": "403 unauthorized scope; 404 absent identity; 410 expired retained history",
+          "errors": "404 no event has reached this key and window; 410 window finalized and evicted, read its emitted result",
           "method": "GET",
           "ownerNodeId": "state",
           "path": "/l030/incremental/state",
-          "request": "{\"partition\":\"integer\",\"offset\":\"integer\"}",
-          "response": "{\"checkpointId\":\"uuid\"}"
+          "request": "{\"key\":\"string\",\"windowStart\":\"integer ms\"}",
+          "response": "{\"sum\":\"number\",\"count\":\"integer\",\"final\":\"boolean\",\"watermark\":\"integer ms\"}"
         }
       ],
       "assumptions": [
@@ -837,12 +850,9 @@
       "stages": [
         {
           "checkIds": [
-            "mechanism",
-            "boundary",
-            "late",
-            "replay"
+            "boundary"
           ],
-          "explanation": "Accept source event ID, partition, schema version and an event timestamp separate from arrival time. Accept source event ID, partition, schema version and an event timestamp separate from arrival time. State owner: Event intake (source event identity). Accept source event ID, partition, schema version and an event timestamp separate from arrival time. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Partitioning](https://en.wikipedia.org/wiki/Partition_%28database%29) divides data and work among owners.",
+          "explanation": "Accept source event ID, partition, schema version and an event timestamp separate from arrival time. Event time comes from the payload, never from arrival; an event without an integer eventTime is rejected at intake. Accept source event ID, partition, schema version and an event timestamp separate from arrival time. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Stream processing](https://en.wikipedia.org/wiki/Stream_processing) updates results as events arrive.",
           "graph": {
             "edges": [
               {
@@ -885,7 +895,7 @@
           },
           "id": "incremental-s1",
           "invariants": [
-            "Accept source event ID, partition, schema version and an event timestamp separate from arrival time. State owner: Event intake (source event identity)."
+            "Event time comes from the payload, never from arrival; an event without an integer eventTime is rejected at intake."
           ],
           "number": 1,
           "operations": [
@@ -939,12 +949,9 @@
         },
         {
           "checkIds": [
-            "mechanism",
-            "boundary",
-            "late",
             "replay"
           ],
-          "explanation": "Expand ingress with source offsets, schema compatibility and state checkpoint identities. Expand ingress with source offsets, schema compatibility and state checkpoint identities. State owner: Offset authority (offset and checkpoint versions). Expand ingress with source offsets, schema compatibility and state checkpoint identities. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A checkpoint](https://en.wikipedia.org/wiki/Checkpointing) records enough progress to restart without repeating everything.",
+          "explanation": "Expand ingress with source offsets, schema compatibility and state checkpoint identities. A source offset is committed only together with the state checkpoint that reflects every event before it. Expand ingress with source offsets, schema compatibility and state checkpoint identities. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A checkpoint](https://en.wikipedia.org/wiki/Checkpointing) records enough progress to restart without repeating everything.",
           "graph": {
             "edges": [
               {
@@ -1024,7 +1031,7 @@
           },
           "id": "incremental-s2",
           "invariants": [
-            "Expand ingress with source offsets, schema compatibility and state checkpoint identities. State owner: Offset authority (offset and checkpoint versions)."
+            "A source offset is committed only together with the state checkpoint that reflects every event before it."
           ],
           "number": 2,
           "operations": [
@@ -1078,12 +1085,10 @@
         },
         {
           "checkIds": [
-            "mechanism",
             "boundary",
-            "late",
-            "replay"
+            "mechanism"
           ],
-          "explanation": "Decode v1/v2 through explicit converters to one canonical value; reject unknown versions. Decode v1/v2 through explicit converters to one canonical value; reject unknown versions. State owner: Version decoder (schema conversion registry). Decode v1/v2 through explicit converters to one canonical value; reject unknown versions. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Stream processing](https://en.wikipedia.org/wiki/Stream_processing) updates results as events arrive.",
+          "explanation": "Decode v1/v2 through explicit converters to one canonical value; reject unknown versions. v1 value and v2 amount decode to one canonical value; an unknown version is quarantined, never defaulted. Decode v1/v2 through explicit converters to one canonical value; reject unknown versions. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Stream processing](https://en.wikipedia.org/wiki/Stream_processing) updates results as events arrive.",
           "graph": {
             "edges": [
               {
@@ -1187,7 +1192,7 @@
           },
           "id": "incremental-s3",
           "invariants": [
-            "Decode v1/v2 through explicit converters to one canonical value; reject unknown versions. State owner: Version decoder (schema conversion registry)."
+            "v1 value and v2 amount decode to one canonical value; an unknown version is quarantined, never defaulted."
           ],
           "number": 3,
           "operations": [
@@ -1234,12 +1239,9 @@
         },
         {
           "checkIds": [
-            "mechanism",
-            "boundary",
-            "late",
-            "replay"
+            "backpressure"
           ],
-          "explanation": "Keep per-partition FIFO with bounded buffers and backpressure on source admission. Keep per-partition FIFO with bounded buffers and backpressure on source admission. State owner: Partition FIFO (partition queue and byte budget). Keep per-partition FIFO with bounded buffers and backpressure on source admission. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Backpressure](https://en.wikipedia.org/wiki/Flow_control_%28data%29) prevents producers from outrunning the next component indefinitely.",
+          "explanation": "Keep per-partition FIFO with bounded buffers and backpressure on source admission. Per-partition offset order is preserved and queued bytes never exceed the partition budget; a full queue pauses admission instead of dropping. Keep per-partition FIFO with bounded buffers and backpressure on source admission. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Backpressure](https://en.wikipedia.org/wiki/Flow_control_%28data%29) prevents producers from outrunning the next component indefinitely.",
           "graph": {
             "edges": [
               {
@@ -1367,7 +1369,7 @@
           },
           "id": "incremental-s4",
           "invariants": [
-            "Keep per-partition FIFO with bounded buffers and backpressure on source admission. State owner: Partition FIFO (partition queue and byte budget)."
+            "Per-partition offset order is preserved and queued bytes never exceed the partition budget; a full queue pauses admission instead of dropping."
           ],
           "number": 4,
           "operations": [
@@ -1408,12 +1410,10 @@
         },
         {
           "checkIds": [
-            "mechanism",
             "boundary",
-            "late",
-            "replay"
+            "mechanism"
           ],
-          "explanation": "Update floor(eventTime/windowSize) half-open sum/count after deduplicating event IDs. Update floor(eventTime/windowSize) half-open sum/count after deduplicating event IDs. State owner: Window state (key/window sum, count and dedupe). Update floor(eventTime/windowSize) half-open sum/count after deduplicating event IDs. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Stream processing](https://en.wikipedia.org/wiki/Stream_processing) updates results as events arrive. Arrival order may differ from event time, so late-data rules and bounded retained state are part of the result definition.",
+          "explanation": "Update the half-open window [floor(eventTime/width)*width, +width) once per event ID; each open window owns its own event-ID set. An event updates exactly one half-open window, once per event ID, and only while that window is open. Update the half-open window [floor(eventTime/width)*width, +width) once per event ID; each open window owns its own event-ID set. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Stream processing](https://en.wikipedia.org/wiki/Stream_processing) updates results as events arrive.",
           "graph": {
             "edges": [
               {
@@ -1565,7 +1565,7 @@
           },
           "id": "incremental-s5",
           "invariants": [
-            "Update floor(eventTime/windowSize) half-open sum/count after deduplicating event IDs. State owner: Window state (key/window sum, count and dedupe)."
+            "An event updates exactly one half-open window, once per event ID, and only while that window is open."
           ],
           "number": 5,
           "operations": [
@@ -1607,17 +1607,15 @@
             }
           ],
           "question": "Which bucket owns a boundary event?",
-          "reason": "Update floor(eventTime/windowSize) half-open sum/count after deduplicating event IDs.",
+          "reason": "Update the half-open window [floor(eventTime/width)*width, +width) once per event ID; each open window owns its own event-ID set.",
           "title": "Window state"
         },
         {
           "checkIds": [
-            "mechanism",
-            "boundary",
             "late",
-            "replay"
+            "mechanism"
           ],
-          "explanation": "Advance a monotonic watermark under declared partition/idleness policy and route older events to quarantine. Advance a monotonic watermark under declared partition/idleness policy and route older events to quarantine. State owner: Watermark gate (watermark and late-event reasons). Advance a monotonic watermark under declared partition/idleness policy and route older events to quarantine. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes.",
+          "explanation": "Advance a monotonic watermark (max event time minus allowed lateness) under declared idleness policy; quarantine events whose window already closed and evict closed windows with their event IDs. An event is quarantined only when its window end is at or below the watermark; when the watermark passes a window end, that window is emitted and its sums and event IDs are evicted. [Stream processing](https://en.wikipedia.org/wiki/Stream_processing) updates results as events arrive.",
           "graph": {
             "edges": [
               {
@@ -1807,7 +1805,7 @@
           },
           "id": "incremental-s6",
           "invariants": [
-            "Advance a monotonic watermark under declared partition/idleness policy and route older events to quarantine. State owner: Watermark gate (watermark and late-event reasons)."
+            "An event is quarantined only when its window end is at or below the watermark; when the watermark passes a window end, that window is emitted and its sums and event IDs are evicted."
           ],
           "number": 6,
           "operations": [
@@ -1860,17 +1858,14 @@
             }
           ],
           "question": "When is an event too late?",
-          "reason": "Advance a monotonic watermark under declared partition/idleness policy and route older events to quarantine.",
+          "reason": "Advance a monotonic watermark (max event time minus allowed lateness) under declared idleness policy; quarantine events whose window already closed and evict closed windows with their event IDs.",
           "title": "Watermark gate"
         },
         {
           "checkIds": [
-            "mechanism",
-            "boundary",
-            "late",
             "replay"
           ],
-          "explanation": "Spill bounded sorted runs and atomically checkpoint state references plus source offsets. Spill bounded sorted runs and atomically checkpoint state references plus source offsets. State owner: Spill checkpoint (spill manifests and checkpoints). Spill bounded sorted runs and atomically checkpoint state references plus source offsets. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A checkpoint](https://en.wikipedia.org/wiki/Checkpointing) records enough progress to restart without repeating everything.",
+          "explanation": "Spill bounded sorted runs and atomically checkpoint state references plus source offsets. In-memory state stays within memoryBytes; spilled runs and source offsets are referenced by one atomic checkpoint. Spill bounded sorted runs and atomically checkpoint state references plus source offsets. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A checkpoint](https://en.wikipedia.org/wiki/Checkpointing) records enough progress to restart without repeating everything.",
           "graph": {
             "edges": [
               {
@@ -2098,7 +2093,7 @@
           },
           "id": "incremental-s7",
           "invariants": [
-            "Spill bounded sorted runs and atomically checkpoint state references plus source offsets. State owner: Spill checkpoint (spill manifests and checkpoints)."
+            "In-memory state stays within memoryBytes; spilled runs and source offsets are referenced by one atomic checkpoint."
           ],
           "number": 7,
           "operations": [
@@ -2162,12 +2157,9 @@
         },
         {
           "checkIds": [
-            "mechanism",
-            "boundary",
-            "late",
             "replay"
           ],
-          "explanation": "Restore a checkpoint, deduplicate replayed IDs and publish versioned window results; finality follows the declared watermark rule. Restore a checkpoint, deduplicate replayed IDs and publish versioned window results; finality follows the declared watermark rule. State owner: Replay and finalize (output versions and replay cursor). [An event log](https://en.wikipedia.org/wiki/Event-driven_architecture) preserves ordered changes so a consumer can rebuild state or catch up. The consumer must remember its position and handle repeated delivery without repeated effects.",
+          "explanation": "Restore a checkpoint, deduplicate replayed IDs and publish versioned window results; finality follows the declared watermark rule. Replay after the committed offsets reapplies events by ID into restored open windows, so sums never double; a finalized window is emitted once. [An event log](https://en.wikipedia.org/wiki/Event-driven_architecture) preserves ordered changes so a consumer can rebuild state or catch up. The consumer must remember its position and handle repeated delivery without repeated effects.",
           "graph": {
             "edges": [
               {
@@ -2433,7 +2425,7 @@
           },
           "id": "incremental-s8",
           "invariants": [
-            "Restore a checkpoint, deduplicate replayed IDs and publish versioned window results; finality follows the declared watermark rule. State owner: Replay and finalize (output versions and replay cursor)."
+            "Replay after the committed offsets reapplies events by ID into restored open windows, so sums never double; a finalized window is emitted once."
           ],
           "number": 8,
           "operations": [
@@ -2501,25 +2493,24 @@
           "evidence": {
             "kind": "reference-test",
             "testFile": "tools/simulatte/study-reference/batch-03-mechanisms.test.mjs",
-            "testName": "L030 bounded mechanism"
+            "testName": "L030 microbatch commits window deltas with a per-window event-ID index and batch receipt"
           },
-          "given": "A 10ms tumbling window sees timestamps 9,10, a duplicate ID, and a timestamp below watermark 5.",
+          "given": "Batch b1 holds time 9 (delivered twice) and time 10; b2 redelivers the time-9 event under a new offset with an out-of-order time 4 and an unknown schema at frozen watermark 5; b3 has watermark 20 and a straggler at time 4.",
           "id": "mechanism",
           "relatedRequirementIds": [
             "r0",
             "r1",
             "r2"
           ],
-          "then": "Time 9 maps to [0,10), time 10 to [10,20); the duplicate is ignored and timestamp 4 quarantined.",
-          "when": "Apply mixed-schema canonical values to the bounded window fold."
+          "then": "The redelivered event adds nothing to [0,10) and time 4 counts because that window is still open; replaying b2 is already-committed; in b3 the straggler is quarantined and closed windows keep their sums but drop their event-ID index.",
+          "when": "Commit b1 and b2, replay b2, then commit b3."
         },
         {
           "given": "A frozen batch contains v1 and v2 events at timestamps 9 and 10.",
           "id": "boundary",
           "relatedRequirementIds": [
             "r0",
-            "r1",
-            "r2"
+            "r1"
           ],
           "then": "Produce separate [0,10) and [10,20) aggregates with explicit conversion versions.",
           "when": "Normalize to canonical values and group into 10ms windows."
@@ -2528,19 +2519,20 @@
           "given": "New arrivals appear while a batch runs.",
           "id": "late",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
-            "r2"
+            "r1"
           ],
-          "then": "The new arrivals enter a later batch; old timestamps follow the recorded late/quarantine policy.",
+          "then": "The new arrivals enter a later batch; an event is quarantined only when its window end is at or below that batch's frozen watermark.",
           "when": "Finish the frozen upper offsets and watermark."
         },
         {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-03-mechanisms.test.mjs",
+            "testName": "L030 microbatch commits window deltas with a per-window event-ID index and batch receipt"
+          },
           "given": "A batch merge commits but the process crashes before advancing source offsets.",
           "id": "replay",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
             "r2"
           ],
           "then": "Read the unique batch receipt and advance offsets without adding its deltas again.",
@@ -2549,7 +2541,7 @@
       ],
       "algorithms": [
         {
-          "code": "if (seen.has(event.id)) return \"duplicate\";\nseen.add(event.id);\nif (event.time < watermark) return \"quarantine\";\nconst start = Math.floor(event.time / width) * width;\nwindows[start] ??= {sum:0,count:0}; windows[start].sum += event.value; windows[start].count++;",
+          "code": "if (windowStore.hasReceipt(batch.id)) return \"already-committed\";\nconst deltas = new Map(), ids = [];\nfor (const e of normalizedSortedUnique(batch)) { // repeats inside the batch collapse here\n const start = Math.floor(e.time / width) * width;\n if (start + width <= batch.watermark) { quarantine(e, batch.id); continue; }\n if (windowStore.idIndex(e.key, start).has(e.id)) continue; // already counted by an earlier batch\n addDelta(deltas, e.key, start, e.value); ids.push([e.key, start, e.id]);\n}\ntransaction(() => { mergeDeltas(deltas); insertIds(ids); dropIdIndexForWindowsEndingBy(batch.watermark); insertBatchReceiptUnique(batch.id); });",
           "guarantees": [
             "The code states the bounded decision rule; unimplemented helpers remain pseudocode.",
             "External effects, distributed failure and latency require separate execution evidence."
@@ -2559,7 +2551,7 @@
           "ownerNodeId": "n6"
         },
         {
-          "code": "const batch = loadFrozenBatch(batchId);\nif (windowStore.hasBatchReceipt(batch.id)) return advanceOffsets(batch.upperOffsets);\nconst deltas = recomputeFromImmutableEvents(batch, batch.watermark);\ntransaction(()=> { mergeDeltas(deltas); insertBatchReceiptUnique(batch.id); });\nadvanceOffsets(batch.upperOffsets);",
+          "code": "const batch = loadFrozenBatch(batchId);\nif (windowStore.hasBatchReceipt(batch.id)) return advanceOffsets(batch.upperOffsets);\nconst {deltas, ids} = recomputeFromImmutableEvents(batch, batch.watermark, windowStore.idIndex);\ntransaction(()=> { mergeDeltas(deltas); insertIds(ids); insertBatchReceiptUnique(batch.id); });\nadvanceOffsets(batch.upperOffsets);",
           "guarantees": [
             "Reuse frozen ranges and batch identity, reconcile merge receipt, then advance source checkpoint."
           ],
@@ -2570,7 +2562,7 @@
       ],
       "apis": [
         {
-          "errors": "401 unauthenticated; 409 stale identity/version; 429 bounded capacity; 503 unavailable authority",
+          "errors": "409 batchId already bound to different upper offsets; 422 upper offsets below the previous batch's upper offsets",
           "method": "POST",
           "ownerNodeId": "control",
           "path": "/l030/microbatch",
@@ -2578,12 +2570,12 @@
           "response": "{\"accepted\":\"boolean\"}"
         },
         {
-          "errors": "403 unauthorized scope; 404 absent identity; 410 expired retained history",
+          "errors": "404 no committed batch has touched this key and window",
           "method": "GET",
           "ownerNodeId": "state",
           "path": "/l030/microbatch/state",
-          "request": "{\"batchId\":\"uuid\"}",
-          "response": "{\"lowerOffsets\":\"map\",\"upperOffsets\":\"map\"}"
+          "request": "{\"key\":\"string\",\"windowStart\":\"integer ms\"}",
+          "response": "{\"sum\":\"number\",\"count\":\"integer\",\"final\":\"boolean\",\"lastBatchId\":\"uuid\"}"
         }
       ],
       "assumptions": [
@@ -2598,12 +2590,9 @@
       "stages": [
         {
           "checkIds": [
-            "mechanism",
-            "boundary",
-            "late",
-            "replay"
+            "late"
           ],
-          "explanation": "Freeze upper source offsets and a unique batch identity without treating arrival time as event time. Freeze upper source offsets and a unique batch identity without treating arrival time as event time. State owner: Batch cutoff (batch offset interval). [Data ingestion](https://en.wikipedia.org/wiki/Data_integration) moves source records into a usable destination. Stable source identity and progress records distinguish genuinely new data from repeated delivery or a restarted import.",
+          "explanation": "Freeze upper source offsets and a unique batch identity without treating arrival time as event time. A batchId binds one frozen set of upper offsets and one watermark; arrivals after the cutoff belong to a later batch. Freeze upper source offsets and a unique batch identity without treating arrival time as event time. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Data ingestion](https://en.wikipedia.org/wiki/Data_integration) moves source records into a usable destination.",
           "graph": {
             "edges": [
               {
@@ -2646,7 +2635,7 @@
           },
           "id": "microbatch-s1",
           "invariants": [
-            "Freeze upper source offsets and a unique batch identity without treating arrival time as event time. State owner: Batch cutoff (batch offset interval)."
+            "A batchId binds one frozen set of upper offsets and one watermark; arrivals after the cutoff belong to a later batch."
           ],
           "number": 1,
           "operations": [
@@ -2700,12 +2689,9 @@
         },
         {
           "checkIds": [
-            "mechanism",
-            "boundary",
-            "late",
             "replay"
           ],
-          "explanation": "Expand batch coordinator with immutable offset ranges and commit receipts. Expand batch coordinator with immutable offset ranges and commit receipts. State owner: Batch catalogue (batch identity and ranges). Expand batch coordinator with immutable offset ranges and commit receipts. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Data ingestion](https://en.wikipedia.org/wiki/Data_integration) moves source records into a usable destination.",
+          "explanation": "Expand batch coordinator with immutable offset ranges and commit receipts. Offset ranges are immutable per batchId; a retried batch reuses its range rather than opening a new interval. Expand batch coordinator with immutable offset ranges and commit receipts. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Data ingestion](https://en.wikipedia.org/wiki/Data_integration) moves source records into a usable destination.",
           "graph": {
             "edges": [
               {
@@ -2785,7 +2771,7 @@
           },
           "id": "microbatch-s2",
           "invariants": [
-            "Expand batch coordinator with immutable offset ranges and commit receipts. State owner: Batch catalogue (batch identity and ranges)."
+            "Offset ranges are immutable per batchId; a retried batch reuses its range rather than opening a new interval."
           ],
           "number": 2,
           "operations": [
@@ -2839,12 +2825,9 @@
         },
         {
           "checkIds": [
-            "mechanism",
-            "boundary",
-            "late",
             "replay"
           ],
-          "explanation": "Retain event IDs, event times and original schema version in an immutable batch object. Retain event IDs, event times and original schema version in an immutable batch object. State owner: Raw event archive (raw batch bytes and digest). Retain event IDs, event times and original schema version in an immutable batch object. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Data ingestion](https://en.wikipedia.org/wiki/Data_integration) moves source records into a usable destination.",
+          "explanation": "Retain event IDs, event times and original schema version in an immutable batch object. Raw batch bytes keep event ID, event time and original schema version and are never rewritten, so recomputation sees the same input. Retain event IDs, event times and original schema version in an immutable batch object. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Stream processing](https://en.wikipedia.org/wiki/Stream_processing) updates results as events arrive.",
           "graph": {
             "edges": [
               {
@@ -2948,7 +2931,7 @@
           },
           "id": "microbatch-s3",
           "invariants": [
-            "Retain event IDs, event times and original schema version in an immutable batch object. State owner: Raw event archive (raw batch bytes and digest)."
+            "Raw batch bytes keep event ID, event time and original schema version and are never rewritten, so recomputation sees the same input."
           ],
           "number": 3,
           "operations": [
@@ -2995,12 +2978,10 @@
         },
         {
           "checkIds": [
-            "mechanism",
             "boundary",
-            "late",
-            "replay"
+            "mechanism"
           ],
-          "explanation": "Convert each declared version to canonical key/value fields and quarantine unknown versions. Convert each declared version to canonical key/value fields and quarantine unknown versions. State owner: Schema normalize (conversion version and rejects). Convert each declared version to canonical key/value fields and quarantine unknown versions. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Stream processing](https://en.wikipedia.org/wiki/Stream_processing) updates results as events arrive.",
+          "explanation": "Convert each declared version to canonical key/value fields and quarantine unknown versions. Each declared version converts to one canonical value; unknown versions are quarantined with their batchId. Convert each declared version to canonical key/value fields and quarantine unknown versions. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Data ingestion](https://en.wikipedia.org/wiki/Data_integration) moves source records into a usable destination.",
           "graph": {
             "edges": [
               {
@@ -3128,7 +3109,7 @@
           },
           "id": "microbatch-s4",
           "invariants": [
-            "Convert each declared version to canonical key/value fields and quarantine unknown versions. State owner: Schema normalize (conversion version and rejects)."
+            "Each declared version converts to one canonical value; unknown versions are quarantined with their batchId."
           ],
           "number": 4,
           "operations": [
@@ -3169,12 +3150,9 @@
         },
         {
           "checkIds": [
-            "mechanism",
-            "boundary",
-            "late",
-            "replay"
+            "mechanism"
           ],
-          "explanation": "Sort by key/window/event ID into bounded disk runs, deduplicating repeated source identities. Sort by key/window/event ID into bounded disk runs, deduplicating repeated source identities. State owner: Sort and spill (sorted spill runs). Sort by key/window/event ID into bounded disk runs, deduplicating repeated source identities. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Stream processing](https://en.wikipedia.org/wiki/Stream_processing) updates results as events arrive.",
+          "explanation": "Sort by key/window/event ID into bounded disk runs, deduplicating repeated source identities. Sorted runs stay within memoryLimit, and an event ID repeated inside one batch collapses to one row before merge. Sort by key/window/event ID into bounded disk runs, deduplicating repeated source identities. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Stream processing](https://en.wikipedia.org/wiki/Stream_processing) updates results as events arrive.",
           "graph": {
             "edges": [
               {
@@ -3326,7 +3304,7 @@
           },
           "id": "microbatch-s5",
           "invariants": [
-            "Sort by key/window/event ID into bounded disk runs, deduplicating repeated source identities. State owner: Sort and spill (sorted spill runs)."
+            "Sorted runs stay within memoryLimit, and an event ID repeated inside one batch collapses to one row before merge."
           ],
           "number": 5,
           "operations": [
@@ -3367,12 +3345,10 @@
         },
         {
           "checkIds": [
-            "mechanism",
-            "boundary",
             "late",
-            "replay"
+            "mechanism"
           ],
-          "explanation": "Use the frozen batch watermark; eligible events update windows, older events enter a retained quarantine dataset. Use the frozen batch watermark; eligible events update windows, older events enter a retained quarantine dataset. State owner: Lateness partition (batch watermark and quarantine). [Stream processing](https://en.wikipedia.org/wiki/Stream_processing) updates results as events arrive. Arrival order may differ from event time, so late-data rules and bounded retained state are part of the result definition.",
+          "explanation": "Use the frozen batch watermark: events whose window end is above it update windows; events for closed windows enter a retained quarantine dataset. Under the batch's frozen watermark an event is eligible while its window end is above it; otherwise it is quarantined with its batchId. [Stream processing](https://en.wikipedia.org/wiki/Stream_processing) updates results as events arrive. Arrival order may differ from event time, so late-data rules and bounded retained state are part of the result definition.",
           "graph": {
             "edges": [
               {
@@ -3548,7 +3524,7 @@
           },
           "id": "microbatch-s6",
           "invariants": [
-            "Use the frozen batch watermark; eligible events update windows, older events enter a retained quarantine dataset. State owner: Lateness partition (batch watermark and quarantine)."
+            "Under the batch's frozen watermark an event is eligible while its window end is above it; otherwise it is quarantined with its batchId."
           ],
           "number": 6,
           "operations": [
@@ -3584,17 +3560,15 @@
             }
           ],
           "question": "How is late data classified consistently?",
-          "reason": "Use the frozen batch watermark; eligible events update windows, older events enter a retained quarantine dataset.",
+          "reason": "Use the frozen batch watermark: events whose window end is above it update windows; events for closed windows enter a retained quarantine dataset.",
           "title": "Lateness partition"
         },
         {
           "checkIds": [
             "mechanism",
-            "boundary",
-            "late",
             "replay"
           ],
-          "explanation": "Commit touched-window aggregates and batch receipt together, or recompute from selected immutable batches. Commit touched-window aggregates and batch receipt together, or recompute from selected immutable batches. State owner: Atomic window merge (window versions and batch receipts). Commit touched-window aggregates and batch receipt together, or recompute from selected immutable batches. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Data ingestion](https://en.wikipedia.org/wiki/Data_integration) moves source records into a usable destination.",
+          "explanation": "Commit touched-window deltas, the per-window event-ID index and the batch receipt in one transaction; drop the ID index of windows the watermark has closed. Window deltas, the per-window event-ID index and the batch receipt commit together; an event ID already indexed for its window adds nothing, even from another batch. [Stream processing](https://en.wikipedia.org/wiki/Stream_processing) updates results as events arrive.",
           "graph": {
             "edges": [
               {
@@ -3794,7 +3768,7 @@
           },
           "id": "microbatch-s7",
           "invariants": [
-            "Commit touched-window aggregates and batch receipt together, or recompute from selected immutable batches. State owner: Atomic window merge (window versions and batch receipts)."
+            "Window deltas, the per-window event-ID index and the batch receipt commit together; an event ID already indexed for its window adds nothing, even from another batch."
           ],
           "number": 7,
           "operations": [
@@ -3830,17 +3804,14 @@
             }
           ],
           "question": "Can replay double-count a batch?",
-          "reason": "Commit touched-window aggregates and batch receipt together, or recompute from selected immutable batches.",
+          "reason": "Commit touched-window deltas, the per-window event-ID index and the batch receipt in one transaction; drop the ID index of windows the watermark has closed.",
           "title": "Atomic window merge"
         },
         {
           "checkIds": [
-            "mechanism",
-            "boundary",
-            "late",
             "replay"
           ],
-          "explanation": "Reuse frozen ranges and batch identity, reconcile merge receipt, then advance source checkpoint. Reuse frozen ranges and batch identity, reconcile merge receipt, then advance source checkpoint. State owner: Batch recovery (recovery cursor and output receipt). Reuse frozen ranges and batch identity, reconcile merge receipt, then advance source checkpoint. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Data ingestion](https://en.wikipedia.org/wiki/Data_integration) moves source records into a usable destination.",
+          "explanation": "Reuse frozen ranges and batch identity, reconcile merge receipt, then advance source checkpoint. Source offsets advance only after the batch receipt exists; a replay that finds the receipt adds no deltas. Reuse frozen ranges and batch identity, reconcile merge receipt, then advance source checkpoint. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Data ingestion](https://en.wikipedia.org/wiki/Data_integration) moves source records into a usable destination.",
           "graph": {
             "edges": [
               {
@@ -4078,7 +4049,7 @@
           },
           "id": "microbatch-s8",
           "invariants": [
-            "Reuse frozen ranges and batch identity, reconcile merge receipt, then advance source checkpoint. State owner: Batch recovery (recovery cursor and output receipt)."
+            "Source offsets advance only after the batch receipt exists; a replay that finds the receipt adds no deltas."
           ],
           "number": 8,
           "operations": [

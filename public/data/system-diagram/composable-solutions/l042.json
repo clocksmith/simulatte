@@ -164,7 +164,7 @@
           "id": "out-l042.heap.step6"
         }
       ],
-      "responsibility": "Push deadline/key/generation on put under exclusive mutation synchronization.",
+      "responsibility": "Push deadline/key/generation on put under the exclusive write lock that also guards every pop.",
       "stateOwnership": [
         "deadline, generation, key"
       ],
@@ -209,7 +209,7 @@
           "id": "out-l042.heap.step8"
         }
       ],
-      "responsibility": "Pop at most a configured number of due records, deleting only matching generations.",
+      "responsibility": "Under the exclusive write lock, pop at most a configured number of due records, deleting only matching expired generations.",
       "stateOwnership": [
         "sweepBudget, clockNow"
       ],
@@ -409,7 +409,7 @@
           "id": "out-l042.wheel.step6"
         }
       ],
-      "responsibility": "Insert key/generation/deadline with wheel slot and remaining rounds.",
+      "responsibility": "Validate TTL first; for a positive TTL insert key/generation/deadline with wheel slot and remaining rounds; ttl=0 schedules nothing.",
       "stateOwnership": [
         "slot, rounds, generation"
       ],
@@ -454,7 +454,7 @@
           "id": "out-l042.wheel.step8"
         }
       ],
-      "responsibility": "Drain a bounded bucket segment and compare generation plus current deadline under the shard lock.",
+      "responsibility": "Drain a bounded bucket segment; under the shard lock remove only when the key still exists with the same generation and an elapsed deadline.",
       "stateOwnership": [
         "generation, tick"
       ],
@@ -506,12 +506,12 @@
       "id": "l042.heap.command",
       "request": {
         "key": "string",
-        "nowMs": "monotonic integer",
-        "operation": "get|put",
-        "ttlMs": "nonnegative integer",
+        "operation": "get|put|close",
+        "ttlMs": "nonnegative integer; 0 means absent immediately",
         "value": "immutable bytes|null"
       },
       "response": {
+        "error": "invalid-ttl|closed|null",
         "generation": "integer",
         "hit": "boolean",
         "value": "bytes|null"
@@ -525,9 +525,8 @@
         "ttlMs": "nonnegative integer"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "deadline": "integer|null; null means absent immediately",
+        "error": "invalid-ttl|null"
       },
       "version": 1
     },
@@ -539,9 +538,7 @@
         "key": "string"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "heapSize": "integer"
       },
       "version": 1
     },
@@ -552,9 +549,7 @@
         "observedGeneration": "integer"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "removed": "boolean; only when the observed generation is still current and expired"
       },
       "version": 1
     },
@@ -565,9 +560,9 @@
         "sweepBudget": "positive integer"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "backlog": "due records left",
+        "popped": "integer <= sweepBudget",
+        "removed": "integer"
       },
       "version": 1
     },
@@ -578,9 +573,8 @@
         "heapRatioLimit": "number"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "compactedRecords": "integer",
+        "evictedKeys": "string[]"
       },
       "version": 1
     },
@@ -591,9 +585,7 @@
         "closed": "boolean"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "closed": "true once ticks are cancelled and the active sweep has joined"
       },
       "version": 1
     },
@@ -601,12 +593,12 @@
       "id": "l042.wheel.command",
       "request": {
         "key": "string",
-        "nowMs": "monotonic integer",
-        "operation": "get|put",
-        "ttlMs": "nonnegative integer",
+        "operation": "get|put|close",
+        "ttlMs": "nonnegative integer; 0 means absent immediately",
         "value": "immutable bytes|null"
       },
       "response": {
+        "error": "invalid-ttl|closed|null",
         "generation": "integer",
         "hit": "boolean",
         "value": "bytes|null"
@@ -620,9 +612,8 @@
         "shardId": "integer"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "lock": "shard lock held for this operation",
+        "shardId": "integer"
       },
       "version": 1
     },
@@ -634,9 +625,7 @@
         "slot": "integer"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "scheduled": "boolean; false for ttl=0"
       },
       "version": 1
     },
@@ -647,9 +636,8 @@
         "now": "integer"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "removed": "boolean",
+        "visible": "boolean; now < deadline"
       },
       "version": 1
     },
@@ -660,9 +648,8 @@
         "tick": "integer"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "drained": "integer <= segment budget",
+        "removed": "integer"
       },
       "version": 1
     },
@@ -673,9 +660,7 @@
         "shardBytes": "integer"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "decision": "admit|evict-local|reject"
       },
       "version": 1
     },
@@ -686,9 +671,8 @@
         "lifecycleEpoch": "integer"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "closed": "boolean",
+        "joined": "boolean"
       },
       "version": 1
     }
@@ -744,9 +728,7 @@
           "given": "A key has value A expiring at 10.",
           "id": "case0",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
-            "r2"
+            "r0"
           ],
           "then": "Return A before 10 and absence at 10.",
           "when": "Read at 9 and 10 with an injected monotonic clock."
@@ -755,12 +737,43 @@
           "given": "A timer references generation 1 but put installed generation 2.",
           "id": "case1",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
-            "r2"
+            "r1"
           ],
           "then": "Retain generation 2 and remove only the matching expired generation.",
           "when": "Run the old expiry cleanup."
+        },
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-06-state.test.mjs",
+            "testName": "heap sweep pops due records only under the write lock"
+          },
+          "given": "Puts push heap records while the scavenger runs.",
+          "id": "case2",
+          "relatedRequirementIds": [
+            "r1",
+            "r2"
+          ],
+          "then": "Pop and delete only under the exclusive write lock, at most the sweep budget per tick; stale generations are skipped.",
+          "when": "The sweep pops due records."
+        },
+        {
+          "given": "Long-TTL entries exceed the byte budget.",
+          "id": "case3",
+          "relatedRequirementIds": [
+            "r2"
+          ],
+          "then": "Evict by the capacity policy independent of TTL and compact stale heap records.",
+          "when": "Put another entry."
+        },
+        {
+          "given": "close() is called while a sweep runs.",
+          "id": "case4",
+          "relatedRequirementIds": [
+            "r2"
+          ],
+          "then": "No future ticks remain, the active sweep has joined, and later calls are rejected.",
+          "when": "close returns."
         },
         {
           "evidence": {
@@ -771,15 +784,17 @@
           "given": "An old entry expires at 10 and a replacement at 29.",
           "id": "bounded-mechanism",
           "relatedRequirementIds": [
-            "r0"
+            "r0",
+            "r1",
+            "r2"
           ],
-          "then": "Return absence at expiry and preserve the newer generation from stale cleanup.",
-          "when": "Read at the exact boundary and invoke stale generation cleanup."
+          "then": "Return absence at expiry, preserve the newer generation from stale cleanup, treat ttl 0 as absent and reject negative TTL.",
+          "when": "Read at the exact boundary, invoke stale generation cleanup, then put with ttl 0 and -1."
         }
       ],
       "algorithms": [
         {
-          "code": "get(k): readLock(); let observed;\n try { observed=map.get(k); if(!observed) return MISS;\n   if(clock()<observed.deadline) return observed.value;\n } finally { releaseReadLock(); }\n writeLock(); try { const current=map.get(k);\n   if(current && current.generation===observed.generation && clock()>=current.deadline) map.delete(k);\n } finally { releaseWriteLock(); }\n return MISS;\nput(k,value,ttl): writeLock(); try {\n if(!isFiniteNonnegativeDuration(ttl)) rejectInvalidTtl();\n const deadline=checkedAdd(clock(),ttl), generation=nextGeneration(k);\n if(ttl===0) { map.delete(k); return; }\n map.set(k,{value,deadline,generation}); heap.push({key:k,generation,deadline});\n } finally { releaseWriteLock(); }\nsweep: for(const record of popDueWithinBudget()) { writeLock(); try {\n const current=map.get(record.key);\n if(current && current.generation===record.generation && clock()>=current.deadline) map.delete(record.key);\n } finally { releaseWriteLock(); } }",
+          "code": "get(k): readLock(); let observed;\n try { observed=map.get(k); if(!observed) return MISS;\n   if(clock()<observed.deadline) return observed.value;\n } finally { releaseReadLock(); }\n writeLock(); try { const current=map.get(k);\n   if(current && current.generation===observed.generation && clock()>=current.deadline) map.delete(k);\n } finally { releaseWriteLock(); }\n return MISS;\nput(k,value,ttl): writeLock(); try {\n if(!isFiniteNonnegativeDuration(ttl)) rejectInvalidTtl();\n const deadline=checkedAdd(clock(),ttl), generation=nextGeneration(k);\n if(ttl===0) { map.delete(k); return; }\n map.set(k,{value,deadline,generation}); heap.push({key:k,generation,deadline});\n } finally { releaseWriteLock(); }\nsweep(budget): writeLock(); try { // heap.pop shares the exclusive lock that guards heap.push\n for(let n=0; n<budget && heap.size()>0 && heap.peek().deadline<=clock(); n++) { const record=heap.pop();\n  const current=map.get(record.key);\n  if(current && current.generation===record.generation && clock()>=current.deadline) map.delete(record.key); }\n } finally { releaseWriteLock(); }",
           "guarantees": [
             "Expiry comparison is now >= deadline.",
             "An old heap record does not authorize deleting a replacement.",
@@ -795,12 +810,12 @@
       ],
       "apis": [
         {
-          "errors": "Reject invalid input, stale versions and operations outside the declared boundary.",
+          "errors": "Reject negative, non-integer or overflowing TTL and calls after close; ttl=0 removes the key and schedules no expiry.",
           "method": "METHOD",
           "ownerNodeId": "engine",
           "path": "Cache.get(key) / Cache.put(key,value,ttl)",
-          "request": "{\"operation\":\"get|put\",\"key\":\"string\",\"value\":\"immutable bytes|null\",\"ttlMs\":\"nonnegative integer\",\"nowMs\":\"monotonic integer\"}",
-          "response": "{\"hit\":\"boolean\",\"value\":\"bytes|null\",\"generation\":\"integer\"}"
+          "request": "{\"operation\":\"get|put|close\",\"key\":\"string\",\"value\":\"immutable bytes|null\",\"ttlMs\":\"nonnegative integer; 0 means absent immediately\"}",
+          "response": "{\"hit\":\"boolean\",\"value\":\"bytes|null\",\"generation\":\"integer\",\"error\":\"invalid-ttl|closed|null\"}"
         }
       ],
       "assumptions": [
@@ -816,10 +831,9 @@
       "stages": [
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case0"
           ],
-          "explanation": "A get linearizes against put and never returns an entry expired at its lookup timestamp. [Linearizability](https://en.wikipedia.org/wiki/Linearizability) assigns each completed operation one instant when it takes effect. Concurrent callers may overlap, but their visible outcomes must fit a valid sequential order. Consider this case: A key has value A expiring at 10. Read at 9 and 10 with an injected monotonic clock.",
+          "explanation": "A get linearizes against put and never returns an entry expired at its lookup timestamp. get returns a value only when the injected-clock lookup time is before its deadline; put returns the new generation, ttl=0 leaves the key absent, and an invalid TTL changes nothing. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid. Expiration must be checked at the point of use, even when background cleanup runs later.",
           "graph": {
             "edges": [
               {
@@ -862,7 +876,7 @@
           },
           "id": "heap-s1",
           "invariants": [
-            "A get linearizes against put and never returns an entry expired at its lookup timestamp."
+            "get returns a value only when the injected-clock lookup time is before its deadline; put returns the new generation, ttl=0 leaves the key absent, and an invalid TTL changes nothing."
           ],
           "number": 1,
           "operations": [
@@ -916,10 +930,9 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case2"
           ],
-          "explanation": "Validate TTL and linearize lookup/replace against a monotonic timestamp. Own immutable value, deadline and monotonically increasing generation per key. operation timestamp belongs to Cache methods; key/value/deadline/generation belongs to RW-locked map. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid. Expiration must be checked at the point of use, even when background cleanup runs later.",
+          "explanation": "Validate TTL and linearize lookup/replace against a monotonic timestamp. Own immutable value, deadline and monotonically increasing generation per key. Cache methods hold the read/write lock; the map and the expiry heap change only under the same exclusive write lock, including every heap push and pop. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid. Expiration must be checked at the point of use, even when background cleanup runs later.",
           "graph": {
             "edges": [
               {
@@ -999,7 +1012,7 @@
           },
           "id": "heap-s2",
           "invariants": [
-            "operation timestamp belongs to Cache methods; key/value/deadline/generation belongs to RW-locked map."
+            "Cache methods hold the read/write lock; the map and the expiry heap change only under the same exclusive write lock, including every heap push and pop."
           ],
           "number": 2,
           "operations": [
@@ -1054,7 +1067,7 @@
         {
           "checkIds": [
             "case0",
-            "case1"
+            "bounded-mechanism"
           ],
           "explanation": "Treat zero TTL as immediate absence and reject negative TTL; use checked monotonic deadline arithmetic. Expiry comparison is now >= deadline. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid. Expiration must be checked at the point of use, even when background cleanup runs later. Consider this case: A key has value A expiring at 10.",
           "graph": {
@@ -1207,10 +1220,9 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case2"
           ],
-          "explanation": "Push deadline/key/generation on put under exclusive mutation synchronization. An old heap record does not authorize deleting a replacement. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid. Expiration must be checked at the point of use, even when background cleanup runs later. Consider this case: A key has value A expiring at 10.",
+          "explanation": "Push deadline/key/generation on put under the exclusive write lock that also guards every pop. An old heap record does not authorize deleting a replacement. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid. Expiration must be checked at the point of use, even when background cleanup runs later.",
           "graph": {
             "edges": [
               {
@@ -1380,15 +1392,15 @@
             }
           ],
           "question": "How is the next expiration found?",
-          "reason": "Push deadline/key/generation on put under exclusive mutation synchronization.",
+          "reason": "Push deadline/key/generation on put under the exclusive write lock that also guards every pop.",
           "title": "Expiry min-heap"
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case1",
+            "bounded-mechanism"
           ],
-          "explanation": "Release shared lock, acquire exclusive lock, and compare generation/deadline again before removal. A newer put survives a stale reader cleanup. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources. A newer owner needs a token that the resource checks, not merely a belief that ownership changed. Consider this case: A key has value A expiring at 10.",
+          "explanation": "Release shared lock, acquire exclusive lock, and compare generation/deadline again before removal. A newer put survives a stale reader cleanup. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources. A newer owner needs a token that the resource checks, not merely a belief that ownership changed. Consider this case: A timer references generation 1 but put installed generation 2.",
           "graph": {
             "edges": [
               {
@@ -1587,10 +1599,10 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case1",
+            "case2"
           ],
-          "explanation": "Pop at most a configured number of due records, deleting only matching generations. Sweep work per tick is bounded; backlog remains observable. [Record linkage](https://en.wikipedia.org/wiki/Record_linkage) identifies entries that refer to the same real-world entity. A matching rule needs explicit uncertainty handling so an ambiguous similarity does not silently become authoritative identity.",
+          "explanation": "Under the exclusive write lock, pop at most a configured number of due records, deleting only matching expired generations. Sweep work per tick is bounded; backlog remains observable. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid. Expiration must be checked at the point of use, even when background cleanup runs later.",
           "graph": {
             "edges": [
               {
@@ -1802,15 +1814,14 @@
             }
           ],
           "question": "Can expired keys leak indefinitely?",
-          "reason": "Pop at most a configured number of due records, deleting only matching generations.",
+          "reason": "Under the exclusive write lock, pop at most a configured number of due records, deleting only matching expired generations.",
           "title": "Bounded scavenger"
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case3"
           ],
-          "explanation": "Enforce a byte/entry budget independently of TTL and compact stale heap records under a bounded policy. TTL is not a memory-capacity policy. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid. Expiration must be checked at the point of use, even when background cleanup runs later. Consider this case: A key has value A expiring at 10.",
+          "explanation": "Enforce a byte/entry budget independently of TTL and compact stale heap records under a bounded policy. TTL is not a memory-capacity policy. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid. Expiration must be checked at the point of use, even when background cleanup runs later. Consider this case: Long-TTL entries exceed the byte budget. Put another entry.",
           "graph": {
             "edges": [
               {
@@ -2057,10 +2068,9 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case4"
           ],
-          "explanation": "Cancel future ticks, join current sweep and make post-close method behavior explicit. No background task retains the cache after close returns. [A cache](https://en.wikipedia.org/wiki/Cache_replacement_policies) keeps reusable results in limited memory. Eviction controls space, while ownership and invalidation rules determine whether a returned value is still safe to use. Consider this case: A key has value A expiring at 10.",
+          "explanation": "Cancel future ticks, join current sweep and make post-close method behavior explicit. No background task retains the cache after close returns. [A cache](https://en.wikipedia.org/wiki/Cache_replacement_policies) keeps reusable results in limited memory. Eviction controls space, while ownership and invalidation rules determine whether a returned value is still safe to use. Consider this case: close() is called while a sweep runs. close returns.",
           "graph": {
             "edges": [
               {
@@ -2336,9 +2346,7 @@
           "given": "A wheel tick runs after an exact deadline.",
           "id": "case0",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
-            "r2"
+            "r0"
           ],
           "then": "Return absence from the exact get deadline check.",
           "when": "Read the key before the delayed tick."
@@ -2347,12 +2355,52 @@
           "given": "A long-lived replacement shares a wheel slot with an old timer.",
           "id": "case1",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
-            "r2"
+            "r1"
           ],
           "then": "Compare generation and retain the replacement.",
           "when": "Drain the old timer record."
+        },
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-06-state.test.mjs",
+            "testName": "timing wheel validates TTL schedules nothing for ttl zero and skips removed keys"
+          },
+          "given": "put receives ttl -1, then ttl 0 for a scheduled key, and the old bucket record drains later.",
+          "id": "case2",
+          "relatedRequirementIds": [
+            "r1",
+            "r2"
+          ],
+          "then": "Reject -1; ttl 0 removes the key and schedules nothing; draining a record for a missing key is a no-op.",
+          "when": "Insert, then drain the bucket."
+        },
+        {
+          "given": "One shard reaches its byte budget.",
+          "id": "case3",
+          "relatedRequirementIds": [
+            "r2"
+          ],
+          "then": "Reject or evict locally; never borrow beyond the total bound.",
+          "when": "Put another key to that shard."
+        },
+        {
+          "given": "close races a put on the same shard.",
+          "id": "case4",
+          "relatedRequirementIds": [
+            "r2"
+          ],
+          "then": "No put schedules into a closed timer generation, and drain tasks are joined.",
+          "when": "Both complete."
+        },
+        {
+          "given": "Puts target keys on two different shards.",
+          "id": "case5",
+          "relatedRequirementIds": [
+            "r0"
+          ],
+          "then": "Each takes only its own shard lock; same-key operations still serialize on one owner.",
+          "when": "They run concurrently."
         },
         {
           "evidence": {
@@ -2363,15 +2411,17 @@
           "given": "An old entry expires at 10 and a replacement at 29.",
           "id": "bounded-mechanism",
           "relatedRequirementIds": [
-            "r0"
+            "r0",
+            "r1",
+            "r2"
           ],
-          "then": "Return absence at expiry and preserve the newer generation from stale cleanup.",
-          "when": "Read at the exact boundary and invoke stale generation cleanup."
+          "then": "Return absence at expiry, preserve the newer generation from stale cleanup, treat ttl 0 as absent and reject negative TTL.",
+          "when": "Read at the exact boundary, invoke stale generation cleanup, then put with ttl 0 and -1."
         }
       ],
       "algorithms": [
         {
-          "code": "put: lock(shard); requireOpen(); generation++; store(value,deadline);\n wheel.add(key,generation,deadline,slotAndRounds(deadline));\nget: lockRead(shard); return entry && now<entry.deadline ? entry.value : MISS;\ncleanup: lockWrite(shard); if(current.generation===record.generation && now>=current.deadline) remove();\ntick: processBoundedBucketSegment(); retainFutureRounds();",
+          "code": "put(key,value,ttl): lock(shard); try { requireOpen();\n if(!Number.isSafeInteger(ttl) || ttl<0) rejectInvalidTtl(); const deadline=checkedAdd(now(),ttl), generation=++shard.generation;\n if(ttl===0) { shard.map.delete(key); return generation; } // absent at once; nothing scheduled\n shard.map.set(key,{value,deadline,generation}); wheel.add(key,generation,deadline,slotAndRounds(deadline));\n } finally { unlock(shard); }\nget(key): lockRead(shard); const entry=shard.map.get(key); return entry && now()<entry.deadline ? entry.value : MISS;\ncleanup(record): lockWrite(shard); const current=shard.map.get(record.key);\n if(current && current.generation===record.generation && now()>=current.deadline) shard.map.delete(record.key);\ntick: processBoundedBucketSegment(); retainFutureRounds();",
           "guarantees": [
             "Same-key operations still serialize on one owner.",
             "Wheel tick rounding does not redefine exact expiry.",
@@ -2387,12 +2437,12 @@
       ],
       "apis": [
         {
-          "errors": "Reject invalid input, stale versions and operations outside the declared boundary.",
+          "errors": "Reject negative, non-integer or overflowing TTL and calls after close; ttl=0 removes the key and schedules no expiry.",
           "method": "METHOD",
           "ownerNodeId": "engine",
           "path": "Cache.get(key) / Cache.put(key,value,ttl)",
-          "request": "{\"operation\":\"get|put\",\"key\":\"string\",\"value\":\"immutable bytes|null\",\"ttlMs\":\"nonnegative integer\",\"nowMs\":\"monotonic integer\"}",
-          "response": "{\"hit\":\"boolean\",\"value\":\"bytes|null\",\"generation\":\"integer\"}"
+          "request": "{\"operation\":\"get|put|close\",\"key\":\"string\",\"value\":\"immutable bytes|null\",\"ttlMs\":\"nonnegative integer; 0 means absent immediately\"}",
+          "response": "{\"hit\":\"boolean\",\"value\":\"bytes|null\",\"generation\":\"integer\",\"error\":\"invalid-ttl|closed|null\"}"
         }
       ],
       "assumptions": [
@@ -2408,10 +2458,9 @@
       "stages": [
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case0"
           ],
-          "explanation": "A get linearizes against put and never returns an entry expired at its lookup timestamp. [Linearizability](https://en.wikipedia.org/wiki/Linearizability) assigns each completed operation one instant when it takes effect. Concurrent callers may overlap, but their visible outcomes must fit a valid sequential order. Consider this case: A wheel tick runs after an exact deadline. Read the key before the delayed tick.",
+          "explanation": "A get linearizes against put and never returns an entry expired at its lookup timestamp. get returns a value only before its exact deadline even when a wheel tick is late; put with ttl=0 leaves the key absent and schedules nothing; an invalid TTL changes nothing. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid. Expiration must be checked at the point of use, even when background cleanup runs later.",
           "graph": {
             "edges": [
               {
@@ -2454,7 +2503,7 @@
           },
           "id": "wheel-s1",
           "invariants": [
-            "A get linearizes against put and never returns an entry expired at its lookup timestamp."
+            "get returns a value only before its exact deadline even when a wheel tick is late; put with ttl=0 leaves the key absent and schedules nothing; an invalid TTL changes nothing."
           ],
           "number": 1,
           "operations": [
@@ -2508,10 +2557,9 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case5"
           ],
-          "explanation": "Route each key consistently and capture a monotonic operation timestamp. Own key values and generations under independent shard locks. fixed hash seed belongs to Shard router; per-shard mutable maps belongs to Shard maps. [Partitioning](https://en.wikipedia.org/wiki/Partition_%28database%29) divides data and work among owners. The key determines where requests go; skew, ownership changes, and operations spanning partitions require additional coordination.",
+          "explanation": "Route each key consistently and capture a monotonic operation timestamp. Own key values and generations under independent shard locks. The shard router picks one owner per key; only that shard's lock mutates its map and its wheel buckets. [Partitioning](https://en.wikipedia.org/wiki/Partition_%28database%29) divides data and work among owners. The key determines where requests go; skew, ownership changes, and operations spanning partitions require additional coordination.",
           "graph": {
             "edges": [
               {
@@ -2591,7 +2639,7 @@
           },
           "id": "wheel-s2",
           "invariants": [
-            "fixed hash seed belongs to Shard router; per-shard mutable maps belongs to Shard maps."
+            "The shard router picks one owner per key; only that shard's lock mutates its map and its wheel buckets."
           ],
           "number": 2,
           "operations": [
@@ -2645,10 +2693,9 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case5"
           ],
-          "explanation": "Use one shard mutex or RW lock, never a process-wide lock for ordinary operations. Same-key operations still serialize on one owner. [Partitioning](https://en.wikipedia.org/wiki/Partition_%28database%29) divides data and work among owners. The key determines where requests go; skew, ownership changes, and operations spanning partitions require additional coordination. Consider this case: A wheel tick runs after an exact deadline. Read the key before the delayed tick.",
+          "explanation": "Use one shard mutex or RW lock, never a process-wide lock for ordinary operations. Same-key operations still serialize on one owner. [Partitioning](https://en.wikipedia.org/wiki/Partition_%28database%29) divides data and work among owners. The key determines where requests go; skew, ownership changes, and operations spanning partitions require additional coordination. Consider this case: Puts target keys on two different shards. They run concurrently.",
           "graph": {
             "edges": [
               {
@@ -2799,10 +2846,9 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case2"
           ],
-          "explanation": "Insert key/generation/deadline with wheel slot and remaining rounds. Wheel tick rounding does not redefine exact expiry. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid. Expiration must be checked at the point of use, even when background cleanup runs later. Consider this case: A wheel tick runs after an exact deadline. Read the key before the delayed tick.",
+          "explanation": "Validate TTL first; for a positive TTL insert key/generation/deadline with wheel slot and remaining rounds; ttl=0 schedules nothing. Wheel tick rounding does not redefine exact expiry. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid. Expiration must be checked at the point of use, even when background cleanup runs later.",
           "graph": {
             "edges": [
               {
@@ -2966,13 +3012,13 @@
             }
           ],
           "question": "Where are TTLs scheduled?",
-          "reason": "Insert key/generation/deadline with wheel slot and remaining rounds.",
+          "reason": "Validate TTL first; for a positive TTL insert key/generation/deadline with wheel slot and remaining rounds; ttl=0 schedules nothing.",
           "title": "Timing wheel buckets"
         },
         {
           "checkIds": [
             "case0",
-            "case1"
+            "bounded-mechanism"
           ],
           "explanation": "Check exact deadline during every get and conditionally remove an expired generation. A delayed sweep cannot make expired data readable. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid. Expiration must be checked at the point of use, even when background cleanup runs later. Consider this case: A wheel tick runs after an exact deadline.",
           "graph": {
@@ -3173,10 +3219,10 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case1",
+            "case2"
           ],
-          "explanation": "Drain a bounded bucket segment and compare generation plus current deadline under the shard lock. Old bucket records cannot delete a fresh put. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid. Expiration must be checked at the point of use, even when background cleanup runs later.",
+          "explanation": "Drain a bounded bucket segment; under the shard lock remove only when the key still exists with the same generation and an elapsed deadline. Old bucket records cannot delete a fresh put. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid. Expiration must be checked at the point of use, even when background cleanup runs later.",
           "graph": {
             "edges": [
               {
@@ -3388,15 +3434,14 @@
             }
           ],
           "question": "Can an old bucket delete a new value?",
-          "reason": "Drain a bounded bucket segment and compare generation plus current deadline under the shard lock.",
+          "reason": "Drain a bounded bucket segment; under the shard lock remove only when the key still exists with the same generation and an elapsed deadline.",
           "title": "Bucket sweep"
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case3"
           ],
-          "explanation": "Bound each shard and report skew; choose explicit rejection or local eviction rather than borrowing unbounded memory. Concurrent shards together remain under the total configured bound. [Partitioning](https://en.wikipedia.org/wiki/Partition_%28database%29) divides data and work among owners. The key determines where requests go; skew, ownership changes, and operations spanning partitions require additional coordination. Consider this case: A wheel tick runs after an exact deadline.",
+          "explanation": "Bound each shard and report skew; choose explicit rejection or local eviction rather than borrowing unbounded memory. Concurrent shards together remain under the total configured bound. [Partitioning](https://en.wikipedia.org/wiki/Partition_%28database%29) divides data and work among owners. The key determines where requests go; skew, ownership changes, and operations spanning partitions require additional coordination. Consider this case: One shard reaches its byte budget.",
           "graph": {
             "edges": [
               {
@@ -3637,10 +3682,9 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case4"
           ],
-          "explanation": "Fence close state per shard, stop wheel scheduling and join drain tasks. No put schedules into a closed timer generation. [A directed acyclic graph](https://en.wikipedia.org/wiki/Directed_acyclic_graph) expresses work that depends on earlier results. A scheduler must track completed dependencies and distinguish logical tasks from retry attempts before releasing downstream work. Consider this case: A wheel tick runs after an exact deadline.",
+          "explanation": "Fence close state per shard, stop wheel scheduling and join drain tasks. No put schedules into a closed timer generation. [A directed acyclic graph](https://en.wikipedia.org/wiki/Directed_acyclic_graph) expresses work that depends on earlier results. A scheduler must track completed dependencies and distinguish logical tasks from retry attempts before releasing downstream work. Consider this case: close races a put on the same shard.",
           "graph": {
             "edges": [
               {

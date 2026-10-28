@@ -12,6 +12,11 @@
           "contractId": "l036.fused-plan.command",
           "direction": "out",
           "id": "out-l036.fused-plan.command"
+        },
+        {
+          "contractId": "l036.fused-plan.read",
+          "direction": "out",
+          "id": "out-l036.fused-plan.read"
         }
       ],
       "responsibility": "Invoke the documented API and retain returned outcomes.",
@@ -34,6 +39,11 @@
           "id": "in-l036.fused-plan.command"
         },
         {
+          "contractId": "l036.fused-plan.read",
+          "direction": "in",
+          "id": "in-l036.fused-plan.read"
+        },
+        {
           "contractId": "l036.fused-plan.history",
           "direction": "out",
           "id": "out-l036.fused-plan.history"
@@ -44,7 +54,7 @@
           "id": "out-l036.fused-plan.source"
         }
       ],
-      "responsibility": "Append one immutable operation cell; terminals compile the reversed history once and drive source values in order.",
+      "responsibility": "Append one immutable operation cell per map/filter; each terminal compiles the history into composite map-run functions and filter guards, then pushes source values through them in one loop.",
       "stateOwnership": [
         "source snapshot",
         "tail operation cell"
@@ -102,7 +112,7 @@
         "version": 1
       },
       "id": "l036.fused-plan.compiler",
-      "label": "Plan compiler",
+      "label": "Composite compiler",
       "ports": [
         {
           "contractId": "l036.fused-plan.compiler",
@@ -115,9 +125,9 @@
           "id": "out-l036.fused-plan.driver"
         }
       ],
-      "responsibility": "Reverse the operation history once; coalesce only adjacent map descriptors into iterative map runs. Never hoist a filter or recursively nest a long composed function.",
+      "responsibility": "Map fusion: walk the history iteratively, reverse it, and turn each run of adjacent map cells into one composite function that loops over the run's callbacks in order. A filter always ends a run, so no callback moves across it, and no recursive closure nesting is built.",
       "stateOwnership": [
-        "terminal-local compiled descriptors"
+        "terminal-local stage list"
       ],
       "version": 1
     },
@@ -127,7 +137,7 @@
         "version": 1
       },
       "id": "l036.fused-plan.driver",
-      "label": "Fused driver",
+      "label": "Push driver",
       "ports": [
         {
           "contractId": "l036.fused-plan.driver",
@@ -145,7 +155,7 @@
           "id": "out-l036.fused-plan.failure"
         }
       ],
-      "responsibility": "For each source item, thread one local value through map runs and filters; rejected items continue the outer source loop.",
+      "responsibility": "For each source item, call one composite per map run and one predicate per filter; a rejected item continues the outer source loop.",
       "stateOwnership": [
         "source index",
         "current local value"
@@ -213,7 +223,7 @@
       ],
       "responsibility": "Create source and output counters per terminal; retain source snapshot and plan only, without caching results or sharing iteration state.",
       "stateOwnership": [
-        "fresh per-terminal cursor"
+        "fresh per-terminal loop state"
       ],
       "version": 1
     },
@@ -229,6 +239,11 @@
           "contractId": "l036.pull-cursors.command",
           "direction": "out",
           "id": "out-l036.pull-cursors.command"
+        },
+        {
+          "contractId": "l036.pull-cursors.read",
+          "direction": "out",
+          "id": "out-l036.pull-cursors.read"
         }
       ],
       "responsibility": "Invoke the documented API and retain returned outcomes.",
@@ -251,12 +266,17 @@
           "id": "in-l036.pull-cursors.command"
         },
         {
+          "contractId": "l036.pull-cursors.read",
+          "direction": "in",
+          "id": "in-l036.pull-cursors.read"
+        },
+        {
           "contractId": "l036.pull-cursors.descriptors",
           "direction": "out",
           "id": "out-l036.pull-cursors.descriptors"
         }
       ],
-      "responsibility": "Retain immutable operator descriptors; create a pull machine per consumer whose next() resumes at the next accepted output.",
+      "responsibility": "Retain immutable operator descriptors; open() builds one iterator object per operator run, each pulling from its upstream, and returns a guarded cursor with next() and close().",
       "stateOwnership": [
         "source snapshot",
         "descriptor tail"
@@ -282,7 +302,7 @@
           "id": "out-l036.pull-cursors.factory"
         }
       ],
-      "responsibility": "Append a descriptor cell with a previous pointer; it describes a cursor factory and holds no live cursor.",
+      "responsibility": "Append a descriptor cell with a previous pointer; it describes an iterator layer and holds no live cursor.",
       "stateOwnership": [
         "immutable descriptor spine"
       ],
@@ -294,7 +314,7 @@
         "version": 1
       },
       "id": "l036.pull-cursors.factory",
-      "label": "Cursor allocator",
+      "label": "Iterator chain builder",
       "ports": [
         {
           "contractId": "l036.pull-cursors.factory",
@@ -307,10 +327,10 @@
           "id": "out-l036.pull-cursors.pull"
         }
       ],
-      "responsibility": "Flatten descriptor spine once when opening a consumer; allocate source index and output ordinal privately.",
+      "responsibility": "open() flattens the descriptor spine iteratively, wraps a private source iterator with one MapRun or Filter iterator per run, innermost first, and hands the consumer only the outer layer.",
       "stateOwnership": [
-        "source index",
-        "output ordinal"
+        "per-layer upstream reference",
+        "private source index"
       ],
       "version": 1
     },
@@ -320,7 +340,7 @@
         "version": 1
       },
       "id": "l036.pull-cursors.pull",
-      "label": "next state machine",
+      "label": "Per-layer next()",
       "ports": [
         {
           "contractId": "l036.pull-cursors.pull",
@@ -343,10 +363,9 @@
           "id": "out-l036.pull-cursors.collect"
         }
       ],
-      "responsibility": "next() loops source candidates and runs descriptors until one survives, then suspends with the next source index.",
+      "responsibility": "A filter iterator calls upstream.next() until its predicate accepts; a map-run iterator pulls once and applies its run; the outer layer returns one item.",
       "stateOwnership": [
-        "candidate value",
-        "program counter"
+        "per-layer closed flag"
       ],
       "version": 1
     },
@@ -356,7 +375,7 @@
         "version": 1
       },
       "id": "l036.pull-cursors.fusion",
-      "label": "Map-run executor",
+      "label": "Map-run iterator",
       "ports": [
         {
           "contractId": "l036.pull-cursors.fusion",
@@ -364,7 +383,7 @@
           "id": "in-l036.pull-cursors.fusion"
         }
       ],
-      "responsibility": "Compile adjacent map descriptors into array runs; evaluate each user callback in order for only the pulled candidate.",
+      "responsibility": "Adjacent map descriptors become one MapRun iterator whose next() calls a composite of the run's callbacks in order; a filter always starts a new iterator.",
       "stateOwnership": [
         "map-run function references"
       ],
@@ -389,7 +408,7 @@
           "id": "out-l036.pull-cursors.close"
         }
       ],
-      "responsibility": "indexOf calls next until Object.is succeeds, then closes that consumer; no extra next call is made.",
+      "responsibility": "indexOf calls next until Object.is succeeds, then closes the cursor; close travels from the outer layer to the source, and no extra next call is made.",
       "stateOwnership": [
         "matched output index"
       ],
@@ -401,7 +420,7 @@
         "version": 1
       },
       "id": "l036.pull-cursors.close",
-      "label": "Cursor close",
+      "label": "Close propagation",
       "ports": [
         {
           "contractId": "l036.pull-cursors.close",
@@ -409,9 +428,9 @@
           "id": "in-l036.pull-cursors.close"
         }
       ],
-      "responsibility": "Set closed before dropping retained temporary references; next after close returns done, while a new consumer remains valid.",
+      "responsibility": "close() marks each layer closed from the outside in and drops upstream references; next after close returns done, while another cursor or a new open() is unaffected.",
       "stateOwnership": [
-        "closed flag"
+        "closed flag per layer"
       ],
       "version": 1
     },
@@ -421,7 +440,7 @@
         "version": 1
       },
       "id": "l036.pull-cursors.collect",
-      "label": "Collector",
+      "label": "Guarded collector",
       "ports": [
         {
           "contractId": "l036.pull-cursors.collect",
@@ -429,9 +448,10 @@
           "id": "in-l036.pull-cursors.collect"
         }
       ],
-      "responsibility": "Collect repeatedly calls next into one terminal-owned output array; no map or filter owns an intermediate collection.",
+      "responsibility": "The cursor's next() catches a callback exception, closes the whole chain and rethrows; collect drops its terminal-owned array, and a later next() returns done instead of resuming at the following element.",
       "stateOwnership": [
-        "terminal output array"
+        "terminal output array",
+        "cursor closed flag"
       ],
       "version": 1
     }
@@ -440,13 +460,23 @@
     {
       "id": "l036.fused-plan.command",
       "request": {
-        "callback": "function(T)->U|boolean for intermediate operation",
-        "method": "map|filter|collect|indexOf",
-        "target": "value for indexOf"
+        "callback": "function(T)->U for map; predicate(T)->boolean for filter",
+        "method": "map|filter"
       },
       "response": {
-        "intermediate": "new LazyArray<U> sharing immutable history",
-        "terminal": "U[] or transformed-output index; -1 if absent"
+        "lazyArray": "new LazyArray sharing immutable history; no callback invoked"
+      },
+      "version": 1
+    },
+    {
+      "id": "l036.fused-plan.read",
+      "request": {
+        "method": "collect|indexOf",
+        "target": "value compared with Object.is for indexOf"
+      },
+      "response": {
+        "plan": "unchanged and reusable",
+        "result": "U[] for collect; transformed-output index or -1 for indexOf"
       },
       "version": 1
     },
@@ -478,15 +508,15 @@
         "tail": "operation cell"
       },
       "response": {
-        "runs": "ordered map runs and filters"
+        "stages": "ordered composite map runs and filter guards"
       },
       "version": 1
     },
     {
       "id": "l036.fused-plan.driver",
       "request": {
-        "runs": "compiled descriptors",
-        "snapshot": "readonly T[]"
+        "snapshot": "readonly T[]",
+        "stages": "compiled stage list"
       },
       "response": {
         "next": "accepted value or exhaustion"
@@ -521,20 +551,30 @@
         "terminal": "collect|indexOf"
       },
       "response": {
-        "cursor": "fresh traversal state"
+        "loop": "fresh traversal state"
       },
       "version": 1
     },
     {
       "id": "l036.pull-cursors.command",
       "request": {
-        "callback": "function(T)->U|boolean for intermediate operation",
-        "method": "map|filter|collect|indexOf",
-        "target": "value for indexOf"
+        "callback": "function(T)->U for map; predicate(T)->boolean for filter",
+        "method": "map|filter"
       },
       "response": {
-        "intermediate": "new LazyArray<U> sharing immutable history",
-        "terminal": "U[] or transformed-output index; -1 if absent"
+        "lazyArray": "new LazyArray sharing immutable history; no callback invoked"
+      },
+      "version": 1
+    },
+    {
+      "id": "l036.pull-cursors.read",
+      "request": {
+        "method": "collect|indexOf|open",
+        "target": "value compared with Object.is for indexOf"
+      },
+      "response": {
+        "cursor": "open(): {next():{done,value?}, close()} owned by one consumer",
+        "result": "U[] for collect; transformed-output index or -1 for indexOf"
       },
       "version": 1
     },
@@ -557,14 +597,14 @@
         "tail": "descriptor"
       },
       "response": {
-        "cursor": "independent pull machine"
+        "cursor": "outer layer of a private chain"
       },
       "version": 1
     },
     {
       "id": "l036.pull-cursors.pull",
       "request": {
-        "cursor": "pull state"
+        "cursor": "outer layer"
       },
       "response": {
         "item": "{done:boolean,value?:U}"
@@ -575,10 +615,10 @@
       "id": "l036.pull-cursors.fusion",
       "request": {
         "mapRun": "function[]",
-        "value": "T"
+        "upstream": "iterator layer"
       },
       "response": {
-        "value": "U"
+        "layer": "one MapRun iterator"
       },
       "version": 1
     },
@@ -606,10 +646,10 @@
     {
       "id": "l036.pull-cursors.collect",
       "request": {
-        "next": "pull function"
+        "next": "guarded pull function"
       },
       "response": {
-        "output": "U[]"
+        "output": "U[] or the callback's error"
       },
       "version": 1
     }
@@ -634,7 +674,7 @@
         "text": "Fuse adjacent maps without moving callbacks across filters; define repeat consumption, callback exceptions and source ownership."
       }
     ],
-    "scope": "Authored implementation study of the catalogue LazyArray interface. Compare a persistent operation plan executed in one fused loop with immutable pull-cursor factories. No distributed components, implicit memoization or parallel evaluation. indexOf returns the index in the transformed, filtered output and uses Object.is equality; collect starts a fresh traversal.",
+    "scope": "Authored implementation study of the catalogue LazyArray interface. Compare a plan that compiles each run of adjacent maps into one composite function driven by a single push loop with a pull chain of per-operator iterator objects. The catalogue's single composite function invocation is met as one composite call per element per adjacent-map run: it removes per-operator dispatch and intermediate arrays, while each user callback still runs once for every element that reaches it. No distributed components, implicit memoization or parallel evaluation. indexOf returns the index in the transformed, filtered output and uses Object.is equality; every terminal starts a fresh traversal.",
     "studyLabel": "LazyArray: deferred pipelines and pull cursors"
   },
   "provenance": {
@@ -658,35 +698,52 @@
           "evidence": {
             "kind": "reference-test",
             "testFile": "tools/simulatte/study-reference/batch-07-mechanisms.test.mjs",
-            "testName": "batch-07 lazy: deferred branching and exact short circuit"
+            "testName": "batch-07 lazy fused-plan: composite map runs, deferred branches and short circuit"
           },
-          "given": "A mapped/filtered source and counters on callbacks.",
+          "given": "A plan map, map, filter, map, map over a four-element source with logging callbacks, plus a branch that appends another filter.",
           "id": "behavior",
           "relatedRequirementIds": [
             "r0",
-            "r1",
-            "r2"
+            "r1"
           ],
-          "then": "No callback runs at construction; short circuit stops after the first output match; branches retain independent plans.",
-          "when": "Build two branches, consume indexOf on one, then collect the other."
+          "then": "No callback runs at construction; the branch leaves the base plan's stages unchanged; indexOf returns 1 without evaluating the fourth element; collect returns only the terminal output array.",
+          "when": "Inspect the log after construction, collect the plan and the branch, then run indexOf for the second output."
         },
         {
-          "given": "Empty input, all elements filtered out, NaN target, and a throwing callback.",
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-07-mechanisms.test.mjs",
+            "testName": "batch-07 lazy fused-plan: composite map runs, deferred branches and short circuit"
+          },
+          "given": "The same map, map, filter, map, map plan with counted compiled stages.",
+          "id": "fusion",
+          "relatedRequirementIds": [
+            "r2"
+          ],
+          "then": "Compilation yields a two-map composite, the filter and a second two-map composite; four elements cost 7 composite calls and 4 predicate calls instead of 14 per-map calls; callbacks still run in source order and the rejected element never reaches the later maps.",
+          "when": "Compile the plan and collect it."
+        },
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-07-mechanisms.test.mjs",
+            "testName": "batch-07 lazy fused-plan: composite map runs, deferred branches and short circuit"
+          },
+          "given": "Empty input, a fully filtered plan, NaN and -0 targets, a throwing first map, and a caller push to the source array after construction.",
           "id": "boundary",
           "relatedRequirementIds": [
-            "r0",
             "r1",
             "r2"
           ],
-          "then": "Return [] or -1 for absence; Object.is matches NaN; a throw stops traversal and later fresh traversal restarts.",
-          "when": "Consume repeatedly."
+          "then": "Results are [] or -1; Object.is matches NaN and separates -0 from 0; a throw returns no partial array and later maps never run; a rerun calls every callback again; the caller's later push is invisible.",
+          "when": "Run each terminal, then run it again."
         }
       ],
       "algorithms": [
         {
-          "code": "map(fn) { return new Plan(source, {previous: tail, kind: \"map\", fn}); }\nfilter(fn) { return new Plan(source, {previous: tail, kind: \"filter\", fn}); }\nterminal(target, collect) {\n const ops = compileIteratively(tail); const output=[]; let ordinal=0;\n sourceLoop: for (const original of source) { let value=original;\n  for (const op of ops) { if (op.kind===\"filter\") { if (!op.fn(value)) continue sourceLoop; }\n   else for (const fn of op.mapRun) value=fn(value); }\n  if (!collect && Object.is(value,target)) return ordinal;\n  if (collect) output.push(value); ordinal++;\n } return collect ? output : -1;\n}",
+          "code": "map(fn) { return new Plan(source, {previous: tail, kind: \"map\", fn}); }\nfilter(fn) { return new Plan(source, {previous: tail, kind: \"filter\", fn}); }\ncompile(tail) { const cells=[]; for (let c=tail; c; c=c.previous) cells.push(c); cells.reverse();\n const runs=[]; for (const c of cells) { const last=runs.at(-1);\n  if (c.kind===\"map\" && last?.kind===\"map\") last.fns.push(c.fn); else runs.push({kind:c.kind, fns:[c.fn]}); }\n return runs.map(r => r.kind===\"map\" ? {kind:\"map\", call:composite(r.fns)} : {kind:\"filter\", call:r.fns[0]}); }\ncomposite(fns) { return value => { for (const fn of fns) value=fn(value); return value; }; }\nterminal(target, collect) { const stages=compile(tail); const output=[]; let ordinal=0;\n sourceLoop: for (const original of source) { let value=original;\n  for (const s of stages) { if (s.kind===\"filter\") { if (!s.call(value)) continue sourceLoop; } else value=s.call(value); }\n  if (!collect && Object.is(value,target)) return ordinal;\n  if (collect) output.push(value); ordinal++;\n } return collect ? output : -1; }",
           "guarantees": [
-            "O(1) append; O(k) terminal compilation; no source element after a hit is evaluated."
+            "O(1) append; O(k) compilation per terminal; one composite call per element per map run; no source element after a hit is evaluated."
           ],
           "id": "mechanism-0",
           "language": "typescript-pseudocode",
@@ -695,19 +752,27 @@
       ],
       "apis": [
         {
-          "errors": "TypeError nonfunction callback; callback exception propagates; no partial array returned",
+          "errors": "TypeError for a nonfunction callback; the receiver is unchanged",
           "method": "CALL",
           "ownerNodeId": "owner",
-          "path": "LazyArray.map/filter/collect/indexOf",
-          "request": "{\"method\":\"map|filter|collect|indexOf\",\"callback\":\"function(T)->U|boolean for intermediate operation\",\"target\":\"value for indexOf\"}",
-          "response": "{\"intermediate\":\"new LazyArray<U> sharing immutable history\",\"terminal\":\"U[] or transformed-output index; -1 if absent\"}"
+          "path": "LazyArray.map/filter",
+          "request": "{\"method\":\"map|filter\",\"callback\":\"function(T)->U for map; predicate(T)->boolean for filter\"}",
+          "response": "{\"lazyArray\":\"new LazyArray sharing immutable history; no callback invoked\"}"
+        },
+        {
+          "errors": "A callback exception propagates from the terminal; no partial array is returned; the plan stays reusable",
+          "method": "CALL",
+          "ownerNodeId": "owner",
+          "path": "LazyArray.collect/indexOf",
+          "request": "{\"method\":\"collect|indexOf\",\"target\":\"value compared with Object.is for indexOf\"}",
+          "response": "{\"result\":\"U[] for collect; transformed-output index or -1 for indexOf\",\"plan\":\"unchanged and reusable\"}"
         }
       ],
       "assumptions": [
         "Input array is shallow-copied at construction; object mutation remains visible. Callbacks may have effects; their original order is preserved.",
         "All added requirements and walkthroughs are authored practice. Graphs specify design; reference tests prove only named bounded mechanisms."
       ],
-      "chooseWhen": "Many short-lived branches share one source and terminals can pay O(k) plan compilation.",
+      "chooseWhen": "Terminals usually consume a whole pipeline or stop early by value, and per-element dispatch should not grow with the number of maps.",
       "id": "fused-plan",
       "initialGraph": {
         "edges": [],
@@ -716,10 +781,9 @@
       "stages": [
         {
           "checkIds": [
-            "behavior",
-            "boundary"
+            "behavior"
           ],
-          "explanation": "Append one immutable operation cell; terminals compile the reversed history once and drive source values in order. Intermediate operations call no user code. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return.",
+          "explanation": "Append one immutable operation cell per map/filter; each terminal compiles the history into composite map-run functions and filter guards, then pushes source values through them in one loop. map and filter return a new plan without calling user code; only collect and indexOf evaluate. [A search index](https://en.wikipedia.org/wiki/Search_engine_indexing) maps query terms to candidate records. The interface must still associate each response with the active query and preserve the user’s chosen filters.",
           "graph": {
             "edges": [
               {
@@ -729,11 +793,25 @@
                   "portId": "out-l036.fused-plan.command"
                 },
                 "id": "command",
-                "label": "invoke API",
+                "label": "commands",
                 "mode": "local-call",
                 "to": {
                   "nodeId": "owner",
                   "portId": "in-l036.fused-plan.command"
+                }
+              },
+              {
+                "contractId": "l036.fused-plan.read",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l036.fused-plan.read"
+                },
+                "id": "read",
+                "label": "read-only query",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l036.fused-plan.read"
                 }
               }
             ],
@@ -762,7 +840,7 @@
           },
           "id": "fused-plan-s1",
           "invariants": [
-            "Intermediate operations call no user code."
+            "map and filter return a new plan without calling user code; only collect and indexOf evaluate."
           ],
           "number": 1,
           "operations": [
@@ -800,7 +878,7 @@
                   "portId": "out-l036.fused-plan.command"
                 },
                 "id": "command",
-                "label": "invoke API",
+                "label": "commands",
                 "mode": "local-call",
                 "to": {
                   "nodeId": "owner",
@@ -808,18 +886,34 @@
                 }
               },
               "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l036.fused-plan.read",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l036.fused-plan.read"
+                },
+                "id": "read",
+                "label": "read-only query",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l036.fused-plan.read"
+                }
+              },
+              "op": "connect"
             }
           ],
           "question": "What happens before a terminal consumes data?",
-          "reason": "Append one immutable operation cell; terminals compile the reversed history once and drive source values in order.",
+          "reason": "Append one immutable operation cell per map/filter; each terminal compiles the history into composite map-run functions and filter guards, then pushes source values through them in one loop.",
           "title": "Expose Plan facade"
         },
         {
           "checkIds": [
-            "behavior",
-            "boundary"
+            "behavior"
           ],
-          "explanation": "Link a new {previous,kind,fn} cell to the prior tail; never append into an array shared by branches. Each append allocates one cell and preserves earlier tails. [A search index](https://en.wikipedia.org/wiki/Search_engine_indexing) maps query terms to candidate records. The interface must still associate each response with the active query and preserve the user’s chosen filters.",
+          "explanation": "Link a new {previous,kind,fn} cell to the prior tail; never append into an array shared by branches. Each append allocates one cell and leaves every earlier tail usable by other branches. [A search index](https://en.wikipedia.org/wiki/Search_engine_indexing) maps query terms to candidate records. The interface must still associate each response with the active query and preserve the user’s chosen filters.",
           "graph": {
             "edges": [
               {
@@ -829,11 +923,25 @@
                   "portId": "out-l036.fused-plan.command"
                 },
                 "id": "command",
-                "label": "invoke API",
+                "label": "commands",
                 "mode": "local-call",
                 "to": {
                   "nodeId": "owner",
                   "portId": "in-l036.fused-plan.command"
+                }
+              },
+              {
+                "contractId": "l036.fused-plan.read",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l036.fused-plan.read"
+                },
+                "id": "read",
+                "label": "read-only query",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l036.fused-plan.read"
                 }
               },
               {
@@ -886,7 +994,7 @@
           },
           "id": "fused-plan-s2",
           "invariants": [
-            "Each append allocates one cell and preserves earlier tails."
+            "Each append allocates one cell and leaves every earlier tail usable by other branches."
           ],
           "number": 2,
           "operations": [
@@ -927,10 +1035,9 @@
         },
         {
           "checkIds": [
-            "behavior",
             "boundary"
           ],
-          "explanation": "Shallow-copy the source once; do not recopy on each intermediate call. Objects referenced by the copy are not deep frozen. Chain construction adds O(1) work after source construction. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return.",
+          "explanation": "Shallow-copy the source once; do not recopy on each intermediate call. Objects referenced by the copy are not deep frozen. Edits to the caller's array after construction are invisible to every terminal. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return.",
           "graph": {
             "edges": [
               {
@@ -940,11 +1047,25 @@
                   "portId": "out-l036.fused-plan.command"
                 },
                 "id": "command",
-                "label": "invoke API",
+                "label": "commands",
                 "mode": "local-call",
                 "to": {
                   "nodeId": "owner",
                   "portId": "in-l036.fused-plan.command"
+                }
+              },
+              {
+                "contractId": "l036.fused-plan.read",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l036.fused-plan.read"
+                },
+                "id": "read",
+                "label": "read-only query",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l036.fused-plan.read"
                 }
               },
               {
@@ -1021,7 +1142,7 @@
           },
           "id": "fused-plan-s3",
           "invariants": [
-            "Chain construction adds O(1) work after source construction."
+            "Edits to the caller's array after construction are invisible to every terminal."
           ],
           "number": 3,
           "operations": [
@@ -1062,10 +1183,9 @@
         },
         {
           "checkIds": [
-            "behavior",
-            "boundary"
+            "fusion"
           ],
-          "explanation": "Reverse the operation history once; coalesce only adjacent map descriptors into iterative map runs. Never hoist a filter or recursively nest a long composed function. A failed predicate prevents every later map for that element. [Transcoding](https://en.wikipedia.org/wiki/Transcoding) creates new media representations from an uploaded source. Publication should reference completed outputs, while retries and cleanup must not expose a partially processed asset.",
+          "explanation": "Map fusion: walk the history iteratively, reverse it, and turn each run of adjacent map cells into one composite function that loops over the run's callbacks in order. A filter always ends a run, so no callback moves across it, and no recursive closure nesting is built. A composite never spans a filter, so a rejected element reaches no later map. [A search index](https://en.wikipedia.org/wiki/Search_engine_indexing) maps query terms to candidate records.",
           "graph": {
             "edges": [
               {
@@ -1075,11 +1195,25 @@
                   "portId": "out-l036.fused-plan.command"
                 },
                 "id": "command",
-                "label": "invoke API",
+                "label": "commands",
                 "mode": "local-call",
                 "to": {
                   "nodeId": "owner",
                   "portId": "in-l036.fused-plan.command"
+                }
+              },
+              {
+                "contractId": "l036.fused-plan.read",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l036.fused-plan.read"
+                },
+                "id": "read",
+                "label": "read-only query",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l036.fused-plan.read"
                 }
               },
               {
@@ -1117,7 +1251,7 @@
                   "portId": "out-l036.fused-plan.compiler"
                 },
                 "id": "use-compiler",
-                "label": "Compile consecutive maps",
+                "label": "Compile adjacent maps into one function",
                 "mode": "local-call",
                 "to": {
                   "nodeId": "compiler",
@@ -1169,7 +1303,7 @@
               {
                 "definitionId": "l036.fused-plan.compiler",
                 "id": "compiler",
-                "label": "Plan compiler",
+                "label": "Composite compiler",
                 "position": {
                   "x": 0,
                   "y": 180
@@ -1180,7 +1314,7 @@
           },
           "id": "fused-plan-s4",
           "invariants": [
-            "A failed predicate prevents every later map for that element."
+            "A composite never spans a filter, so a rejected element reaches no later map."
           ],
           "number": 4,
           "operations": [
@@ -1188,7 +1322,7 @@
               "node": {
                 "definitionId": "l036.fused-plan.compiler",
                 "id": "compiler",
-                "label": "Plan compiler",
+                "label": "Composite compiler",
                 "position": {
                   "x": 0,
                   "y": 180
@@ -1205,7 +1339,7 @@
                   "portId": "out-l036.fused-plan.compiler"
                 },
                 "id": "use-compiler",
-                "label": "Compile consecutive maps",
+                "label": "Compile adjacent maps into one function",
                 "mode": "local-call",
                 "to": {
                   "nodeId": "compiler",
@@ -1216,15 +1350,14 @@
             }
           ],
           "question": "Where can fusion change observable callback order?",
-          "reason": "Reverse the operation history once; coalesce only adjacent map descriptors into iterative map runs. Never hoist a filter or recursively nest a long composed function.",
-          "title": "Compile consecutive maps"
+          "reason": "Map fusion: walk the history iteratively, reverse it, and turn each run of adjacent map cells into one composite function that loops over the run's callbacks in order. A filter always ends a run, so no callback moves across it, and no recursive closure nesting is built.",
+          "title": "Compile adjacent maps into one function"
         },
         {
           "checkIds": [
-            "behavior",
-            "boundary"
+            "fusion"
           ],
-          "explanation": "For each source item, thread one local value through map runs and filters; rejected items continue the outer source loop. No intermediate output array exists between operators. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return.",
+          "explanation": "For each source item, call one composite per map run and one predicate per filter; a rejected item continues the outer source loop. Per element the driver makes one composite call per map run and creates no intermediate array. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return.",
           "graph": {
             "edges": [
               {
@@ -1234,11 +1367,25 @@
                   "portId": "out-l036.fused-plan.command"
                 },
                 "id": "command",
-                "label": "invoke API",
+                "label": "commands",
                 "mode": "local-call",
                 "to": {
                   "nodeId": "owner",
                   "portId": "in-l036.fused-plan.command"
+                }
+              },
+              {
+                "contractId": "l036.fused-plan.read",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l036.fused-plan.read"
+                },
+                "id": "read",
+                "label": "read-only query",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l036.fused-plan.read"
                 }
               },
               {
@@ -1276,7 +1423,7 @@
                   "portId": "out-l036.fused-plan.compiler"
                 },
                 "id": "use-compiler",
-                "label": "Compile consecutive maps",
+                "label": "Compile adjacent maps into one function",
                 "mode": "local-call",
                 "to": {
                   "nodeId": "compiler",
@@ -1342,7 +1489,7 @@
               {
                 "definitionId": "l036.fused-plan.compiler",
                 "id": "compiler",
-                "label": "Plan compiler",
+                "label": "Composite compiler",
                 "position": {
                   "x": 0,
                   "y": 180
@@ -1352,7 +1499,7 @@
               {
                 "definitionId": "l036.fused-plan.driver",
                 "id": "driver",
-                "label": "Fused driver",
+                "label": "Push driver",
                 "position": {
                   "x": 280,
                   "y": 180
@@ -1363,7 +1510,7 @@
           },
           "id": "fused-plan-s5",
           "invariants": [
-            "No intermediate output array exists between operators."
+            "Per element the driver makes one composite call per map run and creates no intermediate array."
           ],
           "number": 5,
           "operations": [
@@ -1371,7 +1518,7 @@
               "node": {
                 "definitionId": "l036.fused-plan.driver",
                 "id": "driver",
-                "label": "Fused driver",
+                "label": "Push driver",
                 "position": {
                   "x": 280,
                   "y": 180
@@ -1399,7 +1546,7 @@
             }
           ],
           "question": "Can collect allocate one array per operation?",
-          "reason": "For each source item, thread one local value through map runs and filters; rejected items continue the outer source loop.",
+          "reason": "For each source item, call one composite per map run and one predicate per filter; a rejected item continues the outer source loop.",
           "title": "Traverse without intermediates"
         },
         {
@@ -1407,7 +1554,7 @@
             "behavior",
             "boundary"
           ],
-          "explanation": "Increment output ordinal only after all filters pass; Object.is comparison returns immediately at the first match. No callback runs for source elements after a terminal match. [An index](https://en.wikipedia.org/wiki/Database_index) maintains a structure that narrows a search without scanning every record. Faster reads come with storage costs and extra work whenever indexed data changes.",
+          "explanation": "Increment output ordinal only after all filters pass; Object.is comparison returns immediately at the first match. No callback runs for source elements after an indexOf match; absence returns -1 and NaN matches NaN. [An index](https://en.wikipedia.org/wiki/Database_index) maintains a structure that narrows a search without scanning every record. Faster reads come with storage costs and extra work whenever indexed data changes.",
           "graph": {
             "edges": [
               {
@@ -1417,11 +1564,25 @@
                   "portId": "out-l036.fused-plan.command"
                 },
                 "id": "command",
-                "label": "invoke API",
+                "label": "commands",
                 "mode": "local-call",
                 "to": {
                   "nodeId": "owner",
                   "portId": "in-l036.fused-plan.command"
+                }
+              },
+              {
+                "contractId": "l036.fused-plan.read",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l036.fused-plan.read"
+                },
+                "id": "read",
+                "label": "read-only query",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l036.fused-plan.read"
                 }
               },
               {
@@ -1459,7 +1620,7 @@
                   "portId": "out-l036.fused-plan.compiler"
                 },
                 "id": "use-compiler",
-                "label": "Compile consecutive maps",
+                "label": "Compile adjacent maps into one function",
                 "mode": "local-call",
                 "to": {
                   "nodeId": "compiler",
@@ -1539,7 +1700,7 @@
               {
                 "definitionId": "l036.fused-plan.compiler",
                 "id": "compiler",
-                "label": "Plan compiler",
+                "label": "Composite compiler",
                 "position": {
                   "x": 0,
                   "y": 180
@@ -1549,7 +1710,7 @@
               {
                 "definitionId": "l036.fused-plan.driver",
                 "id": "driver",
-                "label": "Fused driver",
+                "label": "Push driver",
                 "position": {
                   "x": 280,
                   "y": 180
@@ -1570,7 +1731,7 @@
           },
           "id": "fused-plan-s6",
           "invariants": [
-            "No callback runs for source elements after a terminal match."
+            "No callback runs for source elements after an indexOf match; absence returns -1 and NaN matches NaN."
           ],
           "number": 6,
           "operations": [
@@ -1611,10 +1772,9 @@
         },
         {
           "checkIds": [
-            "behavior",
             "boundary"
           ],
-          "explanation": "Use normal propagation through the terminal loop; discard the terminal-local accumulator and preserve the immutable plan. An exception does not mark the reusable plan consumed. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return.",
+          "explanation": "Use normal propagation through the terminal loop; discard the terminal-local accumulator and preserve the immutable plan. A callback exception stops the loop, returns no partial array and leaves the plan reusable. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return.",
           "graph": {
             "edges": [
               {
@@ -1624,11 +1784,25 @@
                   "portId": "out-l036.fused-plan.command"
                 },
                 "id": "command",
-                "label": "invoke API",
+                "label": "commands",
                 "mode": "local-call",
                 "to": {
                   "nodeId": "owner",
                   "portId": "in-l036.fused-plan.command"
+                }
+              },
+              {
+                "contractId": "l036.fused-plan.read",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l036.fused-plan.read"
+                },
+                "id": "read",
+                "label": "read-only query",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l036.fused-plan.read"
                 }
               },
               {
@@ -1666,7 +1840,7 @@
                   "portId": "out-l036.fused-plan.compiler"
                 },
                 "id": "use-compiler",
-                "label": "Compile consecutive maps",
+                "label": "Compile adjacent maps into one function",
                 "mode": "local-call",
                 "to": {
                   "nodeId": "compiler",
@@ -1760,7 +1934,7 @@
               {
                 "definitionId": "l036.fused-plan.compiler",
                 "id": "compiler",
-                "label": "Plan compiler",
+                "label": "Composite compiler",
                 "position": {
                   "x": 0,
                   "y": 180
@@ -1770,7 +1944,7 @@
               {
                 "definitionId": "l036.fused-plan.driver",
                 "id": "driver",
-                "label": "Fused driver",
+                "label": "Push driver",
                 "position": {
                   "x": 280,
                   "y": 180
@@ -1801,7 +1975,7 @@
           },
           "id": "fused-plan-s7",
           "invariants": [
-            "An exception does not mark the reusable plan consumed."
+            "A callback exception stops the loop, returns no partial array and leaves the plan reusable."
           ],
           "number": 7,
           "operations": [
@@ -1845,7 +2019,7 @@
             "behavior",
             "boundary"
           ],
-          "explanation": "Create source and output counters per terminal; retain source snapshot and plan only, without caching results or sharing iteration state. Two consumers have independent positions and each reruns callbacks. [A snapshot](https://en.wikipedia.org/wiki/Snapshot_isolation) gives one read operation a fixed view of data. Later writes may change the live system without changing the rows that reader sees.",
+          "explanation": "Create source and output counters per terminal; retain source snapshot and plan only, without caching results or sharing iteration state. Each terminal recompiles and reruns callbacks; no result or position is cached between terminals. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return.",
           "graph": {
             "edges": [
               {
@@ -1855,11 +2029,25 @@
                   "portId": "out-l036.fused-plan.command"
                 },
                 "id": "command",
-                "label": "invoke API",
+                "label": "commands",
                 "mode": "local-call",
                 "to": {
                   "nodeId": "owner",
                   "portId": "in-l036.fused-plan.command"
+                }
+              },
+              {
+                "contractId": "l036.fused-plan.read",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l036.fused-plan.read"
+                },
+                "id": "read",
+                "label": "read-only query",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l036.fused-plan.read"
                 }
               },
               {
@@ -1897,7 +2085,7 @@
                   "portId": "out-l036.fused-plan.compiler"
                 },
                 "id": "use-compiler",
-                "label": "Compile consecutive maps",
+                "label": "Compile adjacent maps into one function",
                 "mode": "local-call",
                 "to": {
                   "nodeId": "compiler",
@@ -2005,7 +2193,7 @@
               {
                 "definitionId": "l036.fused-plan.compiler",
                 "id": "compiler",
-                "label": "Plan compiler",
+                "label": "Composite compiler",
                 "position": {
                   "x": 0,
                   "y": 180
@@ -2015,7 +2203,7 @@
               {
                 "definitionId": "l036.fused-plan.driver",
                 "id": "driver",
-                "label": "Fused driver",
+                "label": "Push driver",
                 "position": {
                   "x": 280,
                   "y": 180
@@ -2056,7 +2244,7 @@
           },
           "id": "fused-plan-s8",
           "invariants": [
-            "Two consumers have independent positions and each reruns callbacks."
+            "Each terminal recompiles and reruns callbacks; no result or position is cached between terminals."
           ],
           "number": 8,
           "operations": [
@@ -2096,10 +2284,11 @@
           "title": "Make repeated consumption explicit"
         }
       ],
-      "title": "Persistent operation plan and fused loop",
+      "title": "Compiled composite runs and one push loop",
       "tradeoffs": [
-        "O(k) terminal setup and O(n*k) worst-case callback work.",
-        "Map fusion reduces dispatch and intermediate allocation, not the number of user map callbacks."
+        "O(k) compilation per terminal and O(n*k) worst-case callback work.",
+        "No incremental next(): a consumer cannot pause between elements and resume later.",
+        "Fusion removes per-map dispatch and intermediate arrays, not user callback invocations."
       ]
     },
     {
@@ -2108,35 +2297,52 @@
           "evidence": {
             "kind": "reference-test",
             "testFile": "tools/simulatte/study-reference/batch-07-mechanisms.test.mjs",
-            "testName": "batch-07 lazy: deferred branching and exact short circuit"
+            "testName": "batch-07 lazy cursors: per-operator iterator chain, close propagation and exception close"
           },
-          "given": "A mapped/filtered source and counters on callbacks.",
+          "given": "A source mapped twice, then branched with a filter and a map, and two cursors opened on the branch.",
           "id": "behavior",
           "relatedRequirementIds": [
             "r0",
-            "r1",
-            "r2"
+            "r1"
           ],
-          "then": "No callback runs at construction; short circuit stops after the first output match; branches retain independent plans.",
-          "when": "Build two branches, consume indexOf on one, then collect the other."
+          "then": "No callback runs at construction or open; the cursors advance independently; closing one closes its source after three pulls while the other continues; indexOf(6) returns 1 after exactly three calls of the first map.",
+          "when": "Interleave next() on both cursors, close one, then run indexOf and collect."
         },
         {
-          "given": "Empty input, all elements filtered out, NaN target, and a throwing callback.",
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-07-mechanisms.test.mjs",
+            "testName": "batch-07 lazy cursors: per-operator iterator chain, close propagation and exception close"
+          },
+          "given": "The chain map, map, filter, map.",
+          "id": "fusion",
+          "relatedRequirementIds": [
+            "r2"
+          ],
+          "then": "Layers are map-run of one, filter, map-run of two, source: adjacent maps share one layer and no layer spans the filter.",
+          "when": "Open a cursor and list its layers from the outer layer to the source."
+        },
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-07-mechanisms.test.mjs",
+            "testName": "batch-07 lazy cursors: per-operator iterator chain, close propagation and exception close"
+          },
+          "given": "A first map that throws on element 1, empty input, a fully filtered chain and a NaN target.",
           "id": "boundary",
           "relatedRequirementIds": [
-            "r0",
             "r1",
             "r2"
           ],
-          "then": "Return [] or -1 for absence; Object.is matches NaN; a throw stops traversal and later fresh traversal restarts.",
-          "when": "Consume repeatedly."
+          "then": "The throw propagates once; the chain and its source close and the next call returns {done:true} instead of element 2; absence returns [] or -1 and NaN matches.",
+          "when": "Call next() again after the throw and run each terminal."
         }
       ],
       "algorithms": [
         {
-          "code": "append(kind, fn) { return new CursorFactory(source, {previous: tail, kind, fn}); }\nopen() { const ops=flattenAndFuse(tail); let i=0, closed=false;\n return { next() { if(closed) return {done:true};\n  outer: while(i<source.length) { let value=source[i++];\n   for(const op of ops) { if(op.kind===\"filter\") {if(!op.fn(value)) continue outer;}\n    else for(const fn of op.mapRun) value=fn(value); }\n   return {done:false,value}; } closed=true; return {done:true};\n }, close() {closed=true;} };\n}",
+          "code": "append(kind, fn) { return new CursorFactory(source, {previous: tail, kind, fn}); }\nopen() { let layer=sourceIterator(source);                 // private per consumer\n for (const run of flattenToRuns(tail))                   // iterative; adjacent maps grouped\n  layer = run.kind===\"filter\" ? new FilterIter(layer, run.fn) : new MapRunIter(layer, composite(run.fns));\n return guard(layer); }\nFilterIter.next() { for(;;) { const n=this.up.next(); if (n.done || this.fn(n.value)) return n; } }\nMapRunIter.next() { const n=this.up.next(); return n.done ? n : {done:false, value:this.run(n.value)}; }\nLayer.close() { if (!this.closed) { this.closed=true; this.up.close(); } }\nguard(top) { let closed=false; return {\n next() { if (closed) return {done:true};\n  try { const n=top.next(); if (n.done) { closed=true; top.close(); } return n; }\n  catch (e) { closed=true; top.close(); throw e; } },\n close() { if (!closed) { closed=true; top.close(); } } }; }",
           "guarantees": [
-            "Descriptor construction is O(1); consumers are independent; no eager prefetch."
+            "Descriptor construction is O(1); each consumer owns its chain; close and callback failure both close the source; no eager prefetch."
           ],
           "id": "mechanism-0",
           "language": "typescript-pseudocode",
@@ -2145,19 +2351,27 @@
       ],
       "apis": [
         {
-          "errors": "TypeError nonfunction callback; callback exception propagates; no partial array returned",
+          "errors": "TypeError for a nonfunction callback; the receiver is unchanged",
           "method": "CALL",
           "ownerNodeId": "owner",
-          "path": "LazyArray.map/filter/collect/indexOf",
-          "request": "{\"method\":\"map|filter|collect|indexOf\",\"callback\":\"function(T)->U|boolean for intermediate operation\",\"target\":\"value for indexOf\"}",
-          "response": "{\"intermediate\":\"new LazyArray<U> sharing immutable history\",\"terminal\":\"U[] or transformed-output index; -1 if absent\"}"
+          "path": "LazyArray.map/filter",
+          "request": "{\"method\":\"map|filter\",\"callback\":\"function(T)->U for map; predicate(T)->boolean for filter\"}",
+          "response": "{\"lazyArray\":\"new LazyArray sharing immutable history; no callback invoked\"}"
+        },
+        {
+          "errors": "A callback exception closes that cursor and propagates; later next() returns done; no partial array is returned",
+          "method": "CALL",
+          "ownerNodeId": "owner",
+          "path": "LazyArray.collect/indexOf/open",
+          "request": "{\"method\":\"collect|indexOf|open\",\"target\":\"value compared with Object.is for indexOf\"}",
+          "response": "{\"result\":\"U[] for collect; transformed-output index or -1 for indexOf\",\"cursor\":\"open(): {next():{done,value?}, close()} owned by one consumer\"}"
         }
       ],
       "assumptions": [
         "Input array is shallow-copied at construction; object mutation remains visible. Callbacks may have effects; their original order is preserved.",
         "All added requirements and walkthroughs are authored practice. Graphs specify design; reference tests prove only named bounded mechanisms."
       ],
-      "chooseWhen": "Consumers need incremental next() as well as terminal methods, with independent cancellation.",
+      "chooseWhen": "Consumers need incremental next() and early close() in addition to terminal methods, with independent progress per consumer.",
       "id": "pull-cursors",
       "initialGraph": {
         "edges": [],
@@ -2166,10 +2380,9 @@
       "stages": [
         {
           "checkIds": [
-            "behavior",
-            "boundary"
+            "behavior"
           ],
-          "explanation": "Retain immutable operator descriptors; create a pull machine per consumer whose next() resumes at the next accepted output. Each consumer owns its own cursor state. [A cursor](https://en.wikipedia.org/wiki/Cursor_%28databases%29) records where a query should continue. Its ordering fields must distinguish equal values, and its validity depends on the query and access permissions.",
+          "explanation": "Retain immutable operator descriptors; open() builds one iterator object per operator run, each pulling from its upstream, and returns a guarded cursor with next() and close(). open() builds a private iterator chain; map, filter and open never advance shared state. [A cursor](https://en.wikipedia.org/wiki/Cursor_%28databases%29) records where a query should continue. Its ordering fields must distinguish equal values, and its validity depends on the query and access permissions.",
           "graph": {
             "edges": [
               {
@@ -2179,11 +2392,25 @@
                   "portId": "out-l036.pull-cursors.command"
                 },
                 "id": "command",
-                "label": "invoke API",
+                "label": "commands",
                 "mode": "local-call",
                 "to": {
                   "nodeId": "owner",
                   "portId": "in-l036.pull-cursors.command"
+                }
+              },
+              {
+                "contractId": "l036.pull-cursors.read",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l036.pull-cursors.read"
+                },
+                "id": "read",
+                "label": "read-only query",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l036.pull-cursors.read"
                 }
               }
             ],
@@ -2212,7 +2439,7 @@
           },
           "id": "pull-cursors-s1",
           "invariants": [
-            "Each consumer owns its own cursor state."
+            "open() builds a private iterator chain; map, filter and open never advance shared state."
           ],
           "number": 1,
           "operations": [
@@ -2250,7 +2477,7 @@
                   "portId": "out-l036.pull-cursors.command"
                 },
                 "id": "command",
-                "label": "invoke API",
+                "label": "commands",
                 "mode": "local-call",
                 "to": {
                   "nodeId": "owner",
@@ -2258,18 +2485,34 @@
                 }
               },
               "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l036.pull-cursors.read",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l036.pull-cursors.read"
+                },
+                "id": "read",
+                "label": "read-only query",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l036.pull-cursors.read"
+                }
+              },
+              "op": "connect"
             }
           ],
           "question": "Who owns progress when consumers interleave?",
-          "reason": "Retain immutable operator descriptors; create a pull machine per consumer whose next() resumes at the next accepted output.",
+          "reason": "Retain immutable operator descriptors; open() builds one iterator object per operator run, each pulling from its upstream, and returns a guarded cursor with next() and close().",
           "title": "Expose Cursor factory"
         },
         {
           "checkIds": [
-            "behavior",
-            "boundary"
+            "behavior"
           ],
-          "explanation": "Append a descriptor cell with a previous pointer; it describes a cursor factory and holds no live cursor. Descriptor append never calls next or a callback. [A cursor](https://en.wikipedia.org/wiki/Cursor_%28databases%29) records where a query should continue. Its ordering fields must distinguish equal values, and its validity depends on the query and access permissions.",
+          "explanation": "Append a descriptor cell with a previous pointer; it describes an iterator layer and holds no live cursor. Descriptor append never calls next or a callback. [A cursor](https://en.wikipedia.org/wiki/Cursor_%28databases%29) records where a query should continue. Its ordering fields must distinguish equal values, and its validity depends on the query and access permissions.",
           "graph": {
             "edges": [
               {
@@ -2279,11 +2522,25 @@
                   "portId": "out-l036.pull-cursors.command"
                 },
                 "id": "command",
-                "label": "invoke API",
+                "label": "commands",
                 "mode": "local-call",
                 "to": {
                   "nodeId": "owner",
                   "portId": "in-l036.pull-cursors.command"
+                }
+              },
+              {
+                "contractId": "l036.pull-cursors.read",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l036.pull-cursors.read"
+                },
+                "id": "read",
+                "label": "read-only query",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l036.pull-cursors.read"
                 }
               },
               {
@@ -2372,15 +2629,15 @@
             }
           ],
           "question": "Can two lazy branches share mutation?",
-          "reason": "Append a descriptor cell with a previous pointer; it describes a cursor factory and holds no live cursor.",
+          "reason": "Append a descriptor cell with a previous pointer; it describes an iterator layer and holds no live cursor.",
           "title": "Retain immutable cursor recipes"
         },
         {
           "checkIds": [
             "behavior",
-            "boundary"
+            "fusion"
           ],
-          "explanation": "Flatten descriptor spine once when opening a consumer; allocate source index and output ordinal privately. Opening a cursor evaluates no source elements. [An index](https://en.wikipedia.org/wiki/Database_index) maintains a structure that narrows a search without scanning every record. Faster reads come with storage costs and extra work whenever indexed data changes. Consider this case: A mapped/filtered source and counters on callbacks.",
+          "explanation": "open() flattens the descriptor spine iteratively, wraps a private source iterator with one MapRun or Filter iterator per run, innermost first, and hands the consumer only the outer layer. Opening a cursor evaluates no source element and shares no layer with another cursor. [Lazy evaluation](https://en.wikipedia.org/wiki/Lazy_evaluation) postpones work until a result is requested. Short-circuiting can avoid unnecessary work, but the design must specify when callbacks run and how iteration state is owned.",
           "graph": {
             "edges": [
               {
@@ -2390,11 +2647,25 @@
                   "portId": "out-l036.pull-cursors.command"
                 },
                 "id": "command",
-                "label": "invoke API",
+                "label": "commands",
                 "mode": "local-call",
                 "to": {
                   "nodeId": "owner",
                   "portId": "in-l036.pull-cursors.command"
+                }
+              },
+              {
+                "contractId": "l036.pull-cursors.read",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l036.pull-cursors.read"
+                },
+                "id": "read",
+                "label": "read-only query",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l036.pull-cursors.read"
                 }
               },
               {
@@ -2418,7 +2689,7 @@
                   "portId": "out-l036.pull-cursors.factory"
                 },
                 "id": "use-factory",
-                "label": "Allocate independent pull state",
+                "label": "Build one iterator per operator run",
                 "mode": "local-call",
                 "to": {
                   "nodeId": "factory",
@@ -2460,7 +2731,7 @@
               {
                 "definitionId": "l036.pull-cursors.factory",
                 "id": "factory",
-                "label": "Cursor allocator",
+                "label": "Iterator chain builder",
                 "position": {
                   "x": 840,
                   "y": 0
@@ -2471,7 +2742,7 @@
           },
           "id": "pull-cursors-s3",
           "invariants": [
-            "Opening a cursor evaluates no source elements."
+            "Opening a cursor evaluates no source element and shares no layer with another cursor."
           ],
           "number": 3,
           "operations": [
@@ -2479,7 +2750,7 @@
               "node": {
                 "definitionId": "l036.pull-cursors.factory",
                 "id": "factory",
-                "label": "Cursor allocator",
+                "label": "Iterator chain builder",
                 "position": {
                   "x": 840,
                   "y": 0
@@ -2496,7 +2767,7 @@
                   "portId": "out-l036.pull-cursors.factory"
                 },
                 "id": "use-factory",
-                "label": "Allocate independent pull state",
+                "label": "Build one iterator per operator run",
                 "mode": "local-call",
                 "to": {
                   "nodeId": "factory",
@@ -2507,15 +2778,14 @@
             }
           ],
           "question": "Can one terminal exhaust another?",
-          "reason": "Flatten descriptor spine once when opening a consumer; allocate source index and output ordinal privately.",
-          "title": "Allocate independent pull state"
+          "reason": "open() flattens the descriptor spine iteratively, wraps a private source iterator with one MapRun or Filter iterator per run, innermost first, and hands the consumer only the outer layer.",
+          "title": "Build one iterator per operator run"
         },
         {
           "checkIds": [
-            "behavior",
-            "boundary"
+            "behavior"
           ],
-          "explanation": "next() loops source candidates and runs descriptors until one survives, then suspends with the next source index. One next call yields at most one output. [An index](https://en.wikipedia.org/wiki/Database_index) maintains a structure that narrows a search without scanning every record. Faster reads come with storage costs and extra work whenever indexed data changes.",
+          "explanation": "A filter iterator calls upstream.next() until its predicate accepts; a map-run iterator pulls once and applies its run; the outer layer returns one item. One outer next() yields at most one output and pulls only the source items needed for it. [Lazy evaluation](https://en.wikipedia.org/wiki/Lazy_evaluation) postpones work until a result is requested. Short-circuiting can avoid unnecessary work, but the design must specify when callbacks run and how iteration state is owned.",
           "graph": {
             "edges": [
               {
@@ -2525,11 +2795,25 @@
                   "portId": "out-l036.pull-cursors.command"
                 },
                 "id": "command",
-                "label": "invoke API",
+                "label": "commands",
                 "mode": "local-call",
                 "to": {
                   "nodeId": "owner",
                   "portId": "in-l036.pull-cursors.command"
+                }
+              },
+              {
+                "contractId": "l036.pull-cursors.read",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l036.pull-cursors.read"
+                },
+                "id": "read",
+                "label": "read-only query",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l036.pull-cursors.read"
                 }
               },
               {
@@ -2553,7 +2837,7 @@
                   "portId": "out-l036.pull-cursors.factory"
                 },
                 "id": "use-factory",
-                "label": "Allocate independent pull state",
+                "label": "Build one iterator per operator run",
                 "mode": "local-call",
                 "to": {
                   "nodeId": "factory",
@@ -2609,7 +2893,7 @@
               {
                 "definitionId": "l036.pull-cursors.factory",
                 "id": "factory",
-                "label": "Cursor allocator",
+                "label": "Iterator chain builder",
                 "position": {
                   "x": 840,
                   "y": 0
@@ -2619,7 +2903,7 @@
               {
                 "definitionId": "l036.pull-cursors.pull",
                 "id": "pull",
-                "label": "next state machine",
+                "label": "Per-layer next()",
                 "position": {
                   "x": 0,
                   "y": 180
@@ -2630,7 +2914,7 @@
           },
           "id": "pull-cursors-s4",
           "invariants": [
-            "One next call yields at most one output."
+            "One outer next() yields at most one output and pulls only the source items needed for it."
           ],
           "number": 4,
           "operations": [
@@ -2638,7 +2922,7 @@
               "node": {
                 "definitionId": "l036.pull-cursors.pull",
                 "id": "pull",
-                "label": "next state machine",
+                "label": "Per-layer next()",
                 "position": {
                   "x": 0,
                   "y": 180
@@ -2666,15 +2950,14 @@
             }
           ],
           "question": "How does filter request another source value?",
-          "reason": "next() loops source candidates and runs descriptors until one survives, then suspends with the next source index.",
+          "reason": "A filter iterator calls upstream.next() until its predicate accepts; a map-run iterator pulls once and applies its run; the outer layer returns one item.",
           "title": "Pull one surviving item"
         },
         {
           "checkIds": [
-            "behavior",
-            "boundary"
+            "fusion"
           ],
-          "explanation": "Compile adjacent map descriptors into array runs; evaluate each user callback in order for only the pulled candidate. Fusion preserves side-effect and throw order. [Lazy evaluation](https://en.wikipedia.org/wiki/Lazy_evaluation) postpones work until a result is requested. Short-circuiting can avoid unnecessary work, but the design must specify when callbacks run and how iteration state is owned.",
+          "explanation": "Adjacent map descriptors become one MapRun iterator whose next() calls a composite of the run's callbacks in order; a filter always starts a new iterator. Collapsing changes the number of layers, never callback order. [Lazy evaluation](https://en.wikipedia.org/wiki/Lazy_evaluation) postpones work until a result is requested. Short-circuiting can avoid unnecessary work, but the design must specify when callbacks run and how iteration state is owned.",
           "graph": {
             "edges": [
               {
@@ -2684,11 +2967,25 @@
                   "portId": "out-l036.pull-cursors.command"
                 },
                 "id": "command",
-                "label": "invoke API",
+                "label": "commands",
                 "mode": "local-call",
                 "to": {
                   "nodeId": "owner",
                   "portId": "in-l036.pull-cursors.command"
+                }
+              },
+              {
+                "contractId": "l036.pull-cursors.read",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l036.pull-cursors.read"
+                },
+                "id": "read",
+                "label": "read-only query",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l036.pull-cursors.read"
                 }
               },
               {
@@ -2712,7 +3009,7 @@
                   "portId": "out-l036.pull-cursors.factory"
                 },
                 "id": "use-factory",
-                "label": "Allocate independent pull state",
+                "label": "Build one iterator per operator run",
                 "mode": "local-call",
                 "to": {
                   "nodeId": "factory",
@@ -2740,7 +3037,7 @@
                   "portId": "out-l036.pull-cursors.fusion"
                 },
                 "id": "use-fusion",
-                "label": "Fuse map dispatch on pull",
+                "label": "Collapse adjacent maps into one layer",
                 "mode": "local-call",
                 "to": {
                   "nodeId": "fusion",
@@ -2782,7 +3079,7 @@
               {
                 "definitionId": "l036.pull-cursors.factory",
                 "id": "factory",
-                "label": "Cursor allocator",
+                "label": "Iterator chain builder",
                 "position": {
                   "x": 840,
                   "y": 0
@@ -2792,7 +3089,7 @@
               {
                 "definitionId": "l036.pull-cursors.pull",
                 "id": "pull",
-                "label": "next state machine",
+                "label": "Per-layer next()",
                 "position": {
                   "x": 0,
                   "y": 180
@@ -2802,7 +3099,7 @@
               {
                 "definitionId": "l036.pull-cursors.fusion",
                 "id": "fusion",
-                "label": "Map-run executor",
+                "label": "Map-run iterator",
                 "position": {
                   "x": 280,
                   "y": 180
@@ -2813,7 +3110,7 @@
           },
           "id": "pull-cursors-s5",
           "invariants": [
-            "Fusion preserves side-effect and throw order."
+            "Collapsing changes the number of layers, never callback order."
           ],
           "number": 5,
           "operations": [
@@ -2821,7 +3118,7 @@
               "node": {
                 "definitionId": "l036.pull-cursors.fusion",
                 "id": "fusion",
-                "label": "Map-run executor",
+                "label": "Map-run iterator",
                 "position": {
                   "x": 280,
                   "y": 180
@@ -2838,7 +3135,7 @@
                   "portId": "out-l036.pull-cursors.fusion"
                 },
                 "id": "use-fusion",
-                "label": "Fuse map dispatch on pull",
+                "label": "Collapse adjacent maps into one layer",
                 "mode": "local-call",
                 "to": {
                   "nodeId": "fusion",
@@ -2849,15 +3146,14 @@
             }
           ],
           "question": "May fusion cross a filter?",
-          "reason": "Compile adjacent map descriptors into array runs; evaluate each user callback in order for only the pulled candidate.",
-          "title": "Fuse map dispatch on pull"
+          "reason": "Adjacent map descriptors become one MapRun iterator whose next() calls a composite of the run's callbacks in order; a filter always starts a new iterator.",
+          "title": "Collapse adjacent maps into one layer"
         },
         {
           "checkIds": [
-            "behavior",
-            "boundary"
+            "behavior"
           ],
-          "explanation": "indexOf calls next until Object.is succeeds, then closes that consumer; no extra next call is made. Short circuit is demand cessation, not source prefetch. [A cursor](https://en.wikipedia.org/wiki/Cursor_%28databases%29) records where a query should continue. Its ordering fields must distinguish equal values, and its validity depends on the query and access permissions. Consider this case: A mapped/filtered source and counters on callbacks.",
+          "explanation": "indexOf calls next until Object.is succeeds, then closes the cursor; close travels from the outer layer to the source, and no extra next call is made. Short circuit is demand cessation propagated by close(), not source prefetch. [A cursor](https://en.wikipedia.org/wiki/Cursor_%28databases%29) records where a query should continue. Its ordering fields must distinguish equal values, and its validity depends on the query and access permissions.",
           "graph": {
             "edges": [
               {
@@ -2867,11 +3163,25 @@
                   "portId": "out-l036.pull-cursors.command"
                 },
                 "id": "command",
-                "label": "invoke API",
+                "label": "commands",
                 "mode": "local-call",
                 "to": {
                   "nodeId": "owner",
                   "portId": "in-l036.pull-cursors.command"
+                }
+              },
+              {
+                "contractId": "l036.pull-cursors.read",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l036.pull-cursors.read"
+                },
+                "id": "read",
+                "label": "read-only query",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l036.pull-cursors.read"
                 }
               },
               {
@@ -2895,7 +3205,7 @@
                   "portId": "out-l036.pull-cursors.factory"
                 },
                 "id": "use-factory",
-                "label": "Allocate independent pull state",
+                "label": "Build one iterator per operator run",
                 "mode": "local-call",
                 "to": {
                   "nodeId": "factory",
@@ -2923,7 +3233,7 @@
                   "portId": "out-l036.pull-cursors.fusion"
                 },
                 "id": "use-fusion",
-                "label": "Fuse map dispatch on pull",
+                "label": "Collapse adjacent maps into one layer",
                 "mode": "local-call",
                 "to": {
                   "nodeId": "fusion",
@@ -2979,7 +3289,7 @@
               {
                 "definitionId": "l036.pull-cursors.factory",
                 "id": "factory",
-                "label": "Cursor allocator",
+                "label": "Iterator chain builder",
                 "position": {
                   "x": 840,
                   "y": 0
@@ -2989,7 +3299,7 @@
               {
                 "definitionId": "l036.pull-cursors.pull",
                 "id": "pull",
-                "label": "next state machine",
+                "label": "Per-layer next()",
                 "position": {
                   "x": 0,
                   "y": 180
@@ -2999,7 +3309,7 @@
               {
                 "definitionId": "l036.pull-cursors.fusion",
                 "id": "fusion",
-                "label": "Map-run executor",
+                "label": "Map-run iterator",
                 "position": {
                   "x": 280,
                   "y": 180
@@ -3020,7 +3330,7 @@
           },
           "id": "pull-cursors-s6",
           "invariants": [
-            "Short circuit is demand cessation, not source prefetch."
+            "Short circuit is demand cessation propagated by close(), not source prefetch."
           ],
           "number": 6,
           "operations": [
@@ -3056,15 +3366,14 @@
             }
           ],
           "question": "How is a match propagated upstream?",
-          "reason": "indexOf calls next until Object.is succeeds, then closes that consumer; no extra next call is made.",
+          "reason": "indexOf calls next until Object.is succeeds, then closes the cursor; close travels from the outer layer to the source, and no extra next call is made.",
           "title": "Stop the upstream cursor"
         },
         {
           "checkIds": [
-            "behavior",
-            "boundary"
+            "behavior"
           ],
-          "explanation": "Set closed before dropping retained temporary references; next after close returns done, while a new consumer remains valid. Closing a consumer cannot mutate its parent descriptor recipe. [A queue](https://en.wikipedia.org/wiki/Queue_%28abstract_data_type%29) separates accepting work from completing it. Capacity, ordering, ownership, and shutdown behavior determine what producers and consumers may safely assume about each item.",
+          "explanation": "close() marks each layer closed from the outside in and drops upstream references; next after close returns done, while another cursor or a new open() is unaffected. Closing one consumer closes its own source iterator and no other consumer's. [A queue](https://en.wikipedia.org/wiki/Queue_%28abstract_data_type%29) separates accepting work from completing it. Capacity, ordering, ownership, and shutdown behavior determine what producers and consumers may safely assume about each item.",
           "graph": {
             "edges": [
               {
@@ -3074,11 +3383,25 @@
                   "portId": "out-l036.pull-cursors.command"
                 },
                 "id": "command",
-                "label": "invoke API",
+                "label": "commands",
                 "mode": "local-call",
                 "to": {
                   "nodeId": "owner",
                   "portId": "in-l036.pull-cursors.command"
+                }
+              },
+              {
+                "contractId": "l036.pull-cursors.read",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l036.pull-cursors.read"
+                },
+                "id": "read",
+                "label": "read-only query",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l036.pull-cursors.read"
                 }
               },
               {
@@ -3102,7 +3425,7 @@
                   "portId": "out-l036.pull-cursors.factory"
                 },
                 "id": "use-factory",
-                "label": "Allocate independent pull state",
+                "label": "Build one iterator per operator run",
                 "mode": "local-call",
                 "to": {
                   "nodeId": "factory",
@@ -3130,7 +3453,7 @@
                   "portId": "out-l036.pull-cursors.fusion"
                 },
                 "id": "use-fusion",
-                "label": "Fuse map dispatch on pull",
+                "label": "Collapse adjacent maps into one layer",
                 "mode": "local-call",
                 "to": {
                   "nodeId": "fusion",
@@ -3200,7 +3523,7 @@
               {
                 "definitionId": "l036.pull-cursors.factory",
                 "id": "factory",
-                "label": "Cursor allocator",
+                "label": "Iterator chain builder",
                 "position": {
                   "x": 840,
                   "y": 0
@@ -3210,7 +3533,7 @@
               {
                 "definitionId": "l036.pull-cursors.pull",
                 "id": "pull",
-                "label": "next state machine",
+                "label": "Per-layer next()",
                 "position": {
                   "x": 0,
                   "y": 180
@@ -3220,7 +3543,7 @@
               {
                 "definitionId": "l036.pull-cursors.fusion",
                 "id": "fusion",
-                "label": "Map-run executor",
+                "label": "Map-run iterator",
                 "position": {
                   "x": 280,
                   "y": 180
@@ -3240,7 +3563,7 @@
               {
                 "definitionId": "l036.pull-cursors.close",
                 "id": "close",
-                "label": "Cursor close",
+                "label": "Close propagation",
                 "position": {
                   "x": 840,
                   "y": 180
@@ -3251,7 +3574,7 @@
           },
           "id": "pull-cursors-s7",
           "invariants": [
-            "Closing a consumer cannot mutate its parent descriptor recipe."
+            "Closing one consumer closes its own source iterator and no other consumer's."
           ],
           "number": 7,
           "operations": [
@@ -3259,7 +3582,7 @@
               "node": {
                 "definitionId": "l036.pull-cursors.close",
                 "id": "close",
-                "label": "Cursor close",
+                "label": "Close propagation",
                 "position": {
                   "x": 840,
                   "y": 180
@@ -3287,15 +3610,14 @@
             }
           ],
           "question": "Can a closed cursor resume by accident?",
-          "reason": "Set closed before dropping retained temporary references; next after close returns done, while a new consumer remains valid.",
+          "reason": "close() marks each layer closed from the outside in and drops upstream references; next after close returns done, while another cursor or a new open() is unaffected.",
           "title": "Release consumer state"
         },
         {
           "checkIds": [
-            "behavior",
             "boundary"
           ],
-          "explanation": "Collect repeatedly calls next into one terminal-owned output array; no map or filter owns an intermediate collection. Exceptions close this cursor and propagate without caching partial output. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return.",
+          "explanation": "The cursor's next() catches a callback exception, closes the whole chain and rethrows; collect drops its terminal-owned array, and a later next() returns done instead of resuming at the following element. After a callback throws, that cursor yields only {done:true} and its source iterator is closed. [A cursor](https://en.wikipedia.org/wiki/Cursor_%28databases%29) records where a query should continue. Its ordering fields must distinguish equal values, and its validity depends on the query and access permissions.",
           "graph": {
             "edges": [
               {
@@ -3305,11 +3627,25 @@
                   "portId": "out-l036.pull-cursors.command"
                 },
                 "id": "command",
-                "label": "invoke API",
+                "label": "commands",
                 "mode": "local-call",
                 "to": {
                   "nodeId": "owner",
                   "portId": "in-l036.pull-cursors.command"
+                }
+              },
+              {
+                "contractId": "l036.pull-cursors.read",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l036.pull-cursors.read"
+                },
+                "id": "read",
+                "label": "read-only query",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l036.pull-cursors.read"
                 }
               },
               {
@@ -3333,7 +3669,7 @@
                   "portId": "out-l036.pull-cursors.factory"
                 },
                 "id": "use-factory",
-                "label": "Allocate independent pull state",
+                "label": "Build one iterator per operator run",
                 "mode": "local-call",
                 "to": {
                   "nodeId": "factory",
@@ -3361,7 +3697,7 @@
                   "portId": "out-l036.pull-cursors.fusion"
                 },
                 "id": "use-fusion",
-                "label": "Fuse map dispatch on pull",
+                "label": "Collapse adjacent maps into one layer",
                 "mode": "local-call",
                 "to": {
                   "nodeId": "fusion",
@@ -3403,7 +3739,7 @@
                   "portId": "out-l036.pull-cursors.collect"
                 },
                 "id": "use-collect",
-                "label": "Materialize only at terminal",
+                "label": "Close the chain on callback failure",
                 "mode": "local-call",
                 "to": {
                   "nodeId": "collect",
@@ -3445,7 +3781,7 @@
               {
                 "definitionId": "l036.pull-cursors.factory",
                 "id": "factory",
-                "label": "Cursor allocator",
+                "label": "Iterator chain builder",
                 "position": {
                   "x": 840,
                   "y": 0
@@ -3455,7 +3791,7 @@
               {
                 "definitionId": "l036.pull-cursors.pull",
                 "id": "pull",
-                "label": "next state machine",
+                "label": "Per-layer next()",
                 "position": {
                   "x": 0,
                   "y": 180
@@ -3465,7 +3801,7 @@
               {
                 "definitionId": "l036.pull-cursors.fusion",
                 "id": "fusion",
-                "label": "Map-run executor",
+                "label": "Map-run iterator",
                 "position": {
                   "x": 280,
                   "y": 180
@@ -3485,7 +3821,7 @@
               {
                 "definitionId": "l036.pull-cursors.close",
                 "id": "close",
-                "label": "Cursor close",
+                "label": "Close propagation",
                 "position": {
                   "x": 840,
                   "y": 180
@@ -3495,7 +3831,7 @@
               {
                 "definitionId": "l036.pull-cursors.collect",
                 "id": "collect",
-                "label": "Collector",
+                "label": "Guarded collector",
                 "position": {
                   "x": 0,
                   "y": 360
@@ -3506,7 +3842,7 @@
           },
           "id": "pull-cursors-s8",
           "invariants": [
-            "Exceptions close this cursor and propagate without caching partial output."
+            "After a callback throws, that cursor yields only {done:true} and its source iterator is closed."
           ],
           "number": 8,
           "operations": [
@@ -3514,7 +3850,7 @@
               "node": {
                 "definitionId": "l036.pull-cursors.collect",
                 "id": "collect",
-                "label": "Collector",
+                "label": "Guarded collector",
                 "position": {
                   "x": 0,
                   "y": 360
@@ -3531,7 +3867,7 @@
                   "portId": "out-l036.pull-cursors.collect"
                 },
                 "id": "use-collect",
-                "label": "Materialize only at terminal",
+                "label": "Close the chain on callback failure",
                 "mode": "local-call",
                 "to": {
                   "nodeId": "collect",
@@ -3541,15 +3877,16 @@
               "op": "connect"
             }
           ],
-          "question": "Where does the result array live?",
-          "reason": "Collect repeatedly calls next into one terminal-owned output array; no map or filter owns an intermediate collection.",
-          "title": "Materialize only at terminal"
+          "question": "Can a cursor resume after a callback throws?",
+          "reason": "The cursor's next() catches a callback exception, closes the whole chain and rethrows; collect drops its terminal-owned array, and a later next() returns done instead of resuming at the following element.",
+          "title": "Close the chain on callback failure"
         }
       ],
-      "title": "Pull cursor factories over persistent descriptors",
+      "title": "Pull chain of per-operator iterators",
       "tradeoffs": [
-        "A pull cursor retains suspended traversal state.",
-        "Wrapper-per-operator recursion can overflow; flatten descriptor history before iterating."
+        "Every pulled element crosses one next() call per operator run, so dispatch grows with chain length.",
+        "Nested next() depth equals the number of operator runs; very long chains need a declared length bound or the compiled plan.",
+        "Each open cursor retains suspended layer state until it is exhausted or closed."
       ]
     }
   ],

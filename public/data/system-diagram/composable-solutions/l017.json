@@ -44,7 +44,7 @@
           "id": "in-l017.session.c1"
         }
       ],
-      "responsibility": "Expand API; persist prompt, model selection and cancellation epoch.",
+      "responsibility": "Expand API; persist prompt, model selection and current attempt before dispatch.",
       "stateOwnership": [
         "prompt and generation records"
       ],
@@ -99,7 +99,7 @@
           "id": "in-l017.session.c6"
         }
       ],
-      "responsibility": "One fenced generation attempt emits monotonically numbered chunks.",
+      "responsibility": "One fenced generation attempt emits chunks numbered from 0 within that attempt.",
       "stateOwnership": [
         "attempt fence and token index"
       ],
@@ -124,14 +124,19 @@
           "id": "out-l017.session.c5"
         },
         {
+          "contractId": "l017.session.c6",
+          "direction": "in",
+          "id": "in-l017.session.c6"
+        },
+        {
           "contractId": "l017.session.c7",
           "direction": "in",
           "id": "in-l017.session.c7"
         }
       ],
-      "responsibility": "Persist indexed chunks before acknowledging resumable delivery.",
+      "responsibility": "Persist chunks keyed by attempt before acknowledging resumable delivery; a new attempt starts its own list.",
       "stateOwnership": [
-        "generation/token sequence"
+        "generation/attempt/token sequence"
       ],
       "version": 1
     },
@@ -174,9 +179,9 @@
           "id": "out-l017.session.c6"
         }
       ],
-      "responsibility": "Advance generation epoch and reject late attempt writes; cancellation cannot erase already observed text.",
+      "responsibility": "Record cancellation at the journal so late writes from any attempt are rejected; cancellation cannot erase already observed text.",
       "stateOwnership": [
-        "cancellation epoch"
+        "cancellation flag and attempt"
       ],
       "version": 1
     },
@@ -334,7 +339,7 @@
           "id": "out-l017.pull.c3"
         }
       ],
-      "responsibility": "Dispatch retryable inference activities with stable attempt/fence identities.",
+      "responsibility": "Dispatch retryable inference activities with stable attempt identities.",
       "stateOwnership": [
         "activity leases"
       ],
@@ -384,12 +389,17 @@
           "id": "in-l017.pull.c4"
         },
         {
+          "contractId": "l017.pull.c6",
+          "direction": "in",
+          "id": "in-l017.pull.c6"
+        },
+        {
           "contractId": "l017.pull.c7",
           "direction": "in",
           "id": "in-l017.pull.c7"
         }
       ],
-      "responsibility": "Materialize immutable chunk pages and completion status under generation/version.",
+      "responsibility": "Materialize immutable chunk pages keyed by generation and attempt, plus completion status.",
       "stateOwnership": [
         "immutable chunk pages"
       ],
@@ -439,7 +449,7 @@
           "id": "out-l017.pull.c6"
         }
       ],
-      "responsibility": "Persist cancellation before cancelling queued activities and fence late output commits.",
+      "responsibility": "Persist cancellation before cancelling queued activities, and fence late page commits from every attempt.",
       "stateOwnership": [
         "cancellation epoch"
       ],
@@ -570,10 +580,11 @@
     {
       "id": "l017.session.c3",
       "request": {
-        "fence": "integer",
+        "attempt": "integer",
         "generationId": "uuid"
       },
       "response": {
+        "attempt": "integer",
         "index": "integer",
         "text": "string"
       },
@@ -582,6 +593,7 @@
     {
       "id": "l017.session.c4",
       "request": {
+        "attempt": "integer",
         "generationId": "uuid",
         "index": "integer",
         "text": "string"
@@ -606,7 +618,7 @@
     {
       "id": "l017.session.c6",
       "request": {
-        "expectedEpoch": "integer",
+        "expectedAttempt": "integer",
         "generationId": "uuid"
       },
       "response": {
@@ -650,7 +662,7 @@
     {
       "id": "l017.pull.c2",
       "request": {
-        "fence": "integer",
+        "attempt": "integer",
         "generationId": "uuid"
       },
       "response": {
@@ -674,6 +686,7 @@
       "id": "l017.pull.c4",
       "request": {
         "after": "integer",
+        "attempt": "integer",
         "generationId": "uuid"
       },
       "response": {
@@ -697,6 +710,7 @@
     {
       "id": "l017.pull.c6",
       "request": {
+        "expectedAttempt": "integer",
         "generationId": "uuid"
       },
       "response": {
@@ -769,34 +783,29 @@
             "testFile": "tools/simulatte/study-reference/batch-01-mechanisms.test.mjs",
             "testName": "L017 bounded mechanism"
           },
-          "given": "A generation contains chunks 0 and 1 at epoch 4.",
+          "given": "Attempt 4 has journaled chunks 0 and 1.",
           "id": "mechanism",
           "relatedRequirementIds": [
-            "r0",
             "r1",
             "r2"
           ],
-          "then": "The duplicate index and stale token are rejected; resume after index 0 returns only existing chunk 1.",
-          "when": "Replay chunk 1, cancel by advancing epoch, then deliver chunk 2 from epoch 4."
+          "then": "The duplicate, the old-attempt chunk and the attempt-5 chunk that would extend attempt 4's prefix are rejected; attempt 5 starts its own list at index 0; after cancel nothing is appended.",
+          "when": "Replay chunk 1; advance to attempt 5 without cancelling and append index 2 from attempt 4, index 2 from attempt 5 and index 0 from attempt 5; separately, cancel at attempt 4 and append index 2."
         },
         {
-          "given": "Inference is running when cancel advances epoch.",
+          "given": "Inference is running when cancellation is recorded at the journal.",
           "id": "cancel",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
             "r2"
           ],
           "then": "Reject the chunk; text already observed remains part of the audit trail.",
-          "when": "Append a late chunk using the old epoch."
+          "when": "Append a late chunk from the running attempt."
         },
         {
           "given": "A reconnect cursor is older than retained chunks.",
           "id": "gap",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
-            "r2"
+            "r1"
           ],
           "then": "Return gap plus a permitted final snapshot, never silently concatenate a different attempt.",
           "when": "Resume the stream."
@@ -805,17 +814,33 @@
           "given": "One connection stops consuming tokens.",
           "id": "pressure",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
             "r2"
           ],
           "then": "Close that connection with a resume cursor without growing unbounded server memory.",
           "when": "Its bounded delivery buffer fills."
+        },
+        {
+          "given": "More generations arrive than reserved model slots allow.",
+          "id": "admission",
+          "relatedRequirementIds": [
+            "r2"
+          ],
+          "then": "Excess requests are rejected with retry guidance before any worker starts.",
+          "when": "Request reservations past the configured bound."
+        },
+        {
+          "given": "A client retries a prompt after a gateway restart.",
+          "id": "identity",
+          "relatedRequirementIds": [
+            "r0"
+          ],
+          "then": "The ledger returns the same generationId and committed prompt; no second dispatch starts.",
+          "when": "Submit with the same commandId."
         }
       ],
       "algorithms": [
         {
-          "code": "if (chunk.epoch !== state.epoch || state.cancelled) return false;\nif (chunk.index !== state.tokens.length) return false;\nstate.tokens.push(chunk.text); return true;",
+          "code": "// Token journal (n4): tokens are keyed by attempt; a retry or cancel can never extend an earlier attempt's prefix.\nfunction appendToken(state,chunk){\n if(state.cancelled||chunk.attempt!==state.attempt)return false;\n const tokens=state.tokens[chunk.attempt]??=[];\n if(chunk.index!==tokens.length)return false;\n tokens.push(chunk.text);\n return true;\n}",
           "guarantees": [
             "The code states the bounded decision rule; unimplemented helpers remain pseudocode.",
             "External effects, distributed failure and latency require separate execution evidence."
@@ -825,7 +850,7 @@
           "ownerNodeId": "n4"
         },
         {
-          "code": "if (after < journal.retentionFloor(generationId)) return {status:\"gap\", final:loadFinalSnapshot(generationId)};\nreturn journal.tokensAfter(generationId, after).filter(t => t.epoch === acceptedEpoch);\n// Client deduplicates token indexes; a new generation receives a new identity.",
+          "code": "if (after < journal.retentionFloor(generationId)) return {status:\"gap\", final:loadFinalSnapshot(generationId)};\nreturn journal.tokensAfter(generationId, acceptedAttempt, after);\n// Client deduplicates token indexes; a new generation receives a new identity.",
           "guarantees": [
             "Return an explicit gap and final snapshot or regenerate under a new identity."
           ],
@@ -846,14 +871,14 @@
         {
           "errors": "403 unauthorized scope; 404 absent identity; 410 expired retained history",
           "method": "GET",
-          "ownerNodeId": "state",
-          "path": "/l017/session/state",
-          "request": "{\"generationId\":\"uuid\",\"expectedVersion\":\"integer\"}",
-          "response": "{\"version\":\"integer\"}"
+          "ownerNodeId": "n5",
+          "path": "/l017/session/generations/{generationId}",
+          "request": "{\"generationId\":\"uuid\",\"after\":\"token index\"}",
+          "response": "{\"chunks\":\"token[]\",\"next\":\"integer\",\"status\":\"resume|gap|complete\"}"
         }
       ],
       "assumptions": [
-        "Tokens are indexed within one generation; partial output can be visible before final validation."
+        "Tokens are indexed within one generation attempt; partial output can be visible before final validation."
       ],
       "chooseWhen": "Fast incremental delivery and resumable token history are required.",
       "id": "session",
@@ -864,12 +889,9 @@
       "stages": [
         {
           "checkIds": [
-            "mechanism",
-            "cancel",
-            "gap",
-            "pressure"
+            "identity"
           ],
-          "explanation": "Authenticate conversation membership and assign a stable generation ID. Authenticate conversation membership and assign a stable generation ID. State owner: Prompt API (command receipts). Authenticate conversation membership and assign a stable generation ID. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A WebSocket](https://en.wikipedia.org/wiki/WebSocket) keeps a two-way connection open for timely updates. Connection lifetime is separate from durable delivery: reconnecting clients still need identities, cursors, and missing-event recovery.",
+          "explanation": "Authenticate conversation membership and assign a stable generation ID. commandId deduplicates prompt submission, so a retry returns the same generationId. Authenticate conversation membership and assign a stable generation ID. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A WebSocket](https://en.wikipedia.org/wiki/WebSocket) keeps a two-way connection open for timely updates. Connection lifetime is separate from durable delivery: reconnecting clients still need identities, cursors, and missing-event recovery.",
           "graph": {
             "edges": [
               {
@@ -912,7 +934,7 @@
           },
           "id": "session-s1",
           "invariants": [
-            "Authenticate conversation membership and assign a stable generation ID. State owner: Prompt API (command receipts)."
+            "commandId deduplicates prompt submission, so a retry returns the same generationId."
           ],
           "number": 1,
           "operations": [
@@ -966,12 +988,9 @@
         },
         {
           "checkIds": [
-            "mechanism",
-            "cancel",
-            "gap",
-            "pressure"
+            "identity"
           ],
-          "explanation": "Expand API; persist prompt, model selection and cancellation epoch. Expand API; persist prompt, model selection and cancellation epoch. State owner: Conversation ledger (prompt and generation records). Expand API; persist prompt, model selection and cancellation epoch. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A WebSocket](https://en.wikipedia.org/wiki/WebSocket) keeps a two-way connection open for timely updates. Connection lifetime is separate from durable delivery: reconnecting clients still need identities, cursors, and missing-event recovery.",
+          "explanation": "Expand API; persist prompt, model selection and current attempt before dispatch. The prompt, model selection and current attempt are committed before any dispatch, and dispatch reads them from the ledger. Expand API; persist prompt, model selection and current attempt before dispatch. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure.",
           "graph": {
             "edges": [
               {
@@ -1051,7 +1070,7 @@
           },
           "id": "session-s2",
           "invariants": [
-            "Expand API; persist prompt, model selection and cancellation epoch. State owner: Conversation ledger (prompt and generation records)."
+            "The prompt, model selection and current attempt are committed before any dispatch, and dispatch reads them from the ledger."
           ],
           "number": 2,
           "operations": [
@@ -1100,17 +1119,14 @@
             }
           ],
           "question": "What survives a gateway restart?",
-          "reason": "Expand API; persist prompt, model selection and cancellation epoch.",
+          "reason": "Expand API; persist prompt, model selection and current attempt before dispatch.",
           "title": "Conversation ledger"
         },
         {
           "checkIds": [
-            "mechanism",
-            "cancel",
-            "gap",
-            "pressure"
+            "admission"
           ],
-          "explanation": "Route by model identity and reserve bounded queue/GPU slots with deadlines. Route by model identity and reserve bounded queue/GPU slots with deadlines. State owner: Model admission (capacity reservations). Route by model identity and reserve bounded queue/GPU slots with deadlines. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Backpressure](https://en.wikipedia.org/wiki/Flow_control_%28data%29) prevents producers from outrunning the next component indefinitely.",
+          "explanation": "Route by model identity and reserve bounded queue/GPU slots with deadlines. Admission holds at most the configured number of reservations per model, and each reservation expires at its deadline. Route by model identity and reserve bounded queue/GPU slots with deadlines. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Backpressure](https://en.wikipedia.org/wiki/Flow_control_%28data%29) prevents producers from outrunning the next component indefinitely.",
           "graph": {
             "edges": [
               {
@@ -1214,7 +1230,7 @@
           },
           "id": "session-s3",
           "invariants": [
-            "Route by model identity and reserve bounded queue/GPU slots with deadlines. State owner: Model admission (capacity reservations)."
+            "Admission holds at most the configured number of reservations per model, and each reservation expires at its deadline."
           ],
           "number": 3,
           "operations": [
@@ -1261,12 +1277,9 @@
         },
         {
           "checkIds": [
-            "mechanism",
-            "cancel",
-            "gap",
-            "pressure"
+            "mechanism"
           ],
-          "explanation": "One fenced generation attempt emits monotonically numbered chunks. One fenced generation attempt emits monotonically numbered chunks. State owner: Inference worker (attempt fence and token index). One fenced generation attempt emits monotonically numbered chunks. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources. A newer owner needs a token that the resource checks, not merely a belief that ownership changed.",
+          "explanation": "One fenced generation attempt emits chunks numbered from 0 within that attempt. Each inference attempt runs under its own attempt number and numbers its chunks from 0 within that attempt. One fenced generation attempt emits chunks numbered from 0 within that attempt. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources.",
           "graph": {
             "edges": [
               {
@@ -1394,7 +1407,7 @@
           },
           "id": "session-s4",
           "invariants": [
-            "One fenced generation attempt emits monotonically numbered chunks. State owner: Inference worker (attempt fence and token index)."
+            "Each inference attempt runs under its own attempt number and numbers its chunks from 0 within that attempt."
           ],
           "number": 4,
           "operations": [
@@ -1430,17 +1443,14 @@
             }
           ],
           "question": "Who owns token numbering?",
-          "reason": "One fenced generation attempt emits monotonically numbered chunks.",
+          "reason": "One fenced generation attempt emits chunks numbered from 0 within that attempt.",
           "title": "Inference worker"
         },
         {
           "checkIds": [
-            "mechanism",
-            "cancel",
-            "gap",
-            "pressure"
+            "mechanism"
           ],
-          "explanation": "Persist indexed chunks before acknowledging resumable delivery. Persist indexed chunks before acknowledging resumable delivery. State owner: Token journal (generation/token sequence). Persist indexed chunks before acknowledging resumable delivery. The graph is an authored conceptual design; guarantees require the named deployment contracts. [An index](https://en.wikipedia.org/wiki/Database_index) maintains a structure that narrows a search without scanning every record. Faster reads come with storage costs and extra work whenever indexed data changes.",
+          "explanation": "Persist chunks keyed by attempt before acknowledging resumable delivery; a new attempt starts its own list. Tokens are keyed by (generationId, attempt, index); an append is accepted only from the current attempt at exactly the next index of that attempt's own list. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call.",
           "graph": {
             "edges": [
               {
@@ -1592,7 +1602,7 @@
           },
           "id": "session-s5",
           "invariants": [
-            "Persist indexed chunks before acknowledging resumable delivery. State owner: Token journal (generation/token sequence)."
+            "Tokens are keyed by (generationId, attempt, index); an append is accepted only from the current attempt at exactly the next index of that attempt's own list."
           ],
           "number": 5,
           "operations": [
@@ -1628,17 +1638,14 @@
             }
           ],
           "question": "Can a reconnect recover output?",
-          "reason": "Persist indexed chunks before acknowledging resumable delivery.",
+          "reason": "Persist chunks keyed by attempt before acknowledging resumable delivery; a new attempt starts its own list.",
           "title": "Token journal"
         },
         {
           "checkIds": [
-            "mechanism",
-            "cancel",
-            "gap",
             "pressure"
           ],
-          "explanation": "Deliver only after durable cursor; bound queue bytes and close with resume instruction. Deliver only after durable cursor; bound queue bytes and close with resume instruction. State owner: Stream gateway (connection delivery cursor). Deliver only after durable cursor; bound queue bytes and close with resume instruction. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A cursor](https://en.wikipedia.org/wiki/Cursor_%28databases%29) records where a query should continue.",
+          "explanation": "Deliver only after durable cursor; bound queue bytes and close with resume instruction. The gateway sends only durable chunks and holds at most maxBytes per connection; overflow closes the connection with a resume cursor. Deliver only after durable cursor; bound queue bytes and close with resume instruction. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A cursor](https://en.wikipedia.org/wiki/Cursor_%28databases%29) records where a query should continue.",
           "graph": {
             "edges": [
               {
@@ -1828,7 +1835,7 @@
           },
           "id": "session-s6",
           "invariants": [
-            "Deliver only after durable cursor; bound queue bytes and close with resume instruction. State owner: Stream gateway (connection delivery cursor)."
+            "The gateway sends only durable chunks and holds at most maxBytes per connection; overflow closes the connection with a resume cursor."
           ],
           "number": 6,
           "operations": [
@@ -1887,11 +1894,9 @@
         {
           "checkIds": [
             "mechanism",
-            "cancel",
-            "gap",
-            "pressure"
+            "cancel"
           ],
-          "explanation": "Advance generation epoch and reject late attempt writes; cancellation cannot erase already observed text. Advance generation epoch and reject late attempt writes; cancellation cannot erase already observed text. State owner: Cancel fence (cancellation epoch). Advance generation epoch and reject late attempt writes; cancellation cannot erase already observed text. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes.",
+          "explanation": "Record cancellation at the journal so late writes from any attempt are rejected; cancellation cannot erase already observed text. Cancellation is recorded at the journal by compare-and-swap on expectedAttempt; afterwards no append from any attempt is accepted, and delivered text stays. [A race condition](https://en.wikipedia.org/wiki/Race_condition) makes an outcome depend on which operation finishes first. Responses need an identity or generation check so an older request cannot overwrite newer user intent.",
           "graph": {
             "edges": [
               {
@@ -2013,10 +2018,24 @@
                   "portId": "out-l017.session.c6"
                 },
                 "id": "fence",
-                "label": "fence late token writes",
+                "label": "stop the running attempt",
                 "mode": "request-response",
                 "to": {
                   "nodeId": "n3",
+                  "portId": "in-l017.session.c6"
+                }
+              },
+              {
+                "contractId": "l017.session.c6",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l017.session.c6"
+                },
+                "id": "fence-journal",
+                "label": "reject late token writes",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n4",
                   "portId": "in-l017.session.c6"
                 }
               }
@@ -2119,7 +2138,7 @@
           },
           "id": "session-s7",
           "invariants": [
-            "Advance generation epoch and reject late attempt writes; cancellation cannot erase already observed text. State owner: Cancel fence (cancellation epoch)."
+            "Cancellation is recorded at the journal by compare-and-swap on expectedAttempt; afterwards no append from any attempt is accepted, and delivered text stays."
           ],
           "number": 7,
           "operations": [
@@ -2161,7 +2180,7 @@
                   "portId": "out-l017.session.c6"
                 },
                 "id": "fence",
-                "label": "fence late token writes",
+                "label": "stop the running attempt",
                 "mode": "request-response",
                 "to": {
                   "nodeId": "n3",
@@ -2169,20 +2188,34 @@
                 }
               },
               "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l017.session.c6",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l017.session.c6"
+                },
+                "id": "fence-journal",
+                "label": "reject late token writes",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l017.session.c6"
+                }
+              },
+              "op": "connect"
             }
           ],
           "question": "Does cancellation race a late token?",
-          "reason": "Advance generation epoch and reject late attempt writes; cancellation cannot erase already observed text.",
+          "reason": "Record cancellation at the journal so late writes from any attempt are rejected; cancellation cannot erase already observed text.",
           "title": "Cancel fence"
         },
         {
           "checkIds": [
-            "mechanism",
-            "cancel",
-            "gap",
-            "pressure"
+            "gap"
           ],
-          "explanation": "Return an explicit gap and final snapshot or regenerate under a new identity. Return an explicit gap and final snapshot or regenerate under a new identity. State owner: Resume reconciler (retention floor). Return an explicit gap and final snapshot or regenerate under a new identity. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A snapshot](https://en.wikipedia.org/wiki/Snapshot_isolation) gives one read operation a fixed view of data.",
+          "explanation": "Return an explicit gap and final snapshot or regenerate under a new identity. A resume below the retention floor returns an explicit gap with the final snapshot; it never splices chunks from different attempts. Return an explicit gap and final snapshot or regenerate under a new identity. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A snapshot](https://en.wikipedia.org/wiki/Snapshot_isolation) gives one read operation a fixed view of data.",
           "graph": {
             "edges": [
               {
@@ -2304,10 +2337,24 @@
                   "portId": "out-l017.session.c6"
                 },
                 "id": "fence",
-                "label": "fence late token writes",
+                "label": "stop the running attempt",
                 "mode": "request-response",
                 "to": {
                   "nodeId": "n3",
+                  "portId": "in-l017.session.c6"
+                }
+              },
+              {
+                "contractId": "l017.session.c6",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l017.session.c6"
+                },
+                "id": "fence-journal",
+                "label": "reject late token writes",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n4",
                   "portId": "in-l017.session.c6"
                 }
               },
@@ -2448,7 +2495,7 @@
           },
           "id": "session-s8",
           "invariants": [
-            "Return an explicit gap and final snapshot or regenerate under a new identity. State owner: Resume reconciler (retention floor)."
+            "A resume below the retention floor returns an explicit gap with the final snapshot; it never splices chunks from different attempts."
           ],
           "number": 8,
           "operations": [
@@ -2524,34 +2571,29 @@
             "testFile": "tools/simulatte/study-reference/batch-01-mechanisms.test.mjs",
             "testName": "L017 bounded mechanism"
           },
-          "given": "A generation contains chunks 0 and 1 at epoch 4.",
+          "given": "Attempt 4 has committed chunks 0 and 1.",
           "id": "mechanism",
           "relatedRequirementIds": [
-            "r0",
             "r1",
             "r2"
           ],
-          "then": "The duplicate index and stale token are rejected; resume after index 0 returns only existing chunk 1.",
-          "when": "Replay chunk 1, cancel by advancing epoch, then deliver chunk 2 from epoch 4."
+          "then": "The duplicate, the superseded-attempt chunk and the attempt-5 chunk that would extend attempt 4's prefix are rejected; attempt 5 starts its own list; after cancel nothing is committed.",
+          "when": "Replay chunk 1; start attempt 5 without cancelling and commit index 2 from attempt 4, index 2 from attempt 5 and index 0 from attempt 5; separately, cancel during attempt 4 and commit index 2."
         },
         {
           "given": "Cancel is persisted while a remote activity is finishing.",
           "id": "cancel",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
             "r2"
           ],
           "then": "Fence the commit and retain the canceled terminal state.",
-          "when": "Attempt a page commit with the old cancellation epoch."
+          "when": "Attempt a page commit after the cancellation."
         },
         {
           "given": "The requested page cursor predates the compaction floor.",
           "id": "gap",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
-            "r2"
+            "r1"
           ],
           "then": "Return gap and final status explicitly; duplicate indexes do not append twice.",
           "when": "Poll after the stale index."
@@ -2560,24 +2602,31 @@
           "given": "More inference activities arrive than capacity allows.",
           "id": "pressure",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
             "r2"
           ],
           "then": "Queue within a fixed bound or reject with retry guidance before remote inference.",
           "when": "Claim slots beyond the configured bound."
+        },
+        {
+          "given": "The client retries starting a reply after a timeout.",
+          "id": "identity",
+          "relatedRequirementIds": [
+            "r0"
+          ],
+          "then": "The same generationId and history are returned; no second activity is scheduled.",
+          "when": "Start the workflow with the same commandId."
         }
       ],
       "algorithms": [
         {
-          "code": "if (chunk.epoch !== state.epoch || state.cancelled) return false;\nif (chunk.index !== state.tokens.length) return false;\nstate.tokens.push(chunk.text); return true;",
+          "code": "// Output pages (n4): page commits are keyed by attempt; a restarted activity starts a new list at index 0.\nfunction appendToken(state,chunk){\n if(state.cancelled||chunk.attempt!==state.attempt)return false;\n const tokens=state.tokens[chunk.attempt]??=[];\n if(chunk.index!==tokens.length)return false;\n tokens.push(chunk.text);\n return true;\n}",
           "guarantees": [
             "The code states the bounded decision rule; unimplemented helpers remain pseudocode.",
             "External effects, distributed failure and latency require separate execution evidence."
           ],
           "id": "bounded-rule",
           "language": "typescript-pseudocode",
-          "ownerNodeId": "n3"
+          "ownerNodeId": "n4"
         },
         {
           "code": "if (!workflow.isFinal(generationId)) return;\nconst snapshot = finalizeDigestAndStatus(generationId);\ncommitSnapshotBeforeTrimmingHistory(snapshot);\nrecordRetentionFloorBeforeDeletingPages(generationId);\n// Polling below the floor returns gap, not an empty successful page.",
@@ -2601,10 +2650,10 @@
         {
           "errors": "403 unauthorized scope; 404 absent identity; 410 expired retained history",
           "method": "GET",
-          "ownerNodeId": "state",
-          "path": "/l017/pull/state",
-          "request": "{\"generationId\":\"uuid\",\"event\":\"string\"}",
-          "response": "{\"sequence\":\"integer\"}"
+          "ownerNodeId": "n5",
+          "path": "/l017/pull/generations/{generationId}/tokens",
+          "request": "{\"generationId\":\"uuid\",\"after\":\"token index\"}",
+          "response": "{\"tokens\":\"token[]\",\"state\":\"running|done|cancelled|gap\",\"next\":\"integer\"}"
         }
       ],
       "assumptions": [
@@ -2619,12 +2668,9 @@
       "stages": [
         {
           "checkIds": [
-            "mechanism",
-            "cancel",
-            "gap",
-            "pressure"
+            "identity"
           ],
-          "explanation": "Start a durable command keyed by conversation and command identity. Start a durable command keyed by conversation and command identity. State owner: Generation workflow (workflow identity). Start a durable command keyed by conversation and command identity. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A workflow](https://en.wikipedia.org/wiki/Workflow) records which step should run next and what has already finished.",
+          "explanation": "Start a durable command keyed by conversation and command identity. A generation workflow is keyed by (conversationId, commandId); starting it twice returns the same generationId. Start a durable command keyed by conversation and command identity. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A workflow](https://en.wikipedia.org/wiki/Workflow) records which step should run next and what has already finished. Durable transitions and effect identities let recovery resume work without blindly repeating external actions.",
           "graph": {
             "edges": [
               {
@@ -2667,7 +2713,7 @@
           },
           "id": "pull-s1",
           "invariants": [
-            "Start a durable command keyed by conversation and command identity. State owner: Generation workflow (workflow identity)."
+            "A generation workflow is keyed by (conversationId, commandId); starting it twice returns the same generationId."
           ],
           "number": 1,
           "operations": [
@@ -2721,12 +2767,9 @@
         },
         {
           "checkIds": [
-            "mechanism",
-            "cancel",
-            "gap",
-            "pressure"
+            "identity"
           ],
-          "explanation": "Expand workflow with journaled model activity decisions and cancellation versions. Expand workflow with journaled model activity decisions and cancellation versions. State owner: Workflow history (workflow history). Expand workflow with journaled model activity decisions and cancellation versions. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A workflow](https://en.wikipedia.org/wiki/Workflow) records which step should run next and what has already finished.",
+          "explanation": "Expand workflow with journaled model activity decisions and cancellation versions. Workflow history is append-only; replaying it reproduces the same activity decisions and cancellation version. Expand workflow with journaled model activity decisions and cancellation versions. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A workflow](https://en.wikipedia.org/wiki/Workflow) records which step should run next and what has already finished. Durable transitions and effect identities let recovery resume work without blindly repeating external actions.",
           "graph": {
             "edges": [
               {
@@ -2806,7 +2849,7 @@
           },
           "id": "pull-s2",
           "invariants": [
-            "Expand workflow with journaled model activity decisions and cancellation versions. State owner: Workflow history (workflow history)."
+            "Workflow history is append-only; replaying it reproduces the same activity decisions and cancellation version."
           ],
           "number": 2,
           "operations": [
@@ -2860,12 +2903,9 @@
         },
         {
           "checkIds": [
-            "mechanism",
-            "cancel",
-            "gap",
             "pressure"
           ],
-          "explanation": "Dispatch retryable inference activities with stable attempt/fence identities. Dispatch retryable inference activities with stable attempt/fence identities. State owner: Activity queue (activity leases). Dispatch retryable inference activities with stable attempt/fence identities. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources. A newer owner needs a token that the resource checks, not merely a belief that ownership changed.",
+          "explanation": "Dispatch retryable inference activities with stable attempt identities. Each dispatched activity carries a new attempt number, and the queue leases at most the configured number of activities. Dispatch retryable inference activities with stable attempt identities. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Backoff](https://en.wikipedia.org/wiki/Exponential_backoff) spaces repeated attempts so failures do not create a burst of extra traffic. A retry still needs a stable identity and a clear stopping condition.",
           "graph": {
             "edges": [
               {
@@ -2969,7 +3009,7 @@
           },
           "id": "pull-s3",
           "invariants": [
-            "Dispatch retryable inference activities with stable attempt/fence identities. State owner: Activity queue (activity leases)."
+            "Each dispatched activity carries a new attempt number, and the queue leases at most the configured number of activities."
           ],
           "number": 3,
           "operations": [
@@ -3011,17 +3051,14 @@
             }
           ],
           "question": "How is inference bounded?",
-          "reason": "Dispatch retryable inference activities with stable attempt/fence identities.",
+          "reason": "Dispatch retryable inference activities with stable attempt identities.",
           "title": "Activity queue"
         },
         {
           "checkIds": [
-            "mechanism",
-            "cancel",
-            "gap",
-            "pressure"
+            "mechanism"
           ],
-          "explanation": "Persist tokens through a fenced append API; a new attempt cannot append to the prior prefix. Persist tokens through a fenced append API; a new attempt cannot append to the prior prefix. State owner: Chunk producer (token prefix identity). [An index](https://en.wikipedia.org/wiki/Database_index) maintains a structure that narrows a search without scanning every record. Faster reads come with storage costs and extra work whenever indexed data changes.",
+          "explanation": "Persist tokens through a fenced append API; a new attempt cannot append to the prior prefix. A producer appends only under its own attempt number, numbering from 0; it never continues another attempt's indexes. [An index](https://en.wikipedia.org/wiki/Database_index) maintains a structure that narrows a search without scanning every record. Faster reads come with storage costs and extra work whenever indexed data changes.",
           "graph": {
             "edges": [
               {
@@ -3073,7 +3110,7 @@
                   "portId": "out-l017.pull.c3"
                 },
                 "id": "run",
-                "label": "run admitted generation",
+                "label": "run fenced activity",
                 "mode": "request-response",
                 "to": {
                   "nodeId": "n3",
@@ -3149,7 +3186,7 @@
           },
           "id": "pull-s4",
           "invariants": [
-            "Persist tokens through a fenced append API; a new attempt cannot append to the prior prefix. State owner: Chunk producer (token prefix identity)."
+            "A producer appends only under its own attempt number, numbering from 0; it never continues another attempt's indexes."
           ],
           "number": 4,
           "operations": [
@@ -3174,7 +3211,7 @@
                   "portId": "out-l017.pull.c3"
                 },
                 "id": "run",
-                "label": "run admitted generation",
+                "label": "run fenced activity",
                 "mode": "request-response",
                 "to": {
                   "nodeId": "n3",
@@ -3190,12 +3227,9 @@
         },
         {
           "checkIds": [
-            "mechanism",
-            "cancel",
-            "gap",
-            "pressure"
+            "mechanism"
           ],
-          "explanation": "Materialize immutable chunk pages and completion status under generation/version. Materialize immutable chunk pages and completion status under generation/version. State owner: Output pages (immutable chunk pages). Materialize immutable chunk pages and completion status under generation/version. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers. Publishing one reference lets each reader keep a consistent version.",
+          "explanation": "Materialize immutable chunk pages keyed by generation and attempt, plus completion status. A chunk is committed only from the current attempt at exactly the next index of that attempt's own list, and committed pages are immutable. Materialize immutable chunk pages keyed by generation and attempt, plus completion status. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers.",
           "graph": {
             "edges": [
               {
@@ -3247,7 +3281,7 @@
                   "portId": "out-l017.pull.c3"
                 },
                 "id": "run",
-                "label": "run admitted generation",
+                "label": "run fenced activity",
                 "mode": "request-response",
                 "to": {
                   "nodeId": "n3",
@@ -3347,7 +3381,7 @@
           },
           "id": "pull-s5",
           "invariants": [
-            "Materialize immutable chunk pages and completion status under generation/version. State owner: Output pages (immutable chunk pages)."
+            "A chunk is committed only from the current attempt at exactly the next index of that attempt's own list, and committed pages are immutable."
           ],
           "number": 5,
           "operations": [
@@ -3383,17 +3417,14 @@
             }
           ],
           "question": "What do readers fetch?",
-          "reason": "Materialize immutable chunk pages and completion status under generation/version.",
+          "reason": "Materialize immutable chunk pages keyed by generation and attempt, plus completion status.",
           "title": "Output pages"
         },
         {
           "checkIds": [
-            "mechanism",
-            "cancel",
-            "gap",
-            "pressure"
+            "gap"
           ],
-          "explanation": "Poll after the last accepted index and discard duplicate indexes locally. Poll after the last accepted index and discard duplicate indexes locally. State owner: Cursor reader (reader cursor). Poll after the last accepted index and discard duplicate indexes locally. The graph is an authored conceptual design; guarantees require the named deployment contracts. [An index](https://en.wikipedia.org/wiki/Database_index) maintains a structure that narrows a search without scanning every record.",
+          "explanation": "Poll after the last accepted index and discard duplicate indexes locally. A reader polls after its last accepted index and drops indexes it has already applied. Poll after the last accepted index and discard duplicate indexes locally. The graph is an authored conceptual design; guarantees require the named deployment contracts. [An index](https://en.wikipedia.org/wiki/Database_index) maintains a structure that narrows a search without scanning every record.",
           "graph": {
             "edges": [
               {
@@ -3445,7 +3476,7 @@
                   "portId": "out-l017.pull.c3"
                 },
                 "id": "run",
-                "label": "run admitted generation",
+                "label": "run fenced activity",
                 "mode": "request-response",
                 "to": {
                   "nodeId": "n3",
@@ -3583,7 +3614,7 @@
           },
           "id": "pull-s6",
           "invariants": [
-            "Poll after the last accepted index and discard duplicate indexes locally. State owner: Cursor reader (reader cursor)."
+            "A reader polls after its last accepted index and drops indexes it has already applied."
           ],
           "number": 6,
           "operations": [
@@ -3642,11 +3673,9 @@
         {
           "checkIds": [
             "mechanism",
-            "cancel",
-            "gap",
-            "pressure"
+            "cancel"
           ],
-          "explanation": "Persist cancellation before cancelling queued activities and fence late output commits. Persist cancellation before cancelling queued activities and fence late output commits. State owner: Cancellation signal (cancellation epoch). Persist cancellation before cancelling queued activities and fence late output commits. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A race condition](https://en.wikipedia.org/wiki/Race_condition) makes an outcome depend on which operation finishes first.",
+          "explanation": "Persist cancellation before cancelling queued activities, and fence late page commits from every attempt. Cancellation is persisted before queued activities are cancelled; after it, no page commit from any attempt is accepted. Persist cancellation before cancelling queued activities, and fence late page commits from every attempt. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure.",
           "graph": {
             "edges": [
               {
@@ -3698,7 +3727,7 @@
                   "portId": "out-l017.pull.c3"
                 },
                 "id": "run",
-                "label": "run admitted generation",
+                "label": "run fenced activity",
                 "mode": "request-response",
                 "to": {
                   "nodeId": "n3",
@@ -3772,6 +3801,20 @@
                 "mode": "request-response",
                 "to": {
                   "nodeId": "n3",
+                  "portId": "in-l017.pull.c6"
+                }
+              },
+              {
+                "contractId": "l017.pull.c6",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l017.pull.c6"
+                },
+                "id": "fence-pages",
+                "label": "reject late page commits",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n4",
                   "portId": "in-l017.pull.c6"
                 }
               }
@@ -3874,7 +3917,7 @@
           },
           "id": "pull-s7",
           "invariants": [
-            "Persist cancellation before cancelling queued activities and fence late output commits. State owner: Cancellation signal (cancellation epoch)."
+            "Cancellation is persisted before queued activities are cancelled; after it, no page commit from any attempt is accepted."
           ],
           "number": 7,
           "operations": [
@@ -3924,20 +3967,34 @@
                 }
               },
               "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l017.pull.c6",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l017.pull.c6"
+                },
+                "id": "fence-pages",
+                "label": "reject late page commits",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l017.pull.c6"
+                }
+              },
+              "op": "connect"
             }
           ],
           "question": "How is pending work stopped?",
-          "reason": "Persist cancellation before cancelling queued activities and fence late output commits.",
+          "reason": "Persist cancellation before cancelling queued activities, and fence late page commits from every attempt.",
           "title": "Cancellation signal"
         },
         {
           "checkIds": [
-            "mechanism",
-            "cancel",
-            "gap",
-            "pressure"
+            "gap"
           ],
-          "explanation": "Compact finalized workflow state while preserving retention floor and explicit gap responses. Compact finalized workflow state while preserving retention floor and explicit gap responses. State owner: History compactor (retention floor and final digest). Compact finalized workflow state while preserving retention floor and explicit gap responses. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A workflow](https://en.wikipedia.org/wiki/Workflow) records which step should run next and what has already finished.",
+          "explanation": "Compact finalized workflow state while preserving retention floor and explicit gap responses. The retention floor and final digest are committed before pages below the floor are deleted; a poll below the floor returns gap. Compact finalized workflow state while preserving retention floor and explicit gap responses. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A workflow](https://en.wikipedia.org/wiki/Workflow) records which step should run next and what has already finished.",
           "graph": {
             "edges": [
               {
@@ -3989,7 +4046,7 @@
                   "portId": "out-l017.pull.c3"
                 },
                 "id": "run",
-                "label": "run admitted generation",
+                "label": "run fenced activity",
                 "mode": "request-response",
                 "to": {
                   "nodeId": "n3",
@@ -4063,6 +4120,20 @@
                 "mode": "request-response",
                 "to": {
                   "nodeId": "n3",
+                  "portId": "in-l017.pull.c6"
+                }
+              },
+              {
+                "contractId": "l017.pull.c6",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l017.pull.c6"
+                },
+                "id": "fence-pages",
+                "label": "reject late page commits",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n4",
                   "portId": "in-l017.pull.c6"
                 }
               },
@@ -4203,7 +4274,7 @@
           },
           "id": "pull-s8",
           "invariants": [
-            "Compact finalized workflow state while preserving retention floor and explicit gap responses. State owner: History compactor (retention floor and final digest)."
+            "The retention floor and final digest are committed before pages below the floor are deleted; a poll below the floor returns gap."
           ],
           "number": 8,
           "operations": [

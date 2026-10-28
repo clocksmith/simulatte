@@ -119,7 +119,7 @@
           "id": "in-l035.global-lru.step3"
         }
       ],
-      "responsibility": "Compute floor(offset/B) through floor((end-1)/B), clamp end at size, and special-case zero length.",
+      "responsibility": "Compute floor(offset/B) through floor((end-1)/B), clamp end at size, and special-case zero length. Each slice names the whole block start index*B, its EOF-clamped fetch length and the bytes to copy from it.",
       "stateOwnership": [
         "blockSize, fileSize"
       ],
@@ -169,9 +169,9 @@
           "id": "out-l035.global-lru.step6"
         }
       ],
-      "responsibility": "Reserve block bytes before fetch; evict unpinned ready blocks or wait with bounded admission.",
+      "responsibility": "Reserve block bytes before fetch by evicting unpinned ready blocks under the metadata lock; if still short, release the lock, wait for freed bytes with a deadline, then relock and recheck for a winner before installing.",
       "stateOwnership": [
-        "readyBytes, reservedBytes, pinnedBytes"
+        "ready, reserved and pinned byte counts"
       ],
       "version": 1
     },
@@ -194,9 +194,9 @@
           "id": "out-l035.global-lru.step7"
         }
       ],
-      "responsibility": "Call original fetch(uri,offset,length,buffer) outside metadata lock against the immutable/version-addressed URI. Conditional fetch/version validation is a proposed adapter extension only; without it mutable-source snapshot consistency is unsupported.",
+      "responsibility": "Call original fetch(uri,blockStart,fetchLength,buffer) for the whole aligned block outside metadata lock against the immutable/version-addressed URI. Conditional fetch/version validation is a proposed adapter extension only; without it mutable-source snapshot consistency is unsupported.",
       "stateOwnership": [
-        "uri, offset, length"
+        "uri, blockStart, fetchLength"
       ],
       "version": 1
     },
@@ -239,7 +239,7 @@
           "id": "in-l035.global-lru.step8"
         }
       ],
-      "responsibility": "Acquire a read lease under metadata lock before waiting for publication, retain it across await/copy, then release in finally. Eviction cannot win between completion and pinning.",
+      "responsibility": "Acquire a read lease under metadata lock before waiting for publication, retain it across await/copy, then release in finally. Eviction cannot win between completion and pinning; a reader that stops waiting releases its lease at once.",
       "stateOwnership": [
         "sliceStart, sliceLength, pinCount"
       ],
@@ -364,7 +364,7 @@
           "id": "in-l035.sharded.step3"
         }
       ],
-      "responsibility": "Use checked end arithmetic and clamp against immutable file size.",
+      "responsibility": "Use checked end arithmetic and clamp against immutable file size; each piece names its whole-block start, EOF-clamped fetch length and copy slice.",
       "stateOwnership": [
         "offset, length, size"
       ],
@@ -421,7 +421,7 @@
       ],
       "responsibility": "Acquire global bytes before allocation, outside shard lock; recheck for a winner after reacquiring.",
       "stateOwnership": [
-        "requestedBytes, availableBytes"
+        "available global byte permits"
       ],
       "version": 1
     },
@@ -444,9 +444,9 @@
           "id": "out-l035.sharded.step8"
         }
       ],
-      "responsibility": "Run admitted calls to original fetch(uri,offset,length,buffer) outside shard locks. URI content must remain stable for the handle lifetime; conditional versions and deadlines require an explicitly proposed supporting adapter.",
+      "responsibility": "Run admitted calls to original fetch(uri,blockStart,fetchLength,buffer) for whole aligned blocks outside shard locks. URI content must remain stable for the handle lifetime; conditional versions and deadlines require an explicitly proposed supporting adapter.",
       "stateOwnership": [
-        "versionCondition, blockOffset"
+        "versionCondition, blockStart, fetchLength"
       ],
       "version": 1
     },
@@ -514,9 +514,7 @@
         "fileSize": "nonnegative integer"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "slices": "(index, blockStart, fetchLength, offsetInBlock, length)[]"
       },
       "version": 1
     },
@@ -527,37 +525,34 @@
         "futureState": "loading|ready|failed"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "future": "shared completion",
+        "lease": "read lease pinned in the same critical section",
+        "role": "owner|waiter|hit"
       },
       "version": 1
     },
     {
       "id": "l035.global-lru.step5",
       "request": {
-        "pinnedBytes": "integer",
-        "readyBytes": "integer",
-        "reservedBytes": "integer"
+        "budgetBytes": "configured ceiling",
+        "requestedBytes": "block fetchLength"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "evicted": "unpinned READY block keys",
+        "status": "reserved|must-wait"
       },
       "version": 1
     },
     {
       "id": "l035.global-lru.step6",
       "request": {
-        "length": "integer",
-        "offset": "64-bit integer",
+        "blockStart": "64-bit integer index*B",
+        "fetchLength": "integer min(B, size - blockStart)",
         "uri": "string"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "error": "storage error|null",
+        "filled": "buffer holding fetchLength bytes"
       },
       "version": 1
     },
@@ -569,9 +564,8 @@
         "error": "optional failure"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "state": "ready|failed",
+        "waitersWoken": "integer"
       },
       "version": 1
     },
@@ -583,15 +577,15 @@
         "sliceStart": "integer"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "copiedBytes": "integer",
+        "released": "true exactly once per lease"
       },
       "version": 1
     },
     {
       "id": "l035.sharded.command",
       "request": {
+        "cancellation": "optional signal; abandons only this reader's wait and lease",
         "fileRevision": "optional proposed adapter-extension version metadata; absent in canonical immutable-URI mode",
         "length": "nonnegative integer",
         "offset": "nonnegative 64-bit integer",
@@ -612,9 +606,7 @@
         "size": "64-bit integer"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "pieces": "(index, blockStart, fetchLength, offsetInBlock, length)[]"
       },
       "version": 1
     },
@@ -625,35 +617,34 @@
         "shardId": "integer"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "lease": "pin taken under the shard lock",
+        "pending": "shared promise",
+        "role": "owner|waiter|hit"
       },
       "version": 1
     },
     {
       "id": "l035.sharded.step5",
       "request": {
-        "availableBytes": "integer",
+        "deadline": "timestamp",
         "requestedBytes": "integer"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "permitBytes": "integer held",
+        "status": "acquired|timeout"
       },
       "version": 1
     },
     {
       "id": "l035.sharded.step6",
       "request": {
-        "blockOffset": "integer",
+        "blockStart": "index*B",
+        "fetchLength": "min(B, size - blockStart)",
         "versionCondition": "optional proposed adapter extension, unavailable in canonical StorageClient"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "error": "storage error|null",
+        "filled": "byte[] of fetchLength"
       },
       "version": 1
     },
@@ -664,9 +655,8 @@
         "state": "ready|loading"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "evicted": "block keys",
+        "freedBytes": "integer"
       },
       "version": 1
     },
@@ -677,9 +667,8 @@
         "waiterCancelled": "boolean"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "copiedBytes": "integer",
+        "released": "true exactly once per lease"
       },
       "version": 1
     }
@@ -735,9 +724,7 @@
           "given": "A file has a partial last block and the read is unaligned.",
           "id": "case0",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
-            "r2"
+            "r0"
           ],
           "then": "Return exact intersection slices and zero work for an empty/EOF read.",
           "when": "Plan slices across a block boundary and at EOF."
@@ -746,12 +733,53 @@
           "given": "Two readers miss one revision/block while its fetch is pending.",
           "id": "case1",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
-            "r2"
+            "r1"
           ],
           "then": "Start one fetch, share outcome, clean up failed slot, and allow a new retry.",
           "when": "Complete or fail the shared fetch, then retry after failure."
+        },
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-06-state.test.mjs",
+            "testName": "byte waits release the metadata lock and recheck for a winner"
+          },
+          "given": "Ready, pinned and reserved bytes fill the budget.",
+          "id": "case2",
+          "relatedRequirementIds": [
+            "r2"
+          ],
+          "then": "Evict unpinned READY blocks under the lock; if still short, wait for freed bytes after releasing the metadata lock, then recheck for a winner before installing.",
+          "when": "A new miss needs a block."
+        },
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-06-state.test.mjs",
+            "testName": "range reads fetch whole aligned blocks and copy exact slices"
+          },
+          "given": "A 10-byte file uses 4-byte blocks and a read asks for bytes 5..6.",
+          "id": "case3",
+          "relatedRequirementIds": [
+            "r0",
+            "r1"
+          ],
+          "then": "Fetch offset 4 for 4 bytes (the whole block, clamped at EOF) and copy only bytes 5..6; a cached block never holds a partial slice.",
+          "when": "Fetch the missing block."
+        },
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-06-state.test.mjs",
+            "testName": "a reader that cancels before publication releases its pin"
+          },
+          "given": "A reader joins a pending block and gives up before the fetch completes.",
+          "id": "case4",
+          "relatedRequirementIds": [
+            "r2"
+          ],
+          "then": "The block becomes evictable once the remaining readers release, and other keys see no backpressure from the abandoned reader.",
+          "when": "It releases its lease, then the fetch completes."
         },
         {
           "evidence": {
@@ -762,7 +790,8 @@
           "given": "A four-byte cache admits two same-key waiters and a different revision.",
           "id": "bounded-mechanism",
           "relatedRequirementIds": [
-            "r0"
+            "r1",
+            "r2"
           ],
           "then": "Use one promise/fetch per key, bound reserved bytes, retain pinned buffers and release failed reservations; no thread-runtime proof is claimed.",
           "when": "Hold fetch pending, test admission and pinning, fail a shared fetch then retry."
@@ -784,11 +813,11 @@
       ],
       "algorithms": [
         {
-          "code": "validateRange(); const revision = immutableUriHandleIdentity(uri); const size = storage.getFileSize(uri); // URI stays immutable for handle lifetime\nfor (const slice of planBlocks(offset,length,size,B)) {\n lockMetadata(); const slot = findOrInstallFutureWithByteReservation(revision,slice.block); const lease = pinSlotBeforeUnlock(slot); unlockMetadata();\n if (slot.owner) { try { const data = allocateReservedBlockBuffer(slice); storage.fetch(uri,slice.blockOffset,slice.fetchLength,data); publishReady(slot,data); }\n catch(e) { removeIfSameFuture(slot); releaseReservation(); slot.fail(e); } }\n try { const block = await slot.future; copyImmutableSlices(block,slice); } finally { releaseReadLease(lease); } }\n// No version argument exists in original fetch. Conditional retrieval requires an explicitly supplied adapter extension; otherwise mutable-source snapshot consistency is unsupported.",
+          "code": "validateRange(); const revision = immutableUriHandleIdentity(uri); const size = storage.getFileSize(uri); // URI stays immutable for handle lifetime\nfor (const slice of planBlocks(offset,length,size,B)) { // slice: index, blockStart = index*B, fetchLength = min(B, size-blockStart), offsetInBlock, length\n let slot, lease;\n for (;;) { lockMetadata(); slot = findSlot(revision,slice.index); const freed = freedEpoch;\n  if (!slot && reserveByEvictingUnpinned(slice.fetchLength)) slot = installOwnerFuture(revision,slice.index,slice.fetchLength);\n  if (slot) { lease = pinSlotBeforeUnlock(slot); unlockMetadata(); break; }\n  unlockMetadata(); if (!(await bytesFreedSince(freed, deadline))) throw backpressure(); } // wait outside the lock, then recheck: another reader may have installed the block\n if (slot.owner) { try { const data = allocateReservedBlockBuffer(slice.fetchLength); storage.fetch(uri,slice.blockStart,slice.fetchLength,data); publishReady(slot,data); }\n catch(e) { removeIfSameFuture(slot); releaseReservation(); slot.fail(e); } }\n try { const block = await slot.future; copyImmutableSlices(block,slice.offsetInBlock,slice.length); } finally { releaseReadLease(lease); } } // cancellation also runs finally\n// No version argument exists in original fetch. Conditional retrieval requires an explicitly supplied adapter extension; otherwise mutable-source snapshot consistency is unsupported.",
           "guarantees": [
             "Never fetch beyond EOF or allocate for an empty read.",
             "One in-flight fetch per pinned revision/block.",
-            "Ready plus reserved bytes never exceed the configured budget.",
+            "Ready plus reserved bytes never exceed the configured budget, and no thread waits for bytes while holding the metadata lock.",
             "Canonical mode requires stable URI content for the entire handle lifetime; the original interface cannot detect arbitrary mutable-source changes.",
             "Only the owning future may remove its slot; waiters see the same failure.",
             "Eviction never reuses a pinned buffer."
@@ -800,7 +829,7 @@
       ],
       "apis": [
         {
-          "errors": "Reject invalid input, stale versions and operations outside the declared boundary.",
+          "errors": "Reject negative offsets or lengths and overflowing ranges; a read at or beyond EOF returns zero bytes; a shared fetch failure reaches every waiter and leaves no cached slot.",
           "method": "METHOD",
           "ownerNodeId": "engine",
           "path": "CachedFile.read(offset,length,buffer)",
@@ -840,10 +869,9 @@
         {
           "checkIds": [
             "case0",
-            "case1",
-            "publication-pin"
+            "case1"
           ],
-          "explanation": "Split arbitrary byte ranges into fixed blocks, clamp at EOF and validate offsets/lengths. [A cache](https://en.wikipedia.org/wiki/Cache_replacement_policies) keeps reusable results in limited memory. Eviction controls space, while ownership and invalidation rules determine whether a returned value is still safe to use. Consider this case: A file has a partial last block and the read is unaligned. Plan slices across a block boundary and at EOF.",
+          "explanation": "Split arbitrary byte ranges into fixed blocks, clamp at EOF and validate offsets/lengths. read returns bytesRead equal to the requested length clamped at EOF, copied from whole immutable blocks of one handle revision; a failure is shared by every waiter of that block and leaves no slot behind, so a retry fetches again. [A cache](https://en.wikipedia.org/wiki/Cache_replacement_policies) keeps reusable results in limited memory.",
           "graph": {
             "edges": [
               {
@@ -886,7 +914,7 @@
           },
           "id": "global-lru-s1",
           "invariants": [
-            "Split arbitrary byte ranges into fixed blocks, clamp at EOF and validate offsets/lengths."
+            "read returns bytesRead equal to the requested length clamped at EOF, copied from whole immutable blocks of one handle revision; a failure is shared by every waiter of that block and leaves no slot behind, so a retry fetches again."
           ],
           "number": 1,
           "operations": [
@@ -940,11 +968,10 @@
         },
         {
           "checkIds": [
-            "case0",
             "case1",
-            "publication-pin"
+            "case2"
           ],
-          "explanation": "Bind an immutable/version-addressed URI and file size for handle lifetime; split the interval into blocks. Own READY and LOADING records under one metadata mutex. read pins and destination slices belongs to CachedFile.read; revision/block index and access order belongs to Block map and LRU. [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers. Publishing one reference lets each reader keep a consistent version.",
+          "explanation": "Bind an immutable/version-addressed URI and file size for handle lifetime; split the interval into blocks. Own READY and LOADING records under one metadata mutex. CachedFile.read plans slices and copies bytes, but only the block map, under its metadata mutex, installs slots, takes pins, reserves bytes and evicts. [A lock](https://en.wikipedia.org/wiki/Lock_%28computer_science%29) gives one thread exclusive access to protected state. Correctness depends on protecting the whole decision and update, and releasing ownership on every exit.",
           "graph": {
             "edges": [
               {
@@ -1024,7 +1051,7 @@
           },
           "id": "global-lru-s2",
           "invariants": [
-            "read pins and destination slices belongs to CachedFile.read; revision/block index and access order belongs to Block map and LRU."
+            "CachedFile.read plans slices and copies bytes, but only the block map, under its metadata mutex, installs slots, takes pins, reserves bytes and evicts."
           ],
           "number": 2,
           "operations": [
@@ -1079,10 +1106,9 @@
         {
           "checkIds": [
             "case0",
-            "case1",
-            "publication-pin"
+            "case3"
           ],
-          "explanation": "Compute floor(offset/B) through floor((end-1)/B), clamp end at size, and special-case zero length. Never fetch beyond EOF or allocate for an empty read. [A cache](https://en.wikipedia.org/wiki/Cache_replacement_policies) keeps reusable results in limited memory. Eviction controls space, while ownership and invalidation rules determine whether a returned value is still safe to use. Consider this case: A file has a partial last block and the read is unaligned.",
+          "explanation": "Compute floor(offset/B) through floor((end-1)/B), clamp end at size, and special-case zero length. Each slice names the whole block start index*B, its EOF-clamped fetch length and the bytes to copy from it. Never fetch beyond EOF or allocate for an empty read. [An index](https://en.wikipedia.org/wiki/Database_index) maintains a structure that narrows a search without scanning every record. Faster reads come with storage costs and extra work whenever indexed data changes.",
           "graph": {
             "edges": [
               {
@@ -1228,16 +1254,15 @@
             }
           ],
           "question": "How does an unaligned read cross blocks?",
-          "reason": "Compute floor(offset/B) through floor((end-1)/B), clamp end at size, and special-case zero length.",
+          "reason": "Compute floor(offset/B) through floor((end-1)/B), clamp end at size, and special-case zero length. Each slice names the whole block start index*B, its EOF-clamped fetch length and the bytes to copy from it.",
           "title": "Range planner"
         },
         {
           "checkIds": [
-            "case0",
             "case1",
-            "publication-pin"
+            "bounded-mechanism"
           ],
-          "explanation": "Install one shared future atomically under the metadata lock; followers attach outside the lock. One in-flight fetch per pinned revision/block. [A thundering herd](https://en.wikipedia.org/wiki/Thundering_herd_problem) occurs when many callers trigger the same expensive work together. Sharing one in-flight result reduces duplicate work without making all unrelated requests wait. Consider this case: A file has a partial last block and the read is unaligned.",
+          "explanation": "Install one shared future atomically under the metadata lock; followers attach outside the lock. One in-flight fetch per pinned revision/block. [A thundering herd](https://en.wikipedia.org/wiki/Thundering_herd_problem) occurs when many callers trigger the same expensive work together. Sharing one in-flight result reduces duplicate work without making all unrelated requests wait. Consider this case: Two readers miss one revision/block while its fetch is pending.",
           "graph": {
             "edges": [
               {
@@ -1412,11 +1437,9 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1",
-            "publication-pin"
+            "case2"
           ],
-          "explanation": "Reserve block bytes before fetch; evict unpinned ready blocks or wait with bounded admission. Ready plus reserved bytes never exceed the configured budget. [A transaction](https://en.wikipedia.org/wiki/Database_transaction) commits related state changes together or leaves them unapplied. The database must enforce the relevant condition during the write, rather than trusting an earlier read.",
+          "explanation": "Reserve block bytes before fetch by evicting unpinned ready blocks under the metadata lock; if still short, release the lock, wait for freed bytes with a deadline, then relock and recheck for a winner before installing. Ready plus reserved bytes never exceed the configured budget, and no thread waits for bytes while holding the metadata lock. [A transaction](https://en.wikipedia.org/wiki/Database_transaction) commits related state changes together or leaves them unapplied.",
           "graph": {
             "edges": [
               {
@@ -1568,7 +1591,7 @@
           },
           "id": "global-lru-s5",
           "invariants": [
-            "Ready plus reserved bytes never exceed the configured budget."
+            "Ready plus reserved bytes never exceed the configured budget, and no thread waits for bytes while holding the metadata lock."
           ],
           "number": 5,
           "operations": [
@@ -1604,16 +1627,14 @@
             }
           ],
           "question": "Can slow misses exceed the memory ceiling?",
-          "reason": "Reserve block bytes before fetch; evict unpinned ready blocks or wait with bounded admission.",
+          "reason": "Reserve block bytes before fetch by evicting unpinned ready blocks under the metadata lock; if still short, release the lock, wait for freed bytes with a deadline, then relock and recheck for a winner before installing.",
           "title": "Byte reservation"
         },
         {
           "checkIds": [
-            "case0",
-            "case1",
-            "publication-pin"
+            "case3"
           ],
-          "explanation": "Call original fetch(uri,offset,length,buffer) outside metadata lock against the immutable/version-addressed URI. Conditional fetch/version validation is a proposed adapter extension only; without it mutable-source snapshot consistency is unsupported. Canonical mode requires stable URI content for the entire handle lifetime; the original interface cannot detect arbitrary mutable-source changes. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version.",
+          "explanation": "Call original fetch(uri,blockStart,fetchLength,buffer) for the whole aligned block outside metadata lock against the immutable/version-addressed URI. Conditional fetch/version validation is a proposed adapter extension only; without it mutable-source snapshot consistency is unsupported. Canonical mode requires stable URI content for the entire handle lifetime; the original interface cannot detect arbitrary mutable-source changes. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers.",
           "graph": {
             "edges": [
               {
@@ -1825,14 +1846,13 @@
             }
           ],
           "question": "Which lock is held during remote IO?",
-          "reason": "Call original fetch(uri,offset,length,buffer) outside metadata lock against the immutable/version-addressed URI. Conditional fetch/version validation is a proposed adapter extension only; without it mutable-source snapshot consistency is unsupported.",
+          "reason": "Call original fetch(uri,blockStart,fetchLength,buffer) for the whole aligned block outside metadata lock against the immutable/version-addressed URI. Conditional fetch/version validation is a proposed adapter extension only; without it mutable-source snapshot consistency is unsupported.",
           "title": "StorageClient fetch"
         },
         {
           "checkIds": [
-            "case0",
             "case1",
-            "publication-pin"
+            "bounded-mechanism"
           ],
           "explanation": "Publish immutable bytes or exceptional completion; remove failed slot and release reservations before permitting retry. Only the owning future may remove its slot; waiters see the same failure. [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers. Publishing one reference lets each reader keep a consistent version.",
           "graph": {
@@ -2075,11 +2095,10 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1",
+            "case4",
             "publication-pin"
           ],
-          "explanation": "Acquire a read lease under metadata lock before waiting for publication, retain it across await/copy, then release in finally. Eviction cannot win between completion and pinning. Eviction never reuses a pinned buffer. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources. A newer owner needs a token that the resource checks, not merely a belief that ownership changed.",
+          "explanation": "Acquire a read lease under metadata lock before waiting for publication, retain it across await/copy, then release in finally. Eviction cannot win between completion and pinning; a reader that stops waiting releases its lease at once. Eviction never reuses a pinned buffer. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources. A newer owner needs a token that the resource checks, not merely a belief that ownership changed.",
           "graph": {
             "edges": [
               {
@@ -2339,7 +2358,7 @@
             }
           ],
           "question": "Can eviction free bytes while a reader copies?",
-          "reason": "Acquire a read lease under metadata lock before waiting for publication, retain it across await/copy, then release in finally. Eviction cannot win between completion and pinning.",
+          "reason": "Acquire a read lease under metadata lock before waiting for publication, retain it across await/copy, then release in finally. Eviction cannot win between completion and pinning; a reader that stops waiting releases its lease at once.",
           "title": "Pinned copy and release"
         }
       ],
@@ -2355,9 +2374,7 @@
           "given": "An unaligned range reaches a partial final block.",
           "id": "case0",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
-            "r2"
+            "r0"
           ],
           "then": "Copy exactly requested available bytes without overflow or crossing revision.",
           "when": "Plan and assemble shard-owned slices."
@@ -2366,7 +2383,6 @@
           "given": "Two readers map the same block to one shard.",
           "id": "case1",
           "relatedRequirementIds": [
-            "r0",
             "r1",
             "r2"
           ],
@@ -2377,12 +2393,66 @@
           "evidence": {
             "kind": "reference-test",
             "testFile": "tools/simulatte/study-reference/batch-06-state.test.mjs",
+            "testName": "byte waits release the metadata lock and recheck for a winner"
+          },
+          "given": "Global byte permits are exhausted.",
+          "id": "case2",
+          "relatedRequirementIds": [
+            "r2"
+          ],
+          "then": "Acquire permits outside the shard lock, then recheck for a winner and return the permits if one exists.",
+          "when": "A shard miss needs bytes."
+        },
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-06-state.test.mjs",
+            "testName": "range reads fetch whole aligned blocks and copy exact slices"
+          },
+          "given": "A 10-byte file uses 4-byte blocks and a read asks for bytes 5..6.",
+          "id": "case3",
+          "relatedRequirementIds": [
+            "r0",
+            "r1"
+          ],
+          "then": "Fetch offset 4 for 4 bytes (the whole block, clamped at EOF) and copy only bytes 5..6; a cached block never holds a partial slice.",
+          "when": "Fetch the missing block."
+        },
+        {
+          "given": "A LOADING slot and an unpinned READY slot share a shard.",
+          "id": "case4",
+          "relatedRequirementIds": [
+            "r1",
+            "r2"
+          ],
+          "then": "Evict only the unpinned READY entry; the LOADING promise keeps its single-flight identity.",
+          "when": "The ring needs space."
+        },
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-06-state.test.mjs",
+            "testName": "a reader that cancels before publication releases its pin"
+          },
+          "given": "A reader joins a pending block and gives up before the fetch completes.",
+          "id": "case5",
+          "relatedRequirementIds": [
+            "r2"
+          ],
+          "then": "The block becomes evictable once the remaining readers release, and other keys see no backpressure from the abandoned reader.",
+          "when": "It releases its lease, then the fetch completes."
+        },
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-06-state.test.mjs",
             "testName": "single flight reserves bytes shares failures pins buffers and retries by revision"
           },
           "given": "A four-byte cache admits two same-key waiters and a different revision.",
           "id": "bounded-mechanism",
           "relatedRequirementIds": [
-            "r0"
+            "r1",
+            "r2"
           ],
           "then": "Use one promise/fetch per key, bound reserved bytes, retain pinned buffers and release failed reservations; no thread-runtime proof is claimed.",
           "when": "Hold fetch pending, test admission and pinning, fail a shared fetch then retry."
@@ -2404,7 +2474,7 @@
       ],
       "algorithms": [
         {
-          "code": "const revision = immutableUriHandleIdentity(uri), pinnedSize = storage.getFileSize(uri);\nconst pieces = checkedBlockPlan(offset,length,pinnedSize);\nfor (const piece of pieces) { const shard = hash(uri,revision,piece.block)%N;\n const {pending,lease} = shard.findOrCreateAndPinPromiseWithRecheckAfterPermit();\n try { ownerFetchOutsideLocks(pending, () => storage.fetch(uri,piece.blockOffset,piece.fetchLength,reservedBuffer)); awaitWithoutShardLock(pending);\n copyPinnedSlice(); } finally { releaseReadLease(lease); } }\n// Per-shard READY eviction is approximate global LRU; global permits bound bytes.\n// Original StorageClient takes no version/etag argument. Conditional fetch is a proposed extension; the baseline requires immutable URI content.",
+          "code": "const revision = immutableUriHandleIdentity(uri), pinnedSize = storage.getFileSize(uri);\nconst pieces = checkedBlockPlan(offset,length,pinnedSize); // blockStart = index*B, fetchLength = min(B, size-blockStart)\nfor (const piece of pieces) { const shard = hash(uri,revision,piece.index)%N;\n const {pending,lease} = shard.findOrCreateAndPinPromiseWithRecheckAfterPermit(piece.fetchLength); // permits are awaited outside the shard lock; the lease returns before publication\n try { ownerFetchOutsideLocks(pending, () => storage.fetch(uri,piece.blockStart,piece.fetchLength,reservedBuffer));\n  await raceWithCancellation(pending, signal); copyPinnedSlice(piece.offsetInBlock,piece.length); } finally { releaseReadLease(lease); } } // cancel releases only this lease; the shared fetch continues\n// Per-shard READY eviction is approximate global LRU; global permits bound bytes.\n// Original StorageClient takes no version/etag argument. Conditional fetch is a proposed extension; the baseline requires immutable URI content.",
           "guarantees": [
             "Invalid negative or overflowing ranges are rejected.",
             "All readers of the same block resolve to the same shard future.",
@@ -2420,11 +2490,11 @@
       ],
       "apis": [
         {
-          "errors": "Reject invalid input, stale versions and operations outside the declared boundary.",
+          "errors": "Reject negative offsets or lengths and overflowing ranges; a read at or beyond EOF returns zero bytes; a shared fetch failure reaches every waiter and leaves no cached slot.",
           "method": "METHOD",
           "ownerNodeId": "engine",
           "path": "CachedFile.read(offset,length,buffer)",
-          "request": "{\"uri\":\"immutable/version-addressed String URI stable for handle lifetime in canonical mode\",\"fileRevision\":\"optional proposed adapter-extension version metadata; absent in canonical immutable-URI mode\",\"offset\":\"nonnegative 64-bit integer\",\"length\":\"nonnegative integer\"}",
+          "request": "{\"uri\":\"immutable/version-addressed String URI stable for handle lifetime in canonical mode\",\"fileRevision\":\"optional proposed adapter-extension version metadata; absent in canonical immutable-URI mode\",\"offset\":\"nonnegative 64-bit integer\",\"length\":\"nonnegative integer\",\"cancellation\":\"optional signal; abandons only this reader's wait and lease\"}",
           "response": "{\"bytesRead\":\"integer <= length\",\"bytes\":\"byte[]\",\"revision\":\"stable handle identity derived from immutable URI; explicit adapter-extension version only when supported\"}"
         },
         {
@@ -2460,10 +2530,9 @@
         {
           "checkIds": [
             "case0",
-            "case1",
-            "publication-pin"
+            "case5"
           ],
-          "explanation": "Split arbitrary byte ranges into fixed blocks, clamp at EOF and validate offsets/lengths. [A cache](https://en.wikipedia.org/wiki/Cache_replacement_policies) keeps reusable results in limited memory. Eviction controls space, while ownership and invalidation rules determine whether a returned value is still safe to use. Consider this case: An unaligned range reaches a partial final block. Plan and assemble shard-owned slices.",
+          "explanation": "Split arbitrary byte ranges into fixed blocks, clamp at EOF and validate offsets/lengths. read returns bytesRead equal to the requested length clamped at EOF from whole immutable blocks of one handle revision; a cancelled reader releases only its own lease and never cancels the fetch other readers share. [A cache](https://en.wikipedia.org/wiki/Cache_replacement_policies) keeps reusable results in limited memory. Eviction controls space, while ownership and invalidation rules determine whether a returned value is still safe to use.",
           "graph": {
             "edges": [
               {
@@ -2506,7 +2575,7 @@
           },
           "id": "sharded-s1",
           "invariants": [
-            "Split arbitrary byte ranges into fixed blocks, clamp at EOF and validate offsets/lengths."
+            "read returns bytesRead equal to the requested length clamped at EOF from whole immutable blocks of one handle revision; a cancelled reader releases only its own lease and never cancels the fetch other readers share."
           ],
           "number": 1,
           "operations": [
@@ -2560,11 +2629,10 @@
         },
         {
           "checkIds": [
-            "case0",
             "case1",
-            "publication-pin"
+            "case2"
           ],
-          "explanation": "Bind immutable/version-addressed URI identity and distribute block slices to deterministic shard owners. Map immutable block keys to one owning shard. per-read slices and cancellation belongs to CachedFile facade; fixed shard mapping belongs to Shard directory. [Partitioning](https://en.wikipedia.org/wiki/Partition_%28database%29) divides data and work among owners. The key determines where requests go; skew, ownership changes, and operations spanning partitions require additional coordination.",
+          "explanation": "Bind immutable/version-addressed URI identity and distribute block slices to deterministic shard owners. Map immutable block keys to one owning shard. The facade plans and assembles slices; the one shard that owns a block key installs, pins and evicts it, and global byte permits are acquired outside every shard lock. [Partitioning](https://en.wikipedia.org/wiki/Partition_%28database%29) divides data and work among owners. The key determines where requests go; skew, ownership changes, and operations spanning partitions require additional coordination.",
           "graph": {
             "edges": [
               {
@@ -2644,7 +2712,7 @@
           },
           "id": "sharded-s2",
           "invariants": [
-            "per-read slices and cancellation belongs to CachedFile facade; fixed shard mapping belongs to Shard directory."
+            "The facade plans and assembles slices; the one shard that owns a block key installs, pins and evicts it, and global byte permits are acquired outside every shard lock."
           ],
           "number": 2,
           "operations": [
@@ -2699,10 +2767,9 @@
         {
           "checkIds": [
             "case0",
-            "case1",
-            "publication-pin"
+            "case3"
           ],
-          "explanation": "Use checked end arithmetic and clamp against immutable file size. Invalid negative or overflowing ranges are rejected. [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers. Publishing one reference lets each reader keep a consistent version. Consider this case: An unaligned range reaches a partial final block. Plan and assemble shard-owned slices.",
+          "explanation": "Use checked end arithmetic and clamp against immutable file size; each piece names its whole-block start, EOF-clamped fetch length and copy slice. Invalid negative or overflowing ranges are rejected. [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers. Publishing one reference lets each reader keep a consistent version.",
           "graph": {
             "edges": [
               {
@@ -2848,16 +2915,15 @@
             }
           ],
           "question": "How are reads split without overflow?",
-          "reason": "Use checked end arithmetic and clamp against immutable file size.",
+          "reason": "Use checked end arithmetic and clamp against immutable file size; each piece names its whole-block start, EOF-clamped fetch length and copy slice.",
           "title": "Block planner"
         },
         {
           "checkIds": [
-            "case0",
             "case1",
-            "publication-pin"
+            "bounded-mechanism"
           ],
-          "explanation": "One shard mutex installs a promise per revision/block key before any IO begins. All readers of the same block resolve to the same shard future. [Partitioning](https://en.wikipedia.org/wiki/Partition_%28database%29) divides data and work among owners. The key determines where requests go; skew, ownership changes, and operations spanning partitions require additional coordination. Consider this case: An unaligned range reaches a partial final block.",
+          "explanation": "One shard mutex installs a promise per revision/block key before any IO begins. All readers of the same block resolve to the same shard future. [Partitioning](https://en.wikipedia.org/wiki/Partition_%28database%29) divides data and work among owners. The key determines where requests go; skew, ownership changes, and operations spanning partitions require additional coordination. Consider this case: Two readers map the same block to one shard.",
           "graph": {
             "edges": [
               {
@@ -3032,11 +3098,9 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1",
-            "publication-pin"
+            "case2"
           ],
-          "explanation": "Acquire global bytes before allocation, outside shard lock; recheck for a winner after reacquiring. No shard waits for memory while holding its metadata mutex. [Partitioning](https://en.wikipedia.org/wiki/Partition_%28database%29) divides data and work among owners. The key determines where requests go; skew, ownership changes, and operations spanning partitions require additional coordination. Consider this case: An unaligned range reaches a partial final block.",
+          "explanation": "Acquire global bytes before allocation, outside shard lock; recheck for a winner after reacquiring. No shard waits for memory while holding its metadata mutex. [Partitioning](https://en.wikipedia.org/wiki/Partition_%28database%29) divides data and work among owners. The key determines where requests go; skew, ownership changes, and operations spanning partitions require additional coordination. Consider this case: Global byte permits are exhausted. A shard miss needs bytes.",
           "graph": {
             "edges": [
               {
@@ -3229,11 +3293,9 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1",
-            "publication-pin"
+            "case3"
           ],
-          "explanation": "Run admitted calls to original fetch(uri,offset,length,buffer) outside shard locks. URI content must remain stable for the handle lifetime; conditional versions and deadlines require an explicitly proposed supporting adapter. Failures release permits; mutable-source snapshot consistency is unsupported without the proposed adapter extension. [A condition variable](https://en.wikipedia.org/wiki/Condition_variable) lets a thread sleep until shared state may have changed. Waking does not guarantee success, so the protected condition must be checked again.",
+          "explanation": "Run admitted calls to original fetch(uri,blockStart,fetchLength,buffer) for whole aligned blocks outside shard locks. URI content must remain stable for the handle lifetime; conditional versions and deadlines require an explicitly proposed supporting adapter. Failures release permits; mutable-source snapshot consistency is unsupported without the proposed adapter extension. [A condition variable](https://en.wikipedia.org/wiki/Condition_variable) lets a thread sleep until shared state may have changed. Waking does not guarantee success, so the protected condition must be checked again.",
           "graph": {
             "edges": [
               {
@@ -3445,16 +3507,15 @@
             }
           ],
           "question": "How are remote reads bounded?",
-          "reason": "Run admitted calls to original fetch(uri,offset,length,buffer) outside shard locks. URI content must remain stable for the handle lifetime; conditional versions and deadlines require an explicitly proposed supporting adapter.",
+          "reason": "Run admitted calls to original fetch(uri,blockStart,fetchLength,buffer) for whole aligned blocks outside shard locks. URI content must remain stable for the handle lifetime; conditional versions and deadlines require an explicitly proposed supporting adapter.",
           "title": "Storage fetch task"
         },
         {
           "checkIds": [
-            "case0",
-            "case1",
-            "publication-pin"
+            "case4",
+            "bounded-mechanism"
           ],
-          "explanation": "Track shard-local access order and evict only unpinned READY entries; never drop a LOADING promise. LOADING slots retain single-flight identity until completed. [A cache](https://en.wikipedia.org/wiki/Cache_replacement_policies) keeps reusable results in limited memory. Eviction controls space, while ownership and invalidation rules determine whether a returned value is still safe to use. Consider this case: An unaligned range reaches a partial final block.",
+          "explanation": "Track shard-local access order and evict only unpinned READY entries; never drop a LOADING promise. LOADING slots retain single-flight identity until completed. [A cache](https://en.wikipedia.org/wiki/Cache_replacement_policies) keeps reusable results in limited memory. Eviction controls space, while ownership and invalidation rules determine whether a returned value is still safe to use. Consider this case: A LOADING slot and an unpinned READY slot share a shard.",
           "graph": {
             "edges": [
               {
@@ -3695,8 +3756,8 @@
         },
         {
           "checkIds": [
-            "case0",
             "case1",
+            "case5",
             "publication-pin"
           ],
           "explanation": "Pin the shared slot under its shard lock before awaiting completion; copy immutable slices and release the lease in finally. Cancel one waiter without canceling another reader shared fetch. Release pins/permits exactly once under success, failure and cancellation. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources. A newer owner needs a token that the resource checks, not merely a belief that ownership changed.",

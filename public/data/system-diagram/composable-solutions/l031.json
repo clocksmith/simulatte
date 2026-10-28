@@ -17,6 +17,16 @@
           "contractId": "l031.local.c4",
           "direction": "out",
           "id": "out-l031.local.c4-control"
+        },
+        {
+          "contractId": "l031.local.activate",
+          "direction": "in",
+          "id": "in-l031.local.activate-control"
+        },
+        {
+          "contractId": "l031.local.c4",
+          "direction": "out",
+          "id": "out-l031.local.c4-control-capacity-b"
         }
       ],
       "responsibility": "Start with a stable chat contract independent of internal generation topology.",
@@ -62,9 +72,19 @@
           "contractId": "l031.local.c4",
           "direction": "out",
           "id": "out-l031.local.c4-worker"
+        },
+        {
+          "contractId": "l031.local.c4",
+          "direction": "out",
+          "id": "out-l031.local.c4-worker-b"
+        },
+        {
+          "contractId": "l031.local.activate",
+          "direction": "in",
+          "id": "in-l031.local.activate"
         }
       ],
-      "responsibility": "Expand command control into a router and pinned generation-capacity boundary.",
+      "responsibility": "Expand command control into a router and two capacity instances that pin the same generation-capacity definition.",
       "stateOwnership": [
         "generation instance binding"
       ],
@@ -89,7 +109,7 @@
           "id": "in-l031.local.c2"
         }
       ],
-      "responsibility": "Expand generation capacity into admission and worker with typed exposed mapping.",
+      "responsibility": "Expand each capacity instance into its own admission and worker with typed exposed mappings.",
       "stateOwnership": [
         "capacity permits and worker state"
       ],
@@ -109,7 +129,7 @@
           "id": "in-l031.local.c4"
         }
       ],
-      "responsibility": "Add an explicit output adapter; internal token batches become the stable reply contract.",
+      "responsibility": "Add an explicit output adapter; token batches from both instances become the stable reply contract.",
       "stateOwnership": [
         "adapter compatibility version"
       ],
@@ -134,7 +154,7 @@
           "id": "out-l031.local.c4"
         }
       ],
-      "responsibility": "Replace the worker implementation while retaining identity and compatible ports; record migration.",
+      "responsibility": "Replace instance A's worker implementation while retaining identity and compatible ports; record migration.",
       "stateOwnership": [
         "worker version and active-attempt policy"
       ],
@@ -149,14 +169,19 @@
       "label": "Binding candidate",
       "ports": [
         {
+          "contractId": "l031.local.c3",
+          "direction": "out",
+          "id": "out-l031.local.c3"
+        },
+        {
           "contractId": "l031.local.c2",
           "direction": "in",
           "id": "in-l031.local.c2"
         },
         {
-          "contractId": "l031.local.c3",
-          "direction": "out",
-          "id": "out-l031.local.c3"
+          "contractId": "l031.local.activate",
+          "direction": "in",
+          "id": "in-l031.local.activate"
         }
       ],
       "responsibility": "Add a distinct admission candidate for the new binding and validate its port compatibility.",
@@ -177,9 +202,14 @@
           "contractId": "l031.local.c7",
           "direction": "in",
           "id": "in-l031.local.c7"
+        },
+        {
+          "contractId": "l031.local.activate",
+          "direction": "out",
+          "id": "out-l031.local.activate"
         }
       ],
-      "responsibility": "Create a new immutable subsystem binding and rebind only this capacity instance; earlier stages remain unchanged.",
+      "responsibility": "An operator selects a compatible binding at an expected registry version; create a new immutable binding and rebind only instance A, leaving instance B and earlier stages unchanged.",
       "stateOwnership": [
         "selected binding identity"
       ],
@@ -197,11 +227,6 @@
           "contractId": "l031.local.c0",
           "direction": "out",
           "id": "out-l031.local.c0"
-        },
-        {
-          "contractId": "l031.local.c7",
-          "direction": "out",
-          "id": "out-l031.local.c7"
         }
       ],
       "responsibility": "Submit the declared operation with authenticated identity and preserve its retry identity.",
@@ -232,6 +257,16 @@
           "contractId": "l031.local.c4",
           "direction": "out",
           "id": "out-l031.local.c4-capacity"
+        },
+        {
+          "contractId": "l031.local.c4",
+          "direction": "out",
+          "id": "out-l031.local.c4-capacity-b"
+        },
+        {
+          "contractId": "l031.local.activate",
+          "direction": "in",
+          "id": "in-l031.local.activate-capacity"
         }
       ],
       "responsibility": "Start with a stable chat contract independent of internal generation topology.",
@@ -264,7 +299,7 @@
           "id": "out-l031.local.c1"
         }
       ],
-      "responsibility": "Adapt the stable chat contract to the pinned capacity contract.",
+      "responsibility": "Adapt the stable chat contract to the pinned capacity contract and choose the capacity instance.",
       "stateOwnership": [
         "binding selection"
       ],
@@ -297,6 +332,26 @@
     },
     {
       "extends": {
+        "id": "core.client",
+        "version": 1
+      },
+      "id": "l031.local.operator",
+      "label": "Operator",
+      "ports": [
+        {
+          "contractId": "l031.local.c7",
+          "direction": "out",
+          "id": "out-l031.local.c7"
+        }
+      ],
+      "responsibility": "Request explicit instance upgrades against an expected registry version; chat callers cannot select bindings.",
+      "stateOwnership": [
+        "upgrade request identity"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
         "id": "core.service",
         "version": 1
       },
@@ -309,9 +364,19 @@
           "id": "in-l031.remote.c0"
         },
         {
+          "contractId": "l031.remote.c2",
+          "direction": "out",
+          "id": "out-l031.remote.c2-control"
+        },
+        {
           "contractId": "l031.remote.c4",
           "direction": "out",
           "id": "out-l031.remote.c4-control"
+        },
+        {
+          "contractId": "l031.remote.intents",
+          "direction": "in",
+          "id": "in-l031.remote.intents-state"
         }
       ],
       "responsibility": "Accept the same logical conversation command while internal capacity is remote.",
@@ -332,11 +397,16 @@
           "contractId": "l031.remote.c1",
           "direction": "in",
           "id": "in-l031.remote.c1"
+        },
+        {
+          "contractId": "l031.remote.intents",
+          "direction": "in",
+          "id": "in-l031.remote.intents"
         }
       ],
-      "responsibility": "Expand backend into orchestration and durable conversation state.",
+      "responsibility": "Expand backend into orchestration and a durable journal that records each generation intent under an idempotent generationKey before any RPC.",
       "stateOwnership": [
-        "conversation and remote intent"
+        "conversation and remote intent by generationKey"
       ],
       "version": 1
     },
@@ -354,12 +424,12 @@
           "id": "in-l031.remote.c2"
         },
         {
-          "contractId": "l031.remote.c4",
-          "direction": "out",
-          "id": "out-l031.remote.c4-worker"
+          "contractId": "l031.remote.activate",
+          "direction": "in",
+          "id": "in-l031.remote.activate"
         }
       ],
-      "responsibility": "Expand orchestration into a contract adapter and pinned remote generation boundary.",
+      "responsibility": "Expand orchestration into a contract router; generation capacity runs as two remote service instances reached only by RPC carrying the journaled generationKey.",
       "stateOwnership": [
         "remote binding and retry identity"
       ],
@@ -382,11 +452,16 @@
           "contractId": "l031.remote.c2",
           "direction": "in",
           "id": "in-l031.remote.c2"
+        },
+        {
+          "contractId": "l031.remote.ledger",
+          "direction": "in",
+          "id": "in-l031.remote.ledger"
         }
       ],
-      "responsibility": "Expand capacity into remote admission and generation worker, preserving exposed contracts.",
+      "responsibility": "Expand each remote instance into admission and worker; admission deduplicates by generationKey before starting an attempt.",
       "stateOwnership": [
-        "remote permits and attempt fences"
+        "remote permits, generationKey ledger and attempt fences"
       ],
       "version": 1
     },
@@ -402,9 +477,14 @@
           "contractId": "l031.remote.c4",
           "direction": "in",
           "id": "in-l031.remote.c4"
+        },
+        {
+          "contractId": "l031.remote.c2",
+          "direction": "out",
+          "id": "out-l031.remote.c2"
         }
       ],
-      "responsibility": "Decode the remote revision explicitly and map to stable external reply shape.",
+      "responsibility": "Route every RPC through a typed adapter that encodes the pinned wire version and decodes remote revisions into the stable reply shape.",
       "stateOwnership": [
         "wire-version compatibility verdict"
       ],
@@ -422,14 +502,9 @@
           "contractId": "l031.remote.c3",
           "direction": "in",
           "id": "in-l031.remote.c3"
-        },
-        {
-          "contractId": "l031.remote.c4",
-          "direction": "out",
-          "id": "out-l031.remote.c4"
         }
       ],
-      "responsibility": "Replace only the worker binding, draining or fencing active attempts before activation.",
+      "responsibility": "Treat a timeout as an unknown outcome: fence superseded worker attempts by epoch, and let a reconciler look up the generationKey before anything is resent.",
       "stateOwnership": [
         "remote attempt epoch"
       ],
@@ -444,17 +519,27 @@
       "label": "Admission revision",
       "ports": [
         {
+          "contractId": "l031.remote.c3",
+          "direction": "out",
+          "id": "out-l031.remote.c3"
+        },
+        {
+          "contractId": "l031.remote.ledger",
+          "direction": "out",
+          "id": "out-l031.remote.ledger"
+        },
+        {
           "contractId": "l031.remote.c2",
           "direction": "in",
           "id": "in-l031.remote.c2"
         },
         {
-          "contractId": "l031.remote.c3",
-          "direction": "out",
-          "id": "out-l031.remote.c3"
+          "contractId": "l031.remote.activate",
+          "direction": "in",
+          "id": "in-l031.remote.activate"
         }
       ],
-      "responsibility": "Add a separately versioned admission candidate without mutating the active binding.",
+      "responsibility": "Add a separately versioned admission candidate that reads the active generationKey ledger, without mutating the active binding.",
       "stateOwnership": [
         "candidate contract and permits"
       ],
@@ -472,9 +557,14 @@
           "contractId": "l031.remote.c7",
           "direction": "in",
           "id": "in-l031.remote.c7"
+        },
+        {
+          "contractId": "l031.remote.activate",
+          "direction": "out",
+          "id": "out-l031.remote.activate"
         }
       ],
-      "responsibility": "Rebind this instance explicitly; preserve other instances and prior immutable definitions.",
+      "responsibility": "An operator rebinds remote instance A explicitly at an expected registry version; instance B and prior immutable definitions are preserved.",
       "stateOwnership": [
         "instance binding selection"
       ],
@@ -492,11 +582,6 @@
           "contractId": "l031.remote.c0",
           "direction": "out",
           "id": "out-l031.remote.c0"
-        },
-        {
-          "contractId": "l031.remote.c7",
-          "direction": "out",
-          "id": "out-l031.remote.c7"
         }
       ],
       "responsibility": "Submit the declared operation with authenticated identity and preserve its retry identity.",
@@ -524,9 +609,14 @@
           "id": "in-l031.remote.c0"
         },
         {
+          "contractId": "l031.remote.c2",
+          "direction": "out",
+          "id": "out-l031.remote.c2-router"
+        },
+        {
           "contractId": "l031.remote.c4",
           "direction": "out",
-          "id": "out-l031.remote.c4-capacity"
+          "id": "out-l031.remote.c4-router"
         }
       ],
       "responsibility": "Accept the same logical conversation command while internal capacity is remote.",
@@ -544,11 +634,6 @@
       "label": "Generation router",
       "ports": [
         {
-          "contractId": "l031.remote.c2",
-          "direction": "out",
-          "id": "out-l031.remote.c2"
-        },
-        {
           "contractId": "l031.remote.c0",
           "direction": "in",
           "id": "in-l031.remote.c0"
@@ -557,9 +642,19 @@
           "contractId": "l031.remote.c1",
           "direction": "out",
           "id": "out-l031.remote.c1"
+        },
+        {
+          "contractId": "l031.remote.c2",
+          "direction": "out",
+          "id": "out-l031.remote.c2"
+        },
+        {
+          "contractId": "l031.remote.c4",
+          "direction": "out",
+          "id": "out-l031.remote.c4"
         }
       ],
-      "responsibility": "Adapt the stable chat contract to the pinned capacity contract.",
+      "responsibility": "Turn the stable chat command into an RPC that carries the journaled generationKey, and commit the decoded reply.",
       "stateOwnership": [
         "binding selection"
       ],
@@ -577,6 +672,46 @@
           "contractId": "l031.remote.c3",
           "direction": "in",
           "id": "in-l031.remote.c3"
+        }
+      ],
+      "responsibility": "Emit generation output under a fenced attempt.",
+      "stateOwnership": [
+        "generation attempt"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.client",
+        "version": 1
+      },
+      "id": "l031.remote.operator",
+      "label": "Operator",
+      "ports": [
+        {
+          "contractId": "l031.remote.c7",
+          "direction": "out",
+          "id": "out-l031.remote.c7"
+        }
+      ],
+      "responsibility": "Request explicit instance upgrades against an expected registry version; chat callers cannot select bindings.",
+      "stateOwnership": [
+        "upgrade request identity"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "l031.remote.reconciler",
+      "label": "RPC outcome reconciler",
+      "ports": [
+        {
+          "contractId": "l031.remote.intents",
+          "direction": "out",
+          "id": "out-l031.remote.intents"
         },
         {
           "contractId": "l031.remote.c4",
@@ -584,9 +719,9 @@
           "id": "out-l031.remote.c4"
         }
       ],
-      "responsibility": "Emit generation output under a fenced attempt.",
+      "responsibility": "Resolve unknown RPC outcomes by generationKey: record accepted or completed, resend the same key only on proven absence, otherwise hold.",
       "stateOwnership": [
-        "generation attempt"
+        "unknown intent cursor"
       ],
       "version": 1
     }
@@ -672,10 +807,25 @@
       "id": "l031.local.c7",
       "request": {
         "bindingId": "version-pinned id",
-        "instanceId": "uuid"
+        "expectedVersion": "integer",
+        "instanceId": "uuid",
+        "overrides": "validated capacity map"
       },
       "response": {
+        "bindingId": "version-pinned id",
         "version": "integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l031.local.activate",
+      "request": {
+        "bindingId": "version-pinned id",
+        "instanceId": "uuid",
+        "version": "integer"
+      },
+      "response": {
+        "activeBindingId": "version-pinned id"
       },
       "version": 1
     },
@@ -695,28 +845,35 @@
       "id": "l031.remote.c1",
       "request": {
         "conversationId": "uuid",
-        "version": "integer"
+        "expectedVersion": "integer",
+        "generationKey": "uuid",
+        "intent": "pending|recorded|unknown"
       },
       "response": {
-        "history": "messages[]"
+        "version": "integer"
       },
       "version": 1
     },
     {
       "id": "l031.remote.c2",
       "request": {
-        "generationId": "uuid",
-        "model": "string"
+        "generationKey": "uuid journaled before send",
+        "maxTokens": "integer",
+        "model": "string",
+        "op": "generate|lookup",
+        "wireVersion": "integer"
       },
       "response": {
-        "accepted": "boolean"
+        "status": "accepted|duplicate|completed|absent",
+        "tokenBatch": "string[]"
       },
       "version": 1
     },
     {
       "id": "l031.remote.c3",
       "request": {
-        "generationId": "uuid",
+        "epoch": "integer",
+        "generationKey": "uuid",
         "maxTokens": "integer"
       },
       "response": {
@@ -727,11 +884,14 @@
     {
       "id": "l031.remote.c4",
       "request": {
-        "tokenBatch": "string[]",
-        "wireVersion": "integer"
+        "generationKey": "uuid",
+        "maxTokens": "integer",
+        "model": "string",
+        "op": "generate|lookup"
       },
       "response": {
-        "reply": "string"
+        "reply": "string|null",
+        "status": "accepted|duplicate|completed|absent|unreachable"
       },
       "version": 1
     },
@@ -739,7 +899,7 @@
       "id": "l031.remote.c5",
       "request": {
         "epoch": "integer",
-        "generationId": "uuid"
+        "generationKey": "uuid"
       },
       "response": {
         "state": "draining|ready"
@@ -749,7 +909,7 @@
     {
       "id": "l031.remote.c6",
       "request": {
-        "generationId": "uuid",
+        "generationKey": "uuid",
         "maxTokens": "integer"
       },
       "response": {
@@ -761,9 +921,46 @@
       "id": "l031.remote.c7",
       "request": {
         "bindingId": "version-pinned id",
-        "instanceId": "uuid"
+        "expectedVersion": "integer",
+        "instanceId": "uuid",
+        "overrides": "validated capacity map"
       },
       "response": {
+        "bindingId": "version-pinned id",
+        "version": "integer"
+      },
+      "version": 1
+    },
+    {
+      "id": "l031.remote.activate",
+      "request": {
+        "bindingId": "version-pinned id",
+        "instanceId": "uuid",
+        "version": "integer"
+      },
+      "response": {
+        "activeBindingId": "version-pinned id"
+      },
+      "version": 1
+    },
+    {
+      "id": "l031.remote.ledger",
+      "request": {
+        "generationKey": "uuid"
+      },
+      "response": {
+        "outcome": "accepted|completed|absent"
+      },
+      "version": 1
+    },
+    {
+      "id": "l031.remote.intents",
+      "request": {
+        "generationKey": "uuid",
+        "observed": "accepted|completed|absent|unreachable"
+      },
+      "response": {
+        "intent": "recorded|resend|unknown",
         "version": "integer"
       },
       "version": 1
@@ -787,6 +984,10 @@
       {
         "id": "r2",
         "text": "Validate overrides and compatibility without silently changing sibling instances."
+      },
+      {
+        "id": "r3",
+        "text": "Keep each generation's identity stable across retries, worker revisions and remote calls."
       }
     ],
     "scope": "Reuse a chat backend containing a version-pinned generation subsystem. Authored practice compares in-process and remote composition, compatibility adapters, explicit upgrades and per-instance overrides; timing values are illustrative.",
@@ -822,34 +1023,54 @@
             "testFile": "tools/simulatte/study-reference/batch-02-mechanisms.test.mjs",
             "testName": "L031 bounded mechanism"
           },
-          "given": "Two instances pin the same immutable generation definition and one has a local capacity override.",
+          "given": "Capacity instances A and B pin binding v1 inside one backend process; the default capacity is 4, A overrides it to 2, and the registry is at version 7.",
           "id": "mechanism",
           "relatedRequirementIds": [
-            "r0",
             "r1",
             "r2"
           ],
-          "then": "The sibling keeps its old version/default; the registry definition and prior stage bindings remain unchanged.",
-          "when": "Upgrade one instance to a compatible new binding and change only its override."
+          "then": "Only A moves to v2 with capacity 8 and the registry reaches version 8; B keeps v1 and effective capacity 4; defaults, binding records and the prior state are unchanged; the stale retry, incompatible binding, invalid override and unknown instance are rejected.",
+          "when": "Upgrade A to compatible binding v2 with capacity 8 at expectedVersion 7, retry the same request, then try an incompatible binding, capacity 0 and an unknown instance."
+        },
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tests/study-batch-02.test.cjs",
+            "testName": "L031 stage 8 rebinds one capacity instance and keeps earlier bindings"
+          },
+          "given": "Stage 7 shows capacity instances A and B on their v1 bindings.",
+          "id": "history",
+          "relatedRequirementIds": [
+            "r1",
+            "r2"
+          ],
+          "then": "Only instance A is rebound, with the explicit-upgrade reason, to a binding that routes admission to the candidate; instance B keeps its binding and the stage-7 binding still routes admission to the original child.",
+          "when": "Stage 8 applies the operator's explicit upgrade."
         },
         {
           "given": "A learner expands backend and generation capacity.",
           "id": "identity",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
-            "r2"
+            "r0"
           ],
           "then": "Caller contracts still map to direct typed children, and both parent identities remain in data.",
           "when": "Inspect exposed ports in expanded and collapsed views."
         },
         {
+          "given": "Instance A's worker library is revised while generation attempts are in flight.",
+          "id": "worker",
+          "relatedRequirementIds": [
+            "r1",
+            "r3"
+          ],
+          "then": "Attempts drain or are fenced and keep their generation IDs; the node keeps its identity and ports, and instance B's worker is unchanged.",
+          "when": "Replace the worker."
+        },
+        {
           "given": "One instance selects a new compatible binding.",
           "id": "upgrade",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
-            "r2"
+            "r1"
           ],
           "then": "Earlier binding definitions remain immutable; only this instance changes.",
           "when": "Apply explicit rebind."
@@ -858,8 +1079,6 @@
           "given": "Two instances share a pinned default.",
           "id": "override",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
             "r2"
           ],
           "then": "The sibling and base default remain unchanged; unsupported overrides reject.",
@@ -868,7 +1087,7 @@
       ],
       "algorithms": [
         {
-          "code": "const resolved = registry.get(instance.definitionId + \"@\" + instance.version);\nassert(resolved && portsCompatible(resolved, callerContract));\nconst config = validateOverrides(resolved.defaults, instance.overrides);\n// Explicit upgrade returns a new instance record; registry definitions remain immutable.",
+          "code": "// Explicit rebind (n7): an operator upgrade is a compare-and-swap on the registry version that returns a new state.\n// It changes only the named instance; defaults, binding records and sibling instances are never edited.\nfunction upgrade(state,request){\n if(request.expectedVersion!==state.version)throw Error('stale version');\n const binding=state.bindings[request.bindingId];\n if(!binding?.compatible)throw Error('incompatible binding');\n const instance=state.instances[request.instanceId];\n if(!instance)throw Error('unknown instance');\n const capacity=request.overrides.capacity;\n if(!Number.isInteger(capacity)||capacity<1)throw Error('invalid override');\n return {...state,version:state.version+1,instances:{...state.instances,[request.instanceId]:{bindingId:binding.id,overrides:{...instance.overrides,...request.overrides}}}};\n}",
           "guarantees": [
             "The code states the bounded decision rule; unimplemented helpers remain pseudocode.",
             "External effects, distributed failure and latency require separate execution evidence."
@@ -880,7 +1099,7 @@
         {
           "code": "const previous = instance.subsystemId;\nconst next = immutableBindings.get(requestedBindingId);\nassert(compatiblePorts(previous, next));\nreturn {...instance, subsystemId:next.id};\n// Rebind changes this instance only; definitions and the sibling remain pinned.",
           "guarantees": [
-            "Create a new immutable subsystem binding and rebind only this capacity instance; earlier stages remain unchanged."
+            "An operator selects a compatible binding at an expected registry version; create a new immutable binding and rebind only instance A, leaving instance B and earlier stages unchanged."
           ],
           "id": "recover",
           "language": "typescript-pseudocode",
@@ -899,10 +1118,18 @@
         {
           "errors": "403 unauthorized scope; 404 absent identity; 410 expired retained history",
           "method": "GET",
-          "ownerNodeId": "state",
-          "path": "/l031/local/state",
-          "request": "{\"conversationId\":\"uuid\",\"version\":\"integer\"}",
-          "response": "{\"history\":\"messages[]\"}"
+          "ownerNodeId": "n7",
+          "path": "/l031/local/instances/{instanceId}",
+          "request": "{\"instanceId\":\"uuid\"}",
+          "response": "{\"bindingId\":\"version-pinned id\",\"overrides\":\"validated capacity map\",\"version\":\"integer\"}"
+        },
+        {
+          "errors": "404 unknown instance; 409 stale expectedVersion; 422 incompatible binding or invalid override",
+          "method": "POST",
+          "ownerNodeId": "n7",
+          "path": "/l031/local/instances/{instanceId}/upgrade",
+          "request": "{\"instanceId\":\"uuid\",\"bindingId\":\"version-pinned id\",\"expectedVersion\":\"integer\",\"overrides\":\"validated capacity map\"}",
+          "response": "{\"version\":\"integer\",\"bindingId\":\"version-pinned id\"}"
         }
       ],
       "assumptions": [
@@ -917,12 +1144,9 @@
       "stages": [
         {
           "checkIds": [
-            "mechanism",
-            "identity",
-            "upgrade",
-            "override"
+            "identity"
           ],
-          "explanation": "Start with a stable chat contract independent of internal generation topology. Start with a stable chat contract independent of internal generation topology. State owner: Chat boundary (conversation identity). Start with a stable chat contract independent of internal generation topology. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A WebSocket](https://en.wikipedia.org/wiki/WebSocket) keeps a two-way connection open for timely updates.",
+          "explanation": "Start with a stable chat contract independent of internal generation topology. Callers depend only on the chat contract at the boundary, and that contract does not change when internals are expanded. Start with a stable chat contract independent of internal generation topology. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A WebSocket](https://en.wikipedia.org/wiki/WebSocket) keeps a two-way connection open for timely updates.",
           "graph": {
             "edges": [
               {
@@ -965,7 +1189,7 @@
           },
           "id": "local-s1",
           "invariants": [
-            "Start with a stable chat contract independent of internal generation topology. State owner: Chat boundary (conversation identity)."
+            "Callers depend only on the chat contract at the boundary, and that contract does not change when internals are expanded."
           ],
           "number": 1,
           "operations": [
@@ -1019,12 +1243,9 @@
         },
         {
           "checkIds": [
-            "mechanism",
-            "identity",
-            "upgrade",
-            "override"
+            "identity"
           ],
-          "explanation": "Expand backend into command control and conversation authority without changing its identity. Expand backend into command control and conversation authority without changing its identity. State owner: Backend revision (conversation versions). Expand backend into command control and conversation authority without changing its identity. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A WebSocket](https://en.wikipedia.org/wiki/WebSocket) keeps a two-way connection open for timely updates.",
+          "explanation": "Expand backend into command control and conversation authority without changing its identity. Expanding the backend keeps the boundary node's identity, and its exposed chat port maps to exactly one direct child. Expand backend into command control and conversation authority without changing its identity. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A WebSocket](https://en.wikipedia.org/wiki/WebSocket) keeps a two-way connection open for timely updates.",
           "graph": {
             "edges": [
               {
@@ -1104,7 +1325,7 @@
           },
           "id": "local-s2",
           "invariants": [
-            "Expand backend into command control and conversation authority without changing its identity. State owner: Backend revision (conversation versions)."
+            "Expanding the backend keeps the boundary node's identity, and its exposed chat port maps to exactly one direct child."
           ],
           "number": 2,
           "operations": [
@@ -1158,12 +1379,10 @@
         },
         {
           "checkIds": [
-            "mechanism",
             "identity",
-            "upgrade",
             "override"
           ],
-          "explanation": "Expand command control into a router and pinned generation-capacity boundary. Expand command control into a router and pinned generation-capacity boundary. State owner: Generation boundary (generation instance binding). Expand command control into a router and pinned generation-capacity boundary. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A WebSocket](https://en.wikipedia.org/wiki/WebSocket) keeps a two-way connection open for timely updates.",
+          "explanation": "Expand command control into a router and two capacity instances that pin the same generation-capacity definition. Two capacity instances share one pinned capacity definition, yet each is its own node with its own binding. Expand command control into a router and two capacity instances that pin the same generation-capacity definition. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A WebSocket](https://en.wikipedia.org/wiki/WebSocket) keeps a two-way connection open for timely updates.",
           "graph": {
             "edges": [
               {
@@ -1201,10 +1420,24 @@
                   "portId": "out-l031.local.c2"
                 },
                 "id": "admit",
-                "label": "request generation capacity",
+                "label": "request capacity instance A",
                 "mode": "request-response",
                 "to": {
                   "nodeId": "capacity",
+                  "portId": "in-l031.local.c2"
+                }
+              },
+              {
+                "contractId": "l031.local.c2",
+                "from": {
+                  "nodeId": "router",
+                  "portId": "out-l031.local.c2"
+                },
+                "id": "admit-b",
+                "label": "request capacity instance B",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "capacity-b",
                   "portId": "in-l031.local.c2"
                 }
               }
@@ -1268,10 +1501,21 @@
               {
                 "definitionId": "l031.local.d2",
                 "id": "capacity",
-                "label": "Generation boundary",
+                "label": "Capacity instance A",
                 "parentId": "control",
                 "position": {
                   "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l031.local.d2",
+                "id": "capacity-b",
+                "label": "Capacity instance B",
+                "parentId": "control",
+                "position": {
+                  "x": 560,
                   "y": 180
                 },
                 "version": 1
@@ -1280,7 +1524,7 @@
           },
           "id": "local-s3",
           "invariants": [
-            "Expand command control into a router and pinned generation-capacity boundary. State owner: Generation boundary (generation instance binding)."
+            "Two capacity instances share one pinned capacity definition, yet each is its own node with its own binding."
           ],
           "number": 3,
           "operations": [
@@ -1293,10 +1537,24 @@
                     "portId": "out-l031.local.c2"
                   },
                   "id": "admit",
-                  "label": "request generation capacity",
+                  "label": "request capacity instance A",
                   "mode": "request-response",
                   "to": {
                     "nodeId": "capacity",
+                    "portId": "in-l031.local.c2"
+                  }
+                },
+                {
+                  "contractId": "l031.local.c2",
+                  "from": {
+                    "nodeId": "router",
+                    "portId": "out-l031.local.c2"
+                  },
+                  "id": "admit-b",
+                  "label": "request capacity instance B",
+                  "mode": "request-response",
+                  "to": {
+                    "nodeId": "capacity-b",
                     "portId": "in-l031.local.c2"
                   }
                 }
@@ -1316,9 +1574,19 @@
                 {
                   "definitionId": "l031.local.d2",
                   "id": "capacity",
-                  "label": "Generation boundary",
+                  "label": "Capacity instance A",
                   "position": {
                     "x": 280,
+                    "y": 180
+                  },
+                  "version": 1
+                },
+                {
+                  "definitionId": "l031.local.d2",
+                  "id": "capacity-b",
+                  "label": "Capacity instance B",
+                  "position": {
+                    "x": 560,
                     "y": 180
                   },
                   "version": 1
@@ -1329,17 +1597,14 @@
             }
           ],
           "question": "Can internals be reused?",
-          "reason": "Expand command control into a router and pinned generation-capacity boundary.",
+          "reason": "Expand command control into a router and two capacity instances that pin the same generation-capacity definition.",
           "title": "Generation boundary"
         },
         {
           "checkIds": [
-            "mechanism",
-            "identity",
-            "upgrade",
-            "override"
+            "identity"
           ],
-          "explanation": "Expand generation capacity into admission and worker with typed exposed mapping. Expand generation capacity into admission and worker with typed exposed mapping. State owner: Capacity internals (capacity permits and worker state). Expand generation capacity into admission and worker with typed exposed mapping. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Backpressure](https://en.wikipedia.org/wiki/Flow_control_%28data%29) prevents producers from outrunning the next component indefinitely.",
+          "explanation": "Expand each capacity instance into its own admission and worker with typed exposed mappings. Each instance exposes its admission input through its own immutable binding to its own direct child. Expand each capacity instance into its own admission and worker with typed exposed mappings. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Backpressure](https://en.wikipedia.org/wiki/Flow_control_%28data%29) prevents producers from outrunning the next component indefinitely.",
           "graph": {
             "edges": [
               {
@@ -1377,10 +1642,24 @@
                   "portId": "out-l031.local.c2"
                 },
                 "id": "admit",
-                "label": "request generation capacity",
+                "label": "request capacity instance A",
                 "mode": "request-response",
                 "to": {
                   "nodeId": "capacity",
+                  "portId": "in-l031.local.c2"
+                }
+              },
+              {
+                "contractId": "l031.local.c2",
+                "from": {
+                  "nodeId": "router",
+                  "portId": "out-l031.local.c2"
+                },
+                "id": "admit-b",
+                "label": "request capacity instance B",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "capacity-b",
                   "portId": "in-l031.local.c2"
                 }
               },
@@ -1395,6 +1674,20 @@
                 "mode": "request-response",
                 "to": {
                   "nodeId": "worker",
+                  "portId": "in-l031.local.c3"
+                }
+              },
+              {
+                "contractId": "l031.local.c3",
+                "from": {
+                  "nodeId": "admission-b",
+                  "portId": "out-l031.local.c3"
+                },
+                "id": "run-b",
+                "label": "run instance B generation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "worker-b",
                   "portId": "in-l031.local.c3"
                 }
               }
@@ -1458,7 +1751,7 @@
               {
                 "definitionId": "l031.local.d2",
                 "id": "capacity",
-                "label": "Generation boundary",
+                "label": "Capacity instance A",
                 "parentId": "control",
                 "position": {
                   "x": 280,
@@ -1468,12 +1761,24 @@
                 "version": 1
               },
               {
+                "definitionId": "l031.local.d2",
+                "id": "capacity-b",
+                "label": "Capacity instance B",
+                "parentId": "control",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "subsystemId": "l031-local-capacity-b-binding-1",
+                "version": 1
+              },
+              {
                 "definitionId": "l031.local.d3",
                 "id": "admission",
                 "label": "Capacity internals",
                 "parentId": "capacity",
                 "position": {
-                  "x": 560,
+                  "x": 840,
                   "y": 180
                 },
                 "version": 1
@@ -1484,8 +1789,30 @@
                 "label": "Generation worker",
                 "parentId": "capacity",
                 "position": {
-                  "x": 840,
-                  "y": 180
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l031.local.d3",
+                "id": "admission-b",
+                "label": "Admission B",
+                "parentId": "capacity-b",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l031.local.worker",
+                "id": "worker-b",
+                "label": "Worker B",
+                "parentId": "capacity-b",
+                "position": {
+                  "x": 560,
+                  "y": 360
                 },
                 "version": 1
               }
@@ -1493,7 +1820,7 @@
           },
           "id": "local-s4",
           "invariants": [
-            "Expand generation capacity into admission and worker with typed exposed mapping. State owner: Capacity internals (capacity permits and worker state)."
+            "Each instance exposes its admission input through its own immutable binding to its own direct child."
           ],
           "number": 4,
           "operations": [
@@ -1521,7 +1848,7 @@
                   "id": "admission",
                   "label": "Capacity internals",
                   "position": {
-                    "x": 560,
+                    "x": 840,
                     "y": 180
                   },
                   "version": 1
@@ -1531,28 +1858,68 @@
                   "id": "worker",
                   "label": "Generation worker",
                   "position": {
-                    "x": 840,
-                    "y": 180
+                    "x": 0,
+                    "y": 360
                   },
                   "version": 1
                 }
               ],
               "op": "expand",
               "subsystemId": "l031-local-capacity-binding-1"
+            },
+            {
+              "edges": [
+                {
+                  "contractId": "l031.local.c3",
+                  "from": {
+                    "nodeId": "admission-b",
+                    "portId": "out-l031.local.c3"
+                  },
+                  "id": "run-b",
+                  "label": "run instance B generation",
+                  "mode": "request-response",
+                  "to": {
+                    "nodeId": "worker-b",
+                    "portId": "in-l031.local.c3"
+                  }
+                }
+              ],
+              "nodeId": "capacity-b",
+              "nodes": [
+                {
+                  "definitionId": "l031.local.d3",
+                  "id": "admission-b",
+                  "label": "Admission B",
+                  "position": {
+                    "x": 280,
+                    "y": 360
+                  },
+                  "version": 1
+                },
+                {
+                  "definitionId": "l031.local.worker",
+                  "id": "worker-b",
+                  "label": "Worker B",
+                  "position": {
+                    "x": 560,
+                    "y": 360
+                  },
+                  "version": 1
+                }
+              ],
+              "op": "expand",
+              "subsystemId": "l031-local-capacity-b-binding-1"
             }
           ],
           "question": "How are permits and work separated?",
-          "reason": "Expand generation capacity into admission and worker with typed exposed mapping.",
+          "reason": "Expand each capacity instance into its own admission and worker with typed exposed mappings.",
           "title": "Capacity internals"
         },
         {
           "checkIds": [
-            "mechanism",
-            "identity",
-            "upgrade",
-            "override"
+            "identity"
           ],
-          "explanation": "Add an explicit output adapter; internal token batches become the stable reply contract. Add an explicit output adapter; internal token batches become the stable reply contract. State owner: Output contract (adapter compatibility version). Add an explicit output adapter; internal token batches become the stable reply contract. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A WebSocket](https://en.wikipedia.org/wiki/WebSocket) keeps a two-way connection open for timely updates.",
+          "explanation": "Add an explicit output adapter; token batches from both instances become the stable reply contract. The adapter maps token batches from both instances to the stable reply contract, so no internal shape reaches the caller. Add an explicit output adapter; token batches from both instances become the stable reply contract. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A WebSocket](https://en.wikipedia.org/wiki/WebSocket) keeps a two-way connection open for timely updates.",
           "graph": {
             "edges": [
               {
@@ -1590,10 +1957,24 @@
                   "portId": "out-l031.local.c2"
                 },
                 "id": "admit",
-                "label": "request generation capacity",
+                "label": "request capacity instance A",
                 "mode": "request-response",
                 "to": {
                   "nodeId": "capacity",
+                  "portId": "in-l031.local.c2"
+                }
+              },
+              {
+                "contractId": "l031.local.c2",
+                "from": {
+                  "nodeId": "router",
+                  "portId": "out-l031.local.c2"
+                },
+                "id": "admit-b",
+                "label": "request capacity instance B",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "capacity-b",
                   "portId": "in-l031.local.c2"
                 }
               },
@@ -1612,6 +1993,20 @@
                 }
               },
               {
+                "contractId": "l031.local.c3",
+                "from": {
+                  "nodeId": "admission-b",
+                  "portId": "out-l031.local.c3"
+                },
+                "id": "run-b",
+                "label": "run instance B generation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "worker-b",
+                  "portId": "in-l031.local.c3"
+                }
+              },
+              {
                 "contractId": "l031.local.c4",
                 "from": {
                   "nodeId": "boundary",
@@ -1619,6 +2014,20 @@
                 },
                 "id": "adapt",
                 "label": "adapt output contract",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l031.local.c4"
+                }
+              },
+              {
+                "contractId": "l031.local.c4",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l031.local.c4-control-capacity-b"
+                },
+                "id": "adapt-b",
+                "label": "adapt instance B output",
                 "mode": "request-response",
                 "to": {
                   "nodeId": "n4",
@@ -1645,7 +2054,7 @@
                   "x": 280,
                   "y": 0
                 },
-                "subsystemId": "l031-local-boundary-binding-2",
+                "subsystemId": "l031-local-boundary-binding-3",
                 "version": 1
               },
               {
@@ -1657,7 +2066,7 @@
                   "x": 560,
                   "y": 0
                 },
-                "subsystemId": "l031-local-control-binding-2",
+                "subsystemId": "l031-local-control-binding-3",
                 "version": 1
               },
               {
@@ -1685,7 +2094,7 @@
               {
                 "definitionId": "l031.local.d2",
                 "id": "capacity",
-                "label": "Generation boundary",
+                "label": "Capacity instance A",
                 "parentId": "control",
                 "position": {
                   "x": 280,
@@ -1695,12 +2104,24 @@
                 "version": 1
               },
               {
+                "definitionId": "l031.local.d2",
+                "id": "capacity-b",
+                "label": "Capacity instance B",
+                "parentId": "control",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "subsystemId": "l031-local-capacity-b-binding-2",
+                "version": 1
+              },
+              {
                 "definitionId": "l031.local.d3",
                 "id": "admission",
                 "label": "Capacity internals",
                 "parentId": "capacity",
                 "position": {
-                  "x": 560,
+                  "x": 840,
                   "y": 180
                 },
                 "version": 1
@@ -1711,8 +2132,30 @@
                 "label": "Generation worker",
                 "parentId": "capacity",
                 "position": {
-                  "x": 840,
-                  "y": 180
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l031.local.d3",
+                "id": "admission-b",
+                "label": "Admission B",
+                "parentId": "capacity-b",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l031.local.worker",
+                "id": "worker-b",
+                "label": "Worker B",
+                "parentId": "capacity-b",
+                "position": {
+                  "x": 560,
+                  "y": 360
                 },
                 "version": 1
               },
@@ -1721,7 +2164,7 @@
                 "id": "n4",
                 "label": "Output contract",
                 "position": {
-                  "x": 0,
+                  "x": 840,
                   "y": 360
                 },
                 "version": 1
@@ -1730,7 +2173,7 @@
           },
           "id": "local-s5",
           "invariants": [
-            "Add an explicit output adapter; internal token batches become the stable reply contract. State owner: Output contract (adapter compatibility version)."
+            "The adapter maps token batches from both instances to the stable reply contract, so no internal shape reaches the caller."
           ],
           "number": 5,
           "operations": [
@@ -1738,13 +2181,13 @@
               "nodeId": "boundary",
               "op": "rebind",
               "reason": "Select a new immutable exposure binding before connecting the added responsibility; prior stage binding remains unchanged.",
-              "subsystemId": "l031-local-boundary-binding-2"
+              "subsystemId": "l031-local-boundary-binding-3"
             },
             {
               "nodeId": "control",
               "op": "rebind",
               "reason": "Select a new immutable exposure binding before connecting the added responsibility; prior stage binding remains unchanged.",
-              "subsystemId": "l031-local-control-binding-2"
+              "subsystemId": "l031-local-control-binding-3"
             },
             {
               "nodeId": "capacity",
@@ -1753,12 +2196,18 @@
               "subsystemId": "l031-local-capacity-binding-2"
             },
             {
+              "nodeId": "capacity-b",
+              "op": "rebind",
+              "reason": "Select a new immutable exposure binding before connecting the added responsibility; prior stage binding remains unchanged.",
+              "subsystemId": "l031-local-capacity-b-binding-2"
+            },
+            {
               "node": {
                 "definitionId": "l031.local.d4",
                 "id": "n4",
                 "label": "Output contract",
                 "position": {
-                  "x": 0,
+                  "x": 840,
                   "y": 360
                 },
                 "version": 1
@@ -1781,20 +2230,34 @@
                 }
               },
               "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l031.local.c4",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l031.local.c4-control-capacity-b"
+                },
+                "id": "adapt-b",
+                "label": "adapt instance B output",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l031.local.c4"
+                }
+              },
+              "op": "connect"
             }
           ],
           "question": "Can the backend hide an incompatible result?",
-          "reason": "Add an explicit output adapter; internal token batches become the stable reply contract.",
+          "reason": "Add an explicit output adapter; token batches from both instances become the stable reply contract.",
           "title": "Output contract"
         },
         {
           "checkIds": [
-            "mechanism",
-            "identity",
-            "upgrade",
-            "override"
+            "worker"
           ],
-          "explanation": "Replace the worker implementation while retaining identity and compatible ports; record migration. Replace the worker implementation while retaining identity and compatible ports; record migration. State owner: Worker upgrade (worker version and active-attempt policy). Replace the worker implementation while retaining identity and compatible ports; record migration. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A WebSocket](https://en.wikipedia.org/wiki/WebSocket) keeps a two-way connection open for timely updates.",
+          "explanation": "Replace instance A's worker implementation while retaining identity and compatible ports; record migration. Replacing instance A's worker keeps its node identity, its in-flight generation IDs and every port its binding exposes; instance B's worker is untouched. Replace instance A's worker implementation while retaining identity and compatible ports; record migration. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A WebSocket](https://en.wikipedia.org/wiki/WebSocket) keeps a two-way connection open for timely updates.",
           "graph": {
             "edges": [
               {
@@ -1832,10 +2295,24 @@
                   "portId": "out-l031.local.c2"
                 },
                 "id": "admit",
-                "label": "request generation capacity",
+                "label": "request capacity instance A",
                 "mode": "request-response",
                 "to": {
                   "nodeId": "capacity",
+                  "portId": "in-l031.local.c2"
+                }
+              },
+              {
+                "contractId": "l031.local.c2",
+                "from": {
+                  "nodeId": "router",
+                  "portId": "out-l031.local.c2"
+                },
+                "id": "admit-b",
+                "label": "request capacity instance B",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "capacity-b",
                   "portId": "in-l031.local.c2"
                 }
               },
@@ -1854,6 +2331,20 @@
                 }
               },
               {
+                "contractId": "l031.local.c3",
+                "from": {
+                  "nodeId": "admission-b",
+                  "portId": "out-l031.local.c3"
+                },
+                "id": "run-b",
+                "label": "run instance B generation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "worker-b",
+                  "portId": "in-l031.local.c3"
+                }
+              },
+              {
                 "contractId": "l031.local.c4",
                 "from": {
                   "nodeId": "boundary",
@@ -1861,6 +2352,20 @@
                 },
                 "id": "adapt",
                 "label": "adapt output contract",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l031.local.c4"
+                }
+              },
+              {
+                "contractId": "l031.local.c4",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l031.local.c4-control-capacity-b"
+                },
+                "id": "adapt-b",
+                "label": "adapt instance B output",
                 "mode": "request-response",
                 "to": {
                   "nodeId": "n4",
@@ -1887,7 +2392,7 @@
                   "x": 280,
                   "y": 0
                 },
-                "subsystemId": "l031-local-boundary-binding-2",
+                "subsystemId": "l031-local-boundary-binding-3",
                 "version": 1
               },
               {
@@ -1899,7 +2404,7 @@
                   "x": 560,
                   "y": 0
                 },
-                "subsystemId": "l031-local-control-binding-2",
+                "subsystemId": "l031-local-control-binding-3",
                 "version": 1
               },
               {
@@ -1927,7 +2432,7 @@
               {
                 "definitionId": "l031.local.d2",
                 "id": "capacity",
-                "label": "Generation boundary",
+                "label": "Capacity instance A",
                 "parentId": "control",
                 "position": {
                   "x": 280,
@@ -1937,12 +2442,24 @@
                 "version": 1
               },
               {
+                "definitionId": "l031.local.d2",
+                "id": "capacity-b",
+                "label": "Capacity instance B",
+                "parentId": "control",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "subsystemId": "l031-local-capacity-b-binding-2",
+                "version": 1
+              },
+              {
                 "definitionId": "l031.local.d3",
                 "id": "admission",
                 "label": "Capacity internals",
                 "parentId": "capacity",
                 "position": {
-                  "x": 560,
+                  "x": 840,
                   "y": 180
                 },
                 "version": 1
@@ -1953,8 +2470,30 @@
                 "label": "Generation worker",
                 "parentId": "capacity",
                 "position": {
-                  "x": 840,
-                  "y": 180
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l031.local.d3",
+                "id": "admission-b",
+                "label": "Admission B",
+                "parentId": "capacity-b",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l031.local.worker",
+                "id": "worker-b",
+                "label": "Worker B",
+                "parentId": "capacity-b",
+                "position": {
+                  "x": 560,
+                  "y": 360
                 },
                 "version": 1
               },
@@ -1963,7 +2502,7 @@
                 "id": "n4",
                 "label": "Output contract",
                 "position": {
-                  "x": 0,
+                  "x": 840,
                   "y": 360
                 },
                 "version": 1
@@ -1972,7 +2511,7 @@
           },
           "id": "local-s6",
           "invariants": [
-            "Replace the worker implementation while retaining identity and compatible ports; record migration. State owner: Worker upgrade (worker version and active-attempt policy)."
+            "Replacing instance A's worker keeps its node identity, its in-flight generation IDs and every port its binding exposes; instance B's worker is untouched."
           ],
           "number": 6,
           "operations": [
@@ -1984,17 +2523,15 @@
             }
           ],
           "question": "What changes with a library revision?",
-          "reason": "Replace the worker implementation while retaining identity and compatible ports; record migration.",
+          "reason": "Replace instance A's worker implementation while retaining identity and compatible ports; record migration.",
           "title": "Worker upgrade"
         },
         {
           "checkIds": [
-            "mechanism",
-            "identity",
-            "upgrade",
-            "override"
+            "history",
+            "upgrade"
           ],
-          "explanation": "Add a distinct admission candidate for the new binding and validate its port compatibility. Add a distinct admission candidate for the new binding and validate its port compatibility. State owner: Binding candidate (candidate permit state). Add a distinct admission candidate for the new binding and validate its port compatibility. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Backpressure](https://en.wikipedia.org/wiki/Flow_control_%28data%29) prevents producers from outrunning the next component indefinitely.",
+          "explanation": "Add a distinct admission candidate for the new binding and validate its port compatibility. The candidate admission is added inside instance A without changing any binding; the active binding still routes admission to the original child. Add a distinct admission candidate for the new binding and validate its port compatibility. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Backpressure](https://en.wikipedia.org/wiki/Flow_control_%28data%29) prevents producers from outrunning the next component indefinitely.",
           "graph": {
             "edges": [
               {
@@ -2032,10 +2569,24 @@
                   "portId": "out-l031.local.c2"
                 },
                 "id": "admit",
-                "label": "request generation capacity",
+                "label": "request capacity instance A",
                 "mode": "request-response",
                 "to": {
                   "nodeId": "capacity",
+                  "portId": "in-l031.local.c2"
+                }
+              },
+              {
+                "contractId": "l031.local.c2",
+                "from": {
+                  "nodeId": "router",
+                  "portId": "out-l031.local.c2"
+                },
+                "id": "admit-b",
+                "label": "request capacity instance B",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "capacity-b",
                   "portId": "in-l031.local.c2"
                 }
               },
@@ -2054,6 +2605,20 @@
                 }
               },
               {
+                "contractId": "l031.local.c3",
+                "from": {
+                  "nodeId": "admission-b",
+                  "portId": "out-l031.local.c3"
+                },
+                "id": "run-b",
+                "label": "run instance B generation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "worker-b",
+                  "portId": "in-l031.local.c3"
+                }
+              },
+              {
                 "contractId": "l031.local.c4",
                 "from": {
                   "nodeId": "boundary",
@@ -2061,6 +2626,20 @@
                 },
                 "id": "adapt",
                 "label": "adapt output contract",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l031.local.c4"
+                }
+              },
+              {
+                "contractId": "l031.local.c4",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l031.local.c4-control-capacity-b"
+                },
+                "id": "adapt-b",
+                "label": "adapt instance B output",
                 "mode": "request-response",
                 "to": {
                   "nodeId": "n4",
@@ -2101,7 +2680,7 @@
                   "x": 280,
                   "y": 0
                 },
-                "subsystemId": "l031-local-boundary-binding-2",
+                "subsystemId": "l031-local-boundary-binding-3",
                 "version": 1
               },
               {
@@ -2113,7 +2692,7 @@
                   "x": 560,
                   "y": 0
                 },
-                "subsystemId": "l031-local-control-binding-2",
+                "subsystemId": "l031-local-control-binding-3",
                 "version": 1
               },
               {
@@ -2141,7 +2720,7 @@
               {
                 "definitionId": "l031.local.d2",
                 "id": "capacity",
-                "label": "Generation boundary",
+                "label": "Capacity instance A",
                 "parentId": "control",
                 "position": {
                   "x": 280,
@@ -2151,12 +2730,24 @@
                 "version": 1
               },
               {
+                "definitionId": "l031.local.d2",
+                "id": "capacity-b",
+                "label": "Capacity instance B",
+                "parentId": "control",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "subsystemId": "l031-local-capacity-b-binding-2",
+                "version": 1
+              },
+              {
                 "definitionId": "l031.local.d3",
                 "id": "admission",
                 "label": "Capacity internals",
                 "parentId": "capacity",
                 "position": {
-                  "x": 560,
+                  "x": 840,
                   "y": 180
                 },
                 "version": 1
@@ -2167,8 +2758,30 @@
                 "label": "Generation worker",
                 "parentId": "capacity",
                 "position": {
-                  "x": 840,
-                  "y": 180
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l031.local.d3",
+                "id": "admission-b",
+                "label": "Admission B",
+                "parentId": "capacity-b",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l031.local.worker",
+                "id": "worker-b",
+                "label": "Worker B",
+                "parentId": "capacity-b",
+                "position": {
+                  "x": 560,
+                  "y": 360
                 },
                 "version": 1
               },
@@ -2177,7 +2790,7 @@
                 "id": "n4",
                 "label": "Output contract",
                 "position": {
-                  "x": 0,
+                  "x": 840,
                   "y": 360
                 },
                 "version": 1
@@ -2188,8 +2801,8 @@
                 "label": "Binding candidate",
                 "parentId": "capacity",
                 "position": {
-                  "x": 280,
-                  "y": 360
+                  "x": 0,
+                  "y": 540
                 },
                 "version": 1
               }
@@ -2197,7 +2810,7 @@
           },
           "id": "local-s7",
           "invariants": [
-            "Add a distinct admission candidate for the new binding and validate its port compatibility. State owner: Binding candidate (candidate permit state)."
+            "The candidate admission is added inside instance A without changing any binding; the active binding still routes admission to the original child."
           ],
           "number": 7,
           "operations": [
@@ -2208,8 +2821,8 @@
                 "label": "Binding candidate",
                 "parentId": "capacity",
                 "position": {
-                  "x": 280,
-                  "y": 360
+                  "x": 0,
+                  "y": 540
                 },
                 "version": 1
               },
@@ -2240,11 +2853,11 @@
         {
           "checkIds": [
             "mechanism",
-            "identity",
+            "history",
             "upgrade",
             "override"
           ],
-          "explanation": "Create a new immutable subsystem binding and rebind only this capacity instance; earlier stages remain unchanged. Create a new immutable subsystem binding and rebind only this capacity instance; earlier stages remain unchanged. State owner: Explicit rebind (selected binding identity). [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers. Publishing one reference lets each reader keep a consistent version.",
+          "explanation": "An operator selects a compatible binding at an expected registry version; create a new immutable binding and rebind only instance A, leaving instance B and earlier stages unchanged. An operator upgrade names instanceId, bindingId and expectedVersion; only instance A is rebound to a new immutable binding, and instance B and every earlier binding stay unchanged. [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers.",
           "graph": {
             "edges": [
               {
@@ -2282,10 +2895,24 @@
                   "portId": "out-l031.local.c2"
                 },
                 "id": "admit",
-                "label": "request generation capacity",
+                "label": "request capacity instance A",
                 "mode": "request-response",
                 "to": {
                   "nodeId": "capacity",
+                  "portId": "in-l031.local.c2"
+                }
+              },
+              {
+                "contractId": "l031.local.c2",
+                "from": {
+                  "nodeId": "router",
+                  "portId": "out-l031.local.c2"
+                },
+                "id": "admit-b",
+                "label": "request capacity instance B",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "capacity-b",
                   "portId": "in-l031.local.c2"
                 }
               },
@@ -2304,6 +2931,20 @@
                 }
               },
               {
+                "contractId": "l031.local.c3",
+                "from": {
+                  "nodeId": "admission-b",
+                  "portId": "out-l031.local.c3"
+                },
+                "id": "run-b",
+                "label": "run instance B generation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "worker-b",
+                  "portId": "in-l031.local.c3"
+                }
+              },
+              {
                 "contractId": "l031.local.c4",
                 "from": {
                   "nodeId": "boundary",
@@ -2311,6 +2952,20 @@
                 },
                 "id": "adapt",
                 "label": "adapt output contract",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l031.local.c4"
+                }
+              },
+              {
+                "contractId": "l031.local.c4",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l031.local.c4-control-capacity-b"
+                },
+                "id": "adapt-b",
+                "label": "adapt instance B output",
                 "mode": "request-response",
                 "to": {
                   "nodeId": "n4",
@@ -2334,15 +2989,29 @@
               {
                 "contractId": "l031.local.c7",
                 "from": {
-                  "nodeId": "caller",
+                  "nodeId": "operator",
                   "portId": "out-l031.local.c7"
                 },
                 "id": "select",
-                "label": "select explicit instance upgrade",
+                "label": "request explicit instance upgrade",
                 "mode": "request-response",
                 "to": {
                   "nodeId": "n7",
                   "portId": "in-l031.local.c7"
+                }
+              },
+              {
+                "contractId": "l031.local.activate",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l031.local.activate"
+                },
+                "id": "activate",
+                "label": "activate binding on instance A",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l031.local.activate-control"
                 }
               }
             ],
@@ -2365,7 +3034,7 @@
                   "x": 280,
                   "y": 0
                 },
-                "subsystemId": "l031-local-boundary-binding-2",
+                "subsystemId": "l031-local-boundary-binding-4",
                 "version": 1
               },
               {
@@ -2377,7 +3046,7 @@
                   "x": 560,
                   "y": 0
                 },
-                "subsystemId": "l031-local-control-binding-2",
+                "subsystemId": "l031-local-control-binding-4",
                 "version": 1
               },
               {
@@ -2405,13 +3074,25 @@
               {
                 "definitionId": "l031.local.d2",
                 "id": "capacity",
-                "label": "Generation boundary",
+                "label": "Capacity instance A",
                 "parentId": "control",
                 "position": {
                   "x": 280,
                   "y": 180
                 },
-                "subsystemId": "l031-local-capacity-binding-3",
+                "subsystemId": "l031-local-capacity-binding-4",
+                "version": 1
+              },
+              {
+                "definitionId": "l031.local.d2",
+                "id": "capacity-b",
+                "label": "Capacity instance B",
+                "parentId": "control",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "subsystemId": "l031-local-capacity-b-binding-2",
                 "version": 1
               },
               {
@@ -2420,7 +3101,7 @@
                 "label": "Capacity internals",
                 "parentId": "capacity",
                 "position": {
-                  "x": 560,
+                  "x": 840,
                   "y": 180
                 },
                 "version": 1
@@ -2431,8 +3112,30 @@
                 "label": "Generation worker",
                 "parentId": "capacity",
                 "position": {
-                  "x": 840,
-                  "y": 180
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l031.local.d3",
+                "id": "admission-b",
+                "label": "Admission B",
+                "parentId": "capacity-b",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l031.local.worker",
+                "id": "worker-b",
+                "label": "Worker B",
+                "parentId": "capacity-b",
+                "position": {
+                  "x": 560,
+                  "y": 360
                 },
                 "version": 1
               },
@@ -2441,7 +3144,7 @@
                 "id": "n4",
                 "label": "Output contract",
                 "position": {
-                  "x": 0,
+                  "x": 840,
                   "y": 360
                 },
                 "version": 1
@@ -2452,8 +3155,18 @@
                 "label": "Binding candidate",
                 "parentId": "capacity",
                 "position": {
+                  "x": 0,
+                  "y": 540
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l031.local.operator",
+                "id": "operator",
+                "label": "Operator",
+                "position": {
                   "x": 280,
-                  "y": 360
+                  "y": 540
                 },
                 "version": 1
               },
@@ -2463,7 +3176,7 @@
                 "label": "Explicit rebind",
                 "position": {
                   "x": 560,
-                  "y": 360
+                  "y": 540
                 },
                 "version": 1
               }
@@ -2471,15 +3184,40 @@
           },
           "id": "local-s8",
           "invariants": [
-            "Create a new immutable subsystem binding and rebind only this capacity instance; earlier stages remain unchanged. State owner: Explicit rebind (selected binding identity)."
+            "An operator upgrade names instanceId, bindingId and expectedVersion; only instance A is rebound to a new immutable binding, and instance B and every earlier binding stay unchanged."
           ],
           "number": 8,
           "operations": [
             {
-              "nodeId": "capacity",
+              "nodeId": "boundary",
               "op": "rebind",
               "reason": "Select a new immutable exposure binding before connecting the added responsibility; prior stage binding remains unchanged.",
-              "subsystemId": "l031-local-capacity-binding-3"
+              "subsystemId": "l031-local-boundary-binding-4"
+            },
+            {
+              "nodeId": "control",
+              "op": "rebind",
+              "reason": "Select a new immutable exposure binding before connecting the added responsibility; prior stage binding remains unchanged.",
+              "subsystemId": "l031-local-control-binding-4"
+            },
+            {
+              "nodeId": "capacity",
+              "op": "rebind",
+              "reason": "Explicit compatible instance upgrade requested by the operator at the expected registry version: rebind only capacity instance A to a new immutable binding; instance B and the binding used by earlier stages stay unchanged.",
+              "subsystemId": "l031-local-capacity-binding-4"
+            },
+            {
+              "node": {
+                "definitionId": "l031.local.operator",
+                "id": "operator",
+                "label": "Operator",
+                "position": {
+                  "x": 280,
+                  "y": 540
+                },
+                "version": 1
+              },
+              "op": "insert"
             },
             {
               "node": {
@@ -2488,7 +3226,7 @@
                 "label": "Explicit rebind",
                 "position": {
                   "x": 560,
-                  "y": 360
+                  "y": 540
                 },
                 "version": 1
               },
@@ -2498,11 +3236,11 @@
               "edge": {
                 "contractId": "l031.local.c7",
                 "from": {
-                  "nodeId": "caller",
+                  "nodeId": "operator",
                   "portId": "out-l031.local.c7"
                 },
                 "id": "select",
-                "label": "select explicit instance upgrade",
+                "label": "request explicit instance upgrade",
                 "mode": "request-response",
                 "to": {
                   "nodeId": "n7",
@@ -2510,10 +3248,27 @@
                 }
               },
               "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l031.local.activate",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l031.local.activate"
+                },
+                "id": "activate",
+                "label": "activate binding on instance A",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l031.local.activate-control"
+                }
+              },
+              "op": "connect"
             }
           ],
           "question": "When does an instance upgrade?",
-          "reason": "Create a new immutable subsystem binding and rebind only this capacity instance; earlier stages remain unchanged.",
+          "reason": "An operator selects a compatible binding at an expected registry version; create a new immutable binding and rebind only instance A, leaving instance B and earlier stages unchanged.",
           "title": "Explicit rebind"
         }
       ],
@@ -2530,23 +3285,49 @@
             "testFile": "tools/simulatte/study-reference/batch-02-mechanisms.test.mjs",
             "testName": "L031 bounded mechanism"
           },
-          "given": "Two instances pin the same immutable generation definition and one has a local capacity override.",
+          "given": "Capacity instances A and B pin binding v1 as remote services; the default capacity is 4, A overrides it to 2, and the registry is at version 7.",
           "id": "mechanism",
           "relatedRequirementIds": [
-            "r0",
             "r1",
             "r2"
           ],
-          "then": "The sibling keeps its old version/default; the registry definition and prior stage bindings remain unchanged.",
-          "when": "Upgrade one instance to a compatible new binding and change only its override."
+          "then": "Only A moves to v2 with capacity 8 and the registry reaches version 8; B keeps v1 and effective capacity 4; defaults, binding records and the prior state are unchanged; the stale retry, incompatible binding, invalid override and unknown instance are rejected.",
+          "when": "Upgrade A to compatible binding v2 with capacity 8 at expectedVersion 7, retry the same request, then try an incompatible binding, capacity 0 and an unknown instance."
+        },
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tests/study-batch-02.test.cjs",
+            "testName": "L031 stage 8 rebinds one capacity instance and keeps earlier bindings"
+          },
+          "given": "Stage 7 shows capacity instances A and B on their v1 bindings.",
+          "id": "history",
+          "relatedRequirementIds": [
+            "r1",
+            "r2"
+          ],
+          "then": "Only instance A is rebound, with the explicit-upgrade reason, to a binding that routes admission to the candidate; instance B keeps its binding and the stage-7 binding still routes admission to the original child.",
+          "when": "Stage 8 applies the operator's explicit upgrade."
+        },
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-02-mechanisms.test.mjs",
+            "testName": "L031 remote idempotent generation and reconciliation"
+          },
+          "given": "The backend journals generationKey k1, and the RPC times out after remote admission accepted it.",
+          "id": "failure",
+          "relatedRequirementIds": [
+            "r3"
+          ],
+          "then": "The resend is a duplicate of attempt 1 and k2 gets attempt 2; accepted and completed are recorded, absent resends the same key, and unreachable or missing answers hold the intent unknown without minting a new key.",
+          "when": "Resend k1, admit a new key k2, then reconcile k1 with lookups reporting accepted, completed, absent, unreachable and no answer."
         },
         {
           "given": "The remote generation boundary is collapsed.",
           "id": "identity",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
-            "r2"
+            "r0"
           ],
           "then": "The visible endpoint is the boundary, and expansion retains router/admission/worker identities.",
           "when": "Resolve a caller edge through nested exposure maps."
@@ -2555,7 +3336,6 @@
           "given": "A new remote wire revision is incompatible with the adapter.",
           "id": "upgrade",
           "relatedRequirementIds": [
-            "r0",
             "r1",
             "r2"
           ],
@@ -2566,8 +3346,6 @@
           "given": "Two remote instances pin revision one.",
           "id": "override",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
             "r2"
           ],
           "then": "The sibling stays pinned; instance override does not mutate shared capacity defaults.",
@@ -2576,7 +3354,7 @@
       ],
       "algorithms": [
         {
-          "code": "const resolved = registry.get(instance.definitionId + \"@\" + instance.version);\nassert(resolved && portsCompatible(resolved, callerContract));\nconst config = validateOverrides(resolved.defaults, instance.overrides);\n// Explicit upgrade returns a new instance record; registry definitions remain immutable.",
+          "code": "// Explicit rebind (n7): an operator upgrade is a compare-and-swap on the registry version that returns a new state.\n// It changes only the named instance; defaults, binding records and sibling instances are never edited.\nfunction upgrade(state,request){\n if(request.expectedVersion!==state.version)throw Error('stale version');\n const binding=state.bindings[request.bindingId];\n if(!binding?.compatible)throw Error('incompatible binding');\n const instance=state.instances[request.instanceId];\n if(!instance)throw Error('unknown instance');\n const capacity=request.overrides.capacity;\n if(!Number.isInteger(capacity)||capacity<1)throw Error('invalid override');\n return {...state,version:state.version+1,instances:{...state.instances,[request.instanceId]:{bindingId:binding.id,overrides:{...instance.overrides,...request.overrides}}}};\n}",
           "guarantees": [
             "The code states the bounded decision rule; unimplemented helpers remain pseudocode.",
             "External effects, distributed failure and latency require separate execution evidence."
@@ -2586,13 +3364,22 @@
           "ownerNodeId": "n7"
         },
         {
-          "code": "const next = registry.resolve(requestedBindingId);\nassert(adapter.supports(next.wireVersion));\nconst upgraded = {...instance, subsystemId:next.id, overrides:validatedOverrides};\n// Preserve stable generation/effect keys across uncertain RPC recovery; no implicit sibling upgrade.",
+          "code": "// RPC outcome reconciler: resolve each unknown intent by its journaled generationKey before anything is resent.\nfunction reconcileGeneration(intent,lookup){\n if(lookup?.status==='accepted'||lookup?.status==='completed')return {action:'record',generationKey:intent.generationKey};\n if(lookup?.status==='absent')return {action:'resend',generationKey:intent.generationKey};\n return {action:'hold',generationKey:intent.generationKey};\n}\n// record -> journal the outcome; resend -> adapter generate with the same key (admission deduplicates); hold -> stay unknown.",
           "guarantees": [
-            "Rebind this instance explicitly; preserve other instances and prior immutable definitions."
+            "An unknown outcome is never resent under a new key; only a proven absence resends, with the same generationKey."
           ],
           "id": "recover",
           "language": "typescript-pseudocode",
-          "ownerNodeId": "n7"
+          "ownerNodeId": "reconciler"
+        },
+        {
+          "code": "// Remote admission: the journaled generationKey is the idempotency key for every RPC resend.\nfunction admitGeneration(ledger,generationKey){\n const prior=ledger.get(generationKey);\n if(prior)return {status:'duplicate',attempt:prior.attempt};\n const attempt=ledger.size+1;\n ledger.set(generationKey,{attempt});\n return {status:'accepted',attempt};\n}",
+          "guarantees": [
+            "A resend after an RPC timeout returns the original attempt instead of starting a second generation."
+          ],
+          "id": "idempotent-admission",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "admission"
         }
       ],
       "apis": [
@@ -2608,9 +3395,17 @@
           "errors": "403 unauthorized scope; 404 absent identity; 410 expired retained history",
           "method": "GET",
           "ownerNodeId": "state",
-          "path": "/l031/remote/state",
-          "request": "{\"conversationId\":\"uuid\",\"version\":\"integer\"}",
-          "response": "{\"history\":\"messages[]\"}"
+          "path": "/l031/remote/generations/{generationKey}",
+          "request": "{\"generationKey\":\"uuid\"}",
+          "response": "{\"intent\":\"pending|recorded|unknown\",\"reply\":\"string|null\"}"
+        },
+        {
+          "errors": "404 unknown instance; 409 stale expectedVersion; 422 incompatible binding or invalid override",
+          "method": "POST",
+          "ownerNodeId": "n7",
+          "path": "/l031/remote/instances/{instanceId}/upgrade",
+          "request": "{\"instanceId\":\"uuid\",\"bindingId\":\"version-pinned id\",\"expectedVersion\":\"integer\",\"overrides\":\"validated capacity map\"}",
+          "response": "{\"version\":\"integer\",\"bindingId\":\"version-pinned id\"}"
         }
       ],
       "assumptions": [
@@ -2625,12 +3420,9 @@
       "stages": [
         {
           "checkIds": [
-            "mechanism",
-            "identity",
-            "upgrade",
-            "override"
+            "identity"
           ],
-          "explanation": "Accept the same logical conversation command while internal capacity is remote. Accept the same logical conversation command while internal capacity is remote. State owner: Remote chat contract (request identity). Accept the same logical conversation command while internal capacity is remote. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A WebSocket](https://en.wikipedia.org/wiki/WebSocket) keeps a two-way connection open for timely updates.",
+          "explanation": "Accept the same logical conversation command while internal capacity is remote. The client contract is the same logical chat command as in-process, so remote placement of capacity is invisible to callers. Accept the same logical conversation command while internal capacity is remote. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A WebSocket](https://en.wikipedia.org/wiki/WebSocket) keeps a two-way connection open for timely updates.",
           "graph": {
             "edges": [
               {
@@ -2673,7 +3465,7 @@
           },
           "id": "remote-s1",
           "invariants": [
-            "Accept the same logical conversation command while internal capacity is remote. State owner: Remote chat contract (request identity)."
+            "The client contract is the same logical chat command as in-process, so remote placement of capacity is invisible to callers."
           ],
           "number": 1,
           "operations": [
@@ -2727,12 +3519,10 @@
         },
         {
           "checkIds": [
-            "mechanism",
-            "identity",
-            "upgrade",
-            "override"
+            "failure",
+            "identity"
           ],
-          "explanation": "Expand backend into orchestration and durable conversation state. Expand backend into orchestration and durable conversation state. State owner: Backend journal (conversation and remote intent). Expand backend into orchestration and durable conversation state. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call.",
+          "explanation": "Expand backend into orchestration and a durable journal that records each generation intent under an idempotent generationKey before any RPC. A generationKey is minted and journaled with the conversation version before any RPC is sent, and every retry reuses it. [A WebSocket](https://en.wikipedia.org/wiki/WebSocket) keeps a two-way connection open for timely updates. Connection lifetime is separate from durable delivery: reconnecting clients still need identities, cursors, and missing-event recovery.",
           "graph": {
             "edges": [
               {
@@ -2812,7 +3602,7 @@
           },
           "id": "remote-s2",
           "invariants": [
-            "Expand backend into orchestration and durable conversation state. State owner: Backend journal (conversation and remote intent)."
+            "A generationKey is minted and journaled with the conversation version before any RPC is sent, and every retry reuses it."
           ],
           "number": 2,
           "operations": [
@@ -2861,17 +3651,15 @@
             }
           ],
           "question": "Where is conversation truth?",
-          "reason": "Expand backend into orchestration and durable conversation state.",
+          "reason": "Expand backend into orchestration and a durable journal that records each generation intent under an idempotent generationKey before any RPC.",
           "title": "Backend journal"
         },
         {
           "checkIds": [
-            "mechanism",
             "identity",
-            "upgrade",
             "override"
           ],
-          "explanation": "Expand orchestration into a contract adapter and pinned remote generation boundary. Expand orchestration into a contract adapter and pinned remote generation boundary. State owner: RPC capacity boundary (remote binding and retry identity). Expand orchestration into a contract adapter and pinned remote generation boundary. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A WebSocket](https://en.wikipedia.org/wiki/WebSocket) keeps a two-way connection open for timely updates.",
+          "explanation": "Expand orchestration into a contract router; generation capacity runs as two remote service instances reached only by RPC carrying the journaled generationKey. Capacity runs outside the backend process, and every RPC to either instance carries the journaled generationKey and the pinned wire version. [A WebSocket](https://en.wikipedia.org/wiki/WebSocket) keeps a two-way connection open for timely updates. Connection lifetime is separate from durable delivery: reconnecting clients still need identities, cursors, and missing-event recovery.",
           "graph": {
             "edges": [
               {
@@ -2905,14 +3693,28 @@
               {
                 "contractId": "l031.remote.c2",
                 "from": {
-                  "nodeId": "router",
-                  "portId": "out-l031.remote.c2"
+                  "nodeId": "boundary",
+                  "portId": "out-l031.remote.c2-control"
                 },
                 "id": "admit",
-                "label": "request generation capacity",
+                "label": "RPC generate on instance A",
                 "mode": "request-response",
                 "to": {
                   "nodeId": "capacity",
+                  "portId": "in-l031.remote.c2"
+                }
+              },
+              {
+                "contractId": "l031.remote.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l031.remote.c2-control"
+                },
+                "id": "admit-b",
+                "label": "RPC generate on instance B",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "capacity-b",
                   "portId": "in-l031.remote.c2"
                 }
               }
@@ -2936,7 +3738,7 @@
                   "x": 280,
                   "y": 0
                 },
-                "subsystemId": "l031-remote-boundary-binding-1",
+                "subsystemId": "l031-remote-boundary-binding-3",
                 "version": 1
               },
               {
@@ -2948,7 +3750,7 @@
                   "x": 560,
                   "y": 0
                 },
-                "subsystemId": "l031-remote-control-binding-1",
+                "subsystemId": "l031-remote-control-binding-3",
                 "version": 1
               },
               {
@@ -2976,10 +3778,19 @@
               {
                 "definitionId": "l031.remote.d2",
                 "id": "capacity",
-                "label": "RPC capacity boundary",
-                "parentId": "control",
+                "label": "Remote capacity A",
                 "position": {
                   "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l031.remote.d2",
+                "id": "capacity-b",
+                "label": "Remote capacity B",
+                "position": {
+                  "x": 560,
                   "y": 180
                 },
                 "version": 1
@@ -2988,27 +3799,18 @@
           },
           "id": "remote-s3",
           "invariants": [
-            "Expand orchestration into a contract adapter and pinned remote generation boundary. State owner: RPC capacity boundary (remote binding and retry identity)."
+            "Capacity runs outside the backend process, and every RPC to either instance carries the journaled generationKey and the pinned wire version."
           ],
           "number": 3,
           "operations": [
             {
-              "edges": [
-                {
-                  "contractId": "l031.remote.c2",
-                  "from": {
-                    "nodeId": "router",
-                    "portId": "out-l031.remote.c2"
-                  },
-                  "id": "admit",
-                  "label": "request generation capacity",
-                  "mode": "request-response",
-                  "to": {
-                    "nodeId": "capacity",
-                    "portId": "in-l031.remote.c2"
-                  }
-                }
-              ],
+              "nodeId": "boundary",
+              "op": "rebind",
+              "reason": "Select a new immutable exposure binding before connecting the added responsibility; prior stage binding remains unchanged.",
+              "subsystemId": "l031-remote-boundary-binding-3"
+            },
+            {
+              "edges": [],
               "nodeId": "control",
               "nodes": [
                 {
@@ -3020,34 +3822,82 @@
                     "y": 180
                   },
                   "version": 1
-                },
-                {
-                  "definitionId": "l031.remote.d2",
-                  "id": "capacity",
-                  "label": "RPC capacity boundary",
-                  "position": {
-                    "x": 280,
-                    "y": 180
-                  },
-                  "version": 1
                 }
               ],
               "op": "expand",
-              "subsystemId": "l031-remote-control-binding-1"
+              "subsystemId": "l031-remote-control-binding-3"
+            },
+            {
+              "node": {
+                "definitionId": "l031.remote.d2",
+                "id": "capacity",
+                "label": "Remote capacity A",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "l031.remote.d2",
+                "id": "capacity-b",
+                "label": "Remote capacity B",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l031.remote.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l031.remote.c2-control"
+                },
+                "id": "admit",
+                "label": "RPC generate on instance A",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "capacity",
+                  "portId": "in-l031.remote.c2"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l031.remote.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l031.remote.c2-control"
+                },
+                "id": "admit-b",
+                "label": "RPC generate on instance B",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "capacity-b",
+                  "portId": "in-l031.remote.c2"
+                }
+              },
+              "op": "connect"
             }
           ],
           "question": "What version does a caller invoke?",
-          "reason": "Expand orchestration into a contract adapter and pinned remote generation boundary.",
+          "reason": "Expand orchestration into a contract router; generation capacity runs as two remote service instances reached only by RPC carrying the journaled generationKey.",
           "title": "RPC capacity boundary"
         },
         {
           "checkIds": [
-            "mechanism",
-            "identity",
-            "upgrade",
-            "override"
+            "failure",
+            "identity"
           ],
-          "explanation": "Expand capacity into remote admission and generation worker, preserving exposed contracts. Expand capacity into remote admission and generation worker, preserving exposed contracts. State owner: Remote internals (remote permits and attempt fences). Expand capacity into remote admission and generation worker, preserving exposed contracts. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A WebSocket](https://en.wikipedia.org/wiki/WebSocket) keeps a two-way connection open for timely updates.",
+          "explanation": "Expand each remote instance into admission and worker; admission deduplicates by generationKey before starting an attempt. Each remote admission records accepted generationKeys, and a repeated key returns the original attempt instead of starting a second generation. Expand each remote instance into admission and worker; admission deduplicates by generationKey before starting an attempt. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Backpressure](https://en.wikipedia.org/wiki/Flow_control_%28data%29) prevents producers from outrunning the next component indefinitely.",
           "graph": {
             "edges": [
               {
@@ -3081,14 +3931,28 @@
               {
                 "contractId": "l031.remote.c2",
                 "from": {
-                  "nodeId": "router",
-                  "portId": "out-l031.remote.c2"
+                  "nodeId": "boundary",
+                  "portId": "out-l031.remote.c2-control"
                 },
                 "id": "admit",
-                "label": "request generation capacity",
+                "label": "RPC generate on instance A",
                 "mode": "request-response",
                 "to": {
                   "nodeId": "capacity",
+                  "portId": "in-l031.remote.c2"
+                }
+              },
+              {
+                "contractId": "l031.remote.c2",
+                "from": {
+                  "nodeId": "boundary",
+                  "portId": "out-l031.remote.c2-control"
+                },
+                "id": "admit-b",
+                "label": "RPC generate on instance B",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "capacity-b",
                   "portId": "in-l031.remote.c2"
                 }
               },
@@ -3103,6 +3967,20 @@
                 "mode": "request-response",
                 "to": {
                   "nodeId": "worker",
+                  "portId": "in-l031.remote.c3"
+                }
+              },
+              {
+                "contractId": "l031.remote.c3",
+                "from": {
+                  "nodeId": "admission-b",
+                  "portId": "out-l031.remote.c3"
+                },
+                "id": "run-b",
+                "label": "run instance B generation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "worker-b",
                   "portId": "in-l031.remote.c3"
                 }
               }
@@ -3126,7 +4004,7 @@
                   "x": 280,
                   "y": 0
                 },
-                "subsystemId": "l031-remote-boundary-binding-1",
+                "subsystemId": "l031-remote-boundary-binding-3",
                 "version": 1
               },
               {
@@ -3138,7 +4016,7 @@
                   "x": 560,
                   "y": 0
                 },
-                "subsystemId": "l031-remote-control-binding-1",
+                "subsystemId": "l031-remote-control-binding-3",
                 "version": 1
               },
               {
@@ -3166,8 +4044,7 @@
               {
                 "definitionId": "l031.remote.d2",
                 "id": "capacity",
-                "label": "RPC capacity boundary",
-                "parentId": "control",
+                "label": "Remote capacity A",
                 "position": {
                   "x": 280,
                   "y": 180
@@ -3176,12 +4053,23 @@
                 "version": 1
               },
               {
+                "definitionId": "l031.remote.d2",
+                "id": "capacity-b",
+                "label": "Remote capacity B",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "subsystemId": "l031-remote-capacity-b-binding-1",
+                "version": 1
+              },
+              {
                 "definitionId": "l031.remote.d3",
                 "id": "admission",
                 "label": "Remote internals",
                 "parentId": "capacity",
                 "position": {
-                  "x": 560,
+                  "x": 840,
                   "y": 180
                 },
                 "version": 1
@@ -3192,8 +4080,30 @@
                 "label": "Generation worker",
                 "parentId": "capacity",
                 "position": {
-                  "x": 840,
-                  "y": 180
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l031.remote.d3",
+                "id": "admission-b",
+                "label": "Admission B",
+                "parentId": "capacity-b",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l031.remote.worker",
+                "id": "worker-b",
+                "label": "Worker B",
+                "parentId": "capacity-b",
+                "position": {
+                  "x": 560,
+                  "y": 360
                 },
                 "version": 1
               }
@@ -3201,7 +4111,7 @@
           },
           "id": "remote-s4",
           "invariants": [
-            "Expand capacity into remote admission and generation worker, preserving exposed contracts. State owner: Remote internals (remote permits and attempt fences)."
+            "Each remote admission records accepted generationKeys, and a repeated key returns the original attempt instead of starting a second generation."
           ],
           "number": 4,
           "operations": [
@@ -3229,7 +4139,7 @@
                   "id": "admission",
                   "label": "Remote internals",
                   "position": {
-                    "x": 560,
+                    "x": 840,
                     "y": 180
                   },
                   "version": 1
@@ -3239,28 +4149,69 @@
                   "id": "worker",
                   "label": "Generation worker",
                   "position": {
-                    "x": 840,
-                    "y": 180
+                    "x": 0,
+                    "y": 360
                   },
                   "version": 1
                 }
               ],
               "op": "expand",
               "subsystemId": "l031-remote-capacity-binding-1"
+            },
+            {
+              "edges": [
+                {
+                  "contractId": "l031.remote.c3",
+                  "from": {
+                    "nodeId": "admission-b",
+                    "portId": "out-l031.remote.c3"
+                  },
+                  "id": "run-b",
+                  "label": "run instance B generation",
+                  "mode": "request-response",
+                  "to": {
+                    "nodeId": "worker-b",
+                    "portId": "in-l031.remote.c3"
+                  }
+                }
+              ],
+              "nodeId": "capacity-b",
+              "nodes": [
+                {
+                  "definitionId": "l031.remote.d3",
+                  "id": "admission-b",
+                  "label": "Admission B",
+                  "position": {
+                    "x": 280,
+                    "y": 360
+                  },
+                  "version": 1
+                },
+                {
+                  "definitionId": "l031.remote.worker",
+                  "id": "worker-b",
+                  "label": "Worker B",
+                  "position": {
+                    "x": 560,
+                    "y": 360
+                  },
+                  "version": 1
+                }
+              ],
+              "op": "expand",
+              "subsystemId": "l031-remote-capacity-b-binding-1"
             }
           ],
           "question": "Which resource owns admission?",
-          "reason": "Expand capacity into remote admission and generation worker, preserving exposed contracts.",
+          "reason": "Expand each remote instance into admission and worker; admission deduplicates by generationKey before starting an attempt.",
           "title": "Remote internals"
         },
         {
           "checkIds": [
-            "mechanism",
-            "identity",
-            "upgrade",
-            "override"
+            "failure",
+            "upgrade"
           ],
-          "explanation": "Decode the remote revision explicitly and map to stable external reply shape. Decode the remote revision explicitly and map to stable external reply shape. State owner: Response adapter (wire-version compatibility verdict). Decode the remote revision explicitly and map to stable external reply shape. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A WebSocket](https://en.wikipedia.org/wiki/WebSocket) keeps a two-way connection open for timely updates.",
+          "explanation": "Route every RPC through a typed adapter that encodes the pinned wire version and decodes remote revisions into the stable reply shape. All generation and lookup RPCs pass through the adapter, which rejects a reply whose wire version it cannot decode. [An index](https://en.wikipedia.org/wiki/Database_index) maintains a structure that narrows a search without scanning every record. Faster reads come with storage costs and extra work whenever indexed data changes.",
           "graph": {
             "edges": [
               {
@@ -3292,20 +4243,6 @@
                 }
               },
               {
-                "contractId": "l031.remote.c2",
-                "from": {
-                  "nodeId": "router",
-                  "portId": "out-l031.remote.c2"
-                },
-                "id": "admit",
-                "label": "request generation capacity",
-                "mode": "request-response",
-                "to": {
-                  "nodeId": "capacity",
-                  "portId": "in-l031.remote.c2"
-                }
-              },
-              {
                 "contractId": "l031.remote.c3",
                 "from": {
                   "nodeId": "admission",
@@ -3320,17 +4257,59 @@
                 }
               },
               {
+                "contractId": "l031.remote.c3",
+                "from": {
+                  "nodeId": "admission-b",
+                  "portId": "out-l031.remote.c3"
+                },
+                "id": "run-b",
+                "label": "run instance B generation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "worker-b",
+                  "portId": "in-l031.remote.c3"
+                }
+              },
+              {
                 "contractId": "l031.remote.c4",
                 "from": {
                   "nodeId": "boundary",
                   "portId": "out-l031.remote.c4-control"
                 },
-                "id": "adapt",
-                "label": "adapt output contract",
+                "id": "rpc",
+                "label": "send RPC through adapter",
                 "mode": "request-response",
                 "to": {
                   "nodeId": "n4",
                   "portId": "in-l031.remote.c4"
+                }
+              },
+              {
+                "contractId": "l031.remote.c2",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l031.remote.c2"
+                },
+                "id": "wire",
+                "label": "pinned wire RPC to instance A",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "capacity",
+                  "portId": "in-l031.remote.c2"
+                }
+              },
+              {
+                "contractId": "l031.remote.c2",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l031.remote.c2"
+                },
+                "id": "wire-b",
+                "label": "pinned wire RPC to instance B",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "capacity-b",
+                  "portId": "in-l031.remote.c2"
                 }
               }
             ],
@@ -3353,7 +4332,7 @@
                   "x": 280,
                   "y": 0
                 },
-                "subsystemId": "l031-remote-boundary-binding-2",
+                "subsystemId": "l031-remote-boundary-binding-4",
                 "version": 1
               },
               {
@@ -3365,7 +4344,7 @@
                   "x": 560,
                   "y": 0
                 },
-                "subsystemId": "l031-remote-control-binding-2",
+                "subsystemId": "l031-remote-control-binding-4",
                 "version": 1
               },
               {
@@ -3393,13 +4372,23 @@
               {
                 "definitionId": "l031.remote.d2",
                 "id": "capacity",
-                "label": "RPC capacity boundary",
-                "parentId": "control",
+                "label": "Remote capacity A",
                 "position": {
                   "x": 280,
                   "y": 180
                 },
-                "subsystemId": "l031-remote-capacity-binding-2",
+                "subsystemId": "l031-remote-capacity-binding-1",
+                "version": 1
+              },
+              {
+                "definitionId": "l031.remote.d2",
+                "id": "capacity-b",
+                "label": "Remote capacity B",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "subsystemId": "l031-remote-capacity-b-binding-1",
                 "version": 1
               },
               {
@@ -3408,7 +4397,7 @@
                 "label": "Remote internals",
                 "parentId": "capacity",
                 "position": {
-                  "x": 560,
+                  "x": 840,
                   "y": 180
                 },
                 "version": 1
@@ -3419,8 +4408,30 @@
                 "label": "Generation worker",
                 "parentId": "capacity",
                 "position": {
-                  "x": 840,
-                  "y": 180
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l031.remote.d3",
+                "id": "admission-b",
+                "label": "Admission B",
+                "parentId": "capacity-b",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l031.remote.worker",
+                "id": "worker-b",
+                "label": "Worker B",
+                "parentId": "capacity-b",
+                "position": {
+                  "x": 560,
+                  "y": 360
                 },
                 "version": 1
               },
@@ -3429,7 +4440,7 @@
                 "id": "n4",
                 "label": "Response adapter",
                 "position": {
-                  "x": 0,
+                  "x": 840,
                   "y": 360
                 },
                 "version": 1
@@ -3438,7 +4449,7 @@
           },
           "id": "remote-s5",
           "invariants": [
-            "Decode the remote revision explicitly and map to stable external reply shape. State owner: Response adapter (wire-version compatibility verdict)."
+            "All generation and lookup RPCs pass through the adapter, which rejects a reply whose wire version it cannot decode."
           ],
           "number": 5,
           "operations": [
@@ -3446,19 +4457,13 @@
               "nodeId": "boundary",
               "op": "rebind",
               "reason": "Select a new immutable exposure binding before connecting the added responsibility; prior stage binding remains unchanged.",
-              "subsystemId": "l031-remote-boundary-binding-2"
+              "subsystemId": "l031-remote-boundary-binding-4"
             },
             {
               "nodeId": "control",
               "op": "rebind",
               "reason": "Select a new immutable exposure binding before connecting the added responsibility; prior stage binding remains unchanged.",
-              "subsystemId": "l031-remote-control-binding-2"
-            },
-            {
-              "nodeId": "capacity",
-              "op": "rebind",
-              "reason": "Select a new immutable exposure binding before connecting the added responsibility; prior stage binding remains unchanged.",
-              "subsystemId": "l031-remote-capacity-binding-2"
+              "subsystemId": "l031-remote-control-binding-4"
             },
             {
               "node": {
@@ -3466,12 +4471,20 @@
                 "id": "n4",
                 "label": "Response adapter",
                 "position": {
-                  "x": 0,
+                  "x": 840,
                   "y": 360
                 },
                 "version": 1
               },
               "op": "insert"
+            },
+            {
+              "edgeId": "admit",
+              "op": "disconnect"
+            },
+            {
+              "edgeId": "admit-b",
+              "op": "disconnect"
             },
             {
               "edge": {
@@ -3480,8 +4493,8 @@
                   "nodeId": "boundary",
                   "portId": "out-l031.remote.c4-control"
                 },
-                "id": "adapt",
-                "label": "adapt output contract",
+                "id": "rpc",
+                "label": "send RPC through adapter",
                 "mode": "request-response",
                 "to": {
                   "nodeId": "n4",
@@ -3489,20 +4502,51 @@
                 }
               },
               "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l031.remote.c2",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l031.remote.c2"
+                },
+                "id": "wire",
+                "label": "pinned wire RPC to instance A",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "capacity",
+                  "portId": "in-l031.remote.c2"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l031.remote.c2",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l031.remote.c2"
+                },
+                "id": "wire-b",
+                "label": "pinned wire RPC to instance B",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "capacity-b",
+                  "portId": "in-l031.remote.c2"
+                }
+              },
+              "op": "connect"
             }
           ],
           "question": "What if remote wire versions differ?",
-          "reason": "Decode the remote revision explicitly and map to stable external reply shape.",
+          "reason": "Route every RPC through a typed adapter that encodes the pinned wire version and decodes remote revisions into the stable reply shape.",
           "title": "Response adapter"
         },
         {
           "checkIds": [
-            "mechanism",
-            "identity",
-            "upgrade",
-            "override"
+            "failure"
           ],
-          "explanation": "Replace only the worker binding, draining or fencing active attempts before activation. Replace only the worker binding, draining or fencing active attempts before activation. State owner: Remote worker revision (remote attempt epoch). Replace only the worker binding, draining or fencing active attempts before activation. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources.",
+          "explanation": "Treat a timeout as an unknown outcome: fence superseded worker attempts by epoch, and let a reconciler look up the generationKey before anything is resent. A timed-out RPC leaves its intent unknown; the reconciler records accepted or completed outcomes, resends the same key only on proven absence and otherwise holds, while superseded worker attempts are fenced by epoch. [A control loop](https://en.wikipedia.org/wiki/Control_loop) compares desired state with observed state and applies corrections.",
           "graph": {
             "edges": [
               {
@@ -3534,20 +4578,6 @@
                 }
               },
               {
-                "contractId": "l031.remote.c2",
-                "from": {
-                  "nodeId": "router",
-                  "portId": "out-l031.remote.c2"
-                },
-                "id": "admit",
-                "label": "request generation capacity",
-                "mode": "request-response",
-                "to": {
-                  "nodeId": "capacity",
-                  "portId": "in-l031.remote.c2"
-                }
-              },
-              {
                 "contractId": "l031.remote.c3",
                 "from": {
                   "nodeId": "admission",
@@ -3562,13 +4592,83 @@
                 }
               },
               {
+                "contractId": "l031.remote.c3",
+                "from": {
+                  "nodeId": "admission-b",
+                  "portId": "out-l031.remote.c3"
+                },
+                "id": "run-b",
+                "label": "run instance B generation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "worker-b",
+                  "portId": "in-l031.remote.c3"
+                }
+              },
+              {
                 "contractId": "l031.remote.c4",
                 "from": {
                   "nodeId": "boundary",
                   "portId": "out-l031.remote.c4-control"
                 },
-                "id": "adapt",
-                "label": "adapt output contract",
+                "id": "rpc",
+                "label": "send RPC through adapter",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l031.remote.c4"
+                }
+              },
+              {
+                "contractId": "l031.remote.c2",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l031.remote.c2"
+                },
+                "id": "wire",
+                "label": "pinned wire RPC to instance A",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "capacity",
+                  "portId": "in-l031.remote.c2"
+                }
+              },
+              {
+                "contractId": "l031.remote.c2",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l031.remote.c2"
+                },
+                "id": "wire-b",
+                "label": "pinned wire RPC to instance B",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "capacity-b",
+                  "portId": "in-l031.remote.c2"
+                }
+              },
+              {
+                "contractId": "l031.remote.intents",
+                "from": {
+                  "nodeId": "reconciler",
+                  "portId": "out-l031.remote.intents"
+                },
+                "id": "unknown",
+                "label": "record reconciled outcome",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l031.remote.intents-state"
+                }
+              },
+              {
+                "contractId": "l031.remote.c4",
+                "from": {
+                  "nodeId": "reconciler",
+                  "portId": "out-l031.remote.c4"
+                },
+                "id": "lookup",
+                "label": "look up generationKey",
                 "mode": "request-response",
                 "to": {
                   "nodeId": "n4",
@@ -3595,7 +4695,7 @@
                   "x": 280,
                   "y": 0
                 },
-                "subsystemId": "l031-remote-boundary-binding-2",
+                "subsystemId": "l031-remote-boundary-binding-5",
                 "version": 1
               },
               {
@@ -3607,7 +4707,7 @@
                   "x": 560,
                   "y": 0
                 },
-                "subsystemId": "l031-remote-control-binding-2",
+                "subsystemId": "l031-remote-control-binding-4",
                 "version": 1
               },
               {
@@ -3635,13 +4735,23 @@
               {
                 "definitionId": "l031.remote.d2",
                 "id": "capacity",
-                "label": "RPC capacity boundary",
-                "parentId": "control",
+                "label": "Remote capacity A",
                 "position": {
                   "x": 280,
                   "y": 180
                 },
-                "subsystemId": "l031-remote-capacity-binding-2",
+                "subsystemId": "l031-remote-capacity-binding-1",
+                "version": 1
+              },
+              {
+                "definitionId": "l031.remote.d2",
+                "id": "capacity-b",
+                "label": "Remote capacity B",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "subsystemId": "l031-remote-capacity-b-binding-1",
                 "version": 1
               },
               {
@@ -3650,7 +4760,7 @@
                 "label": "Remote internals",
                 "parentId": "capacity",
                 "position": {
-                  "x": 560,
+                  "x": 840,
                   "y": 180
                 },
                 "version": 1
@@ -3661,8 +4771,30 @@
                 "label": "Generation worker",
                 "parentId": "capacity",
                 "position": {
-                  "x": 840,
-                  "y": 180
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l031.remote.d3",
+                "id": "admission-b",
+                "label": "Admission B",
+                "parentId": "capacity-b",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l031.remote.worker",
+                "id": "worker-b",
+                "label": "Worker B",
+                "parentId": "capacity-b",
+                "position": {
+                  "x": 560,
+                  "y": 360
                 },
                 "version": 1
               },
@@ -3671,8 +4803,18 @@
                 "id": "n4",
                 "label": "Response adapter",
                 "position": {
-                  "x": 0,
+                  "x": 840,
                   "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l031.remote.reconciler",
+                "id": "reconciler",
+                "label": "RPC outcome reconciler",
+                "position": {
+                  "x": 0,
+                  "y": 540
                 },
                 "version": 1
               }
@@ -3680,29 +4822,80 @@
           },
           "id": "remote-s6",
           "invariants": [
-            "Replace only the worker binding, draining or fencing active attempts before activation. State owner: Remote worker revision (remote attempt epoch)."
+            "A timed-out RPC leaves its intent unknown; the reconciler records accepted or completed outcomes, resends the same key only on proven absence and otherwise holds, while superseded worker attempts are fenced by epoch."
           ],
           "number": 6,
           "operations": [
+            {
+              "nodeId": "boundary",
+              "op": "rebind",
+              "reason": "Select a new immutable exposure binding before connecting the added responsibility; prior stage binding remains unchanged.",
+              "subsystemId": "l031-remote-boundary-binding-5"
+            },
             {
               "definitionId": "l031.remote.d5",
               "migration": "Drain or fence in-flight generation attempts; preserve stable generation identity and compatible ports.",
               "nodeId": "worker",
               "op": "replace"
+            },
+            {
+              "node": {
+                "definitionId": "l031.remote.reconciler",
+                "id": "reconciler",
+                "label": "RPC outcome reconciler",
+                "position": {
+                  "x": 0,
+                  "y": 540
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "edge": {
+                "contractId": "l031.remote.intents",
+                "from": {
+                  "nodeId": "reconciler",
+                  "portId": "out-l031.remote.intents"
+                },
+                "id": "unknown",
+                "label": "record reconciled outcome",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l031.remote.intents-state"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l031.remote.c4",
+                "from": {
+                  "nodeId": "reconciler",
+                  "portId": "out-l031.remote.c4"
+                },
+                "id": "lookup",
+                "label": "look up generationKey",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l031.remote.c4"
+                }
+              },
+              "op": "connect"
             }
           ],
-          "question": "Can an old attempt survive upgrade?",
-          "reason": "Replace only the worker binding, draining or fencing active attempts before activation.",
-          "title": "Remote worker revision"
+          "question": "What if an RPC times out after the remote accepted it?",
+          "reason": "Treat a timeout as an unknown outcome: fence superseded worker attempts by epoch, and let a reconciler look up the generationKey before anything is resent.",
+          "title": "RPC failure reconciler"
         },
         {
           "checkIds": [
-            "mechanism",
-            "identity",
-            "upgrade",
-            "override"
+            "history",
+            "upgrade"
           ],
-          "explanation": "Add a separately versioned admission candidate without mutating the active binding. Add a separately versioned admission candidate without mutating the active binding. State owner: Admission revision (candidate contract and permits). Add a separately versioned admission candidate without mutating the active binding. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Backpressure](https://en.wikipedia.org/wiki/Flow_control_%28data%29) prevents producers from outrunning the next component indefinitely.",
+          "explanation": "Add a separately versioned admission candidate that reads the active generationKey ledger, without mutating the active binding. The candidate admission consults the active generationKey ledger, so a key accepted under v1 is never regenerated under v2; no binding changes yet. [Backpressure](https://en.wikipedia.org/wiki/Flow_control_%28data%29) prevents producers from outrunning the next component indefinitely. The design must choose whether excess work waits, is rejected, or is dropped with an explicit outcome.",
           "graph": {
             "edges": [
               {
@@ -3734,20 +4927,6 @@
                 }
               },
               {
-                "contractId": "l031.remote.c2",
-                "from": {
-                  "nodeId": "router",
-                  "portId": "out-l031.remote.c2"
-                },
-                "id": "admit",
-                "label": "request generation capacity",
-                "mode": "request-response",
-                "to": {
-                  "nodeId": "capacity",
-                  "portId": "in-l031.remote.c2"
-                }
-              },
-              {
                 "contractId": "l031.remote.c3",
                 "from": {
                   "nodeId": "admission",
@@ -3762,13 +4941,83 @@
                 }
               },
               {
+                "contractId": "l031.remote.c3",
+                "from": {
+                  "nodeId": "admission-b",
+                  "portId": "out-l031.remote.c3"
+                },
+                "id": "run-b",
+                "label": "run instance B generation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "worker-b",
+                  "portId": "in-l031.remote.c3"
+                }
+              },
+              {
                 "contractId": "l031.remote.c4",
                 "from": {
                   "nodeId": "boundary",
                   "portId": "out-l031.remote.c4-control"
                 },
-                "id": "adapt",
-                "label": "adapt output contract",
+                "id": "rpc",
+                "label": "send RPC through adapter",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l031.remote.c4"
+                }
+              },
+              {
+                "contractId": "l031.remote.c2",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l031.remote.c2"
+                },
+                "id": "wire",
+                "label": "pinned wire RPC to instance A",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "capacity",
+                  "portId": "in-l031.remote.c2"
+                }
+              },
+              {
+                "contractId": "l031.remote.c2",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l031.remote.c2"
+                },
+                "id": "wire-b",
+                "label": "pinned wire RPC to instance B",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "capacity-b",
+                  "portId": "in-l031.remote.c2"
+                }
+              },
+              {
+                "contractId": "l031.remote.intents",
+                "from": {
+                  "nodeId": "reconciler",
+                  "portId": "out-l031.remote.intents"
+                },
+                "id": "unknown",
+                "label": "record reconciled outcome",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l031.remote.intents-state"
+                }
+              },
+              {
+                "contractId": "l031.remote.c4",
+                "from": {
+                  "nodeId": "reconciler",
+                  "portId": "out-l031.remote.c4"
+                },
+                "id": "lookup",
+                "label": "look up generationKey",
                 "mode": "request-response",
                 "to": {
                   "nodeId": "n4",
@@ -3788,6 +5037,20 @@
                   "nodeId": "worker",
                   "portId": "in-l031.remote.c3"
                 }
+              },
+              {
+                "contractId": "l031.remote.ledger",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l031.remote.ledger"
+                },
+                "id": "ledger",
+                "label": "read generationKey ledger",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "admission",
+                  "portId": "in-l031.remote.ledger"
+                }
               }
             ],
             "nodes": [
@@ -3809,7 +5072,7 @@
                   "x": 280,
                   "y": 0
                 },
-                "subsystemId": "l031-remote-boundary-binding-2",
+                "subsystemId": "l031-remote-boundary-binding-5",
                 "version": 1
               },
               {
@@ -3821,7 +5084,7 @@
                   "x": 560,
                   "y": 0
                 },
-                "subsystemId": "l031-remote-control-binding-2",
+                "subsystemId": "l031-remote-control-binding-4",
                 "version": 1
               },
               {
@@ -3849,13 +5112,23 @@
               {
                 "definitionId": "l031.remote.d2",
                 "id": "capacity",
-                "label": "RPC capacity boundary",
-                "parentId": "control",
+                "label": "Remote capacity A",
                 "position": {
                   "x": 280,
                   "y": 180
                 },
-                "subsystemId": "l031-remote-capacity-binding-2",
+                "subsystemId": "l031-remote-capacity-binding-1",
+                "version": 1
+              },
+              {
+                "definitionId": "l031.remote.d2",
+                "id": "capacity-b",
+                "label": "Remote capacity B",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "subsystemId": "l031-remote-capacity-b-binding-1",
                 "version": 1
               },
               {
@@ -3864,7 +5137,7 @@
                 "label": "Remote internals",
                 "parentId": "capacity",
                 "position": {
-                  "x": 560,
+                  "x": 840,
                   "y": 180
                 },
                 "version": 1
@@ -3875,8 +5148,30 @@
                 "label": "Generation worker",
                 "parentId": "capacity",
                 "position": {
-                  "x": 840,
-                  "y": 180
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l031.remote.d3",
+                "id": "admission-b",
+                "label": "Admission B",
+                "parentId": "capacity-b",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l031.remote.worker",
+                "id": "worker-b",
+                "label": "Worker B",
+                "parentId": "capacity-b",
+                "position": {
+                  "x": 560,
+                  "y": 360
                 },
                 "version": 1
               },
@@ -3885,8 +5180,18 @@
                 "id": "n4",
                 "label": "Response adapter",
                 "position": {
-                  "x": 0,
+                  "x": 840,
                   "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l031.remote.reconciler",
+                "id": "reconciler",
+                "label": "RPC outcome reconciler",
+                "position": {
+                  "x": 0,
+                  "y": 540
                 },
                 "version": 1
               },
@@ -3897,7 +5202,7 @@
                 "parentId": "capacity",
                 "position": {
                   "x": 280,
-                  "y": 360
+                  "y": 540
                 },
                 "version": 1
               }
@@ -3905,7 +5210,7 @@
           },
           "id": "remote-s7",
           "invariants": [
-            "Add a separately versioned admission candidate without mutating the active binding. State owner: Admission revision (candidate contract and permits)."
+            "The candidate admission consults the active generationKey ledger, so a key accepted under v1 is never regenerated under v2; no binding changes yet."
           ],
           "number": 7,
           "operations": [
@@ -3917,7 +5222,7 @@
                 "parentId": "capacity",
                 "position": {
                   "x": 280,
-                  "y": 360
+                  "y": 540
                 },
                 "version": 1
               },
@@ -3939,20 +5244,37 @@
                 }
               },
               "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l031.remote.ledger",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l031.remote.ledger"
+                },
+                "id": "ledger",
+                "label": "read generationKey ledger",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "admission",
+                  "portId": "in-l031.remote.ledger"
+                }
+              },
+              "op": "connect"
             }
           ],
           "question": "How is the next contract prepared?",
-          "reason": "Add a separately versioned admission candidate without mutating the active binding.",
+          "reason": "Add a separately versioned admission candidate that reads the active generationKey ledger, without mutating the active binding.",
           "title": "Admission revision"
         },
         {
           "checkIds": [
             "mechanism",
-            "identity",
+            "history",
             "upgrade",
             "override"
           ],
-          "explanation": "Rebind this instance explicitly; preserve other instances and prior immutable definitions. Rebind this instance explicitly; preserve other instances and prior immutable definitions. State owner: Instance upgrade (instance binding selection). Rebind this instance explicitly; preserve other instances and prior immutable definitions. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers.",
+          "explanation": "An operator rebinds remote instance A explicitly at an expected registry version; instance B and prior immutable definitions are preserved. An operator upgrade names instanceId, bindingId and expectedVersion; only remote instance A is rebound to a new immutable binding, and instance B and every earlier binding stay unchanged. [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers. Publishing one reference lets each reader keep a consistent version.",
           "graph": {
             "edges": [
               {
@@ -3984,20 +5306,6 @@
                 }
               },
               {
-                "contractId": "l031.remote.c2",
-                "from": {
-                  "nodeId": "router",
-                  "portId": "out-l031.remote.c2"
-                },
-                "id": "admit",
-                "label": "request generation capacity",
-                "mode": "request-response",
-                "to": {
-                  "nodeId": "capacity",
-                  "portId": "in-l031.remote.c2"
-                }
-              },
-              {
                 "contractId": "l031.remote.c3",
                 "from": {
                   "nodeId": "admission",
@@ -4012,13 +5320,83 @@
                 }
               },
               {
+                "contractId": "l031.remote.c3",
+                "from": {
+                  "nodeId": "admission-b",
+                  "portId": "out-l031.remote.c3"
+                },
+                "id": "run-b",
+                "label": "run instance B generation",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "worker-b",
+                  "portId": "in-l031.remote.c3"
+                }
+              },
+              {
                 "contractId": "l031.remote.c4",
                 "from": {
                   "nodeId": "boundary",
                   "portId": "out-l031.remote.c4-control"
                 },
-                "id": "adapt",
-                "label": "adapt output contract",
+                "id": "rpc",
+                "label": "send RPC through adapter",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n4",
+                  "portId": "in-l031.remote.c4"
+                }
+              },
+              {
+                "contractId": "l031.remote.c2",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l031.remote.c2"
+                },
+                "id": "wire",
+                "label": "pinned wire RPC to instance A",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "capacity",
+                  "portId": "in-l031.remote.c2"
+                }
+              },
+              {
+                "contractId": "l031.remote.c2",
+                "from": {
+                  "nodeId": "n4",
+                  "portId": "out-l031.remote.c2"
+                },
+                "id": "wire-b",
+                "label": "pinned wire RPC to instance B",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "capacity-b",
+                  "portId": "in-l031.remote.c2"
+                }
+              },
+              {
+                "contractId": "l031.remote.intents",
+                "from": {
+                  "nodeId": "reconciler",
+                  "portId": "out-l031.remote.intents"
+                },
+                "id": "unknown",
+                "label": "record reconciled outcome",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l031.remote.intents-state"
+                }
+              },
+              {
+                "contractId": "l031.remote.c4",
+                "from": {
+                  "nodeId": "reconciler",
+                  "portId": "out-l031.remote.c4"
+                },
+                "id": "lookup",
+                "label": "look up generationKey",
                 "mode": "request-response",
                 "to": {
                   "nodeId": "n4",
@@ -4040,17 +5418,45 @@
                 }
               },
               {
+                "contractId": "l031.remote.ledger",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l031.remote.ledger"
+                },
+                "id": "ledger",
+                "label": "read generationKey ledger",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "admission",
+                  "portId": "in-l031.remote.ledger"
+                }
+              },
+              {
                 "contractId": "l031.remote.c7",
                 "from": {
-                  "nodeId": "caller",
+                  "nodeId": "operator",
                   "portId": "out-l031.remote.c7"
                 },
                 "id": "select",
-                "label": "select explicit instance upgrade",
+                "label": "request explicit instance upgrade",
                 "mode": "request-response",
                 "to": {
                   "nodeId": "n7",
                   "portId": "in-l031.remote.c7"
+                }
+              },
+              {
+                "contractId": "l031.remote.activate",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l031.remote.activate"
+                },
+                "id": "activate",
+                "label": "activate binding on instance A",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "capacity",
+                  "portId": "in-l031.remote.activate"
                 }
               }
             ],
@@ -4073,7 +5479,7 @@
                   "x": 280,
                   "y": 0
                 },
-                "subsystemId": "l031-remote-boundary-binding-2",
+                "subsystemId": "l031-remote-boundary-binding-5",
                 "version": 1
               },
               {
@@ -4085,7 +5491,7 @@
                   "x": 560,
                   "y": 0
                 },
-                "subsystemId": "l031-remote-control-binding-2",
+                "subsystemId": "l031-remote-control-binding-4",
                 "version": 1
               },
               {
@@ -4113,13 +5519,23 @@
               {
                 "definitionId": "l031.remote.d2",
                 "id": "capacity",
-                "label": "RPC capacity boundary",
-                "parentId": "control",
+                "label": "Remote capacity A",
                 "position": {
                   "x": 280,
                   "y": 180
                 },
-                "subsystemId": "l031-remote-capacity-binding-3",
+                "subsystemId": "l031-remote-capacity-binding-4",
+                "version": 1
+              },
+              {
+                "definitionId": "l031.remote.d2",
+                "id": "capacity-b",
+                "label": "Remote capacity B",
+                "position": {
+                  "x": 560,
+                  "y": 180
+                },
+                "subsystemId": "l031-remote-capacity-b-binding-1",
                 "version": 1
               },
               {
@@ -4128,7 +5544,7 @@
                 "label": "Remote internals",
                 "parentId": "capacity",
                 "position": {
-                  "x": 560,
+                  "x": 840,
                   "y": 180
                 },
                 "version": 1
@@ -4139,8 +5555,30 @@
                 "label": "Generation worker",
                 "parentId": "capacity",
                 "position": {
-                  "x": 840,
-                  "y": 180
+                  "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l031.remote.d3",
+                "id": "admission-b",
+                "label": "Admission B",
+                "parentId": "capacity-b",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l031.remote.worker",
+                "id": "worker-b",
+                "label": "Worker B",
+                "parentId": "capacity-b",
+                "position": {
+                  "x": 560,
+                  "y": 360
                 },
                 "version": 1
               },
@@ -4149,8 +5587,18 @@
                 "id": "n4",
                 "label": "Response adapter",
                 "position": {
-                  "x": 0,
+                  "x": 840,
                   "y": 360
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l031.remote.reconciler",
+                "id": "reconciler",
+                "label": "RPC outcome reconciler",
+                "position": {
+                  "x": 0,
+                  "y": 540
                 },
                 "version": 1
               },
@@ -4161,7 +5609,17 @@
                 "parentId": "capacity",
                 "position": {
                   "x": 280,
-                  "y": 360
+                  "y": 540
+                },
+                "version": 1
+              },
+              {
+                "definitionId": "l031.remote.operator",
+                "id": "operator",
+                "label": "Operator",
+                "position": {
+                  "x": 560,
+                  "y": 540
                 },
                 "version": 1
               },
@@ -4170,8 +5628,8 @@
                 "id": "n7",
                 "label": "Instance upgrade",
                 "position": {
-                  "x": 560,
-                  "y": 360
+                  "x": 840,
+                  "y": 540
                 },
                 "version": 1
               }
@@ -4179,15 +5637,28 @@
           },
           "id": "remote-s8",
           "invariants": [
-            "Rebind this instance explicitly; preserve other instances and prior immutable definitions. State owner: Instance upgrade (instance binding selection)."
+            "An operator upgrade names instanceId, bindingId and expectedVersion; only remote instance A is rebound to a new immutable binding, and instance B and every earlier binding stay unchanged."
           ],
           "number": 8,
           "operations": [
             {
               "nodeId": "capacity",
               "op": "rebind",
-              "reason": "Select a new immutable exposure binding before connecting the added responsibility; prior stage binding remains unchanged.",
-              "subsystemId": "l031-remote-capacity-binding-3"
+              "reason": "Explicit compatible instance upgrade requested by the operator at the expected registry version: rebind only capacity instance A to a new immutable binding; instance B and the binding used by earlier stages stay unchanged.",
+              "subsystemId": "l031-remote-capacity-binding-4"
+            },
+            {
+              "node": {
+                "definitionId": "l031.remote.operator",
+                "id": "operator",
+                "label": "Operator",
+                "position": {
+                  "x": 560,
+                  "y": 540
+                },
+                "version": 1
+              },
+              "op": "insert"
             },
             {
               "node": {
@@ -4195,8 +5666,8 @@
                 "id": "n7",
                 "label": "Instance upgrade",
                 "position": {
-                  "x": 560,
-                  "y": 360
+                  "x": 840,
+                  "y": 540
                 },
                 "version": 1
               },
@@ -4206,11 +5677,11 @@
               "edge": {
                 "contractId": "l031.remote.c7",
                 "from": {
-                  "nodeId": "caller",
+                  "nodeId": "operator",
                   "portId": "out-l031.remote.c7"
                 },
                 "id": "select",
-                "label": "select explicit instance upgrade",
+                "label": "request explicit instance upgrade",
                 "mode": "request-response",
                 "to": {
                   "nodeId": "n7",
@@ -4218,10 +5689,27 @@
                 }
               },
               "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l031.remote.activate",
+                "from": {
+                  "nodeId": "n7",
+                  "portId": "out-l031.remote.activate"
+                },
+                "id": "activate",
+                "label": "activate binding on instance A",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "capacity",
+                  "portId": "in-l031.remote.activate"
+                }
+              },
+              "op": "connect"
             }
           ],
           "question": "Can siblings change automatically?",
-          "reason": "Rebind this instance explicitly; preserve other instances and prior immutable definitions.",
+          "reason": "An operator rebinds remote instance A explicitly at an expected registry version; instance B and prior immutable definitions are preserved.",
           "title": "Instance upgrade"
         }
       ],
@@ -4290,8 +5778,24 @@
       "version": 1
     },
     {
+      "definitionId": "l031.local.d2",
+      "id": "l031-local-capacity-b-binding-1",
+      "ports": [
+        {
+          "contractId": "l031.local.c2",
+          "direction": "in",
+          "id": "in-l031.local.c2",
+          "target": {
+            "nodeId": "admission-b",
+            "portId": "in-l031.local.c2"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
       "definitionId": "l031.local.d0",
-      "id": "l031-local-boundary-binding-2",
+      "id": "l031-local-boundary-binding-3",
       "ports": [
         {
           "contractId": "l031.local.c0",
@@ -4310,13 +5814,22 @@
             "nodeId": "control",
             "portId": "out-l031.local.c4-capacity"
           }
+        },
+        {
+          "contractId": "l031.local.c4",
+          "direction": "out",
+          "id": "out-l031.local.c4-control-capacity-b",
+          "target": {
+            "nodeId": "control",
+            "portId": "out-l031.local.c4-capacity-b"
+          }
         }
       ],
       "version": 1
     },
     {
       "definitionId": "l031.local.control",
-      "id": "l031-local-control-binding-2",
+      "id": "l031-local-control-binding-3",
       "ports": [
         {
           "contractId": "l031.local.c0",
@@ -4343,6 +5856,15 @@
           "target": {
             "nodeId": "capacity",
             "portId": "out-l031.local.c4-worker"
+          }
+        },
+        {
+          "contractId": "l031.local.c4",
+          "direction": "out",
+          "id": "out-l031.local.c4-capacity-b",
+          "target": {
+            "nodeId": "capacity-b",
+            "portId": "out-l031.local.c4-worker-b"
           }
         }
       ],
@@ -4375,7 +5897,127 @@
     },
     {
       "definitionId": "l031.local.d2",
-      "id": "l031-local-capacity-binding-3",
+      "id": "l031-local-capacity-b-binding-2",
+      "ports": [
+        {
+          "contractId": "l031.local.c2",
+          "direction": "in",
+          "id": "in-l031.local.c2",
+          "target": {
+            "nodeId": "admission-b",
+            "portId": "in-l031.local.c2"
+          }
+        },
+        {
+          "contractId": "l031.local.c4",
+          "direction": "out",
+          "id": "out-l031.local.c4-worker-b",
+          "target": {
+            "nodeId": "worker-b",
+            "portId": "out-l031.local.c4"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l031.local.d0",
+      "id": "l031-local-boundary-binding-4",
+      "ports": [
+        {
+          "contractId": "l031.local.c0",
+          "direction": "in",
+          "id": "in-l031.local.c0",
+          "target": {
+            "nodeId": "control",
+            "portId": "in-l031.local.c0"
+          }
+        },
+        {
+          "contractId": "l031.local.c4",
+          "direction": "out",
+          "id": "out-l031.local.c4-control",
+          "target": {
+            "nodeId": "control",
+            "portId": "out-l031.local.c4-capacity"
+          }
+        },
+        {
+          "contractId": "l031.local.activate",
+          "direction": "in",
+          "id": "in-l031.local.activate-control",
+          "target": {
+            "nodeId": "control",
+            "portId": "in-l031.local.activate-capacity"
+          }
+        },
+        {
+          "contractId": "l031.local.c4",
+          "direction": "out",
+          "id": "out-l031.local.c4-control-capacity-b",
+          "target": {
+            "nodeId": "control",
+            "portId": "out-l031.local.c4-capacity-b"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l031.local.control",
+      "id": "l031-local-control-binding-4",
+      "ports": [
+        {
+          "contractId": "l031.local.c0",
+          "direction": "in",
+          "id": "in-l031.local.c0",
+          "target": {
+            "nodeId": "router",
+            "portId": "in-l031.local.c0"
+          }
+        },
+        {
+          "contractId": "l031.local.c1",
+          "direction": "out",
+          "id": "out-l031.local.c1",
+          "target": {
+            "nodeId": "router",
+            "portId": "out-l031.local.c1"
+          }
+        },
+        {
+          "contractId": "l031.local.c4",
+          "direction": "out",
+          "id": "out-l031.local.c4-capacity",
+          "target": {
+            "nodeId": "capacity",
+            "portId": "out-l031.local.c4-worker"
+          }
+        },
+        {
+          "contractId": "l031.local.c4",
+          "direction": "out",
+          "id": "out-l031.local.c4-capacity-b",
+          "target": {
+            "nodeId": "capacity-b",
+            "portId": "out-l031.local.c4-worker-b"
+          }
+        },
+        {
+          "contractId": "l031.local.activate",
+          "direction": "in",
+          "id": "in-l031.local.activate-capacity",
+          "target": {
+            "nodeId": "capacity",
+            "portId": "in-l031.local.activate"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l031.local.d2",
+      "id": "l031-local-capacity-binding-4",
       "ports": [
         {
           "contractId": "l031.local.c2",
@@ -4393,6 +6035,15 @@
           "target": {
             "nodeId": "worker",
             "portId": "out-l031.local.c4"
+          }
+        },
+        {
+          "contractId": "l031.local.activate",
+          "direction": "in",
+          "id": "in-l031.local.activate",
+          "target": {
+            "nodeId": "n6",
+            "portId": "in-l031.local.activate"
           }
         }
       ],
@@ -4415,8 +6066,33 @@
       "version": 1
     },
     {
+      "definitionId": "l031.remote.d0",
+      "id": "l031-remote-boundary-binding-3",
+      "ports": [
+        {
+          "contractId": "l031.remote.c0",
+          "direction": "in",
+          "id": "in-l031.remote.c0",
+          "target": {
+            "nodeId": "control",
+            "portId": "in-l031.remote.c0"
+          }
+        },
+        {
+          "contractId": "l031.remote.c2",
+          "direction": "out",
+          "id": "out-l031.remote.c2-control",
+          "target": {
+            "nodeId": "control",
+            "portId": "out-l031.remote.c2-router"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
       "definitionId": "l031.remote.control",
-      "id": "l031-remote-control-binding-1",
+      "id": "l031-remote-control-binding-3",
       "ports": [
         {
           "contractId": "l031.remote.c0",
@@ -4434,6 +6110,15 @@
           "target": {
             "nodeId": "router",
             "portId": "out-l031.remote.c1"
+          }
+        },
+        {
+          "contractId": "l031.remote.c2",
+          "direction": "out",
+          "id": "out-l031.remote.c2-router",
+          "target": {
+            "nodeId": "router",
+            "portId": "out-l031.remote.c2"
           }
         }
       ],
@@ -4456,8 +6141,24 @@
       "version": 1
     },
     {
+      "definitionId": "l031.remote.d2",
+      "id": "l031-remote-capacity-b-binding-1",
+      "ports": [
+        {
+          "contractId": "l031.remote.c2",
+          "direction": "in",
+          "id": "in-l031.remote.c2",
+          "target": {
+            "nodeId": "admission-b",
+            "portId": "in-l031.remote.c2"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
       "definitionId": "l031.remote.d0",
-      "id": "l031-remote-boundary-binding-2",
+      "id": "l031-remote-boundary-binding-4",
       "ports": [
         {
           "contractId": "l031.remote.c0",
@@ -4474,7 +6175,7 @@
           "id": "out-l031.remote.c4-control",
           "target": {
             "nodeId": "control",
-            "portId": "out-l031.remote.c4-capacity"
+            "portId": "out-l031.remote.c4-router"
           }
         }
       ],
@@ -4482,7 +6183,7 @@
     },
     {
       "definitionId": "l031.remote.control",
-      "id": "l031-remote-control-binding-2",
+      "id": "l031-remote-control-binding-4",
       "ports": [
         {
           "contractId": "l031.remote.c0",
@@ -4505,34 +6206,9 @@
         {
           "contractId": "l031.remote.c4",
           "direction": "out",
-          "id": "out-l031.remote.c4-capacity",
+          "id": "out-l031.remote.c4-router",
           "target": {
-            "nodeId": "capacity",
-            "portId": "out-l031.remote.c4-worker"
-          }
-        }
-      ],
-      "version": 1
-    },
-    {
-      "definitionId": "l031.remote.d2",
-      "id": "l031-remote-capacity-binding-2",
-      "ports": [
-        {
-          "contractId": "l031.remote.c2",
-          "direction": "in",
-          "id": "in-l031.remote.c2",
-          "target": {
-            "nodeId": "admission",
-            "portId": "in-l031.remote.c2"
-          }
-        },
-        {
-          "contractId": "l031.remote.c4",
-          "direction": "out",
-          "id": "out-l031.remote.c4-worker",
-          "target": {
-            "nodeId": "worker",
+            "nodeId": "router",
             "portId": "out-l031.remote.c4"
           }
         }
@@ -4540,8 +6216,42 @@
       "version": 1
     },
     {
+      "definitionId": "l031.remote.d0",
+      "id": "l031-remote-boundary-binding-5",
+      "ports": [
+        {
+          "contractId": "l031.remote.c0",
+          "direction": "in",
+          "id": "in-l031.remote.c0",
+          "target": {
+            "nodeId": "control",
+            "portId": "in-l031.remote.c0"
+          }
+        },
+        {
+          "contractId": "l031.remote.c4",
+          "direction": "out",
+          "id": "out-l031.remote.c4-control",
+          "target": {
+            "nodeId": "control",
+            "portId": "out-l031.remote.c4-router"
+          }
+        },
+        {
+          "contractId": "l031.remote.intents",
+          "direction": "in",
+          "id": "in-l031.remote.intents-state",
+          "target": {
+            "nodeId": "state",
+            "portId": "in-l031.remote.intents"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
       "definitionId": "l031.remote.d2",
-      "id": "l031-remote-capacity-binding-3",
+      "id": "l031-remote-capacity-binding-4",
       "ports": [
         {
           "contractId": "l031.remote.c2",
@@ -4553,12 +6263,12 @@
           }
         },
         {
-          "contractId": "l031.remote.c4",
-          "direction": "out",
-          "id": "out-l031.remote.c4-worker",
+          "contractId": "l031.remote.activate",
+          "direction": "in",
+          "id": "in-l031.remote.activate",
           "target": {
-            "nodeId": "worker",
-            "portId": "out-l031.remote.c4"
+            "nodeId": "n6",
+            "portId": "in-l031.remote.activate"
           }
         }
       ],

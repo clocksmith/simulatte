@@ -65,7 +65,7 @@
           "id": "out-l025.push-slots.gpu"
         }
       ],
-      "responsibility": "Admit into a finite queue by chunk identity; reject when full and never treat rejection as completed work.",
+      "responsibility": "submit() only tries to enqueue by chunk identity and answers queued, duplicate or rejected immediately; it never awaits GPU completion, so a burst fills the finite queue and the overflow is rejected visibly.",
       "stateOwnership": [
         "queued chunk IDs",
         "batch capacity"
@@ -91,7 +91,7 @@
           "id": "out-l025.push-slots.slots"
         }
       ],
-      "responsibility": "Claim a batch with stable chunk IDs; record modeled compute completion before fan-out. Batching speed is a parameter, not measured hardware proof.",
+      "responsibility": "One batch worker takes up to maxBatch queued chunks, or what arrived within the batch window, per modeled GPU call and records compute receipts by chunk ID before fan-out. Batching speed is a parameter, not measured hardware proof.",
       "stateOwnership": [
         "active batch",
         "compute receipts"
@@ -261,10 +261,11 @@
           "id": "out-l025.pull-cdn.jobs"
         }
       ],
-      "responsibility": "Compute finite immutable chunks once, publish a committed manifest, and let each subscriber pull at its own rate through the CDN.",
+      "responsibility": "Compute finite immutable chunks once, publish versioned manifests with explicit gaps, and let each subscriber pull at its own rate through the CDN.",
       "stateOwnership": [
-        "manifest version",
-        "chunk retention boundary"
+        "manifest versions",
+        "retention floor",
+        "content-key reference counts"
       ],
       "version": 1
     },
@@ -287,10 +288,11 @@
           "id": "out-l025.pull-cdn.compute"
         }
       ],
-      "responsibility": "Admit source chunks into a finite deduplicated batch queue independent of subscriber demand; expose rejected identities.",
+      "responsibility": "Admit source chunks into a finite deduplicated batch queue independent of subscriber demand. A repeated chunk ID returns its existing outcome; a chunk refused because the queue is full is published as an explicit rejected gap in the next manifest version.",
       "stateOwnership": [
         "finite jobs",
-        "queue bound"
+        "queue bound",
+        "outcome per chunk ID"
       ],
       "version": 1
     },
@@ -339,9 +341,10 @@
           "id": "out-l025.pull-cdn.manifest"
         }
       ],
-      "responsibility": "Store immutable content keys with explicit retained sequence floor and per-stream byte budget; pruning never silently rewrites an old key.",
+      "responsibility": "Store immutable bytes by content key with one reference per manifest entry and one per in-flight read pin; pruning below the retained floor drops references and deletes bytes only when none remain, so a key shared with a retained chunk survives.",
       "stateOwnership": [
-        "chunk bytes",
+        "chunk bytes by content key",
+        "reference and pin counts",
         "retention floor"
       ],
       "version": 1
@@ -365,10 +368,10 @@
           "id": "out-l025.pull-cdn.cursor"
         }
       ],
-      "responsibility": "Publish sorted committed chunk identities and explicit gaps/rejections in an immutable version; consumer advances only past declared outcomes.",
+      "responsibility": "Each commit, rejection gap or floor change publishes a new immutable version holding sorted entries, explicit gaps and the retained floor; readers take one version and old versions are never edited.",
       "stateOwnership": [
         "manifest versions",
-        "committed prefix/gaps"
+        "committed entries and gaps"
       ],
       "version": 1
     },
@@ -391,7 +394,7 @@
           "id": "out-l025.pull-cdn.cdn"
         }
       ],
-      "responsibility": "Subscriber requests next identity with bounded concurrency and advances after its own successful receipt; publisher has no per-chunk push wait.",
+      "responsibility": "Subscriber requests next identity with bounded concurrency and advances after its own successful receipt or an explicit gap; the publisher keeps no per-subscriber slot or push wait.",
       "stateOwnership": [
         "subscriber next sequence"
       ],
@@ -416,10 +419,11 @@
           "id": "out-l025.pull-cdn.expiry"
         }
       ],
-      "responsibility": "Coalesce identical content-key misses; cap distinct fills and waiters, verify payload hash, and keep fill cancellation independent per waiter.",
+      "responsibility": "In one step under the manifest lock, check the floor and pin the entry's content key; then coalesce identical misses, cap fills and waiters, verify the payload hash and unpin. Waiter cancellation stays independent.",
       "stateOwnership": [
         "content cache",
-        "in-flight key map"
+        "in-flight key map",
+        "read pins"
       ],
       "version": 1
     },
@@ -437,7 +441,7 @@
           "id": "in-l025.pull-cdn.expiry"
         }
       ],
-      "responsibility": "Return 410 with current floor and manifest version; require an explicit skip/reset or archived recovery source rather than claiming continuous delivery.",
+      "responsibility": "Return 410 with current floor and manifest version; require an explicit skip/reset that records the skipped range, or an archived recovery source, rather than claiming continuous delivery.",
       "stateOwnership": [
         "reset receipts"
       ],
@@ -450,13 +454,12 @@
       "request": {
         "chunkId": "monotonic finite chunk sequence",
         "payloadHash": "hash of immutable bytes",
-        "streamId": "stable finite stream ID",
-        "subscriberId": "recipient identity"
+        "streamId": "stable finite stream ID"
       },
       "response": {
         "chunkId": "same immutable identity",
-        "reason": "explicit failure or none",
-        "state": "queued|computed|delivered|acked|rejected|expired"
+        "reason": "queue-full or none",
+        "state": "queued|rejected|duplicate"
       },
       "version": 1
     },
@@ -475,7 +478,7 @@
     {
       "id": "l025.push-slots.gpu",
       "request": {
-        "batch": "bounded chunk IDs"
+        "batch": "up to maxBatch chunk IDs"
       },
       "response": {
         "outputs": "immutable chunks"
@@ -543,13 +546,12 @@
       "request": {
         "chunkId": "monotonic finite chunk sequence",
         "payloadHash": "hash of immutable bytes",
-        "streamId": "stable finite stream ID",
-        "subscriberId": "recipient identity"
+        "streamId": "stable finite stream ID"
       },
       "response": {
-        "chunkId": "same immutable identity",
-        "reason": "explicit failure or none",
-        "state": "queued|computed|delivered|acked|rejected|expired"
+        "duplicate": "true when the chunk ID was already admitted; state is its existing outcome",
+        "manifestVersion": "version recording a rejection gap",
+        "state": "queued|rejected"
       },
       "version": 1
     },
@@ -560,7 +562,8 @@
         "streamId": "identity"
       },
       "response": {
-        "admitted": "boolean"
+        "admitted": "boolean",
+        "duplicate": "boolean"
       },
       "version": 1
     },
@@ -602,7 +605,7 @@
         "manifestVersion": "integer"
       },
       "response": {
-        "nextRequest": "chunk ID or wait"
+        "nextRequest": "chunk ID, gap step or wait"
       },
       "version": 1
     },
@@ -639,18 +642,18 @@
     "requirements": [
       {
         "id": "r0",
-        "text": "Bound GPU batch queue, fan-out slots and cache-fill work; retain explicit rejected and unfinished chunks."
+        "text": "Bound GPU batch queue, per-subscriber delivery state and cache-fill work; retain explicit rejected and unfinished chunks."
       },
       {
         "id": "r1",
-        "text": "Acknowledge per-subscriber delivery separately from compute completion; a slow subscriber cannot silently consume unbounded memory."
+        "text": "Track per-subscriber delivery progress separately from compute completion; a slow subscriber cannot silently consume unbounded memory."
       },
       {
         "id": "r2",
         "text": "Coalesce concurrent same-chunk CDN misses; define cancellation, retry identity and retained-history expiry."
       }
     ],
-    "scope": "Authored bounded streaming study retaining the catalogue scope: synthetic finite video chunks, GPU batch work, acknowledged fan-out slots, coalescing CDN cache and one slow consumer. Compare push fan-out with bounded rejection against pull delivery from immutable CDN chunks. No codec, player, real GPU speedup, production sizing or infinite-stream claim.",
+    "scope": "Authored bounded streaming study of the catalogue scenario: synthetic finite video chunks, GPU batch work, a coalescing CDN cache and one slow consumer. The push approach holds acknowledged per-subscriber fan-out slots; the pull approach replaces them with subscriber-owned cursors over immutable, retention-bounded manifest versions and holds no per-subscriber slot. No codec, player, real GPU speedup, production sizing or infinite-stream claim.",
     "studyLabel": "Finite streaming burst with a slow subscriber"
   },
   "provenance": {
@@ -674,35 +677,51 @@
           "evidence": {
             "kind": "reference-test",
             "testFile": "tools/simulatte/study-reference/batch-08-mechanisms.test.mjs",
-            "testName": "batch-08 streaming: bounded slots and coalesced fill"
+            "testName": "batch-08 streaming push: batch admission and ACK windows"
           },
-          "given": "Two consumers, capacity one per subscriber, one ACK withheld.",
+          "given": "Two subscribers with a window of one each; the slow one withholds its ACK.",
           "id": "behavior",
           "relatedRequirementIds": [
             "r0",
-            "r1",
-            "r2"
+            "r1"
           ],
-          "then": "Fast consumer progresses; slow outstanding slots stay bounded; rejection/reset is visible; stale-session ACK cannot free a new slot.",
-          "when": "Send two chunks, duplicate ACK, disconnect/reconnect the slow consumer."
+          "then": "The fast subscriber progresses; the slow one holds at most one outstanding chunk and its second chunk is recorded rejected-slow; disconnect records the unacknowledged chunk; stale-session and duplicate ACKs free nothing.",
+          "when": "Send two chunks, ACK the fast subscriber, disconnect and reconnect the slow one, then replay its old-session ACK and a duplicate ACK."
         },
         {
-          "given": "Two simultaneous cache misses request the same immutable chunk.",
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-08-mechanisms.test.mjs",
+            "testName": "batch-08 streaming push: batch admission and ACK windows"
+          },
+          "given": "A batch queue of capacity 4 with maxBatch 3 and a producer burst of 10 chunks while the worker is busy.",
+          "id": "batching",
+          "relatedRequirementIds": [
+            "r0"
+          ],
+          "then": "Chunks 0-3 are queued and 4-9 are recorded rejected-compute at submission; the worker computes [0,1,2] then [3] in two GPU calls; resubmitting chunk 0 is a duplicate, not new work.",
+          "when": "Submit the burst, then run the batch worker until the queue is empty."
+        },
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-08-mechanisms.test.mjs",
+            "testName": "batch-08 streaming: coalesced fill and cancellation"
+          },
+          "given": "Two simultaneous cache misses for the same immutable chunk.",
           "id": "boundary",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
             "r2"
           ],
-          "then": "One fill executes, live waiter receives matching bytes, canceled waiter receives no completion, and failures release in-flight entries.",
-          "when": "Start both fills, cancel one waiter, then complete the fill."
+          "then": "One fill executes; the live waiter receives the bytes; the canceled waiter receives no completion; a failed fill clears its in-flight entry so an explicit retry succeeds.",
+          "when": "Start both fills, cancel one waiter, complete the fill, then fail and retry a different key."
         }
       ],
       "algorithms": [
         {
-          "code": "for(const chunk of finiteInput) {\n if(!gpuQueue.tryPut(chunk)) {record(chunk,\"rejected-compute\");continue;}\n const bytes=await computeBatch(chunk);\n for(const session of currentSessions) {\n  if(session.outstanding.size>=window) {record(chunk,session,\"rejected-slow\");continue;}\n  session.outstanding.add(chunk.id);send(session,await cache.getOrFill(chunk.hash,bytes));\n }\n}\nonAck(sessionEpoch,chunkId) { const s=currentSession(sessionEpoch);\n if(s)s.outstanding.delete(chunkId); }\n// Completion report retains every rejected and outstanding identity.",
+          "code": "submit(chunk) {                                   // producer never awaits compute\n if(computed.has(chunk.id) || gpuQueue.has(chunk.id)) return \"duplicate\";\n if(!gpuQueue.tryPut(chunk)) { record(chunk,\"rejected-compute\"); return \"rejected\"; }\n return \"queued\"; }\nasync batchWorker() { for(;;) {\n const batch=await gpuQueue.takeBatch(maxBatch, batchWindowMs);   // up to maxBatch per GPU call\n if(!batch.length && gpuQueue.closed) return;\n const outputs=await computeBatch(batch); recordComputed(outputs);\n for(const out of outputs) { const bytes=await cache.getOrFill(out.hash,()=>out.bytes);\n  for(const session of currentSessions) {\n   if(session.outstanding.size>=window) {record(out.id,session,\"rejected-slow\");continue;}\n   session.outstanding.add(out.id); send(session,bytes); } } } }\nonAck(subscriberId,sessionEpoch,chunkId) { const s=sessions.get(subscriberId);\n if(s && s.epoch===sessionEpoch) s.outstanding.delete(chunkId); }\n// Completion report retains every rejected and outstanding identity.",
           "guarantees": [
-            "Per-session occupancy is bounded; ACK and compute completion are not conflated."
+            "The queue bound applies to producer bursts; GPU work is batched; per-session occupancy is bounded; ACK and compute completion are not conflated."
           ],
           "id": "mechanism-0",
           "language": "typescript-pseudocode",
@@ -711,16 +730,24 @@
       ],
       "apis": [
         {
-          "errors": "429 bounded queue full; 409 same chunk identity different bytes; 410 requested chunk expired; disconnected acknowledgements do not release another session slot",
+          "errors": "429 batch queue full, recorded as rejected-compute; 409 same chunk identity with different bytes",
           "method": "POST",
           "ownerNodeId": "owner",
           "path": "/streams/{streamId}/chunks",
-          "request": "{\"streamId\":\"stable finite stream ID\",\"chunkId\":\"monotonic finite chunk sequence\",\"payloadHash\":\"hash of immutable bytes\",\"subscriberId\":\"recipient identity\"}",
-          "response": "{\"state\":\"queued|computed|delivered|acked|rejected|expired\",\"chunkId\":\"same immutable identity\",\"reason\":\"explicit failure or none\"}"
+          "request": "{\"streamId\":\"stable finite stream ID\",\"chunkId\":\"monotonic finite chunk sequence\",\"payloadHash\":\"hash of immutable bytes\"}",
+          "response": "{\"state\":\"queued|rejected|duplicate\",\"chunkId\":\"same immutable identity\",\"reason\":\"queue-full or none\"}"
+        },
+        {
+          "errors": "Unknown, duplicate or stale-session ACKs release nothing",
+          "method": "POST",
+          "ownerNodeId": "ack",
+          "path": "/streams/{streamId}/acks",
+          "request": "{\"subscriberId\":\"recipient identity\",\"sessionId\":\"session epoch\",\"chunkId\":\"outstanding chunk\"}",
+          "response": "{\"released\":\"boolean\"}"
         }
       ],
       "assumptions": [
-        "Only a declared finite set of chunks exists. ACK is an application protocol event, not proof of playback. Retry uses stream/chunk/subscriber/session identities.",
+        "Only a declared finite set of chunks exists. ACK is an application protocol event, not proof of playback. Retry uses stream/chunk identities, plus subscriber/session identities where push sessions exist.",
         "All added requirements and walkthroughs are authored practice. Graphs specify design; reference tests prove only named bounded mechanisms."
       ],
       "chooseWhen": "Low delivery latency matters and slow consumers may be rejected or disconnected under explicit policy.",
@@ -733,7 +760,7 @@
         {
           "checkIds": [
             "behavior",
-            "boundary"
+            "batching"
           ],
           "explanation": "Admit finite chunk work, execute bounded GPU batches and retain separate per-subscriber outstanding identities until acknowledged. GPU completion and each subscriber ACK are separate states. [Presence information](https://en.wikipedia.org/wiki/Presence_information) describes a recently observed connection or activity. It is time-bounded evidence, not proof that a person or device will remain reachable after the observation.",
           "graph": {
@@ -832,10 +859,9 @@
         },
         {
           "checkIds": [
-            "behavior",
-            "boundary"
+            "batching"
           ],
-          "explanation": "Admit into a finite queue by chunk identity; reject when full and never treat rejection as completed work. Every submitted chunk is queued, rejected or explicitly unfinished. [A queue](https://en.wikipedia.org/wiki/Queue_%28abstract_data_type%29) separates accepting work from completing it. Capacity, ordering, ownership, and shutdown behavior determine what producers and consumers may safely assume about each item.",
+          "explanation": "submit() only tries to enqueue by chunk identity and answers queued, duplicate or rejected immediately; it never awaits GPU completion, so a burst fills the finite queue and the overflow is rejected visibly. Every submitted chunk is queued, a duplicate, or recorded rejected at submission; rejection is never reported as completed work. [A queue](https://en.wikipedia.org/wiki/Queue_%28abstract_data_type%29) separates accepting work from completing it.",
           "graph": {
             "edges": [
               {
@@ -902,7 +928,7 @@
           },
           "id": "push-slots-s2",
           "invariants": [
-            "Every submitted chunk is queued, rejected or explicitly unfinished."
+            "Every submitted chunk is queued, a duplicate, or recorded rejected at submission; rejection is never reported as completed work."
           ],
           "number": 2,
           "operations": [
@@ -938,15 +964,14 @@
             }
           ],
           "question": "What if production outruns GPU batch completion?",
-          "reason": "Admit into a finite queue by chunk identity; reject when full and never treat rejection as completed work.",
+          "reason": "submit() only tries to enqueue by chunk identity and answers queued, duplicate or rejected immediately; it never awaits GPU completion, so a burst fills the finite queue and the overflow is rejected visibly.",
           "title": "Bound pending compute"
         },
         {
           "checkIds": [
-            "behavior",
-            "boundary"
+            "batching"
           ],
-          "explanation": "Claim a batch with stable chunk IDs; record modeled compute completion before fan-out. Batching speed is a parameter, not measured hardware proof. A duplicate chunk identity cannot change immutable output bytes. [Data ingestion](https://en.wikipedia.org/wiki/Data_integration) moves source records into a usable destination. Stable source identity and progress records distinguish genuinely new data from repeated delivery or a restarted import.",
+          "explanation": "One batch worker takes up to maxBatch queued chunks, or what arrived within the batch window, per modeled GPU call and records compute receipts by chunk ID before fan-out. Batching speed is a parameter, not measured hardware proof. One GPU call covers at most maxBatch chunks, and each chunk ID is computed once with immutable output bytes. [Data ingestion](https://en.wikipedia.org/wiki/Data_integration) moves source records into a usable destination.",
           "graph": {
             "edges": [
               {
@@ -984,7 +1009,7 @@
                   "portId": "out-l025.push-slots.gpu"
                 },
                 "id": "use-gpu",
-                "label": "Complete one finite batch",
+                "label": "Complete one bounded batch",
                 "mode": "local-call",
                 "to": {
                   "nodeId": "gpu",
@@ -1037,7 +1062,7 @@
           },
           "id": "push-slots-s3",
           "invariants": [
-            "A duplicate chunk identity cannot change immutable output bytes."
+            "One GPU call covers at most maxBatch chunks, and each chunk ID is computed once with immutable output bytes."
           ],
           "number": 3,
           "operations": [
@@ -1062,7 +1087,7 @@
                   "portId": "out-l025.push-slots.gpu"
                 },
                 "id": "use-gpu",
-                "label": "Complete one finite batch",
+                "label": "Complete one bounded batch",
                 "mode": "local-call",
                 "to": {
                   "nodeId": "gpu",
@@ -1073,13 +1098,12 @@
             }
           ],
           "question": "Can one timed-out request duplicate compute identity?",
-          "reason": "Claim a batch with stable chunk IDs; record modeled compute completion before fan-out. Batching speed is a parameter, not measured hardware proof.",
-          "title": "Complete one finite batch"
+          "reason": "One batch worker takes up to maxBatch queued chunks, or what arrived within the batch window, per modeled GPU call and records compute receipts by chunk ID before fan-out. Batching speed is a parameter, not measured hardware proof.",
+          "title": "Complete one bounded batch"
         },
         {
           "checkIds": [
-            "behavior",
-            "boundary"
+            "behavior"
           ],
           "explanation": "Track outstanding chunk IDs per subscriber/session with a fixed window; full subscribers receive a visible refusal or disconnection. No subscriber holds more than its configured window. [Stream processing](https://en.wikipedia.org/wiki/Stream_processing) updates results as events arrive. Arrival order may differ from event time, so late-data rules and bounded retained state are part of the result definition.",
           "graph": {
@@ -1119,7 +1143,7 @@
                   "portId": "out-l025.push-slots.gpu"
                 },
                 "id": "use-gpu",
-                "label": "Complete one finite batch",
+                "label": "Complete one bounded batch",
                 "mode": "local-call",
                 "to": {
                   "nodeId": "gpu",
@@ -1237,7 +1261,6 @@
         },
         {
           "checkIds": [
-            "behavior",
             "boundary"
           ],
           "explanation": "Maintain immutable content-key cache and single in-flight promise per key; bound distinct fill concurrency and waiter count. A fill failure clears the in-flight entry so a later explicit retry may proceed. [A cache](https://en.wikipedia.org/wiki/Cache_replacement_policies) keeps reusable results in limited memory. Eviction controls space, while ownership and invalidation rules determine whether a returned value is still safe to use.",
@@ -1278,7 +1301,7 @@
                   "portId": "out-l025.push-slots.gpu"
                 },
                 "id": "use-gpu",
-                "label": "Complete one finite batch",
+                "label": "Complete one bounded batch",
                 "mode": "local-call",
                 "to": {
                   "nodeId": "gpu",
@@ -1420,8 +1443,7 @@
         },
         {
           "checkIds": [
-            "behavior",
-            "boundary"
+            "behavior"
           ],
           "explanation": "Verify subscriber, session epoch and outstanding chunk ID; delete once. Unknown or duplicate ACKs change no occupancy. An old session cannot free a new-session outstanding chunk. [Idempotence](https://en.wikipedia.org/wiki/Idempotence) means repeating the same logical operation does not repeat its effect. Stable request identities let a retry recover an existing outcome instead of creating another change.",
           "graph": {
@@ -1461,7 +1483,7 @@
                   "portId": "out-l025.push-slots.gpu"
                 },
                 "id": "use-gpu",
-                "label": "Complete one finite batch",
+                "label": "Complete one bounded batch",
                 "mode": "local-call",
                 "to": {
                   "nodeId": "gpu",
@@ -1627,8 +1649,7 @@
         },
         {
           "checkIds": [
-            "behavior",
-            "boundary"
+            "behavior"
           ],
           "explanation": "Expire or disconnect a session under declared deadline, release its local slots and retain explicit undelivered IDs; do not count them as acknowledged. Resource reclamation is not delivery success. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid. Expiration must be checked at the point of use, even when background cleanup runs later.",
           "graph": {
@@ -1668,7 +1689,7 @@
                   "portId": "out-l025.push-slots.gpu"
                 },
                 "id": "use-gpu",
-                "label": "Complete one finite batch",
+                "label": "Complete one bounded batch",
                 "mode": "local-call",
                 "to": {
                   "nodeId": "gpu",
@@ -1859,9 +1880,9 @@
         {
           "checkIds": [
             "behavior",
-            "boundary"
+            "batching"
           ],
-          "explanation": "For every submitted chunk and subscriber record delivered/ACKed/rejected/unfinished outcome; separate compute totals from fan-out totals. The finite input ledger balances without inventing completion. [Publish–subscribe](https://en.wikipedia.org/wiki/Publish%E2%80%93subscribe_pattern) separates producing an update from distributing it to interested consumers. Delivery cost shifts depending on whether work is performed when writing or when someone reads. Consider this case: Two consumers, capacity one per subscriber, one ACK withheld.",
+          "explanation": "For every submitted chunk and subscriber record delivered/ACKed/rejected/unfinished outcome; separate compute totals from fan-out totals. The finite input ledger balances without inventing completion. [Publish–subscribe](https://en.wikipedia.org/wiki/Publish%E2%80%93subscribe_pattern) separates producing an update from distributing it to interested consumers. Delivery cost shifts depending on whether work is performed when writing or when someone reads. Consider this case: Two subscribers with a window of one each; the slow one withholds its ACK.",
           "graph": {
             "edges": [
               {
@@ -1899,7 +1920,7 @@
                   "portId": "out-l025.push-slots.gpu"
                 },
                 "id": "use-gpu",
-                "label": "Complete one finite batch",
+                "label": "Complete one bounded batch",
                 "mode": "local-call",
                 "to": {
                   "nodeId": "gpu",
@@ -2124,35 +2145,52 @@
           "evidence": {
             "kind": "reference-test",
             "testFile": "tools/simulatte/study-reference/batch-08-mechanisms.test.mjs",
-            "testName": "batch-08 streaming: bounded slots and coalesced fill"
+            "testName": "batch-08 streaming pull: manifest gaps, retention floor and pinned reads"
           },
-          "given": "Two consumers, capacity one per subscriber, one ACK withheld.",
-          "id": "behavior",
+          "given": "A queue bound of two: chunks 0 and 1 admitted, chunk 2 refused, then duplicate submissions of 0 and 2.",
+          "id": "manifest",
           "relatedRequirementIds": [
             "r0",
-            "r1",
-            "r2"
+            "r1"
           ],
-          "then": "Fast consumer progresses; slow outstanding slots stay bounded; rejection/reset is visible; stale-session ACK cannot free a new slot.",
-          "when": "Send two chunks, duplicate ACK, disconnect/reconnect the slow consumer."
+          "then": "The refusal is published as a gap in its own manifest version; duplicates return their existing outcome instead of a new rejection; the cursor receives 0 and 1, steps over gap 2 and then waits; the version holding the gap is unchanged by later commits.",
+          "when": "Commit 0 and 1, then walk a cursor from 0."
         },
         {
-          "given": "Two simultaneous cache misses request the same immutable chunk.",
-          "id": "boundary",
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-08-mechanisms.test.mjs",
+            "testName": "batch-08 streaming pull: manifest gaps, retention floor and pinned reads"
+          },
+          "given": "Five committed chunks where 0 and 4 have identical bytes, and a read of chunk 1 already past its floor check.",
+          "id": "retention",
           "relatedRequirementIds": [
-            "r0",
             "r1",
             "r2"
           ],
-          "then": "One fill executes, live waiter receives matching bytes, canceled waiter receives no completion, and failures release in-flight entries.",
-          "when": "Start both fills, cancel one waiter, then complete the fill."
+          "then": "The in-flight read still returns chunk 1's bytes, which are deleted only after it unpins; the shared key survives for chunk 4; the repeat request gets 410 with floor 3; reset records the skipped range [1,3); chunks 3 and 4 read normally.",
+          "when": "Raise the floor to 3, finish the read, request chunk 1 again, reset the cursor, then read 3 and 4."
+        },
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-08-mechanisms.test.mjs",
+            "testName": "batch-08 streaming: coalesced fill and cancellation"
+          },
+          "given": "Two simultaneous cache misses for the same immutable chunk.",
+          "id": "boundary",
+          "relatedRequirementIds": [
+            "r2"
+          ],
+          "then": "One fill executes; the live waiter receives the bytes; the canceled waiter receives no completion; a failed fill clears its in-flight entry so an explicit retry succeeds.",
+          "when": "Start both fills, cancel one waiter, complete the fill, then fail and retry a different key."
         }
       ],
       "algorithms": [
         {
-          "code": "publishChunk(chunk) {\n if(!queue.tryPutUnique(chunk.id))return recordRejected(chunk.id);\n const bytes=computeFiniteBatch(chunk);const key=hash(bytes);\n spool.putImmutable(key,bytes);manifest.commitEntry(chunk.id,key);\n}\nasync pull(cursor) { const m=manifest.snapshot();\n if(cursor.next<m.floor)throw Expired(m.floor,m.version);\n const entry=m.entry(cursor.next);if(!entry)return NotReadyOrExplicitGap(m);\n const bytes=await cdn.getOrFill(entry.hash,()=>spool.read(entry.hash));\n verifyHash(bytes,entry.hash);return {chunkId:entry.id,bytes,next:entry.id+1};\n}",
+          "code": "admit(chunk) { const prior=outcomes.get(chunk.id);\n if(prior) return {state:prior,duplicate:true};                  // a retry, not a rejection\n if(!queue.tryPut(chunk.id)) { outcomes.set(chunk.id,\"rejected\");\n  manifest.publish(m=>m.gap(chunk.id,\"rejected\")); return {state:\"rejected\"}; }\n outcomes.set(chunk.id,\"queued\"); return {state:\"queued\"}; }\ncomplete(id,bytes) { const key=hash(bytes); spool.putRef(key,bytes);   // one reference per entry\n manifest.publish(m=>m.entry(id,key)); }\nprune(floor) { const dropped=manifest.publish(m=>m.raiseFloor(floor));\n for(const e of dropped) spool.unref(e.key); }                  // bytes go only at zero refs and pins\nasync pull(cursor) { const {m,entry}=manifest.withLock(()=>{ const m=manifest.snapshot();\n  if(cursor.next<m.floor) return {m};\n  const entry=m.entry(cursor.next); if(entry?.key) spool.pin(entry.key); return {m,entry}; });\n if(cursor.next<m.floor) return Expired410(m.floor,m.version);\n if(!entry) return NotReady(m.version);\n if(entry.outcome===\"rejected\") return {gap:entry.id,next:entry.id+1,version:m.version};\n try { const bytes=await cdn.getOrFill(entry.key,()=>spool.read(entry.key));\n  verifyHash(bytes,entry.key); return {chunkId:entry.id,bytes,next:entry.id+1,version:m.version};\n } finally { spool.unpin(entry.key); } }",
           "guarantees": [
-            "Pull demand is independent; retained history is bounded and expiration is explicit."
+            "Pull demand is independent; rejected chunks are explicit gaps; retained bytes are reference-counted and pinned across reads; expiration is explicit."
           ],
           "id": "mechanism-0",
           "language": "typescript-pseudocode",
@@ -2161,16 +2199,24 @@
       ],
       "apis": [
         {
-          "errors": "429 bounded queue full; 409 same chunk identity different bytes; 410 requested chunk expired; disconnected acknowledgements do not release another session slot",
+          "errors": "Queue full records an explicit rejected gap in the next manifest version; 409 same chunk identity with different bytes",
           "method": "POST",
           "ownerNodeId": "owner",
           "path": "/streams/{streamId}/chunks",
-          "request": "{\"streamId\":\"stable finite stream ID\",\"chunkId\":\"monotonic finite chunk sequence\",\"payloadHash\":\"hash of immutable bytes\",\"subscriberId\":\"recipient identity\"}",
-          "response": "{\"state\":\"queued|computed|delivered|acked|rejected|expired\",\"chunkId\":\"same immutable identity\",\"reason\":\"explicit failure or none\"}"
+          "request": "{\"streamId\":\"stable finite stream ID\",\"chunkId\":\"monotonic finite chunk sequence\",\"payloadHash\":\"hash of immutable bytes\"}",
+          "response": "{\"state\":\"queued|rejected\",\"duplicate\":\"true when the chunk ID was already admitted; state is its existing outcome\",\"manifestVersion\":\"version recording a rejection gap\"}"
+        },
+        {
+          "errors": "410 below the retained floor with the current floor and version; never a different chunk under the same identity; the read changes no publisher state",
+          "method": "GET",
+          "ownerNodeId": "cdn",
+          "path": "/streams/{streamId}/chunks/{seq}",
+          "request": "{\"streamId\":\"stable finite stream ID\",\"seq\":\"cursor position\",\"manifestVersion\":\"last version seen, optional\"}",
+          "response": "{\"state\":\"available|gap|not-ready|expired\",\"bytes\":\"verified chunk when available\",\"next\":\"next sequence to request\",\"floor\":\"retained floor when expired\",\"manifestVersion\":\"version read\"}"
         }
       ],
       "assumptions": [
-        "Only a declared finite set of chunks exists. ACK is an application protocol event, not proof of playback. Retry uses stream/chunk/subscriber/session identities.",
+        "Only a declared finite set of chunks exists. ACK is an application protocol event, not proof of playback. Retry uses stream/chunk identities, plus subscriber/session identities where push sessions exist.",
         "All added requirements and walkthroughs are authored practice. Graphs specify design; reference tests prove only named bounded mechanisms."
       ],
       "chooseWhen": "Consumers may lag independently and storage retention can absorb a bounded burst.",
@@ -2182,10 +2228,9 @@
       "stages": [
         {
           "checkIds": [
-            "behavior",
-            "boundary"
+            "manifest"
           ],
-          "explanation": "Compute finite immutable chunks once, publish a committed manifest, and let each subscriber pull at its own rate through the CDN. Each subscriber requests the next chunk only when it is ready. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version.",
+          "explanation": "Compute finite immutable chunks once, publish versioned manifests with explicit gaps, and let each subscriber pull at its own rate through the CDN. Each subscriber requests the next chunk only when it is ready; the publisher holds no ACK slot. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version.",
           "graph": {
             "edges": [
               {
@@ -2228,7 +2273,7 @@
           },
           "id": "pull-cdn-s1",
           "invariants": [
-            "Each subscriber requests the next chunk only when it is ready."
+            "Each subscriber requests the next chunk only when it is ready; the publisher holds no ACK slot."
           ],
           "number": 1,
           "operations": [
@@ -2277,15 +2322,14 @@
             }
           ],
           "question": "Who decides when the slow consumer receives the next chunk?",
-          "reason": "Compute finite immutable chunks once, publish a committed manifest, and let each subscriber pull at its own rate through the CDN.",
+          "reason": "Compute finite immutable chunks once, publish versioned manifests with explicit gaps, and let each subscriber pull at its own rate through the CDN.",
           "title": "Expose Manifest publisher"
         },
         {
           "checkIds": [
-            "behavior",
-            "boundary"
+            "manifest"
           ],
-          "explanation": "Admit source chunks into a finite deduplicated batch queue independent of subscriber demand; expose rejected identities. Repeated pulls cannot schedule duplicate chunk computation. [Idempotence](https://en.wikipedia.org/wiki/Idempotence) means repeating the same logical operation does not repeat its effect. Stable request identities let a retry recover an existing outcome instead of creating another change.",
+          "explanation": "Admit source chunks into a finite deduplicated batch queue independent of subscriber demand. A repeated chunk ID returns its existing outcome; a chunk refused because the queue is full is published as an explicit rejected gap in the next manifest version. Repeated submissions never schedule duplicate computation and are never recorded as rejections. [A queue](https://en.wikipedia.org/wiki/Queue_%28abstract_data_type%29) separates accepting work from completing it.",
           "graph": {
             "edges": [
               {
@@ -2352,7 +2396,7 @@
           },
           "id": "pull-cdn-s2",
           "invariants": [
-            "Repeated pulls cannot schedule duplicate chunk computation."
+            "Repeated submissions never schedule duplicate computation and are never recorded as rejections."
           ],
           "number": 2,
           "operations": [
@@ -2388,15 +2432,14 @@
             }
           ],
           "question": "Can pull traffic create unlimited GPU work?",
-          "reason": "Admit source chunks into a finite deduplicated batch queue independent of subscriber demand; expose rejected identities.",
+          "reason": "Admit source chunks into a finite deduplicated batch queue independent of subscriber demand. A repeated chunk ID returns its existing outcome; a chunk refused because the queue is full is published as an explicit rejected gap in the next manifest version.",
           "title": "Admit finite compute work"
         },
         {
           "checkIds": [
-            "behavior",
-            "boundary"
+            "manifest"
           ],
-          "explanation": "Finish modeled batch output, hash bytes and store immutable chunk before publishing its manifest entry. No advertised entry points to an uncommitted output. [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers. Publishing one reference lets each reader keep a consistent version. Consider this case: Two consumers, capacity one per subscriber, one ACK withheld.",
+          "explanation": "Finish modeled batch output, hash bytes and store immutable chunk before publishing its manifest entry. No advertised entry points to an uncommitted output. [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers. Publishing one reference lets each reader keep a consistent version. Consider this case: A queue bound of two: chunks 0 and 1 admitted, chunk 2 refused, then duplicate submissions of 0 and 2.",
           "graph": {
             "edges": [
               {
@@ -2528,10 +2571,9 @@
         },
         {
           "checkIds": [
-            "behavior",
-            "boundary"
+            "retention"
           ],
-          "explanation": "Store immutable content keys with explicit retained sequence floor and per-stream byte budget; pruning never silently rewrites an old key. A pruned chunk returns expired, never a different chunk under the same identity. [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers. Publishing one reference lets each reader keep a consistent version.",
+          "explanation": "Store immutable bytes by content key with one reference per manifest entry and one per in-flight read pin; pruning below the retained floor drops references and deletes bytes only when none remain, so a key shared with a retained chunk survives. A pruned entry returns expired, never a different chunk, and bytes still referenced or pinned are never deleted. [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers.",
           "graph": {
             "edges": [
               {
@@ -2646,7 +2688,7 @@
           },
           "id": "pull-cdn-s4",
           "invariants": [
-            "A pruned chunk returns expired, never a different chunk under the same identity."
+            "A pruned entry returns expired, never a different chunk, and bytes still referenced or pinned are never deleted."
           ],
           "number": 4,
           "operations": [
@@ -2682,15 +2724,14 @@
             }
           ],
           "question": "What if a subscriber pauses?",
-          "reason": "Store immutable content keys with explicit retained sequence floor and per-stream byte budget; pruning never silently rewrites an old key.",
+          "reason": "Store immutable bytes by content key with one reference per manifest entry and one per in-flight read pin; pruning below the retained floor drops references and deletes bytes only when none remain, so a key shared with a retained chunk survives.",
           "title": "Retain a finite replay window"
         },
         {
           "checkIds": [
-            "behavior",
-            "boundary"
+            "manifest"
           ],
-          "explanation": "Publish sorted committed chunk identities and explicit gaps/rejections in an immutable version; consumer advances only past declared outcomes. A higher manifest version never changes old content hashes. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call.",
+          "explanation": "Each commit, rejection gap or floor change publishes a new immutable version holding sorted entries, explicit gaps and the retained floor; readers take one version and old versions are never edited. A higher manifest version never changes old content hashes, and every rejected chunk appears as a gap a cursor can step over. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure.",
           "graph": {
             "edges": [
               {
@@ -2829,7 +2870,7 @@
           },
           "id": "pull-cdn-s5",
           "invariants": [
-            "A higher manifest version never changes old content hashes."
+            "A higher manifest version never changes old content hashes, and every rejected chunk appears as a gap a cursor can step over."
           ],
           "number": 5,
           "operations": [
@@ -2865,15 +2906,15 @@
             }
           ],
           "question": "Can a subscriber skip a failed chunk?",
-          "reason": "Publish sorted committed chunk identities and explicit gaps/rejections in an immutable version; consumer advances only past declared outcomes.",
+          "reason": "Each commit, rejection gap or floor change publishes a new immutable version holding sorted entries, explicit gaps and the retained floor; readers take one version and old versions are never edited.",
           "title": "Publish committed sequence"
         },
         {
           "checkIds": [
-            "behavior",
-            "boundary"
+            "manifest",
+            "retention"
           ],
-          "explanation": "Subscriber requests next identity with bounded concurrency and advances after its own successful receipt; publisher has no per-chunk push wait. One slow cursor does not allocate publisher-side unbounded buffered chunks. [Presence information](https://en.wikipedia.org/wiki/Presence_information) describes a recently observed connection or activity. It is time-bounded evidence, not proof that a person or device will remain reachable after the observation.",
+          "explanation": "Subscriber requests next identity with bounded concurrency and advances after its own successful receipt or an explicit gap; the publisher keeps no per-subscriber slot or push wait. A slow cursor allocates no publisher-side state; retained bytes are bounded by the spool budget, not by cursor lag. [Presence information](https://en.wikipedia.org/wiki/Presence_information) describes a recently observed connection or activity. It is time-bounded evidence, not proof that a person or device will remain reachable after the observation.",
           "graph": {
             "edges": [
               {
@@ -3036,7 +3077,7 @@
           },
           "id": "pull-cdn-s6",
           "invariants": [
-            "One slow cursor does not allocate publisher-side unbounded buffered chunks."
+            "A slow cursor allocates no publisher-side state; retained bytes are bounded by the spool budget, not by cursor lag."
           ],
           "number": 6,
           "operations": [
@@ -3072,15 +3113,15 @@
             }
           ],
           "question": "Does the publisher hold an ACK slot while a subscriber sleeps?",
-          "reason": "Subscriber requests next identity with bounded concurrency and advances after its own successful receipt; publisher has no per-chunk push wait.",
+          "reason": "Subscriber requests next identity with bounded concurrency and advances after its own successful receipt or an explicit gap; the publisher keeps no per-subscriber slot or push wait.",
           "title": "Decouple slow demand"
         },
         {
           "checkIds": [
-            "behavior",
+            "retention",
             "boundary"
           ],
-          "explanation": "Coalesce identical content-key misses; cap distinct fills and waiters, verify payload hash, and keep fill cancellation independent per waiter. Canceling one waiter does not cancel a fill still needed by others. [A condition variable](https://en.wikipedia.org/wiki/Condition_variable) lets a thread sleep until shared state may have changed. Waking does not guarantee success, so the protected condition must be checked again.",
+          "explanation": "In one step under the manifest lock, check the floor and pin the entry's content key; then coalesce identical misses, cap fills and waiters, verify the payload hash and unpin. Waiter cancellation stays independent. A floor advance during a read cannot delete the bytes that read pinned, and canceling one waiter does not cancel a fill others still need. [A condition variable](https://en.wikipedia.org/wiki/Condition_variable) lets a thread sleep until shared state may have changed.",
           "graph": {
             "edges": [
               {
@@ -3267,7 +3308,7 @@
           },
           "id": "pull-cdn-s7",
           "invariants": [
-            "Canceling one waiter does not cancel a fill still needed by others."
+            "A floor advance during a read cannot delete the bytes that read pinned, and canceling one waiter does not cancel a fill others still need."
           ],
           "number": 7,
           "operations": [
@@ -3303,15 +3344,14 @@
             }
           ],
           "question": "What if many cursors miss one chunk?",
-          "reason": "Coalesce identical content-key misses; cap distinct fills and waiters, verify payload hash, and keep fill cancellation independent per waiter.",
+          "reason": "In one step under the manifest lock, check the floor and pin the entry's content key; then coalesce identical misses, cap fills and waiters, verify the payload hash and unpin. Waiter cancellation stays independent.",
           "title": "Bound cache fill work"
         },
         {
           "checkIds": [
-            "behavior",
-            "boundary"
+            "retention"
           ],
-          "explanation": "Return 410 with current floor and manifest version; require an explicit skip/reset or archived recovery source rather than claiming continuous delivery. Retention loss remains a visible gap in finite-stream accounting. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version.",
+          "explanation": "Return 410 with current floor and manifest version; require an explicit skip/reset that records the skipped range, or an archived recovery source, rather than claiming continuous delivery. Retention loss remains a visible gap in finite-stream accounting. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version.",
           "graph": {
             "edges": [
               {
@@ -3558,7 +3598,7 @@
             }
           ],
           "question": "Can a cursor resume below the retained floor?",
-          "reason": "Return 410 with current floor and manifest version; require an explicit skip/reset or archived recovery source rather than claiming continuous delivery.",
+          "reason": "Return 410 with current floor and manifest version; require an explicit skip/reset that records the skipped range, or an archived recovery source, rather than claiming continuous delivery.",
           "title": "Expose irrecoverable lag"
         }
       ],

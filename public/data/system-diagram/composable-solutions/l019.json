@@ -191,7 +191,7 @@
       ],
       "responsibility": "Publish a region as eligible only after manifest and all referenced segments have completion receipts.",
       "stateOwnership": [
-        "assetVersion, complete"
+        "per-region completion receipts"
       ],
       "version": 1
     },
@@ -366,7 +366,7 @@
       ],
       "responsibility": "Advertise short-lived possession claims scoped to region and asset version.",
       "stateOwnership": [
-        "peerId, segmentKey, expiresAt"
+        "short-lived possession claims by region"
       ],
       "version": 1
     },
@@ -416,7 +416,7 @@
       ],
       "responsibility": "Check the manifest hash before admitting a received segment.",
       "stateOwnership": [
-        "expectedHash, actualHash"
+        "hash verification verdicts"
       ],
       "version": 1
     },
@@ -451,7 +451,7 @@
         "version": 1
       },
       "id": "l019.peer-assisted.n7",
-      "label": "Regional origin shield",
+      "label": "Regional shield and failover",
       "ports": [
         {
           "contractId": "l019.peer-assisted.step7",
@@ -459,9 +459,9 @@
           "id": "in-l019.peer-assisted.step7"
         }
       ],
-      "responsibility": "Coalesce segment misses and enforce origin concurrency for the fallback path.",
+      "responsibility": "Coalesce segment misses and enforce origin concurrency for the fallback path; use the home region only while it is complete, healthy and has capacity, otherwise fail over to the eligible region with most spare capacity.",
       "stateOwnership": [
-        "inflightLimit, assetVersion"
+        "in-flight fallback fetches and regional eligibility"
       ],
       "version": 1
     },
@@ -492,14 +492,17 @@
       "request": {
         "assetVersion": "string",
         "deadlineMs": "integer",
-        "region": "string",
+        "region": "viewer region",
         "segmentId": "integer",
-        "token": "signed scope"
+        "token": "signed asset/version scope"
       },
       "response": {
-        "bytes": "byte[]",
-        "hash": "sha256",
-        "source": "cdn|peer|unavailable"
+        "bytes": "byte[]|null",
+        "hash": "sha256 from the manifest",
+        "providerId": "string|null",
+        "reason": "deadline|no-eligible-origin|null",
+        "routingEpoch": "integer signed routing generation",
+        "source": "cdn|unavailable"
       },
       "version": 1
     },
@@ -511,9 +514,9 @@
         "region": "string"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "chosenRegion": "string|null",
+        "decision": "home|failover|no-eligible-region",
+        "routingEpoch": "integer"
       },
       "version": 1
     },
@@ -524,9 +527,9 @@
         "contentHash": "sha256"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "bytes": "byte[]|null",
+        "contentHash": "sha256 verified",
+        "status": "hit|filled|unavailable"
       },
       "version": 1
     },
@@ -537,9 +540,8 @@
         "segmentKey": "string"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "bytes": "byte[]|null",
+        "status": "fetched|coalesced|deadline-exceeded"
       },
       "version": 1
     },
@@ -547,12 +549,11 @@
       "id": "l019.multi-cdn.step6",
       "request": {
         "assetVersion": "string",
-        "complete": "boolean"
+        "segmentKey": "asset/version/segment"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "bytes": "byte[]|null",
+        "eligible": "boolean; true only with completion receipts for the manifest and every segment"
       },
       "version": 1
     },
@@ -563,9 +564,9 @@
         "providerId": "string"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "attemptsUsed": "integer",
+        "bytes": "byte[]|null",
+        "status": "ok|failed|budget-exhausted"
       },
       "version": 1
     },
@@ -576,9 +577,8 @@
         "routingEpoch": "integer"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "excludedRegions": "string[]",
+        "nextRoutingEpoch": "integer"
       },
       "version": 1
     },
@@ -587,28 +587,28 @@
       "request": {
         "assetVersion": "string",
         "deadlineMs": "integer",
-        "region": "string",
+        "region": "viewer home region",
         "segmentId": "integer",
-        "token": "signed scope"
+        "token": "signed asset/version scope",
+        "uploadConsent": "consent epoch|null"
       },
       "response": {
-        "bytes": "byte[]",
-        "hash": "sha256",
-        "source": "cdn|peer|unavailable"
+        "bytes": "byte[]|null",
+        "fallbackRegion": "eligible origin region|null",
+        "hash": "sha256 from the manifest",
+        "peerId": "ephemeral ID|null",
+        "source": "peer|cdn|unavailable"
       },
       "version": 1
     },
     {
       "id": "l019.peer-assisted.step3",
       "request": {
-        "expiresAt": "timestamp",
-        "peerId": "ephemeral ID",
+        "region": "string",
         "segmentKey": "string"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "claims": "unverified (peerId, expiresAt)[] possession claims"
       },
       "version": 1
     },
@@ -619,22 +619,20 @@
         "segmentKey": "string"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "bytes": "byte[]|null",
+        "status": "received|timeout|refused"
       },
       "version": 1
     },
     {
       "id": "l019.peer-assisted.step5",
       "request": {
-        "actualHash": "sha256",
-        "expectedHash": "sha256"
+        "bytes": "byte[] from a peer or CDN",
+        "expectedHash": "sha256 from the manifest"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "actualHash": "sha256",
+        "verdict": "admit|discard"
       },
       "version": 1
     },
@@ -645,9 +643,8 @@
         "segmentKey": "string"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "startAt": "timestamp",
+        "status": "started|not-needed|deadline-missed"
       },
       "version": 1
     },
@@ -655,12 +652,13 @@
       "id": "l019.peer-assisted.step7",
       "request": {
         "assetVersion": "string",
+        "healthEpoch": "integer",
         "inflightLimit": "integer"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "bytes": "byte[]|null",
+        "region": "chosen eligible region|null",
+        "status": "fetched|coalesced|unavailable"
       },
       "version": 1
     },
@@ -671,9 +669,8 @@
         "consentEpoch": "integer"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "peerState": "active|expired|removed",
+        "uploadAllowed": "boolean"
       },
       "version": 1
     }
@@ -729,9 +726,7 @@
           "given": "A replica lacks one referenced segment.",
           "id": "case0",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
-            "r2"
+            "r1"
           ],
           "then": "Exclude the incomplete replica from eligible origins.",
           "when": "Fail the active region."
@@ -740,12 +735,37 @@
           "given": "A selected provider fails repeatedly.",
           "id": "case1",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
             "r2"
           ],
           "then": "Stop and expose unavailability rather than retry forever.",
           "when": "Exhaust the shared attempt or playback deadline budget."
+        },
+        {
+          "given": "Two viewers with different signed tokens request one segment.",
+          "id": "case2",
+          "relatedRequirementIds": [
+            "r0"
+          ],
+          "then": "Both use one asset/version/segment cache key; each token is checked per request and never enters the shared key.",
+          "when": "Resolve routing and cache keys."
+        },
+        {
+          "given": "A viral segment misses at many edges at once.",
+          "id": "case3",
+          "relatedRequirementIds": [
+            "r0"
+          ],
+          "then": "One bounded in-flight origin fetch per segment key; the coalesced key keeps asset/version identity.",
+          "when": "Misses reach the origin shield."
+        },
+        {
+          "given": "After failover, region B's error rate exceeds its bound.",
+          "id": "case4",
+          "relatedRequirementIds": [
+            "r1"
+          ],
+          "then": "The next signed epoch steers away from B; telemetry is not treated as proof of future capacity.",
+          "when": "Compute the next routing generation."
         },
         {
           "evidence": {
@@ -756,7 +776,7 @@
           "given": "Four authored origins differ in completeness, health and capacity.",
           "id": "bounded-mechanism",
           "relatedRequirementIds": [
-            "r0"
+            "r1"
           ],
           "then": "Return only the complete healthy origin with spare capacity.",
           "when": "Filter eligible origins."
@@ -780,12 +800,12 @@
       ],
       "apis": [
         {
-          "errors": "Reject invalid input, stale versions and operations outside the declared boundary.",
+          "errors": "Reject an invalid or out-of-scope token before routing; unavailable is explicit and returned before the playback deadline.",
           "method": "CALL",
           "ownerNodeId": "engine",
           "path": "L019/multi-cdn",
-          "request": "{\"assetVersion\":\"string\",\"segmentId\":\"integer\",\"region\":\"string\",\"deadlineMs\":\"integer\",\"token\":\"signed scope\"}",
-          "response": "{\"source\":\"cdn|peer|unavailable\",\"hash\":\"sha256\",\"bytes\":\"byte[]\"}"
+          "request": "{\"assetVersion\":\"string\",\"segmentId\":\"integer\",\"region\":\"viewer region\",\"deadlineMs\":\"integer\",\"token\":\"signed asset/version scope\"}",
+          "response": "{\"source\":\"cdn|unavailable\",\"providerId\":\"string|null\",\"routingEpoch\":\"integer signed routing generation\",\"hash\":\"sha256 from the manifest\",\"bytes\":\"byte[]|null\",\"reason\":\"deadline|no-eligible-origin|null\"}"
         }
       ],
       "assumptions": [
@@ -801,10 +821,10 @@
       "stages": [
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case1",
+            "case2"
           ],
-          "explanation": "Keep immutable segment keys and signed manifest authorization separate from routing. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version. Consider this case: A replica lacks one referenced segment. Fail the active region.",
+          "explanation": "Keep immutable segment keys and signed manifest authorization separate from routing. A cdn response carries bytes whose hash matches the authorized manifest for that immutable asset/version/segment; unavailable is explicit and arrives before the playback deadline. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version.",
           "graph": {
             "edges": [
               {
@@ -847,7 +867,7 @@
           },
           "id": "multi-cdn-s1",
           "invariants": [
-            "Keep immutable segment keys and signed manifest authorization separate from routing."
+            "A cdn response carries bytes whose hash matches the authorized manifest for that immutable asset/version/segment; unavailable is explicit and arrives before the playback deadline."
           ],
           "number": 1,
           "operations": [
@@ -901,10 +921,9 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case2"
           ],
-          "explanation": "Authorize manifest and return immutable segment locations with a signed routing epoch. Own immutable manifest versions and content hashes. routing decision belongs to Playback resolver; asset/version metadata belongs to Asset catalogue. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version.",
+          "explanation": "Authorize manifest and return immutable segment locations with a signed routing epoch. Own immutable manifest versions and content hashes. The playback resolver authorizes requests and signs routing epochs; only the asset catalogue owns immutable manifests and hashes, so routing never changes segment identity. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version.",
           "graph": {
             "edges": [
               {
@@ -984,7 +1003,7 @@
           },
           "id": "multi-cdn-s2",
           "invariants": [
-            "routing decision belongs to Playback resolver; asset/version metadata belongs to Asset catalogue."
+            "The playback resolver authorizes requests and signs routing epochs; only the asset catalogue owns immutable manifests and hashes, so routing never changes segment identity."
           ],
           "number": 2,
           "operations": [
@@ -1038,10 +1057,9 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "bounded-mechanism"
           ],
-          "explanation": "Combine bounded health samples and capacity with locality; avoid routing solely on stale latency. Unknown health is not healthy capacity. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version. Consider this case: A replica lacks one referenced segment. Fail the active region.",
+          "explanation": "Combine bounded health samples and capacity with locality; avoid routing solely on stale latency. Unknown health is not healthy capacity. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version. Consider this case: Four authored origins differ in completeness, health and capacity. Filter eligible origins.",
           "graph": {
             "edges": [
               {
@@ -1192,10 +1210,9 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case2"
           ],
-          "explanation": "Resolve a signed asset/version/segment cache key and serve verified immutable content. Authorization tokens do not create shared-user cache leaks. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version. Consider this case: A replica lacks one referenced segment. Fail the active region.",
+          "explanation": "Resolve a signed asset/version/segment cache key and serve verified immutable content. Authorization tokens do not create shared-user cache leaks. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version. Consider this case: Two viewers with different signed tokens request one segment. Resolve routing and cache keys.",
           "graph": {
             "edges": [
               {
@@ -1364,10 +1381,9 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case3"
           ],
-          "explanation": "Coalesce identical misses through a regional shield with bounded in-flight fetches. Miss coalescing retains segment/version identity. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version. Consider this case: A replica lacks one referenced segment. Fail the active region.",
+          "explanation": "Coalesce identical misses through a regional shield with bounded in-flight fetches. Miss coalescing retains segment/version identity. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version. Consider this case: A viral segment misses at many edges at once. Misses reach the origin shield.",
           "graph": {
             "edges": [
               {
@@ -1561,7 +1577,7 @@
         {
           "checkIds": [
             "case0",
-            "case1"
+            "bounded-mechanism"
           ],
           "explanation": "Publish a region as eligible only after manifest and all referenced segments have completion receipts. A partial replica is never an eligible origin. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version. Consider this case: A replica lacks one referenced segment.",
           "graph": {
@@ -1780,10 +1796,9 @@
         },
         {
           "checkIds": [
-            "case0",
             "case1"
           ],
-          "explanation": "Return a distinct healthy provider with jittered bounded retry and an overall playback deadline. Retry budgets include every attempted provider. [Backoff](https://en.wikipedia.org/wiki/Exponential_backoff) spaces repeated attempts so failures do not create a burst of extra traffic. A retry still needs a stable identity and a clear stopping condition. Consider this case: A replica lacks one referenced segment. Fail the active region.",
+          "explanation": "Return a distinct healthy provider with jittered bounded retry and an overall playback deadline. Retry budgets include every attempted provider. [Backoff](https://en.wikipedia.org/wiki/Exponential_backoff) spaces repeated attempts so failures do not create a burst of extra traffic. A retry still needs a stable identity and a clear stopping condition. Consider this case: A selected provider fails repeatedly. Exhaust the shared attempt or playback deadline budget.",
           "graph": {
             "edges": [
               {
@@ -2024,10 +2039,9 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case4"
           ],
-          "explanation": "Feed observed errors and deadline misses into the next signed routing generation. Feedback is measured telemetry, not proof of future capacity. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid. Expiration must be checked at the point of use, even when background cleanup runs later. Consider this case: A replica lacks one referenced segment. Fail the active region.",
+          "explanation": "Feed observed errors and deadline misses into the next signed routing generation. Feedback is measured telemetry, not proof of future capacity. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid. Expiration must be checked at the point of use, even when background cleanup runs later. Consider this case: After failover, region B's error rate exceeds its bound.",
           "graph": {
             "edges": [
               {
@@ -2304,7 +2318,6 @@
           "id": "case0",
           "relatedRequirementIds": [
             "r0",
-            "r1",
             "r2"
           ],
           "then": "Discard peer data and allow only a verified CDN segment.",
@@ -2314,12 +2327,43 @@
           "given": "A peer is unreachable.",
           "id": "case1",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
             "r2"
           ],
           "then": "Cancel peer wait and start bounded CDN retrieval.",
           "when": "Reach the reserved CDN start time."
+        },
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-05-state.test.mjs",
+            "testName": "CDN fallback fails over from an unhealthy home region to an eligible origin"
+          },
+          "given": "The home region is unhealthy and another region holds a partial replica.",
+          "id": "case2",
+          "relatedRequirementIds": [
+            "r1",
+            "r2"
+          ],
+          "then": "Fallback goes to a complete healthy region with capacity, or returns unavailable before the deadline; never to the unhealthy or partial origin.",
+          "when": "The scheduler starts CDN fallback."
+        },
+        {
+          "given": "The tracker lists a peer that no longer holds the segment.",
+          "id": "case3",
+          "relatedRequirementIds": [
+            "r2"
+          ],
+          "then": "Treat the claim as unverified, spend only the bounded attempt budget, then fall back.",
+          "when": "The scheduler tries it."
+        },
+        {
+          "given": "One peer opts out of uploads mid-session and another returns corrupt bytes.",
+          "id": "case4",
+          "relatedRequirementIds": [
+            "r2"
+          ],
+          "then": "The opted-out peer serves no new uploads and the corrupt peer is removed; prior downloads are not recalled.",
+          "when": "New segment requests arrive."
         },
         {
           "evidence": {
@@ -2330,7 +2374,7 @@
           "given": "Four authored origins differ in completeness, health and capacity.",
           "id": "bounded-mechanism",
           "relatedRequirementIds": [
-            "r0"
+            "r1"
           ],
           "then": "Return only the complete healthy origin with spare capacity.",
           "when": "Filter eligible origins."
@@ -2338,13 +2382,13 @@
       ],
       "algorithms": [
         {
-          "code": "const deadline = playbackDeadline(segment);\nif (slack(deadline) > cdnReserve && consent) tryPeerUntil(deadline-cdnReserve);\nif (!verifiedSegment) fetchCDNWithDeadline(segmentKey, deadline);\nverifyManifestHashBeforeBufferAdmission(); expirePeerClaims();",
+          "code": "const deadline = playbackDeadline(segment);\nif (slack(deadline) > cdnReserve && consent) tryPeerUntil(deadline-cdnReserve); // bounded attempt budget\nif (!verifiedSegment) { const region = chooseFallbackRegion(home, regions); // home only while complete, healthy and with capacity\n if (!region) return unavailable(); fetchViaShieldWithDeadline(region, segmentKey, deadline); }\nverifyManifestHashBeforeBufferAdmission(); expirePeerClaims(); honorUploadOptOut();",
           "guarantees": [
             "Tracker possession is a claim, not verified delivery.",
             "Failed connectivity consumes a finite budget.",
             "Corrupt bytes are discarded, never played.",
             "Peer benefit cannot consume the entire playback deadline.",
-            "Peer churn does not grant unbounded origin fetches.",
+            "Fallback never targets an unhealthy region or an incomplete origin, and peer churn does not grant unbounded origin fetches.",
             "Opt-out stops new uploads; prior downloaded bytes cannot be recalled."
           ],
           "id": "transition",
@@ -2354,12 +2398,12 @@
       ],
       "apis": [
         {
-          "errors": "Reject invalid input, stale versions and operations outside the declared boundary.",
+          "errors": "Reject an invalid or out-of-scope token before scheduling; unavailable is explicit and returned before the playback deadline.",
           "method": "CALL",
           "ownerNodeId": "engine",
           "path": "L019/peer-assisted",
-          "request": "{\"assetVersion\":\"string\",\"segmentId\":\"integer\",\"region\":\"string\",\"deadlineMs\":\"integer\",\"token\":\"signed scope\"}",
-          "response": "{\"source\":\"cdn|peer|unavailable\",\"hash\":\"sha256\",\"bytes\":\"byte[]\"}"
+          "request": "{\"assetVersion\":\"string\",\"segmentId\":\"integer\",\"region\":\"viewer home region\",\"deadlineMs\":\"integer\",\"token\":\"signed asset/version scope\",\"uploadConsent\":\"consent epoch|null\"}",
+          "response": "{\"source\":\"peer|cdn|unavailable\",\"peerId\":\"ephemeral ID|null\",\"fallbackRegion\":\"eligible origin region|null\",\"hash\":\"sha256 from the manifest\",\"bytes\":\"byte[]|null\"}"
         }
       ],
       "assumptions": [
@@ -2378,7 +2422,7 @@
             "case0",
             "case1"
           ],
-          "explanation": "Keep immutable segment keys and signed manifest authorization separate from routing. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version. Consider this case: A peer returns bytes whose hash differs from manifest. Verify then consider fallback.",
+          "explanation": "Keep immutable segment keys and signed manifest authorization separate from routing. A peer or cdn response admits only bytes verified against the authorized manifest hash; CDN fallback starts before the reserved slack expires, and unavailable is explicit before the deadline. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version.",
           "graph": {
             "edges": [
               {
@@ -2421,7 +2465,7 @@
           },
           "id": "peer-assisted-s1",
           "invariants": [
-            "Keep immutable segment keys and signed manifest authorization separate from routing."
+            "A peer or cdn response admits only bytes verified against the authorized manifest hash; CDN fallback starts before the reserved slack expires, and unavailable is explicit before the deadline."
           ],
           "number": 1,
           "operations": [
@@ -2475,10 +2519,9 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case0"
           ],
-          "explanation": "Choose a bounded peer attempt only when enough playback slack remains. Own verified segment sequence and current buffer horizon. segment deadlines belongs to Segment scheduler; buffered immutable segments belongs to Playback buffer. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version.",
+          "explanation": "Choose a bounded peer attempt only when enough playback slack remains. Own verified segment sequence and current buffer horizon. The segment scheduler decides peer attempts and fallback timing; only the playback buffer admits verified segments, in sequence. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version.",
           "graph": {
             "edges": [
               {
@@ -2558,7 +2601,7 @@
           },
           "id": "peer-assisted-s2",
           "invariants": [
-            "segment deadlines belongs to Segment scheduler; buffered immutable segments belongs to Playback buffer."
+            "The segment scheduler decides peer attempts and fallback timing; only the playback buffer admits verified segments, in sequence."
           ],
           "number": 2,
           "operations": [
@@ -2612,10 +2655,9 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case3"
           ],
-          "explanation": "Advertise short-lived possession claims scoped to region and asset version. Tracker possession is a claim, not verified delivery. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version. Consider this case: A peer returns bytes whose hash differs from manifest. Verify then consider fallback.",
+          "explanation": "Advertise short-lived possession claims scoped to region and asset version. Tracker possession is a claim, not verified delivery. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version. Consider this case: The tracker lists a peer that no longer holds the segment.",
           "graph": {
             "edges": [
               {
@@ -2766,10 +2808,10 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case1",
+            "case3"
           ],
-          "explanation": "Attempt bounded direct transport within consent and upload quota. Failed connectivity consumes a finite budget. [Transcoding](https://en.wikipedia.org/wiki/Transcoding) creates new media representations from an uploaded source. Publication should reference completed outputs, while retries and cleanup must not expose a partially processed asset. Consider this case: A peer returns bytes whose hash differs from manifest. Verify then consider fallback.",
+          "explanation": "Attempt bounded direct transport within consent and upload quota. Failed connectivity consumes a finite budget. [Transcoding](https://en.wikipedia.org/wiki/Transcoding) creates new media representations from an uploaded source. Publication should reference completed outputs, while retries and cleanup must not expose a partially processed asset. Consider this case: A peer is unreachable. Reach the reserved CDN start time.",
           "graph": {
             "edges": [
               {
@@ -2938,8 +2980,7 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case0"
           ],
           "explanation": "Check the manifest hash before admitting a received segment. Corrupt bytes are discarded, never played. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version. Consider this case: A peer returns bytes whose hash differs from manifest. Verify then consider fallback.",
           "graph": {
@@ -3360,10 +3401,10 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case2",
+            "bounded-mechanism"
           ],
-          "explanation": "Coalesce segment misses and enforce origin concurrency for the fallback path. Peer churn does not grant unbounded origin fetches. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version. Consider this case: A peer returns bytes whose hash differs from manifest. Verify then consider fallback.",
+          "explanation": "Coalesce segment misses and enforce origin concurrency for the fallback path; use the home region only while it is complete, healthy and has capacity, otherwise fail over to the eligible region with most spare capacity. Fallback never targets an unhealthy region or an incomplete origin, and peer churn does not grant unbounded origin fetches. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers.",
           "graph": {
             "edges": [
               {
@@ -3457,7 +3498,7 @@
                   "portId": "out-l019.peer-assisted.step7"
                 },
                 "id": "step7",
-                "label": "Regional origin shield",
+                "label": "Regional shield and failover",
                 "mode": "local-call",
                 "to": {
                   "nodeId": "n7",
@@ -3552,7 +3593,7 @@
               {
                 "definitionId": "l019.peer-assisted.n7",
                 "id": "n7",
-                "label": "Regional origin shield",
+                "label": "Regional shield and failover",
                 "position": {
                   "x": 0,
                   "y": 360
@@ -3563,7 +3604,7 @@
           },
           "id": "peer-assisted-s7",
           "invariants": [
-            "Peer churn does not grant unbounded origin fetches."
+            "Fallback never targets an unhealthy region or an incomplete origin, and peer churn does not grant unbounded origin fetches."
           ],
           "number": 7,
           "operations": [
@@ -3571,7 +3612,7 @@
               "node": {
                 "definitionId": "l019.peer-assisted.n7",
                 "id": "n7",
-                "label": "Regional origin shield",
+                "label": "Regional shield and failover",
                 "position": {
                   "x": 0,
                   "y": 360
@@ -3588,7 +3629,7 @@
                   "portId": "out-l019.peer-assisted.step7"
                 },
                 "id": "step7",
-                "label": "Regional origin shield",
+                "label": "Regional shield and failover",
                 "mode": "local-call",
                 "to": {
                   "nodeId": "n7",
@@ -3598,16 +3639,15 @@
               "op": "connect"
             }
           ],
-          "question": "How is fallback load bounded during peer churn?",
-          "reason": "Coalesce segment misses and enforce origin concurrency for the fallback path.",
-          "title": "Regional origin shield"
+          "question": "How is fallback load bounded and moved off an unhealthy region?",
+          "reason": "Coalesce segment misses and enforce origin concurrency for the fallback path; use the home region only while it is complete, healthy and has capacity, otherwise fail over to the eligible region with most spare capacity.",
+          "title": "Regional shield and failover"
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case4"
           ],
-          "explanation": "Expire claims, track integrity failures and honor immediate upload opt-out. Opt-out stops new uploads; prior downloaded bytes cannot be recalled. [Transcoding](https://en.wikipedia.org/wiki/Transcoding) creates new media representations from an uploaded source. Publication should reference completed outputs, while retries and cleanup must not expose a partially processed asset. Consider this case: A peer returns bytes whose hash differs from manifest. Verify then consider fallback.",
+          "explanation": "Expire claims, track integrity failures and honor immediate upload opt-out. Opt-out stops new uploads; prior downloaded bytes cannot be recalled. [Transcoding](https://en.wikipedia.org/wiki/Transcoding) creates new media representations from an uploaded source. Publication should reference completed outputs, while retries and cleanup must not expose a partially processed asset. Consider this case: One peer opts out of uploads mid-session and another returns corrupt bytes.",
           "graph": {
             "edges": [
               {
@@ -3701,7 +3741,7 @@
                   "portId": "out-l019.peer-assisted.step7"
                 },
                 "id": "step7",
-                "label": "Regional origin shield",
+                "label": "Regional shield and failover",
                 "mode": "local-call",
                 "to": {
                   "nodeId": "n7",
@@ -3810,7 +3850,7 @@
               {
                 "definitionId": "l019.peer-assisted.n7",
                 "id": "n7",
-                "label": "Regional origin shield",
+                "label": "Regional shield and failover",
                 "position": {
                   "x": 0,
                   "y": 360

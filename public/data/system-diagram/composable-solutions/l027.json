@@ -269,6 +269,11 @@
           "id": "out-l027.events.c2-control"
         },
         {
+          "contractId": "l027.events.budget",
+          "direction": "in",
+          "id": "in-l027.events.budget-state"
+        },
+        {
           "contractId": "l027.events.c1",
           "direction": "in",
           "id": "in-l027.events.c1-state"
@@ -292,11 +297,16 @@
           "contractId": "l027.events.c1",
           "direction": "in",
           "id": "in-l027.events.c1"
+        },
+        {
+          "contractId": "l027.events.budget",
+          "direction": "in",
+          "id": "in-l027.events.budget"
         }
       ],
-      "responsibility": "Expand inbox and store versioned plan state plus work/event identities.",
+      "responsibility": "Expand inbox and store versioned plan state, work/event identities and each intent's repair budget.",
       "stateOwnership": [
-        "intent events and dedupe keys"
+        "intent events, dedupe keys and repair budgets"
       ],
       "version": 1
     },
@@ -389,12 +399,17 @@
           "id": "in-l027.events.c5"
         },
         {
+          "contractId": "l027.events.budget",
+          "direction": "out",
+          "id": "out-l027.events.budget"
+        },
+        {
           "contractId": "l027.events.c6",
           "direction": "out",
           "id": "out-l027.events.c6"
         }
       ],
-      "responsibility": "Enqueue repair only with a decreasing shared budget and an unexpired deadline.",
+      "responsibility": "Consume the server-held repair budget for the intent by compare-and-swap on its version, once per repair job ID; requests never carry the budget.",
       "stateOwnership": [
         "repair job identities"
       ],
@@ -649,10 +664,12 @@
       "id": "l027.events.c5",
       "request": {
         "intentId": "uuid",
-        "remaining": "integer"
+        "intentVersion": "integer",
+        "repairJobId": "uuid"
       },
       "response": {
-        "state": "queued|exhausted"
+        "remaining": "integer",
+        "state": "queued|duplicate|conflict|exhausted"
       },
       "version": 1
     },
@@ -675,6 +692,19 @@
       },
       "response": {
         "status": "terminal or pending state"
+      },
+      "version": 1
+    },
+    {
+      "id": "l027.events.budget",
+      "request": {
+        "expectedVersion": "integer",
+        "intentId": "uuid",
+        "repairJobId": "uuid"
+      },
+      "response": {
+        "remaining": "integer",
+        "version": "integer|conflict"
       },
       "version": 1
     }
@@ -736,19 +766,16 @@
           "id": "mechanism",
           "relatedRequirementIds": [
             "r0",
-            "r1",
-            "r2"
+            "r1"
           ],
-          "then": "Only two repairs run; malformed output ends exhausted and an old hit cannot authorize a tool action.",
+          "then": "Only two repairs run and the reply ends exhausted; a reply fixed by the first repair ends valid after one; a revision-5 hit is not fresh against revision 6.",
           "when": "Run the bounded validation/repair loop, then compare an old hit with the current source revision."
         },
         {
           "given": "All model replies are malformed with two repairs remaining.",
           "id": "repair",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
-            "r2"
+            "r1"
           ],
           "then": "Dispatch at most two repairs and then terminate exhausted without calling a tool.",
           "when": "Run validation and repair."
@@ -757,9 +784,7 @@
           "given": "Retrieval returns source revision 5 while authority is at 6.",
           "id": "stale",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
-            "r2"
+            "r0"
           ],
           "then": "Refresh or reject before tool execution; syntactic validity cannot override stale preconditions.",
           "when": "Attempt a plan that writes based on revision 5."
@@ -768,17 +793,24 @@
           "given": "Two jobs target one origin with capacity one.",
           "id": "budget",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
             "r2"
           ],
           "then": "At most one proceeds; retry-after and remaining request budget are explicit.",
           "when": "Try both permits at the same time."
+        },
+        {
+          "given": "A tool write times out after the remote applied it.",
+          "id": "uncertain",
+          "relatedRequirementIds": [
+            "r2"
+          ],
+          "then": "The lookup confirms the write and it is recorded without a resend; a lookup that cannot prove non-acceptance leaves the outcome uncertain.",
+          "when": "Reconcile by effectKey."
         }
       ],
       "algorithms": [
         {
-          "code": "while (!isValid(reply) && remaining > 0 && now() < deadline) { remaining--; reply = repair(reply); }\nif (!isValid(reply)) return {state:\"exhausted\"};\nif (plan.sourceRevision !== currentRevision) return {state:\"stale\"};\nreturn executeWithStableEffectKey(plan);",
+          "code": "// Schema repair (n5): the controller passes its own remaining allowance; the request deadline is checked by the controller.\nfunction repairBounded(reply,remaining,repair,valid){let attempts=0;while(!valid(reply)&&remaining>0){remaining--;attempts++;reply=repair(reply);}return {state:valid(reply)?'valid':'exhausted',attempts};}\n// Freshness guard (n4) runs before any plan that survived repair may reach the tool executor.\nconst isFresh=(hitRevision,currentRevision)=>hitRevision===currentRevision;",
           "guarantees": [
             "The code states the bounded decision rule; unimplemented helpers remain pseudocode.",
             "External effects, distributed failure and latency require separate execution evidence."
@@ -788,7 +820,7 @@
           "ownerNodeId": "n5"
         },
         {
-          "code": "const receipt = await tool.lookup(effectKey);\nif (receipt.confirmed) return commitConfirmed(receipt);\nif (receipt.provesNotAccepted && attempts < maxAttempts) return retryWithSameKey();\nreturn recordUncertain();\n// Each repair consumes its shared allowance before dispatch; source freshness is rechecked before a write.",
+          "code": "const receipt = await tool.lookup(effectKey);\nif (receipt.confirmed) return commitConfirmed(receipt);\nif (receipt.provesNotAccepted) return attempts < maxAttempts ? retryWithSameKey() : recordTerminal(\"rejected\");\nreturn recordUncertain();\n// Each repair consumes its shared allowance before dispatch; source freshness is rechecked before a write.",
           "guarantees": [
             "Query remote effect identity where supported; otherwise surface uncertainty under explicit duplicate-versus-loss policy."
           ],
@@ -810,9 +842,9 @@
           "errors": "403 unauthorized scope; 404 absent identity; 410 expired retained history",
           "method": "GET",
           "ownerNodeId": "state",
-          "path": "/l027/orchestrated/state",
-          "request": "{\"requestId\":\"uuid\",\"expectedVersion\":\"integer\"}",
-          "response": "{\"version\":\"integer\"}"
+          "path": "/l027/orchestrated/requests/{requestId}",
+          "request": "{\"requestId\":\"uuid\"}",
+          "response": "{\"state\":\"running|valid|exhausted|stale|confirmed|rejected|uncertain\",\"repairsRemaining\":\"integer\",\"toolAttemptsRemaining\":\"integer\"}"
         }
       ],
       "assumptions": [
@@ -827,12 +859,9 @@
       "stages": [
         {
           "checkIds": [
-            "mechanism",
-            "repair",
-            "stale",
             "budget"
           ],
-          "explanation": "Record request deadline, repair allowance and tool-attempt limit before dispatch. Record request deadline, repair allowance and tool-attempt limit before dispatch. State owner: Request controller (budget counters). Record request deadline, repair allowance and tool-attempt limit before dispatch. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid.",
+          "explanation": "Record request deadline, repair allowance and tool-attempt limit before dispatch. The request's deadline, repair allowance and tool-attempt limit are fixed at acceptance and only ever decrease. Record request deadline, repair allowance and tool-attempt limit before dispatch. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid.",
           "graph": {
             "edges": [
               {
@@ -875,7 +904,7 @@
           },
           "id": "orchestrated-s1",
           "invariants": [
-            "Record request deadline, repair allowance and tool-attempt limit before dispatch. State owner: Request controller (budget counters)."
+            "The request's deadline, repair allowance and tool-attempt limit are fixed at acceptance and only ever decrease."
           ],
           "number": 1,
           "operations": [
@@ -929,12 +958,9 @@
         },
         {
           "checkIds": [
-            "mechanism",
-            "repair",
-            "stale",
-            "budget"
+            "uncertain"
           ],
-          "explanation": "Expand controller; persist source revisions, plan versions and stable effect identities. Expand controller; persist source revisions, plan versions and stable effect identities. State owner: Recovery ledger (request attempt records). Expand controller; persist source revisions, plan versions and stable effect identities. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure.",
+          "explanation": "Expand controller; persist source revisions, plan versions and stable effect identities. Each attempt record pins the source revision, plan version and effectKey it used; a newer version supersedes an older one without editing it. Expand controller; persist source revisions, plan versions and stable effect identities. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure.",
           "graph": {
             "edges": [
               {
@@ -1014,7 +1040,7 @@
           },
           "id": "orchestrated-s2",
           "invariants": [
-            "Expand controller; persist source revisions, plan versions and stable effect identities. State owner: Recovery ledger (request attempt records)."
+            "Each attempt record pins the source revision, plan version and effectKey it used; a newer version supersedes an older one without editing it."
           ],
           "number": 2,
           "operations": [
@@ -1068,12 +1094,9 @@
         },
         {
           "checkIds": [
-            "mechanism",
-            "repair",
-            "stale",
             "budget"
           ],
-          "explanation": "Grant tokens per normalized origin with bounded concurrency and explicit retry-after. Grant tokens per normalized origin with bounded concurrency and explicit retry-after. State owner: Origin scheduler (origin tokens and in-flight count). Grant tokens per normalized origin with bounded concurrency and explicit retry-after. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers.",
+          "explanation": "Grant tokens per normalized origin with bounded concurrency and explicit retry-after. At most the configured number of fetches per normalized origin are in flight, and a denied permit returns retryAfter. Grant tokens per normalized origin with bounded concurrency and explicit retry-after. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers.",
           "graph": {
             "edges": [
               {
@@ -1177,7 +1200,7 @@
           },
           "id": "orchestrated-s3",
           "invariants": [
-            "Grant tokens per normalized origin with bounded concurrency and explicit retry-after. State owner: Origin scheduler (origin tokens and in-flight count)."
+            "At most the configured number of fetches per normalized origin are in flight, and a denied permit returns retryAfter."
           ],
           "number": 3,
           "operations": [
@@ -1224,12 +1247,9 @@
         },
         {
           "checkIds": [
-            "mechanism",
-            "repair",
-            "stale",
-            "budget"
+            "stale"
           ],
-          "explanation": "Publish index revision atomically and include source revision in each hit. Publish index revision atomically and include source revision in each hit. State owner: Index publication (index manifest and source watermark). Publish index revision atomically and include source revision in each hit. The graph is an authored conceptual design; guarantees require the named deployment contracts. [An index](https://en.wikipedia.org/wiki/Database_index) maintains a structure that narrows a search without scanning every record.",
+          "explanation": "Publish index revision atomically and include source revision in each hit. An index revision is published atomically, and every hit carries the source revision it was built from. Publish index revision atomically and include source revision in each hit. The graph is an authored conceptual design; guarantees require the named deployment contracts. [An index](https://en.wikipedia.org/wiki/Database_index) maintains a structure that narrows a search without scanning every record.",
           "graph": {
             "edges": [
               {
@@ -1357,7 +1377,7 @@
           },
           "id": "orchestrated-s4",
           "invariants": [
-            "Publish index revision atomically and include source revision in each hit. State owner: Index publication (index manifest and source watermark)."
+            "An index revision is published atomically, and every hit carries the source revision it was built from."
           ],
           "number": 4,
           "operations": [
@@ -1399,11 +1419,9 @@
         {
           "checkIds": [
             "mechanism",
-            "repair",
-            "stale",
-            "budget"
+            "stale"
           ],
-          "explanation": "Recheck source revision and ACL before model context or tool preconditions are accepted. Recheck source revision and ACL before model context or tool preconditions are accepted. State owner: Freshness guard (freshness verdict). Recheck source revision and ACL before model context or tool preconditions are accepted. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A condition variable](https://en.wikipedia.org/wiki/Condition_variable) lets a thread sleep until shared state may have changed.",
+          "explanation": "Recheck source revision and ACL before model context or tool preconditions are accepted. A hit whose source revision differs from the current revision cannot become model context or a tool precondition. Recheck source revision and ACL before model context or tool preconditions are accepted. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A condition variable](https://en.wikipedia.org/wiki/Condition_variable) lets a thread sleep until shared state may have changed.",
           "graph": {
             "edges": [
               {
@@ -1555,7 +1573,7 @@
           },
           "id": "orchestrated-s5",
           "invariants": [
-            "Recheck source revision and ACL before model context or tool preconditions are accepted. State owner: Freshness guard (freshness verdict)."
+            "A hit whose source revision differs from the current revision cannot become model context or a tool precondition."
           ],
           "number": 5,
           "operations": [
@@ -1597,11 +1615,9 @@
         {
           "checkIds": [
             "mechanism",
-            "repair",
-            "stale",
-            "budget"
+            "repair"
           ],
-          "explanation": "Validate typed output and decrement repair budget before any repair request. Validate typed output and decrement repair budget before any repair request. State owner: Schema repair (repair count and validation errors). Validate typed output and decrement repair budget before any repair request. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Retrieval-augmented generation](https://en.wikipedia.org/wiki/Retrieval-augmented_generation) brings external material into a model request.",
+          "explanation": "Validate typed output and decrement repair budget before any repair request. Each repair request decrements the controller's allowance before it is sent, and at zero the request terminates as exhausted. Validate typed output and decrement repair budget before any repair request. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes.",
           "graph": {
             "edges": [
               {
@@ -1777,7 +1793,7 @@
           },
           "id": "orchestrated-s6",
           "invariants": [
-            "Validate typed output and decrement repair budget before any repair request. State owner: Schema repair (repair count and validation errors)."
+            "Each repair request decrements the controller's allowance before it is sent, and at zero the request terminates as exhausted."
           ],
           "number": 6,
           "operations": [
@@ -1818,12 +1834,9 @@
         },
         {
           "checkIds": [
-            "mechanism",
-            "repair",
-            "stale",
-            "budget"
+            "uncertain"
           ],
-          "explanation": "Send stable effect key and expected resource version; mark ambiguous acceptance unknown. Send stable effect key and expected resource version; mark ambiguous acceptance unknown. State owner: Tool executor (tool attempt and effect receipt). Send stable effect key and expected resource version; mark ambiguous acceptance unknown. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Retrieval-augmented generation](https://en.wikipedia.org/wiki/Retrieval-augmented_generation) brings external material into a model request.",
+          "explanation": "Send stable effect key and expected resource version; mark ambiguous acceptance unknown. Every tool write carries a stable effectKey and expectedVersion, and a timeout is recorded as unknown, never as failure or success. Send stable effect key and expected resource version; mark ambiguous acceptance unknown. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Backoff](https://en.wikipedia.org/wiki/Exponential_backoff) spaces repeated attempts so failures do not create a burst of extra traffic.",
           "graph": {
             "edges": [
               {
@@ -2023,7 +2036,7 @@
           },
           "id": "orchestrated-s7",
           "invariants": [
-            "Send stable effect key and expected resource version; mark ambiguous acceptance unknown. State owner: Tool executor (tool attempt and effect receipt)."
+            "Every tool write carries a stable effectKey and expectedVersion, and a timeout is recorded as unknown, never as failure or success."
           ],
           "number": 7,
           "operations": [
@@ -2064,12 +2077,9 @@
         },
         {
           "checkIds": [
-            "mechanism",
-            "repair",
-            "stale",
-            "budget"
+            "uncertain"
           ],
-          "explanation": "Query remote effect identity where supported; otherwise surface uncertainty under explicit duplicate-versus-loss policy. Query remote effect identity where supported; otherwise surface uncertainty under explicit duplicate-versus-loss policy. State owner: Outcome reconciliation (reconciliation status). Query remote effect identity where supported; otherwise surface uncertainty under explicit duplicate-versus-loss policy. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Idempotence](https://en.wikipedia.org/wiki/Idempotence) means repeating the same logical operation does not repeat its effect.",
+          "explanation": "Query remote effect identity where supported; otherwise surface uncertainty under explicit duplicate-versus-loss policy. Unknown writes are looked up by effectKey; only a proven non-acceptance is retried, with the same key, and exhausted retries end rejected rather than uncertain. [Idempotence](https://en.wikipedia.org/wiki/Idempotence) means repeating the same logical operation does not repeat its effect. Stable request identities let a retry recover an existing outcome instead of creating another change.",
           "graph": {
             "edges": [
               {
@@ -2307,7 +2317,7 @@
           },
           "id": "orchestrated-s8",
           "invariants": [
-            "Query remote effect identity where supported; otherwise surface uncertainty under explicit duplicate-versus-loss policy. State owner: Outcome reconciliation (reconciliation status)."
+            "Unknown writes are looked up by effectKey; only a proven non-acceptance is retried, with the same key, and exhausted retries end rejected rather than uncertain."
           ],
           "number": 8,
           "operations": [
@@ -2381,36 +2391,35 @@
           "evidence": {
             "kind": "reference-test",
             "testFile": "tools/simulatte/study-reference/batch-02-mechanisms.test.mjs",
-            "testName": "L027 bounded mechanism"
+            "testName": "L027 events server-held repair budget"
           },
-          "given": "A reply stays malformed and the repair allowance is two.",
+          "given": "Intent i holds a server-side repair budget of 2 at version 0.",
           "id": "mechanism",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
-            "r2"
+            "r1"
           ],
-          "then": "Only two repairs run; malformed output ends exhausted and an old hit cannot authorize a tool action.",
-          "when": "Run the bounded validation/repair loop, then compare an old hit with the current source revision."
+          "then": "j1 consumes once, the redelivery is a duplicate, the stale claim conflicts, j2 consumes the last repair and j3 is exhausted; no request field can raise the budget.",
+          "when": "Consume job j1 at version 0, redeliver j1, claim j2 at stale version 0, claim j2 at version 1, then claim j3."
         },
         {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-02-mechanisms.test.mjs",
+            "testName": "L027 events server-held repair budget"
+          },
           "given": "A repair queue redelivers the same repair job.",
           "id": "repair",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
-            "r2"
+            "r1"
           ],
-          "then": "A duplicate does not create a fresh allowance; exhausted intents become terminal.",
-          "when": "Claim by intent/version and consume the shared budget."
+          "then": "A duplicate does not create a fresh allowance or consume twice; exhausted intents become terminal.",
+          "when": "Claim by intent version and consume the server-held budget."
         },
         {
           "given": "A new source barrier arrives after a plan is queued.",
           "id": "stale",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
-            "r2"
+            "r0"
           ],
           "then": "Compare source revisions and enqueue refresh instead of executing stale work.",
           "when": "Claim the planned tool action."
@@ -2419,17 +2428,24 @@
           "given": "Origin permits and request deadlines are exhausted.",
           "id": "budget",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
             "r2"
           ],
           "then": "Reject or defer explicitly without exceeding the origin bound or resetting the intent deadline.",
           "when": "Redeliver a queued crawl job."
+        },
+        {
+          "given": "A redelivered effect receipt is older than the recovery projection.",
+          "id": "uncertain",
+          "relatedRequirementIds": [
+            "r2"
+          ],
+          "then": "The older receipt is skipped, and unknown remote effects stay uncertain rather than being retried under a new key.",
+          "when": "Fold receipts into the projection."
         }
       ],
       "algorithms": [
         {
-          "code": "while (!isValid(reply) && remaining > 0 && now() < deadline) { remaining--; reply = repair(reply); }\nif (!isValid(reply)) return {state:\"exhausted\"};\nif (plan.sourceRevision !== currentRevision) return {state:\"stale\"};\nreturn executeWithStableEffectKey(plan);",
+          "code": "// Repair queue (n5): the budget is read from and written to the intent journal; a request cannot supply or reset it.\nfunction consumeRepair(budgets,intentId,expectedVersion,jobId){\n const budget=budgets.get(intentId);\n if(!budget)return {state:'unknown-intent'};\n if(budget.jobs.has(jobId))return {state:'duplicate',remaining:budget.remaining,version:budget.version};\n if(budget.remaining===0)return {state:'exhausted',remaining:0,version:budget.version};\n if(budget.version!==expectedVersion)return {state:'conflict',remaining:budget.remaining,version:budget.version};\n const next={remaining:budget.remaining-1,version:budget.version+1,jobs:new Set([...budget.jobs,jobId])};\n budgets.set(intentId,next);\n return {state:'queued',remaining:next.remaining,version:next.version};\n}",
           "guarantees": [
             "The code states the bounded decision rule; unimplemented helpers remain pseudocode.",
             "External effects, distributed failure and latency require separate execution evidence."
@@ -2460,10 +2476,10 @@
         {
           "errors": "403 unauthorized scope; 404 absent identity; 410 expired retained history",
           "method": "GET",
-          "ownerNodeId": "state",
-          "path": "/l027/events/state",
-          "request": "{\"intentId\":\"uuid\",\"eventId\":\"uuid\"}",
-          "response": "{\"offset\":\"integer\"}"
+          "ownerNodeId": "n7",
+          "path": "/l027/events/intents/{intentId}",
+          "request": "{\"intentId\":\"uuid\"}",
+          "response": "{\"status\":\"pending|completed|rejected|exhausted|uncertain\",\"repairsRemaining\":\"integer\",\"version\":\"integer\"}"
         }
       ],
       "assumptions": [
@@ -2478,12 +2494,9 @@
       "stages": [
         {
           "checkIds": [
-            "mechanism",
-            "repair",
-            "stale",
             "budget"
           ],
-          "explanation": "Persist typed intent, deadline and versioned authorization scope. Persist typed intent, deadline and versioned authorization scope. State owner: Intent inbox (intent receipt). Persist typed intent, deadline and versioned authorization scope. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Retrieval-augmented generation](https://en.wikipedia.org/wiki/Retrieval-augmented_generation) brings external material into a model request. Retrieval quality, access permissions, source freshness, and explicit evidence boundaries matter separately from the model’s generated answer.",
+          "explanation": "Persist typed intent, deadline and versioned authorization scope. An intent is persisted with its deadline and authorization scope before any work is queued, and replays reuse that scope. Persist typed intent, deadline and versioned authorization scope. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Retrieval-augmented generation](https://en.wikipedia.org/wiki/Retrieval-augmented_generation) brings external material into a model request. Retrieval quality, access permissions, source freshness, and explicit evidence boundaries matter separately from the model’s generated answer.",
           "graph": {
             "edges": [
               {
@@ -2526,7 +2539,7 @@
           },
           "id": "events-s1",
           "invariants": [
-            "Persist typed intent, deadline and versioned authorization scope. State owner: Intent inbox (intent receipt)."
+            "An intent is persisted with its deadline and authorization scope before any work is queued, and replays reuse that scope."
           ],
           "number": 1,
           "operations": [
@@ -2580,12 +2593,9 @@
         },
         {
           "checkIds": [
-            "mechanism",
-            "repair",
-            "stale",
-            "budget"
+            "repair"
           ],
-          "explanation": "Expand inbox and store versioned plan state plus work/event identities. Expand inbox and store versioned plan state plus work/event identities. State owner: Intent journal (intent events and dedupe keys). Expand inbox and store versioned plan state plus work/event identities. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Retrieval-augmented generation](https://en.wikipedia.org/wiki/Retrieval-augmented_generation) brings external material into a model request.",
+          "explanation": "Expand inbox and store versioned plan state, work/event identities and each intent's repair budget. The journal holds versioned plan state, dedupe keys and the repair budget for each intent, and every worker action is an event with a stable eventId. [Retrieval-augmented generation](https://en.wikipedia.org/wiki/Retrieval-augmented_generation) brings external material into a model request. Retrieval quality, access permissions, source freshness, and explicit evidence boundaries matter separately from the model’s generated answer.",
           "graph": {
             "edges": [
               {
@@ -2665,7 +2675,7 @@
           },
           "id": "events-s2",
           "invariants": [
-            "Expand inbox and store versioned plan state plus work/event identities. State owner: Intent journal (intent events and dedupe keys)."
+            "The journal holds versioned plan state, dedupe keys and the repair budget for each intent, and every worker action is an event with a stable eventId."
           ],
           "number": 2,
           "operations": [
@@ -2714,17 +2724,14 @@
             }
           ],
           "question": "How do workers recover?",
-          "reason": "Expand inbox and store versioned plan state plus work/event identities.",
+          "reason": "Expand inbox and store versioned plan state, work/event identities and each intent's repair budget.",
           "title": "Intent journal"
         },
         {
           "checkIds": [
-            "mechanism",
-            "repair",
-            "stale",
             "budget"
           ],
-          "explanation": "Issue per-origin permits and carry crawl cursor/byte limits in each queued job. Issue per-origin permits and carry crawl cursor/byte limits in each queued job. State owner: Crawl permits (origin permit ledger). Issue per-origin permits and carry crawl cursor/byte limits in each queued job. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A crawler](https://en.wikipedia.org/wiki/Web_crawler) chooses which URLs to fetch and when.",
+          "explanation": "Issue per-origin permits and carry crawl cursor/byte limits in each queued job. A crawl job runs only with an unexpired per-origin permit, and carries its byte limit and cursor. Issue per-origin permits and carry crawl cursor/byte limits in each queued job. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A crawler](https://en.wikipedia.org/wiki/Web_crawler) chooses which URLs to fetch and when.",
           "graph": {
             "edges": [
               {
@@ -2828,7 +2835,7 @@
           },
           "id": "events-s3",
           "invariants": [
-            "Issue per-origin permits and carry crawl cursor/byte limits in each queued job. State owner: Crawl permits (origin permit ledger)."
+            "A crawl job runs only with an unexpired per-origin permit, and carries its byte limit and cursor."
           ],
           "number": 3,
           "operations": [
@@ -2875,12 +2882,9 @@
         },
         {
           "checkIds": [
-            "mechanism",
-            "repair",
-            "stale",
-            "budget"
+            "stale"
           ],
-          "explanation": "Build a new immutable index view then emit its published revision barrier. Build a new immutable index view then emit its published revision barrier. State owner: Revision projector (index publication watermark). Build a new immutable index view then emit its published revision barrier. The graph is an authored conceptual design; guarantees require the named deployment contracts. [An index](https://en.wikipedia.org/wiki/Database_index) maintains a structure that narrows a search without scanning every record.",
+          "explanation": "Build a new immutable index view then emit its published revision barrier. A source change becomes searchable only once its immutable index view is complete and its revision barrier is emitted. Build a new immutable index view then emit its published revision barrier. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers.",
           "graph": {
             "edges": [
               {
@@ -3008,7 +3012,7 @@
           },
           "id": "events-s4",
           "invariants": [
-            "Build a new immutable index view then emit its published revision barrier. State owner: Revision projector (index publication watermark)."
+            "A source change becomes searchable only once its immutable index view is complete and its revision barrier is emitted."
           ],
           "number": 4,
           "operations": [
@@ -3049,12 +3053,9 @@
         },
         {
           "checkIds": [
-            "mechanism",
-            "repair",
-            "stale",
-            "budget"
+            "stale"
           ],
-          "explanation": "Compare plan source revisions with current barriers and queue refresh instead of tool execution. Compare plan source revisions with current barriers and queue refresh instead of tool execution. State owner: Plan validator (plan eligibility receipt). Compare plan source revisions with current barriers and queue refresh instead of tool execution. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A queue](https://en.wikipedia.org/wiki/Queue_%28abstract_data_type%29) separates accepting work from completing it.",
+          "explanation": "Compare plan source revisions with current barriers and queue refresh instead of tool execution. A plan whose source revisions are older than the current barrier is marked stale and refreshed, never executed. Compare plan source revisions with current barriers and queue refresh instead of tool execution. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A queue](https://en.wikipedia.org/wiki/Queue_%28abstract_data_type%29) separates accepting work from completing it.",
           "graph": {
             "edges": [
               {
@@ -3206,7 +3207,7 @@
           },
           "id": "events-s5",
           "invariants": [
-            "Compare plan source revisions with current barriers and queue refresh instead of tool execution. State owner: Plan validator (plan eligibility receipt)."
+            "A plan whose source revisions are older than the current barrier is marked stale and refreshed, never executed."
           ],
           "number": 5,
           "operations": [
@@ -3248,11 +3249,9 @@
         {
           "checkIds": [
             "mechanism",
-            "repair",
-            "stale",
-            "budget"
+            "repair"
           ],
-          "explanation": "Enqueue repair only with a decreasing shared budget and an unexpired deadline. Enqueue repair only with a decreasing shared budget and an unexpired deadline. State owner: Repair queue (repair job identities). Enqueue repair only with a decreasing shared budget and an unexpired deadline. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid.",
+          "explanation": "Consume the server-held repair budget for the intent by compare-and-swap on its version, once per repair job ID; requests never carry the budget. The repair budget lives on the server per intentId; a repair job consumes it only by compare-and-swap on the budget version, at most once per job ID. [Retrieval-augmented generation](https://en.wikipedia.org/wiki/Retrieval-augmented_generation) brings external material into a model request.",
           "graph": {
             "edges": [
               {
@@ -3338,6 +3337,20 @@
                   "nodeId": "n5",
                   "portId": "in-l027.events.c5"
                 }
+              },
+              {
+                "contractId": "l027.events.budget",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l027.events.budget"
+                },
+                "id": "budget",
+                "label": "consume intent repair budget by version",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l027.events.budget-state"
+                }
               }
             ],
             "nodes": [
@@ -3359,7 +3372,7 @@
                   "x": 280,
                   "y": 0
                 },
-                "subsystemId": "l027-events-boundary-binding-2",
+                "subsystemId": "l027-events-boundary-binding-4",
                 "version": 1
               },
               {
@@ -3428,10 +3441,16 @@
           },
           "id": "events-s6",
           "invariants": [
-            "Enqueue repair only with a decreasing shared budget and an unexpired deadline. State owner: Repair queue (repair job identities)."
+            "The repair budget lives on the server per intentId; a repair job consumes it only by compare-and-swap on the budget version, at most once per job ID."
           ],
           "number": 6,
           "operations": [
+            {
+              "nodeId": "boundary",
+              "op": "rebind",
+              "reason": "Select a new immutable exposure binding before connecting the added responsibility; prior stage binding remains unchanged.",
+              "subsystemId": "l027-events-boundary-binding-4"
+            },
             {
               "node": {
                 "definitionId": "l027.events.d5",
@@ -3461,20 +3480,34 @@
                 }
               },
               "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l027.events.budget",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l027.events.budget"
+                },
+                "id": "budget",
+                "label": "consume intent repair budget by version",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l027.events.budget-state"
+                }
+              },
+              "op": "connect"
             }
           ],
           "question": "Can malformed output loop forever?",
-          "reason": "Enqueue repair only with a decreasing shared budget and an unexpired deadline.",
+          "reason": "Consume the server-held repair budget for the intent by compare-and-swap on its version, once per repair job ID; requests never carry the budget.",
           "title": "Repair queue"
         },
         {
           "checkIds": [
-            "mechanism",
-            "repair",
-            "stale",
-            "budget"
+            "uncertain"
           ],
-          "explanation": "Persist one stable effect key per approved tool action and expected resource version. Persist one stable effect key per approved tool action and expected resource version. State owner: Effect outbox (effect intent and dedupe key). Persist one stable effect key per approved tool action and expected resource version. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure.",
+          "explanation": "Persist one stable effect key per approved tool action and expected resource version. Each approved tool action has one effectKey and expected resource version persisted before dispatch. Persist one stable effect key per approved tool action and expected resource version. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure.",
           "graph": {
             "edges": [
               {
@@ -3562,6 +3595,20 @@
                 }
               },
               {
+                "contractId": "l027.events.budget",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l027.events.budget"
+                },
+                "id": "budget",
+                "label": "consume intent repair budget by version",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l027.events.budget-state"
+                }
+              },
+              {
                 "contractId": "l027.events.c6",
                 "from": {
                   "nodeId": "n5",
@@ -3595,7 +3642,7 @@
                   "x": 280,
                   "y": 0
                 },
-                "subsystemId": "l027-events-boundary-binding-2",
+                "subsystemId": "l027-events-boundary-binding-4",
                 "version": 1
               },
               {
@@ -3674,7 +3721,7 @@
           },
           "id": "events-s7",
           "invariants": [
-            "Persist one stable effect key per approved tool action and expected resource version. State owner: Effect outbox (effect intent and dedupe key)."
+            "Each approved tool action has one effectKey and expected resource version persisted before dispatch."
           ],
           "number": 7,
           "operations": [
@@ -3715,12 +3762,9 @@
         },
         {
           "checkIds": [
-            "mechanism",
-            "repair",
-            "stale",
-            "budget"
+            "uncertain"
           ],
-          "explanation": "Fold receipts into completed, rejected, exhausted or uncertain; old retries cannot overwrite newer outcomes. Fold receipts into completed, rejected, exhausted or uncertain; old retries cannot overwrite newer outcomes. State owner: Recovery projector (public recovery projection). [Backoff](https://en.wikipedia.org/wiki/Exponential_backoff) spaces repeated attempts so failures do not create a burst of extra traffic. A retry still needs a stable identity and a clear stopping condition.",
+          "explanation": "Fold receipts into completed, rejected, exhausted or uncertain; old retries cannot overwrite newer outcomes. The recovery projection applies a receipt only if its version is newer, and unknown effects stay uncertain. Fold receipts into completed, rejected, exhausted or uncertain; old retries cannot overwrite newer outcomes. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Backoff](https://en.wikipedia.org/wiki/Exponential_backoff) spaces repeated attempts so failures do not create a burst of extra traffic.",
           "graph": {
             "edges": [
               {
@@ -3808,6 +3852,20 @@
                 }
               },
               {
+                "contractId": "l027.events.budget",
+                "from": {
+                  "nodeId": "n5",
+                  "portId": "out-l027.events.budget"
+                },
+                "id": "budget",
+                "label": "consume intent repair budget by version",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l027.events.budget-state"
+                }
+              },
+              {
                 "contractId": "l027.events.c6",
                 "from": {
                   "nodeId": "n5",
@@ -3869,7 +3927,7 @@
                   "x": 280,
                   "y": 0
                 },
-                "subsystemId": "l027-events-boundary-binding-3",
+                "subsystemId": "l027-events-boundary-binding-5",
                 "version": 1
               },
               {
@@ -3958,7 +4016,7 @@
           },
           "id": "events-s8",
           "invariants": [
-            "Fold receipts into completed, rejected, exhausted or uncertain; old retries cannot overwrite newer outcomes. State owner: Recovery projector (public recovery projection)."
+            "The recovery projection applies a receipt only if its version is newer, and unknown effects stay uncertain."
           ],
           "number": 8,
           "operations": [
@@ -3966,7 +4024,7 @@
               "nodeId": "boundary",
               "op": "rebind",
               "reason": "Select a new immutable exposure binding before connecting the added responsibility; prior stage binding remains unchanged.",
-              "subsystemId": "l027-events-boundary-binding-3"
+              "subsystemId": "l027-events-boundary-binding-5"
             },
             {
               "node": {
@@ -4146,7 +4204,7 @@
     },
     {
       "definitionId": "l027.events.d0",
-      "id": "l027-events-boundary-binding-3",
+      "id": "l027-events-boundary-binding-4",
       "ports": [
         {
           "contractId": "l027.events.c0",
@@ -4164,6 +4222,49 @@
           "target": {
             "nodeId": "control",
             "portId": "out-l027.events.c2"
+          }
+        },
+        {
+          "contractId": "l027.events.budget",
+          "direction": "in",
+          "id": "in-l027.events.budget-state",
+          "target": {
+            "nodeId": "state",
+            "portId": "in-l027.events.budget"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l027.events.d0",
+      "id": "l027-events-boundary-binding-5",
+      "ports": [
+        {
+          "contractId": "l027.events.c0",
+          "direction": "in",
+          "id": "in-l027.events.c0",
+          "target": {
+            "nodeId": "control",
+            "portId": "in-l027.events.c0"
+          }
+        },
+        {
+          "contractId": "l027.events.c2",
+          "direction": "out",
+          "id": "out-l027.events.c2-control",
+          "target": {
+            "nodeId": "control",
+            "portId": "out-l027.events.c2"
+          }
+        },
+        {
+          "contractId": "l027.events.budget",
+          "direction": "in",
+          "id": "in-l027.events.budget-state",
+          "target": {
+            "nodeId": "state",
+            "portId": "in-l027.events.budget"
           }
         },
         {

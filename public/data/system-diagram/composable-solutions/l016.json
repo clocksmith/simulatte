@@ -136,7 +136,7 @@
       ],
       "responsibility": "Read a versioned cached value or fill from authority; updates invalidate after commit with bounded TTL.",
       "stateOwnership": [
-        "resourceId, version, ttlMs"
+        "cached value, version and expiry per resource"
       ],
       "version": 1
     },
@@ -156,7 +156,7 @@
       ],
       "responsibility": "Serve only reads whose required version is available; route stronger reads to primary.",
       "stateOwnership": [
-        "minimumVersion, appliedVersion"
+        "replica applied version"
       ],
       "version": 1
     },
@@ -204,7 +204,7 @@
           "id": "out-l016.cache-aside.step7"
         }
       ],
-      "responsibility": "Claim bounded work, run with a lease epoch, and retain the original job ID on retry.",
+      "responsibility": "Claim bounded work by incrementing its lease epoch, run under that epoch, and retain the original job ID on retry.",
       "stateOwnership": [
         "jobId, leaseEpoch"
       ],
@@ -224,9 +224,9 @@
           "id": "in-l016.cache-aside.step7"
         }
       ],
-      "responsibility": "Commit one result identity per job and model external effects with their own deduplication contract.",
+      "responsibility": "Commit through one conditional update on job ID, claimed lease epoch and running state, in the same transaction as the unique result row; zero updated rows means a stale lease. External effects need their own deduplication contract.",
       "stateOwnership": [
-        "jobId, resultHash"
+        "jobId, leaseEpoch, resultHash"
       ],
       "version": 1
     },
@@ -246,7 +246,7 @@
       ],
       "responsibility": "Reject or defer when per-tenant queued work or database concurrency reaches its declared bound.",
       "stateOwnership": [
-        "tenantId, queued, limit"
+        "per-tenant queued units and declared limit"
       ],
       "version": 1
     },
@@ -419,9 +419,9 @@
           "id": "in-l016.cqrs.step5"
         }
       ],
-      "responsibility": "Return a command token; wait boundedly for projection offset or expose pending.",
+      "responsibility": "Read with the returned command token; wait boundedly for the projection offset or expose pending.",
       "stateOwnership": [
-        "minimumOffset, deadline"
+        "bounded token waits"
       ],
       "version": 1
     },
@@ -495,42 +495,46 @@
     {
       "id": "l016.cache-aside.command",
       "request": {
-        "expectedVersion": "integer|null",
+        "expectedVersion": "integer for update|null",
+        "inputHash": "sha256 of the update value or job input",
         "operation": "get|update|start-job",
-        "requestId": "uuid",
-        "resourceId": "uuid"
+        "requestId": "uuid stable across retries",
+        "resourceId": "uuid",
+        "sessionMinVersion": "integer read-your-write floor|null"
       },
       "response": {
-        "jobId": "uuid|null",
-        "status": "ok|accepted|conflict|overloaded",
-        "version": "integer"
+        "jobId": "uuid for start-job|null",
+        "replayed": "boolean; true when a retry returns the stored original result",
+        "status": "ok|accepted|conflict|not-yet-available|overloaded",
+        "value": "bytes for get|null",
+        "version": "integer committed or read version"
       },
       "version": 1
     },
     {
       "id": "l016.cache-aside.step3",
       "request": {
+        "minimumVersion": "integer session floor|null",
         "resourceId": "uuid",
-        "ttlMs": "integer",
-        "version": "integer"
+        "ttlMs": "integer bound applied when filling from authority"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "cachedVersion": "integer|null",
+        "hit": "boolean; false when absent or below minimumVersion",
+        "value": "bytes|null"
       },
       "version": 1
     },
     {
       "id": "l016.cache-aside.step4",
       "request": {
-        "appliedVersion": "integer",
-        "minimumVersion": "integer"
+        "minimumVersion": "integer",
+        "resourceId": "uuid"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "appliedVersion": "integer",
+        "status": "ok|not-yet-available",
+        "value": "bytes|null"
       },
       "version": 1
     },
@@ -538,12 +542,11 @@
       "id": "l016.cache-aside.step5",
       "request": {
         "inputHash": "sha256",
-        "jobId": "uuid"
+        "jobId": "uuid derived from requestId"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "jobId": "uuid",
+        "status": "inserted|duplicate|identity-conflict"
       },
       "version": 1
     },
@@ -554,9 +557,9 @@
         "leaseEpoch": "integer"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "leaseEpoch": "integer incremented by every claim",
+        "leaseUntil": "timestamp",
+        "status": "claimed|not-claimable"
       },
       "version": 1
     },
@@ -564,41 +567,40 @@
       "id": "l016.cache-aside.step7",
       "request": {
         "jobId": "uuid",
+        "leaseEpoch": "integer the worker claimed",
         "resultHash": "sha256"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "status": "committed|duplicate|stale-lease"
       },
       "version": 1
     },
     {
       "id": "l016.cache-aside.step8",
       "request": {
-        "limit": "integer",
-        "queued": "integer",
-        "tenantId": "uuid"
+        "tenantId": "uuid",
+        "units": "queued work requested"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "decision": "admit|overloaded",
+        "queued": "integer after the decision",
+        "retryAfterMs": "integer|null"
       },
       "version": 1
     },
     {
       "id": "l016.cqrs.command",
       "request": {
+        "aggregateId": "uuid",
+        "command": "validated domain command",
         "expectedVersion": "integer|null",
-        "operation": "get|update|start-job",
-        "requestId": "uuid",
-        "resourceId": "uuid"
+        "inputHash": "sha256 of the command",
+        "requestId": "uuid stable across retries"
       },
       "response": {
-        "jobId": "uuid|null",
-        "status": "ok|accepted|conflict|overloaded",
-        "version": "integer"
+        "commandToken": "aggregateId/sequence/journalOffset|null",
+        "reason": "validation or overload reason|null",
+        "status": "accepted|duplicate|rejected|overloaded"
       },
       "version": 1
     },
@@ -606,12 +608,12 @@
       "id": "l016.cqrs.step3",
       "request": {
         "aggregateId": "uuid",
-        "sequence": "integer"
+        "sequence": "integer journal sequence for the aggregate"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "aggregateVersion": "integer",
+        "checkpointOffset": "integer",
+        "outcome": "applied|conflict"
       },
       "version": 1
     },
@@ -622,22 +624,23 @@
         "projectionOffset": "integer"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "generation": "integer",
+        "storedOffset": "integer applied offset"
       },
       "version": 1
     },
     {
       "id": "l016.cqrs.step5",
       "request": {
-        "deadline": "timestamp",
-        "minimumOffset": "integer"
+        "commandToken": "token returned by command admission",
+        "deadline": "timestamp"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "commandOutcome": "applied|conflict|null while pending",
+        "generation": "integer",
+        "projectionOffset": "integer",
+        "record": "read model row|null",
+        "status": "ok|pending"
       },
       "version": 1
     },
@@ -648,9 +651,8 @@
         "taskId": "aggregate/sequence/task"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "appended": "boolean; false when the taskId already exists",
+        "streamOffset": "integer"
       },
       "version": 1
     },
@@ -661,9 +663,8 @@
         "taskId": "string"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "reconciliationRef": "external idempotency key|null",
+        "status": "done|retrying|unknown-external-outcome"
       },
       "version": 1
     },
@@ -674,9 +675,9 @@
         "targetOffset": "integer"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "reachedOffset": "integer",
+        "servingGeneration": "integer",
+        "status": "replaying|published"
       },
       "version": 1
     }
@@ -732,7 +733,6 @@
           "given": "A job request times out after its intent commits.",
           "id": "case0",
           "relatedRequirementIds": [
-            "r0",
             "r1",
             "r2"
           ],
@@ -744,11 +744,49 @@
           "id": "case1",
           "relatedRequirementIds": [
             "r0",
-            "r1",
             "r2"
           ],
           "then": "Use primary or return explicit not-yet-available; never silently return version 7.",
           "when": "Attempt its cached/replica read."
+        },
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-05-state.test.mjs",
+            "testName": "request receipts return the original update result on retry"
+          },
+          "given": "An update from version 7 commits version 8 but its response is lost.",
+          "id": "case2",
+          "relatedRequirementIds": [
+            "r0",
+            "r2"
+          ],
+          "then": "Return the stored original result (ok, version 8) instead of conflict, and reject the reused ID.",
+          "when": "The client retries with the same request ID, then reuses that ID with different input."
+        },
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-05-state.test.mjs",
+            "testName": "conditional lease epoch update refuses a stale worker result"
+          },
+          "given": "Worker A's lease expires mid-computation and worker B claims epoch 2.",
+          "id": "case3",
+          "relatedRequirementIds": [
+            "r1",
+            "r2"
+          ],
+          "then": "The conditional epoch update rejects A; B commits once and B's retry is a duplicate.",
+          "when": "A then tries to commit its result."
+        },
+        {
+          "given": "A tenant's queued work is at its declared limit.",
+          "id": "case4",
+          "relatedRequirementIds": [
+            "r2"
+          ],
+          "then": "Return overloaded before inserting intent; no unbounded queue grows.",
+          "when": "Another start-job or update arrives."
         },
         {
           "evidence": {
@@ -759,7 +797,7 @@
           "given": "A bounded job map is initially empty.",
           "id": "bounded-mechanism",
           "relatedRequirementIds": [
-            "r0"
+            "r1"
           ],
           "then": "Admit one intent, deduplicate exact repeat, reject the conflict.",
           "when": "Admit the same ID/hash twice then conflicting bytes."
@@ -767,7 +805,7 @@
       ],
       "algorithms": [
         {
-          "code": "if (op === \"get\") return readAtLeast(resourceId, sessionMinVersion);\ntransaction(() => { compareAndUpdate(expectedVersion); insertJobIntentUnique(requestId,inputHash); });\nworker: claimFenced(jobId); compute(); transaction(() => { assertLeaseEpoch(); insertResultUnique(jobId); });",
+          "code": "if (op === \"get\") return readAtLeast(resourceId, sessionMinVersion); // cache or replica only at or above the floor, else primary or not-yet-available\nconst receipt = readReceipt(requestId);\nif (receipt) return receipt.inputHash === inputHash ? {...receipt.result, replayed: true} : reject(\"request ID reused\");\nif (!admitWithinTenantBudget(tenantId)) return {status: \"overloaded\"};\ntransaction(() => { const result = op === \"update\" ? compareAndUpdate(resourceId, expectedVersion) : insertJobIntentUnique(requestId, inputHash);\n insertReceiptUnique(requestId, inputHash, result); }); // a concurrent retry loses the unique insert and rereads the winner's receipt\nworker: const epoch = claimIncrementingLeaseEpoch(jobId); compute();\ntransaction(() => { const rows = updateJob({jobId, leaseEpoch: epoch, state: \"running\"}, {state: \"done\", resultHash});\n if (rows === 0) abort(\"stale lease\"); insertResultUnique(jobId, resultHash); });",
           "guarantees": [
             "Cache hit does not imply read-your-write unless a minimum version is enforced.",
             "An insufficient replica version cannot satisfy a strong session read.",
@@ -783,12 +821,12 @@
       ],
       "apis": [
         {
-          "errors": "Reject invalid input, stale versions and operations outside the declared boundary.",
+          "errors": "Reject a reused requestId with a different inputHash and operations outside the declared boundary; overload is an explicit status, not an unbounded wait.",
           "method": "CALL",
           "ownerNodeId": "engine",
           "path": "L016/cache-aside",
-          "request": "{\"requestId\":\"uuid\",\"resourceId\":\"uuid\",\"operation\":\"get|update|start-job\",\"expectedVersion\":\"integer|null\"}",
-          "response": "{\"status\":\"ok|accepted|conflict|overloaded\",\"version\":\"integer\",\"jobId\":\"uuid|null\"}"
+          "request": "{\"requestId\":\"uuid stable across retries\",\"resourceId\":\"uuid\",\"operation\":\"get|update|start-job\",\"inputHash\":\"sha256 of the update value or job input\",\"expectedVersion\":\"integer for update|null\",\"sessionMinVersion\":\"integer read-your-write floor|null\"}",
+          "response": "{\"status\":\"ok|accepted|conflict|not-yet-available|overloaded\",\"version\":\"integer committed or read version\",\"value\":\"bytes for get|null\",\"jobId\":\"uuid for start-job|null\",\"replayed\":\"boolean; true when a retry returns the stored original result\"}"
         }
       ],
       "assumptions": [
@@ -804,10 +842,10 @@
       "stages": [
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case1",
+            "case2"
           ],
-          "explanation": "Preserve read/write semantics while scaling hot reads. [An API contract](https://en.wikipedia.org/wiki/Application_programming_interface) states what callers send, what an outcome means, and how failures are reported. It should remain clear before the implementation is split into more components. Consider this case: A job request times out after its intent commits. Retry the same request ID and run two lease owners.",
+          "explanation": "Preserve read/write semantics while scaling hot reads. ok for update means the primary committed that version once and stored the request receipt; ok for get returns a version at or above the session floor; accepted means durable job intent, not job completion. [An API contract](https://en.wikipedia.org/wiki/Application_programming_interface) states what callers send, what an outcome means, and how failures are reported. It should remain clear before the implementation is split into more components.",
           "graph": {
             "edges": [
               {
@@ -850,7 +888,7 @@
           },
           "id": "cache-aside-s1",
           "invariants": [
-            "Preserve read/write semantics while scaling hot reads."
+            "ok for update means the primary committed that version once and stored the request receipt; ok for get returns a version at or above the session floor; accepted means durable job intent, not job completion."
           ],
           "number": 1,
           "operations": [
@@ -904,10 +942,9 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case2"
           ],
-          "explanation": "Authorize requests and commit versioned updates at one write authority. Own records, versions and durable job intent. request context belongs to Stateless API; object rows and job keys belongs to Primary database. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call.",
+          "explanation": "Authorize requests and commit versioned updates at one write authority. Own records, versions and durable job intent. Only the primary database orders versions, stores request receipts and records job intent; the stateless API keeps no authoritative state between requests. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call.",
           "graph": {
             "edges": [
               {
@@ -987,7 +1024,7 @@
           },
           "id": "cache-aside-s2",
           "invariants": [
-            "request context belongs to Stateless API; object rows and job keys belongs to Primary database."
+            "Only the primary database orders versions, stores request receipts and records job intent; the stateless API keeps no authoritative state between requests."
           ],
           "number": 2,
           "operations": [
@@ -1041,7 +1078,6 @@
         },
         {
           "checkIds": [
-            "case0",
             "case1"
           ],
           "explanation": "Read a versioned cached value or fill from authority; updates invalidate after commit with bounded TTL. Cache hit does not imply read-your-write unless a minimum version is enforced. [A cache](https://en.wikipedia.org/wiki/Cache_replacement_policies) keeps reusable results in limited memory. Eviction controls space, while ownership and invalidation rules determine whether a returned value is still safe to use.",
@@ -1195,7 +1231,6 @@
         },
         {
           "checkIds": [
-            "case0",
             "case1"
           ],
           "explanation": "Serve only reads whose required version is available; route stronger reads to primary. An insufficient replica version cannot satisfy a strong session read. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return.",
@@ -1368,7 +1403,7 @@
         {
           "checkIds": [
             "case0",
-            "case1"
+            "bounded-mechanism"
           ],
           "explanation": "Insert job identity and input hash with the business transaction before returning accepted. Accepted does not mean completed. [A transaction](https://en.wikipedia.org/wiki/Database_transaction) commits related state changes together or leaves them unapplied. The database must enforce the relevant condition during the write, rather than trusting an earlier read. Consider this case: A job request times out after its intent commits.",
           "graph": {
@@ -1570,9 +1605,9 @@
         {
           "checkIds": [
             "case0",
-            "case1"
+            "case3"
           ],
-          "explanation": "Claim bounded work, run with a lease epoch, and retain the original job ID on retry. An expired owner cannot commit over its successor. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources. A newer owner needs a token that the resource checks, not merely a belief that ownership changed.",
+          "explanation": "Claim bounded work by incrementing its lease epoch, run under that epoch, and retain the original job ID on retry. An expired owner cannot commit over its successor. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return.",
           "graph": {
             "edges": [
               {
@@ -1784,15 +1819,15 @@
             }
           ],
           "question": "What happens after worker loss?",
-          "reason": "Claim bounded work, run with a lease epoch, and retain the original job ID on retry.",
+          "reason": "Claim bounded work by incrementing its lease epoch, run under that epoch, and retain the original job ID on retry.",
           "title": "Leased worker"
         },
         {
           "checkIds": [
             "case0",
-            "case1"
+            "case3"
           ],
-          "explanation": "Commit one result identity per job and model external effects with their own deduplication contract. A unique local row alone cannot deduplicate a remote webhook. [Idempotence](https://en.wikipedia.org/wiki/Idempotence) means repeating the same logical operation does not repeat its effect. Stable request identities let a retry recover an existing outcome instead of creating another change.",
+          "explanation": "Commit through one conditional update on job ID, claimed lease epoch and running state, in the same transaction as the unique result row; zero updated rows means a stale lease. External effects need their own deduplication contract. A unique local row alone cannot deduplicate a remote webhook. [Idempotence](https://en.wikipedia.org/wiki/Idempotence) means repeating the same logical operation does not repeat its effect. Stable request identities let a retry recover an existing outcome instead of creating another change.",
           "graph": {
             "edges": [
               {
@@ -2028,15 +2063,14 @@
             }
           ],
           "question": "Can retry publish two results?",
-          "reason": "Commit one result identity per job and model external effects with their own deduplication contract.",
+          "reason": "Commit through one conditional update on job ID, claimed lease epoch and running state, in the same transaction as the unique result row; zero updated rows means a stale lease. External effects need their own deduplication contract.",
           "title": "Idempotent result"
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case4"
           ],
-          "explanation": "Reject or defer when per-tenant queued work or database concurrency reaches its declared bound. Overload is surfaced rather than hidden in unbounded queues. [Backpressure](https://en.wikipedia.org/wiki/Flow_control_%28data%29) prevents producers from outrunning the next component indefinitely. The design must choose whether excess work waits, is rejected, or is dropped with an explicit outcome. Consider this case: A job request times out after its intent commits.",
+          "explanation": "Reject or defer when per-tenant queued work or database concurrency reaches its declared bound. Overload is surfaced rather than hidden in unbounded queues. [Backpressure](https://en.wikipedia.org/wiki/Flow_control_%28data%29) prevents producers from outrunning the next component indefinitely. The design must choose whether excess work waits, is rejected, or is dropped with an explicit outcome. Consider this case: A tenant's queued work is at its declared limit.",
           "graph": {
             "edges": [
               {
@@ -2318,9 +2352,7 @@
           "given": "A reducer replays the same accepted command.",
           "id": "case0",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
-            "r2"
+            "r1"
           ],
           "then": "Stable task identity suppresses duplicate local admission.",
           "when": "Emit its long-task intent twice."
@@ -2330,11 +2362,38 @@
           "id": "case1",
           "relatedRequirementIds": [
             "r0",
-            "r1",
             "r2"
           ],
           "then": "Wait or expose pending, never claim version 8 is visible.",
           "when": "Read with a bounded deadline."
+        },
+        {
+          "given": "A command is appended but its response is lost.",
+          "id": "case2",
+          "relatedRequirementIds": [
+            "r0",
+            "r2"
+          ],
+          "then": "Return the original command token without a second append, and reject the reused ID.",
+          "when": "Retry with the same requestId, then reuse that ID for a different command."
+        },
+        {
+          "given": "Two commands for one aggregate both expect version 4.",
+          "id": "case3",
+          "relatedRequirementIds": [
+            "r0"
+          ],
+          "then": "The first applies; the second is recorded as a conflict at its token and visible to a read, never a silent overwrite.",
+          "when": "The reducer applies them in journal order."
+        },
+        {
+          "given": "Shadow generation 2 replays while generation 1 serves reads.",
+          "id": "case4",
+          "relatedRequirementIds": [
+            "r0"
+          ],
+          "then": "Each read comes wholly from one generation; generation 2 serves only after reaching its target offset.",
+          "when": "A client reads before and after publication."
         },
         {
           "evidence": {
@@ -2345,7 +2404,7 @@
           "given": "A bounded job map is initially empty.",
           "id": "bounded-mechanism",
           "relatedRequirementIds": [
-            "r0"
+            "r1"
           ],
           "then": "Admit one intent, deduplicate exact repeat, reject the conflict.",
           "when": "Admit the same ID/hash twice then conflicting bytes."
@@ -2353,7 +2412,7 @@
       ],
       "algorithms": [
         {
-          "code": "const token = appendCommandIfAbsent(requestId, aggregateId, expectedVersion);\nreduceInSequence(token, tx => { applyOrReject(); saveOffset(); emitTaskId(aggregateId, sequence); });\nread: awaitProjectionAtLeast(token.offset, deadline);\nrebuild: replayIntoShadow(); publishOnlyAtVerifiedOffset();",
+          "code": "const token = appendCommandIfAbsent(requestId, inputHash, aggregateId, expectedVersion); // a retry returns the original token; a reused ID with other input is rejected\nreduceInSequence(token, tx => { applyOrRecordConflict(); saveOffset(); emitTaskId(aggregateId, sequence); });\nread: awaitProjectionAtLeast(token.offset, deadline) ?? pending(token);\nrebuild: replayIntoShadow(); publishOnlyAtVerifiedOffset();",
           "guarantees": [
             "Conflicting commands fail explicitly instead of silently overwriting.",
             "A projection names its freshness boundary.",
@@ -2369,12 +2428,20 @@
       ],
       "apis": [
         {
-          "errors": "Reject invalid input, stale versions and operations outside the declared boundary.",
+          "errors": "Reject unauthenticated or invalid commands and a reused requestId with a different inputHash; accepted is not applied, so the outcome is read with the command token.",
           "method": "CALL",
           "ownerNodeId": "engine",
           "path": "L016/cqrs",
-          "request": "{\"requestId\":\"uuid\",\"resourceId\":\"uuid\",\"operation\":\"get|update|start-job\",\"expectedVersion\":\"integer|null\"}",
-          "response": "{\"status\":\"ok|accepted|conflict|overloaded\",\"version\":\"integer\",\"jobId\":\"uuid|null\"}"
+          "request": "{\"requestId\":\"uuid stable across retries\",\"aggregateId\":\"uuid\",\"command\":\"validated domain command\",\"inputHash\":\"sha256 of the command\",\"expectedVersion\":\"integer|null\"}",
+          "response": "{\"status\":\"accepted|duplicate|rejected|overloaded\",\"commandToken\":\"aggregateId/sequence/journalOffset|null\",\"reason\":\"validation or overload reason|null\"}"
+        },
+        {
+          "errors": "Read-only. Return pending at the deadline; never report a projection as caught up before its offset reaches the token.",
+          "method": "CALL",
+          "ownerNodeId": "n5",
+          "path": "L016/cqrs/read",
+          "request": "{\"commandToken\":\"token returned by command admission\",\"deadline\":\"timestamp\"}",
+          "response": "{\"status\":\"ok|pending\",\"projectionOffset\":\"integer\",\"generation\":\"integer\",\"commandOutcome\":\"applied|conflict|null while pending\",\"record\":\"read model row|null\"}"
         }
       ],
       "assumptions": [
@@ -2390,10 +2457,10 @@
       "stages": [
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case1",
+            "case2"
           ],
-          "explanation": "Preserve read/write semantics while scaling hot reads. [An API contract](https://en.wikipedia.org/wiki/Application_programming_interface) states what callers send, what an outcome means, and how failures are reported. It should remain clear before the implementation is split into more components. Consider this case: A reducer replays the same accepted command. Emit its long-task intent twice.",
+          "explanation": "Preserve read/write semantics while scaling hot reads. accepted means the command and its requestId are durably appended at the returned command token; it does not promise that the reducer applied it or that any projection shows it. [An API contract](https://en.wikipedia.org/wiki/Application_programming_interface) states what callers send, what an outcome means, and how failures are reported. It should remain clear before the implementation is split into more components.",
           "graph": {
             "edges": [
               {
@@ -2436,7 +2503,7 @@
           },
           "id": "cqrs-s1",
           "invariants": [
-            "Preserve read/write semantics while scaling hot reads."
+            "accepted means the command and its requestId are durably appended at the returned command token; it does not promise that the reducer applied it or that any projection shows it."
           ],
           "number": 1,
           "operations": [
@@ -2490,10 +2557,9 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case2"
           ],
-          "explanation": "Validate authenticated commands and append stable command identity. Own immutable ordered commands and deduplication receipts. accepted command offset belongs to Command admission; per-aggregate sequence belongs to Command journal. [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers. Publishing one reference lets each reader keep a consistent version.",
+          "explanation": "Validate authenticated commands and append stable command identity. Own immutable ordered commands and deduplication receipts. Command admission decides acceptance and assigns the token; only the command journal orders commands and holds deduplication receipts. [Idempotence](https://en.wikipedia.org/wiki/Idempotence) means repeating the same logical operation does not repeat its effect. Stable request identities let a retry recover an existing outcome instead of creating another change.",
           "graph": {
             "edges": [
               {
@@ -2573,7 +2639,7 @@
           },
           "id": "cqrs-s2",
           "invariants": [
-            "accepted command offset belongs to Command admission; per-aggregate sequence belongs to Command journal."
+            "Command admission decides acceptance and assigns the token; only the command journal orders commands and holds deduplication receipts."
           ],
           "number": 2,
           "operations": [
@@ -2627,10 +2693,9 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case3"
           ],
-          "explanation": "Apply one aggregate sequence with expected-version checks and atomic checkpoint. Conflicting commands fail explicitly instead of silently overwriting. [A checkpoint](https://en.wikipedia.org/wiki/Checkpointing) records enough progress to restart without repeating everything. Its usefulness depends on which state is durable and whether later effects can be replayed safely. Consider this case: A reducer replays the same accepted command. Emit its long-task intent twice.",
+          "explanation": "Apply one aggregate sequence with expected-version checks and atomic checkpoint. Conflicting commands fail explicitly instead of silently overwriting. [A checkpoint](https://en.wikipedia.org/wiki/Checkpointing) records enough progress to restart without repeating everything. Its usefulness depends on which state is durable and whether later effects can be replayed safely. Consider this case: Two commands for one aggregate both expect version 4. The reducer applies them in journal order.",
           "graph": {
             "edges": [
               {
@@ -2781,10 +2846,9 @@
         },
         {
           "checkIds": [
-            "case0",
             "case1"
           ],
-          "explanation": "Materialize query-specific records with applied offset and generation. A projection names its freshness boundary. [A search index](https://en.wikipedia.org/wiki/Search_engine_indexing) maps query terms to candidate records. The interface must still associate each response with the active query and preserve the user’s chosen filters. Consider this case: A reducer replays the same accepted command. Emit its long-task intent twice.",
+          "explanation": "Materialize query-specific records with applied offset and generation. A projection names its freshness boundary. [A search index](https://en.wikipedia.org/wiki/Search_engine_indexing) maps query terms to candidate records. The interface must still associate each response with the active query and preserve the user’s chosen filters. Consider this case: A read token names offset 8 and projection is at 7. Read with a bounded deadline.",
           "graph": {
             "edges": [
               {
@@ -2953,10 +3017,9 @@
         },
         {
           "checkIds": [
-            "case0",
             "case1"
           ],
-          "explanation": "Return a command token; wait boundedly for projection offset or expose pending. Pending projection is not failed command execution. [An API contract](https://en.wikipedia.org/wiki/Application_programming_interface) states what callers send, what an outcome means, and how failures are reported. It should remain clear before the implementation is split into more components. Consider this case: A reducer replays the same accepted command. Emit its long-task intent twice.",
+          "explanation": "Read with the returned command token; wait boundedly for the projection offset or expose pending. Pending projection is not failed command execution. [An API contract](https://en.wikipedia.org/wiki/Application_programming_interface) states what callers send, what an outcome means, and how failures are reported. It should remain clear before the implementation is split into more components.",
           "graph": {
             "edges": [
               {
@@ -3144,13 +3207,13 @@
             }
           ],
           "question": "How does a client observe its own command?",
-          "reason": "Return a command token; wait boundedly for projection offset or expose pending.",
+          "reason": "Read with the returned command token; wait boundedly for the projection offset or expose pending.",
           "title": "Read API"
         },
         {
           "checkIds": [
             "case0",
-            "case1"
+            "bounded-mechanism"
           ],
           "explanation": "Emit stable task identities from committed reducer transitions. Replay emits the same task identity. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call. Consider this case: A reducer replays the same accepted command. Emit its long-task intent twice.",
           "graph": {
@@ -3369,8 +3432,7 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case0"
           ],
           "explanation": "Consume stable IDs with leased retries and explicit external idempotency/reconciliation. Unknown external outcome remains unknown until reconciled. [A control loop](https://en.wikipedia.org/wiki/Control_loop) compares desired state with observed state and applies corrections. Repeated execution must converge safely, especially when a previous action succeeded but its reply was lost. Consider this case: A reducer replays the same accepted command. Emit its long-task intent twice.",
           "graph": {
@@ -3613,10 +3675,9 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case4"
           ],
-          "explanation": "Replay into a shadow projection and publish only after its target offset is reached. Clients do not mix two projection generations. [An event log](https://en.wikipedia.org/wiki/Event-driven_architecture) preserves ordered changes so a consumer can rebuild state or catch up. The consumer must remember its position and handle repeated delivery without repeated effects. Consider this case: A reducer replays the same accepted command.",
+          "explanation": "Replay into a shadow projection and publish only after its target offset is reached. Clients do not mix two projection generations. [An event log](https://en.wikipedia.org/wiki/Event-driven_architecture) preserves ordered changes so a consumer can rebuild state or catch up. The consumer must remember its position and handle repeated delivery without repeated effects. Consider this case: Shadow generation 2 replays while generation 1 serves reads.",
           "graph": {
             "edges": [
               {

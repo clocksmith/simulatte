@@ -22,6 +22,11 @@
           "contractId": "l015.leases.c1",
           "direction": "in",
           "id": "in-l015.leases.c1-state"
+        },
+        {
+          "contractId": "l015.leases.expire",
+          "direction": "in",
+          "id": "in-l015.leases.expire-state"
         }
       ],
       "responsibility": "Start with authenticated user, device, session generation and sequence.",
@@ -42,6 +47,11 @@
           "contractId": "l015.leases.c1",
           "direction": "in",
           "id": "in-l015.leases.c1"
+        },
+        {
+          "contractId": "l015.leases.expire",
+          "direction": "in",
+          "id": "in-l015.leases.expire"
         }
       ],
       "responsibility": "Expand ingress and retain the greatest generation/sequence per device.",
@@ -74,7 +84,7 @@
           "id": "out-l015.leases.c3"
         }
       ],
-      "responsibility": "Refresh a bounded deadline only for a current session; old generations are rejected.",
+      "responsibility": "Refresh a bounded deadline only for a current, unexpired session: a same-epoch beat at or after the deadline is rejected, and an expiry timer closes lapsed leases.",
       "stateOwnership": [
         "expiry deadlines"
       ],
@@ -99,7 +109,7 @@
           "id": "out-l015.leases.c4"
         }
       ],
-      "responsibility": "Aggregate all unexpired devices and explicit availability settings.",
+      "responsibility": "Aggregate all unexpired devices and explicit availability settings on every heartbeat and every timer expiry.",
       "stateOwnership": [
         "aggregate version"
       ],
@@ -272,6 +282,31 @@
     },
     {
       "extends": {
+        "id": "core.worker",
+        "version": 1
+      },
+      "id": "l015.leases.timer",
+      "label": "Lease expiry timer",
+      "ports": [
+        {
+          "contractId": "l015.leases.expire",
+          "direction": "out",
+          "id": "out-l015.leases.expire"
+        },
+        {
+          "contractId": "l015.leases.c3",
+          "direction": "out",
+          "id": "out-l015.leases.c3"
+        }
+      ],
+      "responsibility": "Fire at each lease deadline, expire the lease only if its (epoch, seq) is unchanged, and drive the user reduction so an offline transition reaches the outbox.",
+      "stateOwnership": [
+        "deadline queue"
+      ],
+      "version": 1
+    },
+    {
+      "extends": {
         "id": "core.service",
         "version": 1
       },
@@ -287,6 +322,11 @@
           "contractId": "l015.events.c2",
           "direction": "out",
           "id": "out-l015.events.c2-state"
+        },
+        {
+          "contractId": "l015.events.close",
+          "direction": "in",
+          "id": "in-l015.events.close-state"
         },
         {
           "contractId": "l015.events.c7",
@@ -319,6 +359,11 @@
           "id": "out-l015.events.c2"
         },
         {
+          "contractId": "l015.events.close",
+          "direction": "in",
+          "id": "in-l015.events.close"
+        },
+        {
           "contractId": "l015.events.c7",
           "direction": "out",
           "id": "out-l015.events.c7"
@@ -345,8 +390,8 @@
         },
         {
           "contractId": "l015.events.c3",
-          "direction": "in",
-          "id": "in-l015.events.c3"
+          "direction": "out",
+          "id": "out-l015.events.c3"
         },
         {
           "contractId": "l015.events.c4",
@@ -370,11 +415,16 @@
       "ports": [
         {
           "contractId": "l015.events.c3",
+          "direction": "in",
+          "id": "in-l015.events.c3"
+        },
+        {
+          "contractId": "l015.events.close",
           "direction": "out",
-          "id": "out-l015.events.c3"
+          "id": "out-l015.events.close"
         }
       ],
-      "responsibility": "Schedule expiry against last accepted heartbeat and recheck its version before closing.",
+      "responsibility": "Schedule expiry against the last accepted heartbeat; when it fires, append a close event carrying expectedSeq to the journal instead of editing the fold.",
       "stateOwnership": [
         "timer versions"
       ],
@@ -555,11 +605,13 @@
     {
       "id": "l015.leases.c2",
       "request": {
+        "deviceId": "uuid",
+        "epoch": "integer",
         "now": "timestamp",
-        "sessionId": "uuid"
+        "seq": "integer"
       },
       "response": {
-        "deadline": "timestamp"
+        "deadline": "timestamp|rejected"
       },
       "version": 1
     },
@@ -620,6 +672,20 @@
       "version": 1
     },
     {
+      "id": "l015.leases.expire",
+      "request": {
+        "deviceId": "uuid",
+        "expectedEpoch": "integer",
+        "expectedSeq": "integer",
+        "now": "timestamp"
+      },
+      "response": {
+        "expired": "boolean",
+        "version": "integer"
+      },
+      "version": 1
+    },
+    {
       "id": "l015.events.c0",
       "request": {
         "epoch": "integer",
@@ -658,11 +724,13 @@
     {
       "id": "l015.events.c3",
       "request": {
+        "deadline": "timestamp",
+        "epoch": "integer",
         "expectedSeq": "integer",
         "sessionId": "uuid"
       },
       "response": {
-        "expired": "boolean"
+        "scheduled": "boolean"
       },
       "version": 1
     },
@@ -707,6 +775,20 @@
       },
       "response": {
         "readyAt": "integer|null"
+      },
+      "version": 1
+    },
+    {
+      "id": "l015.events.close",
+      "request": {
+        "epoch": "integer",
+        "eventId": "derived from sessionId, epoch and expectedSeq",
+        "expectedSeq": "integer",
+        "kind": "close",
+        "sessionId": "uuid"
+      },
+      "response": {
+        "offset": "integer"
       },
       "version": 1
     }
@@ -762,35 +844,34 @@
           "evidence": {
             "kind": "reference-test",
             "testFile": "tools/simulatte/study-reference/batch-01-mechanisms.test.mjs",
-            "testName": "L015 bounded mechanism"
+            "testName": "L015 leases heartbeat fence"
           },
-          "given": "Device epoch 3 sequence 8 has an active lease and a second device is connected.",
+          "given": "Device lease epoch 3 sequence 8 expires at time 100.",
           "id": "mechanism",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
-            "r2"
+            "r0"
           ],
-          "then": "Old/duplicate heartbeats do not extend its lease; the second active device keeps the user online.",
-          "when": "Deliver epoch 2 sequence 99, duplicate sequence 8, then close only the first device."
+          "then": "Old and duplicate beats change nothing; seq 9 at 90 extends the deadline to 110; same-epoch beats at or after 100 cannot revive the lease; only epoch 4 opens a new lease, ending at 170.",
+          "when": "Deliver epoch 2 seq 99, duplicate seq 8, seq 9 at time 90, seq 9 at times 100 and 150, and epoch 4 at time 150."
         },
         {
-          "given": "Two devices are active and only one misses its lease deadline.",
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-01-mechanisms.test.mjs",
+            "testName": "L015 leases expiry sweep"
+          },
+          "given": "Two device leases end at 80 and 110 and no further heartbeats arrive.",
           "id": "expiry",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
-            "r2"
+            "r1"
           ],
-          "then": "The other device keeps the user online; late stale beats cannot resurrect the expired generation.",
-          "when": "Expire that device after rechecking heartbeat version."
+          "then": "The user stays online at 90, one offline transition with the next aggregate version is emitted at 110, and the sweep at 120 emits nothing.",
+          "when": "The expiry timer sweeps at 90, 110 and 120."
         },
         {
           "given": "A login cursor predates retained transition history.",
           "id": "gap",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
             "r2"
           ],
           "then": "Return resnapshot explicitly and synchronize snapshot plus greater revisions.",
@@ -800,17 +881,24 @@
           "given": "An observer loses channel membership.",
           "id": "acl",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
             "r2"
           ],
           "then": "Recheck the subscription authorization epoch and stop delivery.",
           "when": "Deliver a queued transition."
+        },
+        {
+          "given": "A phone session is at epoch 3 and a laptop session at epoch 1 for the same user.",
+          "id": "sessions",
+          "relatedRequirementIds": [
+            "r0"
+          ],
+          "then": "The delayed beat is rejected for the phone only; the laptop lease is unaffected.",
+          "when": "The phone reconnects at epoch 4 while a delayed epoch-3 phone beat arrives."
         }
       ],
       "algorithms": [
         {
-          "code": "if (beat.epoch < current.epoch || (beat.epoch === current.epoch && beat.seq <= current.seq)) return current;\nreturn {...beat, deadline: now + ttl};",
+          "code": "// Heartbeat lease (n2): reject old epochs, duplicate sequences and same-epoch beats that arrive after the deadline.\nfunction heartbeat(current,beat,now,ttl){\n if(beat.epoch<current.epoch)return current;\n if(beat.epoch===current.epoch&&(beat.seq<=current.seq||now>=current.deadline))return current;\n return {epoch:beat.epoch,seq:beat.seq,deadline:now+ttl};\n}",
           "guarantees": [
             "The code states the bounded decision rule; unimplemented helpers remain pseudocode.",
             "External effects, distributed failure and latency require separate execution evidence."
@@ -827,6 +915,16 @@
           "id": "recover",
           "language": "typescript-pseudocode",
           "ownerNodeId": "n7"
+        },
+        {
+          "code": "// Lease expiry timer: drop lapsed device leases, re-reduce the user and emit one transition only when the aggregate changes.\nfunction expireLeases(user,now){\n const devices=Object.fromEntries(Object.entries(user.devices).filter(([,lease])=>now<lease.deadline));\n const online=Object.keys(devices).length>0;\n if(online===user.online)return {user:{...user,devices},events:[]};\n const version=user.version+1;\n return {user:{...user,devices,online,version},events:[{userId:user.userId,online,version}]};\n}",
+          "guarantees": [
+            "A user goes offline through the outbox when the last live lease lapses, even if no further heartbeat arrives.",
+            "Repeated sweeps of an unchanged aggregate emit no duplicate transition."
+          ],
+          "id": "expiry-sweep",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "timer"
         }
       ],
       "apis": [
@@ -841,10 +939,10 @@
         {
           "errors": "403 unauthorized scope; 404 absent identity; 410 expired retained history",
           "method": "GET",
-          "ownerNodeId": "state",
-          "path": "/l015/leases/state",
-          "request": "{\"epoch\":\"integer\",\"seq\":\"integer\",\"deadline\":\"timestamp\"}",
-          "response": "{\"version\":\"integer\"}"
+          "ownerNodeId": "n6",
+          "path": "/l015/leases/presence",
+          "request": "{\"observerId\":\"authenticated user\",\"targetIds\":\"uuid[]\"}",
+          "response": "{\"states\":\"presence[]\",\"cursor\":\"revision\"}"
         }
       ],
       "assumptions": [
@@ -859,12 +957,9 @@
       "stages": [
         {
           "checkIds": [
-            "mechanism",
-            "expiry",
-            "gap",
-            "acl"
+            "sessions"
           ],
-          "explanation": "Start with authenticated user, device, session generation and sequence. Start with authenticated user, device, session generation and sequence. State owner: Presence ingress (session generation). Start with authenticated user, device, session generation and sequence. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Presence information](https://en.wikipedia.org/wiki/Presence_information) describes a recently observed connection or activity. It is time-bounded evidence, not proof that a person or device will remain reachable after the observation.",
+          "explanation": "Start with authenticated user, device, session generation and sequence. A heartbeat is identified by (userId, deviceId, epoch, seq); each device session is tracked separately, never merged into one user lease. Start with authenticated user, device, session generation and sequence. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Presence information](https://en.wikipedia.org/wiki/Presence_information) describes a recently observed connection or activity.",
           "graph": {
             "edges": [
               {
@@ -907,7 +1002,7 @@
           },
           "id": "leases-s1",
           "invariants": [
-            "Start with authenticated user, device, session generation and sequence. State owner: Presence ingress (session generation)."
+            "A heartbeat is identified by (userId, deviceId, epoch, seq); each device session is tracked separately, never merged into one user lease."
           ],
           "number": 1,
           "operations": [
@@ -962,11 +1057,9 @@
         {
           "checkIds": [
             "mechanism",
-            "expiry",
-            "gap",
-            "acl"
+            "sessions"
           ],
-          "explanation": "Expand ingress and retain the greatest generation/sequence per device. Expand ingress and retain the greatest generation/sequence per device. State owner: Session authority (session lease records). Expand ingress and retain the greatest generation/sequence per device. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources. A newer owner needs a token that the resource checks, not merely a belief that ownership changed.",
+          "explanation": "Expand ingress and retain the greatest generation/sequence per device. The authority stores the greatest (epoch, seq) per device and changes it only by compare-and-swap on that pair. Expand ingress and retain the greatest generation/sequence per device. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes.",
           "graph": {
             "edges": [
               {
@@ -1046,7 +1139,7 @@
           },
           "id": "leases-s2",
           "invariants": [
-            "Expand ingress and retain the greatest generation/sequence per device. State owner: Session authority (session lease records)."
+            "The authority stores the greatest (epoch, seq) per device and changes it only by compare-and-swap on that pair."
           ],
           "number": 2,
           "operations": [
@@ -1101,11 +1194,9 @@
         {
           "checkIds": [
             "mechanism",
-            "expiry",
-            "gap",
-            "acl"
+            "expiry"
           ],
-          "explanation": "Refresh a bounded deadline only for a current session; old generations are rejected. Refresh a bounded deadline only for a current session; old generations are rejected. State owner: Heartbeat lease (expiry deadlines). Refresh a bounded deadline only for a current session; old generations are rejected. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid.",
+          "explanation": "Refresh a bounded deadline only for a current, unexpired session: a same-epoch beat at or after the deadline is rejected, and an expiry timer closes lapsed leases. A same-epoch beat at or after its deadline is rejected, so only a new epoch reopens a lapsed lease; the timer expires a lease only if its (epoch, seq) is unchanged. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid.",
           "graph": {
             "edges": [
               {
@@ -1163,6 +1254,20 @@
                   "nodeId": "boundary",
                   "portId": "in-l015.leases.c1-state"
                 }
+              },
+              {
+                "contractId": "l015.leases.expire",
+                "from": {
+                  "nodeId": "timer",
+                  "portId": "out-l015.leases.expire"
+                },
+                "id": "lapse",
+                "label": "expire lapsed lease if unchanged",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l015.leases.expire-state"
+                }
               }
             ],
             "nodes": [
@@ -1184,7 +1289,7 @@
                   "x": 280,
                   "y": 0
                 },
-                "subsystemId": "l015-leases-boundary-binding-2",
+                "subsystemId": "l015-leases-boundary-binding-3",
                 "version": 1
               },
               {
@@ -1218,12 +1323,22 @@
                   "y": 180
                 },
                 "version": 1
+              },
+              {
+                "definitionId": "l015.leases.timer",
+                "id": "timer",
+                "label": "Lease expiry timer",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
               }
             ]
           },
           "id": "leases-s3",
           "invariants": [
-            "Refresh a bounded deadline only for a current session; old generations are rejected. State owner: Heartbeat lease (expiry deadlines)."
+            "A same-epoch beat at or after its deadline is rejected, so only a new epoch reopens a lapsed lease; the timer expires a lease only if its (epoch, seq) is unchanged."
           ],
           "number": 3,
           "operations": [
@@ -1231,7 +1346,7 @@
               "nodeId": "boundary",
               "op": "rebind",
               "reason": "Select a new immutable exposure binding before connecting the added responsibility; prior stage binding remains unchanged.",
-              "subsystemId": "l015-leases-boundary-binding-2"
+              "subsystemId": "l015-leases-boundary-binding-3"
             },
             {
               "node": {
@@ -1240,6 +1355,19 @@
                 "label": "Heartbeat lease",
                 "position": {
                   "x": 0,
+                  "y": 180
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "l015.leases.timer",
+                "id": "timer",
+                "label": "Lease expiry timer",
+                "position": {
+                  "x": 280,
                   "y": 180
                 },
                 "version": 1
@@ -1279,20 +1407,34 @@
                 }
               },
               "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l015.leases.expire",
+                "from": {
+                  "nodeId": "timer",
+                  "portId": "out-l015.leases.expire"
+                },
+                "id": "lapse",
+                "label": "expire lapsed lease if unchanged",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l015.leases.expire-state"
+                }
+              },
+              "op": "connect"
             }
           ],
           "question": "What if a client vanishes?",
-          "reason": "Refresh a bounded deadline only for a current session; old generations are rejected.",
+          "reason": "Refresh a bounded deadline only for a current, unexpired session: a same-epoch beat at or after the deadline is rejected, and an expiry timer closes lapsed leases.",
           "title": "Heartbeat lease"
         },
         {
           "checkIds": [
-            "mechanism",
-            "expiry",
-            "gap",
-            "acl"
+            "expiry"
           ],
-          "explanation": "Aggregate all unexpired devices and explicit availability settings. Aggregate all unexpired devices and explicit availability settings. State owner: User reduction (aggregate version). Aggregate all unexpired devices and explicit availability settings. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid. Expiration must be checked at the point of use, even when background cleanup runs later.",
+          "explanation": "Aggregate all unexpired devices and explicit availability settings on every heartbeat and every timer expiry. A user is online exactly while at least one device lease has now < deadline, and both heartbeats and expiry timers trigger the reduction. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid. Expiration must be checked at the point of use, even when background cleanup runs later.",
           "graph": {
             "edges": [
               {
@@ -1352,6 +1494,20 @@
                 }
               },
               {
+                "contractId": "l015.leases.expire",
+                "from": {
+                  "nodeId": "timer",
+                  "portId": "out-l015.leases.expire"
+                },
+                "id": "lapse",
+                "label": "expire lapsed lease if unchanged",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l015.leases.expire-state"
+                }
+              },
+              {
                 "contractId": "l015.leases.c3",
                 "from": {
                   "nodeId": "n2",
@@ -1359,6 +1515,20 @@
                 },
                 "id": "reduce",
                 "label": "reduce active devices",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l015.leases.c3"
+                }
+              },
+              {
+                "contractId": "l015.leases.c3",
+                "from": {
+                  "nodeId": "timer",
+                  "portId": "out-l015.leases.c3"
+                },
+                "id": "lapse-reduce",
+                "label": "reduce after lease expiry",
                 "mode": "request-response",
                 "to": {
                   "nodeId": "n3",
@@ -1385,7 +1555,7 @@
                   "x": 280,
                   "y": 0
                 },
-                "subsystemId": "l015-leases-boundary-binding-2",
+                "subsystemId": "l015-leases-boundary-binding-3",
                 "version": 1
               },
               {
@@ -1421,11 +1591,21 @@
                 "version": 1
               },
               {
+                "definitionId": "l015.leases.timer",
+                "id": "timer",
+                "label": "Lease expiry timer",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
                 "definitionId": "l015.leases.d3",
                 "id": "n3",
                 "label": "User reduction",
                 "position": {
-                  "x": 280,
+                  "x": 560,
                   "y": 180
                 },
                 "version": 1
@@ -1434,7 +1614,7 @@
           },
           "id": "leases-s4",
           "invariants": [
-            "Aggregate all unexpired devices and explicit availability settings. State owner: User reduction (aggregate version)."
+            "A user is online exactly while at least one device lease has now < deadline, and both heartbeats and expiry timers trigger the reduction."
           ],
           "number": 4,
           "operations": [
@@ -1444,7 +1624,7 @@
                 "id": "n3",
                 "label": "User reduction",
                 "position": {
-                  "x": 280,
+                  "x": 560,
                   "y": 180
                 },
                 "version": 1
@@ -1460,6 +1640,23 @@
                 },
                 "id": "reduce",
                 "label": "reduce active devices",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l015.leases.c3"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l015.leases.c3",
+                "from": {
+                  "nodeId": "timer",
+                  "portId": "out-l015.leases.c3"
+                },
+                "id": "lapse-reduce",
+                "label": "reduce after lease expiry",
                 "mode": "request-response",
                 "to": {
                   "nodeId": "n3",
@@ -1470,17 +1667,14 @@
             }
           ],
           "question": "Does one closed tab imply offline?",
-          "reason": "Aggregate all unexpired devices and explicit availability settings.",
+          "reason": "Aggregate all unexpired devices and explicit availability settings on every heartbeat and every timer expiry.",
           "title": "User reduction"
         },
         {
           "checkIds": [
-            "mechanism",
-            "expiry",
-            "gap",
-            "acl"
+            "expiry"
           ],
-          "explanation": "Commit aggregate changes and ordered transition intent under one user owner. Commit aggregate changes and ordered transition intent under one user owner. State owner: Transition outbox (transition outbox). Commit aggregate changes and ordered transition intent under one user owner. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Presence information](https://en.wikipedia.org/wiki/Presence_information) describes a recently observed connection or activity.",
+          "explanation": "Commit aggregate changes and ordered transition intent under one user owner. Each aggregate change, including a timer-driven offline, commits one transition event with the new aggregate version; an unchanged aggregate emits nothing. Commit aggregate changes and ordered transition intent under one user owner. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure.",
           "graph": {
             "edges": [
               {
@@ -1540,6 +1734,20 @@
                 }
               },
               {
+                "contractId": "l015.leases.expire",
+                "from": {
+                  "nodeId": "timer",
+                  "portId": "out-l015.leases.expire"
+                },
+                "id": "lapse",
+                "label": "expire lapsed lease if unchanged",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l015.leases.expire-state"
+                }
+              },
+              {
                 "contractId": "l015.leases.c3",
                 "from": {
                   "nodeId": "n2",
@@ -1547,6 +1755,20 @@
                 },
                 "id": "reduce",
                 "label": "reduce active devices",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l015.leases.c3"
+                }
+              },
+              {
+                "contractId": "l015.leases.c3",
+                "from": {
+                  "nodeId": "timer",
+                  "portId": "out-l015.leases.c3"
+                },
+                "id": "lapse-reduce",
+                "label": "reduce after lease expiry",
                 "mode": "request-response",
                 "to": {
                   "nodeId": "n3",
@@ -1587,7 +1809,7 @@
                   "x": 280,
                   "y": 0
                 },
-                "subsystemId": "l015-leases-boundary-binding-2",
+                "subsystemId": "l015-leases-boundary-binding-3",
                 "version": 1
               },
               {
@@ -1623,11 +1845,21 @@
                 "version": 1
               },
               {
+                "definitionId": "l015.leases.timer",
+                "id": "timer",
+                "label": "Lease expiry timer",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
                 "definitionId": "l015.leases.d3",
                 "id": "n3",
                 "label": "User reduction",
                 "position": {
-                  "x": 280,
+                  "x": 560,
                   "y": 180
                 },
                 "version": 1
@@ -1637,7 +1869,7 @@
                 "id": "n4",
                 "label": "Transition outbox",
                 "position": {
-                  "x": 560,
+                  "x": 840,
                   "y": 180
                 },
                 "version": 1
@@ -1646,7 +1878,7 @@
           },
           "id": "leases-s5",
           "invariants": [
-            "Commit aggregate changes and ordered transition intent under one user owner. State owner: Transition outbox (transition outbox)."
+            "Each aggregate change, including a timer-driven offline, commits one transition event with the new aggregate version; an unchanged aggregate emits nothing."
           ],
           "number": 5,
           "operations": [
@@ -1656,7 +1888,7 @@
                 "id": "n4",
                 "label": "Transition outbox",
                 "position": {
-                  "x": 560,
+                  "x": 840,
                   "y": 180
                 },
                 "version": 1
@@ -1687,12 +1919,9 @@
         },
         {
           "checkIds": [
-            "mechanism",
-            "expiry",
-            "gap",
             "acl"
           ],
-          "explanation": "Authorize channel/contact subscriptions and cap their cardinality. Authorize channel/contact subscriptions and cap their cardinality. State owner: Subscription filter (subscription ACL epoch). Authorize channel/contact subscriptions and cap their cardinality. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Access control](https://en.wikipedia.org/wiki/Access_control) decides whether an authenticated identity may perform a particular action. The check must apply to the actual resource and operation, including cached and asynchronous paths.",
+          "explanation": "Authorize channel/contact subscriptions and cap their cardinality. A subscription delivers only targets the observer is currently allowed to see, capped at a fixed cardinality. Authorize channel/contact subscriptions and cap their cardinality. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Access control](https://en.wikipedia.org/wiki/Access_control) decides whether an authenticated identity may perform a particular action. The check must apply to the actual resource and operation, including cached and asynchronous paths.",
           "graph": {
             "edges": [
               {
@@ -1752,6 +1981,20 @@
                 }
               },
               {
+                "contractId": "l015.leases.expire",
+                "from": {
+                  "nodeId": "timer",
+                  "portId": "out-l015.leases.expire"
+                },
+                "id": "lapse",
+                "label": "expire lapsed lease if unchanged",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l015.leases.expire-state"
+                }
+              },
+              {
                 "contractId": "l015.leases.c3",
                 "from": {
                   "nodeId": "n2",
@@ -1759,6 +2002,20 @@
                 },
                 "id": "reduce",
                 "label": "reduce active devices",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l015.leases.c3"
+                }
+              },
+              {
+                "contractId": "l015.leases.c3",
+                "from": {
+                  "nodeId": "timer",
+                  "portId": "out-l015.leases.c3"
+                },
+                "id": "lapse-reduce",
+                "label": "reduce after lease expiry",
                 "mode": "request-response",
                 "to": {
                   "nodeId": "n3",
@@ -1813,7 +2070,7 @@
                   "x": 280,
                   "y": 0
                 },
-                "subsystemId": "l015-leases-boundary-binding-2",
+                "subsystemId": "l015-leases-boundary-binding-3",
                 "version": 1
               },
               {
@@ -1849,11 +2106,21 @@
                 "version": 1
               },
               {
+                "definitionId": "l015.leases.timer",
+                "id": "timer",
+                "label": "Lease expiry timer",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
                 "definitionId": "l015.leases.d3",
                 "id": "n3",
                 "label": "User reduction",
                 "position": {
-                  "x": 280,
+                  "x": 560,
                   "y": 180
                 },
                 "version": 1
@@ -1863,7 +2130,7 @@
                 "id": "n4",
                 "label": "Transition outbox",
                 "position": {
-                  "x": 560,
+                  "x": 840,
                   "y": 180
                 },
                 "version": 1
@@ -1873,8 +2140,8 @@
                 "id": "n5",
                 "label": "Subscription filter",
                 "position": {
-                  "x": 840,
-                  "y": 180
+                  "x": 0,
+                  "y": 360
                 },
                 "version": 1
               }
@@ -1882,7 +2149,7 @@
           },
           "id": "leases-s6",
           "invariants": [
-            "Authorize channel/contact subscriptions and cap their cardinality. State owner: Subscription filter (subscription ACL epoch)."
+            "A subscription delivers only targets the observer is currently allowed to see, capped at a fixed cardinality."
           ],
           "number": 6,
           "operations": [
@@ -1892,8 +2159,8 @@
                 "id": "n5",
                 "label": "Subscription filter",
                 "position": {
-                  "x": 840,
-                  "y": 180
+                  "x": 0,
+                  "y": 360
                 },
                 "version": 1
               },
@@ -1923,12 +2190,9 @@
         },
         {
           "checkIds": [
-            "mechanism",
-            "expiry",
-            "gap",
-            "acl"
+            "gap"
           ],
-          "explanation": "Capture a revisioned snapshot then replay transitions strictly after its cursor. Capture a revisioned snapshot then replay transitions strictly after its cursor. State owner: Snapshot cursor (snapshot revision). Capture a revisioned snapshot then replay transitions strictly after its cursor. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A snapshot](https://en.wikipedia.org/wiki/Snapshot_isolation) gives one read operation a fixed view of data.",
+          "explanation": "Capture a revisioned snapshot then replay transitions strictly after its cursor. A snapshot carries the revision it was read at, and replay delivers only transitions with a greater revision. Capture a revisioned snapshot then replay transitions strictly after its cursor. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A snapshot](https://en.wikipedia.org/wiki/Snapshot_isolation) gives one read operation a fixed view of data.",
           "graph": {
             "edges": [
               {
@@ -1988,6 +2252,20 @@
                 }
               },
               {
+                "contractId": "l015.leases.expire",
+                "from": {
+                  "nodeId": "timer",
+                  "portId": "out-l015.leases.expire"
+                },
+                "id": "lapse",
+                "label": "expire lapsed lease if unchanged",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l015.leases.expire-state"
+                }
+              },
+              {
                 "contractId": "l015.leases.c3",
                 "from": {
                   "nodeId": "n2",
@@ -1995,6 +2273,20 @@
                 },
                 "id": "reduce",
                 "label": "reduce active devices",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l015.leases.c3"
+                }
+              },
+              {
+                "contractId": "l015.leases.c3",
+                "from": {
+                  "nodeId": "timer",
+                  "portId": "out-l015.leases.c3"
+                },
+                "id": "lapse-reduce",
+                "label": "reduce after lease expiry",
                 "mode": "request-response",
                 "to": {
                   "nodeId": "n3",
@@ -2091,7 +2383,7 @@
                   "x": 280,
                   "y": 0
                 },
-                "subsystemId": "l015-leases-boundary-binding-2",
+                "subsystemId": "l015-leases-boundary-binding-3",
                 "version": 1
               },
               {
@@ -2127,11 +2419,21 @@
                 "version": 1
               },
               {
+                "definitionId": "l015.leases.timer",
+                "id": "timer",
+                "label": "Lease expiry timer",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
                 "definitionId": "l015.leases.d3",
                 "id": "n3",
                 "label": "User reduction",
                 "position": {
-                  "x": 280,
+                  "x": 560,
                   "y": 180
                 },
                 "version": 1
@@ -2141,7 +2443,7 @@
                 "id": "n4",
                 "label": "Transition outbox",
                 "position": {
-                  "x": 560,
+                  "x": 840,
                   "y": 180
                 },
                 "version": 1
@@ -2151,8 +2453,8 @@
                 "id": "n5",
                 "label": "Subscription filter",
                 "position": {
-                  "x": 840,
-                  "y": 180
+                  "x": 0,
+                  "y": 360
                 },
                 "version": 1
               },
@@ -2161,7 +2463,7 @@
                 "id": "n6",
                 "label": "Snapshot cursor",
                 "position": {
-                  "x": 0,
+                  "x": 280,
                   "y": 360
                 },
                 "version": 1
@@ -2170,7 +2472,7 @@
           },
           "id": "leases-s7",
           "invariants": [
-            "Capture a revisioned snapshot then replay transitions strictly after its cursor. State owner: Snapshot cursor (snapshot revision)."
+            "A snapshot carries the revision it was read at, and replay delivers only transitions with a greater revision."
           ],
           "number": 7,
           "operations": [
@@ -2180,7 +2482,7 @@
                 "id": "n6",
                 "label": "Snapshot cursor",
                 "position": {
-                  "x": 0,
+                  "x": 280,
                   "y": 360
                 },
                 "version": 1
@@ -2245,12 +2547,9 @@
         },
         {
           "checkIds": [
-            "mechanism",
-            "expiry",
-            "gap",
-            "acl"
+            "gap"
           ],
-          "explanation": "Signal resnapshot rather than inventing continuity; expire leases after owner failover. Signal resnapshot rather than inventing continuity; expire leases after owner failover. State owner: Gap recovery (retention floor). Signal resnapshot rather than inventing continuity; expire leases after owner failover. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A snapshot](https://en.wikipedia.org/wiki/Snapshot_isolation) gives one read operation a fixed view of data.",
+          "explanation": "Signal resnapshot rather than inventing continuity; expire leases after owner failover. A cursor below the retained floor receives an explicit resnapshot status; after owner failover, leases expire by deadline rather than resuming. Signal resnapshot rather than inventing continuity; expire leases after owner failover. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid.",
           "graph": {
             "edges": [
               {
@@ -2310,6 +2609,20 @@
                 }
               },
               {
+                "contractId": "l015.leases.expire",
+                "from": {
+                  "nodeId": "timer",
+                  "portId": "out-l015.leases.expire"
+                },
+                "id": "lapse",
+                "label": "expire lapsed lease if unchanged",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l015.leases.expire-state"
+                }
+              },
+              {
                 "contractId": "l015.leases.c3",
                 "from": {
                   "nodeId": "n2",
@@ -2317,6 +2630,20 @@
                 },
                 "id": "reduce",
                 "label": "reduce active devices",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "n3",
+                  "portId": "in-l015.leases.c3"
+                }
+              },
+              {
+                "contractId": "l015.leases.c3",
+                "from": {
+                  "nodeId": "timer",
+                  "portId": "out-l015.leases.c3"
+                },
+                "id": "lapse-reduce",
+                "label": "reduce after lease expiry",
                 "mode": "request-response",
                 "to": {
                   "nodeId": "n3",
@@ -2441,7 +2768,7 @@
                   "x": 280,
                   "y": 0
                 },
-                "subsystemId": "l015-leases-boundary-binding-2",
+                "subsystemId": "l015-leases-boundary-binding-3",
                 "version": 1
               },
               {
@@ -2477,11 +2804,21 @@
                 "version": 1
               },
               {
+                "definitionId": "l015.leases.timer",
+                "id": "timer",
+                "label": "Lease expiry timer",
+                "position": {
+                  "x": 280,
+                  "y": 180
+                },
+                "version": 1
+              },
+              {
                 "definitionId": "l015.leases.d3",
                 "id": "n3",
                 "label": "User reduction",
                 "position": {
-                  "x": 280,
+                  "x": 560,
                   "y": 180
                 },
                 "version": 1
@@ -2491,7 +2828,7 @@
                 "id": "n4",
                 "label": "Transition outbox",
                 "position": {
-                  "x": 560,
+                  "x": 840,
                   "y": 180
                 },
                 "version": 1
@@ -2501,8 +2838,8 @@
                 "id": "n5",
                 "label": "Subscription filter",
                 "position": {
-                  "x": 840,
-                  "y": 180
+                  "x": 0,
+                  "y": 360
                 },
                 "version": 1
               },
@@ -2511,7 +2848,7 @@
                 "id": "n6",
                 "label": "Snapshot cursor",
                 "position": {
-                  "x": 0,
+                  "x": 280,
                   "y": 360
                 },
                 "version": 1
@@ -2521,7 +2858,7 @@
                 "id": "n7",
                 "label": "Gap recovery",
                 "position": {
-                  "x": 280,
+                  "x": 560,
                   "y": 360
                 },
                 "version": 1
@@ -2530,7 +2867,7 @@
           },
           "id": "leases-s8",
           "invariants": [
-            "Signal resnapshot rather than inventing continuity; expire leases after owner failover. State owner: Gap recovery (retention floor)."
+            "A cursor below the retained floor receives an explicit resnapshot status; after owner failover, leases expire by deadline rather than resuming."
           ],
           "number": 8,
           "operations": [
@@ -2540,7 +2877,7 @@
                 "id": "n7",
                 "label": "Gap recovery",
                 "position": {
-                  "x": 280,
+                  "x": 560,
                   "y": 360
                 },
                 "version": 1
@@ -2598,35 +2935,36 @@
           "evidence": {
             "kind": "reference-test",
             "testFile": "tools/simulatte/study-reference/batch-01-mechanisms.test.mjs",
-            "testName": "L015 bounded mechanism"
+            "testName": "L015 events journaled expiry"
           },
-          "given": "Device epoch 3 sequence 8 has an active lease and a second device is connected.",
+          "given": "A session has accepted beats 1 and 2 at epoch 3.",
           "id": "mechanism",
           "relatedRequirementIds": [
             "r0",
-            "r1",
-            "r2"
+            "r1"
           ],
-          "then": "Old/duplicate heartbeats do not extend its lease; the second active device keeps the user online.",
-          "when": "Deliver epoch 2 sequence 99, duplicate sequence 8, then close only the first device."
+          "then": "The stale timer appends nothing, the close is a journal event, the late beat is fenced, and the rebuilt view equals the live view.",
+          "when": "A stale timer for seq 1 fires, the timer for seq 2 fires, a delayed beat 3 arrives, and the view is rebuilt from the journal."
         },
         {
-          "given": "A heartbeat arrives after its expiry timer was scheduled.",
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-01-mechanisms.test.mjs",
+            "testName": "L015 events journaled expiry"
+          },
+          "given": "A heartbeat is journaled after its expiry timer decided to close the session.",
           "id": "expiry",
           "relatedRequirementIds": [
             "r0",
-            "r1",
-            "r2"
+            "r1"
           ],
-          "then": "The timer cannot close the refreshed session; a close tombstone fences older beats.",
-          "when": "Process the timer with the old expected sequence."
+          "then": "The close is ignored because its expectedSeq is stale, so the session stays open; a close that does apply fences later beats of that epoch.",
+          "when": "Fold the journal containing the beat followed by the close for the older sequence."
         },
         {
           "given": "A new client snapshots view watermark 20 while event 21 arrives.",
           "id": "gap",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
             "r2"
           ],
           "then": "Event 21 is delivered once by identity; retention gaps require resnapshot.",
@@ -2636,17 +2974,25 @@
           "given": "A projected online state is cached after observer revocation.",
           "id": "acl",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
             "r2"
           ],
           "then": "Current ACL filtering denies the subscription independently of presence lag.",
           "when": "Subscribe using the cached target."
+        },
+        {
+          "given": "A user has two open sessions and one of them closes.",
+          "id": "multi",
+          "relatedRequirementIds": [
+            "r0",
+            "r1"
+          ],
+          "then": "The user stays online, and the projection watermark is the close event's offset.",
+          "when": "Fold both sessions into the user projection."
         }
       ],
       "algorithms": [
         {
-          "code": "if (beat.epoch < current.epoch || (beat.epoch === current.epoch && beat.seq <= current.seq)) return current;\nreturn {...beat, deadline: now + ttl};",
+          "code": "// Session fold (n2): the same rule runs live and during rebuild, so both reach the same state.\nfunction foldSession(session,event){\n if(event.kind==='close')return !session.closed&&event.epoch===session.epoch&&event.expectedSeq===session.seq?{...session,closed:true}:session;\n if(event.epoch<session.epoch||(event.epoch===session.epoch&&(session.closed||event.seq<=session.seq)))return session;\n return {epoch:event.epoch,seq:event.seq,closed:false};\n}",
           "guarantees": [
             "The code states the bounded decision rule; unimplemented helpers remain pseudocode.",
             "External effects, distributed failure and latency require separate execution evidence."
@@ -2663,6 +3009,16 @@
           "id": "recover",
           "language": "typescript-pseudocode",
           "ownerNodeId": "n7"
+        },
+        {
+          "code": "// Expiry events (n3): append a conditional close to the journal; never fold directly.\nfunction expireByTimer(journal,session,timer){\n if(session.closed||session.epoch!==timer.epoch||session.seq!==timer.expectedSeq)return false;\n journal.push({kind:'close',epoch:timer.epoch,expectedSeq:timer.expectedSeq});\n return true;\n}",
+          "guarantees": [
+            "Every expiry close is a journal event, so a rebuild from the journal reproduces the live projection.",
+            "A close whose expectedSeq is no longer the last accepted beat is ignored by the fold."
+          ],
+          "id": "expiry-timer",
+          "language": "typescript-pseudocode",
+          "ownerNodeId": "n3"
         }
       ],
       "apis": [
@@ -2677,10 +3033,10 @@
         {
           "errors": "403 unauthorized scope; 404 absent identity; 410 expired retained history",
           "method": "GET",
-          "ownerNodeId": "state",
-          "path": "/l015/events/state",
-          "request": "{\"eventId\":\"uuid\",\"sessionId\":\"uuid\"}",
-          "response": "{\"offset\":\"integer\"}"
+          "ownerNodeId": "n6",
+          "path": "/l015/events/presence",
+          "request": "{\"observerId\":\"authenticated user\",\"targets\":\"uuid[]\"}",
+          "response": "{\"states\":\"presence[]\",\"watermark\":\"integer\"}"
         }
       ],
       "assumptions": [
@@ -2695,12 +3051,9 @@
       "stages": [
         {
           "checkIds": [
-            "mechanism",
-            "expiry",
-            "gap",
-            "acl"
+            "multi"
           ],
-          "explanation": "Record authenticated open, heartbeat and close events with stable identity. Record authenticated open, heartbeat and close events with stable identity. State owner: Session append (event identity). Record authenticated open, heartbeat and close events with stable identity. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Presence information](https://en.wikipedia.org/wiki/Presence_information) describes a recently observed connection or activity. It is time-bounded evidence, not proof that a person or device will remain reachable after the observation.",
+          "explanation": "Record authenticated open, heartbeat and close events with stable identity. Each session event has a stable eventId and (sessionId, epoch, seq); appending the same eventId twice yields one offset. Record authenticated open, heartbeat and close events with stable identity. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Presence information](https://en.wikipedia.org/wiki/Presence_information) describes a recently observed connection or activity.",
           "graph": {
             "edges": [
               {
@@ -2743,7 +3096,7 @@
           },
           "id": "events-s1",
           "invariants": [
-            "Record authenticated open, heartbeat and close events with stable identity. State owner: Session append (event identity)."
+            "Each session event has a stable eventId and (sessionId, epoch, seq); appending the same eventId twice yields one offset."
           ],
           "number": 1,
           "operations": [
@@ -2797,12 +3150,9 @@
         },
         {
           "checkIds": [
-            "mechanism",
-            "expiry",
-            "gap",
-            "acl"
+            "multi"
           ],
-          "explanation": "Expand ingress into an append handler and retained session journal. Expand ingress into an append handler and retained session journal. State owner: Presence journal (session events). Expand ingress into an append handler and retained session journal. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Presence information](https://en.wikipedia.org/wiki/Presence_information) describes a recently observed connection or activity. It is time-bounded evidence, not proof that a person or device will remain reachable after the observation.",
+          "explanation": "Expand ingress into an append handler and retained session journal. The journal is the only source of session truth; every projection, including expiry closes, can be rebuilt from retained events. Expand ingress into an append handler and retained session journal. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Presence information](https://en.wikipedia.org/wiki/Presence_information) describes a recently observed connection or activity.",
           "graph": {
             "edges": [
               {
@@ -2882,7 +3232,7 @@
           },
           "id": "events-s2",
           "invariants": [
-            "Expand ingress into an append handler and retained session journal. State owner: Presence journal (session events)."
+            "The journal is the only source of session truth; every projection, including expiry closes, can be rebuilt from retained events."
           ],
           "number": 2,
           "operations": [
@@ -2936,12 +3286,9 @@
         },
         {
           "checkIds": [
-            "mechanism",
-            "expiry",
-            "gap",
-            "acl"
+            "mechanism"
           ],
-          "explanation": "Fold each session by generation then sequence; close tombstones fence old beats. Fold each session by generation then sequence; close tombstones fence old beats. State owner: Session fold (per-session folded state). Fold each session by generation then sequence; close tombstones fence old beats. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources.",
+          "explanation": "Fold each session by generation then sequence; close tombstones fence old beats. The fold accepts a beat only if its (epoch, seq) exceeds the folded pair, and a close tombstone rejects later beats of the same epoch. Fold each session by generation then sequence; close tombstones fence old beats. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources.",
           "graph": {
             "edges": [
               {
@@ -3045,7 +3392,7 @@
           },
           "id": "events-s3",
           "invariants": [
-            "Fold each session by generation then sequence; close tombstones fence old beats. State owner: Session fold (per-session folded state)."
+            "The fold accepts a beat only if its (epoch, seq) exceeds the folded pair, and a close tombstone rejects later beats of the same epoch."
           ],
           "number": 3,
           "operations": [
@@ -3093,11 +3440,9 @@
         {
           "checkIds": [
             "mechanism",
-            "expiry",
-            "gap",
-            "acl"
+            "expiry"
           ],
-          "explanation": "Schedule expiry against last accepted heartbeat and recheck its version before closing. Schedule expiry against last accepted heartbeat and recheck its version before closing. State owner: Expiry events (timer versions). Schedule expiry against last accepted heartbeat and recheck its version before closing. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid.",
+          "explanation": "Schedule expiry against the last accepted heartbeat; when it fires, append a close event carrying expectedSeq to the journal instead of editing the fold. An expiry timer never edits a projection; it appends a close event with expectedSeq, and the fold applies it only if that seq is still the last accepted beat. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid.",
           "graph": {
             "edges": [
               {
@@ -3145,15 +3490,29 @@
               {
                 "contractId": "l015.events.c3",
                 "from": {
-                  "nodeId": "n3",
+                  "nodeId": "n2",
                   "portId": "out-l015.events.c3"
                 },
-                "id": "timer",
-                "label": "expire expected heartbeat",
+                "id": "schedule",
+                "label": "schedule expiry for accepted beat",
                 "mode": "request-response",
                 "to": {
-                  "nodeId": "n2",
+                  "nodeId": "n3",
                   "portId": "in-l015.events.c3"
+                }
+              },
+              {
+                "contractId": "l015.events.close",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l015.events.close"
+                },
+                "id": "timer-close",
+                "label": "append conditional close event",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l015.events.close-state"
                 }
               }
             ],
@@ -3176,7 +3535,7 @@
                   "x": 280,
                   "y": 0
                 },
-                "subsystemId": "l015-events-boundary-binding-2",
+                "subsystemId": "l015-events-boundary-binding-4",
                 "version": 1
               },
               {
@@ -3225,10 +3584,16 @@
           },
           "id": "events-s4",
           "invariants": [
-            "Schedule expiry against last accepted heartbeat and recheck its version before closing. State owner: Expiry events (timer versions)."
+            "An expiry timer never edits a projection; it appends a close event with expectedSeq, and the fold applies it only if that seq is still the last accepted beat."
           ],
           "number": 4,
           "operations": [
+            {
+              "nodeId": "boundary",
+              "op": "rebind",
+              "reason": "Select a new immutable exposure binding before connecting the added responsibility; prior stage binding remains unchanged.",
+              "subsystemId": "l015-events-boundary-binding-4"
+            },
             {
               "node": {
                 "definitionId": "l015.events.d3",
@@ -3246,32 +3611,46 @@
               "edge": {
                 "contractId": "l015.events.c3",
                 "from": {
-                  "nodeId": "n3",
+                  "nodeId": "n2",
                   "portId": "out-l015.events.c3"
                 },
-                "id": "timer",
-                "label": "expire expected heartbeat",
+                "id": "schedule",
+                "label": "schedule expiry for accepted beat",
                 "mode": "request-response",
                 "to": {
-                  "nodeId": "n2",
+                  "nodeId": "n3",
                   "portId": "in-l015.events.c3"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l015.events.close",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l015.events.close"
+                },
+                "id": "timer-close",
+                "label": "append conditional close event",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l015.events.close-state"
                 }
               },
               "op": "connect"
             }
           ],
           "question": "Who synthesizes disconnect?",
-          "reason": "Schedule expiry against last accepted heartbeat and recheck its version before closing.",
+          "reason": "Schedule expiry against the last accepted heartbeat; when it fires, append a close event carrying expectedSeq to the journal instead of editing the fold.",
           "title": "Expiry events"
         },
         {
           "checkIds": [
-            "mechanism",
-            "expiry",
-            "gap",
-            "acl"
+            "multi"
           ],
-          "explanation": "Reduce active sessions into a monotonic user projection with source offsets. Reduce active sessions into a monotonic user projection with source offsets. State owner: User projection (user view and watermark). Reduce active sessions into a monotonic user projection with source offsets. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes.",
+          "explanation": "Reduce active sessions into a monotonic user projection with source offsets. The user projection is online while any folded session is open, and records the journal offset it reflects as its watermark. Reduce active sessions into a monotonic user projection with source offsets. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes.",
           "graph": {
             "edges": [
               {
@@ -3319,15 +3698,29 @@
               {
                 "contractId": "l015.events.c3",
                 "from": {
-                  "nodeId": "n3",
+                  "nodeId": "n2",
                   "portId": "out-l015.events.c3"
                 },
-                "id": "timer",
-                "label": "expire expected heartbeat",
+                "id": "schedule",
+                "label": "schedule expiry for accepted beat",
                 "mode": "request-response",
                 "to": {
-                  "nodeId": "n2",
+                  "nodeId": "n3",
                   "portId": "in-l015.events.c3"
+                }
+              },
+              {
+                "contractId": "l015.events.close",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l015.events.close"
+                },
+                "id": "timer-close",
+                "label": "append conditional close event",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l015.events.close-state"
                 }
               },
               {
@@ -3364,7 +3757,7 @@
                   "x": 280,
                   "y": 0
                 },
-                "subsystemId": "l015-events-boundary-binding-2",
+                "subsystemId": "l015-events-boundary-binding-4",
                 "version": 1
               },
               {
@@ -3423,7 +3816,7 @@
           },
           "id": "events-s5",
           "invariants": [
-            "Reduce active sessions into a monotonic user projection with source offsets. State owner: User projection (user view and watermark)."
+            "The user projection is online while any folded session is open, and records the journal offset it reflects as its watermark."
           ],
           "number": 5,
           "operations": [
@@ -3464,12 +3857,9 @@
         },
         {
           "checkIds": [
-            "mechanism",
-            "expiry",
-            "gap",
             "acl"
           ],
-          "explanation": "Resolve current observer permission independently from stale presence projection. Resolve current observer permission independently from stale presence projection. State owner: ACL projection (ACL epochs). Resolve current observer permission independently from stale presence projection. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Access control](https://en.wikipedia.org/wiki/Access_control) decides whether an authenticated identity may perform a particular action. The check must apply to the actual resource and operation, including cached and asynchronous paths.",
+          "explanation": "Resolve current observer permission independently from stale presence projection. Observer permission comes from the current ACL projection, never from the cached presence projection. Resolve current observer permission independently from stale presence projection. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Access control](https://en.wikipedia.org/wiki/Access_control) decides whether an authenticated identity may perform a particular action. The check must apply to the actual resource and operation, including cached and asynchronous paths.",
           "graph": {
             "edges": [
               {
@@ -3517,15 +3907,29 @@
               {
                 "contractId": "l015.events.c3",
                 "from": {
-                  "nodeId": "n3",
+                  "nodeId": "n2",
                   "portId": "out-l015.events.c3"
                 },
-                "id": "timer",
-                "label": "expire expected heartbeat",
+                "id": "schedule",
+                "label": "schedule expiry for accepted beat",
                 "mode": "request-response",
                 "to": {
-                  "nodeId": "n2",
+                  "nodeId": "n3",
                   "portId": "in-l015.events.c3"
+                }
+              },
+              {
+                "contractId": "l015.events.close",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l015.events.close"
+                },
+                "id": "timer-close",
+                "label": "append conditional close event",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l015.events.close-state"
                 }
               },
               {
@@ -3576,7 +3980,7 @@
                   "x": 280,
                   "y": 0
                 },
-                "subsystemId": "l015-events-boundary-binding-2",
+                "subsystemId": "l015-events-boundary-binding-4",
                 "version": 1
               },
               {
@@ -3645,7 +4049,7 @@
           },
           "id": "events-s6",
           "invariants": [
-            "Resolve current observer permission independently from stale presence projection. State owner: ACL projection (ACL epochs)."
+            "Observer permission comes from the current ACL projection, never from the cached presence projection."
           ],
           "number": 6,
           "operations": [
@@ -3686,12 +4090,9 @@
         },
         {
           "checkIds": [
-            "mechanism",
-            "expiry",
-            "gap",
-            "acl"
+            "gap"
           ],
-          "explanation": "Return materialized state at a source watermark then stream greater versions. Return materialized state at a source watermark then stream greater versions. State owner: Snapshot barrier (snapshot watermark). Return materialized state at a source watermark then stream greater versions. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes.",
+          "explanation": "Return materialized state at a source watermark then stream greater versions. A snapshot returns every state at one watermark, and the stream that follows starts strictly after it. Return materialized state at a source watermark then stream greater versions. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes.",
           "graph": {
             "edges": [
               {
@@ -3739,15 +4140,29 @@
               {
                 "contractId": "l015.events.c3",
                 "from": {
-                  "nodeId": "n3",
+                  "nodeId": "n2",
                   "portId": "out-l015.events.c3"
                 },
-                "id": "timer",
-                "label": "expire expected heartbeat",
+                "id": "schedule",
+                "label": "schedule expiry for accepted beat",
                 "mode": "request-response",
                 "to": {
-                  "nodeId": "n2",
+                  "nodeId": "n3",
                   "portId": "in-l015.events.c3"
+                }
+              },
+              {
+                "contractId": "l015.events.close",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l015.events.close"
+                },
+                "id": "timer-close",
+                "label": "append conditional close event",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l015.events.close-state"
                 }
               },
               {
@@ -3826,7 +4241,7 @@
                   "x": 280,
                   "y": 0
                 },
-                "subsystemId": "l015-events-boundary-binding-2",
+                "subsystemId": "l015-events-boundary-binding-4",
                 "version": 1
               },
               {
@@ -3905,7 +4320,7 @@
           },
           "id": "events-s7",
           "invariants": [
-            "Return materialized state at a source watermark then stream greater versions. State owner: Snapshot barrier (snapshot watermark)."
+            "A snapshot returns every state at one watermark, and the stream that follows starts strictly after it."
           ],
           "number": 7,
           "operations": [
@@ -3963,12 +4378,9 @@
         },
         {
           "checkIds": [
-            "mechanism",
-            "expiry",
-            "gap",
-            "acl"
+            "mechanism"
           ],
-          "explanation": "Replay retained journal into a new view and swap at a verified barrier. Replay retained journal into a new view and swap at a verified barrier. State owner: Rebuild worker (rebuild cursor). Replay retained journal into a new view and swap at a verified barrier. The graph is an authored conceptual design; guarantees require the named deployment contracts. [An event log](https://en.wikipedia.org/wiki/Event-driven_architecture) preserves ordered changes so a consumer can rebuild state or catch up.",
+          "explanation": "Replay retained journal into a new view and swap at a verified barrier. A rebuilt view replaces the live one only after its watermark reaches the publication barrier; folding the same journal always yields the same state. [An event log](https://en.wikipedia.org/wiki/Event-driven_architecture) preserves ordered changes so a consumer can rebuild state or catch up. The consumer must remember its position and handle repeated delivery without repeated effects.",
           "graph": {
             "edges": [
               {
@@ -4016,15 +4428,29 @@
               {
                 "contractId": "l015.events.c3",
                 "from": {
-                  "nodeId": "n3",
+                  "nodeId": "n2",
                   "portId": "out-l015.events.c3"
                 },
-                "id": "timer",
-                "label": "expire expected heartbeat",
+                "id": "schedule",
+                "label": "schedule expiry for accepted beat",
                 "mode": "request-response",
                 "to": {
-                  "nodeId": "n2",
+                  "nodeId": "n3",
                   "portId": "in-l015.events.c3"
+                }
+              },
+              {
+                "contractId": "l015.events.close",
+                "from": {
+                  "nodeId": "n3",
+                  "portId": "out-l015.events.close"
+                },
+                "id": "timer-close",
+                "label": "append conditional close event",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l015.events.close-state"
                 }
               },
               {
@@ -4131,7 +4557,7 @@
                   "x": 280,
                   "y": 0
                 },
-                "subsystemId": "l015-events-boundary-binding-3",
+                "subsystemId": "l015-events-boundary-binding-5",
                 "version": 1
               },
               {
@@ -4220,7 +4646,7 @@
           },
           "id": "events-s8",
           "invariants": [
-            "Replay retained journal into a new view and swap at a verified barrier. State owner: Rebuild worker (rebuild cursor)."
+            "A rebuilt view replaces the live one only after its watermark reaches the publication barrier; folding the same journal always yields the same state."
           ],
           "number": 8,
           "operations": [
@@ -4228,7 +4654,7 @@
               "nodeId": "boundary",
               "op": "rebind",
               "reason": "Select a new immutable exposure binding before connecting the added responsibility; prior stage binding remains unchanged.",
-              "subsystemId": "l015-events-boundary-binding-3"
+              "subsystemId": "l015-events-boundary-binding-5"
             },
             {
               "node": {
@@ -4308,7 +4734,7 @@
     },
     {
       "definitionId": "l015.leases.d0",
-      "id": "l015-leases-boundary-binding-2",
+      "id": "l015-leases-boundary-binding-3",
       "ports": [
         {
           "contractId": "l015.leases.c0",
@@ -4335,6 +4761,15 @@
           "target": {
             "nodeId": "state",
             "portId": "in-l015.leases.c1"
+          }
+        },
+        {
+          "contractId": "l015.leases.expire",
+          "direction": "in",
+          "id": "in-l015.leases.expire-state",
+          "target": {
+            "nodeId": "state",
+            "portId": "in-l015.leases.expire"
           }
         }
       ],
@@ -4383,7 +4818,7 @@
     },
     {
       "definitionId": "l015.events.d0",
-      "id": "l015-events-boundary-binding-3",
+      "id": "l015-events-boundary-binding-4",
       "ports": [
         {
           "contractId": "l015.events.c0",
@@ -4401,6 +4836,49 @@
           "target": {
             "nodeId": "state",
             "portId": "out-l015.events.c2"
+          }
+        },
+        {
+          "contractId": "l015.events.close",
+          "direction": "in",
+          "id": "in-l015.events.close-state",
+          "target": {
+            "nodeId": "state",
+            "portId": "in-l015.events.close"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l015.events.d0",
+      "id": "l015-events-boundary-binding-5",
+      "ports": [
+        {
+          "contractId": "l015.events.c0",
+          "direction": "in",
+          "id": "in-l015.events.c0",
+          "target": {
+            "nodeId": "control",
+            "portId": "in-l015.events.c0"
+          }
+        },
+        {
+          "contractId": "l015.events.c2",
+          "direction": "out",
+          "id": "out-l015.events.c2-state",
+          "target": {
+            "nodeId": "state",
+            "portId": "out-l015.events.c2"
+          }
+        },
+        {
+          "contractId": "l015.events.close",
+          "direction": "in",
+          "id": "in-l015.events.close-state",
+          "target": {
+            "nodeId": "state",
+            "portId": "in-l015.events.close"
           }
         },
         {

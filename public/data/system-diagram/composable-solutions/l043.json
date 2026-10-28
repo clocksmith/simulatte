@@ -124,9 +124,9 @@
           "id": "out-l043.sync.step4"
         }
       ],
-      "responsibility": "Append length, LSN, operation, payload and checksum, looping for short writes.",
+      "responsibility": "Append length, header checksum, LSN, operation, payload and payload checksum, looping for short writes.",
       "stateOwnership": [
-        "length, lsn, checksum"
+        "length, headerChecksum, lsn, checksum"
       ],
       "version": 1
     },
@@ -144,9 +144,9 @@
           "id": "in-l043.sync.step4"
         }
       ],
-      "responsibility": "Call fsync/fdatasync according to the declared platform contract before applying and acknowledging.",
+      "responsibility": "Call fsync/fdatasync according to the declared platform contract before applying and acknowledging; on error fail the waiter, stop accepting writes and reopen from disk instead of retrying fsync.",
       "stateOwnership": [
-        "syncedLsn, ioError"
+        "durable watermark and failed flag"
       ],
       "version": 1
     },
@@ -219,9 +219,9 @@
           "id": "in-l043.sync.step7"
         }
       ],
-      "responsibility": "Verify snapshot hash; replay contiguous framed suffix above cut, tolerate incomplete final frame only.",
+      "responsibility": "Verify snapshot hash; replay the contiguous framed suffix above the cut; an unverifiable frame is a torn tail only when no verifiable frame follows it.",
       "stateOwnership": [
-        "expectedLsn, recordChecksum"
+        "expectedLsn, headerChecksum, recordChecksum"
       ],
       "version": 1
     },
@@ -374,7 +374,7 @@
           "id": "out-l043.group.step5"
         }
       ],
-      "responsibility": "Use one sequencer to append complete frames to the current segment, preserving command identity.",
+      "responsibility": "Use one sequencer to append complete frames, each with header and payload checksums, to the current segment, preserving command identity.",
       "stateOwnership": [
         "batchFirst, batchLast, generation"
       ],
@@ -394,9 +394,9 @@
           "id": "in-l043.group.step4"
         }
       ],
-      "responsibility": "Sync the batch once, advance durableThrough and release only waiters at or below that watermark.",
+      "responsibility": "Sync the batch once, advance durableThrough and release only waiters at or below that watermark; on sync error fail the whole batch, stop accepting writes and reopen from disk without retrying fsync.",
       "stateOwnership": [
-        "durableThrough, waiterLsn"
+        "durableThrough and failed flag"
       ],
       "version": 1
     },
@@ -501,36 +501,33 @@
         "value": "bytes|null"
       },
       "response": {
-        "ackPolicy": "always|group|periodic|os-buffered",
         "durableThrough": "integer",
-        "lsn": "monotonic integer"
+        "lsn": "monotonic integer|null",
+        "status": "durable|duplicate|sync-failed|recovering"
       },
       "version": 1
     },
     {
       "id": "l043.sync.step3",
       "request": {
-        "checksum": "sha256",
+        "checksum": "sha256 of the payload",
+        "headerChecksum": "sha256 of the length field",
         "length": "bounded integer",
         "lsn": "integer"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "appendedBytes": "integer; a short write loops or fails"
       },
       "version": 1
     },
     {
       "id": "l043.sync.step4",
       "request": {
-        "ioError": "optional failure",
-        "syncedLsn": "integer"
+        "lsn": "integer awaiting fsync"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "durableThrough": "integer",
+        "status": "durable|sync-failed"
       },
       "version": 1
     },
@@ -541,9 +538,7 @@
         "rootVersion": "integer"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "pinnedRoot": "immutable root at cutLsn"
       },
       "version": 1
     },
@@ -555,9 +550,8 @@
         "snapshotHash": "sha256"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "manifestGeneration": "integer",
+        "status": "published|failed"
       },
       "version": 1
     },
@@ -565,12 +559,12 @@
       "id": "l043.sync.step7",
       "request": {
         "expectedLsn": "integer",
+        "headerChecksum": "sha256",
         "recordChecksum": "sha256"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "lastLsn": "integer",
+        "outcome": "complete|torn-tail|corruption"
       },
       "version": 1
     },
@@ -581,9 +575,7 @@
         "retainedGenerations": "integer[]"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "deletedGenerations": "integer[]"
       },
       "version": 1
     },
@@ -596,9 +588,10 @@
         "value": "bytes|null"
       },
       "response": {
-        "ackPolicy": "always|group|periodic|os-buffered",
+        "ackPolicy": "group|periodic|os-buffered",
         "durableThrough": "integer",
-        "lsn": "monotonic integer"
+        "lsn": "monotonic integer|null",
+        "status": "durable|buffered|sync-failed|recovering"
       },
       "version": 1
     },
@@ -610,22 +603,22 @@
         "generation": "integer"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "appendedThrough": "LSN",
+        "segment": "generation"
       },
       "version": 1
     },
     {
       "id": "l043.group.step4",
       "request": {
-        "durableThrough": "integer",
-        "waiterLsn": "integer"
+        "batchLast": "last LSN appended in the batch",
+        "waiterLsns": "integer[] awaiting sync"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "durableThrough": "integer",
+        "failed": "waiter LSNs of a failed batch",
+        "released": "waiter LSNs <= durableThrough",
+        "status": "durable|sync-failed"
       },
       "version": 1
     },
@@ -636,9 +629,8 @@
         "sealedLsn": "integer"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "activeGeneration": "integer",
+        "sealed": "boolean"
       },
       "version": 1
     },
@@ -649,9 +641,8 @@
         "snapshotCut": "integer"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "rootHash": "sha256",
+        "snapshotFile": "synced path"
       },
       "version": 1
     },
@@ -662,9 +653,7 @@
         "snapshotFile": "path"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "manifestGeneration": "integer durable after sync"
       },
       "version": 1
     },
@@ -675,9 +664,8 @@
         "tombstoneLsn": "integer"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "lastLsn": "integer",
+        "outcome": "complete|torn-tail|corruption"
       },
       "version": 1
     }
@@ -730,26 +718,59 @@
     {
       "acceptanceCases": [
         {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-06-state.test.mjs",
+            "testName": "sync failure fails waiters stops writes and never retries fsync"
+          },
           "given": "A WAL record is appended but sync fails.",
           "id": "case0",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
-            "r2"
+            "r0"
           ],
-          "then": "Fail the write acknowledgement and retain uncertainty; do not claim durable success.",
+          "then": "Fail that write, stop accepting writes and reopen from disk; never retry fsync or claim durable success.",
           "when": "Attempt always-sync acknowledgement."
         },
         {
           "given": "A snapshot ends at LSN 2 and suffix contains 3,4 plus an incomplete tail.",
           "id": "case1",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
-            "r2"
+            "r1"
           ],
           "then": "Apply 3 and 4 once; stop at tail, but reject interior corruption or a sequence gap.",
           "when": "Replay with checksum and sequence validation."
+        },
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-06-state.test.mjs",
+            "testName": "frame headers carry their own checksum so interior length damage is corruption"
+          },
+          "given": "An interior frame's length header is rewritten to 1000.",
+          "id": "case2",
+          "relatedRequirementIds": [
+            "r1"
+          ],
+          "then": "The header checksum fails while later frames verify, so recovery reports corruption instead of dropping LSNs 3-5 as a torn tail.",
+          "when": "Recover the WAL."
+        },
+        {
+          "given": "A crash happens after the snapshot rename but before the manifest sync.",
+          "id": "case3",
+          "relatedRequirementIds": [
+            "r2"
+          ],
+          "then": "Recovery uses the old manifest and its retained WAL; the unpublished snapshot is ignored.",
+          "when": "Restart."
+        },
+        {
+          "given": "A checkpoint at cut 50 is written but its manifest is not yet durable.",
+          "id": "case4",
+          "relatedRequirementIds": [
+            "r2"
+          ],
+          "then": "Retain WAL generations through 50 and delete them only after the manifest sync.",
+          "when": "The reclaimer runs."
         },
         {
           "evidence": {
@@ -760,7 +781,8 @@
           "given": "Snapshot cut is 2 with a key later deleted.",
           "id": "bounded-mechanism",
           "relatedRequirementIds": [
-            "r0"
+            "r0",
+            "r1"
           ],
           "then": "Preserve delete, stop at incomplete tail, reject checksum/gap, and release only waiters within the sync watermark; physical durability is untested.",
           "when": "Replay complete frames 3/4 and torn frame 5, then corrupt a frame and try a gap."
@@ -768,10 +790,10 @@
       ],
       "algorithms": [
         {
-          "code": "underWriteMutex: deduplicate(commandId); lsn=next(); appendAll(frame(lsn,{commandId,command,resultIdentity},checksum));\nfsync(wal); applyToMemory(command,lsn); acknowledge(lsn,resultIdentity);\ncheckpoint: pinRootAt(cut); writeAndSyncSnapshot(); renameAndSyncDirectory();\npublishAndSyncManifest(generation,cut,hash); onlyThenReclaimCoveredWal();\nrecover: verifySnapshot(); scanContiguousSuffix(); stopAtIncompleteFinalFrame(); rejectInteriorCorruption();",
+          "code": "underWriteMutex: if (failed) reject(\"recovering\"); deduplicate(commandId); lsn=next();\nappendAll(frame(lsn,{commandId,command,resultIdentity})); // length header and payload carry separate checksums\ntry { fsync(wal); } catch (e) { failed = true; failWaiter(lsn, e); reopenFromDisk(); return; } // never retry fsync: a failed fsync may have dropped dirty pages\napplyToMemory(command,lsn); acknowledge(lsn,resultIdentity);\ncheckpoint: pinRootAt(cut); writeAndSyncSnapshot(); renameAndSyncDirectory();\npublishAndSyncManifest(generation,cut,hash); onlyThenReclaimCoveredWal();\nrecover: verifySnapshot(); scanContiguousSuffix(); stopAtUnverifiableFinalFrame(); rejectBadFrameFollowedByVerifiedFrames();",
           "guarantees": [
             "A short write is retried or fails; it is never assumed complete.",
-            "OS-buffered append alone cannot satisfy always-sync acknowledgement.",
+            "OS-buffered append alone cannot satisfy always-sync acknowledgement, and a failed fsync is never retried into a success.",
             "The snapshot contains exactly state through its cut.",
             "The old manifest and logs remain until publication is durable.",
             "Interior checksum failure is a surfaced error, not skipped data.",
@@ -784,12 +806,12 @@
       ],
       "apis": [
         {
-          "errors": "Reject invalid input, stale versions and operations outside the declared boundary.",
+          "errors": "Reject writes while the store is recovering from a failed fsync; a retried commandId after recovery returns its original LSN only if that record reached disk.",
           "method": "METHOD",
           "ownerNodeId": "engine",
           "path": "Store.put(key,value) / Store.delete(key)",
           "request": "{\"commandId\":\"uuid\",\"operation\":\"put|delete\",\"key\":\"string\",\"value\":\"bytes|null\"}",
-          "response": "{\"lsn\":\"monotonic integer\",\"ackPolicy\":\"always|group|periodic|os-buffered\",\"durableThrough\":\"integer\"}"
+          "response": "{\"status\":\"durable|duplicate|sync-failed|recovering\",\"lsn\":\"monotonic integer|null\",\"durableThrough\":\"integer\"}"
         }
       ],
       "assumptions": [
@@ -805,10 +827,9 @@
       "stages": [
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case0"
           ],
-          "explanation": "Append framed checksummed records before applying writes; acknowledge only at the selected sync boundary. [Write-ahead logging](https://en.wikipedia.org/wiki/Write-ahead_logging) records a change before relying on its final stored form. Recovery replays durable records, so acknowledgement and flush boundaries must match the promised durability. Consider this case: A WAL record is appended but sync fails. Attempt always-sync acknowledgement.",
+          "explanation": "Append framed checksummed records before applying writes; acknowledge only at the selected sync boundary. durable means this LSN's framed record was fsynced before the write was applied and acknowledged; sync-failed promises nothing about persistence, and the store refuses writes until it reopens from disk. [Write-ahead logging](https://en.wikipedia.org/wiki/Write-ahead_logging) records a change before relying on its final stored form. Recovery replays durable records, so acknowledgement and flush boundaries must match the promised durability.",
           "graph": {
             "edges": [
               {
@@ -851,7 +872,7 @@
           },
           "id": "sync-s1",
           "invariants": [
-            "Append framed checksummed records before applying writes; acknowledge only at the selected sync boundary."
+            "durable means this LSN's framed record was fsynced before the write was applied and acknowledged; sync-failed promises nothing about persistence, and the store refuses writes until it reopens from disk."
           ],
           "number": 1,
           "operations": [
@@ -905,10 +926,9 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case0"
           ],
-          "explanation": "Serialize command IDs and LSN assignment before append. Own applied key/value versions and last applied LSN. next LSN and duplicate receipts belongs to Write mutex; in-memory values belongs to Memory map. [Idempotence](https://en.wikipedia.org/wiki/Idempotence) means repeating the same logical operation does not repeat its effect. Stable request identities let a retry recover an existing outcome instead of creating another change.",
+          "explanation": "Serialize command IDs and LSN assignment before append. Own applied key/value versions and last applied LSN. The write mutex alone assigns LSNs and command receipts; the memory map changes only after the WAL record is durable. [A lock](https://en.wikipedia.org/wiki/Lock_%28computer_science%29) gives one thread exclusive access to protected state. Correctness depends on protecting the whole decision and update, and releasing ownership on every exit.",
           "graph": {
             "edges": [
               {
@@ -988,7 +1008,7 @@
           },
           "id": "sync-s2",
           "invariants": [
-            "next LSN and duplicate receipts belongs to Write mutex; in-memory values belongs to Memory map."
+            "The write mutex alone assigns LSNs and command receipts; the memory map changes only after the WAL record is durable."
           ],
           "number": 2,
           "operations": [
@@ -1042,10 +1062,9 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case2"
           ],
-          "explanation": "Append length, LSN, operation, payload and checksum, looping for short writes. A short write is retried or fails; it is never assumed complete. [Write-ahead logging](https://en.wikipedia.org/wiki/Write-ahead_logging) records a change before relying on its final stored form. Recovery replays durable records, so acknowledgement and flush boundaries must match the promised durability. Consider this case: A WAL record is appended but sync fails.",
+          "explanation": "Append length, header checksum, LSN, operation, payload and payload checksum, looping for short writes. A short write is retried or fails; it is never assumed complete. [Write-ahead logging](https://en.wikipedia.org/wiki/Write-ahead_logging) records a change before relying on its final stored form. Recovery replays durable records, so acknowledgement and flush boundaries must match the promised durability.",
           "graph": {
             "edges": [
               {
@@ -1191,15 +1210,15 @@
             }
           ],
           "question": "How are partial writes detected?",
-          "reason": "Append length, LSN, operation, payload and checksum, looping for short writes.",
+          "reason": "Append length, header checksum, LSN, operation, payload and payload checksum, looping for short writes.",
           "title": "Framed WAL writer"
         },
         {
           "checkIds": [
             "case0",
-            "case1"
+            "bounded-mechanism"
           ],
-          "explanation": "Call fsync/fdatasync according to the declared platform contract before applying and acknowledging. OS-buffered append alone cannot satisfy always-sync acknowledgement. [Write-ahead logging](https://en.wikipedia.org/wiki/Write-ahead_logging) records a change before relying on its final stored form. Recovery replays durable records, so acknowledgement and flush boundaries must match the promised durability. Consider this case: A WAL record is appended but sync fails. Attempt always-sync acknowledgement.",
+          "explanation": "Call fsync/fdatasync according to the declared platform contract before applying and acknowledging; on error fail the waiter, stop accepting writes and reopen from disk instead of retrying fsync. OS-buffered append alone cannot satisfy always-sync acknowledgement, and a failed fsync is never retried into a success. [Write-ahead logging](https://en.wikipedia.org/wiki/Write-ahead_logging) records a change before relying on its final stored form. Recovery replays durable records, so acknowledgement and flush boundaries must match the promised durability.",
           "graph": {
             "edges": [
               {
@@ -1327,7 +1346,7 @@
           },
           "id": "sync-s4",
           "invariants": [
-            "OS-buffered append alone cannot satisfy always-sync acknowledgement."
+            "OS-buffered append alone cannot satisfy always-sync acknowledgement, and a failed fsync is never retried into a success."
           ],
           "number": 4,
           "operations": [
@@ -1363,15 +1382,14 @@
             }
           ],
           "question": "When is a write called durable?",
-          "reason": "Call fsync/fdatasync according to the declared platform contract before applying and acknowledging.",
+          "reason": "Call fsync/fdatasync according to the declared platform contract before applying and acknowledging; on error fail the waiter, stop accepting writes and reopen from disk instead of retrying fsync.",
           "title": "Sync acknowledgement"
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case3"
           ],
-          "explanation": "Pin an immutable/copy-on-write root at cut LSN while later writes continue in a retained suffix. The snapshot contains exactly state through its cut. [A snapshot](https://en.wikipedia.org/wiki/Snapshot_isolation) gives one read operation a fixed view of data. Later writes may change the live system without changing the rows that reader sees. Consider this case: A WAL record is appended but sync fails.",
+          "explanation": "Pin an immutable/copy-on-write root at cut LSN while later writes continue in a retained suffix. The snapshot contains exactly state through its cut. [A snapshot](https://en.wikipedia.org/wiki/Snapshot_isolation) gives one read operation a fixed view of data. Later writes may change the live system without changing the rows that reader sees. Consider this case: A crash happens after the snapshot rename but before the manifest sync.",
           "graph": {
             "edges": [
               {
@@ -1570,10 +1588,10 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case3",
+            "case4"
           ],
-          "explanation": "Write temporary snapshot, sync it, rename, sync directory and publish/sync generation manifest. The old manifest and logs remain until publication is durable. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version. Consider this case: A WAL record is appended but sync fails.",
+          "explanation": "Write temporary snapshot, sync it, rename, sync directory and publish/sync generation manifest. The old manifest and logs remain until publication is durable. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version. Consider this case: A crash happens after the snapshot rename but before the manifest sync.",
           "graph": {
             "edges": [
               {
@@ -1790,10 +1808,11 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case1",
+            "case2",
+            "bounded-mechanism"
           ],
-          "explanation": "Verify snapshot hash; replay contiguous framed suffix above cut, tolerate incomplete final frame only. Interior checksum failure is a surfaced error, not skipped data. [A snapshot](https://en.wikipedia.org/wiki/Snapshot_isolation) gives one read operation a fixed view of data. Later writes may change the live system without changing the rows that reader sees. Consider this case: A WAL record is appended but sync fails.",
+          "explanation": "Verify snapshot hash; replay the contiguous framed suffix above the cut; an unverifiable frame is a torn tail only when no verifiable frame follows it. Interior checksum failure is a surfaced error, not skipped data. [A snapshot](https://en.wikipedia.org/wiki/Snapshot_isolation) gives one read operation a fixed view of data. Later writes may change the live system without changing the rows that reader sees.",
           "graph": {
             "edges": [
               {
@@ -2029,15 +2048,14 @@
             }
           ],
           "question": "How are torn tails distinguished from corruption?",
-          "reason": "Verify snapshot hash; replay contiguous framed suffix above cut, tolerate incomplete final frame only.",
+          "reason": "Verify snapshot hash; replay the contiguous framed suffix above the cut; an unverifiable frame is a torn tail only when no verifiable frame follows it.",
           "title": "Recovery scanner"
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case4"
           ],
-          "explanation": "Delete only generations covered by the durable checkpoint manifest and fsync directory changes. No acknowledged suffix is removed before a recoverable checkpoint exists. [A checkpoint](https://en.wikipedia.org/wiki/Checkpointing) records enough progress to restart without repeating everything. Its usefulness depends on which state is durable and whether later effects can be replayed safely. Consider this case: A WAL record is appended but sync fails.",
+          "explanation": "Delete only generations covered by the durable checkpoint manifest and fsync directory changes. No acknowledged suffix is removed before a recoverable checkpoint exists. [A checkpoint](https://en.wikipedia.org/wiki/Checkpointing) records enough progress to restart without repeating everything. Its usefulness depends on which state is durable and whether later effects can be replayed safely. Consider this case: A checkpoint at cut 50 is written but its manifest is not yet durable.",
           "graph": {
             "edges": [
               {
@@ -2313,9 +2331,7 @@
           "given": "Batch A synced through 4; batch B appended through 7 but is unsynced.",
           "id": "case0",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
-            "r2"
+            "r0"
           ],
           "then": "Only waiters through 4 are eligible.",
           "when": "Release group-commit waiters."
@@ -2324,12 +2340,47 @@
           "given": "The manifest names cut 2 and suffix generations containing 3 and 4.",
           "id": "case1",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
-            "r2"
+            "r1"
           ],
           "then": "Retain delete semantics and the contiguous verified suffix; no hardware durability is inferred.",
           "when": "Recover with a torn last frame and a deleted key tombstone."
+        },
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-06-state.test.mjs",
+            "testName": "sync failure fails waiters stops writes and never retries fsync"
+          },
+          "given": "Batch LSNs 2-3 are appended and their fsync returns EIO.",
+          "id": "case2",
+          "relatedRequirementIds": [
+            "r0"
+          ],
+          "then": "Fail waiters 2 and 3, reject new writes, do not retry fsync, and rebuild state from disk.",
+          "when": "Complete the batch."
+        },
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-06-state.test.mjs",
+            "testName": "frame headers carry their own checksum so interior length damage is corruption"
+          },
+          "given": "An interior frame's length header is rewritten to 1000.",
+          "id": "case3",
+          "relatedRequirementIds": [
+            "r1"
+          ],
+          "then": "The header checksum fails while later frames verify, so recovery reports corruption instead of dropping LSNs 3-5 as a torn tail.",
+          "when": "Recover the WAL."
+        },
+        {
+          "given": "A crash occurs after sealing generation 7 but before the new manifest is synced.",
+          "id": "case4",
+          "relatedRequirementIds": [
+            "r2"
+          ],
+          "then": "Recovery uses the complete old manifest and replays both the sealed and the new generation; mixed generations are never chosen.",
+          "when": "Restart."
         },
         {
           "evidence": {
@@ -2340,7 +2391,8 @@
           "given": "Snapshot cut is 2 with a key later deleted.",
           "id": "bounded-mechanism",
           "relatedRequirementIds": [
-            "r0"
+            "r0",
+            "r1"
           ],
           "then": "Preserve delete, stop at incomplete tail, reject checksum/gap, and release only waiters within the sync watermark; physical durability is untested.",
           "when": "Replay complete frames 3/4 and torn frame 5, then corrupt a frame and try a gap."
@@ -2348,7 +2400,7 @@
       ],
       "algorithms": [
         {
-          "code": "batch = drainWithinByteAndDelayBudget(); appendFramesInLsnOrder(batch);\nif(policy===\"group\") { fsync(segment); durableThrough=batch.lastLsn; }\napplyBatchInOrder(); releaseOnlyEligibleAckWaiters(policy,durableThrough);\nrotateAtCut(); pinRoot(); snapshotAndSync(); publishSyncedGenerationManifest();\n// periodic and OS-buffered acknowledgements explicitly permit loss beyond syncedLsn.",
+          "code": "if (failed) rejectNewWrites(\"recovering\");\nbatch = drainWithinByteAndDelayBudget(); appendFramesInLsnOrder(batch); // header and payload checksums per frame\nif(policy===\"group\") { try { fsync(segment); durableThrough=batch.lastLsn; }\n catch (e) { failed = true; failWaiters(batch, e); reopenFromDisk(); return; } } // no fsync retry: a failed fsync may have dropped dirty pages\napplyBatchInOrder(); releaseOnlyEligibleAckWaiters(policy,durableThrough);\nrotateAtCut(); pinRoot(); snapshotAndSync(); publishSyncedGenerationManifest();\n// periodic and OS-buffered acknowledgements explicitly permit loss beyond syncedLsn.",
           "guarantees": [
             "Concurrent threads never interleave frame bytes.",
             "A later unsynced batch cannot borrow an earlier sync receipt.",
@@ -2364,12 +2416,12 @@
       ],
       "apis": [
         {
-          "errors": "Reject invalid input, stale versions and operations outside the declared boundary.",
+          "errors": "Reject writes while the store is recovering from a failed batch fsync; periodic and os-buffered acknowledgements report buffered, never durable.",
           "method": "METHOD",
           "ownerNodeId": "engine",
           "path": "Store.put(key,value) / Store.delete(key)",
           "request": "{\"commandId\":\"uuid\",\"operation\":\"put|delete\",\"key\":\"string\",\"value\":\"bytes|null\"}",
-          "response": "{\"lsn\":\"monotonic integer\",\"ackPolicy\":\"always|group|periodic|os-buffered\",\"durableThrough\":\"integer\"}"
+          "response": "{\"status\":\"durable|buffered|sync-failed|recovering\",\"lsn\":\"monotonic integer|null\",\"ackPolicy\":\"group|periodic|os-buffered\",\"durableThrough\":\"integer\"}"
         }
       ],
       "assumptions": [
@@ -2386,9 +2438,9 @@
         {
           "checkIds": [
             "case0",
-            "case1"
+            "case2"
           ],
-          "explanation": "Append framed checksummed records before applying writes; acknowledge only at the selected sync boundary. [Write-ahead logging](https://en.wikipedia.org/wiki/Write-ahead_logging) records a change before relying on its final stored form. Recovery replays durable records, so acknowledgement and flush boundaries must match the promised durability. Consider this case: Batch A synced through 4; batch B appended through 7 but is unsynced. Release group-commit waiters.",
+          "explanation": "Append framed checksummed records before applying writes; acknowledge only at the selected sync boundary. Under group policy, durable means a batch fsync covered this LSN (lsn <= durableThrough); periodic and os-buffered acknowledgements say buffered and expose their loss window; a failed batch sync fails every waiter in that batch. [Write-ahead logging](https://en.wikipedia.org/wiki/Write-ahead_logging) records a change before relying on its final stored form. Recovery replays durable records, so acknowledgement and flush boundaries must match the promised durability.",
           "graph": {
             "edges": [
               {
@@ -2431,7 +2483,7 @@
           },
           "id": "group-s1",
           "invariants": [
-            "Append framed checksummed records before applying writes; acknowledge only at the selected sync boundary."
+            "Under group policy, durable means a batch fsync covered this LSN (lsn <= durableThrough); periodic and os-buffered acknowledgements say buffered and expose their loss window; a failed batch sync fails every waiter in that batch."
           ],
           "number": 1,
           "operations": [
@@ -2485,10 +2537,9 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case0"
           ],
-          "explanation": "Queue bounded commands and assign ordered LSNs to one append batch. Own committed values and applied watermark. batch membership and ack waiters belongs to Commit coordinator; committed LSN belongs to Applied map. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call.",
+          "explanation": "Queue bounded commands and assign ordered LSNs to one append batch. Own committed values and applied watermark. The commit coordinator alone forms batches, assigns LSNs and releases waiters against durableThrough; under group policy the applied map holds only records applied after their batch sync. [Data ingestion](https://en.wikipedia.org/wiki/Data_integration) moves source records into a usable destination. Stable source identity and progress records distinguish genuinely new data from repeated delivery or a restarted import.",
           "graph": {
             "edges": [
               {
@@ -2568,7 +2619,7 @@
           },
           "id": "group-s2",
           "invariants": [
-            "batch membership and ack waiters belongs to Commit coordinator; committed LSN belongs to Applied map."
+            "The commit coordinator alone forms batches, assigns LSNs and releases waiters against durableThrough; under group policy the applied map holds only records applied after their batch sync."
           ],
           "number": 2,
           "operations": [
@@ -2622,10 +2673,9 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case3"
           ],
-          "explanation": "Use one sequencer to append complete frames to the current segment, preserving command identity. Concurrent threads never interleave frame bytes. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version. Consider this case: Batch A synced through 4; batch B appended through 7 but is unsynced.",
+          "explanation": "Use one sequencer to append complete frames, each with header and payload checksums, to the current segment, preserving command identity. Concurrent threads never interleave frame bytes. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version.",
           "graph": {
             "edges": [
               {
@@ -2771,15 +2821,16 @@
             }
           ],
           "question": "How are concurrent records appended?",
-          "reason": "Use one sequencer to append complete frames to the current segment, preserving command identity.",
+          "reason": "Use one sequencer to append complete frames, each with header and payload checksums, to the current segment, preserving command identity.",
           "title": "Batch WAL segments"
         },
         {
           "checkIds": [
             "case0",
-            "case1"
+            "case2",
+            "bounded-mechanism"
           ],
-          "explanation": "Sync the batch once, advance durableThrough and release only waiters at or below that watermark. A later unsynced batch cannot borrow an earlier sync receipt. [Data ingestion](https://en.wikipedia.org/wiki/Data_integration) moves source records into a usable destination. Stable source identity and progress records distinguish genuinely new data from repeated delivery or a restarted import.",
+          "explanation": "Sync the batch once, advance durableThrough and release only waiters at or below that watermark; on sync error fail the whole batch, stop accepting writes and reopen from disk without retrying fsync. A later unsynced batch cannot borrow an earlier sync receipt. [Data ingestion](https://en.wikipedia.org/wiki/Data_integration) moves source records into a usable destination. Stable source identity and progress records distinguish genuinely new data from repeated delivery or a restarted import.",
           "graph": {
             "edges": [
               {
@@ -2943,13 +2994,12 @@
             }
           ],
           "question": "Which callers may be released together?",
-          "reason": "Sync the batch once, advance durableThrough and release only waiters at or below that watermark.",
+          "reason": "Sync the batch once, advance durableThrough and release only waiters at or below that watermark; on sync error fail the whole batch, stop accepting writes and reopen from disk without retrying fsync.",
           "title": "Group sync gate"
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case4"
           ],
           "explanation": "Pause append briefly, seal segment at cut LSN and start a new generation before copying state. Rotation does not discard the uncheckpointed new generation. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version.",
           "graph": {
@@ -3144,10 +3194,9 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case4"
           ],
-          "explanation": "Snapshot a pinned root through the sealed cut, with later mutations isolated by copy-on-write. All post-cut writes remain in retained WAL suffix. [A snapshot](https://en.wikipedia.org/wiki/Snapshot_isolation) gives one read operation a fixed view of data. Later writes may change the live system without changing the rows that reader sees. Consider this case: Batch A synced through 4; batch B appended through 7 but is unsynced.",
+          "explanation": "Snapshot a pinned root through the sealed cut, with later mutations isolated by copy-on-write. All post-cut writes remain in retained WAL suffix. [A snapshot](https://en.wikipedia.org/wiki/Snapshot_isolation) gives one read operation a fixed view of data. Later writes may change the live system without changing the rows that reader sees. Consider this case: A crash occurs after sealing generation 7 but before the new manifest is synced.",
           "graph": {
             "edges": [
               {
@@ -3370,8 +3419,7 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case4"
           ],
           "explanation": "Publish one synced manifest naming snapshot hash/cut and exact replay segment set. A crash chooses a complete old or new manifest, never mixed generations. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version.",
           "graph": {
@@ -3614,8 +3662,9 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case1",
+            "case3",
+            "bounded-mechanism"
           ],
           "explanation": "Recover the cut plus suffix; compact only under a new equivalent checkpoint and retain tombstones until older sources are excluded. Compaction preserves deletes and the acknowledged logical state. [An event log](https://en.wikipedia.org/wiki/Event-driven_architecture) preserves ordered changes so a consumer can rebuild state or catch up. The consumer must remember its position and handle repeated delivery without repeated effects.",
           "graph": {

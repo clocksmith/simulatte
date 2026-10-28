@@ -20,3 +20,23 @@ for(const [name,build]of Object.entries(authors)){
 test('batch 04 all stages and collapsed subsystems pass shared spatial checker',async()=>{
  const report=await audit(Object.values(authors).map(build=>build()));assert.equal(report.ok,true,JSON.stringify(report.rows.filter(r=>!r.ok)));
 });
+test('batch 04 contracts, stages, cases and errors are specific to each approach',()=>{
+ const questions=[],errors=[];
+ for(const d of Object.values(authors).map(build=>build())){
+  const all=d.problem.requirements.map(r=>r.id),command=sol=>d.contracts.find(c=>c.id===d.problem.referenceId.toLowerCase()+'.'+sol.id+'.command');
+  assert.notDeepEqual(command(d.solutions[0]).request,command(d.solutions[1]).request);
+  const evidence=d.solutions.map(sol=>sol.acceptanceCases.find(c=>c.evidence).evidence.testName);assert.notEqual(evidence[0],evidence[1]);
+  for(const sol of d.solutions){
+   assert.deepEqual(JSON.parse(sol.apis[0].request),command(sol).request);assert.deepEqual(JSON.parse(sol.apis[0].response),command(sol).response);
+   const caseIds=sol.acceptanceCases.map(c=>c.id);
+   assert.ok(sol.stages.every(s=>s.checkIds.length<caseIds.length),sol.id+' stage cites every case');
+   assert.deepEqual(new Set(sol.stages.flatMap(s=>s.checkIds)),new Set(caseIds));
+   assert.ok(sol.acceptanceCases.some(c=>c.relatedRequirementIds.length<all.length),sol.id+' cases all cite every requirement');
+   assert.equal(new Set(sol.stages.map(s=>s.invariants.join('|'))).size,sol.stages.length);
+   questions.push(sol.stages[0].question,sol.stages[1].question);errors.push(...sol.apis.map(a=>a.errors));
+   for(const c of sol.acceptanceCases.filter(c=>c.evidence))assert.ok(fs.readFileSync(path.resolve(__dirname,'..',c.evidence.testFile),'utf8').includes("test('"+c.evidence.testName+"'"),c.evidence.testName);
+  }
+ }
+ assert.equal(new Set(questions).size,questions.length);
+ assert.equal(new Set(errors).size,errors.length);
+});

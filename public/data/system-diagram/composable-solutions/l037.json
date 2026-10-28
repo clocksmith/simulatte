@@ -12,6 +12,11 @@
           "contractId": "l037.avl-rope.command",
           "direction": "out",
           "id": "out-l037.avl-rope.command"
+        },
+        {
+          "contractId": "l037.avl-rope.read",
+          "direction": "out",
+          "id": "out-l037.avl-rope.read"
         }
       ],
       "responsibility": "Invoke the documented API and retain returned outcomes.",
@@ -34,6 +39,11 @@
           "id": "in-l037.avl-rope.command"
         },
         {
+          "contractId": "l037.avl-rope.read",
+          "direction": "in",
+          "id": "in-l037.avl-rope.read"
+        },
+        {
           "contractId": "l037.avl-rope.leaves",
           "direction": "out",
           "id": "out-l037.avl-rope.leaves"
@@ -42,7 +52,8 @@
       "responsibility": "Validate scalar ranges, split weighted tree and join bounded chunks; publish a new balanced root only after a successful edit.",
       "stateOwnership": [
         "current root",
-        "version"
+        "version",
+        "pinned versions"
       ],
       "version": 1
     },
@@ -117,7 +128,7 @@
           "id": "out-l037.avl-rope.join"
         }
       ],
-      "responsibility": "Descend by weight, split at a valid scalar boundary, and reconstruct only nodes on the search path.",
+      "responsibility": "Descend by weight, split at a valid scalar boundary, and rebuild only the search path by joining each detached side.",
       "stateOwnership": [
         "temporary left/right roots"
       ],
@@ -142,7 +153,7 @@
           "id": "out-l037.avl-rope.rotations"
         }
       ],
-      "responsibility": "Join by descending the taller spine; allocate input chunks once and repair path metadata.",
+      "responsibility": "Descend the taller tree's inner spine until heights differ by at most one, link there, and rebalance on the way back; allocate input chunks once.",
       "stateOwnership": [
         "candidate root"
       ],
@@ -192,7 +203,7 @@
           "id": "out-l037.avl-rope.reclaim"
         }
       ],
-      "responsibility": "Immutable nodes retain old roots; publish the new root in one writer transition. Snapshots own root references.",
+      "responsibility": "Validate the range before splitting, keep nodes immutable and publish the new root in one writer transition. A reader pins a root version and reads only from it.",
       "stateOwnership": [
         "root references",
         "publication version"
@@ -213,9 +224,9 @@
           "id": "in-l037.avl-rope.reclaim"
         }
       ],
-      "responsibility": "Detach a range structurally in logarithmic navigation work, then account separately for removed-node destruction and retained snapshots.",
+      "responsibility": "Nodes reachable from the replaced root but not from the new one are retired at the new version and freed only after every reader pinned at an older version unpins; path copying leaves a deleted range inside older roots. Freeing m removed characters is O(m) work, accounted separately from O(log n) navigation.",
       "stateOwnership": [
-        "retired roots",
+        "retired node sets by version",
         "live snapshot references"
       ],
       "version": 1
@@ -232,6 +243,11 @@
           "contractId": "l037.implicit-treap.command",
           "direction": "out",
           "id": "out-l037.implicit-treap.command"
+        },
+        {
+          "contractId": "l037.implicit-treap.read",
+          "direction": "out",
+          "id": "out-l037.implicit-treap.read"
         }
       ],
       "responsibility": "Invoke the documented API and retain returned outcomes.",
@@ -254,12 +270,17 @@
           "id": "in-l037.implicit-treap.command"
         },
         {
+          "contractId": "l037.implicit-treap.read",
+          "direction": "in",
+          "id": "in-l037.implicit-treap.read"
+        },
+        {
           "contractId": "l037.implicit-treap.chunks",
           "direction": "out",
           "id": "out-l037.implicit-treap.chunks"
         }
       ],
-      "responsibility": "Use in-order position instead of explicit keys; heap priorities choose structure while subtree counts select positions.",
+      "responsibility": "Use in-order position instead of explicit keys; heap priorities choose structure while cached subtree counts select positions.",
       "stateOwnership": [
         "root",
         "priority generator state"
@@ -285,9 +306,10 @@
           "id": "out-l037.implicit-treap.sizes"
         }
       ],
-      "responsibility": "Each treap node owns a bounded scalar chunk plus left/right children and a stable priority.",
+      "responsibility": "Each treap node owns a bounded scalar chunk, its stored scalar width, left/right children and a priority drawn once at creation.",
       "stateOwnership": [
         "chunk",
+        "width",
         "priority"
       ],
       "version": 1
@@ -311,7 +333,7 @@
           "id": "out-l037.implicit-treap.partition"
         }
       ],
-      "responsibility": "Store total left/chunk/right scalar counts and repair after changing any child pointer.",
+      "responsibility": "Each node stores count = left.count + width + right.count. count(n) returns that field, and repairing a node after a child change reads only its two children's stored subtree counts.",
       "stateOwnership": [
         "cached subtree count"
       ],
@@ -336,7 +358,7 @@
           "id": "out-l037.implicit-treap.merge"
         }
       ],
-      "responsibility": "Split the chunk into two valid bounded chunks and merge each piece with its corresponding subtree using fresh ordered priorities.",
+      "responsibility": "Split by rank using stored subtree counts; inside a chunk, cut at a scalar boundary and give both pieces that node's priority so each output keeps heap order.",
       "stateOwnership": [
         "temporary roots"
       ],
@@ -361,7 +383,7 @@
           "id": "out-l037.implicit-treap.edit"
         }
       ],
-      "responsibility": "Inputs represent consecutive text ranges. Select lower priority root and recursively merge only its touching child; repair counts.",
+      "responsibility": "Inputs represent consecutive text ranges. Select the lower-priority root and recursively merge only its touching child; repair subtree counts from the children's stored counts.",
       "stateOwnership": [
         "candidate tree"
       ],
@@ -386,7 +408,7 @@
           "id": "out-l037.implicit-treap.publication"
         }
       ],
-      "responsibility": "Insert splits once and merges input; delete splits twice and merges survivors. Read follows subtree ranks without changing root.",
+      "responsibility": "Insert splits once and merges input; delete splits twice and merges survivors. Read follows stored subtree ranks without changing root.",
       "stateOwnership": [
         "edit-local temporary roots"
       ],
@@ -411,9 +433,10 @@
           "id": "out-l037.implicit-treap.depth"
         }
       ],
-      "responsibility": "Path-copy changed nodes and atomically publish a new immutable root under a single writer version check.",
+      "responsibility": "Path-copy changed nodes, publish the new immutable root under a single-writer version check, and retire replaced nodes only after readers pinned at older versions unpin.",
       "stateOwnership": [
-        "root version"
+        "root version",
+        "retired nodes by version"
       ],
       "version": 1
     },
@@ -443,14 +466,26 @@
     {
       "id": "l037.avl-rope.command",
       "request": {
-        "index": "scalar integer 0..length; read excludes length",
-        "length": "nonnegative scalar count for delete",
-        "operation": "read|insert|deleteRange",
+        "index": "scalar integer 0..length",
+        "length": "nonnegative scalar count for deleteRange",
+        "operation": "insert|deleteRange",
         "text": "UTF-8 string for insert"
       },
       "response": {
-        "mutation": "new version and scalar length",
-        "read": "one Unicode scalar"
+        "length": "scalar length",
+        "version": "new published root version"
+      },
+      "version": 1
+    },
+    {
+      "id": "l037.avl-rope.read",
+      "request": {
+        "index": "scalar integer 0..length-1",
+        "snapshot": "pinned root version, or the current root"
+      },
+      "response": {
+        "scalar": "one Unicode scalar",
+        "version": "root version that was read"
       },
       "version": 1
     },
@@ -524,32 +559,44 @@
     {
       "id": "l037.avl-rope.reclaim",
       "request": {
-        "retiredRoot": "detached subtree"
+        "retired": "nodes only in the replaced root",
+        "version": "publishing version"
       },
       "response": {
-        "released": "unreferenced chunks"
+        "released": "nodes no pinned root can reach"
       },
       "version": 1
     },
     {
       "id": "l037.implicit-treap.command",
       "request": {
-        "index": "scalar integer 0..length; read excludes length",
-        "length": "nonnegative scalar count for delete",
-        "operation": "read|insert|deleteRange",
+        "index": "scalar integer 0..length",
+        "length": "nonnegative scalar count for deleteRange",
+        "operation": "insert|deleteRange",
         "text": "UTF-8 string for insert"
       },
       "response": {
-        "mutation": "new version and scalar length",
-        "read": "one Unicode scalar"
+        "length": "scalar length",
+        "version": "new published root version"
+      },
+      "version": 1
+    },
+    {
+      "id": "l037.implicit-treap.read",
+      "request": {
+        "index": "scalar integer 0..length-1",
+        "snapshot": "pinned root version, or the current root"
+      },
+      "response": {
+        "scalar": "one Unicode scalar",
+        "version": "root version that was read"
       },
       "version": 1
     },
     {
       "id": "l037.implicit-treap.chunks",
       "request": {
-        "nodeId": "unique integer",
-        "priority": "random uint64",
+        "priority": "random uint32",
         "text": "scalar sequence"
       },
       "response": {
@@ -563,7 +610,7 @@
         "node": "treap node"
       },
       "response": {
-        "count": "left+chunk+right"
+        "count": "cached left+width+right"
       },
       "version": 1
     },
@@ -669,35 +716,52 @@
           "evidence": {
             "kind": "reference-test",
             "testFile": "tools/simulatte/study-reference/batch-07-mechanisms.test.mjs",
-            "testName": "batch-07 rope: weighted split and splice match scalar arrays"
+            "testName": "batch-07 rope avl: balanced split and splice match scalar arrays"
           },
-          "given": "A rope containing a supplementary Unicode scalar and multiple chunks.",
+          "given": "A rope of a😀bcdef in two-scalar chunks and a rope edited by 300 seeded inserts and deletes.",
           "id": "behavior",
           "relatedRequirementIds": [
             "r0",
-            "r1",
-            "r2"
+            "r1"
           ],
-          "then": "Flattened text matches the scalar-array oracle and cached subtree weights equal actual lengths.",
-          "when": "Split, insert and delete at every legal boundary."
+          "then": "Flattened text matches the scalar-array oracle after every edit; cached counts and heights are exact; every node satisfies the AVL bound.",
+          "when": "Split at every boundary, splice Ω🚀 over every legal range, and compare each random edit with a scalar array."
         },
         {
-          "given": "Empty text, zero-length edits, end insertion and invalid range.",
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-07-mechanisms.test.mjs",
+            "testName": "batch-07 rope avl: balanced split and splice match scalar arrays"
+          },
+          "given": "An empty rope.",
+          "id": "balance",
+          "relatedRequirementIds": [
+            "r1"
+          ],
+          "then": "The tree stays AVL-balanced with height at most 12 instead of degenerating into a 256-node path.",
+          "when": "Insert one scalar at index 0, 256 times."
+        },
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-07-mechanisms.test.mjs",
+            "testName": "batch-07 rope avl: pinned snapshots defer reclamation"
+          },
+          "given": "A pinned snapshot of abcdefghijkl, empty text, zero-length edits, end insertion and out-of-range edits.",
           "id": "boundary",
           "relatedRequirementIds": [
             "r0",
-            "r1",
             "r2"
           ],
-          "then": "Boundary semantics are explicit; invalid edits fail before publishing; old snapshots remain unchanged.",
-          "when": "Apply each operation and retain a previously pinned root."
+          "then": "The pinned snapshot still reads the old text and nothing is freed until it unpins; afterwards the retired nodes are freed while the current root stays readable; invalid edits throw RangeError and publish no version.",
+          "when": "Delete a middle range, read through the pinned snapshot, unpin it, then attempt the invalid edits."
         }
       ],
       "algorithms": [
         {
-          "code": "insert(i,text) { checkInsertRange(i); [a,b]=split(root,i);\n middle=buildBalancedBoundedChunks(text);\n candidate=join(join(a,middle),b); assertWeightsAndAvl(candidate);\n publish(candidate); }\ndeleteRange(i,m) { checkRange(i,m); [a,tail]=split(root,i);\n [removed,b]=split(tail,m); publish(join(a,b)); retire(removed); }\nread(i) { checkReadRange(i); n=root; while(!n.leaf) {\n if(i<n.left.count)n=n.left; else {i-=n.left.count; n=n.right;} }\n return scalarAt(n.chunk,i); }",
+          "code": "insert(i,text) { checkInsertRange(i); const [a,b]=split(root,i);\n publish(join(join(a,buildBalancedBoundedChunks(text)),b)); }\ndeleteRange(i,m) { checkRange(i,m); const [a,tail]=split(root,i);\n const [,b]=split(tail,m); publish(join(a,b)); }\njoin(a,b) { if(!a)return b; if(!b)return a;\n if(h(a)>h(b)+1) return rebalance(a.left, join(a.right,b));\n if(h(b)>h(a)+1) return rebalance(join(a,b.left), b.right);\n return node(a,b); }\npublish(candidate) { const old=root; root=candidate; version++;\n retired.push({version, nodes: onlyIn(old,candidate)});   // reference counts or epochs in practice\n reclaim(); }\nreclaim() { const oldest=Math.min(version, ...pinnedVersions);\n for (const r of retired) if (r.version<=oldest) free(r.nodes); }   // never while an older root is pinned\nread(snapshot,i) { checkReadRange(snapshot,i); let n=snapshot.root; while(!n.leaf) {\n if(i<n.left.count)n=n.left; else {i-=n.left.count; n=n.right;} }\n return scalarAt(n.chunk,i); }",
           "guarantees": [
-            "Navigation and path repair are O(log chunkCount) with enforced AVL balance; input and reclamation costs are additional."
+            "Navigation and path repair are O(log chunkCount) with enforced AVL balance; input copying and reclamation costs are additional and deferred past pinned readers."
           ],
           "id": "mechanism-0",
           "language": "typescript-pseudocode",
@@ -706,12 +770,20 @@
       ],
       "apis": [
         {
-          "errors": "RangeError invalid index/range; invalid text rejected by chosen encoding policy; allocation failure leaves old root intact",
+          "errors": "RangeError for an invalid index or range; invalid text rejected by the encoding policy; on any failure the old root stays published",
           "method": "CALL",
           "ownerNodeId": "owner",
-          "path": "NewString.read/insert/deleteRange",
-          "request": "{\"operation\":\"read|insert|deleteRange\",\"index\":\"scalar integer 0..length; read excludes length\",\"text\":\"UTF-8 string for insert\",\"length\":\"nonnegative scalar count for delete\"}",
-          "response": "{\"read\":\"one Unicode scalar\",\"mutation\":\"new version and scalar length\"}"
+          "path": "NewString.insert/deleteRange",
+          "request": "{\"operation\":\"insert|deleteRange\",\"index\":\"scalar integer 0..length\",\"text\":\"UTF-8 string for insert\",\"length\":\"nonnegative scalar count for deleteRange\"}",
+          "response": "{\"version\":\"new published root version\",\"length\":\"scalar length\"}"
+        },
+        {
+          "errors": "RangeError when index >= length; reads never change text",
+          "method": "CALL",
+          "ownerNodeId": "owner",
+          "path": "NewString.read",
+          "request": "{\"index\":\"scalar integer 0..length-1\",\"snapshot\":\"pinned root version, or the current root\"}",
+          "response": "{\"scalar\":\"one Unicode scalar\",\"version\":\"root version that was read\"}"
         }
       ],
       "assumptions": [
@@ -730,7 +802,7 @@
             "behavior",
             "boundary"
           ],
-          "explanation": "Validate scalar ranges, split weighted tree and join bounded chunks; publish a new balanced root only after a successful edit. Every weight and public position counts the same Unicode scalar unit. [A rope](https://en.wikipedia.org/wiki/Rope_%28data_structure%29) stores text in smaller pieces arranged as a tree. Subtree lengths guide indexing and edits, while balancing prevents a sequence of changes from creating slow paths.",
+          "explanation": "Validate scalar ranges, split weighted tree and join bounded chunks; publish a new balanced root only after a successful edit. Public indices, cached counts and range checks all count Unicode scalars. [A rope](https://en.wikipedia.org/wiki/Rope_%28data_structure%29) stores text in smaller pieces arranged as a tree. Subtree lengths guide indexing and edits, while balancing prevents a sequence of changes from creating slow paths.",
           "graph": {
             "edges": [
               {
@@ -740,11 +812,25 @@
                   "portId": "out-l037.avl-rope.command"
                 },
                 "id": "command",
-                "label": "invoke API",
+                "label": "commands",
                 "mode": "local-call",
                 "to": {
                   "nodeId": "owner",
                   "portId": "in-l037.avl-rope.command"
+                }
+              },
+              {
+                "contractId": "l037.avl-rope.read",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l037.avl-rope.read"
+                },
+                "id": "read",
+                "label": "read-only query",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l037.avl-rope.read"
                 }
               }
             ],
@@ -773,7 +859,7 @@
           },
           "id": "avl-rope-s1",
           "invariants": [
-            "Every weight and public position counts the same Unicode scalar unit."
+            "Public indices, cached counts and range checks all count Unicode scalars."
           ],
           "number": 1,
           "operations": [
@@ -811,11 +897,28 @@
                   "portId": "out-l037.avl-rope.command"
                 },
                 "id": "command",
-                "label": "invoke API",
+                "label": "commands",
                 "mode": "local-call",
                 "to": {
                   "nodeId": "owner",
                   "portId": "in-l037.avl-rope.command"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l037.avl-rope.read",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l037.avl-rope.read"
+                },
+                "id": "read",
+                "label": "read-only query",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l037.avl-rope.read"
                 }
               },
               "op": "connect"
@@ -827,8 +930,7 @@
         },
         {
           "checkIds": [
-            "behavior",
-            "boundary"
+            "behavior"
           ],
           "explanation": "Store at most B bytes per leaf, splitting on scalar boundaries; retain both byte and scalar length. No split creates invalid UTF-8. [A rope](https://en.wikipedia.org/wiki/Rope_%28data_structure%29) stores text in smaller pieces arranged as a tree. Subtree lengths guide indexing and edits, while balancing prevents a sequence of changes from creating slow paths.",
           "graph": {
@@ -840,11 +942,25 @@
                   "portId": "out-l037.avl-rope.command"
                 },
                 "id": "command",
-                "label": "invoke API",
+                "label": "commands",
                 "mode": "local-call",
                 "to": {
                   "nodeId": "owner",
                   "portId": "in-l037.avl-rope.command"
+                }
+              },
+              {
+                "contractId": "l037.avl-rope.read",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l037.avl-rope.read"
+                },
+                "id": "read",
+                "label": "read-only query",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l037.avl-rope.read"
                 }
               },
               {
@@ -938,8 +1054,7 @@
         },
         {
           "checkIds": [
-            "behavior",
-            "boundary"
+            "behavior"
           ],
           "explanation": "Store left scalar weight and total subtree count; subtract left weight only when descending right. Cached counts equal child totals after every structural operation. [A rope](https://en.wikipedia.org/wiki/Rope_%28data_structure%29) stores text in smaller pieces arranged as a tree. Subtree lengths guide indexing and edits, while balancing prevents a sequence of changes from creating slow paths.",
           "graph": {
@@ -951,11 +1066,25 @@
                   "portId": "out-l037.avl-rope.command"
                 },
                 "id": "command",
-                "label": "invoke API",
+                "label": "commands",
                 "mode": "local-call",
                 "to": {
                   "nodeId": "owner",
                   "portId": "in-l037.avl-rope.command"
+                }
+              },
+              {
+                "contractId": "l037.avl-rope.read",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l037.avl-rope.read"
+                },
+                "id": "read",
+                "label": "read-only query",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l037.avl-rope.read"
                 }
               },
               {
@@ -1073,10 +1202,9 @@
         },
         {
           "checkIds": [
-            "behavior",
-            "boundary"
+            "behavior"
           ],
-          "explanation": "Descend by weight, split at a valid scalar boundary, and reconstruct only nodes on the search path. concat(left,right) restores the original scalar sequence. [A rope](https://en.wikipedia.org/wiki/Rope_%28data_structure%29) stores text in smaller pieces arranged as a tree. Subtree lengths guide indexing and edits, while balancing prevents a sequence of changes from creating slow paths.",
+          "explanation": "Descend by weight, split at a valid scalar boundary, and rebuild only the search path by joining each detached side. concat(left,right) restores the original scalar sequence. [A rope](https://en.wikipedia.org/wiki/Rope_%28data_structure%29) stores text in smaller pieces arranged as a tree. Subtree lengths guide indexing and edits, while balancing prevents a sequence of changes from creating slow paths.",
           "graph": {
             "edges": [
               {
@@ -1086,11 +1214,25 @@
                   "portId": "out-l037.avl-rope.command"
                 },
                 "id": "command",
-                "label": "invoke API",
+                "label": "commands",
                 "mode": "local-call",
                 "to": {
                   "nodeId": "owner",
                   "portId": "in-l037.avl-rope.command"
+                }
+              },
+              {
+                "contractId": "l037.avl-rope.read",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l037.avl-rope.read"
+                },
+                "id": "read",
+                "label": "read-only query",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l037.avl-rope.read"
                 }
               },
               {
@@ -1227,15 +1369,15 @@
             }
           ],
           "question": "What happens inside a chunk?",
-          "reason": "Descend by weight, split at a valid scalar boundary, and reconstruct only nodes on the search path.",
+          "reason": "Descend by weight, split at a valid scalar boundary, and rebuild only the search path by joining each detached side.",
           "title": "Split at an exact boundary"
         },
         {
           "checkIds": [
             "behavior",
-            "boundary"
+            "balance"
           ],
-          "explanation": "Join by descending the taller spine; allocate input chunks once and repair path metadata. insert(i,s) equals join(prefix,s,suffix). [An index](https://en.wikipedia.org/wiki/Database_index) maintains a structure that narrows a search without scanning every record. Faster reads come with storage costs and extra work whenever indexed data changes. Consider this case: A rope containing a supplementary Unicode scalar and multiple chunks.",
+          "explanation": "Descend the taller tree's inner spine until heights differ by at most one, link there, and rebalance on the way back; allocate input chunks once. insert(i,s) equals join(join(prefix,s),suffix), and the joined tree is height-balanced. [An index](https://en.wikipedia.org/wiki/Database_index) maintains a structure that narrows a search without scanning every record. Faster reads come with storage costs and extra work whenever indexed data changes.",
           "graph": {
             "edges": [
               {
@@ -1245,11 +1387,25 @@
                   "portId": "out-l037.avl-rope.command"
                 },
                 "id": "command",
-                "label": "invoke API",
+                "label": "commands",
                 "mode": "local-call",
                 "to": {
                   "nodeId": "owner",
                   "portId": "in-l037.avl-rope.command"
+                }
+              },
+              {
+                "contractId": "l037.avl-rope.read",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l037.avl-rope.read"
+                },
+                "id": "read",
+                "label": "read-only query",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l037.avl-rope.read"
                 }
               },
               {
@@ -1374,7 +1530,7 @@
           },
           "id": "avl-rope-s5",
           "invariants": [
-            "insert(i,s) equals join(prefix,s,suffix)."
+            "insert(i,s) equals join(join(prefix,s),suffix), and the joined tree is height-balanced."
           ],
           "number": 5,
           "operations": [
@@ -1410,13 +1566,12 @@
             }
           ],
           "question": "Must insert copy the existing text?",
-          "reason": "Join by descending the taller spine; allocate input chunks once and repair path metadata.",
+          "reason": "Descend the taller tree's inner spine until heights differ by at most one, link there, and rebalance on the way back; allocate input chunks once.",
           "title": "Splice without flattening"
         },
         {
           "checkIds": [
-            "behavior",
-            "boundary"
+            "balance"
           ],
           "explanation": "Apply single or double rotations on repaired paths and recompute heights and weights bottom-up. Absolute child-height difference is at most one after publication. [A rope](https://en.wikipedia.org/wiki/Rope_%28data_structure%29) stores text in smaller pieces arranged as a tree. Subtree lengths guide indexing and edits, while balancing prevents a sequence of changes from creating slow paths.",
           "graph": {
@@ -1428,11 +1583,25 @@
                   "portId": "out-l037.avl-rope.command"
                 },
                 "id": "command",
-                "label": "invoke API",
+                "label": "commands",
                 "mode": "local-call",
                 "to": {
                   "nodeId": "owner",
                   "portId": "in-l037.avl-rope.command"
+                }
+              },
+              {
+                "contractId": "l037.avl-rope.read",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l037.avl-rope.read"
+                },
+                "id": "read",
+                "label": "read-only query",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l037.avl-rope.read"
                 }
               },
               {
@@ -1622,10 +1791,9 @@
         },
         {
           "checkIds": [
-            "behavior",
             "boundary"
           ],
-          "explanation": "Immutable nodes retain old roots; publish the new root in one writer transition. Snapshots own root references. Existing readers never observe partially repaired weights. [A snapshot](https://en.wikipedia.org/wiki/Snapshot_isolation) gives one read operation a fixed view of data. Later writes may change the live system without changing the rows that reader sees. Consider this case: A rope containing a supplementary Unicode scalar and multiple chunks.",
+          "explanation": "Validate the range before splitting, keep nodes immutable and publish the new root in one writer transition. A reader pins a root version and reads only from it. Existing readers never observe partially repaired weights, and a rejected edit publishes nothing. [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers. Publishing one reference lets each reader keep a consistent version.",
           "graph": {
             "edges": [
               {
@@ -1635,11 +1803,25 @@
                   "portId": "out-l037.avl-rope.command"
                 },
                 "id": "command",
-                "label": "invoke API",
+                "label": "commands",
                 "mode": "local-call",
                 "to": {
                   "nodeId": "owner",
                   "portId": "in-l037.avl-rope.command"
+                }
+              },
+              {
+                "contractId": "l037.avl-rope.read",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l037.avl-rope.read"
+                },
+                "id": "read",
+                "label": "read-only query",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l037.avl-rope.read"
                 }
               },
               {
@@ -1812,7 +1994,7 @@
           },
           "id": "avl-rope-s7",
           "invariants": [
-            "Existing readers never observe partially repaired weights."
+            "Existing readers never observe partially repaired weights, and a rejected edit publishes nothing."
           ],
           "number": 7,
           "operations": [
@@ -1848,15 +2030,14 @@
             }
           ],
           "question": "Can a reader see half an edit?",
-          "reason": "Immutable nodes retain old roots; publish the new root in one writer transition. Snapshots own root references.",
+          "reason": "Validate the range before splitting, keep nodes immutable and publish the new root in one writer transition. A reader pins a root version and reads only from it.",
           "title": "Keep read snapshots stable"
         },
         {
           "checkIds": [
-            "behavior",
             "boundary"
           ],
-          "explanation": "Detach a range structurally in logarithmic navigation work, then account separately for removed-node destruction and retained snapshots. Reclamation cannot free nodes reachable from a pinned root. [A snapshot](https://en.wikipedia.org/wiki/Snapshot_isolation) gives one read operation a fixed view of data. Later writes may change the live system without changing the rows that reader sees.",
+          "explanation": "Nodes reachable from the replaced root but not from the new one are retired at the new version and freed only after every reader pinned at an older version unpins; path copying leaves a deleted range inside older roots. Freeing m removed characters is O(m) work, accounted separately from O(log n) navigation. Reclamation cannot free nodes reachable from a pinned root. [Lazy evaluation](https://en.wikipedia.org/wiki/Lazy_evaluation) postpones work until a result is requested.",
           "graph": {
             "edges": [
               {
@@ -1866,11 +2047,25 @@
                   "portId": "out-l037.avl-rope.command"
                 },
                 "id": "command",
-                "label": "invoke API",
+                "label": "commands",
                 "mode": "local-call",
                 "to": {
                   "nodeId": "owner",
                   "portId": "in-l037.avl-rope.command"
+                }
+              },
+              {
+                "contractId": "l037.avl-rope.read",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l037.avl-rope.read"
+                },
+                "id": "read",
+                "label": "read-only query",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l037.avl-rope.read"
                 }
               },
               {
@@ -1964,7 +2159,7 @@
                   "portId": "out-l037.avl-rope.reclaim"
                 },
                 "id": "use-reclaim",
-                "label": "Account for edit costs",
+                "label": "Defer reclamation past pinned readers",
                 "mode": "local-call",
                 "to": {
                   "nodeId": "reclaim",
@@ -2092,7 +2287,7 @@
                   "portId": "out-l037.avl-rope.reclaim"
                 },
                 "id": "use-reclaim",
-                "label": "Account for edit costs",
+                "label": "Defer reclamation past pinned readers",
                 "mode": "local-call",
                 "to": {
                   "nodeId": "reclaim",
@@ -2103,14 +2298,14 @@
             }
           ],
           "question": "Does deleting a million characters cost O(log n) total?",
-          "reason": "Detach a range structurally in logarithmic navigation work, then account separately for removed-node destruction and retained snapshots.",
-          "title": "Account for edit costs"
+          "reason": "Nodes reachable from the replaced root but not from the new one are retired at the new version and freed only after every reader pinned at an older version unpins; path copying leaves a deleted range inside older roots. Freeing m removed characters is O(m) work, accounted separately from O(log n) navigation.",
+          "title": "Defer reclamation past pinned readers"
         }
       ],
       "title": "Height-balanced chunk rope with path copying",
       "tradeoffs": [
         "Height and weight repairs complicate split/join.",
-        "Path copying allocates O(log n) structure plus inserted chunks; reclaiming old snapshots needs a policy."
+        "Path copying allocates O(log n) structure plus inserted chunks; reclaiming nodes from old roots waits for pinned readers."
       ]
     },
     {
@@ -2119,35 +2314,62 @@
           "evidence": {
             "kind": "reference-test",
             "testFile": "tools/simulatte/study-reference/batch-07-mechanisms.test.mjs",
-            "testName": "batch-07 rope: weighted split and splice match scalar arrays"
+            "testName": "batch-07 rope treap: cached counts, heap order and splice oracle"
           },
-          "given": "A rope containing a supplementary Unicode scalar and multiple chunks.",
+          "given": "A treap over seed😀text with seeded priorities.",
           "id": "behavior",
           "relatedRequirementIds": [
             "r0",
-            "r1",
-            "r2"
+            "r1"
           ],
-          "then": "Flattened text matches the scalar-array oracle and cached subtree weights equal actual lengths.",
-          "when": "Split, insert and delete at every legal boundary."
+          "then": "Flattened text and reads match the scalar-array oracle; every node passes heap-order and cached-count checks; each earlier root still flattens to its earlier text.",
+          "when": "Apply 300 seeded inserts, deletes and reads while keeping every earlier root."
         },
         {
-          "given": "Empty text, zero-length edits, end insertion and invalid range.",
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-07-mechanisms.test.mjs",
+            "testName": "batch-07 rope treap: cached counts, heap order and splice oracle"
+          },
+          "given": "Child nodes that expose cached counts but throw if their subtrees are walked.",
+          "id": "counts",
+          "relatedRequirementIds": [
+            "r1"
+          ],
+          "then": "count returns the cached field and the parent's count is computed from the two cached child counts without walking either subtree.",
+          "when": "Read count of one child and build a parent from two of them."
+        },
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-07-mechanisms.test.mjs",
+            "testName": "batch-07 rope treap: cached counts, heap order and splice oracle"
+          },
+          "given": "An empty treap, zero-length edits, end insertion and out-of-range edits.",
           "id": "boundary",
           "relatedRequirementIds": [
             "r0",
+            "r2"
+          ],
+          "then": "Invalid ranges throw RangeError and publish no version; zero-length edits and end insertion keep the scalar oracle, including a supplementary scalar.",
+          "when": "Apply each operation."
+        },
+        {
+          "given": "Adversarial or colliding priorities that make the tree deep.",
+          "id": "depth",
+          "relatedRequirementIds": [
             "r1",
             "r2"
           ],
-          "then": "Boundary semantics are explicit; invalid edits fail before publishing; old snapshots remain unchanged.",
-          "when": "Apply each operation and retain a previously pinned root."
+          "then": "The writer rebuilds with fresh priorities at explicit linear cost or rejects the edit with the old root intact; expected logarithmic depth is never reported as a worst-case bound.",
+          "when": "A candidate root exceeds the declared depth guard."
         }
       ],
       "algorithms": [
         {
-          "code": "count(n)=n?count(n.left)+n.chunk.scalarCount+count(n.right):0;\nmerge(a,b) { if(!a)return b; if(!b)return a;\n if(priority(a)<priority(b)) return copy(a,{right:merge(a.right,b)},recomputeCount);\n return copy(b,{left:merge(a,b.left)},recomputeCount); }\ninsert(i,s) { [a,b]=splitByCount(root,i); publish(merge(merge(a,buildChunks(s)),b)); }\ndeleteRange(i,m) { [a,t]=splitByCount(root,i); [gone,b]=splitByCount(t,m);\n publish(merge(a,b)); retire(gone); }",
+          "code": "count(n) = n ? n.count : 0;                          // O(1): cached field\nrepair(n) = count(n.left) + n.width + count(n.right);  // reads two cached children\nmerge(a,b) { if(!a)return b; if(!b)return a;\n if(a.priority<=b.priority) return copy(a,{right:merge(a.right,b)},repair);\n return copy(b,{left:merge(a,b.left)},repair); }\ninsert(i,s) { const [a,b]=splitByCount(root,i); publish(merge(merge(a,buildChunks(s)),b)); }\ndeleteRange(i,m) { const [a,t]=splitByCount(root,i); const [gone,b]=splitByCount(t,m);\n publish(merge(a,b)); retireAfterOlderPins(gone); }   // gone is still reachable from older roots",
           "guarantees": [
-            "Expected O(log n) navigation under independent priorities; inserted length and freed nodes remain separate costs."
+            "Expected O(log n) navigation under independent priorities; count is O(1); inserted length and freed nodes remain separate costs."
           ],
           "id": "mechanism-0",
           "language": "typescript-pseudocode",
@@ -2156,12 +2378,20 @@
       ],
       "apis": [
         {
-          "errors": "RangeError invalid index/range; invalid text rejected by chosen encoding policy; allocation failure leaves old root intact",
+          "errors": "RangeError for an invalid index or range; invalid text rejected by the encoding policy; on any failure the old root stays published",
           "method": "CALL",
           "ownerNodeId": "owner",
-          "path": "NewString.read/insert/deleteRange",
-          "request": "{\"operation\":\"read|insert|deleteRange\",\"index\":\"scalar integer 0..length; read excludes length\",\"text\":\"UTF-8 string for insert\",\"length\":\"nonnegative scalar count for delete\"}",
-          "response": "{\"read\":\"one Unicode scalar\",\"mutation\":\"new version and scalar length\"}"
+          "path": "NewString.insert/deleteRange",
+          "request": "{\"operation\":\"insert|deleteRange\",\"index\":\"scalar integer 0..length\",\"text\":\"UTF-8 string for insert\",\"length\":\"nonnegative scalar count for deleteRange\"}",
+          "response": "{\"version\":\"new published root version\",\"length\":\"scalar length\"}"
+        },
+        {
+          "errors": "RangeError when index >= length; reads never change text",
+          "method": "CALL",
+          "ownerNodeId": "owner",
+          "path": "NewString.read",
+          "request": "{\"index\":\"scalar integer 0..length-1\",\"snapshot\":\"pinned root version, or the current root\"}",
+          "response": "{\"scalar\":\"one Unicode scalar\",\"version\":\"root version that was read\"}"
         }
       ],
       "assumptions": [
@@ -2180,7 +2410,7 @@
             "behavior",
             "boundary"
           ],
-          "explanation": "Use in-order position instead of explicit keys; heap priorities choose structure while subtree counts select positions. In-order sequence defines position; priorities never define text order. [A rope](https://en.wikipedia.org/wiki/Rope_%28data_structure%29) stores text in smaller pieces arranged as a tree. Subtree lengths guide indexing and edits, while balancing prevents a sequence of changes from creating slow paths.",
+          "explanation": "Use in-order position instead of explicit keys; heap priorities choose structure while cached subtree counts select positions. Public positions are in-order scalar ranks; priorities never define text order. [A rope](https://en.wikipedia.org/wiki/Rope_%28data_structure%29) stores text in smaller pieces arranged as a tree. Subtree lengths guide indexing and edits, while balancing prevents a sequence of changes from creating slow paths.",
           "graph": {
             "edges": [
               {
@@ -2190,11 +2420,25 @@
                   "portId": "out-l037.implicit-treap.command"
                 },
                 "id": "command",
-                "label": "invoke API",
+                "label": "commands",
                 "mode": "local-call",
                 "to": {
                   "nodeId": "owner",
                   "portId": "in-l037.implicit-treap.command"
+                }
+              },
+              {
+                "contractId": "l037.implicit-treap.read",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l037.implicit-treap.read"
+                },
+                "id": "read",
+                "label": "read-only query",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l037.implicit-treap.read"
                 }
               }
             ],
@@ -2223,7 +2467,7 @@
           },
           "id": "implicit-treap-s1",
           "invariants": [
-            "In-order sequence defines position; priorities never define text order."
+            "Public positions are in-order scalar ranks; priorities never define text order."
           ],
           "number": 1,
           "operations": [
@@ -2261,7 +2505,7 @@
                   "portId": "out-l037.implicit-treap.command"
                 },
                 "id": "command",
-                "label": "invoke API",
+                "label": "commands",
                 "mode": "local-call",
                 "to": {
                   "nodeId": "owner",
@@ -2269,18 +2513,34 @@
                 }
               },
               "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l037.implicit-treap.read",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l037.implicit-treap.read"
+                },
+                "id": "read",
+                "label": "read-only query",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l037.implicit-treap.read"
+                }
+              },
+              "op": "connect"
             }
           ],
           "question": "What replaces explicit character keys?",
-          "reason": "Use in-order position instead of explicit keys; heap priorities choose structure while subtree counts select positions.",
+          "reason": "Use in-order position instead of explicit keys; heap priorities choose structure while cached subtree counts select positions.",
           "title": "Expose Treap facade"
         },
         {
           "checkIds": [
-            "behavior",
-            "boundary"
+            "behavior"
           ],
-          "explanation": "Each treap node owns a bounded scalar chunk plus left/right children and a stable priority. Priority collisions use a stable unique tie-breaker. [A rope](https://en.wikipedia.org/wiki/Rope_%28data_structure%29) stores text in smaller pieces arranged as a tree. Subtree lengths guide indexing and edits, while balancing prevents a sequence of changes from creating slow paths.",
+          "explanation": "Each treap node owns a bounded scalar chunk, its stored scalar width, left/right children and a priority drawn once at creation. Heap order is non-strict, so equal priorities, including both pieces of a split chunk, keep a valid heap. [A rope](https://en.wikipedia.org/wiki/Rope_%28data_structure%29) stores text in smaller pieces arranged as a tree. Subtree lengths guide indexing and edits, while balancing prevents a sequence of changes from creating slow paths.",
           "graph": {
             "edges": [
               {
@@ -2290,11 +2550,25 @@
                   "portId": "out-l037.implicit-treap.command"
                 },
                 "id": "command",
-                "label": "invoke API",
+                "label": "commands",
                 "mode": "local-call",
                 "to": {
                   "nodeId": "owner",
                   "portId": "in-l037.implicit-treap.command"
+                }
+              },
+              {
+                "contractId": "l037.implicit-treap.read",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l037.implicit-treap.read"
+                },
+                "id": "read",
+                "label": "read-only query",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l037.implicit-treap.read"
                 }
               },
               {
@@ -2347,7 +2621,7 @@
           },
           "id": "implicit-treap-s2",
           "invariants": [
-            "Priority collisions use a stable unique tie-breaker."
+            "Heap order is non-strict, so equal priorities, including both pieces of a split chunk, keep a valid heap."
           ],
           "number": 2,
           "operations": [
@@ -2383,15 +2657,14 @@
             }
           ],
           "question": "Where are characters owned?",
-          "reason": "Each treap node owns a bounded scalar chunk plus left/right children and a stable priority.",
+          "reason": "Each treap node owns a bounded scalar chunk, its stored scalar width, left/right children and a priority drawn once at creation.",
           "title": "Store ordered text chunks"
         },
         {
           "checkIds": [
-            "behavior",
-            "boundary"
+            "counts"
           ],
-          "explanation": "Store total left/chunk/right scalar counts and repair after changing any child pointer. No edit renumbers untouched nodes. [A rope](https://en.wikipedia.org/wiki/Rope_%28data_structure%29) stores text in smaller pieces arranged as a tree. Subtree lengths guide indexing and edits, while balancing prevents a sequence of changes from creating slow paths. Consider this case: A rope containing a supplementary Unicode scalar and multiple chunks.",
+          "explanation": "Each node stores count = left.count + width + right.count. count(n) returns that field, and repairing a node after a child change reads only its two children's stored subtree counts. count(n) is O(1) and never walks a subtree; no edit renumbers untouched nodes. [A rope](https://en.wikipedia.org/wiki/Rope_%28data_structure%29) stores text in smaller pieces arranged as a tree. Subtree lengths guide indexing and edits, while balancing prevents a sequence of changes from creating slow paths.",
           "graph": {
             "edges": [
               {
@@ -2401,11 +2674,25 @@
                   "portId": "out-l037.implicit-treap.command"
                 },
                 "id": "command",
-                "label": "invoke API",
+                "label": "commands",
                 "mode": "local-call",
                 "to": {
                   "nodeId": "owner",
                   "portId": "in-l037.implicit-treap.command"
+                }
+              },
+              {
+                "contractId": "l037.implicit-treap.read",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l037.implicit-treap.read"
+                },
+                "id": "read",
+                "label": "read-only query",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l037.implicit-treap.read"
                 }
               },
               {
@@ -2482,7 +2769,7 @@
           },
           "id": "implicit-treap-s3",
           "invariants": [
-            "No edit renumbers untouched nodes."
+            "count(n) is O(1) and never walks a subtree; no edit renumbers untouched nodes."
           ],
           "number": 3,
           "operations": [
@@ -2518,15 +2805,14 @@
             }
           ],
           "question": "How does an offset avoid explicit renumbering?",
-          "reason": "Store total left/chunk/right scalar counts and repair after changing any child pointer.",
+          "reason": "Each node stores count = left.count + width + right.count. count(n) returns that field, and repairing a node after a child change reads only its two children's stored subtree counts.",
           "title": "Maintain implicit positions"
         },
         {
           "checkIds": [
-            "behavior",
-            "boundary"
+            "behavior"
           ],
-          "explanation": "Split the chunk into two valid bounded chunks and merge each piece with its corresponding subtree using fresh ordered priorities. The concatenation of split outputs preserves every scalar once. [A rope](https://en.wikipedia.org/wiki/Rope_%28data_structure%29) stores text in smaller pieces arranged as a tree. Subtree lengths guide indexing and edits, while balancing prevents a sequence of changes from creating slow paths.",
+          "explanation": "Split by rank using stored subtree counts; inside a chunk, cut at a scalar boundary and give both pieces that node's priority so each output keeps heap order. The concatenation of split outputs preserves every scalar once. [A rope](https://en.wikipedia.org/wiki/Rope_%28data_structure%29) stores text in smaller pieces arranged as a tree. Subtree lengths guide indexing and edits, while balancing prevents a sequence of changes from creating slow paths.",
           "graph": {
             "edges": [
               {
@@ -2536,11 +2822,25 @@
                   "portId": "out-l037.implicit-treap.command"
                 },
                 "id": "command",
-                "label": "invoke API",
+                "label": "commands",
                 "mode": "local-call",
                 "to": {
                   "nodeId": "owner",
                   "portId": "in-l037.implicit-treap.command"
+                }
+              },
+              {
+                "contractId": "l037.implicit-treap.read",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l037.implicit-treap.read"
+                },
+                "id": "read",
+                "label": "read-only query",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l037.implicit-treap.read"
                 }
               },
               {
@@ -2677,15 +2977,14 @@
             }
           ],
           "question": "How is an offset inside a node handled?",
-          "reason": "Split the chunk into two valid bounded chunks and merge each piece with its corresponding subtree using fresh ordered priorities.",
+          "reason": "Split by rank using stored subtree counts; inside a chunk, cut at a scalar boundary and give both pieces that node's priority so each output keeps heap order.",
           "title": "Partition by scalar rank"
         },
         {
           "checkIds": [
-            "behavior",
-            "boundary"
+            "behavior"
           ],
-          "explanation": "Inputs represent consecutive text ranges. Select lower priority root and recursively merge only its touching child; repair counts. Heap ordering and in-order text both survive merge. [A heap](https://en.wikipedia.org/wiki/Heap_%28data_structure%29) keeps the next priority item cheap to find. When items can be replaced or canceled, stale entries need explicit detection before they are allowed to act.",
+          "explanation": "Inputs represent consecutive text ranges. Select the lower-priority root and recursively merge only its touching child; repair subtree counts from the children's stored counts. Heap ordering and in-order text both survive merge. [A rope](https://en.wikipedia.org/wiki/Rope_%28data_structure%29) stores text in smaller pieces arranged as a tree. Subtree lengths guide indexing and edits, while balancing prevents a sequence of changes from creating slow paths.",
           "graph": {
             "edges": [
               {
@@ -2695,11 +2994,25 @@
                   "portId": "out-l037.implicit-treap.command"
                 },
                 "id": "command",
-                "label": "invoke API",
+                "label": "commands",
                 "mode": "local-call",
                 "to": {
                   "nodeId": "owner",
                   "portId": "in-l037.implicit-treap.command"
+                }
+              },
+              {
+                "contractId": "l037.implicit-treap.read",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l037.implicit-treap.read"
+                },
+                "id": "read",
+                "label": "read-only query",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l037.implicit-treap.read"
                 }
               },
               {
@@ -2860,7 +3173,7 @@
             }
           ],
           "question": "Why may arbitrary trees not be merged by key?",
-          "reason": "Inputs represent consecutive text ranges. Select lower priority root and recursively merge only its touching child; repair counts.",
+          "reason": "Inputs represent consecutive text ranges. Select the lower-priority root and recursively merge only its touching child; repair subtree counts from the children's stored counts.",
           "title": "Join adjacent sequences"
         },
         {
@@ -2868,7 +3181,7 @@
             "behavior",
             "boundary"
           ],
-          "explanation": "Insert splits once and merges input; delete splits twice and merges survivors. Read follows subtree ranks without changing root. No existing node priority changes merely because its index shifted. [A rope](https://en.wikipedia.org/wiki/Rope_%28data_structure%29) stores text in smaller pieces arranged as a tree. Subtree lengths guide indexing and edits, while balancing prevents a sequence of changes from creating slow paths.",
+          "explanation": "Insert splits once and merges input; delete splits twice and merges survivors. Read follows stored subtree ranks without changing root. No existing node priority changes merely because its index shifted. [A rope](https://en.wikipedia.org/wiki/Rope_%28data_structure%29) stores text in smaller pieces arranged as a tree. Subtree lengths guide indexing and edits, while balancing prevents a sequence of changes from creating slow paths.",
           "graph": {
             "edges": [
               {
@@ -2878,11 +3191,25 @@
                   "portId": "out-l037.implicit-treap.command"
                 },
                 "id": "command",
-                "label": "invoke API",
+                "label": "commands",
                 "mode": "local-call",
                 "to": {
                   "nodeId": "owner",
                   "portId": "in-l037.implicit-treap.command"
+                }
+              },
+              {
+                "contractId": "l037.implicit-treap.read",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l037.implicit-treap.read"
+                },
+                "id": "read",
+                "label": "read-only query",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l037.implicit-treap.read"
                 }
               },
               {
@@ -3067,15 +3394,14 @@
             }
           ],
           "question": "How are read and delete related to split?",
-          "reason": "Insert splits once and merges input; delete splits twice and merges survivors. Read follows subtree ranks without changing root.",
+          "reason": "Insert splits once and merges input; delete splits twice and merges survivors. Read follows stored subtree ranks without changing root.",
           "title": "Implement edit algebra"
         },
         {
           "checkIds": [
-            "behavior",
             "boundary"
           ],
-          "explanation": "Path-copy changed nodes and atomically publish a new immutable root under a single writer version check. Writer conflicts retry from a new root; no partially edited path is public. [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers. Publishing one reference lets each reader keep a consistent version.",
+          "explanation": "Path-copy changed nodes, publish the new immutable root under a single-writer version check, and retire replaced nodes only after readers pinned at older versions unpin. Writer conflicts retry from a new root; no partially edited path is public, and an earlier root stays readable. [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers. Publishing one reference lets each reader keep a consistent version.",
           "graph": {
             "edges": [
               {
@@ -3085,11 +3411,25 @@
                   "portId": "out-l037.implicit-treap.command"
                 },
                 "id": "command",
-                "label": "invoke API",
+                "label": "commands",
                 "mode": "local-call",
                 "to": {
                   "nodeId": "owner",
                   "portId": "in-l037.implicit-treap.command"
+                }
+              },
+              {
+                "contractId": "l037.implicit-treap.read",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l037.implicit-treap.read"
+                },
+                "id": "read",
+                "label": "read-only query",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l037.implicit-treap.read"
                 }
               },
               {
@@ -3262,7 +3602,7 @@
           },
           "id": "implicit-treap-s7",
           "invariants": [
-            "Writer conflicts retry from a new root; no partially edited path is public."
+            "Writer conflicts retry from a new root; no partially edited path is public, and an earlier root stays readable."
           ],
           "number": 7,
           "operations": [
@@ -3298,13 +3638,12 @@
             }
           ],
           "question": "Can a concurrent reader follow a changed pointer?",
-          "reason": "Path-copy changed nodes and atomically publish a new immutable root under a single writer version check.",
+          "reason": "Path-copy changed nodes, publish the new immutable root under a single-writer version check, and retire replaced nodes only after readers pinned at older versions unpin.",
           "title": "Isolate readers from mutation"
         },
         {
           "checkIds": [
-            "behavior",
-            "boundary"
+            "depth"
           ],
           "explanation": "Track depth against a declared guard; rebuild with fresh priorities or reject the operation with old root intact. This is a fallback policy with explicit linear rebuild cost. Expected complexity is not reported as a worst-case bound. [A rope](https://en.wikipedia.org/wiki/Rope_%28data_structure%29) stores text in smaller pieces arranged as a tree. Subtree lengths guide indexing and edits, while balancing prevents a sequence of changes from creating slow paths.",
           "graph": {
@@ -3316,11 +3655,25 @@
                   "portId": "out-l037.implicit-treap.command"
                 },
                 "id": "command",
-                "label": "invoke API",
+                "label": "commands",
                 "mode": "local-call",
                 "to": {
                   "nodeId": "owner",
                   "portId": "in-l037.implicit-treap.command"
+                }
+              },
+              {
+                "contractId": "l037.implicit-treap.read",
+                "from": {
+                  "nodeId": "caller",
+                  "portId": "out-l037.implicit-treap.read"
+                },
+                "id": "read",
+                "label": "read-only query",
+                "mode": "local-call",
+                "to": {
+                  "nodeId": "owner",
+                  "portId": "in-l037.implicit-treap.read"
                 }
               },
               {

@@ -124,7 +124,7 @@
           "id": "out-l018.online.c5"
         }
       ],
-      "responsibility": "Filter candidates against current source ACL and revision before model context assembly.",
+      "responsibility": "Filter candidates against current tenant, source ACL and revision before model context assembly.",
       "stateOwnership": [
         "current source eligibility"
       ],
@@ -432,9 +432,14 @@
           "contractId": "l018.materialized.c1",
           "direction": "out",
           "id": "out-l018.materialized.c1"
+        },
+        {
+          "contractId": "l018.materialized.eligibility",
+          "direction": "out",
+          "id": "out-l018.materialized.eligibility"
         }
       ],
-      "responsibility": "Verify current ACL/revisions and fill only typed allowed slots before returning citations.",
+      "responsibility": "Ask the source ACL authority for the actor's current tenant ACL epoch and source revisions, and fill only typed allowed slots before returning citations.",
       "stateOwnership": [
         "online eligibility verdict"
       ],
@@ -457,6 +462,11 @@
           "contractId": "l018.materialized.c2",
           "direction": "out",
           "id": "out-l018.materialized.c2"
+        },
+        {
+          "contractId": "l018.materialized.c7",
+          "direction": "in",
+          "id": "in-l018.materialized.c7"
         }
       ],
       "responsibility": "Invalidate affected packs, expose freshness and rebuild; do not reuse invalid support while rebuilding.",
@@ -519,6 +529,31 @@
         "validated command and version"
       ],
       "version": 1
+    },
+    {
+      "extends": {
+        "id": "core.directory",
+        "version": 1
+      },
+      "id": "l018.materialized.acl",
+      "label": "Source ACL authority",
+      "ports": [
+        {
+          "contractId": "l018.materialized.eligibility",
+          "direction": "in",
+          "id": "in-l018.materialized.eligibility"
+        },
+        {
+          "contractId": "l018.materialized.c7",
+          "direction": "out",
+          "id": "out-l018.materialized.c7"
+        }
+      ],
+      "responsibility": "Hold current per-tenant ACL epochs and source revisions, answer read-time eligibility for cited sources, and publish revocations.",
+      "stateOwnership": [
+        "current ACL epochs and source revisions"
+      ],
+      "version": 1
     }
   ],
   "contracts": [
@@ -573,7 +608,8 @@
       "id": "l018.online.c4",
       "request": {
         "actorId": "uuid",
-        "candidateIds": "versioned span ids[]"
+        "candidateIds": "versioned span ids[]",
+        "tenantId": "uuid"
       },
       "response": {
         "eligible": "span ids[]"
@@ -606,8 +642,10 @@
     {
       "id": "l018.online.c7",
       "request": {
+        "aclEpoch": "integer",
         "answer": "typed object",
-        "currentRevision": "integer"
+        "currentRevision": "integer",
+        "tenantId": "uuid"
       },
       "response": {
         "status": "release|abstain|retry"
@@ -685,7 +723,8 @@
       "id": "l018.materialized.c6",
       "request": {
         "actorId": "uuid",
-        "packHash": "sha256"
+        "packHash": "sha256",
+        "tenantId": "uuid"
       },
       "response": {
         "answer": "typed object|abstain"
@@ -700,6 +739,20 @@
       },
       "response": {
         "invalidated": "pack hashes[]"
+      },
+      "version": 1
+    },
+    {
+      "id": "l018.materialized.eligibility",
+      "request": {
+        "actorId": "uuid",
+        "sourceIds": "uuid[]",
+        "tenantId": "uuid"
+      },
+      "response": {
+        "aclEpoch": "integer",
+        "allowedSourceIds": "uuid[]",
+        "revisions": "map"
       },
       "version": 1
     }
@@ -757,23 +810,20 @@
             "testFile": "tools/simulatte/study-reference/batch-02-mechanisms.test.mjs",
             "testName": "L018 bounded mechanism"
           },
-          "given": "An answer names one allowed current span and another stale or cross-tenant span.",
+          "given": "The gate checks citations against tenant t1, ACL epoch 2 and revision 6.",
           "id": "mechanism",
           "relatedRequirementIds": [
             "r0",
-            "r1",
-            "r2"
+            "r1"
           ],
-          "then": "Reject the stale/cross-tenant citation; accepting shape and membership alone makes no claim of semantic entailment.",
-          "when": "Run the bounded citation eligibility gate."
+          "then": "Only the answer citing the current t1 span passes; zero citations, stale revision, stale ACL epoch, cross-tenant and disallowed citations are rejected. Passing shows membership, not entailment.",
+          "when": "Gate answers that cite a current span, nothing, a stale-revision span, a span at an old ACL epoch that is still allowed by ID, a tenant-t2 span, and a span not allowed by ID."
         },
         {
           "given": "A retrieved document is revoked before context assembly.",
           "id": "acl",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
-            "r2"
+            "r0"
           ],
           "then": "Exclude it from model context and refuse answers requiring its evidence.",
           "when": "Check its current ACL and revision."
@@ -782,8 +832,6 @@
           "given": "Reranking cannot complete before the request deadline.",
           "id": "budget",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
             "r2"
           ],
           "then": "Abstain or return an explicitly incomplete result, never claim the under-200ms target was met.",
@@ -793,17 +841,24 @@
           "given": "An answer is valid JSON but cites an absent span.",
           "id": "support",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
-            "r2"
+            "r1"
           ],
           "then": "Reject the citation; passing membership still requires a separate semantic support verdict.",
           "when": "Validate shape and citation membership."
+        },
+        {
+          "given": "The index was rebuilt with a new embedding model version.",
+          "id": "pinning",
+          "relatedRequirementIds": [
+            "r2"
+          ],
+          "then": "Retrieval refuses the incompatible vector and reports the missing dense evidence instead of mixing dimensions; lexical candidates keep their provenance.",
+          "when": "A query arrives embedded with the old model."
         }
       ],
       "algorithms": [
         {
-          "code": "const eligible = spans.filter(s => s.aclEpoch === currentAcl && s.revision === currentRevision && allowedIds.has(s.id));\nif (!answer.citations.every(id => eligible.some(s => s.id === id))) return {status:\"abstain\"};\nreturn {status:\"shape-and-membership-accepted\"}; // This is not entailment proof.",
+          "code": "// Evidence gate (n7): current = {tenantId, aclEpoch, revision, allowedIds} read from the document authority at gate time.\n// false means abstain; true only accepts shape and citation membership, and a separate support check decides entailment.\nfunction citationGate(answer,spans,current){\n const eligible=spans.filter(s=>s.tenantId===current.tenantId&&s.aclEpoch===current.aclEpoch&&s.revision===current.revision&&current.allowedIds.has(s.id));\n return answer.citations.length>0&&answer.citations.every(id=>eligible.some(s=>s.id===id));\n}",
           "guarantees": [
             "The code states the bounded decision rule; unimplemented helpers remain pseudocode.",
             "External effects, distributed failure and latency require separate execution evidence."
@@ -834,10 +889,10 @@
         {
           "errors": "403 unauthorized scope; 404 absent identity; 410 expired retained history",
           "method": "GET",
-          "ownerNodeId": "state",
-          "path": "/l018/online/state",
-          "request": "{\"documentId\":\"uuid\",\"revision\":\"integer\"}",
-          "response": "{\"contentHash\":\"sha256\",\"aclEpoch\":\"integer\"}"
+          "ownerNodeId": "n7",
+          "path": "/l018/online/queries/{queryId}",
+          "request": "{\"tenantId\":\"uuid\",\"queryId\":\"uuid\"}",
+          "response": "{\"status\":\"pending|release|abstain|retry\",\"citations\":\"span ids[]\",\"phaseTimingsMs\":\"map\"}"
         }
       ],
       "assumptions": [
@@ -852,12 +907,9 @@
       "stages": [
         {
           "checkIds": [
-            "mechanism",
-            "acl",
-            "budget",
-            "support"
+            "budget"
           ],
-          "explanation": "Authenticate tenant and accept a bounded question with an explicit deadline. Authenticate tenant and accept a bounded question with an explicit deadline. State owner: Answer gateway (query identity and deadline). Authenticate tenant and accept a bounded question with an explicit deadline. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid.",
+          "explanation": "Authenticate tenant and accept a bounded question with an explicit deadline. A query is accepted only with an authenticated tenant and an explicit deadline, and every later phase runs under that tenantId. Authenticate tenant and accept a bounded question with an explicit deadline. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Access control](https://en.wikipedia.org/wiki/Access_control) decides whether an authenticated identity may perform a particular action.",
           "graph": {
             "edges": [
               {
@@ -900,7 +952,7 @@
           },
           "id": "online-s1",
           "invariants": [
-            "Authenticate tenant and accept a bounded question with an explicit deadline. State owner: Answer gateway (query identity and deadline)."
+            "A query is accepted only with an authenticated tenant and an explicit deadline, and every later phase runs under that tenantId."
           ],
           "number": 1,
           "operations": [
@@ -954,12 +1006,9 @@
         },
         {
           "checkIds": [
-            "mechanism",
-            "acl",
-            "budget",
-            "support"
+            "acl"
           ],
-          "explanation": "Expand gateway; retain immutable source revisions and current ACL epochs. Expand gateway; retain immutable source revisions and current ACL epochs. State owner: Document authority (document revision and ACL). Expand gateway; retain immutable source revisions and current ACL epochs. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers. Publishing one reference lets each reader keep a consistent version.",
+          "explanation": "Expand gateway; retain immutable source revisions and current ACL epochs. Document revisions are immutable, and the authority's current tenant and ACL epoch override whatever an index recorded. Expand gateway; retain immutable source revisions and current ACL epochs. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers. Publishing one reference lets each reader keep a consistent version.",
           "graph": {
             "edges": [
               {
@@ -1039,7 +1088,7 @@
           },
           "id": "online-s2",
           "invariants": [
-            "Expand gateway; retain immutable source revisions and current ACL epochs. State owner: Document authority (document revision and ACL)."
+            "Document revisions are immutable, and the authority's current tenant and ACL epoch override whatever an index recorded."
           ],
           "number": 2,
           "operations": [
@@ -1093,12 +1142,9 @@
         },
         {
           "checkIds": [
-            "mechanism",
-            "acl",
-            "budget",
-            "support"
+            "pinning"
           ],
-          "explanation": "Pin embedding model, dimensions and normalization to the selected index version. Pin embedding model, dimensions and normalization to the selected index version. State owner: Embedding lane (embedding compatibility identity). Pin embedding model, dimensions and normalization to the selected index version. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Retrieval-augmented generation](https://en.wikipedia.org/wiki/Retrieval-augmented_generation) brings external material into a model request.",
+          "explanation": "Pin embedding model, dimensions and normalization to the selected index version. Query vectors come from the embedding model, dimension and normalization pinned to the index version being searched. Pin embedding model, dimensions and normalization to the selected index version. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Retrieval-augmented generation](https://en.wikipedia.org/wiki/Retrieval-augmented_generation) brings external material into a model request.",
           "graph": {
             "edges": [
               {
@@ -1202,7 +1248,7 @@
           },
           "id": "online-s3",
           "invariants": [
-            "Pin embedding model, dimensions and normalization to the selected index version. State owner: Embedding lane (embedding compatibility identity)."
+            "Query vectors come from the embedding model, dimension and normalization pinned to the index version being searched."
           ],
           "number": 3,
           "operations": [
@@ -1249,12 +1295,9 @@
         },
         {
           "checkIds": [
-            "mechanism",
-            "acl",
-            "budget",
-            "support"
+            "pinning"
           ],
-          "explanation": "Union lexical and vector candidates with provenance and bounded recall-tested k. Union lexical and vector candidates with provenance and bounded recall-tested k. State owner: Candidate retrieval (candidate scores and source versions). Union lexical and vector candidates with provenance and bounded recall-tested k. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Retrieval-augmented generation](https://en.wikipedia.org/wiki/Retrieval-augmented_generation) brings external material into a model request.",
+          "explanation": "Union lexical and vector candidates with provenance and bounded recall-tested k. Every candidate carries its tenantId, documentId, revision and retrieval provenance, and k is fixed per index version. Union lexical and vector candidates with provenance and bounded recall-tested k. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Retrieval-augmented generation](https://en.wikipedia.org/wiki/Retrieval-augmented_generation) brings external material into a model request.",
           "graph": {
             "edges": [
               {
@@ -1382,7 +1425,7 @@
           },
           "id": "online-s4",
           "invariants": [
-            "Union lexical and vector candidates with provenance and bounded recall-tested k. State owner: Candidate retrieval (candidate scores and source versions)."
+            "Every candidate carries its tenantId, documentId, revision and retrieval provenance, and k is fixed per index version."
           ],
           "number": 4,
           "operations": [
@@ -1424,11 +1467,9 @@
         {
           "checkIds": [
             "mechanism",
-            "acl",
-            "budget",
-            "support"
+            "acl"
           ],
-          "explanation": "Filter candidates against current source ACL and revision before model context assembly. Filter candidates against current source ACL and revision before model context assembly. State owner: ACL and freshness (current source eligibility). Filter candidates against current source ACL and revision before model context assembly. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A search index](https://en.wikipedia.org/wiki/Search_engine_indexing) maps query terms to candidate records.",
+          "explanation": "Filter candidates against current tenant, source ACL and revision before model context assembly. Only spans whose tenant, current revision and current ACL epoch match the authority enter model context. Filter candidates against current tenant, source ACL and revision before model context assembly. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Access control](https://en.wikipedia.org/wiki/Access_control) decides whether an authenticated identity may perform a particular action.",
           "graph": {
             "edges": [
               {
@@ -1594,7 +1635,7 @@
           },
           "id": "online-s5",
           "invariants": [
-            "Filter candidates against current source ACL and revision before model context assembly. State owner: ACL and freshness (current source eligibility)."
+            "Only spans whose tenant, current revision and current ACL epoch match the authority enter model context."
           ],
           "number": 5,
           "operations": [
@@ -1653,17 +1694,14 @@
             }
           ],
           "question": "Can stale index permissions leak text?",
-          "reason": "Filter candidates against current source ACL and revision before model context assembly.",
+          "reason": "Filter candidates against current tenant, source ACL and revision before model context assembly.",
           "title": "ACL and freshness"
         },
         {
           "checkIds": [
-            "mechanism",
-            "acl",
-            "budget",
-            "support"
+            "budget"
           ],
-          "explanation": "Rerank eligible candidates within token/deadline budgets; retain rejected-score evidence. Rerank eligible candidates within token/deadline budgets; retain rejected-score evidence. State owner: Cross-encoder (ranked candidate receipt). Rerank eligible candidates within token/deadline budgets; retain rejected-score evidence. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid. Expiration must be checked at the point of use, even when background cleanup runs later.",
+          "explanation": "Rerank eligible candidates within token/deadline budgets; retain rejected-score evidence. Reranking scores only eligible spans and stops at the phase deadline, recording which candidates were left unscored. Rerank eligible candidates within token/deadline budgets; retain rejected-score evidence. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid. Expiration must be checked at the point of use, even when background cleanup runs later.",
           "graph": {
             "edges": [
               {
@@ -1853,7 +1891,7 @@
           },
           "id": "online-s6",
           "invariants": [
-            "Rerank eligible candidates within token/deadline budgets; retain rejected-score evidence. State owner: Cross-encoder (ranked candidate receipt)."
+            "Reranking scores only eligible spans and stops at the phase deadline, recording which candidates were left unscored."
           ],
           "number": 6,
           "operations": [
@@ -1894,12 +1932,9 @@
         },
         {
           "checkIds": [
-            "mechanism",
-            "acl",
-            "budget",
             "support"
           ],
-          "explanation": "Generate a typed answer tied to supplied span IDs, then validate shape and citation membership. Generate a typed answer tied to supplied span IDs, then validate shape and citation membership. State owner: Grounded generation (answer draft and validation status). [Raft](https://en.wikipedia.org/wiki/Raft_%28algorithm%29) coordinates a replicated log through an elected leader and majority agreement. Terms and voting rules prevent an outdated leader from deciding new committed entries alone.",
+          "explanation": "Generate a typed answer tied to supplied span IDs, then validate shape and citation membership. The generator may cite only span IDs it was given, and its output is checked against the schema before any evidence check. Generate a typed answer tied to supplied span IDs, then validate shape and citation membership. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Retrieval-augmented generation](https://en.wikipedia.org/wiki/Retrieval-augmented_generation) brings external material into a model request.",
           "graph": {
             "edges": [
               {
@@ -2113,7 +2148,7 @@
           },
           "id": "online-s7",
           "invariants": [
-            "Generate a typed answer tied to supplied span IDs, then validate shape and citation membership. State owner: Grounded generation (answer draft and validation status)."
+            "The generator may cite only span IDs it was given, and its output is checked against the schema before any evidence check."
           ],
           "number": 7,
           "operations": [
@@ -2155,11 +2190,9 @@
         {
           "checkIds": [
             "mechanism",
-            "acl",
-            "budget",
             "support"
           ],
-          "explanation": "Check support and stale sources before release; record unsupported claims rather than inventing citations. Check support and stale sources before release; record unsupported claims rather than inventing citations. State owner: Evidence gate (support verdict and phase timings). Check support and stale sources before release; record unsupported claims rather than inventing citations. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources.",
+          "explanation": "Check support and stale sources before release; record unsupported claims rather than inventing citations. An answer is released only with at least one citation, every citation eligible for the tenant now, and a separate support verdict; otherwise it abstains. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources. A newer owner needs a token that the resource checks, not merely a belief that ownership changed.",
           "graph": {
             "edges": [
               {
@@ -2411,7 +2444,7 @@
           },
           "id": "online-s8",
           "invariants": [
-            "Check support and stale sources before release; record unsupported claims rather than inventing citations. State owner: Evidence gate (support verdict and phase timings)."
+            "An answer is released only with at least one citation, every citation eligible for the tenant now, and a separate support verdict; otherwise it abstains."
           ],
           "number": 8,
           "operations": [
@@ -2481,53 +2514,64 @@
             "testFile": "tools/simulatte/study-reference/batch-02-mechanisms.test.mjs",
             "testName": "L018 bounded mechanism"
           },
-          "given": "An answer names one allowed current span and another stale or cross-tenant span.",
+          "given": "A cached pack answer cites spans compiled for tenant t1 at ACL epoch 2 and revision 6, and the ACL authority reports those as current.",
           "id": "mechanism",
           "relatedRequirementIds": [
             "r0",
-            "r1",
-            "r2"
+            "r1"
           ],
-          "then": "Reject the stale/cross-tenant citation; accepting shape and membership alone makes no claim of semantic entailment.",
-          "when": "Run the bounded citation eligibility gate."
+          "then": "Only the answer citing the current t1 span is served; every other answer abstains.",
+          "when": "Verify answers citing the current span, nothing, a stale-revision span, a span at an old ACL epoch still allowed by ID, a tenant-t2 span, and a span not allowed by ID."
         },
         {
           "given": "A pack was compiled for a tenant whose source ACL changes.",
           "id": "acl",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
-            "r2"
+            "r0"
           ],
-          "then": "Current ACL and exact source revision are rechecked; unauthorized cached text is withheld.",
+          "then": "The ACL authority's current ACL epoch and source revision are rechecked; unauthorized cached text is withheld and the revocation invalidates the pack.",
           "when": "Serve a cached intent."
         },
         {
           "given": "A question is outside the pack intent catalogue.",
           "id": "budget",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
             "r2"
           ],
           "then": "Return unsupported/abstain rather than making a cached answer fit a different question.",
           "when": "Classify and attempt lookup."
         },
         {
-          "given": "A pack manifest is published before one dependent blob exists.",
+          "given": "A compiled answer template is schema-valid but one claim binds to a span absent from the snapshot.",
           "id": "support",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
+            "r1"
+          ],
+          "then": "The claim-to-span check fails even though the schema passes, so the pack is not activated.",
+          "when": "Compile the pack and request activation."
+        },
+        {
+          "given": "A pack manifest is submitted before one dependent blob exists.",
+          "id": "publish",
+          "relatedRequirementIds": [
             "r2"
           ],
-          "then": "Refuse activation until all hashes and schema bindings resolve.",
+          "then": "Refuse activation until all hashes resolve; readers keep the previous active version and see its freshness.",
           "when": "Validate publication readiness."
+        },
+        {
+          "given": "A source changes while a pack build is running.",
+          "id": "snapshot",
+          "relatedRequirementIds": [
+            "r0"
+          ],
+          "then": "The pack uses only the frozen snapshot revisions recorded in its manifest, and the change triggers a new build.",
+          "when": "Compile the pack."
         }
       ],
       "algorithms": [
         {
-          "code": "const eligible = spans.filter(s => s.aclEpoch === currentAcl && s.revision === currentRevision && allowedIds.has(s.id));\nif (!answer.citations.every(id => eligible.some(s => s.id === id))) return {status:\"abstain\"};\nreturn {status:\"shape-and-membership-accepted\"}; // This is not entailment proof.",
+          "code": "// Online verification (n6): current = {tenantId, aclEpoch, revision, allowedIds} comes from the source ACL authority, not from the pack.\n// false means abstain; cached pack bytes never stand in for current authorization.\nfunction citationGate(answer,spans,current){\n const eligible=spans.filter(s=>s.tenantId===current.tenantId&&s.aclEpoch===current.aclEpoch&&s.revision===current.revision&&current.allowedIds.has(s.id));\n return answer.citations.length>0&&answer.citations.every(id=>eligible.some(s=>s.id===id));\n}",
           "guarantees": [
             "The code states the bounded decision rule; unimplemented helpers remain pseudocode.",
             "External effects, distributed failure and latency require separate execution evidence."
@@ -2558,10 +2602,10 @@
         {
           "errors": "403 unauthorized scope; 404 absent identity; 410 expired retained history",
           "method": "GET",
-          "ownerNodeId": "state",
-          "path": "/l018/materialized/state",
-          "request": "{\"intentId\":\"string\",\"packVersion\":\"integer\"}",
-          "response": "{\"sourceRevisions\":\"map\",\"schemaVersion\":\"integer\"}"
+          "ownerNodeId": "n6",
+          "path": "/l018/materialized/packs/{intentId}",
+          "request": "{\"tenantId\":\"uuid\",\"intentId\":\"string\"}",
+          "response": "{\"activePackVersion\":\"integer\",\"sourceRevisions\":\"map\",\"freshness\":\"current|invalidated|rebuilding\"}"
         }
       ],
       "assumptions": [
@@ -2576,12 +2620,9 @@
       "stages": [
         {
           "checkIds": [
-            "mechanism",
-            "acl",
-            "budget",
-            "support"
+            "budget"
           ],
-          "explanation": "Classify against declared intent IDs and refuse unsupported questions explicitly. Classify against declared intent IDs and refuse unsupported questions explicitly. State owner: Pack request (intent classification receipt). Classify against declared intent IDs and refuse unsupported questions explicitly. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Retrieval-augmented generation](https://en.wikipedia.org/wiki/Retrieval-augmented_generation) brings external material into a model request.",
+          "explanation": "Classify against declared intent IDs and refuse unsupported questions explicitly. A question maps to a declared intentId or to unsupported, and an unsupported question is never answered from a pack. Classify against declared intent IDs and refuse unsupported questions explicitly. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Retrieval-augmented generation](https://en.wikipedia.org/wiki/Retrieval-augmented_generation) brings external material into a model request.",
           "graph": {
             "edges": [
               {
@@ -2624,7 +2665,7 @@
           },
           "id": "materialized-s1",
           "invariants": [
-            "Classify against declared intent IDs and refuse unsupported questions explicitly. State owner: Pack request (intent classification receipt)."
+            "A question maps to a declared intentId or to unsupported, and an unsupported question is never answered from a pack."
           ],
           "number": 1,
           "operations": [
@@ -2678,12 +2719,9 @@
         },
         {
           "checkIds": [
-            "mechanism",
-            "acl",
-            "budget",
-            "support"
+            "snapshot"
           ],
-          "explanation": "Expand request boundary; retain content hashes, source revisions and pack schema version. Expand request boundary; retain content hashes, source revisions and pack schema version. State owner: Pack manifest (pack versions and source hashes). Expand request boundary; retain content hashes, source revisions and pack schema version. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Retrieval-augmented generation](https://en.wikipedia.org/wiki/Retrieval-augmented_generation) brings external material into a model request.",
+          "explanation": "Expand request boundary; retain content hashes, source revisions and pack schema version. A manifest version pins the content hash and revision of every source it uses plus its schema version, and is immutable once written. Expand request boundary; retain content hashes, source revisions and pack schema version. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Retrieval-augmented generation](https://en.wikipedia.org/wiki/Retrieval-augmented_generation) brings external material into a model request.",
           "graph": {
             "edges": [
               {
@@ -2763,7 +2801,7 @@
           },
           "id": "materialized-s2",
           "invariants": [
-            "Expand request boundary; retain content hashes, source revisions and pack schema version. State owner: Pack manifest (pack versions and source hashes)."
+            "A manifest version pins the content hash and revision of every source it uses plus its schema version, and is immutable once written."
           ],
           "number": 2,
           "operations": [
@@ -2817,12 +2855,9 @@
         },
         {
           "checkIds": [
-            "mechanism",
-            "acl",
-            "budget",
-            "support"
+            "snapshot"
           ],
-          "explanation": "Freeze source revisions and normalize exact citation spans before constructing a new pack. Freeze source revisions and normalize exact citation spans before constructing a new pack. State owner: Ingest snapshot (ingestion snapshot). Freeze source revisions and normalize exact citation spans before constructing a new pack. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A snapshot](https://en.wikipedia.org/wiki/Snapshot_isolation) gives one read operation a fixed view of data.",
+          "explanation": "Freeze source revisions and normalize exact citation spans before constructing a new pack. A pack is built from one frozen snapshot of source revisions with exact span offsets. Freeze source revisions and normalize exact citation spans before constructing a new pack. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A snapshot](https://en.wikipedia.org/wiki/Snapshot_isolation) gives one read operation a fixed view of data.",
           "graph": {
             "edges": [
               {
@@ -2926,7 +2961,7 @@
           },
           "id": "materialized-s3",
           "invariants": [
-            "Freeze source revisions and normalize exact citation spans before constructing a new pack. State owner: Ingest snapshot (ingestion snapshot)."
+            "A pack is built from one frozen snapshot of source revisions with exact span offsets."
           ],
           "number": 3,
           "operations": [
@@ -2973,12 +3008,9 @@
         },
         {
           "checkIds": [
-            "mechanism",
-            "acl",
-            "budget",
-            "support"
+            "snapshot"
           ],
-          "explanation": "Evaluate lexical/dense recall against labeled intent questions before promoting candidate sets. Evaluate lexical/dense recall against labeled intent questions before promoting candidate sets. State owner: Offline retrieval (retrieval evaluation receipt). Evaluate lexical/dense recall against labeled intent questions before promoting candidate sets. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Retrieval-augmented generation](https://en.wikipedia.org/wiki/Retrieval-augmented_generation) brings external material into a model request.",
+          "explanation": "Evaluate lexical/dense recall against labeled intent questions before promoting candidate sets. A candidate set is promoted only with a recall evaluation receipt against labeled questions for that intent. Evaluate lexical/dense recall against labeled intent questions before promoting candidate sets. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Retrieval-augmented generation](https://en.wikipedia.org/wiki/Retrieval-augmented_generation) brings external material into a model request.",
           "graph": {
             "edges": [
               {
@@ -3106,7 +3138,7 @@
           },
           "id": "materialized-s4",
           "invariants": [
-            "Evaluate lexical/dense recall against labeled intent questions before promoting candidate sets. State owner: Offline retrieval (retrieval evaluation receipt)."
+            "A candidate set is promoted only with a recall evaluation receipt against labeled questions for that intent."
           ],
           "number": 4,
           "operations": [
@@ -3147,12 +3179,9 @@
         },
         {
           "checkIds": [
-            "mechanism",
-            "acl",
-            "budget",
             "support"
           ],
-          "explanation": "Build schema-validated answer templates with explicit claim-to-span bindings. Build schema-validated answer templates with explicit claim-to-span bindings. State owner: Pack compiler (compiled answer pack). Build schema-validated answer templates with explicit claim-to-span bindings. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Retrieval-augmented generation](https://en.wikipedia.org/wiki/Retrieval-augmented_generation) brings external material into a model request. Retrieval quality, access permissions, source freshness, and explicit evidence boundaries matter separately from the model’s generated answer.",
+          "explanation": "Build schema-validated answer templates with explicit claim-to-span bindings. Every claim in a compiled pack binds to span IDs from the frozen snapshot, and schema validity alone never satisfies that binding. Build schema-validated answer templates with explicit claim-to-span bindings. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A snapshot](https://en.wikipedia.org/wiki/Snapshot_isolation) gives one read operation a fixed view of data.",
           "graph": {
             "edges": [
               {
@@ -3304,7 +3333,7 @@
           },
           "id": "materialized-s5",
           "invariants": [
-            "Build schema-validated answer templates with explicit claim-to-span bindings. State owner: Pack compiler (compiled answer pack)."
+            "Every claim in a compiled pack binds to span IDs from the frozen snapshot, and schema validity alone never satisfies that binding."
           ],
           "number": 5,
           "operations": [
@@ -3345,12 +3374,10 @@
         },
         {
           "checkIds": [
-            "mechanism",
-            "acl",
-            "budget",
-            "support"
+            "support",
+            "publish"
           ],
-          "explanation": "Publish one immutable manifest only after pack bytes and dependencies are complete. Publish one immutable manifest only after pack bytes and dependencies are complete. State owner: Atomic publication (active manifest pointer). Publish one immutable manifest only after pack bytes and dependencies are complete. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers.",
+          "explanation": "Publish one immutable manifest only after pack bytes and dependencies are complete. The active manifest pointer moves by compare-and-swap on expectedPackVersion, and only after all pack bytes and dependencies exist. Publish one immutable manifest only after pack bytes and dependencies are complete. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A directed acyclic graph](https://en.wikipedia.org/wiki/Directed_acyclic_graph) expresses work that depends on earlier results.",
           "graph": {
             "edges": [
               {
@@ -3540,7 +3567,7 @@
           },
           "id": "materialized-s6",
           "invariants": [
-            "Publish one immutable manifest only after pack bytes and dependencies are complete. State owner: Atomic publication (active manifest pointer)."
+            "The active manifest pointer moves by compare-and-swap on expectedPackVersion, and only after all pack bytes and dependencies exist."
           ],
           "number": 6,
           "operations": [
@@ -3605,11 +3632,9 @@
         {
           "checkIds": [
             "mechanism",
-            "acl",
-            "budget",
-            "support"
+            "acl"
           ],
-          "explanation": "Verify current ACL/revisions and fill only typed allowed slots before returning citations. Verify current ACL/revisions and fill only typed allowed slots before returning citations. State owner: Online verification (online eligibility verdict). Verify current ACL/revisions and fill only typed allowed slots before returning citations. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Retrieval-augmented generation](https://en.wikipedia.org/wiki/Retrieval-augmented_generation) brings external material into a model request.",
+          "explanation": "Ask the source ACL authority for the actor's current tenant ACL epoch and source revisions, and fill only typed allowed slots before returning citations. A cache hit is served only after the ACL authority confirms the actor's current tenant, ACL epoch and every cited source revision; otherwise the answer abstains. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes.",
           "graph": {
             "edges": [
               {
@@ -3736,6 +3761,20 @@
                 "to": {
                   "nodeId": "boundary",
                   "portId": "in-l018.materialized.c1-state"
+                }
+              },
+              {
+                "contractId": "l018.materialized.eligibility",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l018.materialized.eligibility"
+                },
+                "id": "acl-check",
+                "label": "recheck current ACL and revisions",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "acl",
+                  "portId": "in-l018.materialized.eligibility"
                 }
               }
             ],
@@ -3832,12 +3871,22 @@
                   "y": 360
                 },
                 "version": 1
+              },
+              {
+                "definitionId": "l018.materialized.acl",
+                "id": "acl",
+                "label": "Source ACL authority",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
               }
             ]
           },
           "id": "materialized-s7",
           "invariants": [
-            "Verify current ACL/revisions and fill only typed allowed slots before returning citations. State owner: Online verification (online eligibility verdict)."
+            "A cache hit is served only after the ACL authority confirms the actor's current tenant, ACL epoch and every cited source revision; otherwise the answer abstains."
           ],
           "number": 7,
           "operations": [
@@ -3848,6 +3897,19 @@
                 "label": "Online verification",
                 "position": {
                   "x": 0,
+                  "y": 360
+                },
+                "version": 1
+              },
+              "op": "insert"
+            },
+            {
+              "node": {
+                "definitionId": "l018.materialized.acl",
+                "id": "acl",
+                "label": "Source ACL authority",
+                "position": {
+                  "x": 280,
                   "y": 360
                 },
                 "version": 1
@@ -3887,20 +3949,34 @@
                 }
               },
               "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l018.materialized.eligibility",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l018.materialized.eligibility"
+                },
+                "id": "acl-check",
+                "label": "recheck current ACL and revisions",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "acl",
+                  "portId": "in-l018.materialized.eligibility"
+                }
+              },
+              "op": "connect"
             }
           ],
           "question": "Does a cache hit preserve access?",
-          "reason": "Verify current ACL/revisions and fill only typed allowed slots before returning citations.",
+          "reason": "Ask the source ACL authority for the actor's current tenant ACL epoch and source revisions, and fill only typed allowed slots before returning citations.",
           "title": "Online verification"
         },
         {
           "checkIds": [
-            "mechanism",
-            "acl",
-            "budget",
-            "support"
+            "acl"
           ],
-          "explanation": "Invalidate affected packs, expose freshness and rebuild; do not reuse invalid support while rebuilding. Invalidate affected packs, expose freshness and rebuild; do not reuse invalid support while rebuilding. State owner: Invalidation repair (invalidation cursor). Invalidate affected packs, expose freshness and rebuild; do not reuse invalid support while rebuilding. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A cursor](https://en.wikipedia.org/wiki/Cursor_%28databases%29) records where a query should continue.",
+          "explanation": "Invalidate affected packs, expose freshness and rebuild; do not reuse invalid support while rebuilding. A revocation from the ACL authority invalidates every dependent pack before rebuild starts, and an invalidated pack is never served while its replacement builds. Invalidate affected packs, expose freshness and rebuild; do not reuse invalid support while rebuilding. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Retrieval-augmented generation](https://en.wikipedia.org/wiki/Retrieval-augmented_generation) brings external material into a model request.",
           "graph": {
             "edges": [
               {
@@ -4030,6 +4106,20 @@
                 }
               },
               {
+                "contractId": "l018.materialized.eligibility",
+                "from": {
+                  "nodeId": "n6",
+                  "portId": "out-l018.materialized.eligibility"
+                },
+                "id": "acl-check",
+                "label": "recheck current ACL and revisions",
+                "mode": "request-response",
+                "to": {
+                  "nodeId": "acl",
+                  "portId": "in-l018.materialized.eligibility"
+                }
+              },
+              {
                 "contractId": "l018.materialized.c7",
                 "from": {
                   "nodeId": "n7",
@@ -4055,6 +4145,20 @@
                 "to": {
                   "nodeId": "n2",
                   "portId": "in-l018.materialized.c2"
+                }
+              },
+              {
+                "contractId": "l018.materialized.c7",
+                "from": {
+                  "nodeId": "acl",
+                  "portId": "out-l018.materialized.c7"
+                },
+                "id": "revocations",
+                "label": "stream source revocations",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l018.materialized.c7"
                 }
               }
             ],
@@ -4153,11 +4257,21 @@
                 "version": 1
               },
               {
+                "definitionId": "l018.materialized.acl",
+                "id": "acl",
+                "label": "Source ACL authority",
+                "position": {
+                  "x": 280,
+                  "y": 360
+                },
+                "version": 1
+              },
+              {
                 "definitionId": "l018.materialized.d7",
                 "id": "n7",
                 "label": "Invalidation repair",
                 "position": {
-                  "x": 280,
+                  "x": 560,
                   "y": 360
                 },
                 "version": 1
@@ -4166,7 +4280,7 @@
           },
           "id": "materialized-s8",
           "invariants": [
-            "Invalidate affected packs, expose freshness and rebuild; do not reuse invalid support while rebuilding. State owner: Invalidation repair (invalidation cursor)."
+            "A revocation from the ACL authority invalidates every dependent pack before rebuild starts, and an invalidated pack is never served while its replacement builds."
           ],
           "number": 8,
           "operations": [
@@ -4182,7 +4296,7 @@
                 "id": "n7",
                 "label": "Invalidation repair",
                 "position": {
-                  "x": 280,
+                  "x": 560,
                   "y": 360
                 },
                 "version": 1
@@ -4219,6 +4333,23 @@
                 "to": {
                   "nodeId": "n2",
                   "portId": "in-l018.materialized.c2"
+                }
+              },
+              "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l018.materialized.c7",
+                "from": {
+                  "nodeId": "acl",
+                  "portId": "out-l018.materialized.c7"
+                },
+                "id": "revocations",
+                "label": "stream source revocations",
+                "mode": "event-stream",
+                "to": {
+                  "nodeId": "n7",
+                  "portId": "in-l018.materialized.c7"
                 }
               },
               "op": "connect"

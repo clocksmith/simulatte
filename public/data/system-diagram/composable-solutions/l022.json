@@ -334,7 +334,7 @@
           "id": "in-l022.checkpoints.c1-state"
         }
       ],
-      "responsibility": "Pin input bytes, parsing and hash partition function before any task runs.",
+      "responsibility": "Pin input bytes and codeVersion (parser, normalizer and hash partition function) before any task runs; report which maps reuse committed checkpoints.",
       "stateOwnership": [
         "dataflow definition hash"
       ],
@@ -379,7 +379,7 @@
           "id": "out-l022.checkpoints.c3"
         }
       ],
-      "responsibility": "Lease three deterministic input ranges, fencing old worker completions.",
+      "responsibility": "Lease only maps without a reusable checkpoint over deterministic input ranges, fencing old worker completions.",
       "stateOwnership": [
         "range lease epochs"
       ],
@@ -549,7 +549,7 @@
           "id": "out-l022.checkpoints.c2"
         }
       ],
-      "responsibility": "Pin input bytes, parsing and hash partition function before any task runs.",
+      "responsibility": "Pin input bytes and codeVersion (parser, normalizer and hash partition function) before any task runs; report which maps reuse committed checkpoints.",
       "stateOwnership": [
         "validated command and version"
       ],
@@ -702,18 +702,20 @@
         "inputHash": "sha256"
       },
       "response": {
-        "jobId": "uuid"
+        "jobId": "uuid",
+        "reusedMapIds": "logical map ids[]"
       },
       "version": 1
     },
     {
       "id": "l022.checkpoints.c1",
       "request": {
+        "codeVersion": "string",
         "inputHash": "sha256",
         "stageId": "string"
       },
       "response": {
-        "committedPartitions": "partition refs[]"
+        "committedPartitions": "partition refs with selected attempt[]"
       },
       "version": 1
     },
@@ -825,35 +827,36 @@
           "evidence": {
             "kind": "reference-test",
             "testFile": "tools/simulatte/study-reference/batch-03-mechanisms.test.mjs",
-            "testName": "L022 bounded mechanism"
+            "testName": "L022 only the selected map attempt contributes to URL counts"
           },
-          "given": "Three map partitions include repeated URLs and one logical map is retried.",
+          "given": "The driver holds an original and a retried attempt for logical map 1, both stored with identical rows, plus a fenced partial attempt.",
           "id": "mechanism",
           "relatedRequirementIds": [
             "r0",
-            "r1",
             "r2"
           ],
-          "then": "Counts equal the serial input count; selecting a retry does not double-count its original attempt.",
-          "when": "Select one successful attempt per map and reduce its three hash partitions."
+          "then": "Totals equal the serial count; only the selected attempt contributes, and reduction refuses to run while any logical map lacks a selection.",
+          "when": "Reduce the three hash partitions with the driver's selected attempt per logical map."
         },
         {
           "given": "A logical map is retried after its output block was already stored.",
           "id": "count",
           "relatedRequirementIds": [
             "r0",
-            "r1",
             "r2"
           ],
           "then": "Count each input record once by selected logical partition, never sum both attempts.",
           "when": "Choose one successful attempt and reduce."
         },
         {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-03-mechanisms.test.mjs",
+            "testName": "L022 driver recovery recomputes only maps whose shuffle blocks were lost"
+          },
           "given": "A map CPU dies while its external shuffle blocks remain intact.",
           "id": "loss",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
             "r2"
           ],
           "then": "CPU replacement reuses valid blocks; storage loss recomputes only upstream maps for missing blocks.",
@@ -863,17 +866,24 @@
           "given": "A skewed URL partition exceeds the memory budget.",
           "id": "spill",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
-            "r2"
+            "r1"
           ],
           "then": "The integer URL totals equal a serial reference while in-memory buffering remains bounded.",
           "when": "Spill sorted partial-count runs and merge."
+        },
+        {
+          "given": "Job J is accepted for inputHash H with normalizer version 2.",
+          "id": "submit",
+          "relatedRequirementIds": [
+            "r0"
+          ],
+          "then": "The changed resubmissions are rejected with 409 and create no second plan; the unchanged one returns the original acceptance.",
+          "when": "Resubmit J with inputHash H2 or normalizer version 3, then resubmit it unchanged."
         }
       ],
       "algorithms": [
         {
-          "code": "const totals = new Map();\nfor (const block of selectedAttemptBlocks) for (const [url,count] of block)\n totals.set(url,(totals.get(url)||0)+count);\n// Select exactly one successful attempt per logical map; duplicate delivery is not another partition.",
+          "code": "for (const mapId of [0,1,2]) if (!selected.has(mapId)) return \"blocked\";\nconst totals = new Map();\nfor (const block of reducerBlocks.filter(b => selected.get(b.mapId) === b.attemptId))\n for (const [url,count] of block.pairs) totals.set(url,(totals.get(url)||0)+count);\n// Retried and fenced attempts stay stored, but only the driver-selected attempt contributes.",
           "guarantees": [
             "The code states the bounded decision rule; unimplemented helpers remain pseudocode.",
             "External effects, distributed failure and latency require separate execution evidence."
@@ -894,7 +904,7 @@
       ],
       "apis": [
         {
-          "errors": "401 unauthenticated; 409 stale identity/version; 429 bounded capacity; 503 unavailable authority",
+          "errors": "400 unsupported normalizerVersion; 404 inputHash is not in the immutable dataset catalogue; 409 jobId already bound to a different inputHash or normalizerVersion",
           "method": "POST",
           "ownerNodeId": "control",
           "path": "/l022/driver",
@@ -902,12 +912,12 @@
           "response": "{\"accepted\":\"boolean\"}"
         },
         {
-          "errors": "403 unauthorized scope; 404 absent identity; 410 expired retained history",
+          "errors": "404 unknown jobId; 410 job lineage removed by retention",
           "method": "GET",
           "ownerNodeId": "state",
           "path": "/l022/driver/state",
-          "request": "{\"inputHash\":\"sha256\",\"mapPartitions\":\"3\",\"reducePartitions\":\"3\"}",
-          "response": "{\"partitionIds\":\"stable ids[]\"}"
+          "request": "{\"jobId\":\"uuid\"}",
+          "response": "{\"phase\":\"planned|mapping|reducing|published|failed\",\"selectedAttempts\":\"logical map/reducer id to attempt id\",\"resultHash\":\"sha256|null\"}"
         }
       ],
       "assumptions": [
@@ -922,12 +932,9 @@
       "stages": [
         {
           "checkIds": [
-            "mechanism",
-            "count",
-            "loss",
-            "spill"
+            "submit"
           ],
-          "explanation": "Accept an immutable dataset identity and explicit URL normalization version. Accept an immutable dataset identity and explicit URL normalization version. State owner: Count job (job and snapshot identity). Accept an immutable dataset identity and explicit URL normalization version. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers. Publishing one reference lets each reader keep a consistent version.",
+          "explanation": "Accept an immutable dataset identity and explicit URL normalization version. A jobId binds exactly one inputHash and normalizerVersion; the same jobId with different input or normalizer is rejected, never re-planned. Accept an immutable dataset identity and explicit URL normalization version. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers.",
           "graph": {
             "edges": [
               {
@@ -970,7 +977,7 @@
           },
           "id": "driver-s1",
           "invariants": [
-            "Accept an immutable dataset identity and explicit URL normalization version. State owner: Count job (job and snapshot identity)."
+            "A jobId binds exactly one inputHash and normalizerVersion; the same jobId with different input or normalizer is rejected, never re-planned."
           ],
           "number": 1,
           "operations": [
@@ -1025,11 +1032,9 @@
         {
           "checkIds": [
             "mechanism",
-            "count",
-            "loss",
-            "spill"
+            "loss"
           ],
-          "explanation": "Expand driver; persist three map ranges and three reducer partitions with lineage. Expand driver; persist three map ranges and three reducer partitions with lineage. State owner: Partition plan (logical partition lineage). Expand driver; persist three map ranges and three reducer partitions with lineage. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Partitioning](https://en.wikipedia.org/wiki/Partition_%28database%29) divides data and work among owners.",
+          "explanation": "Expand driver; persist three map ranges and three reducer partitions with lineage. Logical map and reducer partition IDs and their lineage are fixed before any attempt runs; an attempt never redefines its partition. Expand driver; persist three map ranges and three reducer partitions with lineage. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Partitioning](https://en.wikipedia.org/wiki/Partition_%28database%29) divides data and work among owners.",
           "graph": {
             "edges": [
               {
@@ -1109,7 +1114,7 @@
           },
           "id": "driver-s2",
           "invariants": [
-            "Expand driver; persist three map ranges and three reducer partitions with lineage. State owner: Partition plan (logical partition lineage)."
+            "Logical map and reducer partition IDs and their lineage are fixed before any attempt runs; an attempt never redefines its partition."
           ],
           "number": 2,
           "operations": [
@@ -1164,11 +1169,9 @@
         {
           "checkIds": [
             "mechanism",
-            "count",
-            "loss",
-            "spill"
+            "count"
           ],
-          "explanation": "Run one fenced attempt per logical map range and combine duplicate keys locally. Run one fenced attempt per logical map range and combine duplicate keys locally. State owner: Map CPUs (map attempt epoch and counts). Run one fenced attempt per logical map range and combine duplicate keys locally. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Idempotence](https://en.wikipedia.org/wiki/Idempotence) means repeating the same logical operation does not repeat its effect.",
+          "explanation": "Run one fenced attempt per logical map range and combine duplicate keys locally. Every map output carries its logical map ID and attempt; a retry produces a second attempt, not a second logical partition. Run one fenced attempt per logical map range and combine duplicate keys locally. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Idempotence](https://en.wikipedia.org/wiki/Idempotence) means repeating the same logical operation does not repeat its effect.",
           "graph": {
             "edges": [
               {
@@ -1372,7 +1375,7 @@
           },
           "id": "driver-s3",
           "invariants": [
-            "Run one fenced attempt per logical map range and combine duplicate keys locally. State owner: Map CPUs (map attempt epoch and counts)."
+            "Every map output carries its logical map ID and attempt; a retry produces a second attempt, not a second logical partition."
           ],
           "number": 3,
           "operations": [
@@ -1543,12 +1546,9 @@
         },
         {
           "checkIds": [
-            "mechanism",
-            "count",
-            "loss",
-            "spill"
+            "loss"
           ],
-          "explanation": "Partition partial counts by deterministic URL hash into three independently retained shuffle stores. Partition partial counts by deterministic URL hash into three independently retained shuffle stores. State owner: Shuffle stores (keyed blocks and checksums). Partition partial counts by deterministic URL hash into three independently retained shuffle stores. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes.",
+          "explanation": "Partition partial counts by deterministic URL hash into three independently retained shuffle stores. A block is owned by its shuffle store, addressed by map, attempt and reducer with a checksum, and outlives the CPU that wrote it. Partition partial counts by deterministic URL hash into three independently retained shuffle stores. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes.",
           "graph": {
             "edges": [
               {
@@ -1876,7 +1876,7 @@
           },
           "id": "driver-s4",
           "invariants": [
-            "Partition partial counts by deterministic URL hash into three independently retained shuffle stores. State owner: Shuffle stores (keyed blocks and checksums)."
+            "A block is owned by its shuffle store, addressed by map, attempt and reducer with a checksum, and outlives the CPU that wrote it."
           ],
           "number": 4,
           "operations": [
@@ -2041,12 +2041,9 @@
         },
         {
           "checkIds": [
-            "mechanism",
-            "count",
-            "loss",
             "spill"
           ],
-          "explanation": "Spill sorted bounded runs and merge them without changing integer counts. Spill sorted bounded runs and merge them without changing integer counts. State owner: Spill buffers (memory budget and spill manifests). Spill sorted bounded runs and merge them without changing integer counts. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Stream processing](https://en.wikipedia.org/wiki/Stream_processing) updates results as events arrive.",
+          "explanation": "Spill sorted bounded runs and merge them without changing integer counts. Buffered pairs never exceed memoryLimit; merging the sorted runs yields the same integer totals as the unspilled input. Spill sorted bounded runs and merge them without changing integer counts. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Stream processing](https://en.wikipedia.org/wiki/Stream_processing) updates results as events arrive.",
           "graph": {
             "edges": [
               {
@@ -2426,7 +2423,7 @@
           },
           "id": "driver-s5",
           "invariants": [
-            "Spill sorted bounded runs and merge them without changing integer counts. State owner: Spill buffers (memory budget and spill manifests)."
+            "Buffered pairs never exceed memoryLimit; merging the sorted runs yields the same integer totals as the unspilled input."
           ],
           "number": 5,
           "operations": [
@@ -2502,11 +2499,9 @@
         {
           "checkIds": [
             "mechanism",
-            "count",
-            "loss",
-            "spill"
+            "count"
           ],
-          "explanation": "Read only selected map-attempt blocks and sum each URL under its reducer owner. Read only selected map-attempt blocks and sum each URL under its reducer owner. State owner: Reduce CPUs (reduce attempt epoch). Read only selected map-attempt blocks and sum each URL under its reducer owner. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A crawler](https://en.wikipedia.org/wiki/Web_crawler) chooses which URLs to fetch and when.",
+          "explanation": "Read only selected map-attempt blocks and sum each URL under its reducer owner. A reducer reads exactly one selected attempt per logical map and refuses to run while any logical map lacks a selection. Read only selected map-attempt blocks and sum each URL under its reducer owner. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A crawler](https://en.wikipedia.org/wiki/Web_crawler) chooses which URLs to fetch and when.",
           "graph": {
             "edges": [
               {
@@ -3000,7 +2995,7 @@
           },
           "id": "driver-s6",
           "invariants": [
-            "Read only selected map-attempt blocks and sum each URL under its reducer owner. State owner: Reduce CPUs (reduce attempt epoch)."
+            "A reducer reads exactly one selected attempt per logical map and refuses to run while any logical map lacks a selection."
           ],
           "number": 6,
           "operations": [
@@ -3152,12 +3147,9 @@
         },
         {
           "checkIds": [
-            "mechanism",
-            "count",
-            "loss",
-            "spill"
+            "count"
           ],
-          "explanation": "Atomically publish one chosen output for each of the three logical reducers. Atomically publish one chosen output for each of the three logical reducers. State owner: Output manifest (selected reducer outputs). Atomically publish one chosen output for each of the three logical reducers. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers.",
+          "explanation": "Atomically publish one chosen output for each of the three logical reducers. The result manifest names one output for each reducer 0..2 and is published only when all three exist. Atomically publish one chosen output for each of the three logical reducers. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers.",
           "graph": {
             "edges": [
               {
@@ -3703,7 +3695,7 @@
           },
           "id": "driver-s7",
           "invariants": [
-            "Atomically publish one chosen output for each of the three logical reducers. State owner: Output manifest (selected reducer outputs)."
+            "The result manifest names one output for each reducer 0..2 and is published only when all three exist."
           ],
           "number": 7,
           "operations": [
@@ -3778,12 +3770,9 @@
         },
         {
           "checkIds": [
-            "mechanism",
-            "count",
-            "loss",
-            "spill"
+            "loss"
           ],
-          "explanation": "Retain external blocks across compute loss; recompute only missing block lineage after storage loss. Retain external blocks across compute loss; recompute only missing block lineage after storage loss. State owner: Lineage recovery (missing-block recovery work). Retain external blocks across compute loss; recompute only missing block lineage after storage loss. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A checkpoint](https://en.wikipedia.org/wiki/Checkpointing) records enough progress to restart without repeating everything.",
+          "explanation": "Retain external blocks across compute loss; recompute only missing block lineage after storage loss. CPU loss recomputes no stored block; store loss recomputes only the logical maps that wrote blocks to that store. Retain external blocks across compute loss; recompute only missing block lineage after storage loss. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A checkpoint](https://en.wikipedia.org/wiki/Checkpointing) records enough progress to restart without repeating everything.",
           "graph": {
             "edges": [
               {
@@ -4367,7 +4356,7 @@
           },
           "id": "driver-s8",
           "invariants": [
-            "Retain external blocks across compute loss; recompute only missing block lineage after storage loss. State owner: Lineage recovery (missing-block recovery work)."
+            "CPU loss recomputes no stored block; store loss recomputes only the logical maps that wrote blocks to that store."
           ],
           "number": 8,
           "operations": [
@@ -4441,24 +4430,22 @@
           "evidence": {
             "kind": "reference-test",
             "testFile": "tools/simulatte/study-reference/batch-03-mechanisms.test.mjs",
-            "testName": "L022 bounded mechanism"
+            "testName": "L022 only the selected map attempt contributes to URL counts"
           },
-          "given": "Three map partitions include repeated URLs and one logical map is retried.",
+          "given": "The checkpoint manifest holds an original and a retried output for logical map 1 and selects the retry.",
           "id": "mechanism",
           "relatedRequirementIds": [
             "r0",
-            "r1",
             "r2"
           ],
-          "then": "Counts equal the serial input count; selecting a retry does not double-count its original attempt.",
-          "when": "Select one successful attempt per map and reduce its three hash partitions."
+          "then": "Totals equal the serial count; the unselected output contributes nothing, and a map without a selected checkpoint blocks reduction.",
+          "when": "Reduce the three hash partitions from manifest-selected checkpoints."
         },
         {
           "given": "A checkpoint contains a successful and a retried map output for one logical range.",
           "id": "count",
           "relatedRequirementIds": [
             "r0",
-            "r1",
             "r2"
           ],
           "then": "Only the selected map output contributes to totals.",
@@ -4468,8 +4455,6 @@
           "given": "Compute is lost but checkpoint objects and external blocks still exist.",
           "id": "loss",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
             "r2"
           ],
           "then": "Retain valid artifacts and replay only the nearest missing dependency, not all unrelated stages.",
@@ -4479,17 +4464,30 @@
           "given": "The map checkpoint writer sees a high-cardinality input.",
           "id": "spill",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
-            "r2"
+            "r1"
           ],
           "then": "Checksummed persisted blocks preserve serial URL counts and the declared three-way partition function.",
           "when": "Use bounded sorted runs and merge."
+        },
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-03-mechanisms.test.mjs",
+            "testName": "L022 checkpoints reuse map checkpoints only for the same inputHash and codeVersion"
+          },
+          "given": "Job 1 committed checkpoints for maps 0..2 under inputHash H and codeVersion 7.",
+          "id": "reuse",
+          "relatedRequirementIds": [
+            "r0",
+            "r2"
+          ],
+          "then": "H/7 leases no map task and reproduces the serial counts from the reused checkpoints; a changed codeVersion or inputHash reruns every map; the corrupted checkpoint reruns only map 2.",
+          "when": "Resubmit H/7, then H/8 and H2/7, then H/7 again after map 2's checkpoint fails its checksum."
         }
       ],
       "algorithms": [
         {
-          "code": "const totals = new Map();\nfor (const block of selectedAttemptBlocks) for (const [url,count] of block)\n totals.set(url,(totals.get(url)||0)+count);\n// Select exactly one successful attempt per logical map; duplicate delivery is not another partition.",
+          "code": "const reuse = catalogue.reusable(inputHash, codeVersion); // valid checksum, one selected attempt per map\nfor (const mapId of [0,1,2]) if (!reuse.has(mapId)) leaseMapRange(mapId, inputHash, codeVersion);\nconst selected = new Map([...reuse, ...committedNewAttempts()]);\nif (selected.size !== 3) return \"blocked\";\nconst totals = new Map();\nfor (const block of reducerBlocks.filter(b => selected.get(b.mapId) === b.attemptId))\n for (const [url,count] of block.pairs) totals.set(url,(totals.get(url)||0)+count);",
           "guarantees": [
             "The code states the bounded decision rule; unimplemented helpers remain pseudocode.",
             "External effects, distributed failure and latency require separate execution evidence."
@@ -4510,20 +4508,20 @@
       ],
       "apis": [
         {
-          "errors": "401 unauthenticated; 409 stale identity/version; 429 bounded capacity; 503 unavailable authority",
+          "errors": "404 inputHash is not in the immutable dataset catalogue; 422 codeVersion is not a registered parser, normalizer and partitioner build",
           "method": "POST",
           "ownerNodeId": "control",
           "path": "/l022/checkpoints",
           "request": "{\"inputHash\":\"sha256\",\"codeVersion\":\"string\"}",
-          "response": "{\"jobId\":\"uuid\"}"
+          "response": "{\"jobId\":\"uuid\",\"reusedMapIds\":\"logical map ids[]\"}"
         },
         {
-          "errors": "403 unauthorized scope; 404 absent identity; 410 expired retained history",
+          "errors": "404 unknown jobId; 410 checkpoint manifest removed by retention",
           "method": "GET",
           "ownerNodeId": "state",
           "path": "/l022/checkpoints/state",
-          "request": "{\"stageId\":\"string\",\"inputHash\":\"sha256\"}",
-          "response": "{\"committedPartitions\":\"partition refs[]\"}"
+          "request": "{\"jobId\":\"uuid\"}",
+          "response": "{\"phase\":\"planned|mapping|reducing|published|failed\",\"reusedMapIds\":\"logical map ids[]\",\"resultHash\":\"sha256|null\"}"
         }
       ],
       "assumptions": [
@@ -4538,12 +4536,9 @@
       "stages": [
         {
           "checkIds": [
-            "mechanism",
-            "count",
-            "loss",
-            "spill"
+            "reuse"
           ],
-          "explanation": "Pin input bytes, parsing and hash partition function before any task runs. Pin input bytes, parsing and hash partition function before any task runs. State owner: Dataflow submission (dataflow definition hash). Pin input bytes, parsing and hash partition function before any task runs. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Partitioning](https://en.wikipedia.org/wiki/Partition_%28database%29) divides data and work among owners.",
+          "explanation": "Pin input bytes and codeVersion (parser, normalizer and hash partition function) before any task runs; report which maps reuse committed checkpoints. A job pins inputHash and codeVersion before planning; those two values are the only key under which a map checkpoint can be reused. [A checkpoint](https://en.wikipedia.org/wiki/Checkpointing) records enough progress to restart without repeating everything. Its usefulness depends on which state is durable and whether later effects can be replayed safely.",
           "graph": {
             "edges": [
               {
@@ -4586,7 +4581,7 @@
           },
           "id": "checkpoints-s1",
           "invariants": [
-            "Pin input bytes, parsing and hash partition function before any task runs. State owner: Dataflow submission (dataflow definition hash)."
+            "A job pins inputHash and codeVersion before planning; those two values are the only key under which a map checkpoint can be reused."
           ],
           "number": 1,
           "operations": [
@@ -4635,17 +4630,15 @@
             }
           ],
           "question": "What is deterministic in the job?",
-          "reason": "Pin input bytes, parsing and hash partition function before any task runs.",
+          "reason": "Pin input bytes and codeVersion (parser, normalizer and hash partition function) before any task runs; report which maps reuse committed checkpoints.",
           "title": "Dataflow submission"
         },
         {
           "checkIds": [
             "mechanism",
-            "count",
-            "loss",
-            "spill"
+            "reuse"
           ],
-          "explanation": "Expand coordinator with immutable per-stage manifests and selected attempt IDs. Expand coordinator with immutable per-stage manifests and selected attempt IDs. State owner: Checkpoint catalogue (checkpoint manifests). Expand coordinator with immutable per-stage manifests and selected attempt IDs. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version.",
+          "explanation": "Expand coordinator with immutable per-stage manifests and selected attempt IDs. Catalogue entries are immutable, keyed by stage, map, inputHash and codeVersion, and name exactly one selected attempt each. Expand coordinator with immutable per-stage manifests and selected attempt IDs. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers. Publishing one reference lets each reader keep a consistent version.",
           "graph": {
             "edges": [
               {
@@ -4725,7 +4718,7 @@
           },
           "id": "checkpoints-s2",
           "invariants": [
-            "Expand coordinator with immutable per-stage manifests and selected attempt IDs. State owner: Checkpoint catalogue (checkpoint manifests)."
+            "Catalogue entries are immutable, keyed by stage, map, inputHash and codeVersion, and name exactly one selected attempt each."
           ],
           "number": 2,
           "operations": [
@@ -4779,12 +4772,10 @@
         },
         {
           "checkIds": [
-            "mechanism",
-            "count",
-            "loss",
-            "spill"
+            "reuse",
+            "mechanism"
           ],
-          "explanation": "Lease three deterministic input ranges, fencing old worker completions. Lease three deterministic input ranges, fencing old worker completions. State owner: Map task queue (range lease epochs). Lease three deterministic input ranges, fencing old worker completions. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources.",
+          "explanation": "Lease only maps without a reusable checkpoint over deterministic input ranges, fencing old worker completions. A map with a valid checkpoint for the same inputHash and codeVersion is never leased; a completion from an older lease epoch is fenced. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources. A newer owner needs a token that the resource checks, not merely a belief that ownership changed.",
           "graph": {
             "edges": [
               {
@@ -4898,7 +4889,7 @@
           },
           "id": "checkpoints-s3",
           "invariants": [
-            "Lease three deterministic input ranges, fencing old worker completions. State owner: Map task queue (range lease epochs)."
+            "A map with a valid checkpoint for the same inputHash and codeVersion is never leased; a completion from an older lease epoch is fenced."
           ],
           "number": 3,
           "operations": [
@@ -4953,17 +4944,15 @@
             }
           ],
           "question": "How are ranges assigned?",
-          "reason": "Lease three deterministic input ranges, fencing old worker completions.",
+          "reason": "Lease only maps without a reusable checkpoint over deterministic input ranges, fencing old worker completions.",
           "title": "Map task queue"
         },
         {
           "checkIds": [
             "mechanism",
-            "count",
-            "loss",
             "spill"
           ],
-          "explanation": "Parse/normalize each row and commit a local combine output under its attempt key. Parse/normalize each row and commit a local combine output under its attempt key. State owner: Map checkpoint writer (map counts and attempt receipts). Parse/normalize each row and commit a local combine output under its attempt key. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure.",
+          "explanation": "Parse/normalize each row and commit a local combine output under its attempt key. Each map checkpoint commits under its own attempt key with a checksum; a retry writes a new attempt key and never overwrites. Parse/normalize each row and commit a local combine output under its attempt key. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure.",
           "graph": {
             "edges": [
               {
@@ -5191,7 +5180,7 @@
           },
           "id": "checkpoints-s4",
           "invariants": [
-            "Parse/normalize each row and commit a local combine output under its attempt key. State owner: Map checkpoint writer (map counts and attempt receipts)."
+            "Each map checkpoint commits under its own attempt key with a checksum; a retry writes a new attempt key and never overwrites."
           ],
           "number": 4,
           "operations": [
@@ -5343,12 +5332,9 @@
         },
         {
           "checkIds": [
-            "mechanism",
-            "count",
-            "loss",
             "spill"
           ],
-          "explanation": "Route each URL to hash(URL) mod 3 and persist independent keyed blocks with spill manifests. Route each URL to hash(URL) mod 3 and persist independent keyed blocks with spill manifests. State owner: Shuffle partitioner (shuffle block manifests). Route each URL to hash(URL) mod 3 and persist independent keyed blocks with spill manifests. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A crawler](https://en.wikipedia.org/wiki/Web_crawler) chooses which URLs to fetch and when.",
+          "explanation": "Route each URL to hash(URL) mod 3 and persist independent keyed blocks with spill manifests. Every URL routes to hash(URL) mod 3, and the spill manifest lists every sorted run with its checksum. Route each URL to hash(URL) mod 3 and persist independent keyed blocks with spill manifests. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A crawler](https://en.wikipedia.org/wiki/Web_crawler) chooses which URLs to fetch and when.",
           "graph": {
             "edges": [
               {
@@ -5700,7 +5686,7 @@
           },
           "id": "checkpoints-s5",
           "invariants": [
-            "Route each URL to hash(URL) mod 3 and persist independent keyed blocks with spill manifests. State owner: Shuffle partitioner (shuffle block manifests)."
+            "Every URL routes to hash(URL) mod 3, and the spill manifest lists every sorted run with its checksum."
           ],
           "number": 5,
           "operations": [
@@ -5866,11 +5852,9 @@
         {
           "checkIds": [
             "mechanism",
-            "count",
-            "loss",
-            "spill"
+            "count"
           ],
-          "explanation": "Aggregate only manifest-selected blocks; retries replace an attempt selection instead of appending counts again. Aggregate only manifest-selected blocks; retries replace an attempt selection instead of appending counts again. State owner: Reduce dataflow (reduce attempt selection). [Backoff](https://en.wikipedia.org/wiki/Exponential_backoff) spaces repeated attempts so failures do not create a burst of extra traffic. A retry still needs a stable identity and a clear stopping condition.",
+          "explanation": "Aggregate only manifest-selected blocks; retries replace an attempt selection instead of appending counts again. A reducer aggregates only manifest-selected blocks; reselecting an attempt replaces its contribution instead of adding to it. Aggregate only manifest-selected blocks; retries replace an attempt selection instead of appending counts again. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers.",
           "graph": {
             "edges": [
               {
@@ -6294,7 +6278,7 @@
           },
           "id": "checkpoints-s6",
           "invariants": [
-            "Aggregate only manifest-selected blocks; retries replace an attempt selection instead of appending counts again. State owner: Reduce dataflow (reduce attempt selection)."
+            "A reducer aggregates only manifest-selected blocks; reselecting an attempt replaces its contribution instead of adding to it."
           ],
           "number": 6,
           "operations": [
@@ -6395,12 +6379,9 @@
         },
         {
           "checkIds": [
-            "mechanism",
-            "count",
-            "loss",
-            "spill"
+            "count"
           ],
-          "explanation": "Require all three reducer partitions before publishing an immutable output manifest. Require all three reducer partitions before publishing an immutable output manifest. State owner: Result commit (result commit identity). Require all three reducer partitions before publishing an immutable output manifest. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers.",
+          "explanation": "Require all three reducer partitions before publishing an immutable output manifest. The output manifest is published only with all three reducer partitions present. Require all three reducer partitions before publishing an immutable output manifest. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Partitioning](https://en.wikipedia.org/wiki/Partition_%28database%29) divides data and work among owners. The key determines where requests go; skew, ownership changes, and operations spanning partitions require additional coordination.",
           "graph": {
             "edges": [
               {
@@ -6876,7 +6857,7 @@
           },
           "id": "checkpoints-s7",
           "invariants": [
-            "Require all three reducer partitions before publishing an immutable output manifest. State owner: Result commit (result commit identity)."
+            "The output manifest is published only with all three reducer partitions present."
           ],
           "number": 7,
           "operations": [
@@ -6951,12 +6932,10 @@
         },
         {
           "checkIds": [
-            "mechanism",
-            "count",
             "loss",
-            "spill"
+            "reuse"
           ],
-          "explanation": "Validate checkpoint/block checksums; retain valid external storage across CPU loss and reconstruct only absent dependencies. Validate checkpoint/block checksums; retain valid external storage across CPU loss and reconstruct only absent dependencies. State owner: Checkpoint repair (checkpoint validation cursor). Validate checkpoint/block checksums; retain valid external storage across CPU loss and reconstruct only absent dependencies. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A checkpoint](https://en.wikipedia.org/wiki/Checkpointing) records enough progress to restart without repeating everything.",
+          "explanation": "Validate checkpoint/block checksums; retain valid external storage across CPU loss and reconstruct only absent dependencies. Repair reruns only partitions whose referenced checkpoint or block fails its checksum; valid checkpoints are reused. Validate checkpoint/block checksums; retain valid external storage across CPU loss and reconstruct only absent dependencies. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A checkpoint](https://en.wikipedia.org/wiki/Checkpointing) records enough progress to restart without repeating everything.",
           "graph": {
             "edges": [
               {
@@ -7470,7 +7449,7 @@
           },
           "id": "checkpoints-s8",
           "invariants": [
-            "Validate checkpoint/block checksums; retain valid external storage across CPU loss and reconstruct only absent dependencies. State owner: Checkpoint repair (checkpoint validation cursor)."
+            "Repair reruns only partitions whose referenced checkpoint or block fails its checksum; valid checkpoints are reused."
           ],
           "number": 8,
           "operations": [

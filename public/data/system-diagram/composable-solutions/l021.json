@@ -64,12 +64,27 @@
           "id": "in-l021.workflow.c2"
         },
         {
+          "contractId": "l021.workflow.c1",
+          "direction": "out",
+          "id": "out-l021.workflow.c1"
+        },
+        {
           "contractId": "l021.workflow.c3",
           "direction": "out",
           "id": "out-l021.workflow.c3"
+        },
+        {
+          "contractId": "l021.workflow.c4",
+          "direction": "out",
+          "id": "out-l021.workflow.c4"
+        },
+        {
+          "contractId": "l021.workflow.c5",
+          "direction": "out",
+          "id": "out-l021.workflow.c5"
         }
       ],
-      "responsibility": "Release tasks only when all predecessor output receipts are committed.",
+      "responsibility": "Release a task only when every predecessor has a committed receipt from its current attempt; activities report receipts back here, never to the next task.",
       "stateOwnership": [
         "dependency counters"
       ],
@@ -87,14 +102,9 @@
           "contractId": "l021.workflow.c3",
           "direction": "in",
           "id": "in-l021.workflow.c3"
-        },
-        {
-          "contractId": "l021.workflow.c4",
-          "direction": "out",
-          "id": "out-l021.workflow.c4"
         }
       ],
-      "responsibility": "Execute research/tool steps with stable effect keys and bounded attempts.",
+      "responsibility": "Execute research/tool steps with stable effect keys and bounded attempts; return the output receipt to the scheduler.",
       "stateOwnership": [
         "activity attempt fence"
       ],
@@ -112,14 +122,9 @@
           "contractId": "l021.workflow.c4",
           "direction": "in",
           "id": "in-l021.workflow.c4"
-        },
-        {
-          "contractId": "l021.workflow.c5",
-          "direction": "out",
-          "id": "out-l021.workflow.c5"
         }
       ],
-      "responsibility": "Require explicit source/constraint inspection receipts before synthesis consumes inputs.",
+      "responsibility": "Run source/constraint inspection as its own scheduled task; synthesis requires its committed receipt.",
       "stateOwnership": [
         "constraint verdict"
       ],
@@ -144,7 +149,7 @@
           "id": "out-l021.workflow.c6"
         }
       ],
-      "responsibility": "Persist review verdict and artifact hash; a revised artifact requires fresh review.",
+      "responsibility": "Review the synthesized artifact the scheduler released; persist verdict and artifact hash, and require fresh review for any revision.",
       "stateOwnership": [
         "reviewed artifact hash"
       ],
@@ -404,9 +409,9 @@
           "id": "out-l021.journal.c6"
         }
       ],
-      "responsibility": "Deduplicate predecessor completion and decrement remaining dependency count once.",
+      "responsibility": "In one transaction, compare the completion's epoch with the predecessor's current epoch, deduplicate by predecessor and output hash, and decrement the remaining count once.",
       "stateOwnership": [
-        "completion identity set"
+        "completion identity, epoch and output hash"
       ],
       "version": 1
     },
@@ -537,7 +542,7 @@
     {
       "id": "l021.workflow.c2",
       "request": {
-        "predecessorReceipts": "receipt ids[]",
+        "predecessorReceipts": "(taskId, epoch, outputHash)[]",
         "taskId": "uuid"
       },
       "response": {
@@ -552,6 +557,8 @@
         "effectKey": "uuid"
       },
       "response": {
+        "epoch": "integer",
+        "outputHash": "sha256",
         "receipt": "external receipt|unknown"
       },
       "version": 1
@@ -661,10 +668,13 @@
       "id": "l021.journal.c5",
       "request": {
         "dependentId": "uuid",
+        "epoch": "integer",
+        "outputHash": "sha256",
         "predecessorId": "uuid"
       },
       "response": {
-        "remaining": "integer"
+        "remaining": "integer",
+        "status": "applied|duplicate|stale|conflict"
       },
       "version": 1
     },
@@ -745,53 +755,70 @@
             "testFile": "tools/simulatte/study-reference/batch-02-mechanisms.test.mjs",
             "testName": "L021 bounded mechanism"
           },
-          "given": "A join has two prerequisites and receives duplicate completion for the first.",
+          "given": "A synthesis task depends on research (current attempt epoch 2) and constraints (epoch 1).",
           "id": "mechanism",
           "relatedRequirementIds": [
             "r0",
-            "r1",
-            "r2"
+            "r1"
           ],
-          "then": "Remaining dependencies are 1,1,0; no dependent is released by the duplicate. Remote exactly-once effects are not established.",
-          "when": "Apply first, duplicate-first and second completions."
+          "then": "The superseded attempt is stale, the repeat is a duplicate, the different hash is a conflict, and remaining goes 2, 1, 1, 1, 0, so synthesis is released only after both current receipts.",
+          "when": "Apply an epoch-1 research receipt, the epoch-2 receipt twice, an epoch-2 receipt with a different output hash, then the constraints receipt."
         },
         {
           "given": "Research completed but constraint inspection has no committed receipt.",
           "id": "dependencies",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
-            "r2"
+            "r0"
           ],
           "then": "Keep synthesis blocked until both declared prerequisite receipts commit.",
           "when": "Try to schedule synthesis."
         },
         {
-          "given": "Publication was accepted remotely but the activity response was lost.",
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-02-mechanisms.test.mjs",
+            "testName": "L021 workflow reconciliation outcomes"
+          },
+          "given": "A publication's remote response was lost.",
           "id": "effect",
           "relatedRequirementIds": [
-            "r0",
             "r1",
             "r2"
           ],
-          "then": "Reconcile the same effect identity; no blind new publication identity is created.",
-          "when": "Recover the workflow."
+          "then": "Accepted is recorded, the retryable rejection is resent with the same effectKey, the permanent rejection fails, and unknown or no answer is held uncertain without a resend.",
+          "when": "Recover with the remote lookup reporting accepted, a retryable rejection, a permanent rejection, unknown, or no answer."
         },
         {
           "given": "An approved artifact is edited before publication.",
           "id": "review",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
-            "r2"
+            "r0"
           ],
           "then": "Reject publication until the new digest receives review.",
           "when": "Compare digest with the recorded approval."
+        },
+        {
+          "given": "A research activity crashes after its tool call.",
+          "id": "research",
+          "relatedRequirementIds": [
+            "r1"
+          ],
+          "then": "The retry reuses the effect key within the attempt bound, and its receipt reaches the scheduler before any dependent runs.",
+          "when": "The activity is retried."
+        },
+        {
+          "given": "A run submits a DAG with a cycle, then a valid DAG twice.",
+          "id": "accept",
+          "relatedRequirementIds": [
+            "r0"
+          ],
+          "then": "The cyclic DAG is rejected; the valid run keeps one runId and replay reproduces the same decisions.",
+          "when": "Submit both and replay history after a coordinator restart."
         }
       ],
       "algorithms": [
         {
-          "code": "if (completed.has(predecessorId)) return remaining;\ncompleted.add(predecessorId); remaining--;\nreturn remaining; // A ready transition is committed only at zero with all output receipts present.",
+          "code": "// Ready scheduler (n2): each activity receipt is applied in one history transaction before any dependent is released.\nfunction completeDependency(state,completion){\n const task=state.tasks[completion.predecessorId];\n if(!task||completion.epoch!==task.epoch)return {status:'stale',remaining:state.remaining};\n const prior=state.completed.get(completion.predecessorId);\n if(prior!==undefined)return {status:prior===completion.outputHash?'duplicate':'conflict',remaining:state.remaining};\n state.completed.set(completion.predecessorId,completion.outputHash);\n state.remaining--;\n return {status:'applied',remaining:state.remaining};\n}",
           "guarantees": [
             "The code states the bounded decision rule; unimplemented helpers remain pseudocode.",
             "External effects, distributed failure and latency require separate execution evidence."
@@ -801,7 +828,7 @@
           "ownerNodeId": "n2"
         },
         {
-          "code": "const intent = loadPublicationIntent(effectKey);\nconst remote = await lookupRemoteReceipt(effectKey);\nif (remote) recordConfirmed(intent, remote);\nelse if (knownNotAccepted(remote)) retrySameEffectKey(intent);\nelse markUncertain(intent);\n// Status contains task states and receipt references, never private reasoning.",
+          "code": "// Recovery and status (n7): the lookup distinguishes accepted, rejected and unknown; only a proven rejection may retry.\nfunction reconcileEffect(intent,lookup){\n if(lookup?.status==='accepted')return {action:'record',effectKey:intent.effectKey,receipt:lookup.receipt};\n if(lookup?.status==='rejected')return lookup.retryable?{action:'retry',effectKey:intent.effectKey}:{action:'fail',effectKey:intent.effectKey};\n return {action:'hold-uncertain',effectKey:intent.effectKey};\n}\nconst step = reconcileEffect(loadPublicationIntent(effectKey), await lookupRemoteReceipt(effectKey));\n// record -> recordConfirmed; retry -> resend with the same effectKey; fail -> terminal rejected; hold-uncertain -> no resend.\n// Status contains task states and receipt references, never private reasoning.",
           "guarantees": [
             "Reconcile by effect identity before retry; publish compact task states separately from private computation."
           ],
@@ -822,10 +849,10 @@
         {
           "errors": "403 unauthorized scope; 404 absent identity; 410 expired retained history",
           "method": "GET",
-          "ownerNodeId": "state",
-          "path": "/l021/workflow/state",
-          "request": "{\"runId\":\"uuid\",\"taskId\":\"uuid\"}",
-          "response": "{\"state\":\"pending|ready|running|done\"}"
+          "ownerNodeId": "n7",
+          "path": "/l021/workflow/runs/{runId}/status",
+          "request": "{\"runId\":\"uuid\"}",
+          "response": "{\"tasks\":\"public task states[]\",\"receipts\":\"receipt references[]\"}"
         }
       ],
       "assumptions": [
@@ -840,12 +867,9 @@
       "stages": [
         {
           "checkIds": [
-            "mechanism",
-            "dependencies",
-            "effect",
-            "review"
+            "accept"
           ],
-          "explanation": "Validate acyclic dependencies and assign stable task/run IDs before work. Validate acyclic dependencies and assign stable task/run IDs before work. State owner: Task submission (run identity). Validate acyclic dependencies and assign stable task/run IDs before work. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A directed acyclic graph](https://en.wikipedia.org/wiki/Directed_acyclic_graph) expresses work that depends on earlier results.",
+          "explanation": "Validate acyclic dependencies and assign stable task/run IDs before work. A run is accepted only if its task graph is acyclic and every dependency names a declared task; task and run IDs never change afterwards. Validate acyclic dependencies and assign stable task/run IDs before work. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A directed acyclic graph](https://en.wikipedia.org/wiki/Directed_acyclic_graph) expresses work that depends on earlier results.",
           "graph": {
             "edges": [
               {
@@ -888,7 +912,7 @@
           },
           "id": "workflow-s1",
           "invariants": [
-            "Validate acyclic dependencies and assign stable task/run IDs before work. State owner: Task submission (run identity)."
+            "A run is accepted only if its task graph is acyclic and every dependency names a declared task; task and run IDs never change afterwards."
           ],
           "number": 1,
           "operations": [
@@ -942,12 +966,9 @@
         },
         {
           "checkIds": [
-            "mechanism",
-            "dependencies",
-            "effect",
-            "review"
+            "accept"
           ],
-          "explanation": "Expand coordinator; journal transitions and output references before scheduling dependents. Expand coordinator; journal transitions and output references before scheduling dependents. State owner: Decision history (workflow history and task states). Expand coordinator; journal transitions and output references before scheduling dependents. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A directed acyclic graph](https://en.wikipedia.org/wiki/Directed_acyclic_graph) expresses work that depends on earlier results.",
+          "explanation": "Expand coordinator; journal transitions and output references before scheduling dependents. Every transition and output reference is journaled before a dependent task is scheduled, so replay reproduces the same decisions. Expand coordinator; journal transitions and output references before scheduling dependents. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A directed acyclic graph](https://en.wikipedia.org/wiki/Directed_acyclic_graph) expresses work that depends on earlier results.",
           "graph": {
             "edges": [
               {
@@ -1027,7 +1048,7 @@
           },
           "id": "workflow-s2",
           "invariants": [
-            "Expand coordinator; journal transitions and output references before scheduling dependents. State owner: Decision history (workflow history and task states)."
+            "Every transition and output reference is journaled before a dependent task is scheduled, so replay reproduces the same decisions."
           ],
           "number": 2,
           "operations": [
@@ -1082,11 +1103,9 @@
         {
           "checkIds": [
             "mechanism",
-            "dependencies",
-            "effect",
-            "review"
+            "dependencies"
           ],
-          "explanation": "Release tasks only when all predecessor output receipts are committed. Release tasks only when all predecessor output receipts are committed. State owner: Ready scheduler (dependency counters). Release tasks only when all predecessor output receipts are committed. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources.",
+          "explanation": "Release a task only when every predecessor has a committed receipt from its current attempt; activities report receipts back here, never to the next task. Only the scheduler releases tasks, and it releases one only after every predecessor has a journaled receipt from that predecessor's current attempt. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources. A newer owner needs a token that the resource checks, not merely a belief that ownership changed.",
           "graph": {
             "edges": [
               {
@@ -1130,6 +1149,20 @@
                   "nodeId": "n2",
                   "portId": "in-l021.workflow.c2"
                 }
+              },
+              {
+                "contractId": "l021.workflow.c1",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l021.workflow.c1"
+                },
+                "id": "decisions",
+                "label": "read receipts and journal releases",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l021.workflow.c1-state"
+                }
               }
             ],
             "nodes": [
@@ -1151,7 +1184,7 @@
                   "x": 280,
                   "y": 0
                 },
-                "subsystemId": "l021-workflow-boundary-binding-2",
+                "subsystemId": "l021-workflow-boundary-binding-3",
                 "version": 1
               },
               {
@@ -1190,7 +1223,7 @@
           },
           "id": "workflow-s3",
           "invariants": [
-            "Release tasks only when all predecessor output receipts are committed. State owner: Ready scheduler (dependency counters)."
+            "Only the scheduler releases tasks, and it releases one only after every predecessor has a journaled receipt from that predecessor's current attempt."
           ],
           "number": 3,
           "operations": [
@@ -1198,7 +1231,7 @@
               "nodeId": "boundary",
               "op": "rebind",
               "reason": "Select a new immutable exposure binding before connecting the added responsibility; prior stage binding remains unchanged.",
-              "subsystemId": "l021-workflow-boundary-binding-2"
+              "subsystemId": "l021-workflow-boundary-binding-3"
             },
             {
               "node": {
@@ -1229,20 +1262,34 @@
                 }
               },
               "op": "connect"
+            },
+            {
+              "edge": {
+                "contractId": "l021.workflow.c1",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l021.workflow.c1"
+                },
+                "id": "decisions",
+                "label": "read receipts and journal releases",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l021.workflow.c1-state"
+                }
+              },
+              "op": "connect"
             }
           ],
           "question": "Can synthesis race research?",
-          "reason": "Release tasks only when all predecessor output receipts are committed.",
+          "reason": "Release a task only when every predecessor has a committed receipt from its current attempt; activities report receipts back here, never to the next task.",
           "title": "Ready scheduler"
         },
         {
           "checkIds": [
-            "mechanism",
-            "dependencies",
-            "effect",
-            "review"
+            "research"
           ],
-          "explanation": "Execute research/tool steps with stable effect keys and bounded attempts. Execute research/tool steps with stable effect keys and bounded attempts. State owner: Research activities (activity attempt fence). Execute research/tool steps with stable effect keys and bounded attempts. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A search index](https://en.wikipedia.org/wiki/Search_engine_indexing) maps query terms to candidate records.",
+          "explanation": "Execute research/tool steps with stable effect keys and bounded attempts; return the output receipt to the scheduler. A research activity runs under a stable effect key and a bounded attempt count, and returns its receipt to the scheduler rather than calling the next task. [A search index](https://en.wikipedia.org/wiki/Search_engine_indexing) maps query terms to candidate records. The interface must still associate each response with the active query and preserve the user’s chosen filters.",
           "graph": {
             "edges": [
               {
@@ -1288,6 +1335,20 @@
                 }
               },
               {
+                "contractId": "l021.workflow.c1",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l021.workflow.c1"
+                },
+                "id": "decisions",
+                "label": "read receipts and journal releases",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l021.workflow.c1-state"
+                }
+              },
+              {
                 "contractId": "l021.workflow.c3",
                 "from": {
                   "nodeId": "n2",
@@ -1321,7 +1382,7 @@
                   "x": 280,
                   "y": 0
                 },
-                "subsystemId": "l021-workflow-boundary-binding-2",
+                "subsystemId": "l021-workflow-boundary-binding-3",
                 "version": 1
               },
               {
@@ -1370,7 +1431,7 @@
           },
           "id": "workflow-s4",
           "invariants": [
-            "Execute research/tool steps with stable effect keys and bounded attempts. State owner: Research activities (activity attempt fence)."
+            "A research activity runs under a stable effect key and a bounded attempt count, and returns its receipt to the scheduler rather than calling the next task."
           ],
           "number": 4,
           "operations": [
@@ -1406,17 +1467,14 @@
             }
           ],
           "question": "What is retried after a crash?",
-          "reason": "Execute research/tool steps with stable effect keys and bounded attempts.",
+          "reason": "Execute research/tool steps with stable effect keys and bounded attempts; return the output receipt to the scheduler.",
           "title": "Research activities"
         },
         {
           "checkIds": [
-            "mechanism",
-            "dependencies",
-            "effect",
-            "review"
+            "dependencies"
           ],
-          "explanation": "Require explicit source/constraint inspection receipts before synthesis consumes inputs. Require explicit source/constraint inspection receipts before synthesis consumes inputs. State owner: Constraint gate (constraint verdict). Require explicit source/constraint inspection receipts before synthesis consumes inputs. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A workflow](https://en.wikipedia.org/wiki/Workflow) records which step should run next and what has already finished. Durable transitions and effect identities let recovery resume work without blindly repeating external actions.",
+          "explanation": "Run source/constraint inspection as its own scheduled task; synthesis requires its committed receipt. Constraint inspection is dispatched by the scheduler, and its verdict is a committed receipt that synthesis cannot start without. Run source/constraint inspection as its own scheduled task; synthesis requires its committed receipt. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A directed acyclic graph](https://en.wikipedia.org/wiki/Directed_acyclic_graph) expresses work that depends on earlier results.",
           "graph": {
             "edges": [
               {
@@ -1462,6 +1520,20 @@
                 }
               },
               {
+                "contractId": "l021.workflow.c1",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l021.workflow.c1"
+                },
+                "id": "decisions",
+                "label": "read receipts and journal releases",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l021.workflow.c1-state"
+                }
+              },
+              {
                 "contractId": "l021.workflow.c3",
                 "from": {
                   "nodeId": "n2",
@@ -1478,11 +1550,11 @@
               {
                 "contractId": "l021.workflow.c4",
                 "from": {
-                  "nodeId": "n3",
+                  "nodeId": "n2",
                   "portId": "out-l021.workflow.c4"
                 },
                 "id": "inspect",
-                "label": "inspect source constraints",
+                "label": "dispatch constraint inspection",
                 "mode": "request-response",
                 "to": {
                   "nodeId": "n4",
@@ -1509,7 +1581,7 @@
                   "x": 280,
                   "y": 0
                 },
-                "subsystemId": "l021-workflow-boundary-binding-2",
+                "subsystemId": "l021-workflow-boundary-binding-3",
                 "version": 1
               },
               {
@@ -1568,7 +1640,7 @@
           },
           "id": "workflow-s5",
           "invariants": [
-            "Require explicit source/constraint inspection receipts before synthesis consumes inputs. State owner: Constraint gate (constraint verdict)."
+            "Constraint inspection is dispatched by the scheduler, and its verdict is a committed receipt that synthesis cannot start without."
           ],
           "number": 5,
           "operations": [
@@ -1589,11 +1661,11 @@
               "edge": {
                 "contractId": "l021.workflow.c4",
                 "from": {
-                  "nodeId": "n3",
+                  "nodeId": "n2",
                   "portId": "out-l021.workflow.c4"
                 },
                 "id": "inspect",
-                "label": "inspect source constraints",
+                "label": "dispatch constraint inspection",
                 "mode": "request-response",
                 "to": {
                   "nodeId": "n4",
@@ -1604,17 +1676,14 @@
             }
           ],
           "question": "Can generated output ignore limits?",
-          "reason": "Require explicit source/constraint inspection receipts before synthesis consumes inputs.",
+          "reason": "Run source/constraint inspection as its own scheduled task; synthesis requires its committed receipt.",
           "title": "Constraint gate"
         },
         {
           "checkIds": [
-            "mechanism",
-            "dependencies",
-            "effect",
             "review"
           ],
-          "explanation": "Persist review verdict and artifact hash; a revised artifact requires fresh review. Persist review verdict and artifact hash; a revised artifact requires fresh review. State owner: Review checkpoint (reviewed artifact hash). Persist review verdict and artifact hash; a revised artifact requires fresh review. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure.",
+          "explanation": "Review the synthesized artifact the scheduler released; persist verdict and artifact hash, and require fresh review for any revision. Review approves exactly one artifact hash; any change to the artifact needs a new review verdict. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources. A newer owner needs a token that the resource checks, not merely a belief that ownership changed.",
           "graph": {
             "edges": [
               {
@@ -1660,6 +1729,20 @@
                 }
               },
               {
+                "contractId": "l021.workflow.c1",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l021.workflow.c1"
+                },
+                "id": "decisions",
+                "label": "read receipts and journal releases",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l021.workflow.c1-state"
+                }
+              },
+              {
                 "contractId": "l021.workflow.c3",
                 "from": {
                   "nodeId": "n2",
@@ -1676,11 +1759,11 @@
               {
                 "contractId": "l021.workflow.c4",
                 "from": {
-                  "nodeId": "n3",
+                  "nodeId": "n2",
                   "portId": "out-l021.workflow.c4"
                 },
                 "id": "inspect",
-                "label": "inspect source constraints",
+                "label": "dispatch constraint inspection",
                 "mode": "request-response",
                 "to": {
                   "nodeId": "n4",
@@ -1690,11 +1773,11 @@
               {
                 "contractId": "l021.workflow.c5",
                 "from": {
-                  "nodeId": "n4",
+                  "nodeId": "n2",
                   "portId": "out-l021.workflow.c5"
                 },
                 "id": "review",
-                "label": "review synthesized artifact",
+                "label": "release synthesis for review",
                 "mode": "request-response",
                 "to": {
                   "nodeId": "n5",
@@ -1721,7 +1804,7 @@
                   "x": 280,
                   "y": 0
                 },
-                "subsystemId": "l021-workflow-boundary-binding-2",
+                "subsystemId": "l021-workflow-boundary-binding-3",
                 "version": 1
               },
               {
@@ -1790,7 +1873,7 @@
           },
           "id": "workflow-s6",
           "invariants": [
-            "Persist review verdict and artifact hash; a revised artifact requires fresh review. State owner: Review checkpoint (reviewed artifact hash)."
+            "Review approves exactly one artifact hash; any change to the artifact needs a new review verdict."
           ],
           "number": 6,
           "operations": [
@@ -1811,11 +1894,11 @@
               "edge": {
                 "contractId": "l021.workflow.c5",
                 "from": {
-                  "nodeId": "n4",
+                  "nodeId": "n2",
                   "portId": "out-l021.workflow.c5"
                 },
                 "id": "review",
-                "label": "review synthesized artifact",
+                "label": "release synthesis for review",
                 "mode": "request-response",
                 "to": {
                   "nodeId": "n5",
@@ -1826,17 +1909,14 @@
             }
           ],
           "question": "Who authorizes publication?",
-          "reason": "Persist review verdict and artifact hash; a revised artifact requires fresh review.",
+          "reason": "Review the synthesized artifact the scheduler released; persist verdict and artifact hash, and require fresh review for any revision.",
           "title": "Review checkpoint"
         },
         {
           "checkIds": [
-            "mechanism",
-            "dependencies",
-            "effect",
-            "review"
+            "effect"
           ],
-          "explanation": "Commit an outbox identity for the approved hash before issuing a remote write. Commit an outbox identity for the approved hash before issuing a remote write. State owner: Publication intent (publication intent and remote receipt). Commit an outbox identity for the approved hash before issuing a remote write. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A workflow](https://en.wikipedia.org/wiki/Workflow) records which step should run next and what has already finished.",
+          "explanation": "Commit an outbox identity for the approved hash before issuing a remote write. A publication intent with a stable effectKey is committed for the approved hash before any remote write. Commit an outbox identity for the approved hash before issuing a remote write. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure.",
           "graph": {
             "edges": [
               {
@@ -1882,6 +1962,20 @@
                 }
               },
               {
+                "contractId": "l021.workflow.c1",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l021.workflow.c1"
+                },
+                "id": "decisions",
+                "label": "read receipts and journal releases",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l021.workflow.c1-state"
+                }
+              },
+              {
                 "contractId": "l021.workflow.c3",
                 "from": {
                   "nodeId": "n2",
@@ -1898,11 +1992,11 @@
               {
                 "contractId": "l021.workflow.c4",
                 "from": {
-                  "nodeId": "n3",
+                  "nodeId": "n2",
                   "portId": "out-l021.workflow.c4"
                 },
                 "id": "inspect",
-                "label": "inspect source constraints",
+                "label": "dispatch constraint inspection",
                 "mode": "request-response",
                 "to": {
                   "nodeId": "n4",
@@ -1912,11 +2006,11 @@
               {
                 "contractId": "l021.workflow.c5",
                 "from": {
-                  "nodeId": "n4",
+                  "nodeId": "n2",
                   "portId": "out-l021.workflow.c5"
                 },
                 "id": "review",
-                "label": "review synthesized artifact",
+                "label": "release synthesis for review",
                 "mode": "request-response",
                 "to": {
                   "nodeId": "n5",
@@ -1957,7 +2051,7 @@
                   "x": 280,
                   "y": 0
                 },
-                "subsystemId": "l021-workflow-boundary-binding-2",
+                "subsystemId": "l021-workflow-boundary-binding-3",
                 "version": 1
               },
               {
@@ -2036,7 +2130,7 @@
           },
           "id": "workflow-s7",
           "invariants": [
-            "Commit an outbox identity for the approved hash before issuing a remote write. State owner: Publication intent (publication intent and remote receipt)."
+            "A publication intent with a stable effectKey is committed for the approved hash before any remote write."
           ],
           "number": 7,
           "operations": [
@@ -2077,12 +2171,9 @@
         },
         {
           "checkIds": [
-            "mechanism",
-            "dependencies",
-            "effect",
-            "review"
+            "effect"
           ],
-          "explanation": "Reconcile by effect identity before retry; publish compact task states separately from private computation. Reconcile by effect identity before retry; publish compact task states separately from private computation. State owner: Recovery and status (reconciliation cursor and public status). [A control loop](https://en.wikipedia.org/wiki/Control_loop) compares desired state with observed state and applies corrections. Repeated execution must converge safely, especially when a previous action succeeded but its reply was lost.",
+          "explanation": "Reconcile by effect identity before retry; publish compact task states separately from private computation. Recovery looks up the outcome by effectKey: accepted is recorded, a retryable rejection is retried with the same key, and unknown is held as uncertain; status exposes states and receipt references only. [Backoff](https://en.wikipedia.org/wiki/Exponential_backoff) spaces repeated attempts so failures do not create a burst of extra traffic. A retry still needs a stable identity and a clear stopping condition.",
           "graph": {
             "edges": [
               {
@@ -2128,6 +2219,20 @@
                 }
               },
               {
+                "contractId": "l021.workflow.c1",
+                "from": {
+                  "nodeId": "n2",
+                  "portId": "out-l021.workflow.c1"
+                },
+                "id": "decisions",
+                "label": "read receipts and journal releases",
+                "mode": "storage",
+                "to": {
+                  "nodeId": "boundary",
+                  "portId": "in-l021.workflow.c1-state"
+                }
+              },
+              {
                 "contractId": "l021.workflow.c3",
                 "from": {
                   "nodeId": "n2",
@@ -2144,11 +2249,11 @@
               {
                 "contractId": "l021.workflow.c4",
                 "from": {
-                  "nodeId": "n3",
+                  "nodeId": "n2",
                   "portId": "out-l021.workflow.c4"
                 },
                 "id": "inspect",
-                "label": "inspect source constraints",
+                "label": "dispatch constraint inspection",
                 "mode": "request-response",
                 "to": {
                   "nodeId": "n4",
@@ -2158,11 +2263,11 @@
               {
                 "contractId": "l021.workflow.c5",
                 "from": {
-                  "nodeId": "n4",
+                  "nodeId": "n2",
                   "portId": "out-l021.workflow.c5"
                 },
                 "id": "review",
-                "label": "review synthesized artifact",
+                "label": "release synthesis for review",
                 "mode": "request-response",
                 "to": {
                   "nodeId": "n5",
@@ -2320,16 +2425,10 @@
           },
           "id": "workflow-s8",
           "invariants": [
-            "Reconcile by effect identity before retry; publish compact task states separately from private computation. State owner: Recovery and status (reconciliation cursor and public status)."
+            "Recovery looks up the outcome by effectKey: accepted is recorded, a retryable rejection is retried with the same key, and unknown is held as uncertain; status exposes states and receipt references only."
           ],
           "number": 8,
           "operations": [
-            {
-              "nodeId": "boundary",
-              "op": "rebind",
-              "reason": "Select a new immutable exposure binding before connecting the added responsibility; prior stage binding remains unchanged.",
-              "subsystemId": "l021-workflow-boundary-binding-3"
-            },
             {
               "node": {
                 "definitionId": "l021.workflow.d7",
@@ -2396,32 +2495,28 @@
             "testFile": "tools/simulatte/study-reference/batch-02-mechanisms.test.mjs",
             "testName": "L021 bounded mechanism"
           },
-          "given": "A join has two prerequisites and receives duplicate completion for the first.",
+          "given": "A join has two prerequisites; research is on attempt epoch 2 and constraints on epoch 1.",
           "id": "mechanism",
           "relatedRequirementIds": [
             "r0",
-            "r1",
-            "r2"
+            "r1"
           ],
-          "then": "Remaining dependencies are 1,1,0; no dependent is released by the duplicate. Remote exactly-once effects are not established.",
-          "when": "Apply first, duplicate-first and second completions."
+          "then": "The stale epoch is rejected, the repeat is a duplicate, the different hash is a conflict, and remaining goes 2, 1, 1, 1, 0. Remote exactly-once effects are not established.",
+          "when": "Deliver an epoch-1 research completion, the epoch-2 completion with hash h1 twice, an epoch-2 completion with hash h2, then the constraints completion."
         },
         {
           "given": "Two workers deliver the same predecessor completion.",
           "id": "dependencies",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
-            "r2"
+            "r0"
           ],
-          "then": "Deduplicate by predecessor identity and make the dependent ready only once all distinct prerequisites complete.",
+          "then": "Deduplicate by predecessor and output hash and make the dependent ready only once all distinct prerequisites complete.",
           "when": "Apply their dependency-counter transitions."
         },
         {
           "given": "A worker lease expires while a tool write is unknown.",
           "id": "effect",
           "relatedRequirementIds": [
-            "r0",
             "r1",
             "r2"
           ],
@@ -2432,17 +2527,24 @@
           "given": "An outbox refers to a different digest from the approval row.",
           "id": "review",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
-            "r2"
+            "r0"
           ],
           "then": "Reject the mismatched artifact and preserve the pending intent for review.",
           "when": "Dispatch the publication."
+        },
+        {
+          "given": "A DAG command references an undeclared prerequisite, then a valid DAG is submitted.",
+          "id": "accept",
+          "relatedRequirementIds": [
+            "r0"
+          ],
+          "then": "The invalid DAG is rejected; the valid DAG's task rows commit with immutable IDs and initial epochs.",
+          "when": "Validate and commit the task rows."
         }
       ],
       "algorithms": [
         {
-          "code": "if (completed.has(predecessorId)) return remaining;\ncompleted.add(predecessorId); remaining--;\nreturn remaining; // A ready transition is committed only at zero with all output receipts present.",
+          "code": "// Join transition (n5): runs inside the task-row transaction that decrements the dependent's counter.\nfunction completeDependency(state,completion){\n const task=state.tasks[completion.predecessorId];\n if(!task||completion.epoch!==task.epoch)return {status:'stale',remaining:state.remaining};\n const prior=state.completed.get(completion.predecessorId);\n if(prior!==undefined)return {status:prior===completion.outputHash?'duplicate':'conflict',remaining:state.remaining};\n state.completed.set(completion.predecessorId,completion.outputHash);\n state.remaining--;\n return {status:'applied',remaining:state.remaining};\n}",
           "guarantees": [
             "The code states the bounded decision rule; unimplemented helpers remain pseudocode.",
             "External effects, distributed failure and latency require separate execution evidence."
@@ -2474,9 +2576,9 @@
           "errors": "403 unauthorized scope; 404 absent identity; 410 expired retained history",
           "method": "GET",
           "ownerNodeId": "state",
-          "path": "/l021/journal/state",
-          "request": "{\"taskId\":\"uuid\",\"expectedVersion\":\"integer\"}",
-          "response": "{\"version\":\"integer\"}"
+          "path": "/l021/journal/runs/{runId}/tasks",
+          "request": "{\"runId\":\"uuid\"}",
+          "response": "{\"tasks\":\"task states with epoch and receipts[]\",\"unknownEffects\":\"effect keys[]\"}"
         }
       ],
       "assumptions": [
@@ -2491,12 +2593,9 @@
       "stages": [
         {
           "checkIds": [
-            "mechanism",
-            "dependencies",
-            "effect",
-            "review"
+            "accept"
           ],
-          "explanation": "Accept immutable task IDs and reject cycles or missing prerequisite IDs. Accept immutable task IDs and reject cycles or missing prerequisite IDs. State owner: DAG command (DAG command identity). Accept immutable task IDs and reject cycles or missing prerequisite IDs. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers.",
+          "explanation": "Accept immutable task IDs and reject cycles or missing prerequisite IDs. A DAG command is rejected if it has a cycle or references an undeclared task, and accepted task IDs are immutable. Accept immutable task IDs and reject cycles or missing prerequisite IDs. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers.",
           "graph": {
             "edges": [
               {
@@ -2539,7 +2638,7 @@
           },
           "id": "journal-s1",
           "invariants": [
-            "Accept immutable task IDs and reject cycles or missing prerequisite IDs. State owner: DAG command (DAG command identity)."
+            "A DAG command is rejected if it has a cycle or references an undeclared task, and accepted task IDs are immutable."
           ],
           "number": 1,
           "operations": [
@@ -2593,12 +2692,9 @@
         },
         {
           "checkIds": [
-            "mechanism",
-            "dependencies",
-            "effect",
-            "review"
+            "accept"
           ],
-          "explanation": "Expand command boundary; store state, attempt epoch and predecessor receipts transactionally. Expand command boundary; store state, attempt epoch and predecessor receipts transactionally. State owner: Task rows (task rows and transition receipts). Expand command boundary; store state, attempt epoch and predecessor receipts transactionally. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A workflow](https://en.wikipedia.org/wiki/Workflow) records which step should run next and what has already finished.",
+          "explanation": "Expand command boundary; store state, attempt epoch and predecessor receipts transactionally. Task state, attempt epoch and predecessor receipts change only in versioned transactions on the task row. Expand command boundary; store state, attempt epoch and predecessor receipts transactionally. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A transaction](https://en.wikipedia.org/wiki/Database_transaction) commits related state changes together or leaves them unapplied.",
           "graph": {
             "edges": [
               {
@@ -2678,7 +2774,7 @@
           },
           "id": "journal-s2",
           "invariants": [
-            "Expand command boundary; store state, attempt epoch and predecessor receipts transactionally. State owner: Task rows (task rows and transition receipts)."
+            "Task state, attempt epoch and predecessor receipts change only in versioned transactions on the task row."
           ],
           "number": 2,
           "operations": [
@@ -2732,12 +2828,9 @@
         },
         {
           "checkIds": [
-            "mechanism",
-            "dependencies",
-            "effect",
-            "review"
+            "effect"
           ],
-          "explanation": "Claim ready task with compare-and-swap and monotonic attempt epoch. Claim ready task with compare-and-swap and monotonic attempt epoch. State owner: Lease claims (lease epoch and deadline). Claim ready task with compare-and-swap and monotonic attempt epoch. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes.",
+          "explanation": "Claim ready task with compare-and-swap and monotonic attempt epoch. A claim succeeds only by compare-and-swap that advances the attempt epoch, so at most one unexpired lease exists per task. Claim ready task with compare-and-swap and monotonic attempt epoch. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes.",
           "graph": {
             "edges": [
               {
@@ -2841,7 +2934,7 @@
           },
           "id": "journal-s3",
           "invariants": [
-            "Claim ready task with compare-and-swap and monotonic attempt epoch. State owner: Lease claims (lease epoch and deadline)."
+            "A claim succeeds only by compare-and-swap that advances the attempt epoch, so at most one unexpired lease exists per task."
           ],
           "number": 3,
           "operations": [
@@ -2888,12 +2981,9 @@
         },
         {
           "checkIds": [
-            "mechanism",
-            "dependencies",
-            "effect",
-            "review"
+            "effect"
           ],
-          "explanation": "Record stable remote intent and classify known rejection versus uncertain acceptance. Record stable remote intent and classify known rejection versus uncertain acceptance. State owner: Effect ledger (effect keys and outcomes). Record stable remote intent and classify known rejection versus uncertain acceptance. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A workflow](https://en.wikipedia.org/wiki/Workflow) records which step should run next and what has already finished.",
+          "explanation": "Record stable remote intent and classify known rejection versus uncertain acceptance. Each remote effect has one stable effectKey recorded before the call, and its outcome is applied, rejected or unknown, never guessed. Record stable remote intent and classify known rejection versus uncertain acceptance. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A workflow](https://en.wikipedia.org/wiki/Workflow) records which step should run next and what has already finished.",
           "graph": {
             "edges": [
               {
@@ -3021,7 +3111,7 @@
           },
           "id": "journal-s4",
           "invariants": [
-            "Record stable remote intent and classify known rejection versus uncertain acceptance. State owner: Effect ledger (effect keys and outcomes)."
+            "Each remote effect has one stable effectKey recorded before the call, and its outcome is applied, rejected or unknown, never guessed."
           ],
           "number": 4,
           "operations": [
@@ -3062,12 +3152,9 @@
         },
         {
           "checkIds": [
-            "mechanism",
-            "dependencies",
-            "effect",
-            "review"
+            "dependencies"
           ],
-          "explanation": "Persist immutable research results and explicit constraint verdict before advancing dependencies. Persist immutable research results and explicit constraint verdict before advancing dependencies. State owner: Research and constraints (output hashes and constraint receipt). Persist immutable research results and explicit constraint verdict before advancing dependencies. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A search index](https://en.wikipedia.org/wiki/Search_engine_indexing) maps query terms to candidate records.",
+          "explanation": "Persist immutable research results and explicit constraint verdict before advancing dependencies. Research outputs are immutable hashes, and the constraint verdict is committed before any completion is reported. Persist immutable research results and explicit constraint verdict before advancing dependencies. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A search index](https://en.wikipedia.org/wiki/Search_engine_indexing) maps query terms to candidate records.",
           "graph": {
             "edges": [
               {
@@ -3219,7 +3306,7 @@
           },
           "id": "journal-s5",
           "invariants": [
-            "Persist immutable research results and explicit constraint verdict before advancing dependencies. State owner: Research and constraints (output hashes and constraint receipt)."
+            "Research outputs are immutable hashes, and the constraint verdict is committed before any completion is reported."
           ],
           "number": 5,
           "operations": [
@@ -3261,11 +3348,9 @@
         {
           "checkIds": [
             "mechanism",
-            "dependencies",
-            "effect",
-            "review"
+            "dependencies"
           ],
-          "explanation": "Deduplicate predecessor completion and decrement remaining dependency count once. Deduplicate predecessor completion and decrement remaining dependency count once. State owner: Join transition (completion identity set). Deduplicate predecessor completion and decrement remaining dependency count once. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Idempotence](https://en.wikipedia.org/wiki/Idempotence) means repeating the same logical operation does not repeat its effect. Stable request identities let a retry recover an existing outcome instead of creating another change.",
+          "explanation": "In one transaction, compare the completion's epoch with the predecessor's current epoch, deduplicate by predecessor and output hash, and decrement the remaining count once. In the same transaction as the decrement, a completion must carry the predecessor's current epoch; a repeat with the same output hash is a no-op and a different hash is a conflict. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes.",
           "graph": {
             "edges": [
               {
@@ -3455,7 +3540,7 @@
           },
           "id": "journal-s6",
           "invariants": [
-            "Deduplicate predecessor completion and decrement remaining dependency count once. State owner: Join transition (completion identity set)."
+            "In the same transaction as the decrement, a completion must carry the predecessor's current epoch; a repeat with the same output hash is a no-op and a different hash is a conflict."
           ],
           "number": 6,
           "operations": [
@@ -3514,17 +3599,14 @@
             }
           ],
           "question": "Can duplicate completion release twice?",
-          "reason": "Deduplicate predecessor completion and decrement remaining dependency count once.",
+          "reason": "In one transaction, compare the completion's epoch with the predecessor's current epoch, deduplicate by predecessor and output hash, and decrement the remaining count once.",
           "title": "Join transition"
         },
         {
           "checkIds": [
-            "mechanism",
-            "dependencies",
-            "effect",
             "review"
           ],
-          "explanation": "Bind review to artifact digest and append publication intent in the same versioned transition. Bind review to artifact digest and append publication intent in the same versioned transition. State owner: Approval outbox (approval and publication outbox). [A workflow](https://en.wikipedia.org/wiki/Workflow) records which step should run next and what has already finished. Durable transitions and effect identities let recovery resume work without blindly repeating external actions.",
+          "explanation": "Bind review to artifact digest and append publication intent in the same versioned transition. Approval binds to one artifact digest and appends the publication intent in the same versioned transition. Bind review to artifact digest and append publication intent in the same versioned transition. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A workflow](https://en.wikipedia.org/wiki/Workflow) records which step should run next and what has already finished.",
           "graph": {
             "edges": [
               {
@@ -3738,7 +3820,7 @@
           },
           "id": "journal-s7",
           "invariants": [
-            "Bind review to artifact digest and append publication intent in the same versioned transition. State owner: Approval outbox (approval and publication outbox)."
+            "Approval binds to one artifact digest and appends the publication intent in the same versioned transition."
           ],
           "number": 7,
           "operations": [
@@ -3779,12 +3861,9 @@
         },
         {
           "checkIds": [
-            "mechanism",
-            "dependencies",
-            "effect",
-            "review"
+            "effect"
           ],
-          "explanation": "Fence expired owners, reconcile unknown effects, and expose pending status rather than false success. Fence expired owners, reconcile unknown effects, and expose pending status rather than false success. State owner: Reconciliation sweep (sweep cursor and status receipt). [A control loop](https://en.wikipedia.org/wiki/Control_loop) compares desired state with observed state and applies corrections. Repeated execution must converge safely, especially when a previous action succeeded but its reply was lost.",
+          "explanation": "Fence expired owners, reconcile unknown effects, and expose pending status rather than false success. The sweep fences an expired owner by advancing its epoch before reconciling its unknown effects, so late completions from the old epoch are rejected. [A control loop](https://en.wikipedia.org/wiki/Control_loop) compares desired state with observed state and applies corrections. Repeated execution must converge safely, especially when a previous action succeeded but its reply was lost.",
           "graph": {
             "edges": [
               {
@@ -4050,7 +4129,7 @@
           },
           "id": "journal-s8",
           "invariants": [
-            "Fence expired owners, reconcile unknown effects, and expose pending status rather than false success. State owner: Reconciliation sweep (sweep cursor and status receipt)."
+            "The sweep fences an expired owner by advancing its epoch before reconciling its unknown effects, so late completions from the old epoch are rejected."
           ],
           "number": 8,
           "operations": [
@@ -4142,31 +4221,6 @@
           "target": {
             "nodeId": "control",
             "portId": "in-l021.workflow.c0"
-          }
-        }
-      ],
-      "version": 1
-    },
-    {
-      "definitionId": "l021.workflow.d0",
-      "id": "l021-workflow-boundary-binding-2",
-      "ports": [
-        {
-          "contractId": "l021.workflow.c0",
-          "direction": "in",
-          "id": "in-l021.workflow.c0",
-          "target": {
-            "nodeId": "control",
-            "portId": "in-l021.workflow.c0"
-          }
-        },
-        {
-          "contractId": "l021.workflow.c2",
-          "direction": "out",
-          "id": "out-l021.workflow.c2-control",
-          "target": {
-            "nodeId": "control",
-            "portId": "out-l021.workflow.c2"
           }
         }
       ],

@@ -116,7 +116,7 @@
       ],
       "responsibility": "Queue by declared weighted-share policy with bounded per-tenant pending requests.",
       "stateOwnership": [
-        "weight, queuedAt"
+        "tenantId, weight, queuedAt"
       ],
       "version": 1
     },
@@ -194,9 +194,9 @@
           "id": "out-l046.central.step8"
         }
       ],
-      "responsibility": "Record monotonic start/end intervals with allocation/fence and sequence; deduplicate retries.",
+      "responsibility": "Record monotonic intervals by allocation, fence and contiguous sequence; an exact retry charges nothing, a conflicting duplicate is rejected, and retained identities are bounded per open allocation until settlement.",
       "stateOwnership": [
-        "sequence, elapsedMs"
+        "per open allocation: fence, next sequence and a bounded window of charged intervals"
       ],
       "version": 1
     },
@@ -366,7 +366,7 @@
       ],
       "responsibility": "Spend only within a region-held resource lease and persist each allocation deduction.",
       "stateOwnership": [
-        "leaseId, remaining"
+        "held lease and remaining resource vector"
       ],
       "version": 1
     },
@@ -439,9 +439,9 @@
           "id": "in-l046.hierarchical.step6"
         }
       ],
-      "responsibility": "Deduplicate interval sequences by allocation/epoch before rolling up tenant totals.",
+      "responsibility": "Deduplicate contiguous interval sequences by allocation/epoch before rolling up tenant totals; reject conflicting duplicates and settle released allocations.",
       "stateOwnership": [
-        "intervalSeq, usedMs"
+        "per open allocation: epoch, next sequence and a bounded window of charged intervals"
       ],
       "version": 1
     },
@@ -490,7 +490,7 @@
     {
       "id": "l046.central.command",
       "request": {
-        "allocationId": "uuid",
+        "allocationId": "uuid stable across retries",
         "cpuMilli": "integer",
         "durationMs": "integer",
         "gpuCount": "integer",
@@ -498,8 +498,10 @@
         "tenantId": "uuid"
       },
       "response": {
-        "chargedMs": "integer",
-        "fence": "integer",
+        "chargedMs": "integer counted once per interval identity",
+        "fence": "allocation fence integer",
+        "nodeId": "uuid|null",
+        "reason": "quota|capacity|malformed-vector|null",
         "state": "reserved|running|released|rejected"
       },
       "version": 1
@@ -508,12 +510,12 @@
       "id": "l046.central.step3",
       "request": {
         "queuedAt": "timestamp",
+        "tenantId": "uuid",
         "weight": "positive integer"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "decision": "queued|rejected-pending-limit",
+        "position": "integer"
       },
       "version": 1
     },
@@ -524,9 +526,7 @@
         "nodeId": "uuid"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "status": "placed|already-placed|stale-fence"
       },
       "version": 1
     },
@@ -537,22 +537,22 @@
         "memoryMax": "bytes"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "installed": "boolean; true before user code starts",
+        "unsupported": "controls that could not be enforced"
       },
       "version": 1
     },
     {
       "id": "l046.central.step6",
       "request": {
+        "allocationId": "uuid",
         "elapsedMs": "nonnegative integer",
-        "sequence": "integer"
+        "fence": "integer",
+        "sequence": "integer contiguous per allocation fence"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "chargedMs": "integer; 0 for an exact duplicate",
+        "status": "charged|duplicate|conflict|fenced"
       },
       "version": 1
     },
@@ -563,9 +563,7 @@
         "warmLimit": "integer"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "action": "keep|drain|stop"
       },
       "version": 1
     },
@@ -576,26 +574,27 @@
         "releaseId": "uuid"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "status": "released|already-released|awaiting-fence"
       },
       "version": 1
     },
     {
       "id": "l046.hierarchical.command",
       "request": {
-        "allocationId": "uuid",
+        "allocationId": "uuid stable across retries",
         "cpuMilli": "integer",
         "durationMs": "integer",
         "gpuCount": "integer",
         "memoryBytes": "integer",
+        "regionId": "string",
         "tenantId": "uuid"
       },
       "response": {
-        "chargedMs": "integer",
-        "fence": "integer",
-        "state": "reserved|running|released|rejected"
+        "chargedMs": "integer counted once per interval identity",
+        "leaseEpoch": "integer",
+        "leaseId": "uuid regional grant spent from",
+        "state": "reserved|running|released|rejected",
+        "stopBefore": "monotonic deadline"
       },
       "version": 1
     },
@@ -603,12 +602,11 @@
       "id": "l046.hierarchical.step3",
       "request": {
         "leaseId": "uuid",
-        "remaining": "resource vector"
+        "requestVector": "resource vector with the lease dimensions"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "remaining": "resource vector",
+        "status": "deducted|insufficient|expired-lease"
       },
       "version": 1
     },
@@ -619,9 +617,7 @@
         "leaseEpoch": "integer"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "status": "admitted|queued|rejected"
       },
       "version": 1
     },
@@ -632,22 +628,21 @@
         "stopBefore": "monotonic timestamp"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "status": "running|stopped|renewed"
       },
       "version": 1
     },
     {
       "id": "l046.hierarchical.step6",
       "request": {
-        "intervalSeq": "integer",
+        "allocationId": "uuid",
+        "epoch": "integer",
+        "intervalSeq": "integer contiguous per allocation epoch",
         "usedMs": "integer"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "chargedMs": "integer; 0 for an exact duplicate",
+        "status": "charged|duplicate|conflict|fenced"
       },
       "version": 1
     },
@@ -658,9 +653,7 @@
         "revokedLease": "uuid"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "status": "reissued|awaiting-revoke-ack|awaiting-safe-expiry"
       },
       "version": 1
     },
@@ -671,9 +664,8 @@
         "warmVector": "resource vector"
       },
       "response": {
-        "outcome": "accepted|rejected|pending",
-        "reason": "explicit domain reason",
-        "version": "nonnegative integer"
+        "leaseRemaining": "resource vector",
+        "status": "reserved-warm|reclaimed"
       },
       "version": 1
     }
@@ -729,9 +721,7 @@
           "given": "Two admissions each ask for the final free GPU.",
           "id": "case0",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
-            "r2"
+            "r0"
           ],
           "then": "At most one reservation fits the remaining vector.",
           "when": "Serialize reservations in the central ledger."
@@ -740,12 +730,51 @@
           "given": "A node reports the same allocation interval twice.",
           "id": "case1",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
             "r2"
           ],
           "then": "Charge the interval and release capacity once in the bounded model.",
           "when": "Reconcile and release the reservation twice."
+        },
+        {
+          "given": "An admitted job tries to use twice its memory limit.",
+          "id": "case2",
+          "relatedRequirementIds": [
+            "r1"
+          ],
+          "then": "cgroup limits installed before start stop it independently of admission; quota is not isolation.",
+          "when": "It runs on its node."
+        },
+        {
+          "given": "Tenants with weights 2 and 1 queue for scarce GPUs.",
+          "id": "case3",
+          "relatedRequirementIds": [
+            "r1"
+          ],
+          "then": "Allocate by the declared weighted policy with bounded per-tenant pending requests.",
+          "when": "Capacity frees over time."
+        },
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-05-state.test.mjs",
+            "testName": "usage ledger rejects conflicting duplicates and bounds retained identities"
+          },
+          "given": "A node reports interval 1 as 10 ms, then again as 99 ms, then many later intervals.",
+          "id": "case4",
+          "relatedRequirementIds": [
+            "r2"
+          ],
+          "then": "Reject the conflicting duplicate, count 10 ms once, and keep retained identities within the per-allocation window until settlement.",
+          "when": "Charge every report."
+        },
+        {
+          "given": "A warm node passes its idle timeout while a request is queued.",
+          "id": "case5",
+          "relatedRequirementIds": [
+            "r2"
+          ],
+          "then": "Keep it; stop only after fenced idle timeout and drain with no queued request.",
+          "when": "The planner considers scale-to-zero."
         },
         {
           "evidence": {
@@ -756,15 +785,16 @@
           "given": "One GPU remains and usage reports carry allocation/epoch/sequence.",
           "id": "bounded-mechanism",
           "relatedRequirementIds": [
-            "r0"
+            "r0",
+            "r2"
           ],
-          "then": "Reject overspend and count one interval per identity in this sequential model.",
-          "when": "Reserve twice and repeat one usage identity."
+          "then": "Reject overspend and the malformed vector, count one interval per identity and refuse the superseded epoch in this sequential model.",
+          "when": "Reserve twice, send a vector with missing dimensions, repeat one usage identity and report from a superseded epoch."
         }
       ],
       "algorithms": [
         {
-          "code": "transaction(() => { lockTenantAndCapacity(); if (!fits(request, free, quotaRemaining)) reject();\n reserveUnique(allocationId, resourceVector, fence); });\nnode: installIsolationBeforeStart(); emitUsageIntervals(sequence,monotonicElapsed);\nrelease: fenceOldAllocation(); transaction(() => { releaseOnce(allocationId); chargeIntervalsUnique(); });",
+          "code": "transaction(() => { lockTenantAndCapacity(); requireSameDimensions(request, free, quotaRemaining);\n if (!fits(request, free, quotaRemaining)) reject(); reserveUnique(allocationId, resourceVector, fence); });\nnode: installIsolationBeforeStart(); emitUsageIntervals(allocationId, fence, sequence, monotonicElapsed);\ncharge: usage.charge(allocationId, fence, sequence, elapsed); // exact retry -> 0; same identity with other elapsed -> conflict; gap -> resend in order\nrelease: fenceOldAllocation(); transaction(() => { releaseOnce(allocationId); usage.settle(allocationId); });",
           "guarantees": [
             "Quota limit is not a fairness guarantee.",
             "One reservation cannot be placed twice.",
@@ -780,12 +810,12 @@
       ],
       "apis": [
         {
-          "errors": "Reject invalid input, stale versions and operations outside the declared boundary.",
+          "errors": "Reject resource vectors whose dimensions differ from the ledger, negative amounts and unknown tenants; a retried allocationId returns its existing reservation.",
           "method": "CALL",
           "ownerNodeId": "engine",
           "path": "L046/central",
-          "request": "{\"tenantId\":\"uuid\",\"allocationId\":\"uuid\",\"cpuMilli\":\"integer\",\"memoryBytes\":\"integer\",\"gpuCount\":\"integer\",\"durationMs\":\"integer\"}",
-          "response": "{\"state\":\"reserved|running|released|rejected\",\"fence\":\"integer\",\"chargedMs\":\"integer\"}"
+          "request": "{\"tenantId\":\"uuid\",\"allocationId\":\"uuid stable across retries\",\"cpuMilli\":\"integer\",\"memoryBytes\":\"integer\",\"gpuCount\":\"integer\",\"durationMs\":\"integer\"}",
+          "response": "{\"state\":\"reserved|running|released|rejected\",\"fence\":\"allocation fence integer\",\"nodeId\":\"uuid|null\",\"chargedMs\":\"integer counted once per interval identity\",\"reason\":\"quota|capacity|malformed-vector|null\"}"
         }
       ],
       "assumptions": [
@@ -801,10 +831,9 @@
       "stages": [
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case0"
           ],
-          "explanation": "Admit only resources covered by tenant quota and cluster capacity. [Access control](https://en.wikipedia.org/wiki/Access_control) decides whether an authenticated identity may perform a particular action. The check must apply to the actual resource and operation, including cached and asynchronous paths. Consider this case: Two admissions each ask for the final free GPU. Serialize reservations in the central ledger.",
+          "explanation": "Admit only resources covered by tenant quota and cluster capacity. reserved means one ledger transaction deducted the full resource vector from both tenant quota and cluster free capacity under a unique allocationId and fence; chargedMs counts each fenced interval identity once. [Access control](https://en.wikipedia.org/wiki/Access_control) decides whether an authenticated identity may perform a particular action. The check must apply to the actual resource and operation, including cached and asynchronous paths.",
           "graph": {
             "edges": [
               {
@@ -847,7 +876,7 @@
           },
           "id": "central-s1",
           "invariants": [
-            "Admit only resources covered by tenant quota and cluster capacity."
+            "reserved means one ledger transaction deducted the full resource vector from both tenant quota and cluster free capacity under a unique allocationId and fence; chargedMs counts each fenced interval identity once."
           ],
           "number": 1,
           "operations": [
@@ -902,9 +931,9 @@
         {
           "checkIds": [
             "case0",
-            "case1"
+            "bounded-mechanism"
           ],
-          "explanation": "Authenticate tenant and atomically reserve quota plus physical capacity. Own tenant limits, active reservations and cluster free capacity. reservation decision belongs to Admission controller; resource vectors belongs to Quota ledger. [Access control](https://en.wikipedia.org/wiki/Access_control) decides whether an authenticated identity may perform a particular action. The check must apply to the actual resource and operation, including cached and asynchronous paths.",
+          "explanation": "Authenticate tenant and atomically reserve quota plus physical capacity. Own tenant limits, active reservations and cluster free capacity. The admission controller computes fits, but only the quota ledger owns limits, reservations and free capacity, so concurrent admissions serialize there. [Access control](https://en.wikipedia.org/wiki/Access_control) decides whether an authenticated identity may perform a particular action. The check must apply to the actual resource and operation, including cached and asynchronous paths.",
           "graph": {
             "edges": [
               {
@@ -984,7 +1013,7 @@
           },
           "id": "central-s2",
           "invariants": [
-            "reservation decision belongs to Admission controller; resource vectors belongs to Quota ledger."
+            "The admission controller computes fits, but only the quota ledger owns limits, reservations and free capacity, so concurrent admissions serialize there."
           ],
           "number": 2,
           "operations": [
@@ -1038,10 +1067,9 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case3"
           ],
-          "explanation": "Queue by declared weighted-share policy with bounded per-tenant pending requests. Quota limit is not a fairness guarantee. [A queue](https://en.wikipedia.org/wiki/Queue_%28abstract_data_type%29) separates accepting work from completing it. Capacity, ordering, ownership, and shutdown behavior determine what producers and consumers may safely assume about each item. Consider this case: Two admissions each ask for the final free GPU. Serialize reservations in the central ledger.",
+          "explanation": "Queue by declared weighted-share policy with bounded per-tenant pending requests. Quota limit is not a fairness guarantee. [A queue](https://en.wikipedia.org/wiki/Queue_%28abstract_data_type%29) separates accepting work from completing it. Capacity, ordering, ownership, and shutdown behavior determine what producers and consumers may safely assume about each item. Consider this case: Tenants with weights 2 and 1 queue for scarce GPUs. Capacity frees over time.",
           "graph": {
             "edges": [
               {
@@ -1192,8 +1220,7 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case0"
           ],
           "explanation": "Assign one resource vector and lease epoch; reject stale allocation commands. One reservation cannot be placed twice. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return. Consider this case: Two admissions each ask for the final free GPU.",
           "graph": {
@@ -1364,8 +1391,7 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case2"
           ],
           "explanation": "Install cgroup CPU/memory and supported device/network controls before starting user code. GPU scheduling isolation needs its own supported mechanism; quota alone is insufficient. [A directed acyclic graph](https://en.wikipedia.org/wiki/Directed_acyclic_graph) expresses work that depends on earlier results. A scheduler must track completed dependencies and distinguish logical tasks from retry attempts before releasing downstream work.",
           "graph": {
@@ -1560,10 +1586,11 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case1",
+            "case4",
+            "bounded-mechanism"
           ],
-          "explanation": "Record monotonic start/end intervals with allocation/fence and sequence; deduplicate retries. Wall-clock changes cannot create negative or duplicate elapsed usage. [Idempotence](https://en.wikipedia.org/wiki/Idempotence) means repeating the same logical operation does not repeat its effect. Stable request identities let a retry recover an existing outcome instead of creating another change. Consider this case: Two admissions each ask for the final free GPU.",
+          "explanation": "Record monotonic intervals by allocation, fence and contiguous sequence; an exact retry charges nothing, a conflicting duplicate is rejected, and retained identities are bounded per open allocation until settlement. Wall-clock changes cannot create negative or duplicate elapsed usage. [Idempotence](https://en.wikipedia.org/wiki/Idempotence) means repeating the same logical operation does not repeat its effect. Stable request identities let a retry recover an existing outcome instead of creating another change.",
           "graph": {
             "edges": [
               {
@@ -1775,13 +1802,12 @@
             }
           ],
           "question": "How are milliseconds charged?",
-          "reason": "Record monotonic start/end intervals with allocation/fence and sequence; deduplicate retries.",
+          "reason": "Record monotonic intervals by allocation, fence and contiguous sequence; an exact retry charges nothing, a conflicting duplicate is rejected, and retained identities are bounded per open allocation until settlement.",
           "title": "Usage journal"
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case5"
           ],
           "explanation": "Keep warm capacity under an explicit idle budget; stop only after fenced idle timeout and drain. A queued new request prevents unsafe idle teardown. [Backoff](https://en.wikipedia.org/wiki/Exponential_backoff) spaces repeated attempts so failures do not create a burst of extra traffic. A retry still needs a stable identity and a clear stopping condition.",
           "graph": {
@@ -2024,7 +2050,6 @@
         },
         {
           "checkIds": [
-            "case0",
             "case1"
           ],
           "explanation": "Compare node leases and ledger reservations; fence the old allocation before releasing reusable capacity. Lease expiry without fencing cannot safely free capacity. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources. A newer owner needs a token that the resource checks, not merely a belief that ownership changed.",
@@ -2303,9 +2328,7 @@
           "given": "Regional grants consume all global quota.",
           "id": "case0",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
-            "r2"
+            "r0"
           ],
           "then": "Refuse the overlapping grant.",
           "when": "A third region asks for another grant before revocation completes."
@@ -2314,12 +2337,52 @@
           "given": "A region retries one usage interval after reconnect.",
           "id": "case1",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
             "r2"
           ],
           "then": "Count the measured interval once; this does not prove runtime measurement accuracy.",
           "when": "Aggregate the same allocation/epoch/sequence twice."
+        },
+        {
+          "given": "Two local requests race for the last GPU in a regional lease.",
+          "id": "case2",
+          "relatedRequirementIds": [
+            "r0"
+          ],
+          "then": "Exactly one deduction succeeds; the other queues or is rejected.",
+          "when": "The local scheduler deducts both."
+        },
+        {
+          "given": "A region stays partitioned past its lease safety deadline.",
+          "id": "case3",
+          "relatedRequirementIds": [
+            "r1",
+            "r2"
+          ],
+          "then": "The runtime stops them before the deadline; capacity is reissued only after fenced revocation or safe expiry.",
+          "when": "Its allocations are still running."
+        },
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-05-state.test.mjs",
+            "testName": "usage ledger rejects conflicting duplicates and bounds retained identities"
+          },
+          "given": "A region reports interval 1 as 10 ms, then again as 99 ms, then many later intervals.",
+          "id": "case4",
+          "relatedRequirementIds": [
+            "r2"
+          ],
+          "then": "Reject the conflicting duplicate, count 10 ms once, and keep retained identities within the per-allocation window until settlement.",
+          "when": "Aggregate every report."
+        },
+        {
+          "given": "A region keeps warm nodes for bursts.",
+          "id": "case5",
+          "relatedRequirementIds": [
+            "r1"
+          ],
+          "then": "Warm capacity is deducted from the regional lease and reclaimed by idle policy, never borrowed from another tenant.",
+          "when": "Account for idle warm capacity."
         },
         {
           "evidence": {
@@ -2330,15 +2393,16 @@
           "given": "One GPU remains and usage reports carry allocation/epoch/sequence.",
           "id": "bounded-mechanism",
           "relatedRequirementIds": [
-            "r0"
+            "r0",
+            "r2"
           ],
-          "then": "Reject overspend and count one interval per identity in this sequential model.",
-          "when": "Reserve twice and repeat one usage identity."
+          "then": "Reject overspend and the malformed vector, count one interval per identity and refuse the superseded epoch in this sequential model.",
+          "when": "Reserve twice, send a vector with missing dimensions, repeat one usage identity and report from a superseded epoch."
         }
       ],
       "algorithms": [
         {
-          "code": "global: issueDisjointLeasesWithinQuota();\nregional transaction: requireUnexpiredLease(); deductVectorOnce(allocationId);\nruntime: enforceEpochAndStopDeadline(); reportIntervalsUnique(allocationId,epoch,seq);\nrebalance: waitForFencedRevocationOrSafeExpiry(); then issueNewLease();",
+          "code": "global: issueDisjointLeasesWithinQuota();\nregional transaction: requireUnexpiredLease(); requireSameDimensions(request, lease.remaining); deductVectorOnce(allocationId);\nruntime: enforceEpochAndStopDeadline(); reportIntervals(allocationId, epoch, seq);\naggregate: usage.charge(allocationId, epoch, seq, usedMs); // exact retry -> 0; conflicting duplicate rejected; settle on release\nrebalance: waitForFencedRevocationOrSafeExpiry(); then issueNewLease();",
           "guarantees": [
             "Regional grants sum to no more than global quota.",
             "Every local allocation has one unique deduction.",
@@ -2354,12 +2418,12 @@
       ],
       "apis": [
         {
-          "errors": "Reject invalid input, stale versions and operations outside the declared boundary.",
+          "errors": "Reject resource vectors whose dimensions differ from the lease, expired leases and unknown tenants; a retried allocationId returns its existing deduction.",
           "method": "CALL",
           "ownerNodeId": "engine",
           "path": "L046/hierarchical",
-          "request": "{\"tenantId\":\"uuid\",\"allocationId\":\"uuid\",\"cpuMilli\":\"integer\",\"memoryBytes\":\"integer\",\"gpuCount\":\"integer\",\"durationMs\":\"integer\"}",
-          "response": "{\"state\":\"reserved|running|released|rejected\",\"fence\":\"integer\",\"chargedMs\":\"integer\"}"
+          "request": "{\"tenantId\":\"uuid\",\"allocationId\":\"uuid stable across retries\",\"regionId\":\"string\",\"cpuMilli\":\"integer\",\"memoryBytes\":\"integer\",\"gpuCount\":\"integer\",\"durationMs\":\"integer\"}",
+          "response": "{\"state\":\"reserved|running|released|rejected\",\"leaseId\":\"uuid regional grant spent from\",\"leaseEpoch\":\"integer\",\"stopBefore\":\"monotonic deadline\",\"chargedMs\":\"integer counted once per interval identity\"}"
         }
       ],
       "assumptions": [
@@ -2375,10 +2439,9 @@
       "stages": [
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case2"
           ],
-          "explanation": "Admit only resources covered by tenant quota and cluster capacity. [Access control](https://en.wikipedia.org/wiki/Access_control) decides whether an authenticated identity may perform a particular action. The check must apply to the actual resource and operation, including cached and asynchronous paths. Consider this case: Regional grants consume all global quota. A third region asks for another grant before revocation completes.",
+          "explanation": "Admit only resources covered by tenant quota and cluster capacity. reserved means the region deducted the full vector once from an unexpired lease whose grants sum within global quota; the allocation must stop before stopBefore unless its lease is renewed. [Access control](https://en.wikipedia.org/wiki/Access_control) decides whether an authenticated identity may perform a particular action. The check must apply to the actual resource and operation, including cached and asynchronous paths.",
           "graph": {
             "edges": [
               {
@@ -2421,7 +2484,7 @@
           },
           "id": "hierarchical-s1",
           "invariants": [
-            "Admit only resources covered by tenant quota and cluster capacity."
+            "reserved means the region deducted the full vector once from an unexpired lease whose grants sum within global quota; the allocation must stop before stopBefore unless its lease is renewed."
           ],
           "number": 1,
           "operations": [
@@ -2475,10 +2538,9 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case0"
           ],
-          "explanation": "Partition quota into nonoverlapping expiring resource leases. Own token amounts, holder, epoch and revocation state. issued resource tokens belongs to Global quota issuer; outstanding grants belongs to Global lease ledger. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources. A newer owner needs a token that the resource checks, not merely a belief that ownership changed.",
+          "explanation": "Partition quota into nonoverlapping expiring resource leases. Own token amounts, holder, epoch and revocation state. Only the global quota issuer creates, revokes and reissues leases recorded in the global lease ledger; regions spend only within leases they hold. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources. A newer owner needs a token that the resource checks, not merely a belief that ownership changed.",
           "graph": {
             "edges": [
               {
@@ -2558,7 +2620,7 @@
           },
           "id": "hierarchical-s2",
           "invariants": [
-            "issued resource tokens belongs to Global quota issuer; outstanding grants belongs to Global lease ledger."
+            "Only the global quota issuer creates, revokes and reissues leases recorded in the global lease ledger; regions spend only within leases they hold."
           ],
           "number": 2,
           "operations": [
@@ -2612,10 +2674,10 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case2",
+            "bounded-mechanism"
           ],
-          "explanation": "Spend only within a region-held resource lease and persist each allocation deduction. Regional grants sum to no more than global quota. [A cache](https://en.wikipedia.org/wiki/Cache_replacement_policies) keeps reusable results in limited memory. Eviction controls space, while ownership and invalidation rules determine whether a returned value is still safe to use. Consider this case: Regional grants consume all global quota.",
+          "explanation": "Spend only within a region-held resource lease and persist each allocation deduction. Regional grants sum to no more than global quota. [A cache](https://en.wikipedia.org/wiki/Cache_replacement_policies) keeps reusable results in limited memory. Eviction controls space, while ownership and invalidation rules determine whether a returned value is still safe to use. Consider this case: Two local requests race for the last GPU in a regional lease.",
           "graph": {
             "edges": [
               {
@@ -2766,10 +2828,9 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case2"
           ],
-          "explanation": "Serialize per-lease vector deductions and bounded weighted local queues. Every local allocation has one unique deduction. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources. A newer owner needs a token that the resource checks, not merely a belief that ownership changed. Consider this case: Regional grants consume all global quota. A third region asks for another grant before revocation completes.",
+          "explanation": "Serialize per-lease vector deductions and bounded weighted local queues. Every local allocation has one unique deduction. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources. A newer owner needs a token that the resource checks, not merely a belief that ownership changed. Consider this case: Two local requests race for the last GPU in a regional lease.",
           "graph": {
             "edges": [
               {
@@ -2938,10 +2999,9 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case3"
           ],
-          "explanation": "Stop or renew allocations before lease safety deadline and enforce epochs at runtime. An expired grant cannot continue consuming reclaimed capacity. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources. A newer owner needs a token that the resource checks, not merely a belief that ownership changed. Consider this case: Regional grants consume all global quota.",
+          "explanation": "Stop or renew allocations before lease safety deadline and enforce epochs at runtime. An expired grant cannot continue consuming reclaimed capacity. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources. A newer owner needs a token that the resource checks, not merely a belief that ownership changed. Consider this case: A region stays partitioned past its lease safety deadline.",
           "graph": {
             "edges": [
               {
@@ -3134,10 +3194,11 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case1",
+            "case4",
+            "bounded-mechanism"
           ],
-          "explanation": "Deduplicate interval sequences by allocation/epoch before rolling up tenant totals. Aggregation is idempotent for repeated interval reports. [Idempotence](https://en.wikipedia.org/wiki/Idempotence) means repeating the same logical operation does not repeat its effect. Stable request identities let a retry recover an existing outcome instead of creating another change. Consider this case: Regional grants consume all global quota. A third region asks for another grant before revocation completes.",
+          "explanation": "Deduplicate contiguous interval sequences by allocation/epoch before rolling up tenant totals; reject conflicting duplicates and settle released allocations. Aggregation is idempotent for repeated interval reports. [Idempotence](https://en.wikipedia.org/wiki/Idempotence) means repeating the same logical operation does not repeat its effect. Stable request identities let a retry recover an existing outcome instead of creating another change.",
           "graph": {
             "edges": [
               {
@@ -3349,13 +3410,13 @@
             }
           ],
           "question": "How are local measurements billed?",
-          "reason": "Deduplicate interval sequences by allocation/epoch before rolling up tenant totals.",
+          "reason": "Deduplicate contiguous interval sequences by allocation/epoch before rolling up tenant totals; reject conflicting duplicates and settle released allocations.",
           "title": "Usage aggregation"
         },
         {
           "checkIds": [
             "case0",
-            "case1"
+            "case3"
           ],
           "explanation": "Reissue only after revoke/ack or safe expiry/fence, never by assuming a disconnected holder stopped. Old and replacement resource rights must not overlap. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources. A newer owner needs a token that the resource checks, not merely a belief that ownership changed.",
           "graph": {
@@ -3604,8 +3665,7 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case5"
           ],
           "explanation": "Reserve a bounded warm subset under the same regional grant and reclaim on idle policy. Warm capacity is charged against the regional lease. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources. A newer owner needs a token that the resource checks, not merely a belief that ownership changed.",
           "graph": {

@@ -154,9 +154,9 @@
           "id": "out-l023.transactional.step5"
         }
       ],
-      "responsibility": "Persist an immutable event with the authorized mutation in the same transaction.",
+      "responsibility": "Persist an immutable event and the command's stored response under its commandId in the same transaction as the authorized mutation.",
       "stateOwnership": [
-        "eventId, objectVersion"
+        "eventId, commandId, objectVersion"
       ],
       "version": 1
     },
@@ -424,7 +424,7 @@
           "id": "out-l023.capability.step6"
         }
       ],
-      "responsibility": "Append command identity and resulting version with the mutation.",
+      "responsibility": "Append command identity, stored response and resulting version with the mutation.",
       "stateOwnership": [
         "commandId, version"
       ],
@@ -505,12 +505,14 @@
         "expectedVersion": "integer",
         "principalId": "authenticated ID",
         "projectId": "uuid",
+        "requestHash": "sha256",
         "workspaceId": "uuid"
       },
       "response": {
         "decision": "allow|deny",
         "objectVersion": "integer|null",
-        "policyVersion": "integer"
+        "policyVersion": "integer",
+        "status": "committed|replayed|denied|stale"
       },
       "version": 1
     },
@@ -530,6 +532,7 @@
     {
       "id": "l023.transactional.step4",
       "request": {
+        "commandId": "uuid",
         "eventId": "uuid",
         "objectVersion": "integer"
       },
@@ -596,17 +599,19 @@
     {
       "id": "l023.capability.command",
       "request": {
-        "action": "read|edit|revoke",
+        "action": "read|edit",
+        "audience": "service identifier",
+        "capabilityToken": "signed scoped capability (keyId, principal, workspace, project, actions, epoch, expiry)",
         "commandId": "uuid",
         "expectedVersion": "integer",
-        "principalId": "authenticated ID",
         "projectId": "uuid",
+        "requestHash": "sha256",
         "workspaceId": "uuid"
       },
       "response": {
-        "decision": "allow|deny",
+        "epoch": "integer",
         "objectVersion": "integer|null",
-        "policyVersion": "integer"
+        "status": "committed|replayed|denied|stale"
       },
       "version": 1
     },
@@ -741,9 +746,7 @@
           "given": "A user has edit at epoch 4.",
           "id": "case0",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
-            "r2"
+            "r1"
           ],
           "then": "Reject the stale edit; no mutation or event commits.",
           "when": "Revoke at epoch 5 before a stale edit commits."
@@ -752,34 +755,43 @@
           "given": "A mutation commits and a dispatcher crashes.",
           "id": "case1",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
             "r2"
           ],
           "then": "One activity record is applied; client success still means only committed mutation.",
           "when": "Deliver the same outbox ID twice."
         },
         {
-          "evidence": {
-            "kind": "reference-test",
-            "testFile": "tools/simulatte/study-reference/batch-04-state.test.mjs",
-            "testName": "workspace epoch and tenant fencing rejects stale proof"
-          },
-          "given": "A bounded permission proof has a tenant, epoch and action.",
-          "id": "bounded-mechanism",
+          "given": "A denied edit and a published activity are recorded in the audit ledger.",
+          "id": "case2",
           "relatedRequirementIds": [
             "r0"
           ],
-          "then": "Return false for stale epoch or wrong tenant and true only for the matching example.",
-          "when": "Compare against current tenant, epoch and expected version."
+          "then": "The member is refused; the auditor sees decision reason, policy version and delivery status but not the object's contents.",
+          "when": "A workspace member without audit scope queries the ledger, then an auditor reads it."
+        },
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-04-state.test.mjs",
+            "testName": "L023 transactional policy denies cross-workspace and explicit deny and replays committed commands before the version check"
+          },
+          "given": "Alice has workspace-wide edit with an explicit deny on project P2, Bob belongs to another workspace, and the object is at version 2.",
+          "id": "bounded-mechanism",
+          "relatedRequirementIds": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "then": "Bob and the P2 edit are denied; the c1 retry returns its stored committed response at version 3 instead of 409; c2 is stale; the reused c1 is rejected; c3 is denied after revocation; one outbox event exists.",
+          "when": "Bob edits; Alice edits P2; Alice commits c1 on P1, retries c1 with expectedVersion 2, sends c2 with expectedVersion 2 and reuses c1 with other bytes; then her grant is revoked and she sends c3."
         }
       ],
       "algorithms": [
         {
-          "code": "transaction(() => { lockWorkspacePolicy(workspaceId); const p = loadPolicy();\n assertTenant(principalId, workspaceId); requireAllowed(p, action, projectId);\n compareVersion(object, expectedVersion); applyMutation(); insertOutboxUnique(commandId); });",
+          "code": "transaction(() => { lockWorkspacePolicy(workspaceId);\n const prior = findCommand(workspaceId, principalId, commandId); // before any version check\n if (prior) return prior.requestHash === requestHash ? prior.response : reject(422);\n const p = loadPolicy(); assertTenant(principalId, workspaceId);\n if (!allowedWithExplicitDenyFirst(p, principalId, projectId, action)) return deny(403);\n if (object.version !== expectedVersion) return stale(409);\n applyMutation(); insertOutboxAndResponse(commandId, requestHash, response); });",
           "guarantees": [
             "Cache validity is bounded and write authorization is never delegated to a stale entry.",
-            "No event is emitted for a rolled-back object change.",
+            "No event or stored response exists for a rolled-back change, and each commandId has at most one stored response.",
             "Queued and published are distinct observable states.",
             "An event ID can affect the projection once.",
             "Revocation cutoff is the authoritative transaction order.",
@@ -792,12 +804,12 @@
       ],
       "apis": [
         {
-          "errors": "Reject invalid input, stale versions and operations outside the declared boundary.",
+          "errors": "403 cross-workspace principal or explicitly denied action; 409 expectedVersion differs from the object version (a committed commandId replays its stored response first); 422 commandId reused with a different requestHash",
           "method": "CALL",
           "ownerNodeId": "engine",
           "path": "L023/transactional",
-          "request": "{\"principalId\":\"authenticated ID\",\"workspaceId\":\"uuid\",\"projectId\":\"uuid\",\"action\":\"read|edit|revoke\",\"expectedVersion\":\"integer\",\"commandId\":\"uuid\"}",
-          "response": "{\"decision\":\"allow|deny\",\"policyVersion\":\"integer\",\"objectVersion\":\"integer|null\"}"
+          "request": "{\"principalId\":\"authenticated ID\",\"workspaceId\":\"uuid\",\"projectId\":\"uuid\",\"action\":\"read|edit|revoke\",\"expectedVersion\":\"integer\",\"commandId\":\"uuid\",\"requestHash\":\"sha256\"}",
+          "response": "{\"status\":\"committed|replayed|denied|stale\",\"decision\":\"allow|deny\",\"policyVersion\":\"integer\",\"objectVersion\":\"integer|null\"}"
         }
       ],
       "assumptions": [
@@ -813,10 +825,9 @@
       "stages": [
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "bounded-mechanism"
           ],
-          "explanation": "Deny cross-workspace reads and writes; role inheritance and explicit deny have defined precedence. [Access control](https://en.wikipedia.org/wiki/Access_control) decides whether an authenticated identity may perform a particular action. The check must apply to the actual resource and operation, including cached and asynchronous paths. Consider this case: A user has edit at epoch 4. Revoke at epoch 5 before a stale edit commits.",
+          "explanation": "Deny cross-workspace reads and writes; role inheritance and explicit deny have defined precedence. A command binds one authenticated principal, workspace, project, action and commandId; a committed reply means the mutation and its outbox row exist. [Access control](https://en.wikipedia.org/wiki/Access_control) decides whether an authenticated identity may perform a particular action. The check must apply to the actual resource and operation, including cached and asynchronous paths.",
           "graph": {
             "edges": [
               {
@@ -859,7 +870,7 @@
           },
           "id": "transactional-s1",
           "invariants": [
-            "Deny cross-workspace reads and writes; role inheritance and explicit deny have defined precedence."
+            "A command binds one authenticated principal, workspace, project, action and commandId; a committed reply means the mutation and its outbox row exist."
           ],
           "number": 1,
           "operations": [
@@ -907,16 +918,16 @@
               "op": "connect"
             }
           ],
-          "question": "What does successful completion promise?",
+          "question": "Which principal, workspace and project does a protected command bind, and what does a committed reply promise?",
           "reason": "Deny cross-workspace reads and writes; role inheritance and explicit deny have defined precedence.",
           "title": "Define the operation boundary"
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "bounded-mechanism",
+            "case0"
           ],
-          "explanation": "Lock policy and target rows, evaluate inherited grants and explicit deny, then mutate. Own workspace membership, project ancestry, role grants and object rows. policy snapshot and object version belongs to Permission transaction; tenant-scoped keys belongs to Workspace tables. [Access control](https://en.wikipedia.org/wiki/Access_control) decides whether an authenticated identity may perform a particular action. The check must apply to the actual resource and operation, including cached and asynchronous paths.",
+          "explanation": "Lock policy and target rows, evaluate inherited grants and explicit deny, then mutate. Own workspace membership, project ancestry, role grants and object rows. Policy rows and the target object are read under one transaction lock; no allow decision is made outside it. [A transaction](https://en.wikipedia.org/wiki/Database_transaction) commits related state changes together or leaves them unapplied. The database must enforce the relevant condition during the write, rather than trusting an earlier read.",
           "graph": {
             "edges": [
               {
@@ -996,7 +1007,7 @@
           },
           "id": "transactional-s2",
           "invariants": [
-            "policy snapshot and object version belongs to Permission transaction; tenant-scoped keys belongs to Workspace tables."
+            "Policy rows and the target object are read under one transaction lock; no allow decision is made outside it."
           ],
           "number": 2,
           "operations": [
@@ -1044,14 +1055,13 @@
               "subsystemId": "l023.transactional.binding-s2"
             }
           ],
-          "question": "Which component owns the decision and its persistent or shared state?",
+          "question": "Which transaction evaluates policy and owns the object rows it protects?",
           "reason": "Lock policy and target rows, evaluate inherited grants and explicit deny, then mutate. Own workspace membership, project ancestry, role grants and object rows.",
           "title": "Expose authority and state"
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case0"
           ],
           "explanation": "Add a tenant/principal/resource/version keyed cache; never cache a private response under a public key. Cache validity is bounded and write authorization is never delegated to a stale entry. [A cache](https://en.wikipedia.org/wiki/Cache_replacement_policies) keeps reusable results in limited memory. Eviction controls space, while ownership and invalidation rules determine whether a returned value is still safe to use.",
           "graph": {
@@ -1204,10 +1214,10 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case1",
+            "bounded-mechanism"
           ],
-          "explanation": "Persist an immutable event with the authorized mutation in the same transaction. No event is emitted for a rolled-back object change. [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers. Publishing one reference lets each reader keep a consistent version. Consider this case: A user has edit at epoch 4. Revoke at epoch 5 before a stale edit commits.",
+          "explanation": "Persist an immutable event and the command's stored response under its commandId in the same transaction as the authorized mutation. No event or stored response exists for a rolled-back change, and each commandId has at most one stored response. [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers. Publishing one reference lets each reader keep a consistent version.",
           "graph": {
             "edges": [
               {
@@ -1335,7 +1345,7 @@
           },
           "id": "transactional-s4",
           "invariants": [
-            "No event is emitted for a rolled-back object change."
+            "No event or stored response exists for a rolled-back change, and each commandId has at most one stored response."
           ],
           "number": 4,
           "operations": [
@@ -1377,15 +1387,14 @@
             }
           ],
           "question": "How is activity tied to the write?",
-          "reason": "Persist an immutable event with the authorized mutation in the same transaction.",
+          "reason": "Persist an immutable event and the command's stored response under its commandId in the same transaction as the authorized mutation.",
           "title": "Mutation outbox"
         },
         {
           "checkIds": [
-            "case0",
             "case1"
           ],
-          "explanation": "Claim durable event IDs and retry downstream independently of client success. Queued and published are distinct observable states. [Backoff](https://en.wikipedia.org/wiki/Exponential_backoff) spaces repeated attempts so failures do not create a burst of extra traffic. A retry still needs a stable identity and a clear stopping condition. Consider this case: A user has edit at epoch 4. Revoke at epoch 5 before a stale edit commits.",
+          "explanation": "Claim durable event IDs and retry downstream independently of client success. Queued and published are distinct observable states. [Backoff](https://en.wikipedia.org/wiki/Exponential_backoff) spaces repeated attempts so failures do not create a burst of extra traffic. A retry still needs a stable identity and a clear stopping condition. Consider this case: A mutation commits and a dispatcher crashes. Deliver the same outbox ID twice.",
           "graph": {
             "edges": [
               {
@@ -1578,10 +1587,9 @@
         },
         {
           "checkIds": [
-            "case0",
             "case1"
           ],
-          "explanation": "Deduplicate event IDs before applying the activity projection. An event ID can affect the projection once. [Idempotence](https://en.wikipedia.org/wiki/Idempotence) means repeating the same logical operation does not repeat its effect. Stable request identities let a retry recover an existing outcome instead of creating another change. Consider this case: A user has edit at epoch 4. Revoke at epoch 5 before a stale edit commits.",
+          "explanation": "Deduplicate event IDs before applying the activity projection. An event ID can affect the projection once. [Idempotence](https://en.wikipedia.org/wiki/Idempotence) means repeating the same logical operation does not repeat its effect. Stable request identities let a retry recover an existing outcome instead of creating another change. Consider this case: A mutation commits and a dispatcher crashes. Deliver the same outbox ID twice.",
           "graph": {
             "edges": [
               {
@@ -1799,7 +1807,7 @@
         {
           "checkIds": [
             "case0",
-            "case1"
+            "bounded-mechanism"
           ],
           "explanation": "Advance policy epoch and serialize protected commits against it; reject stale decisions. Revocation cutoff is the authoritative transaction order. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return. Consider this case: A user has edit at epoch 4.",
           "graph": {
@@ -2048,8 +2056,7 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case2"
           ],
           "explanation": "Record decision reason, policy version and event delivery status with restricted audit access. Audit data does not grant permission to read the protected object. [Access control](https://en.wikipedia.org/wiki/Access_control) decides whether an authenticated identity may perform a particular action. The check must apply to the actual resource and operation, including cached and asynchronous paths.",
           "graph": {
@@ -2327,9 +2334,7 @@
           "given": "A capability carries epoch 4.",
           "id": "case0",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
-            "r2"
+            "r1"
           ],
           "then": "The online write fence denies it even before expiry.",
           "when": "The authority advances to epoch 5 and the client misses notification."
@@ -2338,31 +2343,40 @@
           "given": "A projection consumer restarts at an old offset.",
           "id": "case1",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
             "r2"
           ],
           "then": "Retain epoch 5 and deduplicate mutation events.",
           "when": "Replay epoch 5 followed by epoch 4."
         },
         {
+          "given": "Signing key k1 is retired after its overlap window while a client still holds a k1 token.",
+          "id": "case2",
+          "relatedRequirementIds": [
+            "r1"
+          ],
+          "then": "The verifier rejects the retired keyId with 401; tokens signed by k2 continue to verify.",
+          "when": "The client submits an edit."
+        },
+        {
           "evidence": {
             "kind": "reference-test",
             "testFile": "tools/simulatte/study-reference/batch-04-state.test.mjs",
-            "testName": "workspace epoch and tenant fencing rejects stale proof"
+            "testName": "L023 capability checks audience scope and epoch online and replays committed commands first"
           },
-          "given": "A bounded permission proof has a tenant, epoch and action.",
+          "given": "A k2-signed token for audience docs-api, workspace W1, project P1, action edit and epoch 4; the object is at version 2.",
           "id": "bounded-mechanism",
           "relatedRequirementIds": [
-            "r0"
+            "r0",
+            "r1",
+            "r2"
           ],
-          "then": "Return false for stale epoch or wrong tenant and true only for the matching example.",
-          "when": "Compare against current tenant, epoch and expected version."
+          "then": "Audience, expiry, key and signature failures return 401 and W2 returns 403; c1 commits at version 3; after revocation c2 is denied before expiry while the c1 retry returns its stored response; one event exists.",
+          "when": "Submit with a wrong audience, after expiry, with a retired key, with a bad signature and for W2; commit c1; advance W1 to epoch 5; send c2 and retry c1."
         }
       ],
       "algorithms": [
         {
-          "code": "const proof = verifySignatureAndScope(token, audience, tenant, resource, action);\ntransaction(() => { const epoch = lockEpoch(tenant); if (proof.epoch !== epoch) deny();\n compareVersion(object, expectedVersion); applyMutation(); appendEventUnique(commandId); });",
+          "code": "const proof = verifySignatureAudienceExpiry(capabilityToken, audience, now); // 401 on failure\nrequireScope(proof, workspaceId, projectId, action); // 403 outside scope\ntransaction(() => { const prior = findCommand(workspaceId, proof.principal, commandId);\n if (prior) return prior.requestHash === requestHash ? prior.response : reject(422);\n if (proof.epoch !== lockEpoch(workspaceId)) return deny(403);\n if (object.version !== expectedVersion) return stale(409);\n applyMutation(); appendEventAndResponse(commandId, requestHash, response); });",
           "guarantees": [
             "A capability is not transferable across audiences or tenants.",
             "A signed but revoked write proof is rejected.",
@@ -2378,12 +2392,12 @@
       ],
       "apis": [
         {
-          "errors": "Reject invalid input, stale versions and operations outside the declared boundary.",
+          "errors": "401 invalid signature, retired keyId, wrong audience or expired token; 403 workspace, project or action outside the token scope, or token epoch below the workspace epoch; 409 stale expectedVersion (a committed commandId replays first); 422 commandId reused with a different requestHash",
           "method": "CALL",
           "ownerNodeId": "engine",
           "path": "L023/capability",
-          "request": "{\"principalId\":\"authenticated ID\",\"workspaceId\":\"uuid\",\"projectId\":\"uuid\",\"action\":\"read|edit|revoke\",\"expectedVersion\":\"integer\",\"commandId\":\"uuid\"}",
-          "response": "{\"decision\":\"allow|deny\",\"policyVersion\":\"integer\",\"objectVersion\":\"integer|null\"}"
+          "request": "{\"capabilityToken\":\"signed scoped capability (keyId, principal, workspace, project, actions, epoch, expiry)\",\"audience\":\"service identifier\",\"workspaceId\":\"uuid\",\"projectId\":\"uuid\",\"action\":\"read|edit\",\"expectedVersion\":\"integer\",\"commandId\":\"uuid\",\"requestHash\":\"sha256\"}",
+          "response": "{\"status\":\"committed|replayed|denied|stale\",\"epoch\":\"integer\",\"objectVersion\":\"integer|null\"}"
         }
       ],
       "assumptions": [
@@ -2399,10 +2413,9 @@
       "stages": [
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "bounded-mechanism"
           ],
-          "explanation": "Deny cross-workspace reads and writes; role inheritance and explicit deny have defined precedence. [Access control](https://en.wikipedia.org/wiki/Access_control) decides whether an authenticated identity may perform a particular action. The check must apply to the actual resource and operation, including cached and asynchronous paths. Consider this case: A capability carries epoch 4. The authority advances to epoch 5 and the client misses notification.",
+          "explanation": "Deny cross-workspace reads and writes; role inheritance and explicit deny have defined precedence. The token proves signature, audience, scope and expiry; the workspace epoch and object version are checked online when the write commits. [Access control](https://en.wikipedia.org/wiki/Access_control) decides whether an authenticated identity may perform a particular action. The check must apply to the actual resource and operation, including cached and asynchronous paths.",
           "graph": {
             "edges": [
               {
@@ -2445,7 +2458,7 @@
           },
           "id": "capability-s1",
           "invariants": [
-            "Deny cross-workspace reads and writes; role inheritance and explicit deny have defined precedence."
+            "The token proves signature, audience, scope and expiry; the workspace epoch and object version are checked online when the write commits."
           ],
           "number": 1,
           "operations": [
@@ -2493,16 +2506,16 @@
               "op": "connect"
             }
           ],
-          "question": "What does successful completion promise?",
+          "question": "What does a capability-bearing command prove offline, and what must the server still check online?",
           "reason": "Deny cross-workspace reads and writes; role inheritance and explicit deny have defined precedence.",
           "title": "Define the operation boundary"
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "bounded-mechanism",
+            "case0"
           ],
-          "explanation": "Verify signature, expiry, audience, tenant and resource scope before accepting an operation. Own current workspace revocation epochs and role source of truth. verification keys and accepted epoch belongs to Capability verifier; workspace epochs belongs to Epoch authority. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return.",
+          "explanation": "Verify signature, expiry, audience, tenant and resource scope before accepting an operation. Own current workspace revocation epochs and role source of truth. The verifier never trusts a cached workspace epoch for writes; the epoch authority is read inside the mutation transaction. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return.",
           "graph": {
             "edges": [
               {
@@ -2582,7 +2595,7 @@
           },
           "id": "capability-s2",
           "invariants": [
-            "verification keys and accepted epoch belongs to Capability verifier; workspace epochs belongs to Epoch authority."
+            "The verifier never trusts a cached workspace epoch for writes; the epoch authority is read inside the mutation transaction."
           ],
           "number": 2,
           "operations": [
@@ -2630,14 +2643,13 @@
               "subsystemId": "l023.capability.binding-s2"
             }
           ],
-          "question": "Which component owns the decision and its persistent or shared state?",
+          "question": "Which component verifies capability tokens and which owns the revocation epoch?",
           "reason": "Verify signature, expiry, audience, tenant and resource scope before accepting an operation. Own current workspace revocation epochs and role source of truth.",
           "title": "Expose authority and state"
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "bounded-mechanism"
           ],
           "explanation": "Issue only after an authoritative membership check and bind action, resource, audience and expiry. A capability is not transferable across audiences or tenants. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid. Expiration must be checked at the point of use, even when background cleanup runs later.",
           "graph": {
@@ -2791,7 +2803,7 @@
         {
           "checkIds": [
             "case0",
-            "case1"
+            "bounded-mechanism"
           ],
           "explanation": "Compare capability epoch with the authoritative epoch inside the object transaction. A signed but revoked write proof is rejected. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return. Consider this case: A capability carries epoch 4.",
           "graph": {
@@ -2968,10 +2980,10 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case1",
+            "bounded-mechanism"
           ],
-          "explanation": "Append command identity and resulting version with the mutation. The log records completed decisions, not queued promises. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call. Consider this case: A capability carries epoch 4. The authority advances to epoch 5 and the client misses notification.",
+          "explanation": "Append command identity, stored response and resulting version with the mutation. The log records completed decisions, not queued promises. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call. Consider this case: A projection consumer restarts at an old offset.",
           "graph": {
             "edges": [
               {
@@ -3159,15 +3171,14 @@
             }
           ],
           "question": "How are authorized changes published?",
-          "reason": "Append command identity and resulting version with the mutation.",
+          "reason": "Append command identity, stored response and resulting version with the mutation.",
           "title": "Committed event log"
         },
         {
           "checkIds": [
-            "case0",
             "case1"
           ],
-          "explanation": "Apply monotonic policy epochs and object versions from replayable events. An old event cannot reduce a projection epoch. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return. Consider this case: A capability carries epoch 4. The authority advances to epoch 5 and the client misses notification.",
+          "explanation": "Apply monotonic policy epochs and object versions from replayable events. An old event cannot reduce a projection epoch. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return. Consider this case: A projection consumer restarts at an old offset.",
           "graph": {
             "edges": [
               {
@@ -3384,8 +3395,7 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case2"
           ],
           "explanation": "Publish bounded key overlap and reject unknown key IDs; compromise can force online epoch checks. Key retirement and capability expiration are explicit. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return.",
           "graph": {
@@ -3628,8 +3638,7 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case0"
           ],
           "explanation": "Notify clients to discard local proofs while server epoch fencing remains authoritative. A missed client notification cannot permit a stale write. [Access control](https://en.wikipedia.org/wiki/Access_control) decides whether an authenticated identity may perform a particular action. The check must apply to the actual resource and operation, including cached and asynchronous paths. Consider this case: A capability carries epoch 4.",
           "graph": {

@@ -219,7 +219,7 @@
           "id": "in-l028.staged.step7"
         }
       ],
-      "responsibility": "Uniquely admit event ID and detect the same ID with conflicting bytes.",
+      "responsibility": "Uniquely admit each event ID; a redelivery with the same bytes returns duplicate and the same ID with different bytes is quarantined.",
       "stateOwnership": [
         "eventId, payloadHash"
       ],
@@ -289,6 +289,11 @@
           "id": "out-l028.entity-log.step4-engine"
         },
         {
+          "contractId": "l028.entity-log.step5",
+          "direction": "in",
+          "id": "in-l028.entity-log.step5-state"
+        },
+        {
           "contractId": "l028.entity-log.step6",
           "direction": "out",
           "id": "out-l028.entity-log.step6-state"
@@ -349,6 +354,11 @@
           "id": "in-l028.entity-log.command"
         },
         {
+          "contractId": "l028.entity-log.step5",
+          "direction": "in",
+          "id": "in-l028.entity-log.step5"
+        },
+        {
           "contractId": "l028.entity-log.step6",
           "direction": "out",
           "id": "out-l028.entity-log.step6"
@@ -392,11 +402,6 @@
           "contractId": "l028.entity-log.step4",
           "direction": "in",
           "id": "in-l028.entity-log.step4"
-        },
-        {
-          "contractId": "l028.entity-log.step5",
-          "direction": "out",
-          "id": "out-l028.entity-log.step5"
         }
       ],
       "responsibility": "Append versioned mapping decisions rather than editing old events.",
@@ -415,13 +420,13 @@
       "ports": [
         {
           "contractId": "l028.entity-log.step5",
-          "direction": "in",
-          "id": "in-l028.entity-log.step5"
+          "direction": "out",
+          "id": "out-l028.entity-log.step5"
         }
       ],
-      "responsibility": "Buffer bounded commands keyed by event ID; require the referenced hash before applying.",
+      "responsibility": "Append each approval as an ordered record in the same entity partition, keyed by event ID, revision and hash; the reducer binds it, not the command path.",
       "stateOwnership": [
-        "eventId, approvedHash"
+        "eventId, entityId, revision, approvedHash"
       ],
       "version": 1
     },
@@ -444,9 +449,9 @@
           "id": "out-l028.entity-log.step7"
         }
       ],
-      "responsibility": "Consume one partition epoch and apply allowed state transitions to the next revision.",
+      "responsibility": "Consume the partition in offset order under the lease epoch; keep pending events and approvals in reducer state and apply an event once its bound approval exists and it is the entity's next revision.",
       "stateOwnership": [
-        "offset, leaseEpoch"
+        "offset, leaseEpoch, pending"
       ],
       "version": 1
     },
@@ -503,7 +508,8 @@
         "entityHint": "synthetic identifier",
         "eventId": "uuid",
         "payloadHash": "sha256",
-        "revision": "integer"
+        "revision": "integer",
+        "schemaVersion": "integer"
       },
       "response": {
         "entityId": "uuid|null",
@@ -594,12 +600,14 @@
       "request": {
         "entityHint": "synthetic identifier",
         "eventId": "uuid",
+        "mappingVersion": "integer",
         "payloadHash": "sha256",
         "revision": "integer"
       },
       "response": {
         "entityId": "uuid|null",
-        "status": "quarantined|awaiting-approval|committed|duplicate"
+        "offset": "integer|null",
+        "status": "quarantined|appended"
       },
       "version": 1
     },
@@ -633,7 +641,9 @@
       "id": "l028.entity-log.step5",
       "request": {
         "approvedHash": "sha256",
-        "eventId": "uuid"
+        "entityId": "uuid",
+        "eventId": "uuid",
+        "revision": "integer"
       },
       "response": {
         "outcome": "accepted|rejected|pending",
@@ -646,7 +656,8 @@
       "id": "l028.entity-log.step6",
       "request": {
         "leaseEpoch": "integer",
-        "offset": "integer"
+        "offset": "integer",
+        "pending": "event and approval IDs"
       },
       "response": {
         "outcome": "accepted|rejected|pending",
@@ -726,9 +737,7 @@
           "given": "Approval names revision 2 hash A.",
           "id": "case0",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
-            "r2"
+            "r1"
           ],
           "then": "Reject stale or mismatched approval without changing accepted state.",
           "when": "Submit revision 2 hash B or revision 1 after revision 2 commits."
@@ -737,31 +746,48 @@
           "given": "One synthetic event arrives twice.",
           "id": "case1",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
             "r2"
           ],
-          "then": "Apply once; conflicting bytes under the same ID are quarantined.",
+          "then": "Apply once and return duplicate for the redelivery; conflicting bytes under the same ID are quarantined.",
           "when": "Admit and approve both deliveries."
+        },
+        {
+          "given": "One event fails the pinned schema and another names an identity hint matching two entities.",
+          "id": "case2",
+          "relatedRequirementIds": [
+            "r0"
+          ],
+          "then": "Both are quarantined with error codes or candidate reasons; neither reaches review or merges identities.",
+          "when": "Ingest both."
+        },
+        {
+          "given": "A revision-2 approval for hash A is superseded by a resubmitted hash B.",
+          "id": "case3",
+          "relatedRequirementIds": [
+            "r2"
+          ],
+          "then": "The decision log keeps the superseded hash-A approval and the committed hash-B decision with actor, policy version and source receipt.",
+          "when": "Approve hash B and commit."
         },
         {
           "evidence": {
             "kind": "reference-test",
             "testFile": "tools/simulatte/study-reference/batch-04-state.test.mjs",
-            "testName": "approval binds identity revision hash and next transition"
+            "testName": "L028 staged admission returns duplicate and approval binds identity revision and hash"
           },
-          "given": "An entity is at revision 1 and an approval names revision 2 hash A.",
+          "given": "Event e2 for entity x revision 2 with hash A is staged while x is at revision 1.",
           "id": "bounded-mechanism",
           "relatedRequirementIds": [
-            "r0"
+            "r1",
+            "r2"
           ],
-          "then": "Accept only the first hash-A next-revision transition in this deterministic model.",
-          "when": "Try hash B, then A, then duplicate and skipped revision."
+          "then": "The redelivery returns duplicate; hash B under e2 is quarantined; only the hash-A approval for x's next revision commits.",
+          "when": "Redeliver e2, redeliver it with hash B, then approve hash B, entity y, hash A, hash A again and a skipped revision 4."
         }
       ],
       "algorithms": [
         {
-          "code": "transaction(() => { const receipt = insertEventUnique(eventId, payloadHash);\n if (receipt.hash !== payloadHash) rejectConflict(); });\nconst identity = resolveUniqueOrQuarantine(payload);\ntransaction(() => { lockEntity(identity.id); requireApproval(entityId, revision, payloadHash);\n requireNextRevision(revision); commitRecord(); appendDecision(); });",
+          "code": "const receipt = insertEventIfAbsent(eventId, payloadHash);\nif (!receipt.inserted) return receipt.hash === payloadHash ? \"duplicate\" : quarantine(\"event-id-conflict\");\nconst identity = resolveUniqueOrQuarantine(payload);\ntransaction(() => { lockEntity(identity.id); requireApproval(identity.id, revision, payloadHash);\n requireNextRevision(identity.id, revision); commitRecord(); appendDecision(); });",
           "guarantees": [
             "Validation failure cannot become accepted data.",
             "Ambiguity never silently merges identities.",
@@ -777,11 +803,11 @@
       ],
       "apis": [
         {
-          "errors": "Reject invalid input, stale versions and operations outside the declared boundary.",
+          "errors": "400 payload fails the pinned schemaVersion; 409 eventId already admitted with a different payloadHash; 422 entityHint matches zero or several entities; each rejection is retained in quarantine",
           "method": "CALL",
           "ownerNodeId": "engine",
           "path": "L028/staged",
-          "request": "{\"eventId\":\"uuid\",\"entityHint\":\"synthetic identifier\",\"revision\":\"integer\",\"payloadHash\":\"sha256\"}",
+          "request": "{\"eventId\":\"uuid\",\"entityHint\":\"synthetic identifier\",\"schemaVersion\":\"integer\",\"revision\":\"integer\",\"payloadHash\":\"sha256\"}",
           "response": "{\"status\":\"quarantined|awaiting-approval|committed|duplicate\",\"entityId\":\"uuid|null\"}"
         }
       ],
@@ -798,10 +824,10 @@
       "stages": [
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case1",
+            "bounded-mechanism"
           ],
-          "explanation": "Validate schema and quarantine ambiguous identity without guessing. [Data ingestion](https://en.wikipedia.org/wiki/Data_integration) moves source records into a usable destination. Stable source identity and progress records distinguish genuinely new data from repeated delivery or a restarted import. Consider this case: Approval names revision 2 hash A. Submit revision 2 hash B or revision 1 after revision 2 commits.",
+          "explanation": "Validate schema and quarantine ambiguous identity without guessing. Admission stores the payload hash under its eventId; nothing commits until a bound approval names that entity, revision and hash. [Data ingestion](https://en.wikipedia.org/wiki/Data_integration) moves source records into a usable destination. Stable source identity and progress records distinguish genuinely new data from repeated delivery or a restarted import.",
           "graph": {
             "edges": [
               {
@@ -844,7 +870,7 @@
           },
           "id": "staged-s1",
           "invariants": [
-            "Validate schema and quarantine ambiguous identity without guessing."
+            "Admission stores the payload hash under its eventId; nothing commits until a bound approval names that entity, revision and hash."
           ],
           "number": 1,
           "operations": [
@@ -892,16 +918,16 @@
               "op": "connect"
             }
           ],
-          "question": "What does successful completion promise?",
+          "question": "What does admitting a synthetic event to staging promise?",
           "reason": "Validate schema and quarantine ambiguous identity without guessing.",
           "title": "Define the operation boundary"
         },
         {
           "checkIds": [
             "case0",
-            "case1"
+            "bounded-mechanism"
           ],
-          "explanation": "Validate event envelopes before accepting workflow intent. Own immutable raw event hashes and revision state. event receipt identity belongs to Ingest coordinator; event IDs and states belongs to Staging ledger. [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers. Publishing one reference lets each reader keep a consistent version.",
+          "explanation": "Validate event envelopes before accepting workflow intent. Own immutable raw event hashes and revision state. The staging ledger is the single writer of event receipts and entity revisions; the coordinator reads and updates them in one transaction. [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers. Publishing one reference lets each reader keep a consistent version.",
           "graph": {
             "edges": [
               {
@@ -981,7 +1007,7 @@
           },
           "id": "staged-s2",
           "invariants": [
-            "event receipt identity belongs to Ingest coordinator; event IDs and states belongs to Staging ledger."
+            "The staging ledger is the single writer of event receipts and entity revisions; the coordinator reads and updates them in one transaction."
           ],
           "number": 2,
           "operations": [
@@ -1029,16 +1055,15 @@
               "subsystemId": "l028.staged.binding-s2"
             }
           ],
-          "question": "Which component owns the decision and its persistent or shared state?",
+          "question": "Who owns raw event receipts and entity revision state?",
           "reason": "Validate event envelopes before accepting workflow intent. Own immutable raw event hashes and revision state.",
           "title": "Expose authority and state"
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case2"
           ],
-          "explanation": "Pin schema version and store rejected raw input hashes. Validation failure cannot become accepted data. [Data ingestion](https://en.wikipedia.org/wiki/Data_integration) moves source records into a usable destination. Stable source identity and progress records distinguish genuinely new data from repeated delivery or a restarted import. Consider this case: Approval names revision 2 hash A. Submit revision 2 hash B or revision 1 after revision 2 commits.",
+          "explanation": "Pin schema version and store rejected raw input hashes. Validation failure cannot become accepted data. [Data ingestion](https://en.wikipedia.org/wiki/Data_integration) moves source records into a usable destination. Stable source identity and progress records distinguish genuinely new data from repeated delivery or a restarted import. Consider this case: One event fails the pinned schema and another names an identity hint matching two entities.",
           "graph": {
             "edges": [
               {
@@ -1189,10 +1214,9 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case2"
           ],
-          "explanation": "Require a unique stable match or quarantine; retain candidate reasons. Ambiguity never silently merges identities. [Data ingestion](https://en.wikipedia.org/wiki/Data_integration) moves source records into a usable destination. Stable source identity and progress records distinguish genuinely new data from repeated delivery or a restarted import. Consider this case: Approval names revision 2 hash A. Submit revision 2 hash B or revision 1 after revision 2 commits.",
+          "explanation": "Require a unique stable match or quarantine; retain candidate reasons. Ambiguity never silently merges identities. [Data ingestion](https://en.wikipedia.org/wiki/Data_integration) moves source records into a usable destination. Stable source identity and progress records distinguish genuinely new data from repeated delivery or a restarted import. Consider this case: One event fails the pinned schema and another names an identity hint matching two entities.",
           "graph": {
             "edges": [
               {
@@ -1362,7 +1386,7 @@
         {
           "checkIds": [
             "case0",
-            "case1"
+            "bounded-mechanism"
           ],
           "explanation": "Freeze entity ID, revision, payload hash and policy version in review intent. Any payload change requires a new approval. [A workflow](https://en.wikipedia.org/wiki/Workflow) records which step should run next and what has already finished. Durable transitions and effect identities let recovery resume work without blindly repeating external actions. Consider this case: Approval names revision 2 hash A.",
           "graph": {
@@ -1558,7 +1582,7 @@
         {
           "checkIds": [
             "case0",
-            "case1"
+            "bounded-mechanism"
           ],
           "explanation": "Compare expected entity revision and current approval binding atomically. Out-of-order revisions remain pending or rejected. [A transaction](https://en.wikipedia.org/wiki/Database_transaction) commits related state changes together or leaves them unapplied. The database must enforce the relevant condition during the write, rather than trusting an earlier read. Consider this case: Approval names revision 2 hash A. Submit revision 2 hash B or revision 1 after revision 2 commits.",
           "graph": {
@@ -1777,10 +1801,10 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case1",
+            "bounded-mechanism"
           ],
-          "explanation": "Uniquely admit event ID and detect the same ID with conflicting bytes. Conflicting reuse of an event ID is an error. [Collaborative editing](https://en.wikipedia.org/wiki/Operational_transformation) must reconcile concurrent edits against an agreed document version. Sending changes is only one part; reconnects also need a way to recover missing updates and conflicts. Consider this case: Approval names revision 2 hash A.",
+          "explanation": "Uniquely admit each event ID; a redelivery with the same bytes returns duplicate and the same ID with different bytes is quarantined. Conflicting reuse of an event ID is an error. [Idempotence](https://en.wikipedia.org/wiki/Idempotence) means repeating the same logical operation does not repeat its effect. Stable request identities let a retry recover an existing outcome instead of creating another change.",
           "graph": {
             "edges": [
               {
@@ -2022,15 +2046,14 @@
             }
           ],
           "question": "How are repeated source deliveries handled?",
-          "reason": "Uniquely admit event ID and detect the same ID with conflicting bytes.",
+          "reason": "Uniquely admit each event ID; a redelivery with the same bytes returns duplicate and the same ID with different bytes is quarantined.",
           "title": "Idempotency inbox"
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case3"
           ],
-          "explanation": "Append actor, decision, policy version and source receipt for each terminal transition. Audit preserves denied and superseded decisions. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return. Consider this case: Approval names revision 2 hash A.",
+          "explanation": "Append actor, decision, policy version and source receipt for each terminal transition. Audit preserves denied and superseded decisions. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return. Consider this case: A revision-2 approval for hash A is superseded by a resubmitted hash B.",
           "graph": {
             "edges": [
               {
@@ -2306,9 +2329,7 @@
           "given": "An approval arrives before its matching event.",
           "id": "case0",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
-            "r2"
+            "r1"
           ],
           "then": "Keep it unbound; no accepted record appears.",
           "when": "Replay with a mismatched payload hash."
@@ -2317,36 +2338,53 @@
           "given": "A partition consumer replays a committed event.",
           "id": "case1",
           "relatedRequirementIds": [
-            "r0",
-            "r1",
             "r2"
           ],
           "then": "Retain one entity/revision record.",
           "when": "Apply the event and checkpoint again."
         },
         {
-          "evidence": {
-            "kind": "reference-test",
-            "testFile": "tools/simulatte/study-reference/batch-04-state.test.mjs",
-            "testName": "approval binds identity revision hash and next transition"
-          },
-          "given": "An entity is at revision 1 and an approval names revision 2 hash A.",
-          "id": "bounded-mechanism",
+          "given": "An envelope's identity hint matches two entities at the current mapping version.",
+          "id": "case2",
           "relatedRequirementIds": [
             "r0"
           ],
-          "then": "Accept only the first hash-A next-revision transition in this deterministic model.",
-          "when": "Try hash B, then A, then duplicate and skipped revision."
+          "then": "It enters the quarantine queue with its candidates; no entity partition receives it.",
+          "when": "Route it."
+        },
+        {
+          "given": "A repaired identity mapping v2 would assign an old event to a different entity.",
+          "id": "case3",
+          "relatedRequirementIds": [
+            "r2"
+          ],
+          "then": "The active projection keeps the v1 decision until the v2 generation is explicitly published; history is not edited in place.",
+          "when": "Build and compare a new projection generation."
+        },
+        {
+          "evidence": {
+            "kind": "reference-test",
+            "testFile": "tools/simulatte/study-reference/batch-04-state.test.mjs",
+            "testName": "L028 entity-log reducer keeps pending events and approvals without blocking the partition"
+          },
+          "given": "One partition carries entity X revision 1 without approval, entity Y revision 1 with its approval, an early approval for X revision 2, a wrong-hash approval and then the right approval for X revision 1.",
+          "id": "bounded-mechanism",
+          "relatedRequirementIds": [
+            "r1",
+            "r2"
+          ],
+          "then": "Y applies while X waits; the wrong hash stays unbound; X revision 1 applies on its approval and revision 2 as soon as its event arrives; offsets advance on every record and replays change nothing.",
+          "when": "Reduce the records in offset order, then replay a checkpointed offset and a duplicate event."
         }
       ],
       "algorithms": [
         {
-          "code": "validateEnvelope(); const resolved = identityAtVersion(mappingVersion);\nif (!resolved.unique) quarantine(); else appendEntityEvent(resolved.entityId, event);\nfor (const e of orderedPartition()) transaction(() => {\n assertLeaseEpoch(); requireBoundApproval(e.id, e.hash); applyNextRevision(e); saveCheckpoint(e.offset); });",
+          "code": "validateEnvelope(); const resolved = identityAtVersion(mappingVersion);\nif (!resolved.unique) return quarantine();\nappendEntityRecord(resolved.entityId, {type: \"event\", event}); // approvals arrive as {type: \"approval\"} records in the same partition\nfor (const r of orderedPartition(state.offset)) transaction(() => {\n assertLeaseEpoch(); state = rememberPendingUnique(state, r); // pending events and approvals, by event ID\n for (let e = nextBoundEvent(state); e; e = nextBoundEvent(state)) state = applyNextRevision(state, e); // same entity, revision and hash\n saveStateAndCheckpoint(state, r.offset); });",
           "guarantees": [
             "Unresolved identity has no accepted entity partition.",
             "Replay uses the original mapping version.",
-            "An unbound approval is never a commit.",
-            "Offsets advance only with persisted reducer state.",
+            "An approval is a partition record, never a commit by itself; it binds only an event with the same entity, revision and hash.",
+            "Offsets advance on every record together with reducer state, including pending events and approvals; a missing approval never blocks other entities.",
             "Replay is idempotent for accepted revisions.",
             "A new mapping cannot mutate historic decisions in place."
           ],
@@ -2357,12 +2395,12 @@
       ],
       "apis": [
         {
-          "errors": "Reject invalid input, stale versions and operations outside the declared boundary.",
+          "errors": "400 payload fails the pinned schema; 422 entityHint unresolved at mappingVersion and routed to quarantine; 503 entity partition fenced during reassignment, retry with the same eventId",
           "method": "CALL",
           "ownerNodeId": "engine",
           "path": "L028/entity-log",
-          "request": "{\"eventId\":\"uuid\",\"entityHint\":\"synthetic identifier\",\"revision\":\"integer\",\"payloadHash\":\"sha256\"}",
-          "response": "{\"status\":\"quarantined|awaiting-approval|committed|duplicate\",\"entityId\":\"uuid|null\"}"
+          "request": "{\"eventId\":\"uuid\",\"entityHint\":\"synthetic identifier\",\"mappingVersion\":\"integer\",\"revision\":\"integer\",\"payloadHash\":\"sha256\"}",
+          "response": "{\"status\":\"quarantined|appended\",\"entityId\":\"uuid|null\",\"offset\":\"integer|null\"}"
         }
       ],
       "assumptions": [
@@ -2378,10 +2416,9 @@
       "stages": [
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "bounded-mechanism"
           ],
-          "explanation": "Validate schema and quarantine ambiguous identity without guessing. [Data ingestion](https://en.wikipedia.org/wiki/Data_integration) moves source records into a usable destination. Stable source identity and progress records distinguish genuinely new data from repeated delivery or a restarted import. Consider this case: An approval arrives before its matching event. Replay with a mismatched payload hash.",
+          "explanation": "Validate schema and quarantine ambiguous identity without guessing. An append orders the event within its entity partition; it is not a commit until the reducer applies it with a bound approval. [Data ingestion](https://en.wikipedia.org/wiki/Data_integration) moves source records into a usable destination. Stable source identity and progress records distinguish genuinely new data from repeated delivery or a restarted import.",
           "graph": {
             "edges": [
               {
@@ -2424,7 +2461,7 @@
           },
           "id": "entity-log-s1",
           "invariants": [
-            "Validate schema and quarantine ambiguous identity without guessing."
+            "An append orders the event within its entity partition; it is not a commit until the reducer applies it with a bound approval."
           ],
           "number": 1,
           "operations": [
@@ -2472,16 +2509,16 @@
               "op": "connect"
             }
           ],
-          "question": "What does successful completion promise?",
+          "question": "What does appending a synthetic event to its entity partition promise, and what does it not?",
           "reason": "Validate schema and quarantine ambiguous identity without guessing.",
           "title": "Define the operation boundary"
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "bounded-mechanism",
+            "case2"
           ],
-          "explanation": "Validate and route resolved identities into one entity partition. Own immutable ordered pending and approved event records. routing generation belongs to Envelope router; partition offsets belongs to Entity event log. [Partitioning](https://en.wikipedia.org/wiki/Partition_%28database%29) divides data and work among owners. The key determines where requests go; skew, ownership changes, and operations spanning partitions require additional coordination.",
+          "explanation": "Validate and route resolved identities into one entity partition. Own immutable ordered pending and approved event records. Only the router appends events and approvals; the entity log is the single ordered source for each entity. [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers. Publishing one reference lets each reader keep a consistent version.",
           "graph": {
             "edges": [
               {
@@ -2561,7 +2598,7 @@
           },
           "id": "entity-log-s2",
           "invariants": [
-            "routing generation belongs to Envelope router; partition offsets belongs to Entity event log."
+            "Only the router appends events and approvals; the entity log is the single ordered source for each entity."
           ],
           "number": 2,
           "operations": [
@@ -2609,16 +2646,15 @@
               "subsystemId": "l028.entity-log.binding-s2"
             }
           ],
-          "question": "Which component owns the decision and its persistent or shared state?",
+          "question": "Who routes envelopes and who owns the ordered entity records?",
           "reason": "Validate and route resolved identities into one entity partition. Own immutable ordered pending and approved event records.",
           "title": "Expose authority and state"
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case2"
           ],
-          "explanation": "Route invalid or ambiguous envelopes into a separately inspectable queue. Unresolved identity has no accepted entity partition. [A queue](https://en.wikipedia.org/wiki/Queue_%28abstract_data_type%29) separates accepting work from completing it. Capacity, ordering, ownership, and shutdown behavior determine what producers and consumers may safely assume about each item. Consider this case: An approval arrives before its matching event. Replay with a mismatched payload hash.",
+          "explanation": "Route invalid or ambiguous envelopes into a separately inspectable queue. Unresolved identity has no accepted entity partition. [A queue](https://en.wikipedia.org/wiki/Queue_%28abstract_data_type%29) separates accepting work from completing it. Capacity, ordering, ownership, and shutdown behavior determine what producers and consumers may safely assume about each item. Consider this case: An envelope's identity hint matches two entities at the current mapping version. Route it.",
           "graph": {
             "edges": [
               {
@@ -2769,10 +2805,9 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case3"
           ],
-          "explanation": "Append versioned mapping decisions rather than editing old events. Replay uses the original mapping version. [An event log](https://en.wikipedia.org/wiki/Event-driven_architecture) preserves ordered changes so a consumer can rebuild state or catch up. The consumer must remember its position and handle repeated delivery without repeated effects. Consider this case: An approval arrives before its matching event. Replay with a mismatched payload hash.",
+          "explanation": "Append versioned mapping decisions rather than editing old events. Replay uses the original mapping version. [An event log](https://en.wikipedia.org/wiki/Event-driven_architecture) preserves ordered changes so a consumer can rebuild state or catch up. The consumer must remember its position and handle repeated delivery without repeated effects. Consider this case: A repaired identity mapping v2 would assign an old event to a different entity.",
           "graph": {
             "edges": [
               {
@@ -2948,9 +2983,9 @@
         {
           "checkIds": [
             "case0",
-            "case1"
+            "bounded-mechanism"
           ],
-          "explanation": "Buffer bounded commands keyed by event ID; require the referenced hash before applying. An unbound approval is never a commit. [A workflow](https://en.wikipedia.org/wiki/Workflow) records which step should run next and what has already finished. Durable transitions and effect identities let recovery resume work without blindly repeating external actions. Consider this case: An approval arrives before its matching event.",
+          "explanation": "Append each approval as an ordered record in the same entity partition, keyed by event ID, revision and hash; the reducer binds it, not the command path. An approval is a partition record, never a commit by itself; it binds only an event with the same entity, revision and hash. [A workflow](https://en.wikipedia.org/wiki/Workflow) records which step should run next and what has already finished.",
           "graph": {
             "edges": [
               {
@@ -3012,15 +3047,15 @@
               {
                 "contractId": "l028.entity-log.step5",
                 "from": {
-                  "nodeId": "n4",
+                  "nodeId": "n5",
                   "portId": "out-l028.entity-log.step5"
                 },
                 "id": "step5",
-                "label": "Approval commands",
-                "mode": "local-call",
+                "label": "Append approval to entity partition",
+                "mode": "storage",
                 "to": {
-                  "nodeId": "n5",
-                  "portId": "in-l028.entity-log.step5"
+                  "nodeId": "system",
+                  "portId": "in-l028.entity-log.step5-state"
                 }
               }
             ],
@@ -3043,7 +3078,7 @@
                   "x": 280,
                   "y": 0
                 },
-                "subsystemId": "l028.entity-log.binding-s4",
+                "subsystemId": "l028.entity-log.binding-s5",
                 "version": 1
               },
               {
@@ -3102,10 +3137,16 @@
           },
           "id": "entity-log-s5",
           "invariants": [
-            "An unbound approval is never a commit."
+            "An approval is a partition record, never a commit by itself; it binds only an event with the same entity, revision and hash."
           ],
           "number": 5,
           "operations": [
+            {
+              "nodeId": "system",
+              "op": "rebind",
+              "reason": "Expose this new typed path without mutating earlier binding definitions.",
+              "subsystemId": "l028.entity-log.binding-s5"
+            },
             {
               "node": {
                 "definitionId": "l028.entity-log.n5",
@@ -3123,30 +3164,30 @@
               "edge": {
                 "contractId": "l028.entity-log.step5",
                 "from": {
-                  "nodeId": "n4",
+                  "nodeId": "n5",
                   "portId": "out-l028.entity-log.step5"
                 },
                 "id": "step5",
-                "label": "Approval commands",
-                "mode": "local-call",
+                "label": "Append approval to entity partition",
+                "mode": "storage",
                 "to": {
-                  "nodeId": "n5",
-                  "portId": "in-l028.entity-log.step5"
+                  "nodeId": "system",
+                  "portId": "in-l028.entity-log.step5-state"
                 }
               },
               "op": "connect"
             }
           ],
           "question": "Can approval arrive before its event?",
-          "reason": "Buffer bounded commands keyed by event ID; require the referenced hash before applying.",
+          "reason": "Append each approval as an ordered record in the same entity partition, keyed by event ID, revision and hash; the reducer binds it, not the command path.",
           "title": "Approval commands"
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "bounded-mechanism",
+            "case0"
           ],
-          "explanation": "Consume one partition epoch and apply allowed state transitions to the next revision. Offsets advance only with persisted reducer state. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return. Consider this case: An approval arrives before its matching event.",
+          "explanation": "Consume the partition in offset order under the lease epoch; keep pending events and approvals in reducer state and apply an event once its bound approval exists and it is the entity's next revision. Offsets advance on every record together with reducer state, including pending events and approvals; a missing approval never blocks other entities. [A workflow](https://en.wikipedia.org/wiki/Workflow) records which step should run next and what has already finished.",
           "graph": {
             "edges": [
               {
@@ -3208,15 +3249,15 @@
               {
                 "contractId": "l028.entity-log.step5",
                 "from": {
-                  "nodeId": "n4",
+                  "nodeId": "n5",
                   "portId": "out-l028.entity-log.step5"
                 },
                 "id": "step5",
-                "label": "Approval commands",
-                "mode": "local-call",
+                "label": "Append approval to entity partition",
+                "mode": "storage",
                 "to": {
-                  "nodeId": "n5",
-                  "portId": "in-l028.entity-log.step5"
+                  "nodeId": "system",
+                  "portId": "in-l028.entity-log.step5-state"
                 }
               },
               {
@@ -3322,7 +3363,7 @@
           },
           "id": "entity-log-s6",
           "invariants": [
-            "Offsets advance only with persisted reducer state."
+            "Offsets advance on every record together with reducer state, including pending events and approvals; a missing approval never blocks other entities."
           ],
           "number": 6,
           "operations": [
@@ -3364,15 +3405,14 @@
             }
           ],
           "question": "How is per-entity order enforced?",
-          "reason": "Consume one partition epoch and apply allowed state transitions to the next revision.",
+          "reason": "Consume the partition in offset order under the lease epoch; keep pending events and approvals in reducer state and apply an event once its bound approval exists and it is the entity's next revision.",
           "title": "Entity reducer"
         },
         {
           "checkIds": [
-            "case0",
             "case1"
           ],
-          "explanation": "Upsert by entity/revision/event ID with checkpoint in one transaction. Replay is idempotent for accepted revisions. [A transaction](https://en.wikipedia.org/wiki/Database_transaction) commits related state changes together or leaves them unapplied. The database must enforce the relevant condition during the write, rather than trusting an earlier read. Consider this case: An approval arrives before its matching event. Replay with a mismatched payload hash.",
+          "explanation": "Upsert by entity/revision/event ID with checkpoint in one transaction. Replay is idempotent for accepted revisions. [A transaction](https://en.wikipedia.org/wiki/Database_transaction) commits related state changes together or leaves them unapplied. The database must enforce the relevant condition during the write, rather than trusting an earlier read. Consider this case: A partition consumer replays a committed event. Apply the event and checkpoint again.",
           "graph": {
             "edges": [
               {
@@ -3434,15 +3474,15 @@
               {
                 "contractId": "l028.entity-log.step5",
                 "from": {
-                  "nodeId": "n4",
+                  "nodeId": "n5",
                   "portId": "out-l028.entity-log.step5"
                 },
                 "id": "step5",
-                "label": "Approval commands",
-                "mode": "local-call",
+                "label": "Append approval to entity partition",
+                "mode": "storage",
                 "to": {
-                  "nodeId": "n5",
-                  "portId": "in-l028.entity-log.step5"
+                  "nodeId": "system",
+                  "portId": "in-l028.entity-log.step5-state"
                 }
               },
               {
@@ -3613,10 +3653,9 @@
         },
         {
           "checkIds": [
-            "case0",
-            "case1"
+            "case3"
           ],
-          "explanation": "Build a new projection generation and compare before explicit publication. A new mapping cannot mutate historic decisions in place. [An event log](https://en.wikipedia.org/wiki/Event-driven_architecture) preserves ordered changes so a consumer can rebuild state or catch up. The consumer must remember its position and handle repeated delivery without repeated effects. Consider this case: An approval arrives before its matching event.",
+          "explanation": "Build a new projection generation and compare before explicit publication. A new mapping cannot mutate historic decisions in place. [An event log](https://en.wikipedia.org/wiki/Event-driven_architecture) preserves ordered changes so a consumer can rebuild state or catch up. The consumer must remember its position and handle repeated delivery without repeated effects. Consider this case: A repaired identity mapping v2 would assign an old event to a different entity.",
           "graph": {
             "edges": [
               {
@@ -3678,15 +3717,15 @@
               {
                 "contractId": "l028.entity-log.step5",
                 "from": {
-                  "nodeId": "n4",
+                  "nodeId": "n5",
                   "portId": "out-l028.entity-log.step5"
                 },
                 "id": "step5",
-                "label": "Approval commands",
-                "mode": "local-call",
+                "label": "Append approval to entity partition",
+                "mode": "storage",
                 "to": {
-                  "nodeId": "n5",
-                  "portId": "in-l028.entity-log.step5"
+                  "nodeId": "system",
+                  "portId": "in-l028.entity-log.step5-state"
                 }
               },
               {
@@ -4040,6 +4079,49 @@
     },
     {
       "definitionId": "l028.entity-log.system",
+      "id": "l028.entity-log.binding-s5",
+      "ports": [
+        {
+          "contractId": "l028.entity-log.command",
+          "direction": "in",
+          "id": "in-l028.entity-log.command",
+          "target": {
+            "nodeId": "engine",
+            "portId": "in-l028.entity-log.command"
+          }
+        },
+        {
+          "contractId": "l028.entity-log.step3",
+          "direction": "out",
+          "id": "out-l028.entity-log.step3-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l028.entity-log.step3"
+          }
+        },
+        {
+          "contractId": "l028.entity-log.step4",
+          "direction": "out",
+          "id": "out-l028.entity-log.step4-engine",
+          "target": {
+            "nodeId": "engine",
+            "portId": "out-l028.entity-log.step4"
+          }
+        },
+        {
+          "contractId": "l028.entity-log.step5",
+          "direction": "in",
+          "id": "in-l028.entity-log.step5-state",
+          "target": {
+            "nodeId": "state",
+            "portId": "in-l028.entity-log.step5"
+          }
+        }
+      ],
+      "version": 1
+    },
+    {
+      "definitionId": "l028.entity-log.system",
       "id": "l028.entity-log.binding-s6",
       "ports": [
         {
@@ -4067,6 +4149,15 @@
           "target": {
             "nodeId": "engine",
             "portId": "out-l028.entity-log.step4"
+          }
+        },
+        {
+          "contractId": "l028.entity-log.step5",
+          "direction": "in",
+          "id": "in-l028.entity-log.step5-state",
+          "target": {
+            "nodeId": "state",
+            "portId": "in-l028.entity-log.step5"
           }
         },
         {
