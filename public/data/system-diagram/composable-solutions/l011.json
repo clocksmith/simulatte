@@ -2345,7 +2345,7 @@
             "push-bounded-check-2-reference"
           ],
           "code": [],
-          "explanation": "Follow-up 2: memory = users × entries; most users are inactive on any given day. Timelines keep only the newest cap entries. Bounded lists for active users fit in memory; anyone else is rebuilt on demand by the same pull logic as the baseline. [Publish–subscribe](https://en.wikipedia.org/wiki/Publish%E2%80%93subscribe_pattern) separates producing an update from distributing it to interested consumers. Delivery cost shifts depending on whether work is performed when writing or when someone reads.",
+          "explanation": "Follow-up 2: memory = users × entries; most users are inactive on any given day. Timelines keep only the newest cap entries. Bounded lists for active users fit in memory; anyone else is rebuilt on demand by the same pull logic as the baseline. [A cache](https://en.wikipedia.org/wiki/Cache_replacement_policies) keeps reusable results in limited memory. Eviction controls space, while ownership and invalidation rules determine whether a returned value is still safe to use.",
           "followupIds": [
             "followup-2"
           ],
@@ -5283,7 +5283,7 @@
             "pull-storage-check-1-reference"
           ],
           "code": [],
-          "explanation": "Posts and follows must be durable and readable by author. Posting is idempotent per (author, clientId). Storage is laid out for the read: recent posts by author come from one index range. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call.",
+          "explanation": "Posts and follows must be durable and readable by author. Posting is idempotent per (author, clientId). Storage is laid out for the read: recent posts by author come from one index range. [An index](https://en.wikipedia.org/wiki/Database_index) maintains a structure that narrows a search without scanning every record. Faster reads come with storage costs and extra work whenever indexed data changes.",
           "followupIds": [
             "followup-1"
           ],

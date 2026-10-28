@@ -2233,7 +2233,7 @@
             "bounded-buffer",
             "regional-loss"
           ],
-          "explanation": "One generation-aware owner reconciles download, buffer and failover decisions. An old playback generation never appends media after a seek. [A control loop](https://en.wikipedia.org/wiki/Control_loop) compares desired state with observed state and applies corrections. Repeated execution must converge safely, especially when a previous action succeeded but its reply was lost. Consider this case: Downloads complete quickly while playback is paused or seeking.",
+          "explanation": "One generation-aware owner reconciles download, buffer and failover decisions. An old playback generation never appends media after a seek. [Adaptive streaming](https://en.wikipedia.org/wiki/Adaptive_bitrate_streaming) chooses among encoded quality levels as network conditions change. The player balances visible quality against the risk of exhausting its playback buffer. Consider this case: Downloads complete quickly while playback is paused or seeking. Continue completion callbacks from an old generation.",
           "graph": {
             "edges": [
               {
@@ -4455,7 +4455,7 @@
             "bounded-buffer",
             "regional-loss"
           ],
-          "explanation": "One generation-aware owner reconciles download, buffer and failover decisions. An old playback generation never appends media after a seek. [A control loop](https://en.wikipedia.org/wiki/Control_loop) compares desired state with observed state and applies corrections. Repeated execution must converge safely, especially when a previous action succeeded but its reply was lost. Consider this case: Downloads complete quickly while playback is paused or seeking.",
+          "explanation": "One generation-aware owner reconciles download, buffer and failover decisions. An old playback generation never appends media after a seek. [Adaptive streaming](https://en.wikipedia.org/wiki/Adaptive_bitrate_streaming) chooses among encoded quality levels as network conditions change. The player balances visible quality against the risk of exhausting its playback buffer. Consider this case: Downloads complete quickly while playback is paused or seeking. Continue completion callbacks from an old generation.",
           "graph": {
             "edges": [
               {

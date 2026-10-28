@@ -675,7 +675,7 @@
           "checkIds": [
             "duplicate"
           ],
-          "explanation": "Expand the boundary into a writer and replayable command log. A returned operation receipt is persisted with its command. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call. Consider this case: A write commits but its reply is lost.",
+          "explanation": "Expand the boundary into a writer and replayable command log. A returned operation receipt is persisted with its command. [Write-ahead logging](https://en.wikipedia.org/wiki/Write-ahead_logging) records a change before relying on its final stored form. Recovery replays durable records, so acknowledgement and flush boundaries must match the promised durability. Consider this case: A write commits but its reply is lost.",
           "graph": {
             "edges": [
               {
@@ -1003,7 +1003,7 @@
           "checkIds": [
             "read-watermark"
           ],
-          "explanation": "Add a read router with a minimum position watermark. A session read waits, chooses a sufficiently caught-up node, or fails explicitly. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return. Consider this case: Caller observed position 12 but follower applied only 10.",
+          "explanation": "Add a read router with a minimum position watermark. A session read waits, chooses a sufficiently caught-up node, or fails explicitly. [An event log](https://en.wikipedia.org/wiki/Event-driven_architecture) preserves ordered changes so a consumer can rebuild state or catch up. The consumer must remember its position and handle repeated delivery without repeated effects. Consider this case: Caller observed position 12 but follower applied only 10.",
           "graph": {
             "edges": [
               {
@@ -1518,7 +1518,7 @@
             "ack-loss",
             "stale-leader"
           ],
-          "explanation": "Tie reply visibility to the selected durability contract. Promotion reports its replayed position and the accepted loss window. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call. Consider this case: A write is acknowledged and the current primary permanently fails.",
+          "explanation": "Tie reply visibility to the selected durability contract. Promotion reports its replayed position and the accepted loss window. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return. Consider this case: A write is acknowledged and the current primary permanently fails.",
           "graph": {
             "edges": [
               {
@@ -1879,7 +1879,7 @@
           "checkIds": [
             "snapshot-recovery"
           ],
-          "explanation": "Add a recovery boundary that never mixes unrelated snapshots and log suffixes. Verify hash and included index/term before replaying entries beyond the snapshot. [A snapshot](https://en.wikipedia.org/wiki/Snapshot_isolation) gives one read operation a fixed view of data. Later writes may change the live system without changing the rows that reader sees. Consider this case: Follower is behind the oldest retained log record.",
+          "explanation": "Add a recovery boundary that never mixes unrelated snapshots and log suffixes. Verify hash and included index/term before replaying entries beyond the snapshot. [An event log](https://en.wikipedia.org/wiki/Event-driven_architecture) preserves ordered changes so a consumer can rebuild state or catch up. The consumer must remember its position and handle repeated delivery without repeated effects.",
           "graph": {
             "edges": [
               {
@@ -2769,7 +2769,7 @@
           "checkIds": [
             "duplicate"
           ],
-          "explanation": "Expand the boundary into a writer and replayable command log. A returned operation receipt is persisted with its command. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call. Consider this case: A write commits but its reply is lost.",
+          "explanation": "Expand the boundary into a writer and replayable command log. A returned operation receipt is persisted with its command. [Write-ahead logging](https://en.wikipedia.org/wiki/Write-ahead_logging) records a change before relying on its final stored form. Recovery replays durable records, so acknowledgement and flush boundaries must match the promised durability. Consider this case: A write commits but its reply is lost.",
           "graph": {
             "edges": [
               {
@@ -3097,7 +3097,7 @@
           "checkIds": [
             "read-watermark"
           ],
-          "explanation": "Add a read router with a minimum position watermark. A session read waits, chooses a sufficiently caught-up node, or fails explicitly. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return. Consider this case: Caller observed position 12 but follower applied only 10.",
+          "explanation": "Add a read router with a minimum position watermark. A session read waits, chooses a sufficiently caught-up node, or fails explicitly. [An event log](https://en.wikipedia.org/wiki/Event-driven_architecture) preserves ordered changes so a consumer can rebuild state or catch up. The consumer must remember its position and handle repeated delivery without repeated effects. Consider this case: Caller observed position 12 but follower applied only 10.",
           "graph": {
             "edges": [
               {
@@ -3612,7 +3612,7 @@
             "ack-loss",
             "stale-leader"
           ],
-          "explanation": "Tie reply visibility to the selected durability contract. Advance commitIndex by Raft rules, including the current-term restriction. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call. Consider this case: A write is acknowledged and the current primary permanently fails.",
+          "explanation": "Tie reply visibility to the selected durability contract. Advance commitIndex by Raft rules, including the current-term restriction. [Raft](https://en.wikipedia.org/wiki/Raft_%28algorithm%29) coordinates a replicated log through an elected leader and majority agreement. Terms and voting rules prevent an outdated leader from deciding new committed entries alone. Consider this case: A write is acknowledged and the current primary permanently fails. Recover using a surviving follower group.",
           "graph": {
             "edges": [
               {
@@ -3973,7 +3973,7 @@
           "checkIds": [
             "snapshot-recovery"
           ],
-          "explanation": "Add a recovery boundary that never mixes unrelated snapshots and log suffixes. Verify hash and included index/term before replaying entries beyond the snapshot. [A snapshot](https://en.wikipedia.org/wiki/Snapshot_isolation) gives one read operation a fixed view of data. Later writes may change the live system without changing the rows that reader sees. Consider this case: Follower is behind the oldest retained log record.",
+          "explanation": "Add a recovery boundary that never mixes unrelated snapshots and log suffixes. Verify hash and included index/term before replaying entries beyond the snapshot. [An event log](https://en.wikipedia.org/wiki/Event-driven_architecture) preserves ordered changes so a consumer can rebuild state or catch up. The consumer must remember its position and handle repeated delivery without repeated effects.",
           "graph": {
             "edges": [
               {

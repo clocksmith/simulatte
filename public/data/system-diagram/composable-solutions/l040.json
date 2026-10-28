@@ -851,7 +851,7 @@
           "checkIds": [
             "behavior"
           ],
-          "explanation": "Allocate exactly capacity slots; wrap head/tail modulo capacity and clear a taken slot to release references. Occupied count never exceeds capacity. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources. A newer owner needs a token that the resource checks, not merely a belief that ownership changed. Consider this case: Capacity one, producer P1 fills, P2 waits, consumer removes; plus enumerated put/take orders for capacities one to three.",
+          "explanation": "Allocate exactly capacity slots; wrap head/tail modulo capacity and clear a taken slot to release references. Occupied count never exceeds capacity. [A queue](https://en.wikipedia.org/wiki/Queue_%28abstract_data_type%29) separates accepting work from completing it. Capacity, ordering, ownership, and shutdown behavior determine what producers and consumers may safely assume about each item. Consider this case: Capacity one, producer P1 fills, P2 waits, consumer removes; plus enumerated put/take orders for capacities one to three.",
           "graph": {
             "edges": [
               {
@@ -1436,7 +1436,7 @@
           "checkIds": [
             "behavior"
           ],
-          "explanation": "Put linearizes at count increment after slot write; take linearizes at removal/count decrement, then signals notFull while locked. Each successful take returns the oldest published item exactly once. [Linearizability](https://en.wikipedia.org/wiki/Linearizability) assigns each completed operation one instant when it takes effect. Concurrent callers may overlap, but their visible outcomes must fit a valid sequential order.",
+          "explanation": "Put linearizes at count increment after slot write; take linearizes at removal/count decrement, then signals notFull while locked. Each successful take returns the oldest published item exactly once. [A condition variable](https://en.wikipedia.org/wiki/Condition_variable) lets a thread sleep until shared state may have changed. Waking does not guarantee success, so the protected condition must be checked again.",
           "graph": {
             "edges": [
               {
@@ -2235,7 +2235,7 @@
           "checkIds": [
             "behavior"
           ],
-          "explanation": "Serialize producers with putLock, consumers with takeLock, and publish count through an atomic counter with release/acquire ordering. Link publication precedes atomic count increment; acquiring the count synchronizes consumer visibility. [A queue](https://en.wikipedia.org/wiki/Queue_%28abstract_data_type%29) separates accepting work from completing it. Capacity, ordering, ownership, and shutdown behavior determine what producers and consumers may safely assume about each item.",
+          "explanation": "Serialize producers with putLock, consumers with takeLock, and publish count through an atomic counter with release/acquire ordering. Link publication precedes atomic count increment; acquiring the count synchronizes consumer visibility. [A lock](https://en.wikipedia.org/wiki/Lock_%28computer_science%29) gives one thread exclusive access to protected state. Correctness depends on protecting the whole decision and update, and releasing ownership on every exit.",
           "graph": {
             "edges": [
               {

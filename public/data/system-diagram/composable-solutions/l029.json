@@ -915,7 +915,7 @@
             "bounded-mechanism",
             "case0"
           ],
-          "explanation": "Admit one immutable side value per key/revision. Own left/right receipts and terminal match identity. Pair state changes only under the pair lock; side values, recorded conflicts and the single terminal result live in one pair row. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return.",
+          "explanation": "Admit one immutable side value per key/revision. Own left/right receipts and terminal match identity. Pair state changes only under the pair lock; side values, recorded conflicts and the single terminal result live in one pair row. [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers. Publishing one reference lets each reader keep a consistent version.",
           "graph": {
             "edges": [
               {
@@ -1384,7 +1384,7 @@
             "case0",
             "bounded-mechanism"
           ],
-          "explanation": "Commit terminal state and one pair-result intent atomically. One key/revision produces one terminal result; a later conflict is recorded, not emitted as a second result. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return.",
+          "explanation": "Commit terminal state and one pair-result intent atomically. One key/revision produces one terminal result; a later conflict is recorded, not emitted as a second result. [Change data capture](https://en.wikipedia.org/wiki/Change_data_capture) turns committed data changes into an ordered stream for other components. Consumers still need replay positions and duplicate handling when delivery is retried.",
           "graph": {
             "edges": [
               {
@@ -1579,7 +1579,7 @@
           "checkIds": [
             "case2"
           ],
-          "explanation": "Apply pair ID once, preserve the mismatch explanation and list recorded conflicts beside the result. A mismatch is a visible terminal outcome. [Collaborative editing](https://en.wikipedia.org/wiki/Operational_transformation) must reconcile concurrent edits against an agreed document version. Sending changes is only one part; reconnects also need a way to recover missing updates and conflicts.",
+          "explanation": "Apply pair ID once, preserve the mismatch explanation and list recorded conflicts beside the result. A mismatch is a visible terminal outcome. [Record linkage](https://en.wikipedia.org/wiki/Record_linkage) identifies entries that refer to the same real-world entity. A matching rule needs explicit uncertainty handling so an ambiguous similarity does not silently become authoritative identity.",
           "graph": {
             "edges": [
               {
@@ -2048,7 +2048,7 @@
           "checkIds": [
             "case3"
           ],
-          "explanation": "Scan durable terminal pairs against outbox/projection and repair missing publication. Repair retains the original pair identity. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return. Consider this case: A pair reached matched but its result notification was lost.",
+          "explanation": "Scan durable terminal pairs against outbox/projection and repair missing publication. Repair retains the original pair identity. [Change data capture](https://en.wikipedia.org/wiki/Change_data_capture) turns committed data changes into an ordered stream for other components. Consumers still need replay positions and duplicate handling when delivery is retried. Consider this case: A pair reached matched but its result notification was lost. Scan terminal pairs against the outbox and projection.",
           "graph": {
             "edges": [
               {
@@ -3392,7 +3392,7 @@
             "case1",
             "case3"
           ],
-          "explanation": "Swap one active generation pointer after all outputs are committed. Readers never mix outputs from two runs. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call. Consider this case: A frozen snapshot contains only one side. Publish then ingest a late counterpart.",
+          "explanation": "Swap one active generation pointer after all outputs are committed. Readers never mix outputs from two runs. [Record linkage](https://en.wikipedia.org/wiki/Record_linkage) identifies entries that refer to the same real-world entity. A matching rule needs explicit uncertainty handling so an ambiguous similarity does not silently become authoritative identity. Consider this case: A frozen snapshot contains only one side. Publish then ingest a late counterpart.",
           "graph": {
             "edges": [
               {
@@ -3635,7 +3635,7 @@
           "checkIds": [
             "case1"
           ],
-          "explanation": "Create a linked new reconciliation generation and retain old missing evidence. Historical results remain attributable to their frozen inputs. [A control loop](https://en.wikipedia.org/wiki/Control_loop) compares desired state with observed state and applies corrections. Repeated execution must converge safely, especially when a previous action succeeded but its reply was lost. Consider this case: A frozen snapshot contains only one side.",
+          "explanation": "Create a linked new reconciliation generation and retain old missing evidence. Historical results remain attributable to their frozen inputs. [Record linkage](https://en.wikipedia.org/wiki/Record_linkage) identifies entries that refer to the same real-world entity. A matching rule needs explicit uncertainty handling so an ambiguous similarity does not silently become authoritative identity. Consider this case: A frozen snapshot contains only one side.",
           "graph": {
             "edges": [
               {

@@ -1868,7 +1868,7 @@
               "text": "transaction(() => {\n  authorizeVote(actor, commentId);\n  if (receipt(actor, opId)) return samePayloadOrConflict(opId, request);\n  const old = lockOrCreateVoteRow(actor, commentId); // unique-key conflicts retry transaction\n  if (expectedVoteVersion !== old.version) throw Conflict;\n  const delta = difference(old.value, desiredValue);\n  writeVote(desiredValue, old.version + 1); saveReceipt(opId, payloadHash(request));\n  updateCounterInSameTransaction(delta); // later moved behind a durable vote outbox\n});"
             }
           ],
-          "explanation": "One vote per user; changing or clearing a vote must adjust the tally exactly. Retries are no-ops and changing a vote emits only the difference. Storing the current vote makes every vote call idempotent and turns changes into exact deltas. [Idempotence](https://en.wikipedia.org/wiki/Idempotence) means repeating the same logical operation does not repeat its effect. Stable request identities let a retry recover an existing outcome instead of creating another change.",
+          "explanation": "One vote per user; changing or clearing a vote must adjust the tally exactly. Retries are no-ops and changing a vote emits only the difference. Storing the current vote makes every vote call idempotent and turns changes into exact deltas. [Backoff](https://en.wikipedia.org/wiki/Exponential_backoff) spaces repeated attempts so failures do not create a burst of extra traffic. A retry still needs a stable identity and a clear stopping condition.",
           "followupIds": [
             "followup-2"
           ],
@@ -2751,7 +2751,7 @@
               "text": "n = up + down; if n == 0: return 0;\nbest(up, down) = (p + z²/2n − z·√(p(1−p)/n + z²/4n²)) / (1 + z²/n),  p = up/n, z = 1.96\n// Ties use immutable creation key and comment ID."
             }
           ],
-          "explanation": "Follow-up 3: \"best\" and \"top\" orders change as counts change. \"best\" prefers confident ratios over raw totals. Ranking runs after each flush on the affected threads and rewrites their cached pages. [A cache](https://en.wikipedia.org/wiki/Cache_replacement_policies) keeps reusable results in limited memory. Eviction controls space, while ownership and invalidation rules determine whether a returned value is still safe to use.",
+          "explanation": "Follow-up 3: \"best\" and \"top\" orders change as counts change. \"best\" prefers confident ratios over raw totals. Ranking runs after each flush on the affected threads and rewrites their cached pages. [An index](https://en.wikipedia.org/wiki/Database_index) maintains a structure that narrows a search without scanning every record. Faster reads come with storage costs and extra work whenever indexed data changes.",
           "followupIds": [
             "followup-3"
           ],

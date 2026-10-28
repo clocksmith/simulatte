@@ -828,7 +828,7 @@
           "checkIds": [
             "case2"
           ],
-          "explanation": "Distinguish acknowledged durable writes, committed prefixes and lagging applied state. committed means the command's entry from the leader's current term sits at a majority-committed index and its result is stored with clientId/requestSeq; not-leader and unavailable leave the outcome to a same-sequence retry. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call.",
+          "explanation": "Distinguish acknowledged durable writes, committed prefixes and lagging applied state. committed means the command's entry from the leader's current term sits at a majority-committed index and its result is stored with clientId/requestSeq; not-leader and unavailable leave the outcome to a same-sequence retry. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return.",
           "graph": {
             "edges": [
               {
@@ -2436,7 +2436,7 @@
             "case2",
             "case3"
           ],
-          "explanation": "Distinguish acknowledged durable writes, committed prefixes and lagging applied state. acknowledged means the write was appended under a current fence at the returned LSN, a durable backup receipt exists, and the requestId receipt names that LSN; a retry returns the same receipt instead of appending again. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call.",
+          "explanation": "Distinguish acknowledged durable writes, committed prefixes and lagging applied state. acknowledged means the write was appended under a current fence at the returned LSN, a durable backup receipt exists, and the requestId receipt names that LSN; a retry returns the same receipt instead of appending again. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return.",
           "graph": {
             "edges": [
               {
@@ -2671,7 +2671,7 @@
           "checkIds": [
             "case3"
           ],
-          "explanation": "For zero declared loss within the selected failure model, await a durable backup receipt before success. Async acknowledgement instead exposes an explicit potential-loss window. [Collaborative editing](https://en.wikipedia.org/wiki/Operational_transformation) must reconcile concurrent edits against an agreed document version. Sending changes is only one part; reconnects also need a way to recover missing updates and conflicts.",
+          "explanation": "For zero declared loss within the selected failure model, await a durable backup receipt before success. Async acknowledgement instead exposes an explicit potential-loss window. [Stream processing](https://en.wikipedia.org/wiki/Stream_processing) updates results as events arrive. Arrival order may differ from event time, so late-data rules and bounded retained state are part of the result definition.",
           "graph": {
             "edges": [
               {
@@ -2826,7 +2826,7 @@
             "case2",
             "bounded-mechanism"
           ],
-          "explanation": "Issue monotonic fencing tokens and enforce them at the storage mutation boundary. Lease timeout without storage enforcement is insufficient. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources. A newer owner needs a token that the resource checks, not merely a belief that ownership changed. Consider this case: A stale primary still believes its lease is valid.",
+          "explanation": "Issue monotonic fencing tokens and enforce them at the storage mutation boundary. Lease timeout without storage enforcement is insufficient. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call. Consider this case: A stale primary still believes its lease is valid.",
           "graph": {
             "edges": [
               {
@@ -3003,7 +3003,7 @@
           "checkIds": [
             "case1"
           ],
-          "explanation": "Compare durable acknowledgement watermark and available log prefixes before selecting a survivor. Do not promote below the acknowledged boundary unless data loss is explicitly accepted. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return.",
+          "explanation": "Compare durable acknowledgement watermark and available log prefixes before selecting a survivor. Do not promote below the acknowledged boundary unless data loss is explicitly accepted. [An event log](https://en.wikipedia.org/wiki/Event-driven_architecture) preserves ordered changes so a consumer can rebuild state or catch up. The consumer must remember its position and handle repeated delivery without repeated effects.",
           "graph": {
             "edges": [
               {

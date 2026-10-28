@@ -1434,7 +1434,7 @@
           "checkIds": [
             "expiry"
           ],
-          "explanation": "Aggregate all unexpired devices and explicit availability settings on every heartbeat and every timer expiry. A user is online exactly while at least one device lease has now < deadline, and both heartbeats and expiry timers trigger the reduction. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid. Expiration must be checked at the point of use, even when background cleanup runs later.",
+          "explanation": "Aggregate all unexpired devices and explicit availability settings on every heartbeat and every timer expiry. A user is online exactly while at least one device lease has now < deadline, and both heartbeats and expiry timers trigger the reduction. [Presence information](https://en.wikipedia.org/wiki/Presence_information) describes a recently observed connection or activity. It is time-bounded evidence, not proof that a person or device will remain reachable after the observation.",
           "graph": {
             "edges": [
               {
@@ -1921,7 +1921,7 @@
           "checkIds": [
             "acl"
           ],
-          "explanation": "Authorize channel/contact subscriptions and cap their cardinality. A subscription delivers only targets the observer is currently allowed to see, capped at a fixed cardinality. Authorize channel/contact subscriptions and cap their cardinality. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Access control](https://en.wikipedia.org/wiki/Access_control) decides whether an authenticated identity may perform a particular action. The check must apply to the actual resource and operation, including cached and asynchronous paths.",
+          "explanation": "Authorize channel/contact subscriptions and cap their cardinality. A subscription delivers only targets the observer is currently allowed to see, capped at a fixed cardinality. Authorize channel/contact subscriptions and cap their cardinality. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A search index](https://en.wikipedia.org/wiki/Search_engine_indexing) maps query terms to candidate records. The interface must still associate each response with the active query and preserve the user’s chosen filters.",
           "graph": {
             "edges": [
               {
@@ -2549,7 +2549,7 @@
           "checkIds": [
             "gap"
           ],
-          "explanation": "Signal resnapshot rather than inventing continuity; expire leases after owner failover. A cursor below the retained floor receives an explicit resnapshot status; after owner failover, leases expire by deadline rather than resuming. Signal resnapshot rather than inventing continuity; expire leases after owner failover. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid.",
+          "explanation": "Signal resnapshot rather than inventing continuity; expire leases after owner failover. A cursor below the retained floor receives an explicit resnapshot status; after owner failover, leases expire by deadline rather than resuming. Signal resnapshot rather than inventing continuity; expire leases after owner failover. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A cursor](https://en.wikipedia.org/wiki/Cursor_%28databases%29) records where a query should continue.",
           "graph": {
             "edges": [
               {
@@ -3288,7 +3288,7 @@
           "checkIds": [
             "mechanism"
           ],
-          "explanation": "Fold each session by generation then sequence; close tombstones fence old beats. The fold accepts a beat only if its (epoch, seq) exceeds the folded pair, and a close tombstone rejects later beats of the same epoch. Fold each session by generation then sequence; close tombstones fence old beats. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources.",
+          "explanation": "Fold each session by generation then sequence; close tombstones fence old beats. The fold accepts a beat only if its (epoch, seq) exceeds the folded pair, and a close tombstone rejects later beats of the same epoch. Fold each session by generation then sequence; close tombstones fence old beats. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes.",
           "graph": {
             "edges": [
               {
@@ -3442,7 +3442,7 @@
             "mechanism",
             "expiry"
           ],
-          "explanation": "Schedule expiry against the last accepted heartbeat; when it fires, append a close event carrying expectedSeq to the journal instead of editing the fold. An expiry timer never edits a projection; it appends a close event with expectedSeq, and the fold applies it only if that seq is still the last accepted beat. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid.",
+          "explanation": "Schedule expiry against the last accepted heartbeat; when it fires, append a close event carrying expectedSeq to the journal instead of editing the fold. An expiry timer never edits a projection; it appends a close event with expectedSeq, and the fold applies it only if that seq is still the last accepted beat. [Presence information](https://en.wikipedia.org/wiki/Presence_information) describes a recently observed connection or activity.",
           "graph": {
             "edges": [
               {
@@ -3650,7 +3650,7 @@
           "checkIds": [
             "multi"
           ],
-          "explanation": "Reduce active sessions into a monotonic user projection with source offsets. The user projection is online while any folded session is open, and records the journal offset it reflects as its watermark. Reduce active sessions into a monotonic user projection with source offsets. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes.",
+          "explanation": "Reduce active sessions into a monotonic user projection with source offsets. The user projection is online while any folded session is open, and records the journal offset it reflects as its watermark. Reduce active sessions into a monotonic user projection with source offsets. The graph is an authored conceptual design; guarantees require the named deployment contracts. [An event log](https://en.wikipedia.org/wiki/Event-driven_architecture) preserves ordered changes so a consumer can rebuild state or catch up.",
           "graph": {
             "edges": [
               {
@@ -4092,7 +4092,7 @@
           "checkIds": [
             "gap"
           ],
-          "explanation": "Return materialized state at a source watermark then stream greater versions. A snapshot returns every state at one watermark, and the stream that follows starts strictly after it. Return materialized state at a source watermark then stream greater versions. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes.",
+          "explanation": "Return materialized state at a source watermark then stream greater versions. A snapshot returns every state at one watermark, and the stream that follows starts strictly after it. Return materialized state at a source watermark then stream greater versions. The graph is an authored conceptual design; guarantees require the named deployment contracts. [An event log](https://en.wikipedia.org/wiki/Event-driven_architecture) preserves ordered changes so a consumer can rebuild state or catch up.",
           "graph": {
             "edges": [
               {

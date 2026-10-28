@@ -2079,7 +2079,7 @@
             "push-live-delivery-check-2-reference"
           ],
           "code": [],
-          "explanation": "Short polling increases idle request volume; push can reduce that work. The latency target still requires measurement. Publishing only after commit means anything delivered live is also in history. Gateways keep sockets and forward sends; after commit the chat service publishes to the conversation topic and every subscribed gateway pushes to its devices. [A WebSocket](https://en.wikipedia.org/wiki/WebSocket) keeps a two-way connection open for timely updates.",
+          "explanation": "Short polling increases idle request volume; push can reduce that work. The latency target still requires measurement. Publishing only after commit means anything delivered live is also in history. Gateways keep sockets and forward sends; after commit the chat service publishes to the conversation topic and every subscribed gateway pushes to its devices. [Long polling](https://en.wikipedia.org/wiki/Push_technology#Long_polling) holds a request until an update or timeout is available.",
           "followupIds": [
             "followup-1"
           ],
@@ -2665,7 +2665,7 @@
               "text": "onPush(m): if m.seq <= lastSeq: return          // duplicate\n  buffer[m.seq] = m\n  while buffer[lastSeq + 1]: render(buffer.take(++lastSeq))\n  ack({ conv, lastSeq })                           // debounced"
             }
           ],
-          "explanation": "Receipts (delivered/read) and redelivery need to know what each device has. Acknowledgement cursors only move forward. Cursors replace per-message acks: receipts become comparisons and redelivery becomes a range read. [A cursor](https://en.wikipedia.org/wiki/Cursor_%28databases%29) records where a query should continue. Its ordering fields must distinguish equal values, and its validity depends on the query and access permissions.",
+          "explanation": "Receipts (delivered/read) and redelivery need to know what each device has. Acknowledgement cursors only move forward. Cursors replace per-message acks: receipts become comparisons and redelivery becomes a range read. [A WebSocket](https://en.wikipedia.org/wiki/WebSocket) keeps a two-way connection open for timely updates. Connection lifetime is separate from durable delivery: reconnecting clients still need identities, cursors, and missing-event recovery.",
           "followupIds": [
             "followup-1",
             "followup-3"
@@ -3061,7 +3061,7 @@
               "text": "onReconnect(): for conv in open: send(Resume{ conv, afterSeq: lastSeq[conv] })\nonGapTimeout(conv): page = GET ...?after=lastSeq; page.messages.forEach(onPush)"
             }
           ],
-          "explanation": "Mobile sockets drop; durable history must close delivery gaps and deduplicate overlap. Within retained authorized history, replay and live overlap render each sequence once; an expired cursor explicitly resets. Reconnect and gap repair use the same read: everything after the last contiguous seq. [Transcoding](https://en.wikipedia.org/wiki/Transcoding) creates new media representations from an uploaded source. Publication should reference completed outputs, while retries and cleanup must not expose a partially processed asset.",
+          "explanation": "Mobile sockets drop; durable history must close delivery gaps and deduplicate overlap. Within retained authorized history, replay and live overlap render each sequence once; an expired cursor explicitly resets. Reconnect and gap repair use the same read: everything after the last contiguous seq. [A cursor](https://en.wikipedia.org/wiki/Cursor_%28databases%29) records where a query should continue. Its ordering fields must distinguish equal values, and its validity depends on the query and access permissions.",
           "followupIds": [
             "followup-2"
           ],
@@ -4781,7 +4781,7 @@
               "text": "{\n  \"SendMessage\": \"{ conversationId, clientMsgId: uuid, body }\",\n  \"SendResult\": \"{ seq, sentAt, duplicate: boolean }\",\n  \"Message\": \"{ conversationId, seq, clientMsgId, senderId, body, sentAt }\",\n  \"HistoryPage\": \"{ messages: Message[], nextAfter: seq }\",\n  \"Ack\": \"{ conversationId, lastSeq }\",\n  \"Resume\": \"{ conversationId, afterSeq }\",\n  \"SyncRequest\": \"{ token, waitMs }\",\n  \"SyncResponse\": \"{ entries: Message[], token }\"\n}"
             }
           ],
-          "explanation": "Requirements only: send, receive, history. The contract has a client-generated id for safe retries. Same starting point; the difference is how devices learn about new messages. [Transcoding](https://en.wikipedia.org/wiki/Transcoding) creates new media representations from an uploaded source. Publication should reference completed outputs, while retries and cleanup must not expose a partially processed asset.",
+          "explanation": "Requirements only: send, receive, history. The contract has a client-generated id for safe retries. Same starting point; the difference is how devices learn about new messages. [A WebSocket](https://en.wikipedia.org/wiki/WebSocket) keeps a two-way connection open for timely updates. Connection lifetime is separate from durable delivery: reconnecting clients still need identities, cursors, and missing-event recovery.",
           "followupIds": [
             "followup-1"
           ],
@@ -4892,7 +4892,7 @@
             "inbox-log-check-2-reference"
           ],
           "code": [],
-          "explanation": "Durable history and one order per conversation. Retries never create a second message. Identity and ordering come first because every inbox is derived from this log. [Transcoding](https://en.wikipedia.org/wiki/Transcoding) creates new media representations from an uploaded source. Publication should reference completed outputs, while retries and cleanup must not expose a partially processed asset.",
+          "explanation": "Durable history and one order per conversation. Retries never create a second message. Identity and ordering come first because every inbox is derived from this log. [Backoff](https://en.wikipedia.org/wiki/Exponential_backoff) spaces repeated attempts so failures do not create a burst of extra traffic. A retry still needs a stable identity and a clear stopping condition.",
           "followupIds": [
             "followup-3"
           ],
@@ -5564,7 +5564,7 @@
               "text": "loop: res = POST /sync { token, waitMs: 25000 }\n      apply(res.entries)                // dedupe by (conv, seq)\n      token = res.token                 // only after apply succeeds"
             }
           ],
-          "explanation": "Lost responses and multiple devices must not skip or duplicate entries. Repeated or lost syncs return each message once per recipient. The token is a position in the user’s inbox. Retrying with the old token returns the same entries, so lost responses are harmless. [A trie](https://en.wikipedia.org/wiki/Trie) organizes keys by successive prefixes. Its traversal can find matching prefixes efficiently, but the rule for choosing among matches must be specified separately.",
+          "explanation": "Lost responses and multiple devices must not skip or duplicate entries. Repeated or lost syncs return each message once per recipient. The token is a position in the user’s inbox. Retrying with the old token returns the same entries, so lost responses are harmless. [Idempotence](https://en.wikipedia.org/wiki/Idempotence) means repeating the same logical operation does not repeat its effect. Stable request identities let a retry recover an existing outcome instead of creating another change.",
           "followupIds": [
             "followup-2",
             "followup-3"
@@ -6421,7 +6421,7 @@
             "inbox-big-groups-check-1"
           ],
           "code": [],
-          "explanation": "Writing one inbox entry per member is too expensive for big rooms. Inbox workers are idempotent per (user, conversation, seq), so redelivered batches are safe. Fan-out moves behind a queue, and very large rooms switch to pull from the log, trading a second read path for bounded write amplification. [Idempotence](https://en.wikipedia.org/wiki/Idempotence) means repeating the same logical operation does not repeat its effect.",
+          "explanation": "Writing one inbox entry per member is too expensive for big rooms. Inbox workers are idempotent per (user, conversation, seq), so redelivered batches are safe. Fan-out moves behind a queue, and very large rooms switch to pull from the log, trading a second read path for bounded write amplification. [Publish–subscribe](https://en.wikipedia.org/wiki/Publish%E2%80%93subscribe_pattern) separates producing an update from distributing it to interested consumers. Delivery cost shifts depending on whether work is performed when writing or when someone reads.",
           "followupIds": [
             "followup-1"
           ],
@@ -6767,7 +6767,7 @@
             "inbox-retention-check-1"
           ],
           "code": [],
-          "explanation": "Inboxes grow without bound; old tokens must still work or fail clearly. A token older than retention gets an explicit resync response, never a silent gap. Compaction keeps inboxes small; a device with an expired token resyncs from the log, which remains the source of truth. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid. Expiration must be checked at the point of use, even when background cleanup runs later.",
+          "explanation": "Inboxes grow without bound; old tokens must still work or fail clearly. A token older than retention gets an explicit resync response, never a silent gap. Compaction keeps inboxes small; a device with an expired token resyncs from the log, which remains the source of truth. [A WebSocket](https://en.wikipedia.org/wiki/WebSocket) keeps a two-way connection open for timely updates. Connection lifetime is separate from durable delivery: reconnecting clients still need identities, cursors, and missing-event recovery.",
           "followupIds": [
             "followup-2"
           ],

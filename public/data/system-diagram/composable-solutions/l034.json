@@ -1108,7 +1108,7 @@
           "checkIds": [
             "duplicate-execution"
           ],
-          "explanation": "A durable execution identity is handed to workers through committed outbox records. A request receipt and execution ID survive retries. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call. Consider this case: Execution request K was committed but its acknowledgement was lost.",
+          "explanation": "A durable execution identity is handed to workers through committed outbox records. A request receipt and execution ID survive retries. [Change data capture](https://en.wikipedia.org/wiki/Change_data_capture) turns committed data changes into an ordered stream for other components. Consumers still need replay positions and duplicate handling when delivery is retried. Consider this case: Execution request K was committed but its acknowledgement was lost.",
           "graph": {
             "edges": [
               {
@@ -2220,7 +2220,7 @@
           "checkIds": [
             "revocation"
           ],
-          "explanation": "Use explicit membership revisions and bounded buffers; disconnect and resnapshot when a lossless stream cannot keep up. Membership changes are ordered with cell events; later revisions cannot be delivered under revoked access. Already transmitted data cannot be recalled. [A snapshot](https://en.wikipedia.org/wiki/Snapshot_isolation) gives one read operation a fixed view of data. Later writes may change the live system without changing the rows that reader sees.",
+          "explanation": "Use explicit membership revisions and bounded buffers; disconnect and resnapshot when a lossless stream cannot keep up. Membership changes are ordered with cell events; later revisions cannot be delivered under revoked access. Already transmitted data cannot be recalled. [Collaborative editing](https://en.wikipedia.org/wiki/Operational_transformation) must reconcile concurrent edits against an agreed document version. Sending changes is only one part; reconnects also need a way to recover missing updates and conflicts.",
           "graph": {
             "edges": [
               {
@@ -3406,7 +3406,7 @@
           "checkIds": [
             "stale-edit"
           ],
-          "explanation": "A lease is useful only when every write validates its fencing token in the same transaction. An expired or superseded fencing token cannot update a cell. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources. A newer owner needs a token that the resource checks, not merely a belief that ownership changed.",
+          "explanation": "A lease is useful only when every write validates its fencing token in the same transaction. An expired or superseded fencing token cannot update a cell. [A transaction](https://en.wikipedia.org/wiki/Database_transaction) commits related state changes together or leaves them unapplied. The database must enforce the relevant condition during the write, rather than trusting an earlier read.",
           "graph": {
             "edges": [
               {
@@ -3549,7 +3549,7 @@
           "checkIds": [
             "duplicate-execution"
           ],
-          "explanation": "A durable execution identity is handed to workers through committed outbox records. A request receipt and execution ID survive retries. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call. Consider this case: Execution request K was committed but its acknowledgement was lost.",
+          "explanation": "A durable execution identity is handed to workers through committed outbox records. A request receipt and execution ID survive retries. [Change data capture](https://en.wikipedia.org/wiki/Change_data_capture) turns committed data changes into an ordered stream for other components. Consumers still need replay positions and duplicate handling when delivery is retried. Consider this case: Execution request K was committed but its acknowledgement was lost.",
           "graph": {
             "edges": [
               {
@@ -4733,7 +4733,7 @@
           "checkIds": [
             "revocation"
           ],
-          "explanation": "Use explicit membership revisions and bounded buffers; disconnect and resnapshot when a lossless stream cannot keep up. Membership changes are ordered with cell events; later revisions cannot be delivered under revoked access. Already transmitted data cannot be recalled. [A snapshot](https://en.wikipedia.org/wiki/Snapshot_isolation) gives one read operation a fixed view of data. Later writes may change the live system without changing the rows that reader sees.",
+          "explanation": "Use explicit membership revisions and bounded buffers; disconnect and resnapshot when a lossless stream cannot keep up. Membership changes are ordered with cell events; later revisions cannot be delivered under revoked access. Already transmitted data cannot be recalled. [Collaborative editing](https://en.wikipedia.org/wiki/Operational_transformation) must reconcile concurrent edits against an agreed document version. Sending changes is only one part; reconnects also need a way to recover missing updates and conflicts.",
           "graph": {
             "edges": [
               {

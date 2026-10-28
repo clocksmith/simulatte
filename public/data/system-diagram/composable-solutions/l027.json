@@ -1421,7 +1421,7 @@
             "mechanism",
             "stale"
           ],
-          "explanation": "Recheck source revision and ACL before model context or tool preconditions are accepted. A hit whose source revision differs from the current revision cannot become model context or a tool precondition. Recheck source revision and ACL before model context or tool preconditions are accepted. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A condition variable](https://en.wikipedia.org/wiki/Condition_variable) lets a thread sleep until shared state may have changed.",
+          "explanation": "Recheck source revision and ACL before model context or tool preconditions are accepted. A hit whose source revision differs from the current revision cannot become model context or a tool precondition. Recheck source revision and ACL before model context or tool preconditions are accepted. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Retrieval-augmented generation](https://en.wikipedia.org/wiki/Retrieval-augmented_generation) brings external material into a model request.",
           "graph": {
             "edges": [
               {
@@ -1617,7 +1617,7 @@
             "mechanism",
             "repair"
           ],
-          "explanation": "Validate typed output and decrement repair budget before any repair request. Each repair request decrements the controller's allowance before it is sent, and at zero the request terminates as exhausted. Validate typed output and decrement repair budget before any repair request. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes.",
+          "explanation": "Validate typed output and decrement repair budget before any repair request. Each repair request decrements the controller's allowance before it is sent, and at zero the request terminates as exhausted. Validate typed output and decrement repair budget before any repair request. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Retrieval-augmented generation](https://en.wikipedia.org/wiki/Retrieval-augmented_generation) brings external material into a model request.",
           "graph": {
             "edges": [
               {

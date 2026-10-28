@@ -1,5 +1,6 @@
 'use strict';
 // Authoring helpers only. These graphs are interview designs, not simulation implementations.
+const {createHash}=require('node:crypto');
 const clone=value=>structuredClone(value);
 const SCHEMA='simulatte.composableStudy.v2';
 const LIBRARY='simulatte.studyComponents.v1';
@@ -21,9 +22,17 @@ function builder(p,id,title,chooseWhen,tradeoffs,assumptions){
   const targetScopes=new Set(scopes(b)),common=scopes(a).find(v=>targetScopes.has(v));
   function endpoint(n,direction){let value={nodeId:n.id,portId:port(p,n.definitionId,direction,contractId)};
    while((n.parentId||null)!==common){const parent=find(n.parentId),sub=p.subsystems.find(q=>q.id===parent.subsystemId);if(!sub)throw Error('Missing exposed boundary '+parent.id);
-    const pid=direction+'-'+contractId+'-'+n.id;
-    if(!def(parent.definitionId).ports.some(q=>q.id===pid))def(parent.definitionId).ports.push({id:pid,direction,contractId});
-    if(!sub.ports.some(q=>q.id===pid))sub.ports.push({id:pid,direction,contractId,target:clone(value)});
+    const base=direction+'-'+contractId+'-'+n.id,ports=def(parent.definitionId).ports;
+    const same=q=>q.direction===direction&&q.contractId===contractId&&q.target.nodeId===value.nodeId&&q.target.portId===value.portId;
+    const old=sub.ports.find(q=>q.id===base),declared=ports.find(q=>q.id===base);
+    // Keep the legacy exposure when it identifies this exact endpoint. A shared
+    // intermediate child can expose several leaves through different inner ports.
+    const collision=(old&&!same(old))||(declared&&(declared.direction!==direction||declared.contractId!==contractId));
+    const pid=collision?base+'--'+createHash('sha256').update(JSON.stringify([direction,contractId,value])).digest('hex').slice(0,16):base;
+    const bound=sub.ports.find(q=>q.id===pid),definition=ports.find(q=>q.id===pid);
+    if((bound&&!same(bound))||(definition&&(definition.direction!==direction||definition.contractId!==contractId)))throw Error('Conflicting exposed endpoint '+parent.id+'/'+pid);
+    if(!definition)ports.push({id:pid,direction,contractId});
+    if(!bound)sub.ports.push({id:pid,direction,contractId,target:clone(value)});
     value={nodeId:parent.id,portId:pid};n=parent;
    }return value;
   }

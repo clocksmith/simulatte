@@ -729,7 +729,7 @@
             "command-retry",
             "cancel-race"
           ],
-          "explanation": "Expand the coarse boundary into command processing and durable state. Each accepted command compares or serializes one subscription version. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call. Consider this case: One Start command is accepted but the UI times out.",
+          "explanation": "Expand the coarse boundary into command processing and durable state. Each accepted command compares or serializes one subscription version. [A payment provider](https://en.wikipedia.org/wiki/Payment_service_provider) performs external financial effects that local retries cannot undo. Request identity, confirmed outcomes, and reconciliation are needed when a request times out after submission. Consider this case: One Start command is accepted but the UI times out.",
           "graph": {
             "edges": [
               {
@@ -1491,7 +1491,7 @@
             "event-order",
             "uncertain-charge"
           ],
-          "explanation": "Read the current provider object and apply an allowed versioned local transition instead of trusting event arrival order. Do not compare unrelated event timestamps as a global order; fetch authoritative status for ambiguity. [A control loop](https://en.wikipedia.org/wiki/Control_loop) compares desired state with observed state and applies corrections. Repeated execution must converge safely, especially when a previous action succeeded but its reply was lost.",
+          "explanation": "Read the current provider object and apply an allowed versioned local transition instead of trusting event arrival order. Do not compare unrelated event timestamps as a global order; fetch authoritative status for ambiguity. [A payment provider](https://en.wikipedia.org/wiki/Payment_service_provider) performs external financial effects that local retries cannot undo. Request identity, confirmed outcomes, and reconciliation are needed when a request times out after submission.",
           "graph": {
             "edges": [
               {
@@ -2125,7 +2125,7 @@
             "uncertain-charge",
             "cancel-race"
           ],
-          "explanation": "Sweep pending intent and expired leases, reconcile provider objects and resume unissued periods. Respect remote idempotency retention; outside it, reconcile before retrying an uncertain charge. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid. Expiration must be checked at the point of use, even when background cleanup runs later.",
+          "explanation": "Sweep pending intent and expired leases, reconcile provider objects and resume unissued periods. Respect remote idempotency retention; outside it, reconcile before retrying an uncertain charge. [A payment provider](https://en.wikipedia.org/wiki/Payment_service_provider) performs external financial effects that local retries cannot undo. Request identity, confirmed outcomes, and reconciliation are needed when a request times out after submission.",
           "graph": {
             "edges": [
               {
@@ -3483,7 +3483,7 @@
             "event-order",
             "uncertain-charge"
           ],
-          "explanation": "Read the current provider object and apply an allowed versioned local transition instead of trusting event arrival order. Do not compare unrelated event timestamps as a global order; fetch authoritative status for ambiguity. [A control loop](https://en.wikipedia.org/wiki/Control_loop) compares desired state with observed state and applies corrections. Repeated execution must converge safely, especially when a previous action succeeded but its reply was lost.",
+          "explanation": "Read the current provider object and apply an allowed versioned local transition instead of trusting event arrival order. Do not compare unrelated event timestamps as a global order; fetch authoritative status for ambiguity. [A payment provider](https://en.wikipedia.org/wiki/Payment_service_provider) performs external financial effects that local retries cannot undo. Request identity, confirmed outcomes, and reconciliation are needed when a request times out after submission.",
           "graph": {
             "edges": [
               {

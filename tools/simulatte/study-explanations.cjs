@@ -6,7 +6,7 @@ const sentence=text=>String(text||'').trim().replace(/[.!?;:]?$/u,'.');
 const lower=text=>text.charAt(0).toLowerCase()+text.slice(1);
 function topicFor(problem,stage){
  const title=stage.title+' '+stage.reason,details=(stage.explanation||'')+' '+stage.invariants.join(' ');
- const scored=topics.map((t,i)=>({...t,order:i,score:(title.match(new RegExp(t.pattern,'gi'))||[]).length*3+(details.match(new RegExp(t.pattern,'gi'))||[]).length})).sort((a,b)=>b.score-a.score||a.order-b.order);
+ const scored=topics.map((t,i)=>({...t,order:i,score:(title.match(new RegExp('\\b(?:'+t.pattern+')\\b','gi'))||[]).length*3+(details.match(new RegExp('\\b(?:'+t.pattern+')\\b','gi'))||[]).length})).sort((a,b)=>b.score-a.score||a.order-b.order);
  const fallback=topics.find(t=>t.id===defaults[Number(problem.problem.referenceId.slice(1))-1]);
  return scored[0].score&&scored[0].id!=='api'?scored[0]:fallback;
 }

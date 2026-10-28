@@ -2053,7 +2053,7 @@
           "checkIds": [
             "case3"
           ],
-          "explanation": "Append actor, decision, policy version and source receipt for each terminal transition. Audit preserves denied and superseded decisions. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return. Consider this case: A revision-2 approval for hash A is superseded by a resubmitted hash B.",
+          "explanation": "Append actor, decision, policy version and source receipt for each terminal transition. Audit preserves denied and superseded decisions. [Data ingestion](https://en.wikipedia.org/wiki/Data_integration) moves source records into a usable destination. Stable source identity and progress records distinguish genuinely new data from repeated delivery or a restarted import. Consider this case: A revision-2 approval for hash A is superseded by a resubmitted hash B.",
           "graph": {
             "edges": [
               {

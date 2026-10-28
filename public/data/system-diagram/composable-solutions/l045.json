@@ -951,7 +951,7 @@
             "mechanism",
             "loss"
           ],
-          "explanation": "Expand planner; persist remaining dependencies, task generations, attempt epochs and per-generation selected output receipts. Each task's current generation, attempt epochs and per-generation winner persist with the job and survive scheduler loss. Expand planner; persist remaining dependencies, task generations, attempt epochs and per-generation selected output receipts. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes.",
+          "explanation": "Expand planner; persist remaining dependencies, task generations, attempt epochs and per-generation selected output receipts. Each task's current generation, attempt epochs and per-generation winner persist with the job and survive scheduler loss. Expand planner; persist remaining dependencies, task generations, attempt epochs and per-generation selected output receipts. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure.",
           "graph": {
             "edges": [
               {
@@ -1241,7 +1241,7 @@
           "checkIds": [
             "loss"
           ],
-          "explanation": "Assign tasks under epoch leases and record locality hints without confusing them with correctness authority. A heartbeat only extends a lease; an attempt completes only with an immutable output receipt. Assign tasks under epoch leases and record locality hints without confusing them with correctness authority. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources.",
+          "explanation": "Assign tasks under epoch leases and record locality hints without confusing them with correctness authority. A heartbeat only extends a lease; an attempt completes only with an immutable output receipt. Assign tasks under epoch leases and record locality hints without confusing them with correctness authority. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes.",
           "graph": {
             "edges": [
               {
@@ -2660,7 +2660,7 @@
             "loss",
             "mechanism"
           ],
-          "explanation": "Expand partitioner with task transition logs and committed predecessor receipts. A shard journal records each task's generation, winner and outbox under the owner epoch that wrote it. Expand partitioner with task transition logs and committed predecessor receipts. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Partitioning](https://en.wikipedia.org/wiki/Partition_%28database%29) divides data and work among owners. The key determines where requests go; skew, ownership changes, and operations spanning partitions require additional coordination.",
+          "explanation": "Expand partitioner with task transition logs and committed predecessor receipts. A shard journal records each task's generation, winner and outbox under the owner epoch that wrote it. Expand partitioner with task transition logs and committed predecessor receipts. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes.",
           "graph": {
             "edges": [
               {
@@ -2797,7 +2797,7 @@
             "speculation",
             "mechanism"
           ],
-          "explanation": "Deduplicate completion event IDs at each child actor, ignore undeclared parents and apply revocations for lost generations before emitting ready state. A child applies each completion or revocation event ID once and computes readiness only from its declared parents. [Idempotence](https://en.wikipedia.org/wiki/Idempotence) means repeating the same logical operation does not repeat its effect. Stable request identities let a retry recover an existing outcome instead of creating another change.",
+          "explanation": "Deduplicate completion event IDs at each child actor, ignore undeclared parents and apply revocations for lost generations before emitting ready state. A child applies each completion or revocation event ID once and computes readiness only from its declared parents. [A directed acyclic graph](https://en.wikipedia.org/wiki/Directed_acyclic_graph) expresses work that depends on earlier results. A scheduler must track completed dependencies and distinguish logical tasks from retry attempts before releasing downstream work.",
           "graph": {
             "edges": [
               {

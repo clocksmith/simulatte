@@ -1830,7 +1830,7 @@
           "checkIds": [
             "case1"
           ],
-          "explanation": "Push global ordering/filtering to the server and issue a new snapshot generation. Sorting one cached page never claims to sort all results. [A search index](https://en.wikipedia.org/wiki/Search_engine_indexing) maps query terms to candidate records. The interface must still associate each response with the active query and preserve the user’s chosen filters. Consider this case: Sort generation 2 supersedes generation 1.",
+          "explanation": "Push global ordering/filtering to the server and issue a new snapshot generation. Sorting one cached page never claims to sort all results. [A snapshot](https://en.wikipedia.org/wiki/Snapshot_isolation) gives one read operation a fixed view of data. Later writes may change the live system without changing the rows that reader sees. Consider this case: Sort generation 2 supersedes generation 1. A generation-1 response arrives after cancellation.",
           "graph": {
             "edges": [
               {
@@ -3690,7 +3690,7 @@
             "case1",
             "case4"
           ],
-          "explanation": "Resume from the spool using snapshot/generation plus last contiguous sequence; fail explicitly if expired. Reconnect cannot pretend expired chunks still exist. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid. Expiration must be checked at the point of use, even when background cleanup runs later. Consider this case: A reconnect or old stream delivers generation 1 after generation 2 begins.",
+          "explanation": "Resume from the spool using snapshot/generation plus last contiguous sequence; fail explicitly if expired. Reconnect cannot pretend expired chunks still exist. [A snapshot](https://en.wikipedia.org/wiki/Snapshot_isolation) gives one read operation a fixed view of data. Later writes may change the live system without changing the rows that reader sees. Consider this case: A reconnect or old stream delivers generation 1 after generation 2 begins.",
           "graph": {
             "edges": [
               {

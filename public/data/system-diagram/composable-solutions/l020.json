@@ -1008,7 +1008,7 @@
           "checkIds": [
             "authority"
           ],
-          "explanation": "Expand posting authority; commit post version and fan-out intent atomically. The post version and its fan-out outbox event commit in one transaction; timelines derive from the outbox and never write posts. Expand posting authority; commit post version and fan-out intent atomically. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Publish–subscribe](https://en.wikipedia.org/wiki/Publish%E2%80%93subscribe_pattern) separates producing an update from distributing it to interested consumers.",
+          "explanation": "Expand posting authority; commit post version and fan-out intent atomically. The post version and its fan-out outbox event commit in one transaction; timelines derive from the outbox and never write posts. Expand posting authority; commit post version and fan-out intent atomically. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Change data capture](https://en.wikipedia.org/wiki/Change_data_capture) turns committed data changes into an ordered stream for other components.",
           "graph": {
             "edges": [
               {
@@ -1297,7 +1297,7 @@
           "checkIds": [
             "lag"
           ],
-          "explanation": "Deduplicate viewer/post insertion and commit page checkpoints after writes. Fan-out commits a recipient page checkpoint only after that page's candidate upserts; a redelivered event reruns idempotent upserts. Deduplicate viewer/post insertion and commit page checkpoints after writes. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Idempotence](https://en.wikipedia.org/wiki/Idempotence) means repeating the same logical operation does not repeat its effect.",
+          "explanation": "Deduplicate viewer/post insertion and commit page checkpoints after writes. Fan-out commits a recipient page checkpoint only after that page's candidate upserts; a redelivered event reruns idempotent upserts. Deduplicate viewer/post insertion and commit page checkpoints after writes. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Publish–subscribe](https://en.wikipedia.org/wiki/Publish%E2%80%93subscribe_pattern) separates producing an update from distributing it to interested consumers. Delivery cost shifts depending on whether work is performed when writing or when someone reads.",
           "graph": {
             "edges": [
               {
@@ -1505,7 +1505,7 @@
           "checkIds": [
             "authority"
           ],
-          "explanation": "Store bounded pointers and source watermark; high-degree sources remain pull candidates. A timeline holds at most one candidate per (viewer, postId) and records the source watermark it reflects; candidates are not access grants. Store bounded pointers and source watermark; high-degree sources remain pull candidates. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes.",
+          "explanation": "Store bounded pointers and source watermark; high-degree sources remain pull candidates. A timeline holds at most one candidate per (viewer, postId) and records the source watermark it reflects; candidates are not access grants. Store bounded pointers and source watermark; high-degree sources remain pull candidates. The graph is an authored conceptual design; guarantees require the named deployment contracts. [An event log](https://en.wikipedia.org/wiki/Event-driven_architecture) preserves ordered changes so a consumer can rebuild state or catch up.",
           "graph": {
             "edges": [
               {
@@ -2328,7 +2328,7 @@
           "checkIds": [
             "lag"
           ],
-          "explanation": "Compare watermark against publication progress and merge bounded recent pull results. When the candidate watermark lags publication progress, the response reports freshThrough and degraded instead of claiming completeness. Compare watermark against publication progress and merge bounded recent pull results. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes.",
+          "explanation": "Compare watermark against publication progress and merge bounded recent pull results. When the candidate watermark lags publication progress, the response reports freshThrough and degraded instead of claiming completeness. Compare watermark against publication progress and merge bounded recent pull results. The graph is an authored conceptual design; guarantees require the named deployment contracts. [An event log](https://en.wikipedia.org/wiki/Event-driven_architecture) preserves ordered changes so a consumer can rebuild state or catch up.",
           "graph": {
             "edges": [
               {
@@ -2938,7 +2938,7 @@
             "pages",
             "authority"
           ],
-          "explanation": "Expand query boundary and persist horizon, graph revision and ranker version. Session horizon, graph revision and ranker version are stored once and read, never recomputed, for every page. Expand query boundary and persist horizon, graph revision and ranker version. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Publish–subscribe](https://en.wikipedia.org/wiki/Publish%E2%80%93subscribe_pattern) separates producing an update from distributing it to interested consumers.",
+          "explanation": "Expand query boundary and persist horizon, graph revision and ranker version. Session horizon, graph revision and ranker version are stored once and read, never recomputed, for every page. Expand query boundary and persist horizon, graph revision and ranker version. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A search index](https://en.wikipedia.org/wiki/Search_engine_indexing) maps query terms to candidate records.",
           "graph": {
             "edges": [
               {
@@ -3227,7 +3227,7 @@
           "checkIds": [
             "lag"
           ],
-          "explanation": "Open bounded per-source publication cursors up to the fixed horizon. Each source iterator returns only posts at or below the session horizon. Open bounded per-source publication cursors up to the fixed horizon. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A cursor](https://en.wikipedia.org/wiki/Cursor_%28databases%29) records where a query should continue. Its ordering fields must distinguish equal values, and its validity depends on the query and access permissions.",
+          "explanation": "Open bounded per-source publication cursors up to the fixed horizon. Each source iterator returns only posts at or below the session horizon. Open bounded per-source publication cursors up to the fixed horizon. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Lazy evaluation](https://en.wikipedia.org/wiki/Lazy_evaluation) postpones work until a result is requested. Short-circuiting can avoid unnecessary work, but the design must specify when callbacks run and how iteration state is owned.",
           "graph": {
             "edges": [
               {
@@ -4089,7 +4089,7 @@
             "acl",
             "lag"
           ],
-          "explanation": "Recheck deletion/revocation and report source lag without filling pages with stale grants. Every page is filtered against current deletion and ACL state; filtered posts shorten the page and are never replaced by stale grants. Recheck deletion/revocation and report source lag without filling pages with stale grants. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A search index](https://en.wikipedia.org/wiki/Search_engine_indexing) maps query terms to candidate records.",
+          "explanation": "Recheck deletion/revocation and report source lag without filling pages with stale grants. Every page is filtered against current deletion and ACL state; filtered posts shorten the page and are never replaced by stale grants. Recheck deletion/revocation and report source lag without filling pages with stale grants. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Publish–subscribe](https://en.wikipedia.org/wiki/Publish%E2%80%93subscribe_pattern) separates producing an update from distributing it to interested consumers.",
           "graph": {
             "edges": [
               {

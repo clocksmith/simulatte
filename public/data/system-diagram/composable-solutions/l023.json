@@ -1589,7 +1589,7 @@
           "checkIds": [
             "case1"
           ],
-          "explanation": "Deduplicate event IDs before applying the activity projection. An event ID can affect the projection once. [Idempotence](https://en.wikipedia.org/wiki/Idempotence) means repeating the same logical operation does not repeat its effect. Stable request identities let a retry recover an existing outcome instead of creating another change. Consider this case: A mutation commits and a dispatcher crashes. Deliver the same outbox ID twice.",
+          "explanation": "Deduplicate event IDs before applying the activity projection. An event ID can affect the projection once. [A queue](https://en.wikipedia.org/wiki/Queue_%28abstract_data_type%29) separates accepting work from completing it. Capacity, ordering, ownership, and shutdown behavior determine what producers and consumers may safely assume about each item. Consider this case: A mutation commits and a dispatcher crashes. Deliver the same outbox ID twice.",
           "graph": {
             "edges": [
               {
@@ -2515,7 +2515,7 @@
             "bounded-mechanism",
             "case0"
           ],
-          "explanation": "Verify signature, expiry, audience, tenant and resource scope before accepting an operation. Own current workspace revocation epochs and role source of truth. The verifier never trusts a cached workspace epoch for writes; the epoch authority is read inside the mutation transaction. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return.",
+          "explanation": "Verify signature, expiry, audience, tenant and resource scope before accepting an operation. Own current workspace revocation epochs and role source of truth. The verifier never trusts a cached workspace epoch for writes; the epoch authority is read inside the mutation transaction. [Access control](https://en.wikipedia.org/wiki/Access_control) decides whether an authenticated identity may perform a particular action. The check must apply to the actual resource and operation, including cached and asynchronous paths.",
           "graph": {
             "edges": [
               {
@@ -2651,7 +2651,7 @@
           "checkIds": [
             "bounded-mechanism"
           ],
-          "explanation": "Issue only after an authoritative membership check and bind action, resource, audience and expiry. A capability is not transferable across audiences or tenants. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid. Expiration must be checked at the point of use, even when background cleanup runs later.",
+          "explanation": "Issue only after an authoritative membership check and bind action, resource, audience and expiry. A capability is not transferable across audiences or tenants. [Access control](https://en.wikipedia.org/wiki/Access_control) decides whether an authenticated identity may perform a particular action. The check must apply to the actual resource and operation, including cached and asynchronous paths.",
           "graph": {
             "edges": [
               {
@@ -2983,7 +2983,7 @@
             "case1",
             "bounded-mechanism"
           ],
-          "explanation": "Append command identity, stored response and resulting version with the mutation. The log records completed decisions, not queued promises. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call. Consider this case: A projection consumer restarts at an old offset.",
+          "explanation": "Append command identity, stored response and resulting version with the mutation. The log records completed decisions, not queued promises. [Access control](https://en.wikipedia.org/wiki/Access_control) decides whether an authenticated identity may perform a particular action. The check must apply to the actual resource and operation, including cached and asynchronous paths. Consider this case: A projection consumer restarts at an old offset.",
           "graph": {
             "edges": [
               {
@@ -3178,7 +3178,7 @@
           "checkIds": [
             "case1"
           ],
-          "explanation": "Apply monotonic policy epochs and object versions from replayable events. An old event cannot reduce a projection epoch. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return. Consider this case: A projection consumer restarts at an old offset.",
+          "explanation": "Apply monotonic policy epochs and object versions from replayable events. An old event cannot reduce a projection epoch. [A queue](https://en.wikipedia.org/wiki/Queue_%28abstract_data_type%29) separates accepting work from completing it. Capacity, ordering, ownership, and shutdown behavior determine what producers and consumers may safely assume about each item. Consider this case: A projection consumer restarts at an old offset. Replay epoch 5 followed by epoch 4.",
           "graph": {
             "edges": [
               {
@@ -3640,7 +3640,7 @@
           "checkIds": [
             "case0"
           ],
-          "explanation": "Notify clients to discard local proofs while server epoch fencing remains authoritative. A missed client notification cannot permit a stale write. [Access control](https://en.wikipedia.org/wiki/Access_control) decides whether an authenticated identity may perform a particular action. The check must apply to the actual resource and operation, including cached and asynchronous paths. Consider this case: A capability carries epoch 4.",
+          "explanation": "Notify clients to discard local proofs while server epoch fencing remains authoritative. A missed client notification cannot permit a stale write. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return. Consider this case: A capability carries epoch 4.",
           "graph": {
             "edges": [
               {

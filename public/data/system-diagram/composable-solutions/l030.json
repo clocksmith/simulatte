@@ -852,7 +852,7 @@
           "checkIds": [
             "boundary"
           ],
-          "explanation": "Accept source event ID, partition, schema version and an event timestamp separate from arrival time. Event time comes from the payload, never from arrival; an event without an integer eventTime is rejected at intake. Accept source event ID, partition, schema version and an event timestamp separate from arrival time. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Stream processing](https://en.wikipedia.org/wiki/Stream_processing) updates results as events arrive.",
+          "explanation": "Accept source event ID, partition, schema version and an event timestamp separate from arrival time. Event time comes from the payload, never from arrival; an event without an integer eventTime is rejected at intake. Accept source event ID, partition, schema version and an event timestamp separate from arrival time. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Partitioning](https://en.wikipedia.org/wiki/Partition_%28database%29) divides data and work among owners.",
           "graph": {
             "edges": [
               {
@@ -2159,7 +2159,7 @@
           "checkIds": [
             "replay"
           ],
-          "explanation": "Restore a checkpoint, deduplicate replayed IDs and publish versioned window results; finality follows the declared watermark rule. Replay after the committed offsets reapplies events by ID into restored open windows, so sums never double; a finalized window is emitted once. [An event log](https://en.wikipedia.org/wiki/Event-driven_architecture) preserves ordered changes so a consumer can rebuild state or catch up. The consumer must remember its position and handle repeated delivery without repeated effects.",
+          "explanation": "Restore a checkpoint, deduplicate replayed IDs and publish versioned window results; finality follows the declared watermark rule. Replay after the committed offsets reapplies events by ID into restored open windows, so sums never double; a finalized window is emitted once. [Stream processing](https://en.wikipedia.org/wiki/Stream_processing) updates results as events arrive. Arrival order may differ from event time, so late-data rules and bounded retained state are part of the result definition.",
           "graph": {
             "edges": [
               {
@@ -2827,7 +2827,7 @@
           "checkIds": [
             "replay"
           ],
-          "explanation": "Retain event IDs, event times and original schema version in an immutable batch object. Raw batch bytes keep event ID, event time and original schema version and are never rewritten, so recomputation sees the same input. Retain event IDs, event times and original schema version in an immutable batch object. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Stream processing](https://en.wikipedia.org/wiki/Stream_processing) updates results as events arrive.",
+          "explanation": "Retain event IDs, event times and original schema version in an immutable batch object. Raw batch bytes keep event ID, event time and original schema version and are never rewritten, so recomputation sees the same input. Retain event IDs, event times and original schema version in an immutable batch object. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Data ingestion](https://en.wikipedia.org/wiki/Data_integration) moves source records into a usable destination.",
           "graph": {
             "edges": [
               {
@@ -2981,7 +2981,7 @@
             "boundary",
             "mechanism"
           ],
-          "explanation": "Convert each declared version to canonical key/value fields and quarantine unknown versions. Each declared version converts to one canonical value; unknown versions are quarantined with their batchId. Convert each declared version to canonical key/value fields and quarantine unknown versions. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Data ingestion](https://en.wikipedia.org/wiki/Data_integration) moves source records into a usable destination.",
+          "explanation": "Convert each declared version to canonical key/value fields and quarantine unknown versions. Each declared version converts to one canonical value; unknown versions are quarantined with their batchId. Convert each declared version to canonical key/value fields and quarantine unknown versions. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Stream processing](https://en.wikipedia.org/wiki/Stream_processing) updates results as events arrive.",
           "graph": {
             "edges": [
               {

@@ -540,7 +540,7 @@
           "checkIds": [
             "stale-response"
           ],
-          "explanation": "Begin with one request path and stable result identities. A response identifies its query generation. [A search index](https://en.wikipedia.org/wiki/Search_engine_indexing) maps query terms to candidate records. The interface must still associate each response with the active query and preserve the user’s chosen filters. Consider this case: Request A is generation 1; B is generation 2. B returns, then A returns despite cancellation.",
+          "explanation": "Begin with one request path and stable result identities. A response identifies its query generation. [A race condition](https://en.wikipedia.org/wiki/Race_condition) makes an outcome depend on which operation finishes first. Responses need an identity or generation check so an older request cannot overwrite newer user intent. Consider this case: Request A is generation 1; B is generation 2. B returns, then A returns despite cancellation.",
           "graph": {
             "edges": [
               {
@@ -637,7 +637,7 @@
           "checkIds": [
             "page-reset"
           ],
-          "explanation": "Expose API validation and the actual index without adding a second authoritative UI state. Unauthorized filters never reach a broader corpus. [A search index](https://en.wikipedia.org/wiki/Search_engine_indexing) maps query terms to candidate records. The interface must still associate each response with the active query and preserve the user’s chosen filters. Consider this case: Page two of filter A is in flight.",
+          "explanation": "Expose API validation and the actual index without adding a second authoritative UI state. Unauthorized filters never reach a broader corpus. [An index](https://en.wikipedia.org/wiki/Database_index) maintains a structure that narrows a search without scanning every record. Faster reads come with storage costs and extra work whenever indexed data changes. Consider this case: Page two of filter A is in flight.",
           "graph": {
             "edges": [
               {
@@ -770,7 +770,7 @@
           "checkIds": [
             "stale-response"
           ],
-          "explanation": "Keep work-reduction mechanisms separate from correctness. A cancelled query can still finish remotely. [A search index](https://en.wikipedia.org/wiki/Search_engine_indexing) maps query terms to candidate records. The interface must still associate each response with the active query and preserve the user’s chosen filters. Consider this case: Request A is generation 1; B is generation 2. B returns, then A returns despite cancellation.",
+          "explanation": "Keep work-reduction mechanisms separate from correctness. A cancelled query can still finish remotely. [An index](https://en.wikipedia.org/wiki/Database_index) maintains a structure that narrows a search without scanning every record. Faster reads come with storage costs and extra work whenever indexed data changes. Consider this case: Request A is generation 1; B is generation 2. B returns, then A returns despite cancellation.",
           "graph": {
             "edges": [
               {
@@ -2475,7 +2475,7 @@
           "checkIds": [
             "stale-response"
           ],
-          "explanation": "Begin with one request path and stable result identities. A response identifies its query generation. [A search index](https://en.wikipedia.org/wiki/Search_engine_indexing) maps query terms to candidate records. The interface must still associate each response with the active query and preserve the user’s chosen filters. Consider this case: Request A is generation 1; B is generation 2. B returns, then A returns despite cancellation.",
+          "explanation": "Begin with one request path and stable result identities. A response identifies its query generation. [A race condition](https://en.wikipedia.org/wiki/Race_condition) makes an outcome depend on which operation finishes first. Responses need an identity or generation check so an older request cannot overwrite newer user intent. Consider this case: Request A is generation 1; B is generation 2. B returns, then A returns despite cancellation.",
           "graph": {
             "edges": [
               {
@@ -2572,7 +2572,7 @@
           "checkIds": [
             "page-reset"
           ],
-          "explanation": "Expose API validation and the actual index without adding a second authoritative UI state. Unauthorized filters never reach a broader corpus. [A search index](https://en.wikipedia.org/wiki/Search_engine_indexing) maps query terms to candidate records. The interface must still associate each response with the active query and preserve the user’s chosen filters. Consider this case: Page two of filter A is in flight.",
+          "explanation": "Expose API validation and the actual index without adding a second authoritative UI state. Unauthorized filters never reach a broader corpus. [An index](https://en.wikipedia.org/wiki/Database_index) maintains a structure that narrows a search without scanning every record. Faster reads come with storage costs and extra work whenever indexed data changes. Consider this case: Page two of filter A is in flight.",
           "graph": {
             "edges": [
               {

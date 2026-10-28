@@ -1131,7 +1131,7 @@
             "mechanism",
             "retention"
           ],
-          "explanation": "Upload immutable data objects and verify their hashes before attempting publication. Every file a commit references was uploaded and hash-verified before the create attempt, and stays until an abort marker for its transaction commits. Upload immutable data objects and verify their hashes before attempting publication. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Transcoding](https://en.wikipedia.org/wiki/Transcoding) creates new media representations from an uploaded source.",
+          "explanation": "Upload immutable data objects and verify their hashes before attempting publication. Every file a commit references was uploaded and hash-verified before the create attempt, and stays until an abort marker for its transaction commits. Upload immutable data objects and verify their hashes before attempting publication. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers.",
           "graph": {
             "edges": [
               {
@@ -1494,7 +1494,7 @@
             "winner",
             "mechanism"
           ],
-          "explanation": "Create version readVersion + intervening commits + 1 with If-None-Match star; a loser rereads and revalidates before retry. The commit point is the If-None-Match create of readVersion + intervening + 1; a failed create rereads and revalidates and never overwrites the winner. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call.",
+          "explanation": "Create version readVersion + intervening commits + 1 with If-None-Match star; a loser rereads and revalidates before retry. The commit point is the If-None-Match create of readVersion + intervening + 1; a failed create rereads and revalidates and never overwrites the winner. [Backoff](https://en.wikipedia.org/wiki/Exponential_backoff) spaces repeated attempts so failures do not create a burst of extra traffic. A retry still needs a stable identity and a clear stopping condition.",
           "graph": {
             "edges": [
               {
@@ -1771,7 +1771,7 @@
           "checkIds": [
             "snapshot"
           ],
-          "explanation": "Choose one committed version and replay checkpoint plus contiguous log suffix; abort markers are no-ops. A reader replays one checkpoint plus the contiguous suffix up to its pinned version and never reads a later version's metadata. [An event log](https://en.wikipedia.org/wiki/Event-driven_architecture) preserves ordered changes so a consumer can rebuild state or catch up. The consumer must remember its position and handle repeated delivery without repeated effects.",
+          "explanation": "Choose one committed version and replay checkpoint plus contiguous log suffix; abort markers are no-ops. A reader replays one checkpoint plus the contiguous suffix up to its pinned version and never reads a later version's metadata. Choose one committed version and replay checkpoint plus contiguous log suffix; abort markers are no-ops. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A checkpoint](https://en.wikipedia.org/wiki/Checkpointing) records enough progress to restart without repeating everything.",
           "graph": {
             "edges": [
               {
@@ -2394,7 +2394,7 @@
             "retention",
             "mechanism"
           ],
-          "explanation": "Retain files of committed or in-grace transactions and of retained snapshots; delete an aged orphan only after an abort marker for its transaction commits as the next log version. Staged files are deleted only after their transaction's abort marker commits in the log, so a slow writer can no longer commit them; files in retained snapshots stay. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure.",
+          "explanation": "Retain files of committed or in-grace transactions and of retained snapshots; delete an aged orphan only after an abort marker for its transaction commits as the next log version. Staged files are deleted only after their transaction's abort marker commits in the log, so a slow writer can no longer commit them; files in retained snapshots stay. [A transaction](https://en.wikipedia.org/wiki/Database_transaction) commits related state changes together or leaves them unapplied.",
           "graph": {
             "edges": [
               {
@@ -3270,7 +3270,7 @@
             "winner",
             "mechanism"
           ],
-          "explanation": "Validate against every reserved or committed version after the base version and enforce declared conflict semantics. Validation covers every reserved or committed version after baseVersion, so two overlapping writers can never both reserve. Validate against every reserved or committed version after the base version and enforce declared conflict semantics. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure.",
+          "explanation": "Validate against every reserved or committed version after the base version and enforce declared conflict semantics. Validation covers every reserved or committed version after baseVersion, so two overlapping writers can never both reserve. Validate against every reserved or committed version after the base version and enforce declared conflict semantics. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Collaborative editing](https://en.wikipedia.org/wiki/Operational_transformation) must reconcile concurrent edits against an agreed document version.",
           "graph": {
             "edges": [
               {
@@ -3726,7 +3726,7 @@
             "snapshot",
             "mechanism"
           ],
-          "explanation": "Readers expose only the contiguous prefix of committed or aborted (no-op) versions with immutable log hashes. Readers see the longest contiguous prefix of committed or aborted no-op versions; a pending reservation hides every later version. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call.",
+          "explanation": "Readers expose only the contiguous prefix of committed or aborted (no-op) versions with immutable log hashes. Readers see the longest contiguous prefix of committed or aborted no-op versions; a pending reservation hides every later version. [An index](https://en.wikipedia.org/wiki/Database_index) maintains a structure that narrows a search without scanning every record. Faster reads come with storage costs and extra work whenever indexed data changes.",
           "graph": {
             "edges": [
               {
@@ -4004,7 +4004,7 @@
           "checkIds": [
             "snapshot"
           ],
-          "explanation": "Create immutable checkpoints with protocol/schema metadata from the committed prefix. Checkpoints are built only from the committed prefix and carry its protocol and schema metadata. Create immutable checkpoints with protocol/schema metadata from the committed prefix. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A checkpoint](https://en.wikipedia.org/wiki/Checkpointing) records enough progress to restart without repeating everything. Its usefulness depends on which state is durable and whether later effects can be replayed safely.",
+          "explanation": "Create immutable checkpoints with protocol/schema metadata from the committed prefix. Checkpoints are built only from the committed prefix and carry its protocol and schema metadata. Create immutable checkpoints with protocol/schema metadata from the committed prefix. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Raft](https://en.wikipedia.org/wiki/Raft_%28algorithm%29) coordinates a replicated log through an elected leader and majority agreement. Terms and voting rules prevent an outdated leader from deciding new committed entries alone.",
           "graph": {
             "edges": [
               {
@@ -4290,7 +4290,7 @@
             "retention",
             "mechanism"
           ],
-          "explanation": "Resolve a pending version by transaction identity: confirm its log object, republish the retained same-hash actions, or record an aborted no-op version; never skip or stall a version. A pending version whose log object is missing is republished from retained bytes with the same hash or recorded as an aborted no-op; it never blocks the committed prefix indefinitely. [A race condition](https://en.wikipedia.org/wiki/Race_condition) makes an outcome depend on which operation finishes first.",
+          "explanation": "Resolve a pending version by transaction identity: confirm its log object, republish the retained same-hash actions, or record an aborted no-op version; never skip or stall a version. A pending version whose log object is missing is republished from retained bytes with the same hash or recorded as an aborted no-op; it never blocks the committed prefix indefinitely. [A transaction](https://en.wikipedia.org/wiki/Database_transaction) commits related state changes together or leaves them unapplied.",
           "graph": {
             "edges": [
               {

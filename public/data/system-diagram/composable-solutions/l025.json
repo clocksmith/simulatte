@@ -861,7 +861,7 @@
           "checkIds": [
             "batching"
           ],
-          "explanation": "submit() only tries to enqueue by chunk identity and answers queued, duplicate or rejected immediately; it never awaits GPU completion, so a burst fills the finite queue and the overflow is rejected visibly. Every submitted chunk is queued, a duplicate, or recorded rejected at submission; rejection is never reported as completed work. [A queue](https://en.wikipedia.org/wiki/Queue_%28abstract_data_type%29) separates accepting work from completing it.",
+          "explanation": "submit() only tries to enqueue by chunk identity and answers queued, duplicate or rejected immediately; it never awaits GPU completion, so a burst fills the finite queue and the overflow is rejected visibly. Every submitted chunk is queued, a duplicate, or recorded rejected at submission; rejection is never reported as completed work. [Idempotence](https://en.wikipedia.org/wiki/Idempotence) means repeating the same logical operation does not repeat its effect.",
           "graph": {
             "edges": [
               {
@@ -2731,7 +2731,7 @@
           "checkIds": [
             "manifest"
           ],
-          "explanation": "Each commit, rejection gap or floor change publishes a new immutable version holding sorted entries, explicit gaps and the retained floor; readers take one version and old versions are never edited. A higher manifest version never changes old content hashes, and every rejected chunk appears as a gap a cursor can step over. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure.",
+          "explanation": "Each commit, rejection gap or floor change publishes a new immutable version holding sorted entries, explicit gaps and the retained floor; readers take one version and old versions are never edited. A higher manifest version never changes old content hashes, and every rejected chunk appears as a gap a cursor can step over. [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers.",
           "graph": {
             "edges": [
               {

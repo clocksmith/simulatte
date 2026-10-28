@@ -1393,7 +1393,7 @@
           "checkIds": [
             "case2"
           ],
-          "explanation": "Install cgroup CPU/memory and supported device/network controls before starting user code. GPU scheduling isolation needs its own supported mechanism; quota alone is insufficient. [A directed acyclic graph](https://en.wikipedia.org/wiki/Directed_acyclic_graph) expresses work that depends on earlier results. A scheduler must track completed dependencies and distinguish logical tasks from retry attempts before releasing downstream work.",
+          "explanation": "Install cgroup CPU/memory and supported device/network controls before starting user code. GPU scheduling isolation needs its own supported mechanism; quota alone is insufficient. [Backpressure](https://en.wikipedia.org/wiki/Flow_control_%28data%29) prevents producers from outrunning the next component indefinitely. The design must choose whether excess work waits, is rejected, or is dropped with an explicit outcome. Consider this case: An admitted job tries to use twice its memory limit.",
           "graph": {
             "edges": [
               {
@@ -2052,7 +2052,7 @@
           "checkIds": [
             "case1"
           ],
-          "explanation": "Compare node leases and ledger reservations; fence the old allocation before releasing reusable capacity. Lease expiry without fencing cannot safely free capacity. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources. A newer owner needs a token that the resource checks, not merely a belief that ownership changed.",
+          "explanation": "Compare node leases and ledger reservations; fence the old allocation before releasing reusable capacity. Lease expiry without fencing cannot safely free capacity. [A transaction](https://en.wikipedia.org/wiki/Database_transaction) commits related state changes together or leaves them unapplied. The database must enforce the relevant condition during the write, rather than trusting an earlier read. Consider this case: A node reports the same allocation interval twice.",
           "graph": {
             "edges": [
               {
@@ -2540,7 +2540,7 @@
           "checkIds": [
             "case0"
           ],
-          "explanation": "Partition quota into nonoverlapping expiring resource leases. Own token amounts, holder, epoch and revocation state. Only the global quota issuer creates, revokes and reissues leases recorded in the global lease ledger; regions spend only within leases they hold. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources. A newer owner needs a token that the resource checks, not merely a belief that ownership changed.",
+          "explanation": "Partition quota into nonoverlapping expiring resource leases. Own token amounts, holder, epoch and revocation state. Only the global quota issuer creates, revokes and reissues leases recorded in the global lease ledger; regions spend only within leases they hold. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return.",
           "graph": {
             "edges": [
               {
@@ -3198,7 +3198,7 @@
             "case4",
             "bounded-mechanism"
           ],
-          "explanation": "Deduplicate contiguous interval sequences by allocation/epoch before rolling up tenant totals; reject conflicting duplicates and settle released allocations. Aggregation is idempotent for repeated interval reports. [Idempotence](https://en.wikipedia.org/wiki/Idempotence) means repeating the same logical operation does not repeat its effect. Stable request identities let a retry recover an existing outcome instead of creating another change.",
+          "explanation": "Deduplicate contiguous interval sequences by allocation/epoch before rolling up tenant totals; reject conflicting duplicates and settle released allocations. Aggregation is idempotent for repeated interval reports. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return.",
           "graph": {
             "edges": [
               {

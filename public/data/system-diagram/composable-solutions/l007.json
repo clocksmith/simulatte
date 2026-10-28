@@ -1962,7 +1962,7 @@
             "retry-budget",
             "overload"
           ],
-          "explanation": "Unify policy state while keeping backend execution and discovery separate. Every accepted attempt releases exactly one permit on success, failure or cancellation. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources. A newer owner needs a token that the resource checks, not merely a belief that ownership changed.",
+          "explanation": "Unify policy state while keeping backend execution and discovery separate. Every accepted attempt releases exactly one permit on success, failure or cancellation. [A race condition](https://en.wikipedia.org/wiki/Race_condition) makes an outcome depend on which operation finishes first. Responses need an identity or generation check so an older request cannot overwrite newer user intent.",
           "graph": {
             "edges": [
               {
@@ -3748,7 +3748,7 @@
             "retry-budget",
             "overload"
           ],
-          "explanation": "Unify policy state while keeping backend execution and discovery separate. Every accepted attempt releases exactly one permit on success, failure or cancellation. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources. A newer owner needs a token that the resource checks, not merely a belief that ownership changed.",
+          "explanation": "Unify policy state while keeping backend execution and discovery separate. Every accepted attempt releases exactly one permit on success, failure or cancellation. [A race condition](https://en.wikipedia.org/wiki/Race_condition) makes an outcome depend on which operation finishes first. Responses need an identity or generation check so an older request cannot overwrite newer user intent.",
           "graph": {
             "edges": [
               {

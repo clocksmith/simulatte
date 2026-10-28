@@ -966,7 +966,7 @@
           "checkIds": [
             "behavior"
           ],
-          "explanation": "Use an injected clock adapter with nondecreasing clamp and a visible rollback diagnostic; never trust request time for expiration. The adapter never returns a second lower than one it already returned; regressions are clamped and counted. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid. Expiration must be checked at the point of use, even when background cleanup runs later.",
+          "explanation": "Use an injected clock adapter with nondecreasing clamp and a visible rollback diagnostic; never trust request time for expiration. The adapter never returns a second lower than one it already returned; regressions are clamped and counted. [Rate limiting](https://en.wikipedia.org/wiki/Rate_limiting) bounds accepted work over a defined time interval. Exact boundary rules, the source of time, and concurrent updates determine whether the stated limit is actually enforced.",
           "graph": {
             "edges": [
               {
@@ -1410,7 +1410,7 @@
           "checkIds": [
             "scan"
           ],
-          "explanation": "Sample now, load each of the 300 words once without locks, set snapshotTime to the maximum of now and every decoded second, then sum words whose second lies in (snapshotTime-300, snapshotTime]. Every hit completed before the call and inside the window at snapshotTime counts; expired hits never do; concurrent hits may. [A snapshot](https://en.wikipedia.org/wiki/Snapshot_isolation) gives one read operation a fixed view of data.",
+          "explanation": "Sample now, load each of the 300 words once without locks, set snapshotTime to the maximum of now and every decoded second, then sum words whose second lies in (snapshotTime-300, snapshotTime]. Every hit completed before the call and inside the window at snapshotTime counts; expired hits never do; concurrent hits may. [Stream processing](https://en.wikipedia.org/wiki/Stream_processing) updates results as events arrive.",
           "graph": {
             "edges": [
               {
@@ -1606,7 +1606,7 @@
           "checkIds": [
             "admission"
           ],
-          "explanation": "A key created in limiter mode routes every mutation through tryAcquire, which holds that key's admission mutex while it scans, compares with the limit and applies one compare-and-swap increment. Counter-mode keys never take it. Two admissions on one limiter key never decide from the same count, and a denied request never increments. [Backpressure](https://en.wikipedia.org/wiki/Flow_control_%28data%29) prevents producers from outrunning the next component indefinitely.",
+          "explanation": "A key created in limiter mode routes every mutation through tryAcquire, which holds that key's admission mutex while it scans, compares with the limit and applies one compare-and-swap increment. Counter-mode keys never take it. Two admissions on one limiter key never decide from the same count, and a denied request never increments. [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers.",
           "graph": {
             "edges": [
               {
@@ -3447,7 +3447,7 @@
           "checkIds": [
             "keys"
           ],
-          "explanation": "After expiration leaves every stripe empty, mark idle; directory removal checks entry identity and pin count. Live-key cap rejects rather than evicts active accounting. Active-window counts are never dropped to free memory. [A cache](https://en.wikipedia.org/wiki/Cache_replacement_policies) keeps reusable results in limited memory. Eviction controls space, while ownership and invalidation rules determine whether a returned value is still safe to use.",
+          "explanation": "After expiration leaves every stripe empty, mark idle; directory removal checks entry identity and pin count. Live-key cap rejects rather than evicts active accounting. Active-window counts are never dropped to free memory. [Stream processing](https://en.wikipedia.org/wiki/Stream_processing) updates results as events arrive. Arrival order may differ from event time, so late-data rules and bounded retained state are part of the result definition.",
           "graph": {
             "edges": [
               {

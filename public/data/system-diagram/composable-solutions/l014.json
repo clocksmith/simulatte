@@ -1235,7 +1235,7 @@
             "politeness",
             "lease-recovery"
           ],
-          "explanation": "Use a shared host scheduler instead of process-local delays. A lease expiry may cause overlapping attempts; bound duplicate load and fence stale completion. [A directed acyclic graph](https://en.wikipedia.org/wiki/Directed_acyclic_graph) expresses work that depends on earlier results. A scheduler must track completed dependencies and distinguish logical tasks from retry attempts before releasing downstream work.",
+          "explanation": "Use a shared host scheduler instead of process-local delays. A lease expiry may cause overlapping attempts; bound duplicate load and fence stale completion. [A crawler](https://en.wikipedia.org/wiki/Web_crawler) chooses which URLs to fetch and when. Scheduling must balance discovery with per-site limits, while canonicalization and duplicate checks prevent repeated or unbounded work. Consider this case: Several workers share one origin. Try to claim work simultaneously.",
           "graph": {
             "edges": [
               {
@@ -1731,7 +1731,7 @@
             "lease-recovery",
             "idempotent-index"
           ],
-          "explanation": "Add retry recovery and a transactional outbox for derived work. A stale attempt cannot mark a newer attempt complete. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call. Consider this case: Attempt A expires and attempt B is leased.",
+          "explanation": "Add retry recovery and a transactional outbox for derived work. A stale attempt cannot mark a newer attempt complete. [Change data capture](https://en.wikipedia.org/wiki/Change_data_capture) turns committed data changes into an ordered stream for other components. Consumers still need replay positions and duplicate handling when delivery is retried. Consider this case: Attempt A expires and attempt B is leased. A later completes while B is processing.",
           "graph": {
             "edges": [
               {
@@ -2134,7 +2134,7 @@
             "politeness",
             "dedup"
           ],
-          "explanation": "Unify budget and scheduling decisions under one durable transaction boundary. Restarting a scheduler never resets the durable crawl budget. [A directed acyclic graph](https://en.wikipedia.org/wiki/Directed_acyclic_graph) expresses work that depends on earlier results. A scheduler must track completed dependencies and distinguish logical tasks from retry attempts before releasing downstream work. Consider this case: Two workers discover the same URL and another URL with a distinct query value.",
+          "explanation": "Unify budget and scheduling decisions under one durable transaction boundary. Restarting a scheduler never resets the durable crawl budget. [A transaction](https://en.wikipedia.org/wiki/Database_transaction) commits related state changes together or leaves them unapplied. The database must enforce the relevant condition during the write, rather than trusting an earlier read. Consider this case: Two workers discover the same URL and another URL with a distinct query value.",
           "graph": {
             "edges": [
               {
@@ -3095,7 +3095,7 @@
             "politeness",
             "lease-recovery"
           ],
-          "explanation": "Use a shared host scheduler instead of process-local delays. A lease expiry may cause overlapping attempts; bound duplicate load and fence stale completion. [A directed acyclic graph](https://en.wikipedia.org/wiki/Directed_acyclic_graph) expresses work that depends on earlier results. A scheduler must track completed dependencies and distinguish logical tasks from retry attempts before releasing downstream work.",
+          "explanation": "Use a shared host scheduler instead of process-local delays. A lease expiry may cause overlapping attempts; bound duplicate load and fence stale completion. [A crawler](https://en.wikipedia.org/wiki/Web_crawler) chooses which URLs to fetch and when. Scheduling must balance discovery with per-site limits, while canonicalization and duplicate checks prevent repeated or unbounded work. Consider this case: Several workers share one origin. Try to claim work simultaneously.",
           "graph": {
             "edges": [
               {
@@ -3313,7 +3313,7 @@
           "checkIds": [
             "idempotent-index"
           ],
-          "explanation": "Store immutable bodies; make the independent parsing boundary explicit when selected. Fetch completion records and body references must commit before parse dispatch is acknowledged. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call.",
+          "explanation": "Store immutable bodies; make the independent parsing boundary explicit when selected. Fetch completion records and body references must commit before parse dispatch is acknowledged. [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers. Publishing one reference lets each reader keep a consistent version. Consider this case: A body and discovery intents commit but the delivery acknowledgement is lost.",
           "graph": {
             "edges": [
               {
@@ -3730,7 +3730,7 @@
             "lease-recovery",
             "idempotent-index"
           ],
-          "explanation": "Add retry recovery and a transactional outbox for derived work. A stale attempt cannot mark a newer attempt complete. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call. Consider this case: Attempt A expires and attempt B is leased.",
+          "explanation": "Add retry recovery and a transactional outbox for derived work. A stale attempt cannot mark a newer attempt complete. [Change data capture](https://en.wikipedia.org/wiki/Change_data_capture) turns committed data changes into an ordered stream for other components. Consumers still need replay positions and duplicate handling when delivery is retried. Consider this case: Attempt A expires and attempt B is leased. A later completes while B is processing.",
           "graph": {
             "edges": [
               {
@@ -4192,7 +4192,7 @@
             "politeness",
             "dedup"
           ],
-          "explanation": "Unify budget and scheduling decisions under one durable transaction boundary. Restarting a scheduler never resets the durable crawl budget. [A directed acyclic graph](https://en.wikipedia.org/wiki/Directed_acyclic_graph) expresses work that depends on earlier results. A scheduler must track completed dependencies and distinguish logical tasks from retry attempts before releasing downstream work. Consider this case: Two workers discover the same URL and another URL with a distinct query value.",
+          "explanation": "Unify budget and scheduling decisions under one durable transaction boundary. Restarting a scheduler never resets the durable crawl budget. [A transaction](https://en.wikipedia.org/wiki/Database_transaction) commits related state changes together or leaves them unapplied. The database must enforce the relevant condition during the write, rather than trusting an earlier read. Consider this case: Two workers discover the same URL and another URL with a distinct query value.",
           "graph": {
             "edges": [
               {

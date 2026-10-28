@@ -1922,7 +1922,7 @@
           "checkIds": [
             "scale"
           ],
-          "explanation": "For this hypothetical design record request duration, timeouts, CPU work and database wait as proposed measurements. A tenfold input is a scenario, not observed capacity. No actual incident, throughput or user outcome is invented. [Backoff](https://en.wikipedia.org/wiki/Exponential_backoff) spaces repeated attempts so failures do not create a burst of extra traffic. A retry still needs a stable identity and a clear stopping condition.",
+          "explanation": "For this hypothetical design record request duration, timeouts, CPU work and database wait as proposed measurements. A tenfold input is a scenario, not observed capacity. No actual incident, throughput or user outcome is invented. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call.",
           "graph": {
             "edges": [
               {
@@ -2376,7 +2376,7 @@
           "checkIds": [
             "behavior"
           ],
-          "explanation": "Atomically create unique owner/requestKey receipt, parameter hash and job record; conflicting payloads reject. Identical retries reuse report ID. [Collaborative editing](https://en.wikipedia.org/wiki/Operational_transformation) must reconcile concurrent edits against an agreed document version. Sending changes is only one part; reconnects also need a way to recover missing updates and conflicts. Consider this case: Illustrative request K is accepted and its response lost; another owner reads the job and submits its own K.",
+          "explanation": "Atomically create unique owner/requestKey receipt, parameter hash and job record; conflicting payloads reject. Identical retries reuse report ID. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call. Consider this case: Illustrative request K is accepted and its response lost; another owner reads the job and submits its own K.",
           "graph": {
             "edges": [
               {
@@ -3167,7 +3167,7 @@
           "checkIds": [
             "behavior"
           ],
-          "explanation": "Authorize each read and report accepted/running/complete/failed/uncertain; complete requires verified artifact and fenced metadata commit. Progress percentages, if used, are measured work or omitted. Every status read is authorized for its owner and changes no job state. [Access control](https://en.wikipedia.org/wiki/Access_control) decides whether an authenticated identity may perform a particular action. The check must apply to the actual resource and operation, including cached and asynchronous paths.",
+          "explanation": "Authorize each read and report accepted/running/complete/failed/uncertain; complete requires verified artifact and fenced metadata commit. Progress percentages, if used, are measured work or omitted. Every status read is authorized for its owner and changes no job state. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call.",
           "graph": {
             "edges": [
               {

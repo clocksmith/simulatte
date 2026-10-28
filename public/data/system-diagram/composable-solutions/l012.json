@@ -1785,7 +1785,7 @@
           "checkIds": [
             "views"
           ],
-          "explanation": "Union viewed identities per user and story; a read retry is idempotent. Viewed state for a (viewer, story) pair only moves from false to true; duplicate or reordered view records cannot clear it. Union viewed identities per user and story; a read retry is idempotent. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Idempotence](https://en.wikipedia.org/wiki/Idempotence) means repeating the same logical operation does not repeat its effect.",
+          "explanation": "Union viewed identities per user and story; a read retry is idempotent. Viewed state for a (viewer, story) pair only moves from false to true; duplicate or reordered view records cannot clear it. Union viewed identities per user and story; a read retry is idempotent. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Transcoding](https://en.wikipedia.org/wiki/Transcoding) creates new media representations from an uploaded source.",
           "graph": {
             "edges": [
               {
@@ -2047,7 +2047,7 @@
             "mechanism",
             "expiry"
           ],
-          "explanation": "Check now < expiresAt on every tray, metadata, media and view response; the guard sits behind both the tray cursor and audience authorization. Tray, metadata, media and view responses all pass the expiry guard; a story with now >= expiresAt is never returned, whatever the purge state. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid. Expiration must be checked at the point of use, even when background cleanup runs later.",
+          "explanation": "Check now < expiresAt on every tray, metadata, media and view response; the guard sits behind both the tray cursor and audience authorization. Tray, metadata, media and view responses all pass the expiry guard; a story with now >= expiresAt is never returned, whatever the purge state. [Transcoding](https://en.wikipedia.org/wiki/Transcoding) creates new media representations from an uploaded source. Publication should reference completed outputs, while retries and cleanup must not expose a partially processed asset.",
           "graph": {
             "edges": [
               {
@@ -2394,7 +2394,7 @@
           "checkIds": [
             "expiry"
           ],
-          "explanation": "Reconcile expired metadata with media deletion receipts; retain explicit backup policy. The purge cursor advances only after each deletion receipt or pending key is recorded; deletion lag never changes visibility. Reconcile expired metadata with media deletion receipts; retain explicit backup policy. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid.",
+          "explanation": "Reconcile expired metadata with media deletion receipts; retain explicit backup policy. The purge cursor advances only after each deletion receipt or pending key is recorded; deletion lag never changes visibility. Reconcile expired metadata with media deletion receipts; retain explicit backup policy. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Transcoding](https://en.wikipedia.org/wiki/Transcoding) creates new media representations from an uploaded source.",
           "graph": {
             "edges": [
               {
@@ -3106,7 +3106,7 @@
           "checkIds": [
             "publish"
           ],
-          "explanation": "Write deterministic rendition keys and verify completion before releasing publication. Rendition keys derive from storyId and codecVersion; a retried transcode rewrites the same keys and publication waits for a verified manifest. Write deterministic rendition keys and verify completion before releasing publication. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Transcoding](https://en.wikipedia.org/wiki/Transcoding) creates new media representations from an uploaded source.",
+          "explanation": "Write deterministic rendition keys and verify completion before releasing publication. Rendition keys derive from storyId and codecVersion; a retried transcode rewrites the same keys and publication waits for a verified manifest. Write deterministic rendition keys and verify completion before releasing publication. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A queue](https://en.wikipedia.org/wiki/Queue_%28abstract_data_type%29) separates accepting work from completing it.",
           "graph": {
             "edges": [
               {
@@ -3482,7 +3482,7 @@
             "expiry",
             "acl"
           ],
-          "explanation": "Store ranked pointers with expiry and source version, not media ownership. An inbox holds at most one row per (viewer, story), carrying expiresAt and source version; a row is a pointer, not a grant. Store ranked pointers with expiry and source version, not media ownership. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid.",
+          "explanation": "Store ranked pointers with expiry and source version, not media ownership. An inbox holds at most one row per (viewer, story), carrying expiresAt and source version; a row is a pointer, not a grant. Store ranked pointers with expiry and source version, not media ownership. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Transcoding](https://en.wikipedia.org/wiki/Transcoding) creates new media representations from an uploaded source.",
           "graph": {
             "edges": [
               {
@@ -3693,7 +3693,7 @@
             "expiry",
             "acl"
           ],
-          "explanation": "Recheck current audience and expiry when dereferencing inbox pointers. Dereferencing a pointer rechecks current audience and expiresAt against the story authority; inbox presence alone never authorizes. Recheck current audience and expiry when dereferencing inbox pointers. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid. Expiration must be checked at the point of use, even when background cleanup runs later.",
+          "explanation": "Recheck current audience and expiry when dereferencing inbox pointers. Dereferencing a pointer rechecks current audience and expiresAt against the story authority; inbox presence alone never authorizes. Recheck current audience and expiry when dereferencing inbox pointers. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Presence information](https://en.wikipedia.org/wiki/Presence_information) describes a recently observed connection or activity. It is time-bounded evidence, not proof that a person or device will remain reachable after the observation.",
           "graph": {
             "edges": [
               {
@@ -3988,7 +3988,7 @@
           "checkIds": [
             "views"
           ],
-          "explanation": "Merge viewed identities independently from feed order; duplicates do not reset progress. Viewed identities are a grow-only set per viewer, independent of inbox order. Merge viewed identities independently from feed order; duplicates do not reset progress. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Idempotence](https://en.wikipedia.org/wiki/Idempotence) means repeating the same logical operation does not repeat its effect.",
+          "explanation": "Merge viewed identities independently from feed order; duplicates do not reset progress. Viewed identities are a grow-only set per viewer, independent of inbox order. Merge viewed identities independently from feed order; duplicates do not reset progress. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Transcoding](https://en.wikipedia.org/wiki/Transcoding) creates new media representations from an uploaded source. Publication should reference completed outputs, while retries and cleanup must not expose a partially processed asset.",
           "graph": {
             "edges": [
               {
@@ -4273,7 +4273,7 @@
           "checkIds": [
             "expiry"
           ],
-          "explanation": "Read-time expiry is authoritative; sweep derived inbox pointers and objects asynchronously. A sweep removes an inbox row only if its source version still matches; read-time expiry stays authoritative while sweeps lag. Read-time expiry is authoritative; sweep derived inbox pointers and objects asynchronously. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid.",
+          "explanation": "Read-time expiry is authoritative; sweep derived inbox pointers and objects asynchronously. A sweep removes an inbox row only if its source version still matches; read-time expiry stays authoritative while sweeps lag. Read-time expiry is authoritative; sweep derived inbox pointers and objects asynchronously. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Transcoding](https://en.wikipedia.org/wiki/Transcoding) creates new media representations from an uploaded source.",
           "graph": {
             "edges": [
               {

@@ -2675,7 +2675,7 @@
           "checkIds": [
             "case3"
           ],
-          "explanation": "Use one sequencer to append complete frames, each with header and payload checksums, to the current segment, preserving command identity. Concurrent threads never interleave frame bytes. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version.",
+          "explanation": "Use one sequencer to append complete frames, each with header and payload checksums, to the current segment, preserving command identity. Concurrent threads never interleave frame bytes. [Write-ahead logging](https://en.wikipedia.org/wiki/Write-ahead_logging) records a change before relying on its final stored form. Recovery replays durable records, so acknowledgement and flush boundaries must match the promised durability.",
           "graph": {
             "edges": [
               {

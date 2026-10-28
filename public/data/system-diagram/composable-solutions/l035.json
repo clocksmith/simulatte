@@ -1634,7 +1634,7 @@
           "checkIds": [
             "case3"
           ],
-          "explanation": "Call original fetch(uri,blockStart,fetchLength,buffer) for the whole aligned block outside metadata lock against the immutable/version-addressed URI. Conditional fetch/version validation is a proposed adapter extension only; without it mutable-source snapshot consistency is unsupported. Canonical mode requires stable URI content for the entire handle lifetime; the original interface cannot detect arbitrary mutable-source changes. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers.",
+          "explanation": "Call original fetch(uri,blockStart,fetchLength,buffer) for the whole aligned block outside metadata lock against the immutable/version-addressed URI. Conditional fetch/version validation is a proposed adapter extension only; without it mutable-source snapshot consistency is unsupported. Canonical mode requires stable URI content for the entire handle lifetime; the original interface cannot detect arbitrary mutable-source changes. [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers. Publishing one reference lets each reader keep a consistent version.",
           "graph": {
             "edges": [
               {
@@ -3295,7 +3295,7 @@
           "checkIds": [
             "case3"
           ],
-          "explanation": "Run admitted calls to original fetch(uri,blockStart,fetchLength,buffer) for whole aligned blocks outside shard locks. URI content must remain stable for the handle lifetime; conditional versions and deadlines require an explicitly proposed supporting adapter. Failures release permits; mutable-source snapshot consistency is unsupported without the proposed adapter extension. [A condition variable](https://en.wikipedia.org/wiki/Condition_variable) lets a thread sleep until shared state may have changed. Waking does not guarantee success, so the protected condition must be checked again.",
+          "explanation": "Run admitted calls to original fetch(uri,blockStart,fetchLength,buffer) for whole aligned blocks outside shard locks. URI content must remain stable for the handle lifetime; conditional versions and deadlines require an explicitly proposed supporting adapter. Failures release permits; mutable-source snapshot consistency is unsupported without the proposed adapter extension. [Partitioning](https://en.wikipedia.org/wiki/Partition_%28database%29) divides data and work among owners. The key determines where requests go; skew, ownership changes, and operations spanning partitions require additional coordination.",
           "graph": {
             "edges": [
               {
@@ -3515,7 +3515,7 @@
             "case4",
             "bounded-mechanism"
           ],
-          "explanation": "Track shard-local access order and evict only unpinned READY entries; never drop a LOADING promise. LOADING slots retain single-flight identity until completed. [A cache](https://en.wikipedia.org/wiki/Cache_replacement_policies) keeps reusable results in limited memory. Eviction controls space, while ownership and invalidation rules determine whether a returned value is still safe to use. Consider this case: A LOADING slot and an unpinned READY slot share a shard.",
+          "explanation": "Track shard-local access order and evict only unpinned READY entries; never drop a LOADING promise. LOADING slots retain single-flight identity until completed. [Partitioning](https://en.wikipedia.org/wiki/Partition_%28database%29) divides data and work among owners. The key determines where requests go; skew, ownership changes, and operations spanning partitions require additional coordination. Consider this case: A LOADING slot and an unpinned READY slot share a shard.",
           "graph": {
             "edges": [
               {
@@ -3760,7 +3760,7 @@
             "case5",
             "publication-pin"
           ],
-          "explanation": "Pin the shared slot under its shard lock before awaiting completion; copy immutable slices and release the lease in finally. Cancel one waiter without canceling another reader shared fetch. Release pins/permits exactly once under success, failure and cancellation. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources. A newer owner needs a token that the resource checks, not merely a belief that ownership changed.",
+          "explanation": "Pin the shared slot under its shard lock before awaiting completion; copy immutable slices and release the lease in finally. Cancel one waiter without canceling another reader shared fetch. Release pins/permits exactly once under success, failure and cancellation. [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers. Publishing one reference lets each reader keep a consistent version.",
           "graph": {
             "edges": [
               {

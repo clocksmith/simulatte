@@ -808,7 +808,7 @@
           "checkIds": [
             "case2"
           ],
-          "explanation": "Resolve schedules into stable run IDs and bound pending work per origin. A (scheduleId, scheduledFor) pair creates at most one run, and pending leases per origin never exceed the configured bound. [A directed acyclic graph](https://en.wikipedia.org/wiki/Directed_acyclic_graph) expresses work that depends on earlier results. A scheduler must track completed dependencies and distinguish logical tasks from retry attempts before releasing downstream work.",
+          "explanation": "Resolve schedules into stable run IDs and bound pending work per origin. A (scheduleId, scheduledFor) pair creates at most one run, and pending leases per origin never exceed the configured bound. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version.",
           "graph": {
             "edges": [
               {
@@ -1197,7 +1197,7 @@
           "checkIds": [
             "case0"
           ],
-          "explanation": "Use finite response-size/time limits and conditional validators; retain status and receipt. A timeout is retryable intent, not evidence of an empty source. [A condition variable](https://en.wikipedia.org/wiki/Condition_variable) lets a thread sleep until shared state may have changed. Waking does not guarantee success, so the protected condition must be checked again. Consider this case: A worker commits output but loses its acknowledgement.",
+          "explanation": "Use finite response-size/time limits and conditional validators; retain status and receipt. A timeout is retryable intent, not evidence of an empty source. [Backoff](https://en.wikipedia.org/wiki/Exponential_backoff) spaces repeated attempts so failures do not create a burst of extra traffic. A retry still needs a stable identity and a clear stopping condition. Consider this case: A worker commits output but loses its acknowledgement.",
           "graph": {
             "edges": [
               {
@@ -2033,7 +2033,7 @@
             "case0",
             "bounded-mechanism"
           ],
-          "explanation": "Retain source URL, receipt hash, parser version, scheduled instant and terminal state. A record is attributable to immutable inputs. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return. Consider this case: A worker commits output but loses its acknowledgement.",
+          "explanation": "Retain source URL, receipt hash, parser version, scheduled instant and terminal state. A record is attributable to immutable inputs. [An index](https://en.wikipedia.org/wiki/Database_index) maintains a structure that narrows a search without scanning every record. Faster reads come with storage costs and extra work whenever indexed data changes. Consider this case: A worker commits output but loses its acknowledgement.",
           "graph": {
             "edges": [
               {
@@ -2398,7 +2398,7 @@
           "checkIds": [
             "case2"
           ],
-          "explanation": "Resolve schedules into stable run IDs and bound pending work per origin. A scheduled instant binds one manifestHash; a second trigger for that instant returns the same run instead of freezing a new snapshot. [A directed acyclic graph](https://en.wikipedia.org/wiki/Directed_acyclic_graph) expresses work that depends on earlier results. A scheduler must track completed dependencies and distinguish logical tasks from retry attempts before releasing downstream work.",
+          "explanation": "Resolve schedules into stable run IDs and bound pending work per origin. A scheduled instant binds one manifestHash; a second trigger for that instant returns the same run instead of freezing a new snapshot. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version.",
           "graph": {
             "edges": [
               {

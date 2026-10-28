@@ -869,7 +869,7 @@
           "checkIds": [
             "accept"
           ],
-          "explanation": "Validate acyclic dependencies and assign stable task/run IDs before work. A run is accepted only if its task graph is acyclic and every dependency names a declared task; task and run IDs never change afterwards. Validate acyclic dependencies and assign stable task/run IDs before work. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A directed acyclic graph](https://en.wikipedia.org/wiki/Directed_acyclic_graph) expresses work that depends on earlier results.",
+          "explanation": "Validate acyclic dependencies and assign stable task/run IDs before work. A run is accepted only if its task graph is acyclic and every dependency names a declared task; task and run IDs never change afterwards. Validate acyclic dependencies and assign stable task/run IDs before work. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A workflow](https://en.wikipedia.org/wiki/Workflow) records which step should run next and what has already finished.",
           "graph": {
             "edges": [
               {
@@ -968,7 +968,7 @@
           "checkIds": [
             "accept"
           ],
-          "explanation": "Expand coordinator; journal transitions and output references before scheduling dependents. Every transition and output reference is journaled before a dependent task is scheduled, so replay reproduces the same decisions. Expand coordinator; journal transitions and output references before scheduling dependents. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A directed acyclic graph](https://en.wikipedia.org/wiki/Directed_acyclic_graph) expresses work that depends on earlier results.",
+          "explanation": "Expand coordinator; journal transitions and output references before scheduling dependents. Every transition and output reference is journaled before a dependent task is scheduled, so replay reproduces the same decisions. Expand coordinator; journal transitions and output references before scheduling dependents. The graph is an authored conceptual design; guarantees require the named deployment contracts. [An event log](https://en.wikipedia.org/wiki/Event-driven_architecture) preserves ordered changes so a consumer can rebuild state or catch up.",
           "graph": {
             "edges": [
               {
@@ -1105,7 +1105,7 @@
             "mechanism",
             "dependencies"
           ],
-          "explanation": "Release a task only when every predecessor has a committed receipt from its current attempt; activities report receipts back here, never to the next task. Only the scheduler releases tasks, and it releases one only after every predecessor has a journaled receipt from that predecessor's current attempt. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources. A newer owner needs a token that the resource checks, not merely a belief that ownership changed.",
+          "explanation": "Release a task only when every predecessor has a committed receipt from its current attempt; activities report receipts back here, never to the next task. Only the scheduler releases tasks, and it releases one only after every predecessor has a journaled receipt from that predecessor's current attempt. [A workflow](https://en.wikipedia.org/wiki/Workflow) records which step should run next and what has already finished. Durable transitions and effect identities let recovery resume work without blindly repeating external actions.",
           "graph": {
             "edges": [
               {
@@ -1289,7 +1289,7 @@
           "checkIds": [
             "research"
           ],
-          "explanation": "Execute research/tool steps with stable effect keys and bounded attempts; return the output receipt to the scheduler. A research activity runs under a stable effect key and a bounded attempt count, and returns its receipt to the scheduler rather than calling the next task. [A search index](https://en.wikipedia.org/wiki/Search_engine_indexing) maps query terms to candidate records. The interface must still associate each response with the active query and preserve the user’s chosen filters.",
+          "explanation": "Execute research/tool steps with stable effect keys and bounded attempts; return the output receipt to the scheduler. A research activity runs under a stable effect key and a bounded attempt count, and returns its receipt to the scheduler rather than calling the next task. [A workflow](https://en.wikipedia.org/wiki/Workflow) records which step should run next and what has already finished. Durable transitions and effect identities let recovery resume work without blindly repeating external actions.",
           "graph": {
             "edges": [
               {
@@ -1474,7 +1474,7 @@
           "checkIds": [
             "dependencies"
           ],
-          "explanation": "Run source/constraint inspection as its own scheduled task; synthesis requires its committed receipt. Constraint inspection is dispatched by the scheduler, and its verdict is a committed receipt that synthesis cannot start without. Run source/constraint inspection as its own scheduled task; synthesis requires its committed receipt. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A directed acyclic graph](https://en.wikipedia.org/wiki/Directed_acyclic_graph) expresses work that depends on earlier results.",
+          "explanation": "Run source/constraint inspection as its own scheduled task; synthesis requires its committed receipt. Constraint inspection is dispatched by the scheduler, and its verdict is a committed receipt that synthesis cannot start without. Run source/constraint inspection as its own scheduled task; synthesis requires its committed receipt. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A workflow](https://en.wikipedia.org/wiki/Workflow) records which step should run next and what has already finished.",
           "graph": {
             "edges": [
               {
@@ -1683,7 +1683,7 @@
           "checkIds": [
             "review"
           ],
-          "explanation": "Review the synthesized artifact the scheduler released; persist verdict and artifact hash, and require fresh review for any revision. Review approves exactly one artifact hash; any change to the artifact needs a new review verdict. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources. A newer owner needs a token that the resource checks, not merely a belief that ownership changed.",
+          "explanation": "Review the synthesized artifact the scheduler released; persist verdict and artifact hash, and require fresh review for any revision. Review approves exactly one artifact hash; any change to the artifact needs a new review verdict. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call.",
           "graph": {
             "edges": [
               {
@@ -1916,7 +1916,7 @@
           "checkIds": [
             "effect"
           ],
-          "explanation": "Commit an outbox identity for the approved hash before issuing a remote write. A publication intent with a stable effectKey is committed for the approved hash before any remote write. Commit an outbox identity for the approved hash before issuing a remote write. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure.",
+          "explanation": "Commit an outbox identity for the approved hash before issuing a remote write. A publication intent with a stable effectKey is committed for the approved hash before any remote write. Commit an outbox identity for the approved hash before issuing a remote write. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Change data capture](https://en.wikipedia.org/wiki/Change_data_capture) turns committed data changes into an ordered stream for other components.",
           "graph": {
             "edges": [
               {
@@ -2694,7 +2694,7 @@
           "checkIds": [
             "accept"
           ],
-          "explanation": "Expand command boundary; store state, attempt epoch and predecessor receipts transactionally. Task state, attempt epoch and predecessor receipts change only in versioned transactions on the task row. Expand command boundary; store state, attempt epoch and predecessor receipts transactionally. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A transaction](https://en.wikipedia.org/wiki/Database_transaction) commits related state changes together or leaves them unapplied.",
+          "explanation": "Expand command boundary; store state, attempt epoch and predecessor receipts transactionally. Task state, attempt epoch and predecessor receipts change only in versioned transactions on the task row. Expand command boundary; store state, attempt epoch and predecessor receipts transactionally. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes.",
           "graph": {
             "edges": [
               {
@@ -3154,7 +3154,7 @@
           "checkIds": [
             "dependencies"
           ],
-          "explanation": "Persist immutable research results and explicit constraint verdict before advancing dependencies. Research outputs are immutable hashes, and the constraint verdict is committed before any completion is reported. Persist immutable research results and explicit constraint verdict before advancing dependencies. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A search index](https://en.wikipedia.org/wiki/Search_engine_indexing) maps query terms to candidate records.",
+          "explanation": "Persist immutable research results and explicit constraint verdict before advancing dependencies. Research outputs are immutable hashes, and the constraint verdict is committed before any completion is reported. Persist immutable research results and explicit constraint verdict before advancing dependencies. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers. Publishing one reference lets each reader keep a consistent version.",
           "graph": {
             "edges": [
               {
@@ -3863,7 +3863,7 @@
           "checkIds": [
             "effect"
           ],
-          "explanation": "Fence expired owners, reconcile unknown effects, and expose pending status rather than false success. The sweep fences an expired owner by advancing its epoch before reconciling its unknown effects, so late completions from the old epoch are rejected. [A control loop](https://en.wikipedia.org/wiki/Control_loop) compares desired state with observed state and applies corrections. Repeated execution must converge safely, especially when a previous action succeeded but its reply was lost.",
+          "explanation": "Fence expired owners, reconcile unknown effects, and expose pending status rather than false success. The sweep fences an expired owner by advancing its epoch before reconciling its unknown effects, so late completions from the old epoch are rejected. Fence expired owners, reconcile unknown effects, and expose pending status rather than false success. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes.",
           "graph": {
             "edges": [
               {

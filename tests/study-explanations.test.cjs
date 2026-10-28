@@ -30,3 +30,10 @@ test('teaching-text refresh keeps overlays, notes and view but never replaces ch
  const refreshed=Store.refreshExplanations(workspace,published);assert.deepEqual(refreshed.document,published);assert.equal(refreshed.overlays,workspace.overlays);assert.equal(refreshed.view,workspace.view);assert.equal(refreshed.notes,'Keep my notes');assert.deepEqual(refreshed.extension,{preserve:true});assert.equal(old.solutions[0].stages[0].explanation,'Old caption');
  const custom=structuredClone(workspace);custom.document.problem.scope+=' Learner-specific assumptions.';assert.equal(Store.refreshExplanations(custom,published),custom);
 });
+test('background topics match complete words rather than misleading substrings',()=>{
+ const {topicFor}=require('../tools/simulatte/study-explanations.cjs'),p={problem:{referenceId:'L035'}},stage=(title)=>({title,reason:'Explain this decision.',invariants:[]});
+ for(const title of ['Terminal outcome','Release the buffer','Logical ownership','Separate the catalog'])assert.equal(topicFor(p,stage(title)).id,'cache',title);
+ assert.equal(topicFor(p,stage('A new leader term')).id,'replication');
+ assert.equal(topicFor(p,stage('Write-ahead log recovery')).id,'log');
+ assert.equal(topicFor(p,stage('RAG retrieval')).id,'rag');
+});

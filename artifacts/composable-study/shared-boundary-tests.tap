@@ -1,0 +1,336 @@
+TAP version 13
+# Subtest: every Lucyd problem converts to the shared model and back exactly, and each stage replays from its commands
+ok 1 - every Lucyd problem converts to the shared model and back exactly, and each stage replays from its commands
+  ---
+  duration_ms: 732.417167
+  type: 'test'
+  ...
+# Subtest: every Excalidraw study document converts to the shared model and back exactly, and replays
+ok 2 - every Excalidraw study document converts to the shared model and back exactly, and replays
+  ---
+  duration_ms: 176.194125
+  type: 'test'
+  ...
+# Subtest: one merged record holds both authored solution sets and returns each to its own format
+ok 3 - one merged record holds both authored solution sets and returns each to its own format
+  ---
+  duration_ms: 684.240875
+  type: 'test'
+  ...
+# Subtest: design-only stages open in the Lucyd editor as unbound responsibilities that refuse to simulate
+ok 4 - design-only stages open in the Lucyd editor as unbound responsibilities that refuse to simulate
+  ---
+  duration_ms: 421.558958
+  type: 'test'
+  ...
+# Subtest: binding every component lowers a design to a runnable simulator diagram; partial binding refuses
+ok 5 - binding every component lowers a design to a runnable simulator diagram; partial binding refuses
+  ---
+  duration_ms: 0.875083
+  type: 'test'
+  ...
+# Subtest: shared commands refuse contract mismatches, orphaned children and duplicate identities
+ok 6 - shared commands refuse contract mismatches, orphaned children and duplicate identities
+  ---
+  duration_ms: 0.296708
+  type: 'test'
+  ...
+# Subtest: chat converts both approaches without losing ordered teaching stages
+ok 7 - chat converts both approaches without losing ordered teaching stages
+  ---
+  duration_ms: 51.608542
+  type: 'test'
+  ...
+# Subtest: pagination converts both approaches without losing ordered teaching stages
+ok 8 - pagination converts both approaches without losing ordered teaching stages
+  ---
+  duration_ms: 17.723667
+  type: 'test'
+  ...
+# Subtest: comments converts both approaches without losing ordered teaching stages
+ok 9 - comments converts both approaches without losing ordered teaching stages
+  ---
+  duration_ms: 36.485208
+  type: 'test'
+  ...
+# Subtest: timeline converts both approaches without losing ordered teaching stages
+ok 10 - timeline converts both approaches without losing ordered teaching stages
+  ---
+  duration_ms: 41.762583
+  type: 'test'
+  ...
+# Subtest: inventory converts both approaches without losing ordered teaching stages
+ok 11 - inventory converts both approaches without losing ordered teaching stages
+  ---
+  duration_ms: 32.333958
+  type: 'test'
+  ...
+# Subtest: published problems share the v2 format and two or more approaches
+ok 12 - published problems share the v2 format and two or more approaches
+  ---
+  duration_ms: 620.359125
+  type: 'test'
+  ...
+# Subtest: v2 rebinding preserves the boundary and old binding definitions
+ok 13 - v2 rebinding preserves the boundary and old binding definitions
+  ---
+  duration_ms: 15.518417
+  type: 'test'
+  ...
+# Subtest: v1 data without the v2 operations remains supported
+ok 14 - v1 data without the v2 operations remains supported
+  ---
+  duration_ms: 3.856541
+  type: 'test'
+  ...
+# Subtest: component library identity and base versions cannot silently change
+ok 15 - component library identity and base versions cannot silently change
+  ---
+  duration_ms: 11.349083
+  type: 'test'
+  ...
+# Subtest: a reused source API name becomes a distinct child while its boundary survives
+ok 16 - a reused source API name becomes a distinct child while its boundary survives
+  ---
+  duration_ms: 14.194791
+  type: 'test'
+  ...
+# Subtest: client state merges stay inside the client and retain source ownership
+ok 17 - client state merges stay inside the client and retain source ownership
+  ---
+  duration_ms: 10.350458
+  type: 'test'
+  ...
+# Subtest: unmapped labels and un-authored questions fail instead of inventing contracts
+ok 18 - unmapped labels and un-authored questions fail instead of inventing contracts
+  ---
+  duration_ms: 1.03625
+  type: 'test'
+  ...
+# Subtest: an unrelated inserted relationship does not renumber existing edge identities
+ok 19 - an unrelated inserted relationship does not renumber existing edge identities
+  ---
+  duration_ms: 22.964209
+  type: 'test'
+  ...
+# Subtest: every declared reference test resolves by its exact name to a tracked source path
+ok 20 - every declared reference test resolves by its exact name to a tracked source path
+  ---
+  duration_ms: 59.829959
+  type: 'test'
+  ...
+# Subtest: corrections retain unqualified guarantees as authored cases rather than test evidence
+ok 21 - corrections retain unqualified guarantees as authored cases rather than test evidence
+  ---
+  duration_ms: 14.707875
+  type: 'test'
+  ...
+# Subtest: repair authoring preserves raw intake while adding safety-critical boundaries
+ok 22 - repair authoring preserves raw intake while adding safety-critical boundaries
+  ---
+  duration_ms: 1.241833
+  type: 'test'
+  ...
+# Subtest: notebook has two complete typed progressions with exact graphs
+ok 23 - notebook has two complete typed progressions with exact graphs
+  ---
+  duration_ms: 13.5985
+  type: 'test'
+  ...
+# Subtest: search has two complete typed progressions with exact graphs
+ok 24 - search has two complete typed progressions with exact graphs
+  ---
+  duration_ms: 7.555292
+  type: 'test'
+  ...
+# Subtest: loadBalancer has two complete typed progressions with exact graphs
+ok 25 - loadBalancer has two complete typed progressions with exact graphs
+  ---
+  duration_ms: 3.806541
+  type: 'test'
+  ...
+# Subtest: replication has two complete typed progressions with exact graphs
+ok 26 - replication has two complete typed progressions with exact graphs
+  ---
+  duration_ms: 3.394584
+  type: 'test'
+  ...
+# Subtest: database has two complete typed progressions with exact graphs
+ok 27 - database has two complete typed progressions with exact graphs
+  ---
+  duration_ms: 4.185125
+  type: 'test'
+  ...
+# Subtest: video has two complete typed progressions with exact graphs
+ok 28 - video has two complete typed progressions with exact graphs
+  ---
+  duration_ms: 5.642917
+  type: 'test'
+  ...
+# Subtest: crawler has two complete typed progressions with exact graphs
+ok 29 - crawler has two complete typed progressions with exact graphs
+  ---
+  duration_ms: 4.60525
+  type: 'test'
+  ...
+# Subtest: the generator does not mutate one author invocation through another
+ok 30 - the generator does not mutate one author invocation through another
+  ---
+  duration_ms: 7.304125
+  type: 'test'
+  ...
+# Subtest: reject a missing dependency and a cross-typed endpoint
+ok 31 - reject a missing dependency and a cross-typed endpoint
+  ---
+  duration_ms: 3.6825
+  type: 'test'
+  ...
+# Subtest: reject a stored graph edited outside the operation sequence
+ok 32 - reject a stored graph edited outside the operation sequence
+  ---
+  duration_ms: 1.197708
+  type: 'test'
+  ...
+# Subtest: reject a disappearing subsystem parent or an exposed port aimed at a stranger
+ok 33 - reject a disappearing subsystem parent or an exposed port aimed at a stranger
+  ---
+  duration_ms: 4.105709
+  type: 'test'
+  ...
+# Subtest: reject missing acceptance cases, lost requirements and optimistic execution claims
+ok 34 - reject missing acceptance cases, lost requirements and optimistic execution claims
+  ---
+  duration_ms: 2.709542
+  type: 'test'
+  ...
+# Subtest: reject no-op padding and stale disconnect operations
+ok 35 - reject no-op padding and stale disconnect operations
+  ---
+  duration_ms: 1.252292
+  type: 'test'
+  ...
+# Subtest: reconnect preserves an edge identity and rejects absent edges
+ok 36 - reconnect preserves an edge identity and rejects absent edges
+  ---
+  duration_ms: 0.624417
+  type: 'test'
+  ...
+# Subtest: reject a merge that drops containment, source identities or compatible ports
+ok 37 - reject a merge that drops containment, source identities or compatible ports
+  ---
+  duration_ms: 1.665333
+  type: 'test'
+  ...
+# Subtest: strict metadata accepts stage explanations and pseudocode but rejects unknown root fields
+ok 38 - strict metadata accepts stage explanations and pseudocode but rejects unknown root fields
+  ---
+  duration_ms: 5.737833
+  type: 'test'
+  ...
+# Subtest: background sources cannot imply verified company question provenance
+ok 39 - background sources cannot imply verified company question provenance
+  ---
+  duration_ms: 3.414917
+  type: 'test'
+  ...
+# Subtest: nested boundary exposure distinguishes sibling workers for both input and output
+ok 40 - nested boundary exposure distinguishes sibling workers for both input and output
+  ---
+  duration_ms: 3.768459
+  type: 'test'
+  ...
+# Subtest: repeated endpoint reuses its exposure and deterministic builds preserve identities
+ok 41 - repeated endpoint reuses its exposure and deterministic builds preserve identities
+  ---
+  duration_ms: 0.985875
+  type: 'test'
+  ...
+# Subtest: batch 02 directly validates exact replay and browser consumer
+ok 42 - batch 02 directly validates exact replay and browser consumer
+  ---
+  duration_ms: 24.653792
+  type: 'test'
+  ...
+# L018 online 0 failures
+# L018 materialized 0 failures
+# L021 workflow 0 failures
+# L021 journal 0 failures
+# L027 orchestrated 0 failures
+# L027 events 0 failures
+# L031 local 0 failures
+# L031 remote 0 failures
+# Subtest: batch 02 every stage and collapsed subsystem passes shared spatial checker
+ok 43 - batch 02 every stage and collapsed subsystem passes shared spatial checker
+  ---
+  duration_ms: 2504.582042
+  type: 'test'
+  ...
+# Subtest: batch 02 cases, invariants and APIs belong to their approach and stage
+ok 44 - batch 02 cases, invariants and APIs belong to their approach and stage
+  ---
+  duration_ms: 0.746833
+  type: 'test'
+  ...
+# Subtest: batch 02 authored algorithms quote the reference mechanisms
+ok 45 - batch 02 authored algorithms quote the reference mechanisms
+  ---
+  duration_ms: 2.499209
+  type: 'test'
+  ...
+# Subtest: batch 02 repaired graph paths and contracts
+ok 46 - batch 02 repaired graph paths and contracts
+  ---
+  duration_ms: 0.367167
+  type: 'test'
+  ...
+# Subtest: L031 stage 8 rebinds one capacity instance and keeps earlier bindings
+ok 47 - L031 stage 8 rebinds one capacity instance and keeps earlier bindings
+  ---
+  duration_ms: 0.335583
+  type: 'test'
+  ...
+# Subtest: batch 02 L031 remote design differs from local
+ok 48 - batch 02 L031 remote design differs from local
+  ---
+  duration_ms: 0.352208
+  type: 'test'
+  ...
+# Subtest: every published stage has 50–75 visible explanation words and safe background links
+ok 49 - every published stage has 50–75 visible explanation words and safe background links
+  ---
+  duration_ms: 679.551916
+  type: 'test'
+  ...
+# Subtest: inline links preserve surrounding text and never interpret HTML or unsafe destinations
+ok 50 - inline links preserve surrounding text and never interpret HTML or unsafe destinations
+  ---
+  duration_ms: 0.335208
+  type: 'test'
+  ...
+# Subtest: System is the default, while explicit Light and Dark remain overrides
+ok 51 - System is the default, while explicit Light and Dark remain overrides
+  ---
+  duration_ms: 0.366333
+  type: 'test'
+  ...
+# Subtest: teaching-text refresh keeps overlays, notes and view but never replaces changed imported designs
+ok 52 - teaching-text refresh keeps overlays, notes and view but never replaces changed imported designs
+  ---
+  duration_ms: 10.754583
+  type: 'test'
+  ...
+# Subtest: background topics match complete words rather than misleading substrings
+ok 53 - background topics match complete words rather than misleading substrings
+  ---
+  duration_ms: 0.458958
+  type: 'test'
+  ...
+1..53
+# tests 53
+# suites 0
+# pass 53
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2734.50025

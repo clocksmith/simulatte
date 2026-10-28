@@ -944,7 +944,7 @@
           "checkIds": [
             "case2"
           ],
-          "explanation": "Authorize requests and commit versioned updates at one write authority. Own records, versions and durable job intent. Only the primary database orders versions, stores request receipts and records job intent; the stateless API keeps no authoritative state between requests. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call.",
+          "explanation": "Authorize requests and commit versioned updates at one write authority. Own records, versions and durable job intent. Only the primary database orders versions, stores request receipts and records job intent; the stateless API keeps no authoritative state between requests. [An API contract](https://en.wikipedia.org/wiki/Application_programming_interface) states what callers send, what an outcome means, and how failures are reported. It should remain clear before the implementation is split into more components.",
           "graph": {
             "edges": [
               {
@@ -1827,7 +1827,7 @@
             "case0",
             "case3"
           ],
-          "explanation": "Commit through one conditional update on job ID, claimed lease epoch and running state, in the same transaction as the unique result row; zero updated rows means a stale lease. External effects need their own deduplication contract. A unique local row alone cannot deduplicate a remote webhook. [Idempotence](https://en.wikipedia.org/wiki/Idempotence) means repeating the same logical operation does not repeat its effect. Stable request identities let a retry recover an existing outcome instead of creating another change.",
+          "explanation": "Commit through one conditional update on job ID, claimed lease epoch and running state, in the same transaction as the unique result row; zero updated rows means a stale lease. External effects need their own deduplication contract. A unique local row alone cannot deduplicate a remote webhook. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources. A newer owner needs a token that the resource checks, not merely a belief that ownership changed.",
           "graph": {
             "edges": [
               {
@@ -2559,7 +2559,7 @@
           "checkIds": [
             "case2"
           ],
-          "explanation": "Validate authenticated commands and append stable command identity. Own immutable ordered commands and deduplication receipts. Command admission decides acceptance and assigns the token; only the command journal orders commands and holds deduplication receipts. [Idempotence](https://en.wikipedia.org/wiki/Idempotence) means repeating the same logical operation does not repeat its effect. Stable request identities let a retry recover an existing outcome instead of creating another change.",
+          "explanation": "Validate authenticated commands and append stable command identity. Own immutable ordered commands and deduplication receipts. Command admission decides acceptance and assigns the token; only the command journal orders commands and holds deduplication receipts. [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers. Publishing one reference lets each reader keep a consistent version.",
           "graph": {
             "edges": [
               {
@@ -3215,7 +3215,7 @@
             "case0",
             "bounded-mechanism"
           ],
-          "explanation": "Emit stable task identities from committed reducer transitions. Replay emits the same task identity. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call. Consider this case: A reducer replays the same accepted command. Emit its long-task intent twice.",
+          "explanation": "Emit stable task identities from committed reducer transitions. Replay emits the same task identity. [An API contract](https://en.wikipedia.org/wiki/Application_programming_interface) states what callers send, what an outcome means, and how failures are reported. It should remain clear before the implementation is split into more components. Consider this case: A reducer replays the same accepted command. Emit its long-task intent twice.",
           "graph": {
             "edges": [
               {
@@ -3434,7 +3434,7 @@
           "checkIds": [
             "case0"
           ],
-          "explanation": "Consume stable IDs with leased retries and explicit external idempotency/reconciliation. Unknown external outcome remains unknown until reconciled. [A control loop](https://en.wikipedia.org/wiki/Control_loop) compares desired state with observed state and applies corrections. Repeated execution must converge safely, especially when a previous action succeeded but its reply was lost. Consider this case: A reducer replays the same accepted command. Emit its long-task intent twice.",
+          "explanation": "Consume stable IDs with leased retries and explicit external idempotency/reconciliation. Unknown external outcome remains unknown until reconciled. [Backoff](https://en.wikipedia.org/wiki/Exponential_backoff) spaces repeated attempts so failures do not create a burst of extra traffic. A retry still needs a stable identity and a clear stopping condition. Consider this case: A reducer replays the same accepted command. Emit its long-task intent twice.",
           "graph": {
             "edges": [
               {

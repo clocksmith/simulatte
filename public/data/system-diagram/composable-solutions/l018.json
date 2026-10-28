@@ -909,7 +909,7 @@
           "checkIds": [
             "budget"
           ],
-          "explanation": "Authenticate tenant and accept a bounded question with an explicit deadline. A query is accepted only with an authenticated tenant and an explicit deadline, and every later phase runs under that tenantId. Authenticate tenant and accept a bounded question with an explicit deadline. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Access control](https://en.wikipedia.org/wiki/Access_control) decides whether an authenticated identity may perform a particular action.",
+          "explanation": "Authenticate tenant and accept a bounded question with an explicit deadline. A query is accepted only with an authenticated tenant and an explicit deadline, and every later phase runs under that tenantId. Authenticate tenant and accept a bounded question with an explicit deadline. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid.",
           "graph": {
             "edges": [
               {
@@ -1297,7 +1297,7 @@
           "checkIds": [
             "pinning"
           ],
-          "explanation": "Union lexical and vector candidates with provenance and bounded recall-tested k. Every candidate carries its tenantId, documentId, revision and retrieval provenance, and k is fixed per index version. Union lexical and vector candidates with provenance and bounded recall-tested k. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Retrieval-augmented generation](https://en.wikipedia.org/wiki/Retrieval-augmented_generation) brings external material into a model request.",
+          "explanation": "Union lexical and vector candidates with provenance and bounded recall-tested k. Every candidate carries its tenantId, documentId, revision and retrieval provenance, and k is fixed per index version. Union lexical and vector candidates with provenance and bounded recall-tested k. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Lexical analysis](https://en.wikipedia.org/wiki/Lexical_analysis) reads characters while tracking their meaning in the current context.",
           "graph": {
             "edges": [
               {
@@ -2192,7 +2192,7 @@
             "mechanism",
             "support"
           ],
-          "explanation": "Check support and stale sources before release; record unsupported claims rather than inventing citations. An answer is released only with at least one citation, every citation eligible for the tenant now, and a separate support verdict; otherwise it abstains. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources. A newer owner needs a token that the resource checks, not merely a belief that ownership changed.",
+          "explanation": "Check support and stale sources before release; record unsupported claims rather than inventing citations. An answer is released only with at least one citation, every citation eligible for the tenant now, and a separate support verdict; otherwise it abstains. [Access control](https://en.wikipedia.org/wiki/Access_control) decides whether an authenticated identity may perform a particular action. The check must apply to the actual resource and operation, including cached and asynchronous paths.",
           "graph": {
             "edges": [
               {
@@ -2721,7 +2721,7 @@
           "checkIds": [
             "snapshot"
           ],
-          "explanation": "Expand request boundary; retain content hashes, source revisions and pack schema version. A manifest version pins the content hash and revision of every source it uses plus its schema version, and is immutable once written. Expand request boundary; retain content hashes, source revisions and pack schema version. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Retrieval-augmented generation](https://en.wikipedia.org/wiki/Retrieval-augmented_generation) brings external material into a model request.",
+          "explanation": "Expand request boundary; retain content hashes, source revisions and pack schema version. A manifest version pins the content hash and revision of every source it uses plus its schema version, and is immutable once written. Expand request boundary; retain content hashes, source revisions and pack schema version. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers.",
           "graph": {
             "edges": [
               {
@@ -3377,7 +3377,7 @@
             "support",
             "publish"
           ],
-          "explanation": "Publish one immutable manifest only after pack bytes and dependencies are complete. The active manifest pointer moves by compare-and-swap on expectedPackVersion, and only after all pack bytes and dependencies exist. Publish one immutable manifest only after pack bytes and dependencies are complete. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A directed acyclic graph](https://en.wikipedia.org/wiki/Directed_acyclic_graph) expresses work that depends on earlier results.",
+          "explanation": "Publish one immutable manifest only after pack bytes and dependencies are complete. The active manifest pointer moves by compare-and-swap on expectedPackVersion, and only after all pack bytes and dependencies exist. Publish one immutable manifest only after pack bytes and dependencies are complete. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers.",
           "graph": {
             "edges": [
               {

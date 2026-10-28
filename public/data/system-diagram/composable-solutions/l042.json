@@ -833,7 +833,7 @@
           "checkIds": [
             "case0"
           ],
-          "explanation": "A get linearizes against put and never returns an entry expired at its lookup timestamp. get returns a value only when the injected-clock lookup time is before its deadline; put returns the new generation, ttl=0 leaves the key absent, and an invalid TTL changes nothing. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid. Expiration must be checked at the point of use, even when background cleanup runs later.",
+          "explanation": "A get linearizes against put and never returns an entry expired at its lookup timestamp. get returns a value only when the injected-clock lookup time is before its deadline; put returns the new generation, ttl=0 leaves the key absent, and an invalid TTL changes nothing. [An index](https://en.wikipedia.org/wiki/Database_index) maintains a structure that narrows a search without scanning every record. Faster reads come with storage costs and extra work whenever indexed data changes.",
           "graph": {
             "edges": [
               {
@@ -1222,7 +1222,7 @@
           "checkIds": [
             "case2"
           ],
-          "explanation": "Push deadline/key/generation on put under the exclusive write lock that also guards every pop. An old heap record does not authorize deleting a replacement. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid. Expiration must be checked at the point of use, even when background cleanup runs later.",
+          "explanation": "Push deadline/key/generation on put under the exclusive write lock that also guards every pop. An old heap record does not authorize deleting a replacement. [A heap](https://en.wikipedia.org/wiki/Heap_%28data_structure%29) keeps the next priority item cheap to find. When items can be replaced or canceled, stale entries need explicit detection before they are allowed to act.",
           "graph": {
             "edges": [
               {
@@ -1400,7 +1400,7 @@
             "case1",
             "bounded-mechanism"
           ],
-          "explanation": "Release shared lock, acquire exclusive lock, and compare generation/deadline again before removal. A newer put survives a stale reader cleanup. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources. A newer owner needs a token that the resource checks, not merely a belief that ownership changed. Consider this case: A timer references generation 1 but put installed generation 2.",
+          "explanation": "Release shared lock, acquire exclusive lock, and compare generation/deadline again before removal. A newer put survives a stale reader cleanup. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid. Expiration must be checked at the point of use, even when background cleanup runs later. Consider this case: A timer references generation 1 but put installed generation 2.",
           "graph": {
             "edges": [
               {
@@ -1602,7 +1602,7 @@
             "case1",
             "case2"
           ],
-          "explanation": "Under the exclusive write lock, pop at most a configured number of due records, deleting only matching expired generations. Sweep work per tick is bounded; backlog remains observable. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid. Expiration must be checked at the point of use, even when background cleanup runs later.",
+          "explanation": "Under the exclusive write lock, pop at most a configured number of due records, deleting only matching expired generations. Sweep work per tick is bounded; backlog remains observable. [Record linkage](https://en.wikipedia.org/wiki/Record_linkage) identifies entries that refer to the same real-world entity. A matching rule needs explicit uncertainty handling so an ambiguous similarity does not silently become authoritative identity.",
           "graph": {
             "edges": [
               {
@@ -2460,7 +2460,7 @@
           "checkIds": [
             "case0"
           ],
-          "explanation": "A get linearizes against put and never returns an entry expired at its lookup timestamp. get returns a value only before its exact deadline even when a wheel tick is late; put with ttl=0 leaves the key absent and schedules nothing; an invalid TTL changes nothing. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid. Expiration must be checked at the point of use, even when background cleanup runs later.",
+          "explanation": "A get linearizes against put and never returns an entry expired at its lookup timestamp. get returns a value only before its exact deadline even when a wheel tick is late; put with ttl=0 leaves the key absent and schedules nothing; an invalid TTL changes nothing. [An index](https://en.wikipedia.org/wiki/Database_index) maintains a structure that narrows a search without scanning every record. Faster reads come with storage costs and extra work whenever indexed data changes.",
           "graph": {
             "edges": [
               {
@@ -3684,7 +3684,7 @@
           "checkIds": [
             "case4"
           ],
-          "explanation": "Fence close state per shard, stop wheel scheduling and join drain tasks. No put schedules into a closed timer generation. [A directed acyclic graph](https://en.wikipedia.org/wiki/Directed_acyclic_graph) expresses work that depends on earlier results. A scheduler must track completed dependencies and distinguish logical tasks from retry attempts before releasing downstream work. Consider this case: close races a put on the same shard.",
+          "explanation": "Fence close state per shard, stop wheel scheduling and join drain tasks. No put schedules into a closed timer generation. [Partitioning](https://en.wikipedia.org/wiki/Partition_%28database%29) divides data and work among owners. The key determines where requests go; skew, ownership changes, and operations spanning partitions require additional coordination. Consider this case: close races a put on the same shard. Both complete.",
           "graph": {
             "edges": [
               {

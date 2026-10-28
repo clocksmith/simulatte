@@ -1279,7 +1279,7 @@
           "checkIds": [
             "mechanism"
           ],
-          "explanation": "One fenced generation attempt emits chunks numbered from 0 within that attempt. Each inference attempt runs under its own attempt number and numbers its chunks from 0 within that attempt. One fenced generation attempt emits chunks numbered from 0 within that attempt. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Fencing](https://en.wikipedia.org/wiki/Fencing_%28computing%29) prevents an outdated owner from continuing to modify shared resources.",
+          "explanation": "One fenced generation attempt emits chunks numbered from 0 within that attempt. Each inference attempt runs under its own attempt number and numbers its chunks from 0 within that attempt. One fenced generation attempt emits chunks numbered from 0 within that attempt. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A WebSocket](https://en.wikipedia.org/wiki/WebSocket) keeps a two-way connection open for timely updates.",
           "graph": {
             "edges": [
               {
@@ -2905,7 +2905,7 @@
           "checkIds": [
             "pressure"
           ],
-          "explanation": "Dispatch retryable inference activities with stable attempt identities. Each dispatched activity carries a new attempt number, and the queue leases at most the configured number of activities. Dispatch retryable inference activities with stable attempt identities. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Backoff](https://en.wikipedia.org/wiki/Exponential_backoff) spaces repeated attempts so failures do not create a burst of extra traffic. A retry still needs a stable identity and a clear stopping condition.",
+          "explanation": "Dispatch retryable inference activities with stable attempt identities. Each dispatched activity carries a new attempt number, and the queue leases at most the configured number of activities. Dispatch retryable inference activities with stable attempt identities. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A queue](https://en.wikipedia.org/wiki/Queue_%28abstract_data_type%29) separates accepting work from completing it. Capacity, ordering, ownership, and shutdown behavior determine what producers and consumers may safely assume about each item.",
           "graph": {
             "edges": [
               {
@@ -3675,7 +3675,7 @@
             "mechanism",
             "cancel"
           ],
-          "explanation": "Persist cancellation before cancelling queued activities, and fence late page commits from every attempt. Cancellation is persisted before queued activities are cancelled; after it, no page commit from any attempt is accepted. Persist cancellation before cancelling queued activities, and fence late page commits from every attempt. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure.",
+          "explanation": "Persist cancellation before cancelling queued activities, and fence late page commits from every attempt. Cancellation is persisted before queued activities are cancelled; after it, no page commit from any attempt is accepted. Persist cancellation before cancelling queued activities, and fence late page commits from every attempt. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A race condition](https://en.wikipedia.org/wiki/Race_condition) makes an outcome depend on which operation finishes first.",
           "graph": {
             "edges": [
               {

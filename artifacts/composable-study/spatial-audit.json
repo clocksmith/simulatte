@@ -17,7 +17,7 @@
       "nodeCount": 2,
       "edgeCount": 1,
       "geometrySha256": "4282368be18a352455498b8740aa422f4536753b6e80aee8800a682aaec2c9d2",
-      "durationMs": 1
+      "durationMs": 4
     },
     {
       "problem": "L001",
@@ -58,7 +58,7 @@
       "nodeCount": 6,
       "edgeCount": 4,
       "geometrySha256": "265dbdc74033793f1733d3e418591179b97547e5739b1d964bae18ee00d017dd",
-      "durationMs": 4
+      "durationMs": 12
     },
     {
       "problem": "L001",
@@ -73,7 +73,7 @@
       "nodeCount": 4,
       "edgeCount": 3,
       "geometrySha256": "479c52ef3ed2ce43e4721d349237ee378177aeeea6ed21ab3ecee6c2fcc38146",
-      "durationMs": 2
+      "durationMs": 3
     },
     {
       "problem": "L001",
@@ -93,7 +93,7 @@
       "nodeCount": 7,
       "edgeCount": 6,
       "geometrySha256": "23ad2fa4671177e6a493de2057ea148bc04f0ace29fbd5a6c8763ddc16f7898d",
-      "durationMs": 26
+      "durationMs": 61
     },
     {
       "problem": "L001",
@@ -108,7 +108,7 @@
       "nodeCount": 5,
       "edgeCount": 5,
       "geometrySha256": "5058f9c77f2297b11ddf70f018614e52573df01c0c2a43f70570c3d7b84fedb5",
-      "durationMs": 7
+      "durationMs": 3
     },
     {
       "problem": "L001",
@@ -152,7 +152,7 @@
       "nodeCount": 8,
       "edgeCount": 8,
       "geometrySha256": "5467d14e35a1050eac7094174c31fc60aa5534d1544da59af2f07ac82e4b7344",
-      "durationMs": 44
+      "durationMs": 81
     },
     {
       "problem": "L001",
@@ -180,7 +180,7 @@
       "nodeCount": 6,
       "edgeCount": 7,
       "geometrySha256": "f02240364fc2e9e85df97d2ce391a822ac71b223ee918a2469f52ebf4fd75d3a",
-      "durationMs": 14
+      "durationMs": 29
     },
     {
       "problem": "L001",
@@ -260,7 +260,7 @@
       "nodeCount": 9,
       "edgeCount": 10,
       "geometrySha256": "832e96f8ab919dca736da7056f40b48bb743d33406cef8e0b493612fa5a9672d",
-      "durationMs": 76
+      "durationMs": 139
     },
     {
       "problem": "L001",
@@ -312,7 +312,7 @@
       "nodeCount": 7,
       "edgeCount": 9,
       "geometrySha256": "33bdfe00c6eb46df4fa21f8a52e06d54681a79f8f2c6f5b3472fe01ee79d0488",
-      "durationMs": 62
+      "durationMs": 110
     },
     {
       "problem": "L001",
@@ -386,7 +386,7 @@
       "nodeCount": 11,
       "edgeCount": 12,
       "geometrySha256": "f80a0ff22e9ec9a0e9e31609b5483180b3dd6fcbcb8a9d63d1e909ba3ab04eb0",
-      "durationMs": 145
+      "durationMs": 185
     },
     {
       "problem": "L001",
@@ -438,7 +438,7 @@
       "nodeCount": 9,
       "edgeCount": 11,
       "geometrySha256": "baf6497909a249774c104388e6f2feaceb2c9e7603f911d9a561fc216f4083f3",
-      "durationMs": 104
+      "durationMs": 126
     },
     {
       "problem": "L001",
@@ -530,7 +530,7 @@
       "nodeCount": 11,
       "edgeCount": 14,
       "geometrySha256": "8d3d158faaca412c8d763789fea523dcc57200b3cb8ea6ab55edf67c94070de9",
-      "durationMs": 209
+      "durationMs": 241
     },
     {
       "problem": "L001",
@@ -594,7 +594,7 @@
       "nodeCount": 9,
       "edgeCount": 13,
       "geometrySha256": "5536ed7b9fecb899090bb6736341043f602a298bab20e8fc7e934063c63c2f62",
-      "durationMs": 73
+      "durationMs": 84
     },
     {
       "problem": "L001",
@@ -691,7 +691,7 @@
       "nodeCount": 5,
       "edgeCount": 5,
       "geometrySha256": "0ebe159f89c40917077ff594f4f850886db35cf9ce1c2b23284dae4523ea94be",
-      "durationMs": 0
+      "durationMs": 1
     },
     {
       "problem": "L001",
@@ -729,7 +729,7 @@
       "nodeCount": 9,
       "edgeCount": 9,
       "geometrySha256": "1e93bf0cbbb4bf780ffc48809a177e34730df73788abe24b9cbc7a522dfd66a9",
-      "durationMs": 22
+      "durationMs": 23
     },
     {
       "problem": "L001",
@@ -763,7 +763,7 @@
       "nodeCount": 7,
       "edgeCount": 9,
       "geometrySha256": "c2e1a586191f6ffcce81d0a000ed66457485f8a9d461a8e376b61c5a8d60ab6d",
-      "durationMs": 16
+      "durationMs": 17
     },
     {
       "problem": "L001",
@@ -819,7 +819,7 @@
       "nodeCount": 10,
       "edgeCount": 11,
       "geometrySha256": "81733054910935365becf176e24b0d5508ff2251df8dade64fe70ed58e2ff67c",
-      "durationMs": 53
+      "durationMs": 65
     },
     {
       "problem": "L001",
@@ -865,7 +865,7 @@
       "nodeCount": 8,
       "edgeCount": 11,
       "geometrySha256": "5539b3d4989cfaccf12d6bfbfef777bd840828c4fbeec409ebbe491724b05d05",
-      "durationMs": 29
+      "durationMs": 31
     },
     {
       "problem": "L001",
@@ -951,7 +951,7 @@
       "nodeCount": 12,
       "edgeCount": 13,
       "geometrySha256": "6fcc9a5810460da4111b7cc773085f1e580f1e8798efc44b849aaa3d7e6bff15",
-      "durationMs": 139
+      "durationMs": 159
     },
     {
       "problem": "L001",
@@ -1003,7 +1003,7 @@
       "nodeCount": 10,
       "edgeCount": 13,
       "geometrySha256": "5c13dfd8603c918d985f4d5c023f6a4ddfb939b7cbfd3f820c5d53b8bdc74e8f",
-      "durationMs": 46
+      "durationMs": 52
     },
     {
       "problem": "L001",
@@ -1143,7 +1143,7 @@
       "nodeCount": 12,
       "edgeCount": 15,
       "geometrySha256": "02b6fca1937ef1cde2279998767a896eb2d19b3891168fccb5d3d423404a4cac",
-      "durationMs": 260
+      "durationMs": 315
     },
     {
       "problem": "L001",
@@ -1213,7 +1213,7 @@
       "nodeCount": 10,
       "edgeCount": 15,
       "geometrySha256": "e28432913c23f5a5071ed957e7474c98987d74e21a6651bdd5c2dde683435204",
-      "durationMs": 135
+      "durationMs": 145
     },
     {
       "problem": "L002",
@@ -1278,7 +1278,7 @@
       "nodeCount": 6,
       "edgeCount": 5,
       "geometrySha256": "b65b27c0c7a8da5dbe33f747f934deba0e423ec3ed06667dba942f56c7da459f",
-      "durationMs": 16
+      "durationMs": 18
     },
     {
       "problem": "L002",
@@ -1374,7 +1374,7 @@
       "nodeCount": 9,
       "edgeCount": 8,
       "geometrySha256": "fa0c372717f0cdd0b044bbc43fa23622fc1541375c1a35e12f18b6310658469e",
-      "durationMs": 14
+      "durationMs": 15
     },
     {
       "problem": "L002",
@@ -1478,7 +1478,7 @@
       "nodeCount": 8,
       "edgeCount": 8,
       "geometrySha256": "48d3659563b66f657046e5a57a21f3daa7aed5a03367f1bf87dcf75703532447",
-      "durationMs": 14
+      "durationMs": 15
     },
     {
       "problem": "L002",
@@ -1504,7 +1504,7 @@
       "nodeCount": 9,
       "edgeCount": 9,
       "geometrySha256": "016299c6b9b303846ed97d0b769c867dfd88ce47dcca5027670685bc957da5a7",
-      "durationMs": 17
+      "durationMs": 18
     },
     {
       "problem": "L003",
@@ -1785,7 +1785,7 @@
       "nodeCount": 10,
       "edgeCount": 7,
       "geometrySha256": "625695e740be1bf06104bf44e6f9d1b30500f59fbba4d4ea3ad385d9bb50955d",
-      "durationMs": 11
+      "durationMs": 12
     },
     {
       "problem": "L003",
@@ -1834,7 +1834,7 @@
       "nodeCount": 6,
       "edgeCount": 5,
       "geometrySha256": "90056ee5f54f2606c7e170b86fd7f92256deaf4a0fc5cd810cc1151e627487c2",
-      "durationMs": 3
+      "durationMs": 4
     },
     {
       "problem": "L003",
@@ -1882,7 +1882,7 @@
       "nodeCount": 9,
       "edgeCount": 6,
       "geometrySha256": "e4950b6aec2021e1ad3a63f447b4fd092afc31daf9e7066e987200f1b11d9024",
-      "durationMs": 2
+      "durationMs": 3
     },
     {
       "problem": "L003",
@@ -1904,7 +1904,7 @@
       "nodeCount": 7,
       "edgeCount": 5,
       "geometrySha256": "2f7b779beb5a8bb74f9a4d668dd3d0cf0b21de94eee1f1c1dcdc929a49f28fd1",
-      "durationMs": 2
+      "durationMs": 3
     },
     {
       "problem": "L003",
@@ -1966,7 +1966,7 @@
       "nodeCount": 12,
       "edgeCount": 9,
       "geometrySha256": "6e69b995f58d16f7a28ef4447f22527c626071726717ef3d26aa391bbf1cf7d6",
-      "durationMs": 28
+      "durationMs": 29
     },
     {
       "problem": "L003",
@@ -2000,7 +2000,7 @@
       "nodeCount": 10,
       "edgeCount": 8,
       "geometrySha256": "68127104e7ed65f5dd92337bad047bb8a6ac9fc914d648e7b894b43fc870bdd7",
-      "durationMs": 20
+      "durationMs": 21
     },
     {
       "problem": "L003",
@@ -2415,7 +2415,7 @@
       "nodeCount": 11,
       "edgeCount": 8,
       "geometrySha256": "3d24510f761278dd6dd375f299ea87a7ac397466f4ff0318b954c6aab4e2ed6c",
-      "durationMs": 13
+      "durationMs": 14
     },
     {
       "problem": "L003",
@@ -2501,7 +2501,7 @@
       "nodeCount": 7,
       "edgeCount": 7,
       "geometrySha256": "ea12d4b85a3107d3b179fb14a7cdbe52915580d246ec518f41b6dec7574a011b",
-      "durationMs": 13
+      "durationMs": 14
     },
     {
       "problem": "L003",
@@ -2523,7 +2523,7 @@
       "nodeCount": 9,
       "edgeCount": 7,
       "geometrySha256": "6be34d368f24e0d6a9496c585ac71e2ed4dfbcacb7e96a1bbacb4abfa239fd7e",
-      "durationMs": 9
+      "durationMs": 10
     },
     {
       "problem": "L003",
@@ -2567,7 +2567,7 @@
       "nodeCount": 11,
       "edgeCount": 8,
       "geometrySha256": "b8ae1a5b3bf0f1b4b0e8c53de1fa40f3d36b154a423d8d74e14c0ac65758478a",
-      "durationMs": 12
+      "durationMs": 13
     },
     {
       "problem": "L003",
@@ -2653,7 +2653,7 @@
       "nodeCount": 7,
       "edgeCount": 7,
       "geometrySha256": "f4c7db4f5f510200343139b72a97f5d30e5dca528906aa07a657f54c3c834904",
-      "durationMs": 12
+      "durationMs": 13
     },
     {
       "problem": "L003",
@@ -2675,7 +2675,7 @@
       "nodeCount": 9,
       "edgeCount": 7,
       "geometrySha256": "94117c7ea9ea4d9b46a9a8766a3615c181dc0edc6e0d6139e64a3bf9639b13a0",
-      "durationMs": 9
+      "durationMs": 10
     },
     {
       "problem": "L003",
@@ -2695,7 +2695,7 @@
       "nodeCount": 14,
       "edgeCount": 10,
       "geometrySha256": "7344c4e0c8881d74ae570e8e0ef9adfe241efe07fabdb58a76338a6847df606a",
-      "durationMs": 14
+      "durationMs": 15
     },
     {
       "problem": "L003",
@@ -2717,7 +2717,7 @@
       "nodeCount": 12,
       "edgeCount": 9,
       "geometrySha256": "5a32c995d7a2fd6d5aa6b9e97b66b4a742771a81a03348cfc12a604dc10bff86",
-      "durationMs": 10
+      "durationMs": 11
     },
     {
       "problem": "L003",
@@ -2781,7 +2781,7 @@
       "nodeCount": 10,
       "edgeCount": 9,
       "geometrySha256": "c58e357febe96a2cf8dd699e428d188091366cc96aa39531b650d175f13afaa1",
-      "durationMs": 25
+      "durationMs": 28
     },
     {
       "problem": "L003",
@@ -2803,7 +2803,7 @@
       "nodeCount": 12,
       "edgeCount": 9,
       "geometrySha256": "602317e94a0b2ea97c87d7ba9578a6aab11187bd48de212aa82e8b2a811f565c",
-      "durationMs": 21
+      "durationMs": 24
     },
     {
       "problem": "L003",
@@ -2849,7 +2849,7 @@
       "nodeCount": 11,
       "edgeCount": 8,
       "geometrySha256": "1a7fa877d46d0593179cc8e7662e37cd0d743e55851a16df54a364f0765fa7c9",
-      "durationMs": 13
+      "durationMs": 14
     },
     {
       "problem": "L004",
@@ -3024,7 +3024,7 @@
       "nodeCount": 9,
       "edgeCount": 8,
       "geometrySha256": "faa2f94e9ad563e783a15c83e28c29eba7f02f0ca0ee53505577b9ee728ee8b9",
-      "durationMs": 11
+      "durationMs": 12
     },
     {
       "problem": "L004",
@@ -3068,7 +3068,7 @@
       "nodeCount": 10,
       "edgeCount": 9,
       "geometrySha256": "7c6a71d9ae86b42b2930e899690d8db08082e80cc9b12772b9423dc65e5216c8",
-      "durationMs": 16
+      "durationMs": 15
     },
     {
       "problem": "L004",
@@ -3094,7 +3094,7 @@
       "nodeCount": 13,
       "edgeCount": 11,
       "geometrySha256": "9100ebecbbbe1a99dd7217c3461d7a2ec0b129b353b348577613c4a1d48c4d06",
-      "durationMs": 37
+      "durationMs": 36
     },
     {
       "problem": "L004",
@@ -3116,7 +3116,7 @@
       "nodeCount": 10,
       "edgeCount": 9,
       "geometrySha256": "bdff75aea483441f2961d3ba856d0e1c4cb25f7d54dd9576db46dc186eeb7107",
-      "durationMs": 18
+      "durationMs": 19
     },
     {
       "problem": "L004",
@@ -3222,7 +3222,7 @@
       "nodeCount": 14,
       "edgeCount": 13,
       "geometrySha256": "7640272bedc6d4418795a001557c85d1ef71f45f0ec650a3779b9aadcc7863cb",
-      "durationMs": 109
+      "durationMs": 110
     },
     {
       "problem": "L004",
@@ -3268,7 +3268,7 @@
       "nodeCount": 10,
       "edgeCount": 10,
       "geometrySha256": "ec7503fb5350ed373d705c092fa23b7ceb240e4f79d95c9456f1e752fcf4d87b",
-      "durationMs": 43
+      "durationMs": 44
     },
     {
       "problem": "L004",
@@ -3320,7 +3320,7 @@
       "nodeCount": 10,
       "edgeCount": 11,
       "geometrySha256": "1365faa8152544146e35870f969fb566a0ed8962579e85532ac8e744ec29521b",
-      "durationMs": 34
+      "durationMs": 35
     },
     {
       "problem": "L004",
@@ -3348,7 +3348,7 @@
       "nodeCount": 12,
       "edgeCount": 12,
       "geometrySha256": "6721eee93c1e0aba121763ae27d81b6bab15d6fd0e9cf17aefd820313a6813cc",
-      "durationMs": 36
+      "durationMs": 37
     },
     {
       "problem": "L004",
@@ -3368,7 +3368,7 @@
       "nodeCount": 13,
       "edgeCount": 12,
       "geometrySha256": "7340798da1f2f948bdb1d6ea975c0ea71e0fa11ecb7400e72907bd3b83c055e0",
-      "durationMs": 50
+      "durationMs": 49
     },
     {
       "problem": "L004",
@@ -3448,7 +3448,7 @@
       "nodeCount": 9,
       "edgeCount": 10,
       "geometrySha256": "5b7ed0fe53dfec8c45ccb26e038a346a9338441439dddd09373f4fa4a06cf2bf",
-      "durationMs": 26
+      "durationMs": 27
     },
     {
       "problem": "L004",
@@ -3488,7 +3488,7 @@
       "nodeCount": 11,
       "edgeCount": 11,
       "geometrySha256": "abbd21d7356972f12e399c9411a3e22b7182792cc8eed0784fd5330d4dbc2e6b",
-      "durationMs": 41
+      "durationMs": 42
     },
     {
       "problem": "L004",
@@ -3508,7 +3508,7 @@
       "nodeCount": 17,
       "edgeCount": 16,
       "geometrySha256": "29d870c926c59e207600df6be0b37ea0b6ca91e54467d11f6555c52554831ba2",
-      "durationMs": 108
+      "durationMs": 110
     },
     {
       "problem": "L004",
@@ -3530,7 +3530,7 @@
       "nodeCount": 14,
       "edgeCount": 13,
       "geometrySha256": "91e27a43a9259ed8225f83102aff503c3fbba91e7ac3147333a92dc21a27ae64",
-      "durationMs": 40
+      "durationMs": 41
     },
     {
       "problem": "L004",
@@ -3564,7 +3564,7 @@
       "nodeCount": 10,
       "edgeCount": 12,
       "geometrySha256": "8324717e25a279b0c3592032211ac67e07a71b744f91d27c270b16fde61ef33e",
-      "durationMs": 63
+      "durationMs": 58
     },
     {
       "problem": "L004",
@@ -3598,7 +3598,7 @@
       "nodeCount": 15,
       "edgeCount": 15,
       "geometrySha256": "d4ca6bd85c0fe360c39bccd20f94fff6cb165065eb215a5aa9d51528381ce01a",
-      "durationMs": 106
+      "durationMs": 112
     },
     {
       "problem": "L004",
@@ -3620,7 +3620,7 @@
       "nodeCount": 14,
       "edgeCount": 14,
       "geometrySha256": "85c43965dd90c7da026e4fcbffdff254f4e6df4b77c42c2786c033f805c9545b",
-      "durationMs": 90
+      "durationMs": 93
     },
     {
       "problem": "L004",
@@ -3761,7 +3761,7 @@
       "nodeCount": 6,
       "edgeCount": 5,
       "geometrySha256": "48226aa2a0e68344f7321070c680ca746b5d609ef5d404c9aeda94e5c8d9141e",
-      "durationMs": 3
+      "durationMs": 4
     },
     {
       "problem": "L004",
@@ -3787,7 +3787,7 @@
       "nodeCount": 9,
       "edgeCount": 8,
       "geometrySha256": "093a2788cfc994c8227d06ab2ae64b9d1808168d50eb93d32b0136f47fe4ecfe",
-      "durationMs": 12
+      "durationMs": 14
     },
     {
       "problem": "L004",
@@ -3809,7 +3809,7 @@
       "nodeCount": 6,
       "edgeCount": 6,
       "geometrySha256": "1ed4f1da335d8ffbd0fc1352ab940ed2b33b96390ecf96d21b2b36fa474a59fe",
-      "durationMs": 5
+      "durationMs": 6
     },
     {
       "problem": "L004",
@@ -3843,7 +3843,7 @@
       "nodeCount": 7,
       "edgeCount": 7,
       "geometrySha256": "ee3819498951c60413cd87c7719be717f6c151d4bde7d352598ebee01d287be0",
-      "durationMs": 16
+      "durationMs": 17
     },
     {
       "problem": "L004",
@@ -3869,7 +3869,7 @@
       "nodeCount": 9,
       "edgeCount": 8,
       "geometrySha256": "1eb94ec89ef2e51ebd9b1ef544e82fa17f5bece33d492247697c3bd38f129201",
-      "durationMs": 13
+      "durationMs": 14
     },
     {
       "problem": "L004",
@@ -3925,7 +3925,7 @@
       "nodeCount": 7,
       "edgeCount": 7,
       "geometrySha256": "9ef04d950052c3bb8b9b6c97fe5826a4ab6faa5502e548e6013e3ad10fd2b22f",
-      "durationMs": 17
+      "durationMs": 16
     },
     {
       "problem": "L004",
@@ -4081,7 +4081,7 @@
       "nodeCount": 11,
       "edgeCount": 8,
       "geometrySha256": "e9f931e340c850b847c381fc36d7c0b0fa5d4bb94bd17fe583062471c53795ec",
-      "durationMs": 13
+      "durationMs": 14
     },
     {
       "problem": "L004",
@@ -4125,7 +4125,7 @@
       "nodeCount": 9,
       "edgeCount": 7,
       "geometrySha256": "06322ae75f7fbb21401cfd3d9b1654d8af9dd6f3bef5da50cb6c98b20a6a09fd",
-      "durationMs": 15
+      "durationMs": 16
     },
     {
       "problem": "L004",
@@ -4435,7 +4435,7 @@
       "nodeCount": 9,
       "edgeCount": 13,
       "geometrySha256": "5535eec2cd99e4dc826cba78bf2d135fa6d137e254e58299161481fe08c4b649",
-      "durationMs": 80
+      "durationMs": 81
     },
     {
       "problem": "L005",
@@ -4475,7 +4475,7 @@
       "nodeCount": 7,
       "edgeCount": 12,
       "geometrySha256": "85188cc01998067b57cc10446ecd7e5d714812b640dd3cffd32c4ebe6090083f",
-      "durationMs": 33
+      "durationMs": 34
     },
     {
       "problem": "L005",
@@ -4537,7 +4537,7 @@
       "nodeCount": 10,
       "edgeCount": 15,
       "geometrySha256": "80d4bbba2c9ea15564c37c4cb30833cbd0c69a96334b97cfea6d47c5acbdf51f",
-      "durationMs": 152
+      "durationMs": 157
     },
     {
       "problem": "L005",
@@ -4645,7 +4645,7 @@
       "nodeCount": 9,
       "edgeCount": 14,
       "geometrySha256": "d647c00a3f231c001b4f7e27455007151c43203735602bae6e63e69fc3b6359a",
-      "durationMs": 127
+      "durationMs": 134
     },
     {
       "problem": "L005",
@@ -4799,7 +4799,7 @@
       "nodeCount": 7,
       "edgeCount": 7,
       "geometrySha256": "c2bf1b1dbcd0ec94e58c5ddeb733aad7a24e7448eacbe40881e7bc716cca06ca",
-      "durationMs": 6
+      "durationMs": 5
     },
     {
       "problem": "L005",
@@ -4985,7 +4985,7 @@
       "nodeCount": 9,
       "edgeCount": 13,
       "geometrySha256": "5535eec2cd99e4dc826cba78bf2d135fa6d137e254e58299161481fe08c4b649",
-      "durationMs": 85
+      "durationMs": 79
     },
     {
       "problem": "L005",
@@ -5025,7 +5025,7 @@
       "nodeCount": 7,
       "edgeCount": 12,
       "geometrySha256": "85188cc01998067b57cc10446ecd7e5d714812b640dd3cffd32c4ebe6090083f",
-      "durationMs": 35
+      "durationMs": 34
     },
     {
       "problem": "L005",
@@ -5087,7 +5087,7 @@
       "nodeCount": 10,
       "edgeCount": 15,
       "geometrySha256": "80d4bbba2c9ea15564c37c4cb30833cbd0c69a96334b97cfea6d47c5acbdf51f",
-      "durationMs": 160
+      "durationMs": 157
     },
     {
       "problem": "L005",
@@ -5139,7 +5139,7 @@
       "nodeCount": 8,
       "edgeCount": 14,
       "geometrySha256": "7e86a19f10f29c9be09e044dfe08984f55d5afa176f39c25865ff9fd4c344c17",
-      "durationMs": 71
+      "durationMs": 73
     },
     {
       "problem": "L005",
@@ -5195,7 +5195,7 @@
       "nodeCount": 9,
       "edgeCount": 14,
       "geometrySha256": "d647c00a3f231c001b4f7e27455007151c43203735602bae6e63e69fc3b6359a",
-      "durationMs": 126
+      "durationMs": 135
     },
     {
       "problem": "L005",
@@ -5383,7 +5383,7 @@
       "nodeCount": 4,
       "edgeCount": 4,
       "geometrySha256": "ed4eb65f790c1b2301916f069ebeba0ddab55107c2a0aa37c7964448937aced6",
-      "durationMs": 0
+      "durationMs": 1
     },
     {
       "problem": "L006",
@@ -5553,7 +5553,7 @@
       "nodeCount": 11,
       "edgeCount": 10,
       "geometrySha256": "78805b98e1fa4d4490e6c2fc8efa71c2f134f8bfce317fb325d312feb5d2325c",
-      "durationMs": 51
+      "durationMs": 52
     },
     {
       "problem": "L006",
@@ -5733,7 +5733,7 @@
       "nodeCount": 12,
       "edgeCount": 13,
       "geometrySha256": "523de3774782b10a086442c18661df61b11f029baccab0e2f7f0bcb3d92fdbc9",
-      "durationMs": 169
+      "durationMs": 171
     },
     {
       "problem": "L006",
@@ -5839,7 +5839,7 @@
       "nodeCount": 10,
       "edgeCount": 13,
       "geometrySha256": "1196df55dd6e605a2e9159b406a508e24ba553ab421195b25e73b55cf266950c",
-      "durationMs": 98
+      "durationMs": 99
     },
     {
       "problem": "L006",
@@ -5955,7 +5955,7 @@
       "nodeCount": 13,
       "edgeCount": 16,
       "geometrySha256": "31cb88098c3716df9a06e78cf5a4df550f95f77e9ce5801ea01bdf9b3cb031ed",
-      "durationMs": 331
+      "durationMs": 333
     },
     {
       "problem": "L006",
@@ -6079,7 +6079,7 @@
       "nodeCount": 11,
       "edgeCount": 16,
       "geometrySha256": "ba4d695fb76bbbb70dc4f6b0c8aa2e69e36eae900e62602259fbaf1c1b668ae9",
-      "durationMs": 218
+      "durationMs": 214
     },
     {
       "problem": "L006",
@@ -6264,7 +6264,7 @@
       "nodeCount": 8,
       "edgeCount": 8,
       "geometrySha256": "5f4e62b4a5fc481ceed90bd133d051e3783e61c18e99acfb7b4976b28df42fb8",
-      "durationMs": 4
+      "durationMs": 5
     },
     {
       "problem": "L006",
@@ -6416,7 +6416,7 @@
       "nodeCount": 13,
       "edgeCount": 14,
       "geometrySha256": "7043f5e188fcd5ff51fab928826a338ecead84c4fc60b244de47268e5f867254",
-      "durationMs": 123
+      "durationMs": 124
     },
     {
       "problem": "L006",
@@ -6480,7 +6480,7 @@
       "nodeCount": 11,
       "edgeCount": 14,
       "geometrySha256": "22e595df31b61e14bc87521d2c08f2f11571475f9fc1d6b598e3e7b9c726c5b8",
-      "durationMs": 126
+      "durationMs": 134
     },
     {
       "problem": "L006",
@@ -6584,7 +6584,7 @@
       "nodeCount": 14,
       "edgeCount": 17,
       "geometrySha256": "a9a9b8a8955faae288c711308b370432482cd00106dd14d548a006f8cf1d61d8",
-      "durationMs": 400
+      "durationMs": 404
     },
     {
       "problem": "L006",
@@ -6672,7 +6672,7 @@
       "nodeCount": 12,
       "edgeCount": 17,
       "geometrySha256": "af9fd28b56e768a3db1cf971cbeb61056f1a0893f1cf8d0c9083560b368d627b",
-      "durationMs": 454
+      "durationMs": 450
     },
     {
       "problem": "L007",
@@ -6754,7 +6754,7 @@
       "nodeCount": 6,
       "edgeCount": 4,
       "geometrySha256": "fd5fe27ce834caf2b879f47b1f0b12b71114ee5971f2daba55136f3d46d06359",
-      "durationMs": 2
+      "durationMs": 4
     },
     {
       "problem": "L007",
@@ -6782,7 +6782,7 @@
       "nodeCount": 7,
       "edgeCount": 6,
       "geometrySha256": "b7bc2121157333d8c4a17e54d53fa80e05b256148600be14f889990a9b6f838a",
-      "durationMs": 4
+      "durationMs": 3
     },
     {
       "problem": "L007",
@@ -6875,7 +6875,7 @@
       "nodeCount": 7,
       "edgeCount": 7,
       "geometrySha256": "0c843c4a3a3e8299c2cdd59cc073be56d8c423f2a23fda949916d3f6fd93b147",
-      "durationMs": 12
+      "durationMs": 13
     },
     {
       "problem": "L007",
@@ -7013,7 +7013,7 @@
       "nodeCount": 9,
       "edgeCount": 10,
       "geometrySha256": "c8b12866c39636ea7364be2e298a6fd0505778f2adcd29affca8cc174d65e93d",
-      "durationMs": 32
+      "durationMs": 33
     },
     {
       "problem": "L007",
@@ -7057,7 +7057,7 @@
       "nodeCount": 10,
       "edgeCount": 10,
       "geometrySha256": "d91830644e4d6e809298eb2dc259b2ca661bc2b1b5873206686992a21fdbde55",
-      "durationMs": 52
+      "durationMs": 53
     },
     {
       "problem": "L007",
@@ -7249,7 +7249,7 @@
       "nodeCount": 7,
       "edgeCount": 6,
       "geometrySha256": "51d59e9bf60bb28099037516f0bdc930bd061a3c3a2be40e4f80e87d10f921d7",
-      "durationMs": 3
+      "durationMs": 4
     },
     {
       "problem": "L007",
@@ -7289,7 +7289,7 @@
       "nodeCount": 5,
       "edgeCount": 5,
       "geometrySha256": "3d034666af83a488a7d51e2986fd4b079af5490b685f412bcda44fe8fe6211f8",
-      "durationMs": 6
+      "durationMs": 7
     },
     {
       "problem": "L007",
@@ -7386,7 +7386,7 @@
       "nodeCount": 11,
       "edgeCount": 11,
       "geometrySha256": "6ec8e2781112b05ca0a348c7c7a68f1cbcdac3e217985b150fc1207321fb2a81",
-      "durationMs": 63
+      "durationMs": 65
     },
     {
       "problem": "L007",
@@ -7480,7 +7480,7 @@
       "nodeCount": 9,
       "edgeCount": 10,
       "geometrySha256": "e632612f8fabeea09057d099ffe105ce5e63fb316bf4af3a51ddc8918e304398",
-      "durationMs": 49
+      "durationMs": 52
     },
     {
       "problem": "L007",
@@ -7606,7 +7606,7 @@
       "nodeCount": 8,
       "edgeCount": 9,
       "geometrySha256": "a590e7fb6c8d988328310fb38b5a22e5f491eba28bd56eb62c8957d49a5f5948",
-      "durationMs": 26
+      "durationMs": 27
     },
     {
       "problem": "L008",
@@ -7675,7 +7675,7 @@
       "nodeCount": 3,
       "edgeCount": 2,
       "geometrySha256": "21d9ddf7b24e55bdd3e60a8312ba64d7530d23dfc20f343e9d3e01c8d51bff4f",
-      "durationMs": 0
+      "durationMs": 1
     },
     {
       "problem": "L008",
@@ -7701,7 +7701,7 @@
       "nodeCount": 7,
       "edgeCount": 6,
       "geometrySha256": "2016b6401f09142335a44cd5aa5d603e6aecc2cc8db6955196fe8719bb29e4fc",
-      "durationMs": 4
+      "durationMs": 5
     },
     {
       "problem": "L008",
@@ -7748,7 +7748,7 @@
       "nodeCount": 8,
       "edgeCount": 7,
       "geometrySha256": "ca0d8500913737801c76fb2e980ac11ff102d54f8aacbb083544c7021d7a41f1",
-      "durationMs": 7
+      "durationMs": 6
     },
     {
       "problem": "L008",
@@ -7850,7 +7850,7 @@
       "nodeCount": 10,
       "edgeCount": 12,
       "geometrySha256": "0694423cfcb60df5f429db57f8580c02013d84eea26472c369ad08b4e0457e93",
-      "durationMs": 17
+      "durationMs": 18
     },
     {
       "problem": "L008",
@@ -7916,7 +7916,7 @@
       "nodeCount": 11,
       "edgeCount": 15,
       "geometrySha256": "19142b344001ddd7e10bfe7b6cdfc51a52e78db42ea60f6bee46487b889c9dc3",
-      "durationMs": 63
+      "durationMs": 64
     },
     {
       "problem": "L008",
@@ -7956,7 +7956,7 @@
       "nodeCount": 9,
       "edgeCount": 13,
       "geometrySha256": "36868505b527b4ef10c1ef4e5cf6c074eb3f9e16cc04e9cd71d9764b7510a3de",
-      "durationMs": 27
+      "durationMs": 28
     },
     {
       "problem": "L008",
@@ -8152,7 +8152,7 @@
       "nodeCount": 9,
       "edgeCount": 10,
       "geometrySha256": "f2c153c7b8a468463e8e6f19f70cf2aefb68ece0225d0c939530e101c51f1fd5",
-      "durationMs": 9
+      "durationMs": 10
     },
     {
       "problem": "L008",
@@ -8180,7 +8180,7 @@
       "nodeCount": 7,
       "edgeCount": 8,
       "geometrySha256": "01f7efefa009ae8a8167b430e35ab2476973d769c66adc27ba87e353a773184a",
-      "durationMs": 6
+      "durationMs": 7
     },
     {
       "problem": "L008",
@@ -8272,7 +8272,7 @@
       "nodeCount": 11,
       "edgeCount": 15,
       "geometrySha256": "13035b46031feb0f1539491ca0c03ed6fd156c5ae499bbce087f9d66fdc18d87",
-      "durationMs": 65
+      "durationMs": 67
     },
     {
       "problem": "L008",
@@ -8312,7 +8312,7 @@
       "nodeCount": 9,
       "edgeCount": 13,
       "geometrySha256": "d630cab37e737102bdd338e2045c673522abc47b55d3e2af3b20ea2e0de9a6ff",
-      "durationMs": 29
+      "durationMs": 28
     },
     {
       "problem": "L009",
@@ -8338,7 +8338,7 @@
       "nodeCount": 4,
       "edgeCount": 2,
       "geometrySha256": "1ccfde6d66aa862cdfd87881ee25a36c48efc672b8a332d5af31b839c2ba3de5",
-      "durationMs": 0
+      "durationMs": 1
     },
     {
       "problem": "L009",
@@ -8518,7 +8518,7 @@
       "nodeCount": 10,
       "edgeCount": 9,
       "geometrySha256": "ec66e181cddcd2b0d821b13a0a1c6f1c38f35bdbb7af853b76d8cbd6144c57bb",
-      "durationMs": 45
+      "durationMs": 47
     },
     {
       "problem": "L009",
@@ -8736,7 +8736,7 @@
       "nodeCount": 13,
       "edgeCount": 14,
       "geometrySha256": "05c1316f878789f48f88dedee7de60e9f86a4d1e22278e4a2064cc38131599eb",
-      "durationMs": 131
+      "durationMs": 132
     },
     {
       "problem": "L009",
@@ -8770,7 +8770,7 @@
       "nodeCount": 11,
       "edgeCount": 13,
       "geometrySha256": "bc9b9bb012aba9a9c73b4c439f124acf7917634b4a82e315573a109d7b72ef94",
-      "durationMs": 142
+      "durationMs": 147
     },
     {
       "problem": "L009",
@@ -8798,7 +8798,7 @@
       "nodeCount": 11,
       "edgeCount": 13,
       "geometrySha256": "4f2368cc5d84780997bcf5b2e570a731b61cc72932a83ddc58c617c10e84537e",
-      "durationMs": 83
+      "durationMs": 85
     },
     {
       "problem": "L009",
@@ -8888,7 +8888,7 @@
       "nodeCount": 10,
       "edgeCount": 12,
       "geometrySha256": "03443dbcbff7761f547067cd36bd34fa1ee1ce5f4ea437a75eb562528b32e191",
-      "durationMs": 116
+      "durationMs": 113
     },
     {
       "problem": "L009",
@@ -8928,7 +8928,7 @@
       "nodeCount": 10,
       "edgeCount": 12,
       "geometrySha256": "82c93d71e0ef34dd646dc924844b4dc12821be89bf4e64742e888bbb668cd423",
-      "durationMs": 67
+      "durationMs": 65
     },
     {
       "problem": "L009",
@@ -9161,7 +9161,7 @@
       "nodeCount": 7,
       "edgeCount": 8,
       "geometrySha256": "b19e81df785514fcccd7a2d11cd6baa60087afaa32b877538621f7106aead853",
-      "durationMs": 9
+      "durationMs": 10
     },
     {
       "problem": "L009",
@@ -9325,7 +9325,7 @@
       "nodeCount": 7,
       "edgeCount": 8,
       "geometrySha256": "780f9d1e6a86759019f65d7c1885fbc2ccef7748fbc57ad6c61f1cc352ba7b8b",
-      "durationMs": 34
+      "durationMs": 35
     },
     {
       "problem": "L009",
@@ -9425,7 +9425,7 @@
       "nodeCount": 7,
       "edgeCount": 7,
       "geometrySha256": "37ef2beb28fe8cae04765e92cedad52e8cabc4fc596c93f6123803f04d120237",
-      "durationMs": 27
+      "durationMs": 28
     },
     {
       "problem": "L010",
@@ -9587,7 +9587,7 @@
       "nodeCount": 8,
       "edgeCount": 9,
       "geometrySha256": "82b3d22b0f6501ed595215afc09a86414964218c86bef474b034809617ccbdbc",
-      "durationMs": 17
+      "durationMs": 18
     },
     {
       "problem": "L010",
@@ -9671,7 +9671,7 @@
       "nodeCount": 10,
       "edgeCount": 11,
       "geometrySha256": "f8a38ce2eaef17ce4a174c3aa14d05f6859139321f17efe3bd213147884092d2",
-      "durationMs": 34
+      "durationMs": 35
     },
     {
       "problem": "L010",
@@ -9717,7 +9717,7 @@
       "nodeCount": 8,
       "edgeCount": 10,
       "geometrySha256": "6709c53fa95fa50e285f20908866b67c3ec51e1c5c6c5fea24f4347d544eae83",
-      "durationMs": 22
+      "durationMs": 24
     },
     {
       "problem": "L010",
@@ -9845,7 +9845,7 @@
       "nodeCount": 9,
       "edgeCount": 11,
       "geometrySha256": "0bf908887caf3c90bd36cd97584e6d1f408d238bf7d1165d830ccc35c3f52568",
-      "durationMs": 38
+      "durationMs": 40
     },
     {
       "problem": "L010",
@@ -9891,7 +9891,7 @@
       "nodeCount": 7,
       "edgeCount": 10,
       "geometrySha256": "47e200acbd0904f451360c210c727d15708baf6cba23946ed4d723c7a3bfc6e3",
-      "durationMs": 20
+      "durationMs": 19
     },
     {
       "problem": "L010",
@@ -10052,7 +10052,7 @@
       "nodeCount": 9,
       "edgeCount": 11,
       "geometrySha256": "e288e926984f3c35cc28e3287d47c30b3a3e8a52843b6ddb9f0bf68657880642",
-      "durationMs": 34
+      "durationMs": 35
     },
     {
       "problem": "L010",
@@ -10136,7 +10136,7 @@
       "nodeCount": 11,
       "edgeCount": 13,
       "geometrySha256": "0c1ce1cf7e7660039727c100cd3f8add9552339ab9faa42c55ff17af88cbadbe",
-      "durationMs": 56
+      "durationMs": 57
     },
     {
       "problem": "L010",
@@ -10182,7 +10182,7 @@
       "nodeCount": 9,
       "edgeCount": 12,
       "geometrySha256": "e765f117968a6e29f5e5df803afebbcd5ed2f10d2219a9ff2e9d940c898f875f",
-      "durationMs": 37
+      "durationMs": 39
     },
     {
       "problem": "L010",
@@ -10308,7 +10308,7 @@
       "nodeCount": 10,
       "edgeCount": 15,
       "geometrySha256": "f4c93828062720d7531b34bda9758ca532f80681c9ccade27efb3802ed88de6c",
-      "durationMs": 98
+      "durationMs": 99
     },
     {
       "problem": "L010",
@@ -10364,7 +10364,7 @@
       "nodeCount": 10,
       "edgeCount": 14,
       "geometrySha256": "9264810bcd49fea53f2930305929b9573a6cc0d0c7e5c6738af17562c8f20a5c",
-      "durationMs": 107
+      "durationMs": 110
     },
     {
       "problem": "L010",
@@ -10422,7 +10422,7 @@
       "nodeCount": 8,
       "edgeCount": 13,
       "geometrySha256": "3eade850c9cc283c9053df157d1f1d204336571aba1ebf75ba8815617684537c",
-      "durationMs": 84
+      "durationMs": 86
     },
     {
       "problem": "L011",
@@ -10560,7 +10560,7 @@
       "nodeCount": 5,
       "edgeCount": 6,
       "geometrySha256": "84d29e56aabe14f801af7838cd01092e2da16d0380e4f37c54bd8852c5955149",
-      "durationMs": 4
+      "durationMs": 5
     },
     {
       "problem": "L011",
@@ -10658,7 +10658,7 @@
       "nodeCount": 9,
       "edgeCount": 10,
       "geometrySha256": "67c7271ce737599b28a058b086254fb18d50585f3202bdbabce1760df0f5b25f",
-      "durationMs": 48
+      "durationMs": 49
     },
     {
       "problem": "L011",
@@ -10832,7 +10832,7 @@
       "nodeCount": 10,
       "edgeCount": 14,
       "geometrySha256": "288493b90d967800e453c0ebb0835422a761a8dc74c77f906d8c8aa9006b9017",
-      "durationMs": 140
+      "durationMs": 135
     },
     {
       "problem": "L011",
@@ -10896,7 +10896,7 @@
       "nodeCount": 7,
       "edgeCount": 12,
       "geometrySha256": "6529ba7237e2819a231a03d431ff132136edcfa406bff24f121f6d73f0746098",
-      "durationMs": 89
+      "durationMs": 88
     },
     {
       "problem": "L011",
@@ -11036,7 +11036,7 @@
       "nodeCount": 11,
       "edgeCount": 16,
       "geometrySha256": "3258fb4873b0f6b6e3d76f7f40b68aec490ed3c19bb245d072a672e9424b21c7",
-      "durationMs": 271
+      "durationMs": 273
     },
     {
       "problem": "L011",
@@ -11124,7 +11124,7 @@
       "nodeCount": 8,
       "edgeCount": 14,
       "geometrySha256": "7e1ae5b228b468b7b21aeac3aa088a62eae64c149b3b493d1433640e1f377cab",
-      "durationMs": 149
+      "durationMs": 158
     },
     {
       "problem": "L011",
@@ -11264,7 +11264,7 @@
       "nodeCount": 13,
       "edgeCount": 17,
       "geometrySha256": "530d24e97aa570acef2665f6d66681bb425a163182500b63914658930653bf87",
-      "durationMs": 296
+      "durationMs": 298
     },
     {
       "problem": "L011",
@@ -11406,7 +11406,7 @@
       "nodeCount": 11,
       "edgeCount": 16,
       "geometrySha256": "7dfc6ab2593946031a13dd748a35652b53a2fa65c36808d383478e1ed025772b",
-      "durationMs": 269
+      "durationMs": 273
     },
     {
       "problem": "L011",
@@ -11482,7 +11482,7 @@
       "nodeCount": 10,
       "edgeCount": 15,
       "geometrySha256": "9abc0191f97041cca6946591251399f72cf07080e2309f560741ecc0e7c9868d",
-      "durationMs": 149
+      "durationMs": 154
     },
     {
       "problem": "L011",
@@ -11634,7 +11634,7 @@
       "nodeCount": 16,
       "edgeCount": 21,
       "geometrySha256": "b279d4889925d385e8fd5c3cfa752f34c24d164a0f9d2ab2e52c410e0b15cd36",
-      "durationMs": 605
+      "durationMs": 603
     },
     {
       "problem": "L011",
@@ -11788,7 +11788,7 @@
       "nodeCount": 14,
       "edgeCount": 20,
       "geometrySha256": "a0a436a91219f495b3dfcde1512e6030bc2e902e5fbd5f06e2940b5f02c088e4",
-      "durationMs": 502
+      "durationMs": 506
     },
     {
       "problem": "L011",
@@ -11870,7 +11870,7 @@
       "nodeCount": 13,
       "edgeCount": 19,
       "geometrySha256": "9355c29a897c6d979d392ae1f1ccf4978bdc8b32cd3632588d85b3370a578cce",
-      "durationMs": 248
+      "durationMs": 258
     },
     {
       "problem": "L011",
@@ -11980,7 +11980,7 @@
       "nodeCount": 15,
       "edgeCount": 19,
       "geometrySha256": "954c89b155fd0d961ccc1d1c8be5bc1768ebf9e66073230a585fadca4b0e1a5e",
-      "durationMs": 186
+      "durationMs": 187
     },
     {
       "problem": "L011",
@@ -12080,7 +12080,7 @@
       "nodeCount": 13,
       "edgeCount": 18,
       "geometrySha256": "56db8c201507a19b2e4954d366234ef637910a8fcc57cdab41a9e02d19847f71",
-      "durationMs": 148
+      "durationMs": 147
     },
     {
       "problem": "L011",
@@ -12168,7 +12168,7 @@
       "nodeCount": 12,
       "edgeCount": 17,
       "geometrySha256": "ae8e2c920a7bfdfeb4b1d873634d8ab4fd352c2b608be181a59280260538016e",
-      "durationMs": 127
+      "durationMs": 132
     },
     {
       "problem": "L011",
@@ -12358,7 +12358,7 @@
       "nodeCount": 8,
       "edgeCount": 7,
       "geometrySha256": "0d85789da0d4a9972e9dc40c475c7ca95fee347844e36b0d170fa0d189386ac1",
-      "durationMs": 9
+      "durationMs": 8
     },
     {
       "problem": "L011",
@@ -12644,7 +12644,7 @@
       "nodeCount": 5,
       "edgeCount": 6,
       "geometrySha256": "83e4ed8c5dd17fd4117503c29d64a65e837a07dd4eb4b9278a527f0d83b3b0a0",
-      "durationMs": 7
+      "durationMs": 8
     },
     {
       "problem": "L011",
@@ -12732,7 +12732,7 @@
       "nodeCount": 8,
       "edgeCount": 9,
       "geometrySha256": "059550062edecb1101a9f047be14bb1a00e592125a46dc5f995ca31925af5c42",
-      "durationMs": 38
+      "durationMs": 39
     },
     {
       "problem": "L011",
@@ -12846,7 +12846,7 @@
       "nodeCount": 10,
       "edgeCount": 10,
       "geometrySha256": "9fe47824f8292c595696ee1e051679e8ae53a27baa828eafc49fa322228043ba",
-      "durationMs": 35
+      "durationMs": 36
     },
     {
       "problem": "L011",
@@ -12886,7 +12886,7 @@
       "nodeCount": 7,
       "edgeCount": 7,
       "geometrySha256": "fbc8ecb23af270121c4c824ed5255c3614599606ead5416a23f64954384b1abe",
-      "durationMs": 12
+      "durationMs": 11
     },
     {
       "problem": "L011",
@@ -13018,7 +13018,7 @@
       "nodeCount": 15,
       "edgeCount": 15,
       "geometrySha256": "6b054542391b39fa84823e4f6dadcb0d3e0a54727113da64edc6c93b8c25f0bc",
-      "durationMs": 78
+      "durationMs": 77
     },
     {
       "problem": "L011",
@@ -13088,7 +13088,7 @@
       "nodeCount": 13,
       "edgeCount": 14,
       "geometrySha256": "81595481519939486a7232c4ffb17aff163378c53884a4be209c59a19d05a8d5",
-      "durationMs": 49
+      "durationMs": 50
     },
     {
       "problem": "L011",
@@ -13246,7 +13246,7 @@
       "nodeCount": 13,
       "edgeCount": 14,
       "geometrySha256": "240d57df229489c8b70668e3b3cad7198d0e96ee47aad0b03f6cacae4ed192a9",
-      "durationMs": 79
+      "durationMs": 80
     },
     {
       "problem": "L011",
@@ -13314,7 +13314,7 @@
       "nodeCount": 14,
       "edgeCount": 15,
       "geometrySha256": "94b19551641760d520ea5315fdce5eeb7ac8a091a10cf2ec3df3f1ac594a9581",
-      "durationMs": 230
+      "durationMs": 225
     },
     {
       "problem": "L011",
@@ -13414,7 +13414,7 @@
       "nodeCount": 12,
       "edgeCount": 14,
       "geometrySha256": "70eff0cba5bb71b1ece69695bd9a09e5ae5e8f44ce823f51f612ec025db9550b",
-      "durationMs": 196
+      "durationMs": 199
     },
     {
       "problem": "L011",
@@ -13554,7 +13554,7 @@
       "nodeCount": 12,
       "edgeCount": 14,
       "geometrySha256": "bf7adbe8b32af7eed12181ba2c3008a641ea325d217193ad4b741fdf6d80329e",
-      "durationMs": 85
+      "durationMs": 86
     },
     {
       "problem": "L012",
@@ -13650,7 +13650,7 @@
       "nodeCount": 6,
       "edgeCount": 6,
       "geometrySha256": "62043840ddd5ceda018d977ceb46eec2d78f007ff0e6a92c78a21cd274d609c6",
-      "durationMs": 8
+      "durationMs": 9
     },
     {
       "problem": "L012",
@@ -13746,7 +13746,7 @@
       "nodeCount": 8,
       "edgeCount": 9,
       "geometrySha256": "044f42cba8b50520521da9aa2044fa620d7395e35b2b98778705fabebbc813f6",
-      "durationMs": 10
+      "durationMs": 11
     },
     {
       "problem": "L012",
@@ -13818,7 +13818,7 @@
       "nodeCount": 9,
       "edgeCount": 12,
       "geometrySha256": "f396257ab4e466a08018f107908c2a65ffb3044b2a9a314ef629829c8483e4cc",
-      "durationMs": 79
+      "durationMs": 80
     },
     {
       "problem": "L012",
@@ -13962,7 +13962,7 @@
       "nodeCount": 10,
       "edgeCount": 14,
       "geometrySha256": "e74b7398f626f0a9c231e69aa0cf4b281b41d166a0f60e066d7bb14558f12110",
-      "durationMs": 439
+      "durationMs": 441
     },
     {
       "problem": "L012",
@@ -14032,7 +14032,7 @@
       "nodeCount": 8,
       "edgeCount": 13,
       "geometrySha256": "6bdf2c63d394c3baefd828f6ade87c81c015c175e396a512ce88b7f181bb4b90",
-      "durationMs": 101
+      "durationMs": 90
     },
     {
       "problem": "L012",
@@ -14143,7 +14143,7 @@
       "nodeCount": 4,
       "edgeCount": 4,
       "geometrySha256": "5668c3ed8b886961dde26699de00dfd96a342d763d59789c9eafa0b93f33c2ae",
-      "durationMs": 2
+      "durationMs": 1
     },
     {
       "problem": "L012",
@@ -14217,7 +14217,7 @@
       "nodeCount": 8,
       "edgeCount": 9,
       "geometrySha256": "d313f7b9113c566a23385d11c18e82c6f55eb0ec5ba5dcad88d0009539227251",
-      "durationMs": 27
+      "durationMs": 29
     },
     {
       "problem": "L012",
@@ -14251,7 +14251,7 @@
       "nodeCount": 6,
       "edgeCount": 8,
       "geometrySha256": "490d3c34f96d452ab6f508c2a3136557a86f66b621ca767909f399b5d3d2a46a",
-      "durationMs": 15
+      "durationMs": 17
     },
     {
       "problem": "L012",
@@ -14295,7 +14295,7 @@
       "nodeCount": 9,
       "edgeCount": 10,
       "geometrySha256": "3789bc2686b0788e32840eab2c0e13468552aecb77900b6205cbe28447bfb962",
-      "durationMs": 41
+      "durationMs": 43
     },
     {
       "problem": "L012",
@@ -14513,7 +14513,7 @@
       "nodeCount": 6,
       "edgeCount": 3,
       "geometrySha256": "8e2575f112cb2174592660323a318aea424bf5df3c071fb7a2a26e85a7b61210",
-      "durationMs": 1
+      "durationMs": 2
     },
     {
       "problem": "L013",
@@ -14585,7 +14585,7 @@
       "nodeCount": 6,
       "edgeCount": 5,
       "geometrySha256": "66be16c00f27bc48ba345f1033e6ad4c5ac65c763bb3d3bbf7987c27d75a1bcc",
-      "durationMs": 4
+      "durationMs": 5
     },
     {
       "problem": "L013",
@@ -14613,7 +14613,7 @@
       "nodeCount": 6,
       "edgeCount": 5,
       "geometrySha256": "afe9b4f6d17a84271fd737a36d59e36856b88d2982cd2cca44ff278a74658386",
-      "durationMs": 7
+      "durationMs": 8
     },
     {
       "problem": "L013",
@@ -14721,7 +14721,7 @@
       "nodeCount": 10,
       "edgeCount": 9,
       "geometrySha256": "85c9e59ba68acb21b5e92ecf8aa12c23d04d915736719e1711793d66f97895e1",
-      "durationMs": 78
+      "durationMs": 77
     },
     {
       "problem": "L013",
@@ -14807,7 +14807,7 @@
       "nodeCount": 8,
       "edgeCount": 8,
       "geometrySha256": "20756d81feea3e8da6fcc126baa198041d4fabcfc2ba57dbc89154801b4b9de1",
-      "durationMs": 39
+      "durationMs": 40
     },
     {
       "problem": "L013",
@@ -14845,7 +14845,7 @@
       "nodeCount": 11,
       "edgeCount": 10,
       "geometrySha256": "5d35a92503d8c7ea2616660128021266214781c570130139880c032af0a283e5",
-      "durationMs": 100
+      "durationMs": 95
     },
     {
       "problem": "L013",
@@ -14907,7 +14907,7 @@
       "nodeCount": 9,
       "edgeCount": 9,
       "geometrySha256": "bf61f4b91de40a23583098b0b3713aa09169efc780347a7de51b08bd4c8445a9",
-      "durationMs": 34
+      "durationMs": 40
     },
     {
       "problem": "L013",
@@ -14957,7 +14957,7 @@
       "nodeCount": 13,
       "edgeCount": 12,
       "geometrySha256": "47de45e2eab2c33acbf9cac0803f2f9f353dd649f3507dc8eadcf4e9bd5a2884",
-      "durationMs": 179
+      "durationMs": 182
     },
     {
       "problem": "L013",
@@ -15009,7 +15009,7 @@
       "nodeCount": 11,
       "edgeCount": 11,
       "geometrySha256": "ad7286c3ccddcfdf91c0c467919460513514e9a8943398e867e6bd49b46416b2",
-      "durationMs": 136
+      "durationMs": 139
     },
     {
       "problem": "L013",
@@ -15031,7 +15031,7 @@
       "nodeCount": 9,
       "edgeCount": 9,
       "geometrySha256": "bf61f4b91de40a23583098b0b3713aa09169efc780347a7de51b08bd4c8445a9",
-      "durationMs": 34
+      "durationMs": 35
     },
     {
       "problem": "L013",
@@ -15083,7 +15083,7 @@
       "nodeCount": 11,
       "edgeCount": 11,
       "geometrySha256": "0af549ab99c411a4576a2faaab18c213322830e4dc622a1f7ec527d0d2d8a152",
-      "durationMs": 78
+      "durationMs": 77
     },
     {
       "problem": "L013",
@@ -15096,7 +15096,7 @@
       "nodeCount": 12,
       "edgeCount": 10,
       "geometrySha256": "f9399afbe0e3f3790c0d65f4ea6a933b6575b24610fe46729390a0e2b83d584e",
-      "durationMs": 56
+      "durationMs": 57
     },
     {
       "problem": "L013",
@@ -15185,7 +15185,7 @@
       "nodeCount": 10,
       "edgeCount": 9,
       "geometrySha256": "db2ba8df5e3ee4523228cc45cfd6271b1559fc855af0289334b66bedc91a61d6",
-      "durationMs": 26
+      "durationMs": 27
     },
     {
       "problem": "L013",
@@ -15431,7 +15431,7 @@
       "nodeCount": 12,
       "edgeCount": 12,
       "geometrySha256": "3c2ddc02cf39173128c5270ad2f94d29f63f35b4a20e42706807acbd906dbca4",
-      "durationMs": 100
+      "durationMs": 99
     },
     {
       "problem": "L013",
@@ -15489,7 +15489,7 @@
       "nodeCount": 10,
       "edgeCount": 11,
       "geometrySha256": "334ca595cd37af18f3bde14b4a58f57f20e9c42f5fbd0e8593e56fe2528b9157",
-      "durationMs": 82
+      "durationMs": 83
     },
     {
       "problem": "L013",
@@ -15591,7 +15591,7 @@
       "nodeCount": 13,
       "edgeCount": 14,
       "geometrySha256": "368debd2c66cc6ade11bee5917f45ed5ff4dca5613b846d6d647c9b26c310763",
-      "durationMs": 195
+      "durationMs": 196
     },
     {
       "problem": "L013",
@@ -15661,7 +15661,7 @@
       "nodeCount": 11,
       "edgeCount": 13,
       "geometrySha256": "6d1a4200c6a0f30b0e1f8d24b6d391147d9d0b5885882c0f5a165b9cbf9924e0",
-      "durationMs": 174
+      "durationMs": 170
     },
     {
       "problem": "L013",
@@ -15707,7 +15707,7 @@
       "nodeCount": 11,
       "edgeCount": 13,
       "geometrySha256": "85bba24716f66442d8ce0c10de41eeb95807d2e73fcd514d70fe4318bc77c0c5",
-      "durationMs": 82
+      "durationMs": 78
     },
     {
       "problem": "L013",
@@ -15775,7 +15775,7 @@
       "nodeCount": 14,
       "edgeCount": 15,
       "geometrySha256": "ebbd06c076471501da894f13973132589b3085cfbe0682b4296255e078d80441",
-      "durationMs": 246
+      "durationMs": 256
     },
     {
       "problem": "L013",
@@ -15845,7 +15845,7 @@
       "nodeCount": 12,
       "edgeCount": 14,
       "geometrySha256": "2effc334c997e1aa74d9e80157b6a574d915efc03f161ff3266f9d9c64f63262",
-      "durationMs": 197
+      "durationMs": 199
     },
     {
       "problem": "L013",
@@ -15891,7 +15891,7 @@
       "nodeCount": 12,
       "edgeCount": 14,
       "geometrySha256": "02d48d6d0f85f5ac32883133be7f631719bce0b7d16f5832849362a0f7c29d18",
-      "durationMs": 87
+      "durationMs": 85
     },
     {
       "problem": "L013",
@@ -15953,7 +15953,7 @@
       "nodeCount": 13,
       "edgeCount": 14,
       "geometrySha256": "af99b7fc0259250d7a75dda54dd8f34130e682477b76df4e3467a7c59fbac3f6",
-      "durationMs": 50
+      "durationMs": 49
     },
     {
       "problem": "L013",
@@ -16057,7 +16057,7 @@
       "nodeCount": 11,
       "edgeCount": 13,
       "geometrySha256": "55ce640affec66181c482dfdf749d487b7a9c9c69959444df35dedbd99aeb0e7",
-      "durationMs": 24
+      "durationMs": 25
     },
     {
       "problem": "L014",
@@ -16111,7 +16111,7 @@
       "nodeCount": 5,
       "edgeCount": 3,
       "geometrySha256": "e62d9e9b2401e921ccdeb810b5e86fe7c5852011fc0382d3349a221792a59c26",
-      "durationMs": 1
+      "durationMs": 0
     },
     {
       "problem": "L014",
@@ -16139,7 +16139,7 @@
       "nodeCount": 6,
       "edgeCount": 4,
       "geometrySha256": "c5ed41d50490a84a40cf50d02924bdeb95de3ec84a233053e9d67a3589a54a1c",
-      "durationMs": 3
+      "durationMs": 2
     },
     {
       "problem": "L014",
@@ -16270,7 +16270,7 @@
       "nodeCount": 9,
       "edgeCount": 8,
       "geometrySha256": "226ae84f6deef8f1f79ffb1b555c6f4961fac882cbd9e65faec8a22a5f8b6af6",
-      "durationMs": 22
+      "durationMs": 23
     },
     {
       "problem": "L014",
@@ -16402,7 +16402,7 @@
       "nodeCount": 11,
       "edgeCount": 12,
       "geometrySha256": "3c89c24d43583b9970f12072f79c0a363190eeb678d97fc885690e48438cefbe",
-      "durationMs": 111
+      "durationMs": 112
     },
     {
       "problem": "L014",
@@ -16516,7 +16516,7 @@
       "nodeCount": 10,
       "edgeCount": 12,
       "geometrySha256": "e06fe2c8d3d9cfc0fece13fddd4e8f54295690c23ed463a90e8d5dc377c4aee9",
-      "durationMs": 64
+      "durationMs": 66
     },
     {
       "problem": "L014",
@@ -16556,7 +16556,7 @@
       "nodeCount": 8,
       "edgeCount": 10,
       "geometrySha256": "69b5b11127a14fa331c6f1811f662223297446ea80a9b88ac6a47099ce1401de",
-      "durationMs": 10
+      "durationMs": 11
     },
     {
       "problem": "L014",
@@ -16679,7 +16679,7 @@
       "nodeCount": 7,
       "edgeCount": 6,
       "geometrySha256": "839c82e9e7e2391e156ebcc437e295a7e712da0dc5901f24e13627e47f6a5468",
-      "durationMs": 4
+      "durationMs": 5
     },
     {
       "problem": "L014",
@@ -16768,7 +16768,7 @@
       "nodeCount": 11,
       "edgeCount": 11,
       "geometrySha256": "cae72649413670d551999bec6b4b4d183da75f40e92e4fbef972abd31d5f1d07",
-      "durationMs": 37
+      "durationMs": 41
     },
     {
       "problem": "L014",
@@ -16930,7 +16930,7 @@
       "nodeCount": 13,
       "edgeCount": 15,
       "geometrySha256": "00833ada41bd741de4a28e55d860951a250875403c634235378fc19152949b7b",
-      "durationMs": 177
+      "durationMs": 175
     },
     {
       "problem": "L014",
@@ -16988,7 +16988,7 @@
       "nodeCount": 11,
       "edgeCount": 14,
       "geometrySha256": "cab1255214a002aba6cef07e29e1869e1b46deb06f2a158031ed451691d4a17c",
-      "durationMs": 60
+      "durationMs": 61
     },
     {
       "problem": "L014",
@@ -17110,7 +17110,7 @@
       "nodeCount": 12,
       "edgeCount": 15,
       "geometrySha256": "d2a175405686303c18b66bf7a4eaff8037457d575cff305e39684c8c9b7c013a",
-      "durationMs": 283
+      "durationMs": 237
     },
     {
       "problem": "L014",
@@ -17174,7 +17174,7 @@
       "nodeCount": 10,
       "edgeCount": 14,
       "geometrySha256": "cac3df9a3c78dffe6781535fac248a1a270cf71607b3cfcdccd1848097d75fdd",
-      "durationMs": 86
+      "durationMs": 84
     },
     {
       "problem": "L015",
@@ -17335,7 +17335,7 @@
       "nodeCount": 5,
       "edgeCount": 6,
       "geometrySha256": "f4a6d983d7093fe2e168da4c0267cd5490cd25c8235693eb511a3304ffd6a3f1",
-      "durationMs": 13
+      "durationMs": 14
     },
     {
       "problem": "L015",
@@ -17443,7 +17443,7 @@
       "nodeCount": 7,
       "edgeCount": 8,
       "geometrySha256": "1f8512d1e90b370512ba05d6cc7dd32901a6c3c02783d5030c47a8d418c35465",
-      "durationMs": 10
+      "durationMs": 11
     },
     {
       "problem": "L015",
@@ -17487,7 +17487,7 @@
       "nodeCount": 10,
       "edgeCount": 12,
       "geometrySha256": "ee789ffa0ab7f719c850562e0c4b396da180929affa99a7ccd0638071bcfef68",
-      "durationMs": 78
+      "durationMs": 79
     },
     {
       "problem": "L015",
@@ -17539,7 +17539,7 @@
       "nodeCount": 8,
       "edgeCount": 11,
       "geometrySha256": "fd6ea8292808024cc8c85ff0734279b4e8765737103f174c514f33834abd4c41",
-      "durationMs": 41
+      "durationMs": 40
     },
     {
       "problem": "L015",
@@ -17619,7 +17619,7 @@
       "nodeCount": 11,
       "edgeCount": 14,
       "geometrySha256": "9e78edc48add5593a36119d1071ce83e1b6c4235f02bc53c6eb0e877b6b21446",
-      "durationMs": 165
+      "durationMs": 170
     },
     {
       "problem": "L015",
@@ -17683,7 +17683,7 @@
       "nodeCount": 9,
       "edgeCount": 13,
       "geometrySha256": "d6df22f4fa12119552365e27e413cfdb01555da66f14dafa3a7dbb8a4bf57950",
-      "durationMs": 73
+      "durationMs": 71
     },
     {
       "problem": "L015",
@@ -17709,7 +17709,7 @@
       "nodeCount": 4,
       "edgeCount": 2,
       "geometrySha256": "2f14390478b90b3b891e244141077e6f9db8ad275ec3ed94937c7e0b9df567b6",
-      "durationMs": 0
+      "durationMs": 1
     },
     {
       "problem": "L015",
@@ -17868,7 +17868,7 @@
       "nodeCount": 8,
       "edgeCount": 7,
       "geometrySha256": "527808d25f07543dc88aeec5d62fc1af938cd28f6e457829b0548fa8e4dc5d4d",
-      "durationMs": 19
+      "durationMs": 20
     },
     {
       "problem": "L015",
@@ -17902,7 +17902,7 @@
       "nodeCount": 6,
       "edgeCount": 6,
       "geometrySha256": "b885de6ca209aea505cd0f5f1de2073e81f79820a0f25c6556491e3e3e6fede3",
-      "durationMs": 6
+      "durationMs": 7
     },
     {
       "problem": "L015",
@@ -17934,7 +17934,7 @@
       "nodeCount": 9,
       "edgeCount": 9,
       "geometrySha256": "a117ee0acf526fd2720521edf111f8731c824fa79377270854959a8b44c99f88",
-      "durationMs": 26
+      "durationMs": 27
     },
     {
       "problem": "L015",
@@ -18024,7 +18024,7 @@
       "nodeCount": 10,
       "edgeCount": 11,
       "geometrySha256": "61cd06a3da7f0cbcf9a7d99a96379ed7f1fa97633005b43faea107f6d8f144a7",
-      "durationMs": 50
+      "durationMs": 51
     },
     {
       "problem": "L015",
@@ -18076,7 +18076,7 @@
       "nodeCount": 8,
       "edgeCount": 10,
       "geometrySha256": "9b3ba9a68d14daccf0afa4f0b59f5323bd553b81397f3070900e6e8c638924ce",
-      "durationMs": 56
+      "durationMs": 58
     },
     {
       "problem": "L016",
@@ -18130,7 +18130,7 @@
       "nodeCount": 5,
       "edgeCount": 3,
       "geometrySha256": "324fface879d117692ff6657b080a6ef0a3b61dec834b3febede6a02648a36fb",
-      "durationMs": 0
+      "durationMs": 1
     },
     {
       "problem": "L016",
@@ -18183,7 +18183,7 @@
       "nodeCount": 6,
       "edgeCount": 4,
       "geometrySha256": "77aaa34108896991ab421cf4547df721f46081ee319383e7cc7343b6b6dc2133",
-      "durationMs": 5
+      "durationMs": 4
     },
     {
       "problem": "L016",
@@ -18306,7 +18306,7 @@
       "nodeCount": 6,
       "edgeCount": 5,
       "geometrySha256": "f29f38fdac2beba3db3625f4944d38e46b417d77ef9325d5f71cc89761236dbb",
-      "durationMs": 5
+      "durationMs": 4
     },
     {
       "problem": "L016",
@@ -18332,7 +18332,7 @@
       "nodeCount": 9,
       "edgeCount": 7,
       "geometrySha256": "fae7c6867e68f4e3d882c20494fd3752e6d88ebb3c49508434dc80d80e3816ac",
-      "durationMs": 10
+      "durationMs": 9
     },
     {
       "problem": "L016",
@@ -18426,7 +18426,7 @@
       "nodeCount": 8,
       "edgeCount": 7,
       "geometrySha256": "4bc50a45fdd29106c906247c31da0802d40e0e79076de10e721dbd0098e82ca2",
-      "durationMs": 11
+      "durationMs": 10
     },
     {
       "problem": "L016",
@@ -18648,7 +18648,7 @@
       "nodeCount": 2,
       "edgeCount": 1,
       "geometrySha256": "03573210dd352c864660b02d2c87d4f4869bb912ce3233b57a977f3cc2347bf6",
-      "durationMs": 1
+      "durationMs": 0
     },
     {
       "problem": "L017",
@@ -18704,7 +18704,7 @@
       "nodeCount": 3,
       "edgeCount": 2,
       "geometrySha256": "3abe50c3b413cf8725cccdab496d578cff2ff75d46b8cec77a7490ab7ccb241c",
-      "durationMs": 1
+      "durationMs": 0
     },
     {
       "problem": "L017",
@@ -18717,7 +18717,7 @@
       "nodeCount": 6,
       "edgeCount": 4,
       "geometrySha256": "ae619e36991f79ea8b80f484608ce4598f17d7773294e037bd2e3440741d1caa",
-      "durationMs": 2
+      "durationMs": 1
     },
     {
       "problem": "L017",
@@ -18780,7 +18780,7 @@
       "nodeCount": 8,
       "edgeCount": 7,
       "geometrySha256": "52790982e1b76d2e7ffdfdbcb2a44f9a6941f582a4372c1906f562d02ccffd8c",
-      "durationMs": 5
+      "durationMs": 6
     },
     {
       "problem": "L017",
@@ -18822,7 +18822,7 @@
       "nodeCount": 9,
       "edgeCount": 10,
       "geometrySha256": "4ba63102b5e61e80cfd25c8d633fb084ad2ba5fa2c8e26a6cb5727653d3742ad",
-      "durationMs": 15
+      "durationMs": 14
     },
     {
       "problem": "L017",
@@ -18876,7 +18876,7 @@
       "nodeCount": 10,
       "edgeCount": 12,
       "geometrySha256": "2bca0154020c933b8d30048499301d0a8d6c66cb027357352eb75e8baa79370b",
-      "durationMs": 41
+      "durationMs": 42
     },
     {
       "problem": "L017",
@@ -18910,7 +18910,7 @@
       "nodeCount": 8,
       "edgeCount": 11,
       "geometrySha256": "bef1a135cd05f3e0c2e0d2dead598a4035d97da95c48fb35cbb8e2a1ad9a7164",
-      "durationMs": 32
+      "durationMs": 33
     },
     {
       "problem": "L017",
@@ -19203,7 +19203,7 @@
       "nodeCount": 8,
       "edgeCount": 11,
       "geometrySha256": "8221d921e30482d8907fa139081fae12e6ee15b7ddff78ccf4edf6ccfa4073f3",
-      "durationMs": 25
+      "durationMs": 24
     },
     {
       "problem": "L018",
@@ -19300,7 +19300,7 @@
       "nodeCount": 4,
       "edgeCount": 3,
       "geometrySha256": "8a72907f3f8c49dc9e735124b162ee0839a478d902c6d701eec364d95954efe1",
-      "durationMs": 0
+      "durationMs": 1
     },
     {
       "problem": "L018",
@@ -19320,7 +19320,7 @@
       "nodeCount": 7,
       "edgeCount": 6,
       "geometrySha256": "2d01d2258238796f5104f7141f85c65aa98be30bd9c8196d0140dba2c02353ff",
-      "durationMs": 5
+      "durationMs": 6
     },
     {
       "problem": "L018",
@@ -19335,7 +19335,7 @@
       "nodeCount": 5,
       "edgeCount": 5,
       "geometrySha256": "f8325401d1c22cde433963544f1ecb7ce4dfc60839418f0371331b9f06ddbd99",
-      "durationMs": 1
+      "durationMs": 2
     },
     {
       "problem": "L018",
@@ -19437,7 +19437,7 @@
       "nodeCount": 10,
       "edgeCount": 10,
       "geometrySha256": "9df9d3c6998a133d15da57d8b0317456da561765e5befc110b33397676b5bdfb",
-      "durationMs": 117
+      "durationMs": 118
     },
     {
       "problem": "L018",
@@ -19632,7 +19632,7 @@
       "nodeCount": 6,
       "edgeCount": 6,
       "geometrySha256": "cf73394670a24678dab8503c3453e521f6adb4925ca88f8c609aca65167667b7",
-      "durationMs": 3
+      "durationMs": 2
     },
     {
       "problem": "L018",
@@ -19724,7 +19724,7 @@
       "nodeCount": 11,
       "edgeCount": 13,
       "geometrySha256": "25f1d49c1c552fd297cfd6967363ca0ac30f77089ee067094d4e97d6a012395c",
-      "durationMs": 145
+      "durationMs": 151
     },
     {
       "problem": "L018",
@@ -19808,7 +19808,7 @@
       "nodeCount": 4,
       "edgeCount": 2,
       "geometrySha256": "7ec1b611936000261a1a27fba9deca2eb2b7d4fc5b9f1a1f48b1deb2a4ca9081",
-      "durationMs": 1
+      "durationMs": 0
     },
     {
       "problem": "L019",
@@ -19836,7 +19836,7 @@
       "nodeCount": 5,
       "edgeCount": 3,
       "geometrySha256": "aecd6b7e7db6b753f757fa2034c172179ae9c7b1d572a1bb846233df38ef39e1",
-      "durationMs": 2
+      "durationMs": 1
     },
     {
       "problem": "L019",
@@ -19851,7 +19851,7 @@
       "nodeCount": 3,
       "edgeCount": 2,
       "geometrySha256": "bf31a9e8fbe1b296b4bbd36b4d46b1aba9c47eb19dafd2715a42c323deb8907d",
-      "durationMs": 1
+      "durationMs": 0
     },
     {
       "problem": "L019",
@@ -19864,7 +19864,7 @@
       "nodeCount": 6,
       "edgeCount": 4,
       "geometrySha256": "43c0ce322155a5e4c62beda490b1103b690c6926bfb0e3352fc6ad947565fee1",
-      "durationMs": 3
+      "durationMs": 1
     },
     {
       "problem": "L019",
@@ -19879,7 +19879,7 @@
       "nodeCount": 4,
       "edgeCount": 3,
       "geometrySha256": "d8c0662a9ff775dd716ddff3c2d57087e4162fd60e24530ba770d2cac223a007",
-      "durationMs": 1
+      "durationMs": 0
     },
     {
       "problem": "L019",
@@ -19892,7 +19892,7 @@
       "nodeCount": 7,
       "edgeCount": 5,
       "geometrySha256": "2e0a0817822f52046e250a184ac891e4791648ae5c880c4ff30a835e82759fae",
-      "durationMs": 3
+      "durationMs": 1
     },
     {
       "problem": "L019",
@@ -19907,7 +19907,7 @@
       "nodeCount": 5,
       "edgeCount": 4,
       "geometrySha256": "29bacebb7bcb103714427807c7342a21f323c7a46234509f3fd2f6ba0aae5652",
-      "durationMs": 1
+      "durationMs": 0
     },
     {
       "problem": "L019",
@@ -19920,7 +19920,7 @@
       "nodeCount": 8,
       "edgeCount": 6,
       "geometrySha256": "d4994efaa563d398bff8e6e8ed69234aa48b1b1ab0afb5f065107256a302d3a5",
-      "durationMs": 9
+      "durationMs": 2
     },
     {
       "problem": "L019",
@@ -19935,7 +19935,7 @@
       "nodeCount": 6,
       "edgeCount": 5,
       "geometrySha256": "7d5d70c89151340ef6e5dcae640c70cee95834fb22b8814317afc2e0fcfb07be",
-      "durationMs": 1
+      "durationMs": 0
     },
     {
       "problem": "L019",
@@ -20200,7 +20200,7 @@
       "nodeCount": 7,
       "edgeCount": 6,
       "geometrySha256": "a1697d447e0dc68d7ef2ef3bf30dbde40a542bcf6dd58430345de89573105484",
-      "durationMs": 6
+      "durationMs": 5
     },
     {
       "problem": "L019",
@@ -20242,7 +20242,7 @@
       "nodeCount": 8,
       "edgeCount": 7,
       "geometrySha256": "86c9b95cc05303dee4896264e4b429ecfd6268fdf609d2e4ca08a5f8afe7c8c2",
-      "durationMs": 12
+      "durationMs": 11
     },
     {
       "problem": "L020",
@@ -20324,7 +20324,7 @@
       "nodeCount": 6,
       "edgeCount": 5,
       "geometrySha256": "51c7e30a1dfd6c2a842a4f2e993e2fa2f92116e19f497d711469143e1a0c0002",
-      "durationMs": 1
+      "durationMs": 2
     },
     {
       "problem": "L020",
@@ -20445,7 +20445,7 @@
       "nodeCount": 10,
       "edgeCount": 11,
       "geometrySha256": "d1672a003b79e3c3fe00be3c70e9b861397457fa28332e351b06ce573888e6d1",
-      "durationMs": 32
+      "durationMs": 31
     },
     {
       "problem": "L020",
@@ -20497,7 +20497,7 @@
       "nodeCount": 8,
       "edgeCount": 10,
       "geometrySha256": "1fbdce56b76ceb87597c1090fc333f48765b3f66f798b8e040f02a68e6e16413",
-      "durationMs": 31
+      "durationMs": 32
     },
     {
       "problem": "L020",
@@ -20565,7 +20565,7 @@
       "nodeCount": 11,
       "edgeCount": 14,
       "geometrySha256": "09eeb8fdf01e5ebbe4a65f42b1ea783ee14e53c579b568e1ce17b375b642b57e",
-      "durationMs": 101
+      "durationMs": 104
     },
     {
       "problem": "L020",
@@ -20635,7 +20635,7 @@
       "nodeCount": 9,
       "edgeCount": 13,
       "geometrySha256": "98491a063295b010c7496fdbda7371fa4b8add002a089fda19ae2e30527f83cf",
-      "durationMs": 76
+      "durationMs": 77
     },
     {
       "problem": "L020",
@@ -20836,7 +20836,7 @@
       "nodeCount": 10,
       "edgeCount": 10,
       "geometrySha256": "92f2481472ae0a5a97214cca1e8ca1584bae535b6486f9053bf32659afe4a955",
-      "durationMs": 20
+      "durationMs": 21
     },
     {
       "problem": "L020",
@@ -20920,7 +20920,7 @@
       "nodeCount": 3,
       "edgeCount": 3,
       "geometrySha256": "613397bfbcaf76cfddb149f634c39bec194f21f36a112069283463a327a95b36",
-      "durationMs": 1
+      "durationMs": 2
     },
     {
       "problem": "L021",
@@ -20968,7 +20968,7 @@
       "nodeCount": 4,
       "edgeCount": 4,
       "geometrySha256": "b92d22b217b246a0137cada0711d1fac3061c84c0db3533c3e86e4fa3f42d12a",
-      "durationMs": 3
+      "durationMs": 2
     },
     {
       "problem": "L021",
@@ -21038,7 +21038,7 @@
       "nodeCount": 6,
       "edgeCount": 6,
       "geometrySha256": "03e43216380511b678f9a492abd81d6e111b85cdd7a314bdd10f4e8df345857e",
-      "durationMs": 1
+      "durationMs": 2
     },
     {
       "problem": "L021",
@@ -21188,7 +21188,7 @@
       "nodeCount": 8,
       "edgeCount": 9,
       "geometrySha256": "e84719ea123db94f3bf85cf461f603e23462c7ff0f71694227653052340e3956",
-      "durationMs": 30
+      "durationMs": 28
     },
     {
       "problem": "L021",
@@ -21435,7 +21435,7 @@
       "nodeCount": 10,
       "edgeCount": 11,
       "geometrySha256": "1b18e5bf9c5302b375117e3856ed0c8991dd2b8509d387c2d8650fc2517fb90c",
-      "durationMs": 61
+      "durationMs": 62
     },
     {
       "problem": "L021",
@@ -21752,7 +21752,7 @@
       "nodeCount": 12,
       "edgeCount": 14,
       "geometrySha256": "25386d4ec85412f73caff59e93e6f73a41a7f8efb862ff625cddeb85cc01731a",
-      "durationMs": 398
+      "durationMs": 403
     },
     {
       "problem": "L022",
@@ -21864,7 +21864,7 @@
       "nodeCount": 10,
       "edgeCount": 13,
       "geometrySha256": "c1edaca2b1a61e9332fef65b6c6905c024a1eb53d528817679d8a79ea78fa050",
-      "durationMs": 157
+      "durationMs": 156
     },
     {
       "problem": "L022",
@@ -22004,7 +22004,7 @@
       "nodeCount": 13,
       "edgeCount": 17,
       "geometrySha256": "7042ccbfc6f36fccd3e8015f7970c3564d97c62dd467acda296ea37c310b2eea",
-      "durationMs": 760
+      "durationMs": 766
     },
     {
       "problem": "L022",
@@ -22134,7 +22134,7 @@
       "nodeCount": 11,
       "edgeCount": 16,
       "geometrySha256": "b5be70de04f79b350c3bbcf0faca02ad512f12db32d3140b045e624c343f4a15",
-      "durationMs": 357
+      "durationMs": 369
     },
     {
       "problem": "L022",
@@ -22298,7 +22298,7 @@
       "nodeCount": 16,
       "edgeCount": 23,
       "geometrySha256": "6138046a54651fe7649bda68b1411a5abe73e01f084116372d88bae45ebc93a7",
-      "durationMs": 1342
+      "durationMs": 1424
     },
     {
       "problem": "L022",
@@ -22434,7 +22434,7 @@
       "nodeCount": 14,
       "edgeCount": 22,
       "geometrySha256": "83c7123f797d84c1df9ef91e36226bf89746a3d5bafb0d4ed2d5ebe59cfd512e",
-      "durationMs": 771
+      "durationMs": 711
     },
     {
       "problem": "L022",
@@ -22586,7 +22586,7 @@
       "nodeCount": 17,
       "edgeCount": 26,
       "geometrySha256": "81f0fab5dee47f19be68c74b459ddecf4c4048106c03a233450d554b4383b16d",
-      "durationMs": 1464
+      "durationMs": 1445
     },
     {
       "problem": "L022",
@@ -22698,7 +22698,7 @@
       "nodeCount": 15,
       "edgeCount": 25,
       "geometrySha256": "bb65181253996db1788fa8d0d7f423ea263f956fa6f14a9a6b2ff58ed20e5775",
-      "durationMs": 723
+      "durationMs": 720
     },
     {
       "problem": "L022",
@@ -22850,7 +22850,7 @@
       "nodeCount": 18,
       "edgeCount": 28,
       "geometrySha256": "67d514e3cbc8c7c631861951619c6080125c6341fffee86b3555175bc6d67648",
-      "durationMs": 1802
+      "durationMs": 1713
     },
     {
       "problem": "L022",
@@ -22974,7 +22974,7 @@
       "nodeCount": 16,
       "edgeCount": 27,
       "geometrySha256": "e1f5ca58c73185c633efc07d0e294fc6fe510c2d77bf8764ee329a6ac8c82bc1",
-      "durationMs": 845
+      "durationMs": 863
     },
     {
       "problem": "L022",
@@ -23093,7 +23093,7 @@
       "nodeCount": 9,
       "edgeCount": 9,
       "geometrySha256": "239c20a3036cf8855032f6a2573a9f5716ad0b0e3f122e1c397e561415ed30e9",
-      "durationMs": 43
+      "durationMs": 45
     },
     {
       "problem": "L022",
@@ -23369,7 +23369,7 @@
       "nodeCount": 13,
       "edgeCount": 15,
       "geometrySha256": "e6640ece6efdcf643a9396a62ecebc303b108dcc97657b9670f4d17a58c94bbb",
-      "durationMs": 412
+      "durationMs": 425
     },
     {
       "problem": "L022",
@@ -23601,7 +23601,7 @@
       "nodeCount": 11,
       "edgeCount": 14,
       "geometrySha256": "e0833b7c07fd70714997d2f79f1b4473cf9013941c5e7ea4fd47bae3218c432f",
-      "durationMs": 338
+      "durationMs": 347
     },
     {
       "problem": "L022",
@@ -23855,7 +23855,7 @@
       "nodeCount": 16,
       "edgeCount": 18,
       "geometrySha256": "2d445cb6243ee0250a1f474e168305b3e5a9dc73c317b9c7277d44ea28bd2d8c",
-      "durationMs": 1338
+      "durationMs": 1388
     },
     {
       "problem": "L022",
@@ -24099,7 +24099,7 @@
       "nodeCount": 14,
       "edgeCount": 17,
       "geometrySha256": "90ff837fad67ce5b999934d2d9f3767c63d3f0cb09055165410e49261aa4e6d3",
-      "durationMs": 520
+      "durationMs": 535
     },
     {
       "problem": "L022",
@@ -24353,7 +24353,7 @@
       "nodeCount": 17,
       "edgeCount": 21,
       "geometrySha256": "432616a4e36168a1809d60f298a40b65ac8797df15ec8c16bda61ca123ea005e",
-      "durationMs": 1852
+      "durationMs": 1922
     },
     {
       "problem": "L022",
@@ -24597,7 +24597,7 @@
       "nodeCount": 15,
       "edgeCount": 20,
       "geometrySha256": "8fbbc41084d90b8c8e7fabe6ec703b307b838fb141c7f2aca3512d6f96f60e23",
-      "durationMs": 739
+      "durationMs": 747
     },
     {
       "problem": "L022",
@@ -24833,7 +24833,7 @@
       "nodeCount": 18,
       "edgeCount": 23,
       "geometrySha256": "fae1d6fd36bd96e1581614d2d610ba0f888159096a2e67b165a5254815cab3ac",
-      "durationMs": 1373
+      "durationMs": 1394
     },
     {
       "problem": "L022",
@@ -25107,7 +25107,7 @@
       "nodeCount": 16,
       "edgeCount": 22,
       "geometrySha256": "ffbbf74200b49885444d53ccf027fe13da724e0698d0b64cc01614fd28e729f6",
-      "durationMs": 1750
+      "durationMs": 1663
     },
     {
       "problem": "L023",
@@ -25204,7 +25204,7 @@
       "nodeCount": 4,
       "edgeCount": 3,
       "geometrySha256": "72cb8028b52b558eeebb5a15680bf4be9c56f1e380f30e08f2e4c10cc6f75cc4",
-      "durationMs": 1
+      "durationMs": 0
     },
     {
       "problem": "L023",
@@ -25245,7 +25245,7 @@
       "nodeCount": 8,
       "edgeCount": 6,
       "geometrySha256": "1893f1c6caa4632643e8be206df8a871946b2126f9c8ac10e331923b202cdf84",
-      "durationMs": 5
+      "durationMs": 4
     },
     {
       "problem": "L023",
@@ -25280,7 +25280,7 @@
       "nodeCount": 9,
       "edgeCount": 7,
       "geometrySha256": "829af339f08ac25eee8d505346549239a64eff1d635c03e4993f924411e7822a",
-      "durationMs": 9
+      "durationMs": 8
     },
     {
       "problem": "L023",
@@ -25302,7 +25302,7 @@
       "nodeCount": 7,
       "edgeCount": 6,
       "geometrySha256": "3aab25f6353622f0f4728718b3129cc9100fa0a3ee1ddba0147bcff9459f0d43",
-      "durationMs": 5
+      "durationMs": 4
     },
     {
       "problem": "L023",
@@ -25322,7 +25322,7 @@
       "nodeCount": 10,
       "edgeCount": 8,
       "geometrySha256": "351452710576c0293557e5b3e887256e9080d8d1347c391b8c87625e3070b54e",
-      "durationMs": 14
+      "durationMs": 13
     },
     {
       "problem": "L023",
@@ -25517,7 +25517,7 @@
       "nodeCount": 9,
       "edgeCount": 7,
       "geometrySha256": "7f84c696d4f1c6cccd02e5eb2859192ae9ec21716893b69eb87d4a476d32a739",
-      "durationMs": 10
+      "durationMs": 9
     },
     {
       "problem": "L023",
@@ -25559,7 +25559,7 @@
       "nodeCount": 10,
       "edgeCount": 8,
       "geometrySha256": "6c0e2e7c44ec7f664c9df88fe016e644464cdde5f303dd57abc0980122a88356",
-      "durationMs": 15
+      "durationMs": 13
     },
     {
       "problem": "L023",
@@ -25581,7 +25581,7 @@
       "nodeCount": 8,
       "edgeCount": 7,
       "geometrySha256": "03dfc5e23feda2c4e8e60cc1889c30e4507cefd8103b0e8df3f71b28fc39016b",
-      "durationMs": 12
+      "durationMs": 11
     },
     {
       "problem": "L024",
@@ -25691,7 +25691,7 @@
       "nodeCount": 7,
       "edgeCount": 5,
       "geometrySha256": "b4c91e175b1e9db936d8cd7eeca444ef35c4db7124b72982801bafef26439641",
-      "durationMs": 3
+      "durationMs": 2
     },
     {
       "problem": "L024",
@@ -25719,7 +25719,7 @@
       "nodeCount": 8,
       "edgeCount": 6,
       "geometrySha256": "076bdccfd51129c95adb7fdf185a992883e61d35b00cdd8e9359c83a15f86e45",
-      "durationMs": 5
+      "durationMs": 4
     },
     {
       "problem": "L024",
@@ -25754,7 +25754,7 @@
       "nodeCount": 9,
       "edgeCount": 7,
       "geometrySha256": "bd55ef439cd75ec3eac4ca00d822fc34e1f8361a5c1381e2b37ffb051b079db4",
-      "durationMs": 9
+      "durationMs": 8
     },
     {
       "problem": "L024",
@@ -25776,7 +25776,7 @@
       "nodeCount": 7,
       "edgeCount": 6,
       "geometrySha256": "c6d966880e16c22e84aba318a93105bf925851054f6e68b68a7802bb07d08583",
-      "durationMs": 10
+      "durationMs": 9
     },
     {
       "problem": "L024",
@@ -25796,7 +25796,7 @@
       "nodeCount": 10,
       "edgeCount": 8,
       "geometrySha256": "a35790f3e834962074db051d8ae5486b41278bbdd76c3f0d6971db1d50cd5530",
-      "durationMs": 11
+      "durationMs": 10
     },
     {
       "problem": "L024",
@@ -25818,7 +25818,7 @@
       "nodeCount": 8,
       "edgeCount": 7,
       "geometrySha256": "5592fbbffbbfde3b74fbf718503c470b05941b1850c07b0d55685942b90a978f",
-      "durationMs": 13
+      "durationMs": 11
     },
     {
       "problem": "L024",
@@ -25928,7 +25928,7 @@
       "nodeCount": 7,
       "edgeCount": 5,
       "geometrySha256": "f640604862d6992de13a8015a8408ff4bd858c0ce47b72858943df3ce1c81a33",
-      "durationMs": 3
+      "durationMs": 2
     },
     {
       "problem": "L024",
@@ -25956,7 +25956,7 @@
       "nodeCount": 8,
       "edgeCount": 6,
       "geometrySha256": "00d02d472306923100603f720da0c3e2e85861d79a7d7ba636b85ef4724ee89d",
-      "durationMs": 5
+      "durationMs": 4
     },
     {
       "problem": "L024",
@@ -25999,7 +25999,7 @@
       "nodeCount": 7,
       "edgeCount": 6,
       "geometrySha256": "24dc1777f97652d6a122d4f198b138284e2b808b33db8b1bdc19eb838bc80dd3",
-      "durationMs": 6
+      "durationMs": 5
     },
     {
       "problem": "L024",
@@ -26012,7 +26012,7 @@
       "nodeCount": 10,
       "edgeCount": 8,
       "geometrySha256": "edc0b429a2f63b0d572c4873409f2e32b067aea57bc63c2264896f3e9627e19a",
-      "durationMs": 9
+      "durationMs": 8
     },
     {
       "problem": "L024",
@@ -26079,7 +26079,7 @@
       "nodeCount": 5,
       "edgeCount": 4,
       "geometrySha256": "e3dfaf78fc3b55cf4d3c8a22d7566e76d7c1e6cc7a763c38da381b02bbc5ccd8",
-      "durationMs": 1
+      "durationMs": 2
     },
     {
       "problem": "L025",
@@ -26092,7 +26092,7 @@
       "nodeCount": 6,
       "edgeCount": 5,
       "geometrySha256": "5d55caa38d9d582c6f3c05fad3a032b2f988ad4e52dd6f32abbc18c697e9abe0",
-      "durationMs": 2
+      "durationMs": 1
     },
     {
       "problem": "L025",
@@ -26105,7 +26105,7 @@
       "nodeCount": 7,
       "edgeCount": 6,
       "geometrySha256": "11219c27a382c835c8ae1d846277821154839a8b881205741abb5a8996c0fa0a",
-      "durationMs": 3
+      "durationMs": 2
     },
     {
       "problem": "L025",
@@ -26156,7 +26156,7 @@
       "nodeCount": 9,
       "edgeCount": 8,
       "geometrySha256": "55e75932daf88e2095d7d3c0770ea63a37e79d760a6a45f719a96964bf420f2a",
-      "durationMs": 25
+      "durationMs": 22
     },
     {
       "problem": "L025",
@@ -26273,7 +26273,7 @@
       "nodeCount": 9,
       "edgeCount": 8,
       "geometrySha256": "477860a4b69d3d856ce34f48029276701029afad4ec9da1d04a88e132ad75136",
-      "durationMs": 15
+      "durationMs": 14
     },
     {
       "problem": "L026",
@@ -26299,7 +26299,7 @@
       "nodeCount": 4,
       "edgeCount": 2,
       "geometrySha256": "2e7c86adbcf6a259670aae9770a0ddcbb848cb01b869e880a028d8258a8d1573",
-      "durationMs": 1
+      "durationMs": 0
     },
     {
       "problem": "L026",
@@ -26383,7 +26383,7 @@
       "nodeCount": 7,
       "edgeCount": 5,
       "geometrySha256": "c68f4981cd4ccf429384dec6cadc40fe05c6d7ec612b878539f7a2be66561f3f",
-      "durationMs": 3
+      "durationMs": 2
     },
     {
       "problem": "L026",
@@ -26478,7 +26478,7 @@
       "nodeCount": 9,
       "edgeCount": 7,
       "geometrySha256": "1aec094ecc88cd80ff315d15d223607ecaf7f6a97ba50a4f23d237836f2e5527",
-      "durationMs": 20
+      "durationMs": 17
     },
     {
       "problem": "L026",
@@ -26518,7 +26518,7 @@
       "nodeCount": 7,
       "edgeCount": 6,
       "geometrySha256": "58a550ceb3cca33ff7f37de2256765e526377542e52532fa9e9142dda9e1ba66",
-      "durationMs": 15
+      "durationMs": 13
     },
     {
       "problem": "L026",
@@ -26562,7 +26562,7 @@
       "nodeCount": 10,
       "edgeCount": 8,
       "geometrySha256": "99ba4c0d26ea86fdade695e3d4375358a110e68e0c09dfe30ecc8a22ea3d77fd",
-      "durationMs": 30
+      "durationMs": 29
     },
     {
       "problem": "L026",
@@ -26608,7 +26608,7 @@
       "nodeCount": 8,
       "edgeCount": 7,
       "geometrySha256": "8e4215f0b0030776832a3e162be2e68c058be1f1759630b557108a97d4774262",
-      "durationMs": 24
+      "durationMs": 22
     },
     {
       "problem": "L026",
@@ -26731,7 +26731,7 @@
       "nodeCount": 7,
       "edgeCount": 5,
       "geometrySha256": "189ed8612cb9849416ccf627bbb5a78805158c897c5b018e20a3ebbaa97562b0",
-      "durationMs": 5
+      "durationMs": 6
     },
     {
       "problem": "L026",
@@ -26819,7 +26819,7 @@
       "nodeCount": 6,
       "edgeCount": 5,
       "geometrySha256": "bd5aeea8c5a7c91b4d5029bd3d56fc4c51b2dec423b8fe70acdc134f8508e3e5",
-      "durationMs": 5
+      "durationMs": 4
     },
     {
       "problem": "L026",
@@ -26857,7 +26857,7 @@
       "nodeCount": 9,
       "edgeCount": 7,
       "geometrySha256": "440fe2f6ed87efb45a1542e51e230f61c72f00b3f49a37641702978b160ad556",
-      "durationMs": 16
+      "durationMs": 15
     },
     {
       "problem": "L026",
@@ -26885,7 +26885,7 @@
       "nodeCount": 7,
       "edgeCount": 6,
       "geometrySha256": "caad722de0809da8af6d9316d24cb0eea5fd8d11f75f04e21f2a44c2d65e340f",
-      "durationMs": 7
+      "durationMs": 6
     },
     {
       "problem": "L026",
@@ -26923,7 +26923,7 @@
       "nodeCount": 10,
       "edgeCount": 8,
       "geometrySha256": "091e0d9454bdd2ff8a13ceb8ce62d81369cccc4a89a0a9bce0c106c0d555cc0c",
-      "durationMs": 28
+      "durationMs": 25
     },
     {
       "problem": "L026",
@@ -26951,7 +26951,7 @@
       "nodeCount": 8,
       "edgeCount": 7,
       "geometrySha256": "185f365853a7074cfdcfebd36a5828bbe8c9e19ad721d56cbbd55a090ded4d57",
-      "durationMs": 16
+      "durationMs": 15
     },
     {
       "problem": "L027",
@@ -27005,7 +27005,7 @@
       "nodeCount": 5,
       "edgeCount": 3,
       "geometrySha256": "70c16c6890048298bc930c36f6fc65e337f4def7db40e1a392ae534ea0e9ea56",
-      "durationMs": 1
+      "durationMs": 0
     },
     {
       "problem": "L027",
@@ -27033,7 +27033,7 @@
       "nodeCount": 6,
       "edgeCount": 4,
       "geometrySha256": "b0bfd3df7bc2286f7d5f9114731477aa8ad0af65b6af45b3871a1e2b84694228",
-      "durationMs": 3
+      "durationMs": 2
     },
     {
       "problem": "L027",
@@ -27145,7 +27145,7 @@
       "nodeCount": 10,
       "edgeCount": 9,
       "geometrySha256": "abf029196d615cfa998600a59622087f341da3b13d0488e56820e3ee7472c705",
-      "durationMs": 14
+      "durationMs": 15
     },
     {
       "problem": "L027",
@@ -27160,7 +27160,7 @@
       "nodeCount": 8,
       "edgeCount": 8,
       "geometrySha256": "6451e666425039c9287dbd25cff23b68ca74dd06bad2402eb578f9a0479bf8f0",
-      "durationMs": 15
+      "durationMs": 14
     },
     {
       "problem": "L027",
@@ -27257,7 +27257,7 @@
       "nodeCount": 4,
       "edgeCount": 3,
       "geometrySha256": "fd112b17b5b4647ef477b8fb73f7fae42a99c837fed7e95ecf097610312fa688",
-      "durationMs": 1
+      "durationMs": 0
     },
     {
       "problem": "L027",
@@ -27270,7 +27270,7 @@
       "nodeCount": 7,
       "edgeCount": 5,
       "geometrySha256": "83292dca377ed7b84dd2a441a8baaa2ca045f53e89acb79f3d804b935cf1296b",
-      "durationMs": 1
+      "durationMs": 2
     },
     {
       "problem": "L027",
@@ -27305,7 +27305,7 @@
       "nodeCount": 8,
       "edgeCount": 7,
       "geometrySha256": "7d1c6b1c87106ccc74e21a0087cf13ff1547163c36c91acc6569da52d05d4657",
-      "durationMs": 20
+      "durationMs": 19
     },
     {
       "problem": "L027",
@@ -27340,7 +27340,7 @@
       "nodeCount": 9,
       "edgeCount": 8,
       "geometrySha256": "eab0134e8b64319e111c93a27859bbe660ddcba0e3bc8d7b48c4512512a6ac3e",
-      "durationMs": 28
+      "durationMs": 26
     },
     {
       "problem": "L027",
@@ -27355,7 +27355,7 @@
       "nodeCount": 7,
       "edgeCount": 7,
       "geometrySha256": "2b3fd43780d667bf6003ce49fc6bd17d49b2d7e5ae7ab864328dc0adfc44995a",
-      "durationMs": 16
+      "durationMs": 15
     },
     {
       "problem": "L027",
@@ -27381,7 +27381,7 @@
       "nodeCount": 10,
       "edgeCount": 10,
       "geometrySha256": "70ec5e4e561c9deb0647652daa6c6d68ae9d69e4c9b62fbb6e601259a4b913b6",
-      "durationMs": 96
+      "durationMs": 89
     },
     {
       "problem": "L027",
@@ -27403,7 +27403,7 @@
       "nodeCount": 8,
       "edgeCount": 9,
       "geometrySha256": "b578342edf7d30187b156812d2ad575a88b85c56b2e51810de59ff984e6b58c5",
-      "durationMs": 53
+      "durationMs": 46
     },
     {
       "problem": "L028",
@@ -27576,7 +27576,7 @@
       "nodeCount": 9,
       "edgeCount": 7,
       "geometrySha256": "1619a4abc4278a3ad03c17f7b0850113d7d2dbc4a697eb22acdf01808f3921a6",
-      "durationMs": 9
+      "durationMs": 8
     },
     {
       "problem": "L028",
@@ -27598,7 +27598,7 @@
       "nodeCount": 7,
       "edgeCount": 6,
       "geometrySha256": "029c9c1bb071f94efbba21a0d40f0ff7c2a727ac4db61993b208a88c1cdd8fe6",
-      "durationMs": 9
+      "durationMs": 8
     },
     {
       "problem": "L028",
@@ -27618,7 +27618,7 @@
       "nodeCount": 10,
       "edgeCount": 8,
       "geometrySha256": "e710b07357b78e4aea622f2840a19812e6fdccb1af39410bd03e5e6192208c02",
-      "durationMs": 11
+      "durationMs": 10
     },
     {
       "problem": "L028",
@@ -27640,7 +27640,7 @@
       "nodeCount": 8,
       "edgeCount": 7,
       "geometrySha256": "fb8779517c86e2aa6fcc9664c82ca2212d0b70c0f329e0279780e1ea9b7a3af8",
-      "durationMs": 12
+      "durationMs": 10
     },
     {
       "problem": "L028",
@@ -27763,7 +27763,7 @@
       "nodeCount": 7,
       "edgeCount": 5,
       "geometrySha256": "c27dfc4dd67b2b5d65b5e0edba7ff6ad01bdf188b3cf2bb3b30fbe18d7d40200",
-      "durationMs": 8
+      "durationMs": 7
     },
     {
       "problem": "L028",
@@ -27810,7 +27810,7 @@
       "nodeCount": 8,
       "edgeCount": 6,
       "geometrySha256": "e59030103fa239e4ffadee9f88a450265908e9b9f4607469196dd66885f238ee",
-      "durationMs": 12
+      "durationMs": 11
     },
     {
       "problem": "L028",
@@ -27863,7 +27863,7 @@
       "nodeCount": 9,
       "edgeCount": 7,
       "geometrySha256": "1a2600e60304f7427a2b445bfcc150c4f3d7bf6735d1b5cfb5636760d8d6e67f",
-      "durationMs": 11
+      "durationMs": 10
     },
     {
       "problem": "L028",
@@ -27916,7 +27916,7 @@
       "nodeCount": 10,
       "edgeCount": 8,
       "geometrySha256": "dcb022f324db8c3d2af0215b470a5f32c9fc45981f81b287d9b418cdc5d514a0",
-      "durationMs": 15
+      "durationMs": 16
     },
     {
       "problem": "L028",
@@ -27957,7 +27957,7 @@
       "nodeCount": 4,
       "edgeCount": 2,
       "geometrySha256": "1eff3aa7f659fbac6294d0aea0a948f1de00404e486e36e4edf5df3c6b93ba1f",
-      "durationMs": 0
+      "durationMs": 1
     },
     {
       "problem": "L029",
@@ -27985,7 +27985,7 @@
       "nodeCount": 5,
       "edgeCount": 3,
       "geometrySha256": "8be78c1a9308eb5e1cd8cf37c4875a4782dca0c4ac138df856f518fa07e607d3",
-      "durationMs": 0
+      "durationMs": 2
     },
     {
       "problem": "L029",
@@ -28013,7 +28013,7 @@
       "nodeCount": 6,
       "edgeCount": 4,
       "geometrySha256": "412eeb461d3e4fedde6a2f3902359316c636d6cfb1fca31e2967b7e096af4a6f",
-      "durationMs": 1
+      "durationMs": 4
     },
     {
       "problem": "L029",
@@ -28041,7 +28041,7 @@
       "nodeCount": 7,
       "edgeCount": 5,
       "geometrySha256": "9997a406621acb05ed907f157cae36c70be672ff57b788051c3706700248ce67",
-      "durationMs": 3
+      "durationMs": 10
     },
     {
       "problem": "L029",
@@ -28056,7 +28056,7 @@
       "nodeCount": 5,
       "edgeCount": 4,
       "geometrySha256": "9a261e7f6f72df7684a11898d094b59581350877b969dc72f50eae9ee5ba3443",
-      "durationMs": 1
+      "durationMs": 3
     },
     {
       "problem": "L029",
@@ -28069,7 +28069,7 @@
       "nodeCount": 8,
       "edgeCount": 6,
       "geometrySha256": "5d5793953f5ccc2c7ec8a1d3473fdd2e939eaaecef98e6fd76e724d89deef703",
-      "durationMs": 5
+      "durationMs": 8
     },
     {
       "problem": "L029",
@@ -28146,7 +28146,7 @@
       "nodeCount": 10,
       "edgeCount": 8,
       "geometrySha256": "3f10407e1f096ccb615da5e53fa392dcf5cbe9ea5400108689d779e7f8302bb3",
-      "durationMs": 13
+      "durationMs": 12
     },
     {
       "problem": "L029",
@@ -28321,7 +28321,7 @@
       "nodeCount": 6,
       "edgeCount": 5,
       "geometrySha256": "0caaf70b588a56710360a6dd1e70475dff810e518215b2739a599b67c9f86997",
-      "durationMs": 4
+      "durationMs": 3
     },
     {
       "problem": "L029",
@@ -28362,7 +28362,7 @@
       "nodeCount": 10,
       "edgeCount": 8,
       "geometrySha256": "6d01861952c76d0c95330d4b801e0ed877ddc9a719b1c2e7538e4e0d611c8cfe",
-      "durationMs": 7
+      "durationMs": 6
     },
     {
       "problem": "L029",
@@ -28536,7 +28536,7 @@
       "nodeCount": 8,
       "edgeCount": 7,
       "geometrySha256": "b9a3837706bccf2f6ba4709e4b86d245ae33819e1a51e5f1c96404533a037d26",
-      "durationMs": 7
+      "durationMs": 6
     },
     {
       "problem": "L030",
@@ -28596,7 +28596,7 @@
       "nodeCount": 9,
       "edgeCount": 9,
       "geometrySha256": "a68f7229cae4a50a8f9ebb686aa81bc96c15ced1c40d54d9cad2dc8150ef0081",
-      "durationMs": 30
+      "durationMs": 28
     },
     {
       "problem": "L030",
@@ -28630,7 +28630,7 @@
       "nodeCount": 7,
       "edgeCount": 8,
       "geometrySha256": "3eb6e19b2c320b1031de2cadc9b65954fe47cac0f0c67334eb39cb975b7eec5e",
-      "durationMs": 15
+      "durationMs": 14
     },
     {
       "problem": "L030",
@@ -28674,7 +28674,7 @@
       "nodeCount": 10,
       "edgeCount": 11,
       "geometrySha256": "eaece7a34c53df14f032cec2fe59384bef86ac2986c0d05a2801f877cb9103da",
-      "durationMs": 79
+      "durationMs": 73
     },
     {
       "problem": "L030",
@@ -28720,7 +28720,7 @@
       "nodeCount": 8,
       "edgeCount": 10,
       "geometrySha256": "5e8524352caa9ad4662808c45f6e317c31f66bab07a23b07a8c67a489e4fe52c",
-      "durationMs": 57
+      "durationMs": 54
     },
     {
       "problem": "L030",
@@ -28858,7 +28858,7 @@
       "nodeCount": 8,
       "edgeCount": 6,
       "geometrySha256": "6a77b7ceb55a49fd75068a7a06d95bc33f4d1b39d24d600862564b8f4814d8d9",
-      "durationMs": 3
+      "durationMs": 2
     },
     {
       "problem": "L030",
@@ -28886,7 +28886,7 @@
       "nodeCount": 9,
       "edgeCount": 7,
       "geometrySha256": "df97efa26375ce28cd2f1cccd227e1b96ac4d01751a789a12871f050ee3547b9",
-      "durationMs": 5
+      "durationMs": 6
     },
     {
       "problem": "L030",
@@ -28914,7 +28914,7 @@
       "nodeCount": 10,
       "edgeCount": 9,
       "geometrySha256": "fc2b30da153f606751ecbd1d996995ce70563614d89d1be92958cca61436f710",
-      "durationMs": 10
+      "durationMs": 9
     },
     {
       "problem": "L030",
@@ -28929,7 +28929,7 @@
       "nodeCount": 8,
       "edgeCount": 8,
       "geometrySha256": "4751bf138003defb57728e512bca3d583d49a3af542e531f9c580b79b6d5295a",
-      "durationMs": 15
+      "durationMs": 14
     },
     {
       "problem": "L031",
@@ -29040,7 +29040,7 @@
       "nodeCount": 11,
       "edgeCount": 6,
       "geometrySha256": "fcd93f00f0a5d48e579628f90c70f8a9c43f24816ec15c9105323d16cf85c8f2",
-      "durationMs": 9
+      "durationMs": 8
     },
     {
       "problem": "L031",
@@ -29139,7 +29139,7 @@
       "nodeCount": 12,
       "edgeCount": 8,
       "geometrySha256": "be1a6ac4e5d32b7aea8ce5ad0010c4ff19b67089662c992aefc212074790bcb7",
-      "durationMs": 17
+      "durationMs": 16
     },
     {
       "problem": "L031",
@@ -29229,7 +29229,7 @@
       "nodeCount": 10,
       "edgeCount": 7,
       "geometrySha256": "057d732cb453c588f08c0c4dc341507ef8e0c538e608a5a6aedff9bd1427035c",
-      "durationMs": 16
+      "durationMs": 15
     },
     {
       "problem": "L031",
@@ -29251,7 +29251,7 @@
       "nodeCount": 10,
       "edgeCount": 7,
       "geometrySha256": "91631b683759e70079f0fd9005bd3df4b631c9ba7e261d46c8f9ef4ee88517f5",
-      "durationMs": 10
+      "durationMs": 9
     },
     {
       "problem": "L031",
@@ -29277,7 +29277,7 @@
       "nodeCount": 12,
       "edgeCount": 8,
       "geometrySha256": "be1a6ac4e5d32b7aea8ce5ad0010c4ff19b67089662c992aefc212074790bcb7",
-      "durationMs": 17
+      "durationMs": 16
     },
     {
       "problem": "L031",
@@ -29367,7 +29367,7 @@
       "nodeCount": 10,
       "edgeCount": 7,
       "geometrySha256": "057d732cb453c588f08c0c4dc341507ef8e0c538e608a5a6aedff9bd1427035c",
-      "durationMs": 17
+      "durationMs": 15
     },
     {
       "problem": "L031",
@@ -29415,7 +29415,7 @@
       "nodeCount": 13,
       "edgeCount": 9,
       "geometrySha256": "96172e324431dd38f14e81c82dfbeebaa9e65c1e3a69dd6623a8a2d56d2e181b",
-      "durationMs": 17
+      "durationMs": 16
     },
     {
       "problem": "L031",
@@ -29443,7 +29443,7 @@
       "nodeCount": 3,
       "edgeCount": 3,
       "geometrySha256": "cbcb5c124f4992a00addce276f5644f98fb21e6b05b48009e7b22911a1f85aa1",
-      "durationMs": 2
+      "durationMs": 1
     },
     {
       "problem": "L031",
@@ -29505,7 +29505,7 @@
       "nodeCount": 10,
       "edgeCount": 7,
       "geometrySha256": "057d732cb453c588f08c0c4dc341507ef8e0c538e608a5a6aedff9bd1427035c",
-      "durationMs": 17
+      "durationMs": 15
     },
     {
       "problem": "L031",
@@ -29553,7 +29553,7 @@
       "nodeCount": 15,
       "edgeCount": 11,
       "geometrySha256": "d018eb31776b040513542e0e1dcfddf93f28bdcdc3aa1679edcc24d091885be5",
-      "durationMs": 27
+      "durationMs": 24
     },
     {
       "problem": "L031",
@@ -29587,7 +29587,7 @@
       "nodeCount": 5,
       "edgeCount": 5,
       "geometrySha256": "35c4d1cc3e5f505a4a28ece8e3d423dcb3ecd8235d72372767feae1fc6bebf9b",
-      "durationMs": 4
+      "durationMs": 3
     },
     {
       "problem": "L031",
@@ -29615,7 +29615,7 @@
       "nodeCount": 7,
       "edgeCount": 6,
       "geometrySha256": "f607fd9826cee972d0150342ca667a3bfb050268354a6b17d0a1709b402d90b7",
-      "durationMs": 3
+      "durationMs": 2
     },
     {
       "problem": "L031",
@@ -29655,7 +29655,7 @@
       "nodeCount": 12,
       "edgeCount": 9,
       "geometrySha256": "03797dabdda215f8bd312239d86bfc793dd246f97790104a695a3cebdf080781",
-      "durationMs": 25
+      "durationMs": 22
     },
     {
       "problem": "L031",
@@ -29677,7 +29677,7 @@
       "nodeCount": 13,
       "edgeCount": 10,
       "geometrySha256": "87d02e4f1937b7928561aef5dcac675b8b4f6ee3c8b0059e07e66154180e115c",
-      "durationMs": 21
+      "durationMs": 19
     },
     {
       "problem": "L031",
@@ -29837,7 +29837,7 @@
       "nodeCount": 10,
       "edgeCount": 6,
       "geometrySha256": "562fafdc73a87c6f571ab790090f9728e02c253e47736efbcd53b4d854f79744",
-      "durationMs": 10
+      "durationMs": 11
     },
     {
       "problem": "L031",
@@ -29865,7 +29865,7 @@
       "nodeCount": 9,
       "edgeCount": 5,
       "geometrySha256": "3e53c32f782a8562f5e8b7fc497650916b64481dfe9de1b3f6b3fc32149c8df6",
-      "durationMs": 7
+      "durationMs": 6
     },
     {
       "problem": "L031",
@@ -29986,7 +29986,7 @@
       "nodeCount": 13,
       "edgeCount": 9,
       "geometrySha256": "138609f6f1f78378f3589225657741e09e6861d2e42ca88be627c01ed38923e3",
-      "durationMs": 13
+      "durationMs": 11
     },
     {
       "problem": "L031",
@@ -30001,7 +30001,7 @@
       "nodeCount": 10,
       "edgeCount": 8,
       "geometrySha256": "d4f3103cad4f6669271b5329a49138e64e08e5a36d347006e876e767bd1df70a",
-      "durationMs": 6
+      "durationMs": 5
     },
     {
       "problem": "L031",
@@ -30029,7 +30029,7 @@
       "nodeCount": 12,
       "edgeCount": 9,
       "geometrySha256": "7812a659a0ff1d21b1b87d7b78d2905c79f61760684b3b66d2b7fcab2edb6c4c",
-      "durationMs": 24
+      "durationMs": 23
     },
     {
       "problem": "L031",
@@ -30057,7 +30057,7 @@
       "nodeCount": 11,
       "edgeCount": 8,
       "geometrySha256": "ffc200f5442eaa8ccf52e08da8618560a1d45a994840a6c93faa6b7445f566eb",
-      "durationMs": 9
+      "durationMs": 8
     },
     {
       "problem": "L031",
@@ -30110,7 +30110,7 @@
       "nodeCount": 14,
       "edgeCount": 11,
       "geometrySha256": "65bf3be75a376a876907d6361020ef291f09f3c0939e84de6b2dcf255b33355e",
-      "durationMs": 37
+      "durationMs": 34
     },
     {
       "problem": "L031",
@@ -30138,7 +30138,7 @@
       "nodeCount": 11,
       "edgeCount": 10,
       "geometrySha256": "d9c4a71c799801f6848de69a4147bd362be66e8d430201f5b30b26c703cf0b9b",
-      "durationMs": 22
+      "durationMs": 21
     },
     {
       "problem": "L031",
@@ -30190,7 +30190,7 @@
       "nodeCount": 13,
       "edgeCount": 11,
       "geometrySha256": "771108d9a2489e129ccef9c72b467ef63a765c45107d1bcd14921f0bf0cb6a35",
-      "durationMs": 54
+      "durationMs": 50
     },
     {
       "problem": "L031",
@@ -30218,7 +30218,7 @@
       "nodeCount": 11,
       "edgeCount": 8,
       "geometrySha256": "ffc200f5442eaa8ccf52e08da8618560a1d45a994840a6c93faa6b7445f566eb",
-      "durationMs": 9
+      "durationMs": 8
     },
     {
       "problem": "L031",
@@ -30246,7 +30246,7 @@
       "nodeCount": 12,
       "edgeCount": 10,
       "geometrySha256": "a97e131cc4ea1d9c217e736e084a22c7fc719f83c1f0be539297078f419d3aed",
-      "durationMs": 27
+      "durationMs": 24
     },
     {
       "problem": "L031",
@@ -30272,7 +30272,7 @@
       "nodeCount": 16,
       "edgeCount": 13,
       "geometrySha256": "4320faed52bf121c7236b7f5d6a1cf25ea37a3da376e1610c077cc1d7655c91d",
-      "durationMs": 58
+      "durationMs": 54
     },
     {
       "problem": "L031",
@@ -30287,7 +30287,7 @@
       "nodeCount": 13,
       "edgeCount": 12,
       "geometrySha256": "f79bf29e7df38d17bb8b42a0b145244ed958a4995240987fb845f633deae5ca5",
-      "durationMs": 87
+      "durationMs": 82
     },
     {
       "problem": "L031",
@@ -30327,7 +30327,7 @@
       "nodeCount": 15,
       "edgeCount": 13,
       "geometrySha256": "26c00797cc6ac1c20ac1b080db562486fae0303b0d0435d9024ad1c394734948",
-      "durationMs": 85
+      "durationMs": 72
     },
     {
       "problem": "L031",
@@ -30342,7 +30342,7 @@
       "nodeCount": 13,
       "edgeCount": 10,
       "geometrySha256": "b01e07a44ff122de9728774179ef74f0cd06351f0276538e16113ba71e5b6a6f",
-      "durationMs": 13
+      "durationMs": 12
     },
     {
       "problem": "L031",
@@ -30357,7 +30357,7 @@
       "nodeCount": 14,
       "edgeCount": 12,
       "geometrySha256": "92f3d9edc095fca452f185e3e23a8565de2f16f28a41487e64f57d3f3449493a",
-      "durationMs": 99
+      "durationMs": 94
     },
     {
       "problem": "L032",
@@ -30383,7 +30383,7 @@
       "nodeCount": 4,
       "edgeCount": 2,
       "geometrySha256": "c12081920ab9199601a363875acdfd037adfcc4dee75cc856994f952ad82efc6",
-      "durationMs": 1
+      "durationMs": 0
     },
     {
       "problem": "L032",
@@ -30411,7 +30411,7 @@
       "nodeCount": 6,
       "edgeCount": 4,
       "geometrySha256": "fdbc538a7124d3c93b4b791b114274cc71b7226ec6de72422bac730afd12741c",
-      "durationMs": 3
+      "durationMs": 2
     },
     {
       "problem": "L032",
@@ -30439,7 +30439,7 @@
       "nodeCount": 7,
       "edgeCount": 6,
       "geometrySha256": "a4ad8b63b707720d5440a54af5a9376646061a0b2210098a0e36e9dc99762bfc",
-      "durationMs": 6
+      "durationMs": 5
     },
     {
       "problem": "L032",
@@ -30492,7 +30492,7 @@
       "nodeCount": 9,
       "edgeCount": 8,
       "geometrySha256": "ea24ab84d913bd4df4e6bd4da874603ddbdd81742cab0bce7708e5dee3fa46ed",
-      "durationMs": 15
+      "durationMs": 14
     },
     {
       "problem": "L032",
@@ -30594,7 +30594,7 @@
       "nodeCount": 10,
       "edgeCount": 10,
       "geometrySha256": "a7b4691afb6231426d30c156f210be51295152448a0b328b19676b885684db03",
-      "durationMs": 54
+      "durationMs": 49
     },
     {
       "problem": "L032",
@@ -30646,7 +30646,7 @@
       "nodeCount": 8,
       "edgeCount": 9,
       "geometrySha256": "2c0befa6da484a043ea6a5a915551cafc61075c43f9455ab84f47a46ef84913b",
-      "durationMs": 37
+      "durationMs": 33
     },
     {
       "problem": "L032",
@@ -30732,7 +30732,7 @@
       "nodeCount": 11,
       "edgeCount": 11,
       "geometrySha256": "7fe1e867555eb12153e1e69398d3a8f862e4ad818a4b9304b6868aff02014053",
-      "durationMs": 124
+      "durationMs": 116
     },
     {
       "problem": "L032",
@@ -30826,7 +30826,7 @@
       "nodeCount": 9,
       "edgeCount": 10,
       "geometrySha256": "c9d972839097adee43c2affe844171957a76a7fe9d788d08d13d90290205a037",
-      "durationMs": 76
+      "durationMs": 71
     },
     {
       "problem": "L032",
@@ -30882,7 +30882,7 @@
       "nodeCount": 9,
       "edgeCount": 10,
       "geometrySha256": "50407a81d07f6ef3bfebe69a514ad9aec3da79d598dbc08bc468d4e575ec6336",
-      "durationMs": 39
+      "durationMs": 36
     },
     {
       "problem": "L032",
@@ -30940,7 +30940,7 @@
       "nodeCount": 7,
       "edgeCount": 9,
       "geometrySha256": "75f4544c9438954bae6e869d6e3871bf11b0c7c146e7385ad66a3007ac7b41e5",
-      "durationMs": 21
+      "durationMs": 19
     },
     {
       "problem": "L032",
@@ -30966,7 +30966,7 @@
       "nodeCount": 4,
       "edgeCount": 2,
       "geometrySha256": "5e2d171d18be233b98b23dd6458a127d6e410d8d363e6b785da672b79a9d4302",
-      "durationMs": 1
+      "durationMs": 0
     },
     {
       "problem": "L032",
@@ -31095,7 +31095,7 @@
       "nodeCount": 9,
       "edgeCount": 8,
       "geometrySha256": "ea8d1eb3ec91c6536b948342a735ead0738f73d42a039a3c0f2ad9cc9723155d",
-      "durationMs": 44
+      "durationMs": 42
     },
     {
       "problem": "L032",
@@ -31167,7 +31167,7 @@
       "nodeCount": 10,
       "edgeCount": 10,
       "geometrySha256": "6c462696969a7400c31e8bd0b246ba6539903c2bb0a6283753a703258d57cd37",
-      "durationMs": 66
+      "durationMs": 60
     },
     {
       "problem": "L032",
@@ -31195,7 +31195,7 @@
       "nodeCount": 8,
       "edgeCount": 9,
       "geometrySha256": "ac5c8e0d861e73c532e85deb04c059790b8b981985927c2e06d7d8791f1e3eac",
-      "durationMs": 20
+      "durationMs": 19
     },
     {
       "problem": "L032",
@@ -31263,7 +31263,7 @@
       "nodeCount": 11,
       "edgeCount": 11,
       "geometrySha256": "c7c8e0c0d7cbd404538db95e34040c0ae4dce05938c38dd89e8066b833b82536",
-      "durationMs": 108
+      "durationMs": 107
     },
     {
       "problem": "L032",
@@ -31315,7 +31315,7 @@
       "nodeCount": 9,
       "edgeCount": 10,
       "geometrySha256": "709888b3125de3afff6a1e56708eefce03e7c7e3ebc6b180aa478013003e89ad",
-      "durationMs": 39
+      "durationMs": 37
     },
     {
       "problem": "L032",
@@ -31359,7 +31359,7 @@
       "nodeCount": 10,
       "edgeCount": 10,
       "geometrySha256": "4730f5850ff669794f6618366c5334ae3ec98162c4c1f23b1b6a1c3a36001321",
-      "durationMs": 74
+      "durationMs": 72
     },
     {
       "problem": "L032",
@@ -31387,7 +31387,7 @@
       "nodeCount": 8,
       "edgeCount": 9,
       "geometrySha256": "ef1494d8073f57a8b46b51a9247d0219f9fee356002d8d3f5d1f95190a1bcb29",
-      "durationMs": 25
+      "durationMs": 24
     },
     {
       "problem": "L033",
@@ -31617,7 +31617,7 @@
       "nodeCount": 6,
       "edgeCount": 5,
       "geometrySha256": "99acd02c7dc2dfd7c06a455ea53657f07faab6d709e8d1bf12f63d8d901f91b0",
-      "durationMs": 3
+      "durationMs": 4
     },
     {
       "problem": "L033",
@@ -32086,7 +32086,7 @@
       "nodeCount": 8,
       "edgeCount": 7,
       "geometrySha256": "5418145a3f158ea3be348d39af5c23779c23dc06ddbe1788a24eb5499cd519d2",
-      "durationMs": 12
+      "durationMs": 11
     },
     {
       "problem": "L034",
@@ -32181,7 +32181,7 @@
       "nodeCount": 8,
       "edgeCount": 7,
       "geometrySha256": "be22e4d5b7f870f22afa7d00a2469cf31b836cca68cd7761bf41e8785ccb8000",
-      "durationMs": 6
+      "durationMs": 5
     },
     {
       "problem": "L034",
@@ -32379,7 +32379,7 @@
       "nodeCount": 12,
       "edgeCount": 15,
       "geometrySha256": "253eae56ff68a5c95d37a740b05808cbd73d5d3f772dfe121c03879d212f88cc",
-      "durationMs": 222
+      "durationMs": 225
     },
     {
       "problem": "L034",
@@ -32467,7 +32467,7 @@
       "nodeCount": 10,
       "edgeCount": 14,
       "geometrySha256": "5b3212ddbd8cfc6d4f12550260889066b8648f478a38187959a2fe94a7d0ed18",
-      "durationMs": 176
+      "durationMs": 175
     },
     {
       "problem": "L034",
@@ -32589,7 +32589,7 @@
       "nodeCount": 13,
       "edgeCount": 18,
       "geometrySha256": "0dab0a225570773219cf5aff661d4092d042cd1766e15262eb9a4cd75bddc8e2",
-      "durationMs": 563
+      "durationMs": 572
     },
     {
       "problem": "L034",
@@ -32707,7 +32707,7 @@
       "nodeCount": 11,
       "edgeCount": 17,
       "geometrySha256": "1a905b9251ceb810aa42a8f5c3ce3a4f68db09602c7fc23ef246f279e08af41f",
-      "durationMs": 269
+      "durationMs": 271
     },
     {
       "problem": "L034",
@@ -32793,7 +32793,7 @@
       "nodeCount": 11,
       "edgeCount": 17,
       "geometrySha256": "bd6438eec4882cff1da825ee2b2a2c64d8f571f75d56c8130623b71c65c132e2",
-      "durationMs": 210
+      "durationMs": 218
     },
     {
       "problem": "L034",
@@ -32863,7 +32863,7 @@
       "nodeCount": 9,
       "edgeCount": 16,
       "geometrySha256": "3c9708f0660e042b13fc53fe3c6413afc243b90b0101d3f757515c83bfe63db3",
-      "durationMs": 146
+      "durationMs": 149
     },
     {
       "problem": "L034",
@@ -33060,7 +33060,7 @@
       "nodeCount": 11,
       "edgeCount": 12,
       "geometrySha256": "2f2e1399ae130526a0383d2179451d3694aedaef67c89b59fc01dde2dc42d5e2",
-      "durationMs": 69
+      "durationMs": 70
     },
     {
       "problem": "L034",
@@ -33148,7 +33148,7 @@
       "nodeCount": 9,
       "edgeCount": 11,
       "geometrySha256": "bebd5b59a77618de1e0e781b68c8779c7f1011e7261a95496e192334f0324a5e",
-      "durationMs": 75
+      "durationMs": 76
     },
     {
       "problem": "L034",
@@ -33352,7 +33352,7 @@
       "nodeCount": 11,
       "edgeCount": 15,
       "geometrySha256": "08d02e6eb2afd99cb1936abfb0862522fcc2d55f18aae408a367e5edc826c31b",
-      "durationMs": 243
+      "durationMs": 253
     },
     {
       "problem": "L034",
@@ -33486,7 +33486,7 @@
       "nodeCount": 14,
       "edgeCount": 19,
       "geometrySha256": "f0d54ae64b4457ccc2a5dd6e5a867986bd66066dc5391674ff86dac36da2eeaf",
-      "durationMs": 523
+      "durationMs": 522
     },
     {
       "problem": "L034",
@@ -33652,7 +33652,7 @@
       "nodeCount": 12,
       "edgeCount": 18,
       "geometrySha256": "949b730e14e23cdcd9b0d060c7d7da8e0fde0af2fa7ceb4b7f4a2a33098365c1",
-      "durationMs": 423
+      "durationMs": 433
     },
     {
       "problem": "L034",
@@ -33744,7 +33744,7 @@
       "nodeCount": 12,
       "edgeCount": 18,
       "geometrySha256": "9b5b594a79222e2f12ed1500ef8e74e7df6f2a66e5315bb35119b34461fd1c58",
-      "durationMs": 238
+      "durationMs": 247
     },
     {
       "problem": "L034",
@@ -33862,7 +33862,7 @@
       "nodeCount": 10,
       "edgeCount": 17,
       "geometrySha256": "1f159d494b16aef86338e3d3169c22db487d535e21eef21d2bc60f118d03a6a8",
-      "durationMs": 266
+      "durationMs": 258
     },
     {
       "problem": "L035",
@@ -33888,7 +33888,7 @@
       "nodeCount": 4,
       "edgeCount": 2,
       "geometrySha256": "aec0ca851052359b2fc5bac80737333c11c6b731ab68285d230e64fc150f6581",
-      "durationMs": 1
+      "durationMs": 0
     },
     {
       "problem": "L035",
@@ -33944,7 +33944,7 @@
       "nodeCount": 6,
       "edgeCount": 4,
       "geometrySha256": "e96bb71b335aab946cd81323f2101faa368e7cfeceaf02f5a023a70f3455a390",
-      "durationMs": 3
+      "durationMs": 1
     },
     {
       "problem": "L035",
@@ -34000,7 +34000,7 @@
       "nodeCount": 8,
       "edgeCount": 6,
       "geometrySha256": "5bb67ebe0e8ee14a253b82169646dc49ae26ae59a905199a6b3d2ffd78a38839",
-      "durationMs": 9
+      "durationMs": 4
     },
     {
       "problem": "L035",
@@ -34015,7 +34015,7 @@
       "nodeCount": 6,
       "edgeCount": 5,
       "geometrySha256": "b67b4d153e7f71724896aae257ea35d9916898f8343cabc99fdc595803cb40eb",
-      "durationMs": 6
+      "durationMs": 3
     },
     {
       "problem": "L035",
@@ -34028,7 +34028,7 @@
       "nodeCount": 9,
       "edgeCount": 7,
       "geometrySha256": "7d72dfee8c66b0d2257c1a5e5520b21a9f1fb2fa2fd11a6afdf5ee1dfaf8f864",
-      "durationMs": 12
+      "durationMs": 7
     },
     {
       "problem": "L035",
@@ -34043,7 +34043,7 @@
       "nodeCount": 7,
       "edgeCount": 6,
       "geometrySha256": "8724ab340f04f753b01abf4ea5e4f8eaf6956d058f91446b5c4d3a4dacd864e1",
-      "durationMs": 7
+      "durationMs": 4
     },
     {
       "problem": "L035",
@@ -34056,7 +34056,7 @@
       "nodeCount": 10,
       "edgeCount": 8,
       "geometrySha256": "c17bab6e4569fe1e13156679c6b60f9bbd9d32513d8b76e37c23688ea04532eb",
-      "durationMs": 13
+      "durationMs": 9
     },
     {
       "problem": "L035",
@@ -34071,7 +34071,7 @@
       "nodeCount": 8,
       "edgeCount": 7,
       "geometrySha256": "d4b3b7284b4a35b9dccf132d7d12a9bafcd394ea49769b2930dd447d34476fe3",
-      "durationMs": 6
+      "durationMs": 5
     },
     {
       "problem": "L035",
@@ -34224,7 +34224,7 @@
       "nodeCount": 6,
       "edgeCount": 5,
       "geometrySha256": "3f5d02bc4d5fe35f9037989687ac73996f8a3f4376058cd730b397fde31c25c7",
-      "durationMs": 1
+      "durationMs": 2
     },
     {
       "problem": "L035",
@@ -34250,7 +34250,7 @@
       "nodeCount": 9,
       "edgeCount": 7,
       "geometrySha256": "5cfc7788f3793975180f4a7583781fc2605c027444ef7db96be456d12dd903e1",
-      "durationMs": 13
+      "durationMs": 12
     },
     {
       "problem": "L035",
@@ -34443,7 +34443,7 @@
       "nodeCount": 7,
       "edgeCount": 7,
       "geometrySha256": "3d9e10bd265a631774164fac211e10f86f93e164164c8b96b0a259007ff181e6",
-      "durationMs": 5
+      "durationMs": 6
     },
     {
       "problem": "L036",
@@ -34528,7 +34528,7 @@
       "nodeCount": 4,
       "edgeCount": 4,
       "geometrySha256": "7c6175274398af25dccf98ba1874b78a4b5788fcdcae1c4ea2f25b3a9affed31",
-      "durationMs": 1
+      "durationMs": 0
     },
     {
       "problem": "L036",
@@ -34665,7 +34665,7 @@
       "nodeCount": 6,
       "edgeCount": 6,
       "geometrySha256": "f530f7f9aec001ac2b8d68f8da15b80cc374c37a16fd12a81de1094ef41526ce",
-      "durationMs": 2
+      "durationMs": 1
     },
     {
       "problem": "L037",
@@ -34704,7 +34704,7 @@
       "nodeCount": 9,
       "edgeCount": 9,
       "geometrySha256": "464084aa48e3bf59da06e4aa702f4f258bf824f9540f61091754f85a1361bc7c",
-      "durationMs": 7
+      "durationMs": 8
     },
     {
       "problem": "L037",
@@ -34769,7 +34769,7 @@
       "nodeCount": 6,
       "edgeCount": 6,
       "geometrySha256": "e9612cb5411d79625d76d5779a8e5b53042cff942950b05b8965534e007e771c",
-      "durationMs": 5
+      "durationMs": 4
     },
     {
       "problem": "L037",
@@ -34821,7 +34821,7 @@
       "nodeCount": 8,
       "edgeCount": 8,
       "geometrySha256": "e81649f6826d97997fdbb016639d0a47311d8babd54cdd509c9694ff81f9ddba",
-      "durationMs": 23
+      "durationMs": 24
     },
     {
       "problem": "L037",
@@ -34847,7 +34847,7 @@
       "nodeCount": 9,
       "edgeCount": 9,
       "geometrySha256": "d9e29bc97af7249c1e5db2d3e0f8deb8b57f8c77978edbdd757acde984001cf1",
-      "durationMs": 37
+      "durationMs": 36
     },
     {
       "problem": "L038",
@@ -34886,7 +34886,7 @@
       "nodeCount": 4,
       "edgeCount": 4,
       "geometrySha256": "7b8e72a5877d999b8e7a9abb9290d6422a793f701b2180ec18e0006392de6c61",
-      "durationMs": 1
+      "durationMs": 0
     },
     {
       "problem": "L038",
@@ -34899,7 +34899,7 @@
       "nodeCount": 5,
       "edgeCount": 5,
       "geometrySha256": "54cbfc6c047e935724a4d46a67eb8544bc287c3982959db9c8f4c6842dc3a90d",
-      "durationMs": 3
+      "durationMs": 2
     },
     {
       "problem": "L038",
@@ -35062,7 +35062,7 @@
       "nodeCount": 7,
       "edgeCount": 7,
       "geometrySha256": "6aba59ff352664955d78f0cf559f0d6b1b406386416388d91050c832bc6bab44",
-      "durationMs": 13
+      "durationMs": 14
     },
     {
       "problem": "L038",
@@ -35088,7 +35088,7 @@
       "nodeCount": 8,
       "edgeCount": 8,
       "geometrySha256": "ddd6f38b0bb03345c1d8f8c439625b0fe4eb1cff7e860d5ce85dfe25bbbbd7ff",
-      "durationMs": 26
+      "durationMs": 28
     },
     {
       "problem": "L038",
@@ -35144,7 +35144,7 @@
       "nodeCount": 9,
       "edgeCount": 9,
       "geometrySha256": "1d570086254949d03ebe3cba287557736335886e72d80a9b705857875268e98e",
-      "durationMs": 28
+      "durationMs": 30
     },
     {
       "problem": "L039",
@@ -35196,7 +35196,7 @@
       "nodeCount": 5,
       "edgeCount": 4,
       "geometrySha256": "d66b56f2cbb8262346647086918cb47baaf09a205c2185daf95aa935daa4186d",
-      "durationMs": 4
+      "durationMs": 3
     },
     {
       "problem": "L039",
@@ -35209,7 +35209,7 @@
       "nodeCount": 6,
       "edgeCount": 5,
       "geometrySha256": "2e0b1f001e04618c10ae7c14217c6e0dc18a2c4eb2c1f8ce8b7847fddf23318f",
-      "durationMs": 3
+      "durationMs": 2
     },
     {
       "problem": "L039",
@@ -35235,7 +35235,7 @@
       "nodeCount": 7,
       "edgeCount": 6,
       "geometrySha256": "54e6ea0e3b86fd2665c7d0f0e37025c9a2f916d7bee958424eb11bb9fd07e80e",
-      "durationMs": 6
+      "durationMs": 5
     },
     {
       "problem": "L039",
@@ -35261,7 +35261,7 @@
       "nodeCount": 8,
       "edgeCount": 7,
       "geometrySha256": "ea714ca514d43cad3d481a387c51f6d94cd400e1b070f15cfdd8c1a243b5bd92",
-      "durationMs": 12
+      "durationMs": 11
     },
     {
       "problem": "L039",
@@ -35287,7 +35287,7 @@
       "nodeCount": 9,
       "edgeCount": 8,
       "geometrySha256": "fadd531586c591c02a8c485d9bad6deaf8cf8b26164dd80c814685bb1084fe7a",
-      "durationMs": 23
+      "durationMs": 22
     },
     {
       "problem": "L039",
@@ -35339,7 +35339,7 @@
       "nodeCount": 5,
       "edgeCount": 4,
       "geometrySha256": "28df856e9006434f1c1adcb502ac945c4c786b213a802d6bd37b934530410934",
-      "durationMs": 1
+      "durationMs": 0
     },
     {
       "problem": "L039",
@@ -35365,7 +35365,7 @@
       "nodeCount": 6,
       "edgeCount": 5,
       "geometrySha256": "8df457a96af11205e6feb2891f9374d9fbc8c67f732db49965cae43f5eb56bf2",
-      "durationMs": 3
+      "durationMs": 2
     },
     {
       "problem": "L039",
@@ -35391,7 +35391,7 @@
       "nodeCount": 7,
       "edgeCount": 6,
       "geometrySha256": "e72e2e820bbd0630478a83b078c67fb3f636cd80712cf41601758405b8cf0327",
-      "durationMs": 4
+      "durationMs": 3
     },
     {
       "problem": "L039",
@@ -35443,7 +35443,7 @@
       "nodeCount": 9,
       "edgeCount": 8,
       "geometrySha256": "257c1b0f8d2786afc543e4cf8a6de8de7e8b2e4ab6a240f4b2d0c2af01706901",
-      "durationMs": 8
+      "durationMs": 7
     },
     {
       "problem": "L040",
@@ -35634,7 +35634,7 @@
       "nodeCount": 9,
       "edgeCount": 8,
       "geometrySha256": "f5606ee871bf0b5361f599fcd26fb60591dce9c30b506989a1e728962fd3ad56",
-      "durationMs": 16
+      "durationMs": 14
     },
     {
       "problem": "L040",
@@ -35673,7 +35673,7 @@
       "nodeCount": 4,
       "edgeCount": 3,
       "geometrySha256": "a498978d829bf2cfadc39366c876497a37abf8b629d50aa68c3bd921d1983fe3",
-      "durationMs": 1
+      "durationMs": 0
     },
     {
       "problem": "L040",
@@ -35711,7 +35711,7 @@
       "nodeCount": 5,
       "edgeCount": 4,
       "geometrySha256": "5f633dbeca6c6099511df1704fe53bc43664acbbf50237d430c6e32201dd468e",
-      "durationMs": 5
+      "durationMs": 4
     },
     {
       "problem": "L040",
@@ -35749,7 +35749,7 @@
       "nodeCount": 6,
       "edgeCount": 5,
       "geometrySha256": "b16e32dd095d7891352cca5030d8a5c0971791a9139ae1064676cd0e680cb1f6",
-      "durationMs": 9
+      "durationMs": 8
     },
     {
       "problem": "L040",
@@ -35787,7 +35787,7 @@
       "nodeCount": 7,
       "edgeCount": 6,
       "geometrySha256": "8f0605357baa1188a675c35d31248ce7b75c323a640f850a571f8c2fbf9d79cb",
-      "durationMs": 19
+      "durationMs": 17
     },
     {
       "problem": "L040",
@@ -35825,7 +35825,7 @@
       "nodeCount": 8,
       "edgeCount": 7,
       "geometrySha256": "43d55cb0151c909137f38773a0a48d6c269c5e4b0c3922f6e68ab75f601e2899",
-      "durationMs": 17
+      "durationMs": 16
     },
     {
       "problem": "L040",
@@ -35863,7 +35863,7 @@
       "nodeCount": 9,
       "edgeCount": 8,
       "geometrySha256": "f3dc5b9ed8f5453f905d357e56732692d543a6e2b0d72d7738b1e99fe82586f2",
-      "durationMs": 31
+      "durationMs": 29
     },
     {
       "problem": "L041",
@@ -36035,7 +36035,7 @@
       "nodeCount": 8,
       "edgeCount": 8,
       "geometrySha256": "0a9658664d9d0ab0f34eec32ab53b5718a38316f5b9332def4b0f7ed26c79b2c",
-      "durationMs": 24
+      "durationMs": 22
     },
     {
       "problem": "L041",
@@ -36103,7 +36103,7 @@
       "nodeCount": 9,
       "edgeCount": 9,
       "geometrySha256": "d29d5a713a955963c29b7a1a378342620d830d607fdf2ae29c1fac2fe6ef0634",
-      "durationMs": 27
+      "durationMs": 25
     },
     {
       "problem": "L041",
@@ -36207,7 +36207,7 @@
       "nodeCount": 6,
       "edgeCount": 6,
       "geometrySha256": "c34b75b07990a372073568d1fde6a77864369d9baf082784f89ca50e198203c5",
-      "durationMs": 6
+      "durationMs": 5
     },
     {
       "problem": "L041",
@@ -36233,7 +36233,7 @@
       "nodeCount": 7,
       "edgeCount": 7,
       "geometrySha256": "2b1db7dc2625df6ecbe54c06d96a81e37d57ac87ee9f21f52268d5681d80b45b",
-      "durationMs": 7
+      "durationMs": 6
     },
     {
       "problem": "L041",
@@ -36283,7 +36283,7 @@
       "nodeCount": 8,
       "edgeCount": 8,
       "geometrySha256": "894db8b43a8d1235080dbdbe3e73aa26786d3eeb07d0536f6e621e3d23f97dd0",
-      "durationMs": 16
+      "durationMs": 15
     },
     {
       "problem": "L041",
@@ -36365,7 +36365,7 @@
       "nodeCount": 4,
       "edgeCount": 2,
       "geometrySha256": "77870be9a0ff0907a7135e8d59fb959c0eeb5abfebb9cbd7c2ac8e2b094d2404",
-      "durationMs": 1
+      "durationMs": 0
     },
     {
       "problem": "L042",
@@ -36393,7 +36393,7 @@
       "nodeCount": 5,
       "edgeCount": 3,
       "geometrySha256": "fa4e9c94f3f0bf67f6e59ac9d2dde0fa0c641bfbe7ffcb54af68ec19ac78ab78",
-      "durationMs": 1
+      "durationMs": 0
     },
     {
       "problem": "L042",
@@ -36449,7 +36449,7 @@
       "nodeCount": 7,
       "edgeCount": 5,
       "geometrySha256": "7e6637f5b8d25853f5c5df8ce3c42882a9b74d86cd1ddb00ac57d6c4d50b531d",
-      "durationMs": 2
+      "durationMs": 1
     },
     {
       "problem": "L042",
@@ -36484,7 +36484,7 @@
       "nodeCount": 8,
       "edgeCount": 6,
       "geometrySha256": "6e4c30ac15dda63f9ea65a4e4bd13374a1a4bea2eaa8f532cd65d0f180f90225",
-      "durationMs": 6
+      "durationMs": 5
     },
     {
       "problem": "L042",
@@ -36538,7 +36538,7 @@
       "nodeCount": 9,
       "edgeCount": 7,
       "geometrySha256": "75a8602696bf6f9cb0007a6bbc64296eee8f22098e65b2e6ea837c1b8b39189b",
-      "durationMs": 11
+      "durationMs": 10
     },
     {
       "problem": "L042",
@@ -36622,7 +36622,7 @@
       "nodeCount": 10,
       "edgeCount": 8,
       "geometrySha256": "7aff35b348d4ed7779eb92f90c024154eec17f8faf16da50889d49dfc5e73e5e",
-      "durationMs": 16
+      "durationMs": 14
     },
     {
       "problem": "L042",
@@ -36674,7 +36674,7 @@
       "nodeCount": 8,
       "edgeCount": 7,
       "geometrySha256": "43c76cd40aa557626c2d103feb5d587325d8594a024c4a5c56713defbc51010f",
-      "durationMs": 10
+      "durationMs": 9
     },
     {
       "problem": "L042",
@@ -36840,7 +36840,7 @@
       "nodeCount": 9,
       "edgeCount": 7,
       "geometrySha256": "b43f0281c9406fa39584883d110b58eefc0861c7f320a1061b04ee7b9ae98dcb",
-      "durationMs": 15
+      "durationMs": 14
     },
     {
       "problem": "L042",
@@ -36855,7 +36855,7 @@
       "nodeCount": 7,
       "edgeCount": 6,
       "geometrySha256": "12431ce93c2437dbc5b9971804a92b665abd1c02d3c8272246f6ca8c69d0870f",
-      "durationMs": 8
+      "durationMs": 7
     },
     {
       "problem": "L042",
@@ -36875,7 +36875,7 @@
       "nodeCount": 10,
       "edgeCount": 8,
       "geometrySha256": "0d170c292e0c26ce77ba5905eedfd3ca0eb5e728b30312d30fb689d635a77f98",
-      "durationMs": 19
+      "durationMs": 18
     },
     {
       "problem": "L042",
@@ -36897,7 +36897,7 @@
       "nodeCount": 8,
       "edgeCount": 7,
       "geometrySha256": "120c71ab771e7d08b3c1a50b3c7fbdef37abc6082540ef6970376d2bdb1939de",
-      "durationMs": 15
+      "durationMs": 14
     },
     {
       "problem": "L043",
@@ -36923,7 +36923,7 @@
       "nodeCount": 4,
       "edgeCount": 2,
       "geometrySha256": "df1b441451fbd42c46f674f075bb28f2697a104967483674dea5884b15b850b1",
-      "durationMs": 1
+      "durationMs": 0
     },
     {
       "problem": "L043",
@@ -36951,7 +36951,7 @@
       "nodeCount": 5,
       "edgeCount": 3,
       "geometrySha256": "49f4a5bb9957cc0140d7bb681ffbe945f1896469433e412f08f9666b2d82127f",
-      "durationMs": 2
+      "durationMs": 1
     },
     {
       "problem": "L043",
@@ -36992,7 +36992,7 @@
       "nodeCount": 6,
       "edgeCount": 4,
       "geometrySha256": "002ea844dcd8774cfdd14c50352e043148b4aae1eca34357533e57f3041d919d",
-      "durationMs": 6
+      "durationMs": 5
     },
     {
       "problem": "L043",
@@ -37157,7 +37157,7 @@
       "nodeCount": 7,
       "edgeCount": 6,
       "geometrySha256": "2d32579223a9342927ffc332b4b2c6e4c67e530c656d24228fb2747ddbcb9119",
-      "durationMs": 16
+      "durationMs": 15
     },
     {
       "problem": "L043",
@@ -37183,7 +37183,7 @@
       "nodeCount": 10,
       "edgeCount": 8,
       "geometrySha256": "db19e56accc51ac5abcd9c1f2b69968cd28c5a66739c1f842dcc2357a74c0e2d",
-      "durationMs": 29
+      "durationMs": 28
     },
     {
       "problem": "L043",
@@ -37205,7 +37205,7 @@
       "nodeCount": 8,
       "edgeCount": 7,
       "geometrySha256": "818f0dd13b344477a2fee096d248433d93c98e67fce631c565f624de6058360a",
-      "durationMs": 23
+      "durationMs": 22
     },
     {
       "problem": "L043",
@@ -37414,7 +37414,7 @@
       "nodeCount": 8,
       "edgeCount": 7,
       "geometrySha256": "8a38c6a15d98f877e608ca1e7a040ad3912714dec88e90d5d1d438958d5b5c23",
-      "durationMs": 2
+      "durationMs": 1
     },
     {
       "problem": "L044",
@@ -37468,7 +37468,7 @@
       "nodeCount": 5,
       "edgeCount": 3,
       "geometrySha256": "21e53ab954ebf524da169aed3c2bafced6dea5ea9b3547461c627e44aecde471",
-      "durationMs": 1
+      "durationMs": 0
     },
     {
       "problem": "L044",
@@ -37503,7 +37503,7 @@
       "nodeCount": 6,
       "edgeCount": 5,
       "geometrySha256": "06f03903c0f5c24715882ac6025efb76517f127f71d990e1719f0f18329307bd",
-      "durationMs": 4
+      "durationMs": 3
     },
     {
       "problem": "L044",
@@ -37568,7 +37568,7 @@
       "nodeCount": 7,
       "edgeCount": 8,
       "geometrySha256": "deaae29736cafdc23e5189255c7485d33a928bac2bd5324d4ca4963905287f87",
-      "durationMs": 19
+      "durationMs": 20
     },
     {
       "problem": "L044",
@@ -37782,7 +37782,7 @@
       "nodeCount": 6,
       "edgeCount": 9,
       "geometrySha256": "4def4ded334ea73616d5ed758f9467e42f853e6fca9f5c9846f1d6cef6f7c6a6",
-      "durationMs": 29
+      "durationMs": 30
     },
     {
       "problem": "L044",
@@ -37898,7 +37898,7 @@
       "nodeCount": 9,
       "edgeCount": 12,
       "geometrySha256": "ebf3a410294978ca2adb03da7bbda974809383411dca1c9eeb4f0c7aa044370b",
-      "durationMs": 225
+      "durationMs": 230
     },
     {
       "problem": "L044",
@@ -38082,7 +38082,7 @@
       "nodeCount": 7,
       "edgeCount": 11,
       "geometrySha256": "25ab0129dad8d7911634a4d149e0da00b830e9f4745d18d1528ddb2fce293712",
-      "durationMs": 270
+      "durationMs": 279
     },
     {
       "problem": "L044",
@@ -38234,7 +38234,7 @@
       "nodeCount": 10,
       "edgeCount": 14,
       "geometrySha256": "eee25c6814e371a306f446373a43285a964abcb8a4fb4d7bd5d61dddca69a49b",
-      "durationMs": 483
+      "durationMs": 489
     },
     {
       "problem": "L044",
@@ -38448,7 +38448,7 @@
       "nodeCount": 8,
       "edgeCount": 13,
       "geometrySha256": "d97f023897fd037023c3b10354e45049dfea2ea0a38954c36b06fa886e23239e",
-      "durationMs": 666
+      "durationMs": 669
     },
     {
       "problem": "L044",
@@ -38621,7 +38621,7 @@
       "nodeCount": 7,
       "edgeCount": 7,
       "geometrySha256": "fe80dade23fa3b593262e7d3d7fe2fcd0c7c6aacfc4256f243e8589dde032c70",
-      "durationMs": 18
+      "durationMs": 19
     },
     {
       "problem": "L044",
@@ -38813,7 +38813,7 @@
       "nodeCount": 9,
       "edgeCount": 10,
       "geometrySha256": "1190d2bba7ea5c438e01e2499492ab4732d7ac52f869a84a7f8bc131dc1f57ef",
-      "durationMs": 44
+      "durationMs": 53
     },
     {
       "problem": "L044",
@@ -38915,7 +38915,7 @@
       "nodeCount": 10,
       "edgeCount": 12,
       "geometrySha256": "b16e4011829d0c90bdd0f56bbf045303e9eb682e3821fa1f323d701ec0f69f68",
-      "durationMs": 146
+      "durationMs": 148
     },
     {
       "problem": "L044",
@@ -38985,7 +38985,7 @@
       "nodeCount": 8,
       "edgeCount": 11,
       "geometrySha256": "4ad30784ac6b43a10ef32865755d0bec671ad5aef80c744b78be02d4da06686f",
-      "durationMs": 98
+      "durationMs": 101
     },
     {
       "problem": "L045",
@@ -39067,7 +39067,7 @@
       "nodeCount": 6,
       "edgeCount": 4,
       "geometrySha256": "aa838e4a6a122883b07c5fe267d53e6fb341af8f9e3fec04648e733cc68fd8ed",
-      "durationMs": 2
+      "durationMs": 1
     },
     {
       "problem": "L045",
@@ -39095,7 +39095,7 @@
       "nodeCount": 7,
       "edgeCount": 5,
       "geometrySha256": "cba4e721b8d20e7fadae3ed76d1b0de63dc6aed686f21d8591dcd4582b957759",
-      "durationMs": 3
+      "durationMs": 4
     },
     {
       "problem": "L045",
@@ -39218,7 +39218,7 @@
       "nodeCount": 10,
       "edgeCount": 11,
       "geometrySha256": "8589fa187d3365d27bd6353e84c7ade7e9825e9df974b4dfa01c1fe8a993eaae",
-      "durationMs": 63
+      "durationMs": 64
     },
     {
       "problem": "L045",
@@ -39601,7 +39601,7 @@
       "nodeCount": 8,
       "edgeCount": 10,
       "geometrySha256": "6ea958b42223f16e8fbebbc44292710200ac9ac63131e34489eda9c4a4de38b5",
-      "durationMs": 33
+      "durationMs": 32
     },
     {
       "problem": "L046",
@@ -39627,7 +39627,7 @@
       "nodeCount": 4,
       "edgeCount": 2,
       "geometrySha256": "51d5a7a8a8b7c3df86d969943fb60c0b2fe4a119534925f2cacb9d76228f575b",
-      "durationMs": 0
+      "durationMs": 1
     },
     {
       "problem": "L046",
@@ -39655,7 +39655,7 @@
       "nodeCount": 5,
       "edgeCount": 3,
       "geometrySha256": "82b9a8d873d28d798fe471da1a2b6a4c53ffd0e93d18a298acf4b306d70898b4",
-      "durationMs": 1
+      "durationMs": 2
     },
     {
       "problem": "L046",
@@ -39698,7 +39698,7 @@
       "nodeCount": 4,
       "edgeCount": 3,
       "geometrySha256": "8f602d183d42fdd49f001b66a7119d3571477ee9ca67c6a468f411103657d972",
-      "durationMs": 1
+      "durationMs": 0
     },
     {
       "problem": "L046",
@@ -39739,7 +39739,7 @@
       "nodeCount": 8,
       "edgeCount": 6,
       "geometrySha256": "e1dab635a00e88f1e472089678e5c205408aac49ae2815ae3169f464099eea2f",
-      "durationMs": 4
+      "durationMs": 5
     },
     {
       "problem": "L046",
@@ -39795,7 +39795,7 @@
       "nodeCount": 10,
       "edgeCount": 8,
       "geometrySha256": "8c0757a8d100e5fd587e780bd921313145fc5157f1a4b7192febd836b896f816",
-      "durationMs": 7
+      "durationMs": 8
     },
     {
       "problem": "L046",
@@ -39948,7 +39948,7 @@
       "nodeCount": 8,
       "edgeCount": 6,
       "geometrySha256": "0a4e74fdaaaee18f75b4c4ed9b318d724896ea88123bea20558db9bbb3f6e491",
-      "durationMs": 5
+      "durationMs": 4
     },
     {
       "problem": "L046",
@@ -39963,7 +39963,7 @@
       "nodeCount": 6,
       "edgeCount": 5,
       "geometrySha256": "5a7ec84769b220ac2871f88595af1a74d1812c45a2ee1d549318ae030670f52b",
-      "durationMs": 3
+      "durationMs": 4
     },
     {
       "problem": "L046",
@@ -39983,7 +39983,7 @@
       "nodeCount": 9,
       "edgeCount": 7,
       "geometrySha256": "99b4ab651ed4808e33535f0a4782a263b5ab24618a4b62351c45544c60dd47db",
-      "durationMs": 7
+      "durationMs": 8
     },
     {
       "problem": "L046",
@@ -40047,7 +40047,7 @@
       "nodeCount": 8,
       "edgeCount": 7,
       "geometrySha256": "b222f33e5d78284014c747d48c0a1207c158b99ff68af98f76287808b0e798ee",
-      "durationMs": 10
+      "durationMs": 9
     }
   ],
   "inputHashes": [
@@ -40057,75 +40057,75 @@
     },
     {
       "path": "public/data/system-diagram/composable-solutions/l001.json",
-      "sha256": "1e410a4b267739205242ad75a51ec6d5427d1ea5f31990d6888a58f5e30db8da"
+      "sha256": "efd6ef3267a17dbb62e552a9adf44d35372acb99b65f160ff2a3ae3121c3c062"
     },
     {
       "path": "public/data/system-diagram/composable-solutions/l002.json",
-      "sha256": "09b004dd8e76b41e3679d358ed6039bccc1c887e58ac23fe7bcce34acfebbbed"
+      "sha256": "638afdf0da5c13584c1afb3f6b875afa519fe1cd99bc173d68244873c6a94237"
     },
     {
       "path": "public/data/system-diagram/composable-solutions/l003.json",
-      "sha256": "f219a0ac69c7856d1263576fa98b68272d30dccf07c776452c25f4d5e70dfbc2"
+      "sha256": "b0a45a4cf32a10b46062940adf4c938377c5156ed8be4124e5775c5f7aaf2e1c"
     },
     {
       "path": "public/data/system-diagram/composable-solutions/l004.json",
-      "sha256": "b4b77b5743e0e4fa107295ae42fc31bd76a99c1625705b3aa72a2ff02a4f5bea"
+      "sha256": "ee6104044f2c948d1c4637b77fd5620c883f26ee124131be6b056ef717b0c4ed"
     },
     {
       "path": "public/data/system-diagram/composable-solutions/l005.json",
-      "sha256": "335ab67126f942e9a4b416f2481b1931fc9bb29a9a409d0e10b7d62b4ae6ab90"
+      "sha256": "69f7d9306a99115c6021ce4033a3573aa0a7af1ed62308274805f6d144e2f4a3"
     },
     {
       "path": "public/data/system-diagram/composable-solutions/l006.json",
-      "sha256": "aaf296d1f50679b543995ec5323c2a1dcf4d01f8afcc05be5f596dad0f4bed28"
+      "sha256": "eb47d9ead299056362a60c22f5111be6f7be5911ed8074a3d532c980b109c17e"
     },
     {
       "path": "public/data/system-diagram/composable-solutions/l007.json",
-      "sha256": "c300426223f53130a6f882309280555cf21b830b6908ee1302c9fd49103dd831"
+      "sha256": "70aef7435349255cc1e4c401525148118929684b67f2ea29d2c3b19d03633ea2"
     },
     {
       "path": "public/data/system-diagram/composable-solutions/l008.json",
-      "sha256": "cd076b0bf052af599d54c0544ec3935717590e0ad0f44b9a0bdd447ef747f45d"
+      "sha256": "f3a72dfde5aac100ed613add7e1a0374d01522fa127affcd3db5f453d2f26509"
     },
     {
       "path": "public/data/system-diagram/composable-solutions/l009.json",
-      "sha256": "c091d663b6197e71c8db36f90d4126ab3a9e37d4340c2eec1552b98d96466e96"
+      "sha256": "b6d049d4246c5ea70dc37f383221c46bfef955d18bf0d848a58e0a6386acbdb0"
     },
     {
       "path": "public/data/system-diagram/composable-solutions/l010.json",
-      "sha256": "0a662e2718ee949f1248e24fd4947b4e867738863e11dc46371464fde36f6113"
+      "sha256": "4c36f24200d9f2b20a5c4fca965c9c5f6790596d9aaab4251b2fee34ecd83ea2"
     },
     {
       "path": "public/data/system-diagram/composable-solutions/l011.json",
-      "sha256": "40fc215dadd610d3a2f8fba0c338935d0bfd9f87506e074ced6fef4476a6851d"
+      "sha256": "d857107270008e0974d6fa7ae63f6191661ac8c32f84d37e8f5300af424fbda3"
     },
     {
       "path": "public/data/system-diagram/composable-solutions/l012.json",
-      "sha256": "de8aa618087bfa87fce5966785aab030938c74f234f3834150145416d6e95aec"
+      "sha256": "794e83b83e0dc53b3bd3737952403c6e718052df9f5d7d7cdd3fafecda7010a9"
     },
     {
       "path": "public/data/system-diagram/composable-solutions/l013.json",
-      "sha256": "dc6644a6e0fe472d51c9089b4a921853c1bf94cd2c438bc850d878162391b8fb"
+      "sha256": "5b0d9dbfbdbe83df06bef95f80dcc37627da179809e418c7c24471d527189265"
     },
     {
       "path": "public/data/system-diagram/composable-solutions/l014.json",
-      "sha256": "12ed7dd9e7bdacdc74a6d81138c90d329ef9631c25e5dfe6b7efa376a7b9eacc"
+      "sha256": "afda8108231bbe4f74f05e8828e02ecb305e6f5515d1a518c2edc86c3a0e46ae"
     },
     {
       "path": "public/data/system-diagram/composable-solutions/l015.json",
-      "sha256": "9268a3711175104ed863a7b372e220fb22b7da468d583189a48d6645bc4764c3"
+      "sha256": "b91d3bd609b834e8ebcb44e0779be52268c7d58215490b888d497336091355fa"
     },
     {
       "path": "public/data/system-diagram/composable-solutions/l016.json",
-      "sha256": "234f45f2a158a256cc21ac729c6fc0dea582169857d4da0d3fa790c8d76a3550"
+      "sha256": "f309212d99f02efd966d828ef8215505d478f49689025d03479c1d83cc67c347"
     },
     {
       "path": "public/data/system-diagram/composable-solutions/l017.json",
-      "sha256": "112a5f680204ceb320449a59bbeeb64d60164c9fd78cc0d56c0589f44576555a"
+      "sha256": "e9f3b6a2549a70fe31376a54cfceaa19c7287917111f3aa4970da2dfe883eb03"
     },
     {
       "path": "public/data/system-diagram/composable-solutions/l018.json",
-      "sha256": "7f3f1ba5a7903bb9980c32c5947378872b1ab5d5cf9e2556df0239b6300e7e9e"
+      "sha256": "86474fe294ccba3a71378fa53806185a3c48bc6ad87a2a3b68f756cbfcb9b117"
     },
     {
       "path": "public/data/system-diagram/composable-solutions/l019.json",
@@ -40133,71 +40133,71 @@
     },
     {
       "path": "public/data/system-diagram/composable-solutions/l020.json",
-      "sha256": "e237cf0290f8992f3aa3795cc28325614a98bfa56e89a5b838e5809c1f4a7631"
+      "sha256": "4223eedffe79fe42fbaefc0eb28955e30ddc8776d8e0a6319944e0411b5dead9"
     },
     {
       "path": "public/data/system-diagram/composable-solutions/l021.json",
-      "sha256": "eb8f5de92f125d3ed7f2263904043d1f12a7d907634c63267fb856f54f84fc8a"
+      "sha256": "ef2476f0b149289ca292084627ce9e1d1150ed74976a6516ea0634bca3124a29"
     },
     {
       "path": "public/data/system-diagram/composable-solutions/l022.json",
-      "sha256": "f66b035f6c4b595ffdd1ea4c0659253e2434f3134693dc1183581b46641da216"
+      "sha256": "a4a5dd92e0d996bbcb03a1d14e4b30b118cc67b46d2afefe81955564fc40371e"
     },
     {
       "path": "public/data/system-diagram/composable-solutions/l023.json",
-      "sha256": "24004824d6f20fb30fe2604ffeb98d1c2b86aa3db60f603816eaa11d8c3d4c04"
+      "sha256": "5a1b99a25ead7a5a5cec7f6a8480ad90e1590c353ade551fe162091488cdf66a"
     },
     {
       "path": "public/data/system-diagram/composable-solutions/l024.json",
-      "sha256": "fb2e21b1cd8acf02400ac1a406da74376a0dff8d2ea3c706eee9ed936bfc2e6c"
+      "sha256": "9b65d933c72069729f29cd5e18674f1e824b30065b7d06e8bfa6256f1ccf19f9"
     },
     {
       "path": "public/data/system-diagram/composable-solutions/l025.json",
-      "sha256": "8ccd4a654e89c9607baaaf87d23668aaeb561b37036bea325d26f1f5e4f8c09c"
+      "sha256": "110ffb498ab2bbe7b71ac319bf433e9ff30f65a61300aa55e106099b575b2833"
     },
     {
       "path": "public/data/system-diagram/composable-solutions/l026.json",
-      "sha256": "615267a4c7735146b972275e24758e4cb6e3fc1b7d6d33b5dd8b49ab98460e12"
+      "sha256": "b1a3323793ef1a6f7939f4b15243b4079c39d8a5614c2a6d31d4112cfcf9884c"
     },
     {
       "path": "public/data/system-diagram/composable-solutions/l027.json",
-      "sha256": "a6d6fcdc3c49a65598efc0e5a7e90a2f80dbbcda5e6ca49dc2818d8600dac11c"
+      "sha256": "8c26db854840cfd9852fc0f36701436eb77bb729d8ceb46996b7500d58b4050f"
     },
     {
       "path": "public/data/system-diagram/composable-solutions/l028.json",
-      "sha256": "5cf59a50dd33f9018f7c414b2d2c09d9c2d438b7f3797b44aff7fc1ab216ed2e"
+      "sha256": "61c6efdab9606a657eb004c20b6801190d3455d7aa21de2003c67af0ff0d50d1"
     },
     {
       "path": "public/data/system-diagram/composable-solutions/l029.json",
-      "sha256": "0ae7aed5ba8ed9141357af833d10659ca38de06e77a23a004cc572833f18faac"
+      "sha256": "9f2a6c42caa08dedc2819534f4262d626a14773ee9c6cb0430179284fd0fb6f5"
     },
     {
       "path": "public/data/system-diagram/composable-solutions/l030.json",
-      "sha256": "1ff572e6259badb2f10f32f14b5dcfe68bcdaeb3605f9dc786982d1c85fdb5d4"
+      "sha256": "04626f742f9ae734761843c763b00499b6adc76da3ef4cf0f68638dd85c7e460"
     },
     {
       "path": "public/data/system-diagram/composable-solutions/l031.json",
-      "sha256": "ddbc5e8c4170f697b764f206ca94eac564e16c01998099b7d59612b46fde1b6d"
+      "sha256": "5513ec9d94155140c010592a4221aba815ed5abf3761fb9b5c93a7f66ac04382"
     },
     {
       "path": "public/data/system-diagram/composable-solutions/l032.json",
-      "sha256": "62a393edde25a4f3ba917dbccc64a3c14398cee05284cde4077af0550bf3ee48"
+      "sha256": "eb5e08c90bf63effd2d695d7d8defd5daab9af8cbb6a584f3da6b77ee4dd657d"
     },
     {
       "path": "public/data/system-diagram/composable-solutions/l033.json",
-      "sha256": "a079af2ccf27b14a0ee6aa41cfeea068a211db426514a1d387a38908b21fe902"
+      "sha256": "a7b3e07f915b95070723b363081c80e739c0121f58fac4dd1bded2ebc9368218"
     },
     {
       "path": "public/data/system-diagram/composable-solutions/l034.json",
-      "sha256": "44a3698a92d8dbd108fe8b389badcc9063e7e947d3634fa4b89b630467bfc72d"
+      "sha256": "a10268c3de18f5eaa74a8baa07d27c35b1ec491cc9de1b313fa9f44a8dcafb64"
     },
     {
       "path": "public/data/system-diagram/composable-solutions/l035.json",
-      "sha256": "34ea4a07bcdc88d7f37f2de8705e8e54d736f4f1c2db36477777d8d6d927c9c6"
+      "sha256": "5a3ce2ff6528889e482f51573dad05fab4dea661143502c31e27cf749247bd06"
     },
     {
       "path": "public/data/system-diagram/composable-solutions/l036.json",
-      "sha256": "21d82f059020214afc354ce11fed3a69bf46d8ad8c494fe7ce8eecedfb7ebebe"
+      "sha256": "95bff7d84f43ca87045ceaf77a8a80db5412a127be2cd3ca12014ea22f6a776c"
     },
     {
       "path": "public/data/system-diagram/composable-solutions/l037.json",
@@ -40205,43 +40205,43 @@
     },
     {
       "path": "public/data/system-diagram/composable-solutions/l038.json",
-      "sha256": "e9c3af7e3c764e75948f6ae7a4f11e13ccd7055394f5535bc6e0a89b2765b1e8"
+      "sha256": "935ddd378bd85b0d8d9032c8bcc53aaa34506b3f2aedf852a5883eea51075e4e"
     },
     {
       "path": "public/data/system-diagram/composable-solutions/l039.json",
-      "sha256": "bc3cee715e49ea6d591be869a145b7081aade8f0895029b231ad2d3d5dec30ce"
+      "sha256": "2a1dd08a1886be090a4fc1ba1712e7d30865d9f14673957d9c7971910b386984"
     },
     {
       "path": "public/data/system-diagram/composable-solutions/l040.json",
-      "sha256": "477d57eba988ee5bc7862f9dadc9493f2b35f606198f51ab5ab32046e66abe2b"
+      "sha256": "d7e122a47f2140df4678edfec367edd2e19a80c0c0ff99e9d786ff23754ea906"
     },
     {
       "path": "public/data/system-diagram/composable-solutions/l041.json",
-      "sha256": "6572b96881ae5a57523314654c1eba5372bb91784b4347061e93da2999fe4e4e"
+      "sha256": "164fe29d07f6d852dae8dfde1f18309d1294f6e1965d705da13ffc79b1d41e71"
     },
     {
       "path": "public/data/system-diagram/composable-solutions/l042.json",
-      "sha256": "987ff17fb4f0366a1cab8fd0c25f55be0f498910e70fd213c5af25c8935eca07"
+      "sha256": "24f600f9310166af388c23d279f5ac449161038de4fc4185d96ccc69d040068a"
     },
     {
       "path": "public/data/system-diagram/composable-solutions/l043.json",
-      "sha256": "8ecdca41d949035433e76f15f8d30aadca1b6a9dff54c60b806f27b5cd3b127f"
+      "sha256": "b51d84125495aa59517516bbd420cb09eca0a16e4de22027b48d0f3e423c6080"
     },
     {
       "path": "public/data/system-diagram/composable-solutions/l044.json",
-      "sha256": "306e419644e3ff80a270a64f1a48d80576bd3ca9b957b3ef4e86efd9e51ae88f"
+      "sha256": "882829930e067173adfe27063c7b37b7e2f68c4239c0231875b0bed00b4ec6bc"
     },
     {
       "path": "public/data/system-diagram/composable-solutions/l045.json",
-      "sha256": "9a1b9eba7b9d19838292decf5a8eeb41390a57230ccdff9d566e9ea48f384c2e"
+      "sha256": "70e136d05bc35a07fb3d62b0009b450e73131206055d4364621d6f3325f4f992"
     },
     {
       "path": "public/data/system-diagram/composable-solutions/l046.json",
-      "sha256": "e386f49ba02955aed860d866282654dfb1298828ba36516d45a15181bddefcb5"
+      "sha256": "fcffa3ab80fa63853db56c2bc56485be54f33cc39d9cc7eb876c7b43008824e3"
     },
     {
       "path": "public/data/system-diagram/composable-solutions/manifest.json",
-      "sha256": "01505cb3ba9ca150178d2d19d134336030896b0135059f6c9f746a2f98c45e7f"
+      "sha256": "8fe8d1f938b977498eacb9b6ed968d130fba4a8b0fda5ef951b549d3765667f9"
     },
     {
       "path": "public/data/system-diagram/composable-solutions/problem.schema.json",

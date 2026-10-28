@@ -1037,7 +1037,7 @@
           "checkIds": [
             "boundary"
           ],
-          "explanation": "Shallow-copy the source once; do not recopy on each intermediate call. Objects referenced by the copy are not deep frozen. Edits to the caller's array after construction are invisible to every terminal. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return.",
+          "explanation": "Shallow-copy the source once; do not recopy on each intermediate call. Objects referenced by the copy are not deep frozen. Edits to the caller's array after construction are invisible to every terminal. [Lazy evaluation](https://en.wikipedia.org/wiki/Lazy_evaluation) postpones work until a result is requested. Short-circuiting can avoid unnecessary work, but the design must specify when callbacks run and how iteration state is owned.",
           "graph": {
             "edges": [
               {
@@ -1357,7 +1357,7 @@
           "checkIds": [
             "fusion"
           ],
-          "explanation": "For each source item, call one composite per map run and one predicate per filter; a rejected item continues the outer source loop. Per element the driver makes one composite call per map run and creates no intermediate array. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return.",
+          "explanation": "For each source item, call one composite per map run and one predicate per filter; a rejected item continues the outer source loop. Per element the driver makes one composite call per map run and creates no intermediate array. [A search index](https://en.wikipedia.org/wiki/Search_engine_indexing) maps query terms to candidate records. The interface must still associate each response with the active query and preserve the user’s chosen filters.",
           "graph": {
             "edges": [
               {
@@ -1554,7 +1554,7 @@
             "behavior",
             "boundary"
           ],
-          "explanation": "Increment output ordinal only after all filters pass; Object.is comparison returns immediately at the first match. No callback runs for source elements after an indexOf match; absence returns -1 and NaN matches NaN. [An index](https://en.wikipedia.org/wiki/Database_index) maintains a structure that narrows a search without scanning every record. Faster reads come with storage costs and extra work whenever indexed data changes.",
+          "explanation": "Increment output ordinal only after all filters pass; Object.is comparison returns immediately at the first match. No callback runs for source elements after an indexOf match; absence returns -1 and NaN matches NaN. [Lazy evaluation](https://en.wikipedia.org/wiki/Lazy_evaluation) postpones work until a result is requested. Short-circuiting can avoid unnecessary work, but the design must specify when callbacks run and how iteration state is owned.",
           "graph": {
             "edges": [
               {
@@ -1774,7 +1774,7 @@
           "checkIds": [
             "boundary"
           ],
-          "explanation": "Use normal propagation through the terminal loop; discard the terminal-local accumulator and preserve the immutable plan. A callback exception stops the loop, returns no partial array and leaves the plan reusable. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return.",
+          "explanation": "Use normal propagation through the terminal loop; discard the terminal-local accumulator and preserve the immutable plan. A callback exception stops the loop, returns no partial array and leaves the plan reusable. [Immutable data](https://en.wikipedia.org/wiki/Immutable_object) is built as a complete new value rather than changed underneath readers. Publishing one reference lets each reader keep a consistent version.",
           "graph": {
             "edges": [
               {
@@ -2019,7 +2019,7 @@
             "behavior",
             "boundary"
           ],
-          "explanation": "Create source and output counters per terminal; retain source snapshot and plan only, without caching results or sharing iteration state. Each terminal recompiles and reruns callbacks; no result or position is cached between terminals. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return.",
+          "explanation": "Create source and output counters per terminal; retain source snapshot and plan only, without caching results or sharing iteration state. Each terminal recompiles and reruns callbacks; no result or position is cached between terminals. [A snapshot](https://en.wikipedia.org/wiki/Snapshot_isolation) gives one read operation a fixed view of data. Later writes may change the live system without changing the rows that reader sees.",
           "graph": {
             "edges": [
               {

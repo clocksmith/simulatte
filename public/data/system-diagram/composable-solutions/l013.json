@@ -1605,7 +1605,7 @@
               "text": "transaction(() => {\n  authorizeBuyer(); lockBuyerLimitRow();\n  if (receipt(buyer, opId)) return samePayloadOrConflict(opId, request);\n  assertBuyerLimit(qty);\n  const changed = conditionalDecrement(sku, qty); // UPDATE ... WHERE available >= qty\n  if (!changed) return durableSoldOutReceipt(opId);\n  const hold = insertReservationAndReceipt(opId, sku, qty, databaseNow() + ttl);\n  return hold;\n});"
             }
           ],
-          "explanation": "Follow-up 1: the check and the decrement must be one atomic step. Conditional decrement grants exactly the stock and never goes negative. The row lock makes the condition and the decrement one step; a reservation row records who holds what until when. [A condition variable](https://en.wikipedia.org/wiki/Condition_variable) lets a thread sleep until shared state may have changed. Waking does not guarantee success, so the protected condition must be checked again.",
+          "explanation": "Follow-up 1: the check and the decrement must be one atomic step. Conditional decrement grants exactly the stock and never goes negative. The row lock makes the condition and the decrement one step; a reservation row records who holds what until when. [A transaction](https://en.wikipedia.org/wiki/Database_transaction) commits related state changes together or leaves them unapplied. The database must enforce the relevant condition during the write, rather than trusting an earlier read.",
           "followupIds": [
             "followup-1"
           ],
@@ -1737,7 +1737,7 @@
             "atomic-checkout-client-check-1-reference"
           ],
           "code": [],
-          "explanation": "Buyers double-click and mobile networks drop replies; a retried submission must not reserve twice. A retried submission with the same key returns the same reservation. The client owns the key for one purchase attempt; the server enforces uniqueness on it, so a retry returns the original reservation. [A trie](https://en.wikipedia.org/wiki/Trie) organizes keys by successive prefixes. Its traversal can find matching prefixes efficiently, but the rule for choosing among matches must be specified separately.",
+          "explanation": "Buyers double-click and mobile networks drop replies; a retried submission must not reserve twice. A retried submission with the same key returns the same reservation. The client owns the key for one purchase attempt; the server enforces uniqueness on it, so a retry returns the original reservation. [A transaction](https://en.wikipedia.org/wiki/Database_transaction) commits related state changes together or leaves them unapplied. The database must enforce the relevant condition during the write, rather than trusting an earlier read.",
           "followupIds": [
             "followup-2"
           ],
@@ -1970,7 +1970,7 @@
               "text": "verifyProviderSignatureAndExpectedPaymentKey(event);\ntransaction(() => {\n  if (processedProviderEvent(event.id)) return PreviousReceipt;\n  const hold = lockReservation(event.reservationId);\n  applyAllowedMonotonicTransition(hold, event.status);\n  if (hold.wasReleased && event.status === \"succeeded\") insertUniqueRefundIntent(hold.paymentKey);\n  persistEventReceiptAndStockChanges(); // no terminal paid -> failed downgrade\n});"
             }
           ],
-          "explanation": "Follow-up 2: the provider retries webhooks and may deliver them out of order. Duplicate and late contradicting webhooks do not change a final state. Our reservation id doubles as the provider’s idempotency key, so a retried charge is one charge; the handler applies each event once. [A payment provider](https://en.wikipedia.org/wiki/Payment_service_provider) performs external financial effects that local retries cannot undo. Request identity, confirmed outcomes, and reconciliation are needed when a request times out after submission.",
+          "explanation": "Follow-up 2: the provider retries webhooks and may deliver them out of order. Duplicate and late contradicting webhooks do not change a final state. Our reservation id doubles as the provider’s idempotency key, so a retried charge is one charge; the handler applies each event once. [Backoff](https://en.wikipedia.org/wiki/Exponential_backoff) spaces repeated attempts so failures do not create a burst of extra traffic. A retry still needs a stable identity and a clear stopping condition.",
           "followupIds": [
             "followup-2"
           ],
@@ -4884,7 +4884,7 @@
             "actor-checkout-client-check-1-reference"
           ],
           "code": [],
-          "explanation": "Buyers double-click and mobile networks drop replies; a retried submission must not reserve twice. A command written twice by a retrying producer is applied once. The command id is the idempotency key: resubmitting appends a duplicate the actor ignores, and polling returns the first outcome. [A trie](https://en.wikipedia.org/wiki/Trie) organizes keys by successive prefixes. Its traversal can find matching prefixes efficiently, but the rule for choosing among matches must be specified separately.",
+          "explanation": "Buyers double-click and mobile networks drop replies; a retried submission must not reserve twice. A command written twice by a retrying producer is applied once. The command id is the idempotency key: resubmitting appends a duplicate the actor ignores, and polling returns the first outcome. [A transaction](https://en.wikipedia.org/wiki/Database_transaction) commits related state changes together or leaves them unapplied. The database must enforce the relevant condition during the write, rather than trusting an earlier read.",
           "followupIds": [
             "followup-2"
           ],
@@ -5172,7 +5172,7 @@
             "actor-snapshots-check-1-reference"
           ],
           "code": [],
-          "explanation": "The actor’s state is in memory; a restart must neither lose nor re-apply a decision. Snapshot plus the commands after its offset rebuilds the same state. Because decisions depend only on the log, a snapshot plus the commands after its offset rebuilds the exact state. [A snapshot](https://en.wikipedia.org/wiki/Snapshot_isolation) gives one read operation a fixed view of data. Later writes may change the live system without changing the rows that reader sees.",
+          "explanation": "The actor’s state is in memory; a restart must neither lose nor re-apply a decision. Snapshot plus the commands after its offset rebuilds the same state. Because decisions depend only on the log, a snapshot plus the commands after its offset rebuilds the exact state. [An event log](https://en.wikipedia.org/wiki/Event-driven_architecture) preserves ordered changes so a consumer can rebuild state or catch up. The consumer must remember its position and handle repeated delivery without repeated effects.",
           "followupIds": [
             "followup-1"
           ],
@@ -5431,7 +5431,7 @@
             "actor-payments-check-2"
           ],
           "code": [],
-          "explanation": "Follow-up 2: webhook retries and order must not race the actor’s own decisions. A duplicated webhook command is applied once. Turning webhooks into commands reuses the actor’s dedupe and puts payment in the same order as everything else. [A payment provider](https://en.wikipedia.org/wiki/Payment_service_provider) performs external financial effects that local retries cannot undo. Request identity, confirmed outcomes, and reconciliation are needed when a request times out after submission.",
+          "explanation": "Follow-up 2: webhook retries and order must not race the actor’s own decisions. A duplicated webhook command is applied once. Turning webhooks into commands reuses the actor’s dedupe and puts payment in the same order as everything else. [Backoff](https://en.wikipedia.org/wiki/Exponential_backoff) spaces repeated attempts so failures do not create a burst of extra traffic. A retry still needs a stable identity and a clear stopping condition.",
           "followupIds": [
             "followup-2"
           ],
@@ -5901,7 +5901,7 @@
             "actor-expiry-check-1-reference"
           ],
           "code": [],
-          "explanation": "Follow-up 3: an expiry must be ordered against a payment for the same hold. The log order decides between payment and expiry. The timer never changes stock itself; it appends a command, so payment and expiry are decided in one order. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid. Expiration must be checked at the point of use, even when background cleanup runs later.",
+          "explanation": "Follow-up 3: an expiry must be ordered against a payment for the same hold. The log order decides between payment and expiry. The timer never changes stock itself; it appends a command, so payment and expiry are decided in one order. [A payment provider](https://en.wikipedia.org/wiki/Payment_service_provider) performs external financial effects that local retries cannot undo. Request identity, confirmed outcomes, and reconciliation are needed when a request times out after submission.",
           "followupIds": [
             "followup-3"
           ],

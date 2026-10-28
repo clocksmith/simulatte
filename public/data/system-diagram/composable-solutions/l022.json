@@ -1548,7 +1548,7 @@
           "checkIds": [
             "loss"
           ],
-          "explanation": "Partition partial counts by deterministic URL hash into three independently retained shuffle stores. A block is owned by its shuffle store, addressed by map, attempt and reducer with a checksum, and outlives the CPU that wrote it. Partition partial counts by deterministic URL hash into three independently retained shuffle stores. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes.",
+          "explanation": "Partition partial counts by deterministic URL hash into three independently retained shuffle stores. A block is owned by its shuffle store, addressed by map, attempt and reducer with a checksum, and outlives the CPU that wrote it. Partition partial counts by deterministic URL hash into three independently retained shuffle stores. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Partitioning](https://en.wikipedia.org/wiki/Partition_%28database%29) divides data and work among owners.",
           "graph": {
             "edges": [
               {
@@ -4538,7 +4538,7 @@
           "checkIds": [
             "reuse"
           ],
-          "explanation": "Pin input bytes and codeVersion (parser, normalizer and hash partition function) before any task runs; report which maps reuse committed checkpoints. A job pins inputHash and codeVersion before planning; those two values are the only key under which a map checkpoint can be reused. [A checkpoint](https://en.wikipedia.org/wiki/Checkpointing) records enough progress to restart without repeating everything. Its usefulness depends on which state is durable and whether later effects can be replayed safely.",
+          "explanation": "Pin input bytes and codeVersion (parser, normalizer and hash partition function) before any task runs; report which maps reuse committed checkpoints. A job pins inputHash and codeVersion before planning; those two values are the only key under which a map checkpoint can be reused. [Partitioning](https://en.wikipedia.org/wiki/Partition_%28database%29) divides data and work among owners. The key determines where requests go; skew, ownership changes, and operations spanning partitions require additional coordination.",
           "graph": {
             "edges": [
               {
@@ -4952,7 +4952,7 @@
             "mechanism",
             "spill"
           ],
-          "explanation": "Parse/normalize each row and commit a local combine output under its attempt key. Each map checkpoint commits under its own attempt key with a checksum; a retry writes a new attempt key and never overwrites. Parse/normalize each row and commit a local combine output under its attempt key. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure.",
+          "explanation": "Parse/normalize each row and commit a local combine output under its attempt key. Each map checkpoint commits under its own attempt key with a checksum; a retry writes a new attempt key and never overwrites. Parse/normalize each row and commit a local combine output under its attempt key. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A checkpoint](https://en.wikipedia.org/wiki/Checkpointing) records enough progress to restart without repeating everything.",
           "graph": {
             "edges": [
               {
@@ -6381,7 +6381,7 @@
           "checkIds": [
             "count"
           ],
-          "explanation": "Require all three reducer partitions before publishing an immutable output manifest. The output manifest is published only with all three reducer partitions present. Require all three reducer partitions before publishing an immutable output manifest. The graph is an authored conceptual design; guarantees require the named deployment contracts. [Partitioning](https://en.wikipedia.org/wiki/Partition_%28database%29) divides data and work among owners. The key determines where requests go; skew, ownership changes, and operations spanning partitions require additional coordination.",
+          "explanation": "Require all three reducer partitions before publishing an immutable output manifest. The output manifest is published only with all three reducer partitions present. Require all three reducer partitions before publishing an immutable output manifest. The graph is an authored conceptual design; guarantees require the named deployment contracts. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version.",
           "graph": {
             "edges": [
               {

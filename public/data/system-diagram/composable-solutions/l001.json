@@ -667,7 +667,7 @@
           "checkIds": [
             "tenant-isolation"
           ],
-          "explanation": "Expand the service into query validation and the actual storage engine. Gateway retries do not invent transaction success. [Retrieval-augmented generation](https://en.wikipedia.org/wiki/Retrieval-augmented_generation) brings external material into a model request. Retrieval quality, access permissions, source freshness, and explicit evidence boundaries matter separately from the model’s generated answer. Consider this case: Tenant A and B share a gateway or pool.",
+          "explanation": "Expand the service into query validation and the actual storage engine. Gateway retries do not invent transaction success. [A search index](https://en.wikipedia.org/wiki/Search_engine_indexing) maps query terms to candidate records. The interface must still associate each response with the active query and preserve the user’s chosen filters. Consider this case: Tenant A and B share a gateway or pool.",
           "graph": {
             "edges": [
               {
@@ -995,7 +995,7 @@
           "checkIds": [
             "reconcile-retry"
           ],
-          "explanation": "Add a controller whose retries use stable resource IDs and generation guards. Stale desired generations cannot publish ready for a newer request. [A control loop](https://en.wikipedia.org/wiki/Control_loop) compares desired state with observed state and applies corrections. Repeated execution must converge safely, especially when a previous action succeeded but its reply was lost.",
+          "explanation": "Add a controller whose retries use stable resource IDs and generation guards. Stale desired generations cannot publish ready for a newer request. [Backoff](https://en.wikipedia.org/wiki/Exponential_backoff) spaces repeated attempts so failures do not create a burst of extra traffic. A retry still needs a stable identity and a clear stopping condition. Consider this case: Provider created a resource but the controller lost its reply.",
           "graph": {
             "edges": [
               {
@@ -2676,7 +2676,7 @@
           "checkIds": [
             "tenant-isolation"
           ],
-          "explanation": "Expand the service into query validation and the actual storage engine. Gateway retries do not invent transaction success. [Retrieval-augmented generation](https://en.wikipedia.org/wiki/Retrieval-augmented_generation) brings external material into a model request. Retrieval quality, access permissions, source freshness, and explicit evidence boundaries matter separately from the model’s generated answer. Consider this case: Tenant A and B share a gateway or pool.",
+          "explanation": "Expand the service into query validation and the actual storage engine. Gateway retries do not invent transaction success. [A search index](https://en.wikipedia.org/wiki/Search_engine_indexing) maps query terms to candidate records. The interface must still associate each response with the active query and preserve the user’s chosen filters. Consider this case: Tenant A and B share a gateway or pool.",
           "graph": {
             "edges": [
               {
@@ -3004,7 +3004,7 @@
           "checkIds": [
             "reconcile-retry"
           ],
-          "explanation": "Add a controller whose retries use stable resource IDs and generation guards. Stale desired generations cannot publish ready for a newer request. [A control loop](https://en.wikipedia.org/wiki/Control_loop) compares desired state with observed state and applies corrections. Repeated execution must converge safely, especially when a previous action succeeded but its reply was lost.",
+          "explanation": "Add a controller whose retries use stable resource IDs and generation guards. Stale desired generations cannot publish ready for a newer request. [Backoff](https://en.wikipedia.org/wiki/Exponential_backoff) spaces repeated attempts so failures do not create a burst of extra traffic. A retry still needs a stable identity and a clear stopping condition. Consider this case: Provider created a resource but the controller lost its reply.",
           "graph": {
             "edges": [
               {

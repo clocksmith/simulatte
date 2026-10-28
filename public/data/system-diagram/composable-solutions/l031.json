@@ -19,6 +19,11 @@
           "id": "out-l031.local.c4-control"
         },
         {
+          "contractId": "l031.local.c4",
+          "direction": "out",
+          "id": "out-l031.local.c4-control--2474a1e2e536fb87"
+        },
+        {
           "contractId": "l031.local.activate",
           "direction": "in",
           "id": "in-l031.local.activate-control"
@@ -4546,7 +4551,7 @@
           "checkIds": [
             "failure"
           ],
-          "explanation": "Treat a timeout as an unknown outcome: fence superseded worker attempts by epoch, and let a reconciler look up the generationKey before anything is resent. A timed-out RPC leaves its intent unknown; the reconciler records accepted or completed outcomes, resends the same key only on proven absence and otherwise holds, while superseded worker attempts are fenced by epoch. [A control loop](https://en.wikipedia.org/wiki/Control_loop) compares desired state with observed state and applies corrections.",
+          "explanation": "Treat a timeout as an unknown outcome: fence superseded worker attempts by epoch, and let a reconciler look up the generationKey before anything is resent. A timed-out RPC leaves its intent unknown; the reconciler records accepted or completed outcomes, resends the same key only on proven absence and otherwise holds, while superseded worker attempts are fenced by epoch. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes.",
           "graph": {
             "edges": [
               {

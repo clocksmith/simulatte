@@ -1427,7 +1427,7 @@
             "behavior",
             "boundary"
           ],
-          "explanation": "After /* emit one separator, drop nonnewline content until first */; internal /* is plain comment content. /*/ cannot close itself because no complete */ follows the opener. [Replication](https://en.wikipedia.org/wiki/Replication_%28computing%29) keeps copies of state on multiple nodes. Copying data alone does not decide which copy may accept writes or how much stale data a read may return.",
+          "explanation": "After /* emit one separator, drop nonnewline content until first */; internal /* is plain comment content. /*/ cannot close itself because no complete */ follows the opener. [Lexical analysis](https://en.wikipedia.org/wiki/Lexical_analysis) reads characters while tracking their meaning in the current context. The same delimiter can be ordinary text inside a string and syntax outside it.",
           "graph": {
             "edges": [
               {
@@ -2886,7 +2886,7 @@
           "checkIds": [
             "behavior"
           ],
-          "explanation": "Append adjacent disjoint spans covering source exactly once; keep original start/end and span kind. No overlap, gap or reordered source interval is permitted. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version. Consider this case: Quoted delimiters, escaped quotes, doubled quotes, // and -- lines, and multiline blocks.",
+          "explanation": "Append adjacent disjoint spans covering source exactly once; keep original start/end and span kind. No overlap, gap or reordered source interval is permitted. [Lexical analysis](https://en.wikipedia.org/wiki/Lexical_analysis) reads characters while tracking their meaning in the current context. The same delimiter can be ordinary text inside a string and syntax outside it. Consider this case: Quoted delimiters, escaped quotes, doubled quotes, // and -- lines, and multiline blocks.",
           "graph": {
             "edges": [
               {
@@ -3322,7 +3322,7 @@
           "checkIds": [
             "boundary"
           ],
-          "explanation": "Validate every span and EOF state before joining output pieces; errors report original opener offset without returning a successful partial result. Malformed input returns no successful output artifact. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version.",
+          "explanation": "Validate every span and EOF state before joining output pieces; errors report original opener offset without returning a successful partial result. Malformed input returns no successful output artifact. [Lexical analysis](https://en.wikipedia.org/wiki/Lexical_analysis) reads characters while tracking their meaning in the current context. The same delimiter can be ordinary text inside a string and syntax outside it.",
           "graph": {
             "edges": [
               {

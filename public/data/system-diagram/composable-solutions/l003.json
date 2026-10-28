@@ -2538,7 +2538,7 @@
             "keyset-summary-check-1"
           ],
           "code": [],
-          "explanation": "Page 1 and its total are keyed by the same queryHash and invalidated by the same writes; two caches let them disagree. First-page rows and an approximate total carry one published summary version plus as-of metadata; the estimate need not equal exact membership. Merging the two caches gives one entry per query, refreshed by one stream, so the page and its count are consistent with each other. [A cache](https://en.wikipedia.org/wiki/Cache_replacement_policies) keeps reusable results in limited memory.",
+          "explanation": "Page 1 and its total are keyed by the same queryHash and invalidated by the same writes; two caches let them disagree. First-page rows and an approximate total carry one published summary version plus as-of metadata; the estimate need not equal exact membership. [A search index](https://en.wikipedia.org/wiki/Search_engine_indexing) maps query terms to candidate records. The interface must still associate each response with the active query and preserve the user’s chosen filters.",
           "followupIds": [
             "followup-3"
           ],
@@ -5133,7 +5133,7 @@
               "text": "onError(410):\n  loader.restart()        // keep items and seen ids, drop cursor\n  loader.loadMore()       // new session; already-shown ids are skipped"
             }
           ],
-          "explanation": "Each session holds memory and an index reader; they must expire without the list repeating rows. After a session expires the client restarts without showing repeats. Expiry is visible to the client as 410; restarting with the seen-id set keeps the screen free of repeats. [Time to live](https://en.wikipedia.org/wiki/Time_to_live) defines when a value or right stops being valid. Expiration must be checked at the point of use, even when background cleanup runs later.",
+          "explanation": "Each session holds memory and an index reader; they must expire without the list repeating rows. After a session expires the client restarts without showing repeats. Expiry is visible to the client as 410; restarting with the seen-id set keeps the screen free of repeats. [An index](https://en.wikipedia.org/wiki/Database_index) maintains a structure that narrows a search without scanning every record. Faster reads come with storage costs and extra work whenever indexed data changes.",
           "followupIds": [
             "followup-2",
             "followup-3"

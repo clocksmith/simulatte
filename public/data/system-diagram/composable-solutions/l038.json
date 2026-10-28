@@ -1180,7 +1180,7 @@
           "checkIds": [
             "behavior"
           ],
-          "explanation": "Keep rule ordinal with normalized network, mask and action; do not sort by prefix length. Original rule order remains authoritative. [A content delivery network](https://en.wikipedia.org/wiki/Content_delivery_network) serves reusable content near viewers. Cache keys, freshness rules, and origin fallback determine whether that improves latency without serving the wrong version. Consider this case: An early /8 DENY and a later /32 ALLOW covering 10.1.2.3, then the reversed order.",
+          "explanation": "Keep rule ordinal with normalized network, mask and action; do not sort by prefix length. Original rule order remains authoritative. [An index](https://en.wikipedia.org/wiki/Database_index) maintains a structure that narrows a search without scanning every record. Faster reads come with storage costs and extra work whenever indexed data changes. Consider this case: An early /8 DENY and a later /32 ALLOW covering 10.1.2.3, then the reversed order.",
           "graph": {
             "edges": [
               {
@@ -2374,7 +2374,7 @@
           "checkIds": [
             "behavior"
           ],
-          "explanation": "Store each prefix at its bit-depth node; traverse the address path and select minimum original ordinal over all matching ancestor prefixes. The winning rule has smallest ordinal, not greatest depth. [An index](https://en.wikipedia.org/wiki/Database_index) maintains a structure that narrows a search without scanning every record. Faster reads come with storage costs and extra work whenever indexed data changes.",
+          "explanation": "Store each prefix at its bit-depth node; traverse the address path and select minimum original ordinal over all matching ancestor prefixes. The winning rule has smallest ordinal, not greatest depth. [A trie](https://en.wikipedia.org/wiki/Trie) organizes keys by successive prefixes. Its traversal can find matching prefixes efficiently, but the rule for choosing among matches must be specified separately.",
           "graph": {
             "edges": [
               {
@@ -2949,7 +2949,7 @@
             "behavior",
             "publication"
           ],
-          "explanation": "Read the active {root,version} value once, then visit its root and at most 32 nodes following each address bit; update best when a candidate ordinal is lower. Unvisited sibling prefixes cannot match the address, and the walk never switches to a newer root. [Write-ahead logging](https://en.wikipedia.org/wiki/Write-ahead_logging) records a change before relying on its final stored form. Recovery replays durable records, so acknowledgement and flush boundaries must match the promised durability.",
+          "explanation": "Read the active {root,version} value once, then visit its root and at most 32 nodes following each address bit; update best when a candidate ordinal is lower. Unvisited sibling prefixes cannot match the address, and the walk never switches to a newer root. [A trie](https://en.wikipedia.org/wiki/Trie) organizes keys by successive prefixes. Its traversal can find matching prefixes efficiently, but the rule for choosing among matches must be specified separately.",
           "graph": {
             "edges": [
               {

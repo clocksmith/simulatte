@@ -1443,7 +1443,7 @@
             "unsubscribe",
             "uncertain-send"
           ],
-          "explanation": "Add an independent dispatcher and provider; check current suppression before claiming an attempt. A dispatch authorization defines the unsubscribe cutoff; an already accepted email cannot be recalled. [Access control](https://en.wikipedia.org/wiki/Access_control) decides whether an authenticated identity may perform a particular action. The check must apply to the actual resource and operation, including cached and asynchronous paths.",
+          "explanation": "Add an independent dispatcher and provider; check current suppression before claiming an attempt. A dispatch authorization defines the unsubscribe cutoff; an already accepted email cannot be recalled. [A search index](https://en.wikipedia.org/wiki/Search_engine_indexing) maps query terms to candidate records. The interface must still associate each response with the active query and preserve the user’s chosen filters.",
           "graph": {
             "edges": [
               {
@@ -2159,7 +2159,7 @@
             "duplicate-match",
             "digest-freeze"
           ],
-          "explanation": "Compare durable checkpoints with retained publication history and run a bounded overlap backfill. If retention was exceeded, report the uncovered interval and rebuild; do not silently claim complete coverage. [A checkpoint](https://en.wikipedia.org/wiki/Checkpointing) records enough progress to restart without repeating everything. Its usefulness depends on which state is durable and whether later effects can be replayed safely.",
+          "explanation": "Compare durable checkpoints with retained publication history and run a bounded overlap backfill. If retention was exceeded, report the uncovered interval and rebuild; do not silently claim complete coverage. [A search index](https://en.wikipedia.org/wiki/Search_engine_indexing) maps query terms to candidate records. The interface must still associate each response with the active query and preserve the user’s chosen filters.",
           "graph": {
             "edges": [
               {
@@ -2892,7 +2892,7 @@
             "match-boundary",
             "duplicate-match"
           ],
-          "explanation": "A committed publication emits a durable event; replay is allowed and matching must deduplicate. Progress never advances past work whose match writes are not durably committed. [Transaction guarantees](https://en.wikipedia.org/wiki/ACID) describe which changes become visible together and what survives failure. They must be tied to explicit storage behavior rather than inferred from a successful API call.",
+          "explanation": "A committed publication emits a durable event; replay is allowed and matching must deduplicate. Progress never advances past work whose match writes are not durably committed. [An event log](https://en.wikipedia.org/wiki/Event-driven_architecture) preserves ordered changes so a consumer can rebuild state or catch up. The consumer must remember its position and handle repeated delivery without repeated effects.",
           "graph": {
             "edges": [
               {
@@ -3609,7 +3609,7 @@
             "unsubscribe",
             "uncertain-send"
           ],
-          "explanation": "Add an independent dispatcher and provider; check current suppression before claiming an attempt. A dispatch authorization defines the unsubscribe cutoff; an already accepted email cannot be recalled. [Access control](https://en.wikipedia.org/wiki/Access_control) decides whether an authenticated identity may perform a particular action. The check must apply to the actual resource and operation, including cached and asynchronous paths.",
+          "explanation": "Add an independent dispatcher and provider; check current suppression before claiming an attempt. A dispatch authorization defines the unsubscribe cutoff; an already accepted email cannot be recalled. [A search index](https://en.wikipedia.org/wiki/Search_engine_indexing) maps query terms to candidate records. The interface must still associate each response with the active query and preserve the user’s chosen filters.",
           "graph": {
             "edges": [
               {
@@ -4371,7 +4371,7 @@
             "duplicate-match",
             "digest-freeze"
           ],
-          "explanation": "Compare durable checkpoints with retained publication history and run a bounded overlap backfill. If retention was exceeded, report the uncovered interval and rebuild; do not silently claim complete coverage. [A checkpoint](https://en.wikipedia.org/wiki/Checkpointing) records enough progress to restart without repeating everything. Its usefulness depends on which state is durable and whether later effects can be replayed safely.",
+          "explanation": "Compare durable checkpoints with retained publication history and run a bounded overlap backfill. If retention was exceeded, report the uncovered interval and rebuild; do not silently claim complete coverage. [A search index](https://en.wikipedia.org/wiki/Search_engine_indexing) maps query terms to candidate records. The interface must still associate each response with the active query and preserve the user’s chosen filters.",
           "graph": {
             "edges": [
               {
