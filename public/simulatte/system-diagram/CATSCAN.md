@@ -8,10 +8,10 @@ Evolve intent into executable architecture; study sourced problems with editable
 
 ## Authority
 
-- Owns documents, [architecture model](architecture-model.js), refinement, lowering, kernels, study, observations and encrypted practice; 256one retains career records.
-- Coordinator owns rounds/checkpoints/replay; World UI owns controls.
-- Does not own Create or provisioning.
-- [Deployment child](deployment/CATSCAN.md) owns optional bindings and exports.
+- Owns editing, refinement, kernels, lowering, study, observations and encryption; 256one retains career records. [Schemas](https://github.com/clocksmith/gamma/tree/main/projects/problem_catalogue) consolidate in Gamma; consumer migration awaits review.
+- Coordinator owns rounds/checkpoints/replay; World owns controls.
+- Does not own Create/provisioning.
+- [Deployment](deployment/CATSCAN.md) owns optional bindings/exports.
 
 ## Scope
 
